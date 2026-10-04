@@ -503,7 +503,7 @@ export function PartiuAppAuthGate({
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col font-sans transition-colors duration-200"
+      className="min-h-[100dvh] w-full flex flex-col font-sans transition-colors duration-200 overflow-x-hidden overflow-y-auto bg-slate-50"
       style={{
         backgroundColor: colors.background,
         color: colors.textPrimary,
@@ -513,7 +513,7 @@ export function PartiuAppAuthGate({
       {/* ===================================================================== */}
       {/* 1. BARRA SUPERIOR MINIMALISTA COM LOGO E TOGGLE PASSAGEIRO/MOTORISTA  */}
       {/* ===================================================================== */}
-      <header className="w-full max-w-xl mx-auto px-4 sm:px-6 pt-6 pb-4 flex items-center justify-between">
+      <header className="w-full max-w-md mx-auto px-4 pt-[max(0.75rem,calc(env(safe-area-inset-top,0px)+0.5rem))] pb-2 flex items-center justify-between">
         <Link
           to="/"
           className="inline-flex items-center gap-1.5 text-xs font-medium transition h-8 px-3 rounded-lg hover:opacity-85 active:scale-95 cursor-pointer shadow-2xs"
@@ -542,12 +542,12 @@ export function PartiuAppAuthGate({
           ) : (
             <div className="flex items-center gap-2">
               <div
-                className="h-9 w-9 rounded-xl flex items-center justify-center shadow-sm"
+                className="h-8 w-8 rounded-xl flex items-center justify-center shadow-sm"
                 style={{ backgroundColor: colors.primary }}
               >
-                <Zap className="h-5 w-5 stroke-[2.5] text-white" />
+                <Zap className="h-4.5 w-4.5 stroke-[2.5] text-white" />
               </div>
-              <span className="text-xl font-black tracking-tight" style={{ color: colors.textPrimary }}>
+              <span className="text-lg font-black tracking-tight" style={{ color: colors.textPrimary }}>
                 {appName}
               </span>
             </div>
@@ -555,16 +555,16 @@ export function PartiuAppAuthGate({
         </div>
 
         {/* Espaçador simétrico para manter o logo centralizado */}
-        <div className="w-16" />
+        <div className="w-14" />
       </header>
 
       {/* ===================================================================== */}
       {/* 2. ÁREA CENTRAL DO NOVO FLUXO UNIFICADO (MAGIC FLOW)                  */}
       {/* ===================================================================== */}
-      <main className="flex-1 w-full max-w-md mx-auto px-4 sm:px-6 py-4 flex flex-col justify-start sm:justify-center">
+      <main className="flex-1 w-full max-w-md mx-auto px-3.5 sm:px-6 py-2 sm:py-4 flex flex-col justify-start pb-[max(2rem,calc(env(safe-area-inset-bottom,0px)+1.5rem))]">
         
         {/* Toggle Sutil no Topo com Animação Fluida (Passageiro vs Motorista) */}
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <WhiteLabelToggle
             activeRole={activeRole}
             onChange={(role) => {
@@ -583,14 +583,14 @@ export function PartiuAppAuthGate({
 
         {/* Feedback Messages (Alto Contraste) */}
         {errorMessage && (
-          <div className="mb-4 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm font-semibold flex items-start gap-3 animate-in fade-in">
+          <div className="mb-3.5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm font-semibold flex items-start gap-2.5 animate-in fade-in">
             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-rose-600" />
             <span className="leading-snug">{errorMessage}</span>
           </div>
         )}
 
         {successMessage && (
-          <div className="mb-4 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-semibold flex items-start gap-3 animate-in fade-in">
+          <div className="mb-3.5 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-semibold flex items-start gap-2.5 animate-in fade-in">
             <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-emerald-600" />
             <span className="leading-snug">{successMessage}</span>
           </div>
@@ -600,7 +600,7 @@ export function PartiuAppAuthGate({
         <NativeSurface
           elevation={1}
           padding="none"
-          className="w-full p-5 sm:p-8 rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_12px_40px_rgba(0,0,0,0.05)] transition-all duration-300"
+          className="w-full p-4 sm:p-7 rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_12px_40px_rgba(0,0,0,0.05)] transition-all duration-300"
         >
           {/* =================================================================== */}
           {/* FLUXO DO PASSAGEIRO                                                 */}

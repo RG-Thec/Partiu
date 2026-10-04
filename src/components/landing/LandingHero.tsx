@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { ArrowRight, MapPin, User, Car, Star, ShieldCheck, Clock, Zap, CheckCircle2, Bike, Package } from "lucide-react";
 import type { HeroConfig, ActionItem, ThemeConfig, MapCardConfig } from "@/types/mobilityLanding";
+import { VehiclePerspectiveGraphic } from "@/components/passenger/VehiclePerspectiveGraphic";
 
 interface LandingHeroProps {
   hero: HeroConfig;
@@ -83,9 +84,123 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. GRID PRINCIPAL DO HERO (COLUNA ESQUERDA: COPY + AÇÕES / DIREITA: APP)  */}
+      {/* 2A. HERO NATIVO MOBILE-FIRST (DRIVELUX SCREEN 1 ONBOARDING)               */}
       {/* ========================================================================= */}
-      <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-14 pt-2">
+      <div className="w-full max-w-md mx-auto flex flex-col items-center text-center lg:hidden space-y-4 pt-1 pb-4">
+        {/* Badge de Status e Geolocalização */}
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/95 border border-slate-200/90 shadow-2xs text-[11px] font-bold text-slate-700">
+          <span
+            className="w-2 h-2 rounded-full animate-ping"
+            style={{ backgroundColor: theme.primary }}
+          />
+          <span className="tracking-wide text-slate-700">
+            {hero.locationChipText || "Mobilidade urbana"}
+          </span>
+          <span className="text-slate-300">•</span>
+          <span className="text-emerald-600 font-extrabold flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            Ao vivo
+          </span>
+        </div>
+
+        {/* Headline e Copy Clean */}
+        <div className="space-y-1.5 px-2">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 leading-tight">
+            {firstLine}{" "}
+            {secondLine && (
+              <span
+                className="bg-clip-text text-transparent"
+                style={{
+                  backgroundImage: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || "#FFAE00"} 100%)`,
+                }}
+              >
+                {secondLine}
+              </span>
+            )}
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600 max-w-xs mx-auto leading-relaxed">
+            {hero.description || "Viagens rápidas e seguras no seu dia a dia com os melhores motoristas da cidade."}
+          </p>
+        </div>
+
+        {/* Visual do Veículo em Destaque com Aura de Luz Suave */}
+        <div className="relative w-full py-1 flex items-center justify-center">
+          <div
+            className="absolute inset-0 max-w-[240px] mx-auto rounded-full blur-2xl opacity-20 pointer-events-none"
+            style={{
+              background: `radial-gradient(circle, ${theme.primary} 0%, ${theme.secondary || theme.primary} 50%, transparent 70%)`,
+            }}
+          />
+          <VehiclePerspectiveGraphic
+            category="POP"
+            className="w-48 sm:w-56 h-28 sm:h-32 object-contain drop-shadow-md relative z-10"
+          />
+        </div>
+
+        {/* Três Selos/Pills de Confiança (Screen 1 DriveLux) */}
+        <div className="flex flex-wrap items-center justify-center gap-1.5 w-full pt-0.5">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/95 border border-slate-200/90 shadow-2xs text-[10.5px] font-semibold text-slate-700">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            <span>Seguro e confiável</span>
+          </div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/95 border border-slate-200/90 shadow-2xs text-[10.5px] font-semibold text-slate-700">
+            <User className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+            <span>Motoristas verificados</span>
+          </div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/95 border border-slate-200/90 shadow-2xs text-[10.5px] font-semibold text-slate-700">
+            <CheckCircle2 className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            <span>Pagamento pelo app</span>
+          </div>
+        </div>
+
+        {/* CTAs de Conversão Mobile (Screen 1) */}
+        <div className="w-full space-y-2.5 pt-2 px-1">
+          <button
+            type="button"
+            onClick={() => handleActionClick("/app")}
+            className="w-full h-12 rounded-2xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md active:scale-[0.98] transition cursor-pointer"
+            style={{
+              background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
+              boxShadow: `0 6px 20px ${theme.primary}35`,
+            }}
+          >
+            <span>Começar agora</span>
+            <ArrowRight className="w-4 h-4 stroke-[2.2]" />
+          </button>
+
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => handleActionClick("/auth")}
+              className="text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer py-1"
+            >
+              Já tem uma conta?{" "}
+              <span className="font-extrabold underline" style={{ color: theme.primary }}>
+                Entrar
+              </span>
+            </button>
+          </div>
+
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => handleActionClick("/cadastro-motorista")}
+              className="w-full py-2.5 px-3.5 rounded-xl bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200/80 text-slate-700 text-xs font-bold flex items-center justify-between transition active:scale-[0.99] cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Car className="w-4 h-4 text-slate-600" />
+                <span>Quer faturar? Seja motorista parceiro</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 2B. GRID DESKTOP DO HERO (COLUNA ESQUERDA: COPY + AÇÕES / DIREITA: APP)   */}
+      {/* ========================================================================= */}
+      <div className="w-full max-w-7xl mx-auto hidden lg:flex flex-row items-center justify-between gap-8 lg:gap-14 pt-2">
         {/* COLUNA ESQUERDA: PROPOSTA DE VALOR, CONVERSÃO E PROVA SOCIAL */}
         <div className="w-full lg:w-[54%] flex flex-col items-start space-y-5 text-left z-10">
           {/* Badge de Status e Geolocalização */}

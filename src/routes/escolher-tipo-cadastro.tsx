@@ -60,13 +60,13 @@ export function EscolherTipoCadastroPage() {
 
   return (
     <div
-      className="min-h-[100dvh] flex flex-col justify-between p-4 sm:p-6 w-full pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] bg-slate-50 text-slate-900 transition-colors duration-200"
+      className="min-h-[100dvh] w-full flex flex-col font-sans transition-colors duration-200 overflow-x-hidden overflow-y-auto bg-slate-50 text-slate-900 p-3.5 sm:p-6 pb-[max(2rem,calc(env(safe-area-inset-bottom,0px)+1.5rem))]"
       style={{
         fontFamily: ui.fontFamily,
       }}
     >
       {/* Top Header */}
-      <div className="mx-auto w-full max-w-md flex items-center justify-between">
+      <div className="mx-auto w-full max-w-md pt-[max(0.25rem,calc(env(safe-area-inset-top,0px)))] flex items-center justify-between pb-2">
         <Link
           to="/"
           className="flex min-h-[34px] min-w-[34px] h-8.5 w-8.5 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-2xs active:scale-95 transition-all cursor-pointer hover:bg-slate-100"
@@ -84,7 +84,7 @@ export function EscolherTipoCadastroPage() {
         <div className="w-8.5" />
       </div>
 
-      <div className="w-full max-w-md mx-auto flex-1 flex flex-col justify-center py-5">
+      <div className="w-full max-w-md mx-auto flex-1 flex flex-col justify-start sm:justify-center py-3 sm:py-5">
         {/* Logo e Título */}
         <div className="text-center mb-5">
           <div

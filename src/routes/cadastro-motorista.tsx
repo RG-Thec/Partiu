@@ -357,7 +357,7 @@ export function CadastroMotoristaPage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col justify-between transition-colors duration-200"
+      className="min-h-[100dvh] w-full flex flex-col font-sans transition-colors duration-200 overflow-x-hidden overflow-y-auto bg-slate-50"
       style={{
         backgroundColor: colors.background,
         color: colors.textPrimary,
@@ -366,12 +366,12 @@ export function CadastroMotoristaPage() {
     >
       <TopNav />
 
-      <main className="flex-1 max-w-xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center">
+      <main className="flex-1 max-w-xl w-full mx-auto p-3.5 sm:p-6 flex flex-col justify-start pb-[max(2.5rem,calc(env(safe-area-inset-bottom,0px)+2rem))]">
         {!sucesso ? (
           <NativeSurface
             elevation={1}
             padding="none"
-            className="w-full p-5 sm:p-8 rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_12px_40px_rgba(0,0,0,0.05)] space-y-4 transition-all duration-200"
+            className="w-full p-4 sm:p-7 rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_12px_40px_rgba(0,0,0,0.05)] space-y-4 transition-all duration-200"
           >
             {/* Error Banner */}
             {erroValidacao && (

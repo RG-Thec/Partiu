@@ -157,7 +157,7 @@ export function CadastroPassageiroPage() {
 
   return (
     <div
-      className="min-h-[100dvh] flex flex-col justify-between p-4 sm:p-6 w-full pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] transition-colors duration-200"
+      className="min-h-[100dvh] w-full flex flex-col font-sans transition-colors duration-200 overflow-x-hidden overflow-y-auto bg-slate-50 p-3.5 sm:p-6 pb-[max(2rem,calc(env(safe-area-inset-bottom,0px)+1.5rem))]"
       style={{
         backgroundColor: colors.background,
         color: colors.textPrimary,
@@ -165,7 +165,7 @@ export function CadastroPassageiroPage() {
       }}
     >
       {/* Top Header */}
-      <div className="mx-auto w-full max-w-md flex items-center justify-between">
+      <div className="mx-auto w-full max-w-md pt-[max(0.25rem,calc(env(safe-area-inset-top,0px)))] flex items-center justify-between pb-2">
         <Link
           to="/"
           className="flex min-h-[34px] min-w-[34px] h-8.5 w-8.5 items-center justify-center rounded-lg border text-foreground/80 shadow-2xs active:scale-95 transition-all cursor-pointer hover:opacity-80"
@@ -188,14 +188,14 @@ export function CadastroPassageiroPage() {
         <div className="w-8.5" />
       </div>
 
-      <main className="w-full max-w-md mx-auto flex-1 flex flex-col justify-center py-4">
+      <main className="w-full max-w-md mx-auto flex-1 flex flex-col justify-start py-2 sm:py-4">
         {!sucesso ? (
           <NativeSurface
             elevation={1}
             padding="none"
-            className="w-full p-5 sm:p-8 rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_12px_40px_rgba(0,0,0,0.05)] space-y-4 transition-all duration-200"
+            className="w-full p-4 sm:p-7 rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_12px_40px_rgba(0,0,0,0.05)] space-y-3.5 transition-all duration-200"
           >
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3.5">
               {/* Indicador de Progresso Conectado à Cor Primária */}
               <WhiteLabelProgressBar
                 currentStep={1}

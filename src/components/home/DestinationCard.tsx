@@ -1,5 +1,5 @@
 import React, { memo, useCallback } from "react";
-import { Search, Clock, ChevronRight, Home, Briefcase, MapPin } from "lucide-react";
+import { Search, Clock, ChevronRight, Home, Briefcase, MapPin, Star } from "lucide-react";
 import type { RecentAddressItem } from "./home-mock-data";
 import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
@@ -190,14 +190,14 @@ export const DestinationCard = memo(function DestinationCard({
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-2 pt-0.5">
+          <div className="grid grid-cols-3 gap-1.5 pt-0.5">
             <button
               type="button"
               onClick={handleCasaClick}
-              className="flex items-center gap-2 p-2.5 rounded-2xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200/60 text-left transition active:scale-[0.98] cursor-pointer group shadow-2xs"
+              className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200/60 text-left transition active:scale-[0.98] cursor-pointer group shadow-2xs"
             >
               <div
-                className="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105"
+                className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-transform group-hover:scale-105"
                 style={{
                   backgroundColor: `${corPrimaria || "#FF6B00"}15`,
                   color: corPrimaria || "#FF6B00",
@@ -206,22 +206,33 @@ export const DestinationCard = memo(function DestinationCard({
                 <Home className="w-3.5 h-3.5 stroke-[2.2]" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-slate-900 truncate">Casa</p>
-                <p className="text-[10px] text-slate-500 font-medium truncate">Adicionar endereço</p>
+                <p className="text-[11px] font-bold text-slate-900 truncate">Casa</p>
               </div>
             </button>
 
             <button
               type="button"
               onClick={handleTrabalhoClick}
-              className="flex items-center gap-2 p-2.5 rounded-2xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200/60 text-left transition active:scale-[0.98] cursor-pointer group shadow-2xs"
+              className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200/60 text-left transition active:scale-[0.98] cursor-pointer group shadow-2xs"
             >
-              <div className="w-7 h-7 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 transition-transform group-hover:scale-105">
+              <div className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 transition-transform group-hover:scale-105">
                 <Briefcase className="w-3.5 h-3.5 stroke-[2.2]" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-slate-900 truncate">Trabalho</p>
-                <p className="text-[10px] text-slate-500 font-medium truncate">Adicionar endereço</p>
+                <p className="text-[11px] font-bold text-slate-900 truncate">Trabalho</p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSearch}
+              className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200/60 text-left transition active:scale-[0.98] cursor-pointer group shadow-2xs"
+            >
+              <div className="w-6 h-6 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center shrink-0 transition-transform group-hover:scale-105">
+                <Star className="w-3.5 h-3.5 stroke-[2.2] fill-amber-400" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-bold text-slate-900 truncate">Favoritos</p>
               </div>
             </button>
           </div>
