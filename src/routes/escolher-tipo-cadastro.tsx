@@ -7,13 +7,9 @@ import {
   Bike,
   ShieldCheck,
   Zap,
-  Loader2,
-  AlertCircle,
 } from "lucide-react";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
 import { NativeSurface, NativeRipple } from "@/components/native";
-import { GoogleIcon } from "@/components/common/GoogleIcon";
-import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 
 export const Route = createFileRoute("/escolher-tipo-cadastro")({
   head: () => ({
@@ -34,29 +30,6 @@ export function EscolherTipoCadastroPage() {
   const { appConfig } = useTheme();
   const { branding } = appConfig;
   const { colors, ui, appName } = branding;
-
-  const [loadingGoogle, setLoadingGoogle] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const handleGoogleLogin = async () => {
-    try {
-      setLoadingGoogle(true);
-      setErrorMessage(null);
-      const res = await supabaseAuthService.signInWithGoogle({
-        role: "PASSAGEIRO",
-        redirectUrl: "/app",
-      });
-      if (res.success && res.redirectUrl && !res.redirectUrl.startsWith("http")) {
-        void navigate({ to: res.redirectUrl as any });
-      } else if (!res.success && res.error) {
-        setErrorMessage(res.error);
-      }
-    } catch (err: any) {
-      setErrorMessage(err?.message || "Falha ao conectar com o Google.");
-    } finally {
-      setLoadingGoogle(false);
-    }
-  };
 
   return (
     <div
@@ -99,39 +72,8 @@ export function EscolherTipoCadastroPage() {
             Como deseja usar o {appName}?
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Selecione uma opção ou entre instantaneamente com o Google
+            Selecione uma opção para continuar seu cadastro com e-mail ou celular
           </p>
-        </div>
-
-        {/* Botão de Cadastro Rápido com o Google */}
-        <div className="mb-3.5">
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            disabled={loadingGoogle}
-            className="w-full h-9 sm:h-9.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 font-semibold text-xs flex items-center justify-center gap-2 shadow-2xs active:scale-98 transition cursor-pointer disabled:opacity-60"
-          >
-            {loadingGoogle ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-600" />
-            ) : (
-              <GoogleIcon className="w-3.5 h-3.5" />
-            )}
-            <span>Entrar rapidamente com o Google</span>
-          </button>
-
-          {errorMessage && (
-            <div className="mt-2 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
-              <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-600" />
-              <span>{errorMessage}</span>
-            </div>
-          )}
-
-          <div className="relative flex items-center justify-center my-3">
-            <div className="border-t border-slate-200 w-full" />
-            <span className="bg-slate-50 px-2.5 text-[9.5px] text-slate-400 font-medium uppercase tracking-wider">
-              ou selecione seu perfil
-            </span>
-          </div>
         </div>
 
         {/* Cards de Opção Proporcionais e Fluidos */}

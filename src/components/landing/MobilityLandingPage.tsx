@@ -109,7 +109,8 @@ export const MobilityLandingPage: React.FC<MobilityLandingPageProps> = ({
       branding?.logo_url ||
       config.brandCenter?.logos?.logoPrincipalUrl ||
       identidade?.logoUrl ||
-      (base.header?.logoUrl && base.header.logoUrl !== "/lightning_icon.svg" ? base.header.logoUrl : "");
+      (base.header?.logoUrl && base.header.logoUrl !== "/lightning_icon.svg" ? base.header.logoUrl : "") ||
+      "/assets/partiu-logo-transparent.png";
 
     // Resolução das Cores: O tema White Label do Painel (corPrimaria / corSecundaria) tem autoridade
     const activePrimary = corPrimaria || base.theme?.primary || "#FF6B00";

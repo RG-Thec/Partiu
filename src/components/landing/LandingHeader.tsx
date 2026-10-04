@@ -31,24 +31,17 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
               boxShadow: `0 2px 10px ${theme.primary}30`,
             }}
           >
-            {header.logoUrl ? (
-              <img
-                src={header.logoUrl}
-                alt={header.brandName}
-                className="w-5 h-5 object-contain filter drop-shadow transition-transform duration-300 group-hover/brand:scale-105"
-                onError={(e) => {
-                  (e.currentTarget as HTMLElement).style.display = "none";
-                }}
-              />
-            ) : (
-              <svg
-                className="w-5 h-5 text-white transition-transform duration-300 group-hover/brand:scale-105"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-              </svg>
-            )}
+            <img
+              src={header.logoUrl || "/assets/partiu-symbol-transparent.png"}
+              alt={header.brandName}
+              className="w-5 h-5 object-contain filter drop-shadow transition-transform duration-300 group-hover/brand:scale-105"
+              onError={(e) => {
+                const target = e.currentTarget as HTMLImageElement;
+                if (!target.src.includes("partiu-symbol-transparent.png")) {
+                  target.src = "/assets/partiu-symbol-transparent.png";
+                }
+              }}
+            />
           </div>
 
           {/* Textos da Marca: Primeira palavra + Segunda palavra (cor primária) + Slogan */}
@@ -85,12 +78,12 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           <span className="text-[10.5px] tracking-wide text-emerald-700 font-medium">Operação em tempo real</span>
         </div>
 
-        {/* Lado Direito: Navegação Rápida e Botão de Acesso */}
+        {/* Lado Direito: Navegação Rápida e Botão de Acesso Discreto e Proporcional */}
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => onNavigate?.("/cadastro-motorista")}
-            className="hidden sm:inline-flex text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer px-3 py-1.5 rounded-full hover:bg-slate-100/80"
+            className="hidden sm:inline-flex items-center text-[11px] font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer px-2.5 py-1 rounded-full hover:bg-slate-100/80 h-7"
           >
             Seja um motorista
           </button>
@@ -98,7 +91,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           <button
             type="button"
             onClick={() => onNavigate?.("/auth")}
-            className="group/btn relative inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-white text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer shadow-xs hover:shadow-sm overflow-hidden min-h-[32px] h-8.5"
+            className="group/btn relative inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-white text-[11px] font-semibold transition-all duration-200 active:scale-95 cursor-pointer shadow-xs hover:shadow-sm overflow-hidden h-7"
             style={{
               background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
               boxShadow: `0 2px 10px ${theme.primary}30`,
@@ -106,7 +99,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           >
             <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
             <span>Entrar</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
+            <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform" />
           </button>
         </div>
       </div>

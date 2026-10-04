@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ArrowRight, MapPin, User, Car, Star, ShieldCheck, Clock, Zap, CheckCircle2, Bike, Package } from "lucide-react";
 import type { HeroConfig, ActionItem, ThemeConfig, MapCardConfig } from "@/types/mobilityLanding";
 import { VehiclePerspectiveGraphic } from "@/components/passenger/VehiclePerspectiveGraphic";
@@ -19,6 +19,25 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
   onNavigate,
 }) => {
   const [activeCategory, setActiveCategory] = useState<"economico" | "comfort" | "moto" | "entrega">("economico");
+  const [vehicleMode, setVehicleMode] = useState<"car" | "moto">("car");
+
+  // Alternância automática fluida entre Carro e Moto para evidenciar ambas opções do app
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setVehicleMode((prev) => (prev === "car" ? "moto" : "car"));
+    }, 3800);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Sincroniza a categoria exibida no simulador quando o modo do veículo muda
+  useEffect(() => {
+    if (vehicleMode === "moto") {
+      setActiveCategory("moto");
+    } else {
+      setActiveCategory("economico");
+    }
+  }, [vehicleMode]);
+
   const headlineLines = hero.headline.split("\n");
   const firstLine = headlineLines[0] || hero.headline;
   const secondLine = headlineLines.slice(1).join(" ");
@@ -123,18 +142,71 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           </p>
         </div>
 
-        {/* Visual do Veículo em Destaque com Aura de Luz Suave */}
-        <div className="relative w-full py-1 flex items-center justify-center">
+        {/* Visual do Veículo em Destaque com Transição Suave (Carro <-> Moto) */}
+        <div className="relative w-full py-1.5 flex flex-col items-center justify-center">
           <div
-            className="absolute inset-0 max-w-[240px] mx-auto rounded-full blur-2xl opacity-20 pointer-events-none"
+            className="absolute inset-0 max-w-[260px] mx-auto rounded-full blur-2xl opacity-25 pointer-events-none"
             style={{
               background: `radial-gradient(circle, ${theme.primary} 0%, ${theme.secondary || theme.primary} 50%, transparent 70%)`,
             }}
           />
-          <VehiclePerspectiveGraphic
-            category="POP"
-            className="w-48 sm:w-56 h-28 sm:h-32 object-contain drop-shadow-md relative z-10"
-          />
+
+          {/* Container com Crossfade Fluido para Carro e Moto */}
+          <div className="relative w-full max-w-[280px] h-32 sm:h-36 flex items-center justify-center">
+            <img
+              src="/assets/car-transparent.png"
+              alt="Carro Partiu"
+              className={`absolute max-h-30 sm:max-h-34 w-auto object-contain drop-shadow-xl transition-all duration-700 ease-in-out ${
+                vehicleMode === "car"
+                  ? "opacity-100 scale-100 translate-y-0"
+                  : "opacity-0 scale-90 translate-y-3 pointer-events-none"
+              }`}
+            />
+            <img
+              src="/assets/moto-transparent.png"
+              alt="Moto Partiu"
+              className={`absolute max-h-30 sm:max-h-34 w-auto object-contain drop-shadow-xl transition-all duration-700 ease-in-out ${
+                vehicleMode === "moto"
+                  ? "opacity-100 scale-100 translate-y-0"
+                  : "opacity-0 scale-90 translate-y-3 pointer-events-none"
+              }`}
+            />
+          </div>
+
+          {/* Seletor Pill Rápido (Carro & Moto) */}
+          <div className="inline-flex items-center p-0.5 rounded-full bg-white/95 border border-slate-200/90 shadow-2xs mt-1 relative z-10 gap-0.5">
+            <button
+              type="button"
+              onClick={() => setVehicleMode("car")}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-all duration-300 cursor-pointer ${
+                vehicleMode === "car"
+                  ? "bg-slate-900 text-white shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Car className="w-3 h-3" />
+              <span>Carro</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setVehicleMode("moto")}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-all duration-300 cursor-pointer ${
+                vehicleMode === "moto"
+                  ? "text-white shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+              style={
+                vehicleMode === "moto"
+                  ? {
+                      background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
+                    }
+                  : undefined
+              }
+            >
+              <Bike className="w-3 h-3" />
+              <span>Moto</span>
+            </button>
+          </div>
         </div>
 
         {/* Três Selos/Pills de Confiança (Screen 1 DriveLux) */}
@@ -238,6 +310,44 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <p className="text-xs sm:text-sm text-slate-600 font-normal leading-relaxed max-w-xl">
               {hero.description}
             </p>
+          </div>
+
+          {/* Badge de Categorias Oficiais: Carro & Moto com Transição Sincronizada */}
+          <div className="inline-flex items-center gap-2 p-1 rounded-2xl bg-white/95 border border-slate-200/90 shadow-2xs">
+            <span className="text-[11px] font-bold text-slate-500 pl-2.5 pr-1">Categorias:</span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setVehicleMode("car")}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer ${
+                  vehicleMode === "car"
+                    ? "bg-slate-900 text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                }`}
+              >
+                <Car className="w-3.5 h-3.5" />
+                <span>Carro</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setVehicleMode("moto")}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer ${
+                  vehicleMode === "moto"
+                    ? "text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                }`}
+                style={
+                  vehicleMode === "moto"
+                    ? {
+                        background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
+                      }
+                    : undefined
+                }
+              >
+                <Bike className="w-3.5 h-3.5" />
+                <span>Moto</span>
+              </button>
+            </div>
           </div>
 
           {/* Cartões de Ação Principais: Pedir corrida / Dirigir com o Partiu */}
@@ -484,7 +594,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 </div>
               </div>
 
-              {/* Marcador do Veículo em Deslocamento Suave com Badge de Satélite */}
+              {/* Marcador do Veículo em Deslocamento Suave com Transição Carro / Moto */}
               <div
                 className="absolute left-[142px] top-[150px] -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none select-none"
                 title="Veículo em deslocamento"
@@ -495,13 +605,28 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                     style={{ backgroundColor: theme.primary }}
                   />
                   <div
-                    className="relative flex items-center justify-center w-9 h-9 rounded-full shadow-lg border-2 border-white transition-transform duration-300"
+                    className="relative flex items-center justify-center w-10 h-10 rounded-full shadow-lg border-2 border-white transition-all duration-300"
                     style={{
                       backgroundColor: theme.primary,
                       boxShadow: `0 4px 14px ${theme.primary}50`,
                     }}
                   >
-                    <Car className="w-4.5 h-4.5 text-white -rotate-45" />
+                    <div className="relative w-5 h-5 flex items-center justify-center">
+                      <Car
+                        className={`w-4.5 h-4.5 text-white -rotate-45 absolute transition-all duration-500 ease-in-out ${
+                          vehicleMode === "car"
+                            ? "opacity-100 scale-100"
+                            : "opacity-0 scale-50 rotate-0 pointer-events-none"
+                        }`}
+                      />
+                      <Bike
+                        className={`w-4.5 h-4.5 text-white absolute transition-all duration-500 ease-in-out ${
+                          vehicleMode === "moto"
+                            ? "opacity-100 scale-100 rotate-0"
+                            : "opacity-0 scale-50 -rotate-45 pointer-events-none"
+                        }`}
+                      />
+                    </div>
                   </div>
                   <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full shadow-xs" />
                 </div>

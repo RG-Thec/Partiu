@@ -25,8 +25,6 @@ import {
   Car,
   MapPin,
 } from "lucide-react";
-import { supabaseAuthService, type AuthUserProfile } from "@/lib/auth/supabase-auth-service";
-import { googleAuthService } from "@/lib/auth/google-auth-service";
 import { normalizarTelefoneBR } from "@/lib/passenger-cloud-sync";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
 import {
@@ -41,7 +39,6 @@ import {
 } from "@/components/ui/white-label";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { silentCatchWarn } from "@/lib/structured-logger";
-import { GoogleIcon } from "@/components/common/GoogleIcon";
 
 export interface PartiuAppAuthGateProps {
   redirectDestination?: string | undefined;
@@ -129,75 +126,10 @@ export function PartiuAppAuthGate({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const [loadingGoogle, setLoadingGoogle] = useState(false);
-
-  async function handleGoogleSignIn() {
-    setErrorMessage(null);
-    setSuccessMessage(null);
-    setLoadingGoogle(true);
-    try {
-      const res = await supabaseAuthService.signInWithGoogle({
-        role: activeRole,
-        redirectUrl: redirectDestination || (activeRole === "MOTORISTA" ? "/app/motorista" : "/app"),
-      });
-      if (res.success && res.redirectUrl && !res.redirectUrl.startsWith("http")) {
-        void navigate({ to: res.redirectUrl as any });
-      } else if (!res.success && res.error && !res.error.includes("Google Client ID")) {
-        setErrorMessage(res.error);
-      }
-    } catch (err: any) {
-      setErrorMessage(err?.message || "Falha ao autenticar com o Google. Tente novamente.");
-    } finally {
-      setLoadingGoogle(false);
-    }
-  }
-
-  // Verificação inicial de sessão ativa e retorno de OAuth
+  // Verificação inicial de sessão ativa
   useEffect(() => {
     async function initGate() {
       try {
-        // Se a janela for um popup de autenticação do Google, envia mensagem para a janela pai e fecha
-        if (typeof window !== "undefined" && window.opener && window.location.hash.includes("access_token")) {
-          window.opener.postMessage(
-            { type: "GOOGLE_AUTH_CALLBACK", hash: window.location.hash },
-            window.location.origin
-          );
-          window.close();
-          return;
-        }
-
-        // Se o usuário foi redirecionado com hash OAuth (#access_token=... ou #id_token=...)
-        if (typeof window !== "undefined" && window.location.hash.includes("access_token")) {
-          const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-          const idToken = hashParams.get("id_token");
-          const accessToken = hashParams.get("access_token");
-
-          let googleProfile = idToken ? googleAuthService.parseJwtPayload(idToken) : null;
-          if (!googleProfile && accessToken) {
-            googleProfile = await googleAuthService.fetchGoogleUserInfo(accessToken);
-          }
-
-          if (googleProfile) {
-            const authUser: AuthUserProfile = {
-              id: `usr-google-${googleProfile.sub}`,
-              name: googleProfile.name,
-              email: googleProfile.email,
-              avatarUrl: googleProfile.picture,
-              role: activeRole,
-              rating: 5.0,
-              totalTrips: 0,
-              driverApprovalStatus: activeRole === "MOTORISTA" ? "pendente" : undefined,
-              createdAt: Date.now(),
-            };
-            supabaseAuthService.saveStoredSession(authUser);
-            const dest =
-              redirectDestination ||
-              (activeRole === "MOTORISTA" ? "/app/motorista" : "/app");
-            void navigate({ to: dest, replace: true });
-            return;
-          }
-        }
-
         const activeSession = await supabaseAuthService.checkAndHydrateSession();
         if (activeSession) {
           const dest =
@@ -502,46 +434,31 @@ export function PartiuAppAuthGate({
       <header className="w-full max-w-md mx-auto px-4 pt-[max(0.75rem,calc(env(safe-area-inset-top,0px)+0.5rem))] pb-2 flex items-center justify-between">
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 text-xs font-medium transition h-8 px-3 rounded-lg hover:opacity-85 active:scale-95 cursor-pointer shadow-2xs"
+          className="inline-flex items-center gap-1 text-[11px] font-semibold transition h-7 px-2.5 rounded-full hover:opacity-85 active:scale-95 cursor-pointer shadow-2xs"
           style={{
             backgroundColor: colors.surface,
             border: `1px solid ${colors.inputBorder}`,
             color: colors.textSecondary,
           }}
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <ArrowLeft className="w-3 h-3" />
           <span>Início</span>
         </Link>
 
-        {/* Logo Centralizado da Marca */}
+        {/* Logo Centralizado da Marca (White Label com fallback oficial Partiu 3D) */}
         <div className="flex items-center gap-2">
-          {logoUrl ? (
-            <img
-              src={logoUrl}
-              alt={appName}
-              className="h-8 max-w-[120px] object-contain"
-              onError={(e) => {
-                // Se a URL falhar, oculta imagem e renderiza badge nativo
-                (e.target as HTMLElement).style.display = "none";
-              }}
-            />
-          ) : (
-            <div className="flex items-center gap-2">
-              <div
-                className="h-8 w-8 rounded-xl flex items-center justify-center shadow-sm"
-                style={{ backgroundColor: colors.primary }}
-              >
-                <Zap className="h-4.5 w-4.5 stroke-[2.5] text-white" />
-              </div>
-              <span className="text-lg font-black tracking-tight" style={{ color: colors.textPrimary }}>
-                {appName}
-              </span>
-            </div>
-          )}
+          <img
+            src={logoUrl || "/assets/partiu-logo-transparent.png"}
+            alt={appName}
+            className="h-7.5 max-w-[130px] object-contain drop-shadow-xs"
+            onError={(e) => {
+              (e.target as HTMLElement).style.display = "none";
+            }}
+          />
         </div>
 
         {/* Espaçador simétrico para manter o logo centralizado */}
-        <div className="w-14" />
+        <div className="w-12" />
       </header>
 
       {/* ===================================================================== */}
@@ -595,8 +512,8 @@ export function PartiuAppAuthGate({
             <>
               {/* ETAPA 1 DO PASSAGEIRO: FLUXO UNIFICADO (MAGIC FLOW) */}
               {passengerStep === "MAGIC_ENTRY" && (
-                <form onSubmit={handleMagicFlowSubmit} className="space-y-6">
-                  <div className="space-y-2 text-left">
+                <form onSubmit={handleMagicFlowSubmit} className="space-y-4">
+                  <div className="space-y-1.5 text-left">
                     <h1
                       className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight"
                       style={{ color: colors.textPrimary }}
@@ -604,33 +521,11 @@ export function PartiuAppAuthGate({
                       Qual é o seu celular ou e-mail?
                     </h1>
                     <p
-                      className="text-sm font-normal leading-relaxed"
+                      className="text-xs sm:text-sm font-normal leading-relaxed"
                       style={{ color: colors.textSecondary }}
                     >
-                      Entre com o Google ou digite seus dados para continuar.
+                      Informe seu número de celular ou e-mail para acessar ou criar sua conta.
                     </p>
-                  </div>
-
-                  {/* Botão de Entrada Rápida com Google (Padrão 1-Tap / OAuth Direto) */}
-                  <button
-                    type="button"
-                    onClick={handleGoogleSignIn}
-                    disabled={loadingGoogle || loading}
-                    className="w-full h-11 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-xs active:scale-[0.98] transition cursor-pointer disabled:opacity-60"
-                  >
-                    {loadingGoogle ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
-                    ) : (
-                      <GoogleIcon className="w-4 h-4" />
-                    )}
-                    <span>Continuar com o Google</span>
-                  </button>
-
-                  <div className="relative flex items-center justify-center my-2">
-                    <div className="w-full border-t border-slate-200" />
-                    <span className="bg-white px-3 text-xs text-slate-400 font-medium lowercase">
-                      ou
-                    </span>
                   </div>
 
                   {/* Input Nativo com Altura de 52px e Clear Button */}
@@ -1060,22 +955,8 @@ export function PartiuAppAuthGate({
                     </NativeSurface>
                   </div>
 
-                  {/* BOTÕES DE ACESSO: GOOGLE 1-CLICK & CADASTRO DE VEÍCULO */}
+                  {/* BOTÃO PRINCIPAL: CADASTRO DE VEÍCULO */}
                   <div className="space-y-2.5 pt-1">
-                    <button
-                      type="button"
-                      onClick={handleGoogleSignIn}
-                      disabled={loadingGoogle || loading}
-                      className="w-full h-11 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-xs active:scale-[0.98] transition cursor-pointer disabled:opacity-60"
-                    >
-                      {loadingGoogle ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
-                      ) : (
-                        <GoogleIcon className="w-4 h-4" />
-                      )}
-                      <span>Entrar com o Google</span>
-                    </button>
-
                     <Link
                       to="/cadastro-motorista"
                       className="w-full flex items-center justify-center"
@@ -1101,7 +982,7 @@ export function PartiuAppAuthGate({
                         className="inline-flex items-center justify-center py-1 text-xs font-medium hover:underline cursor-pointer"
                         style={{ color: colors.textSecondary }}
                       >
-                        Já sou parceiro (Entrar com senha)
+                        Já sou parceiro (Entrar com e-mail/celular e senha)
                       </button>
                     </div>
                   </div>
@@ -1119,30 +1000,8 @@ export function PartiuAppAuthGate({
                       Cockpit do Motorista
                     </h2>
                     <p className="text-xs font-normal" style={{ color: colors.textSecondary }}>
-                      Entre com sua conta Google ou com seus dados cadastrados.
+                      Informe seu e-mail ou celular cadastrado e sua senha.
                     </p>
-                  </div>
-
-                  {/* Botão Google para Login de Motorista */}
-                  <button
-                    type="button"
-                    onClick={handleGoogleSignIn}
-                    disabled={loadingGoogle || loading}
-                    className="w-full h-11 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-xs active:scale-[0.98] transition cursor-pointer disabled:opacity-60"
-                  >
-                    {loadingGoogle ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
-                    ) : (
-                      <GoogleIcon className="w-4 h-4" />
-                    )}
-                    <span>Entrar no Cockpit com o Google</span>
-                  </button>
-
-                  <div className="relative flex items-center justify-center my-1">
-                    <div className="w-full border-t border-slate-200" />
-                    <span className="bg-white px-3 text-xs text-slate-400 font-medium lowercase">
-                      ou
-                    </span>
                   </div>
 
                   <NativeInput

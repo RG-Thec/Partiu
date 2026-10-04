@@ -28,7 +28,6 @@ import {
 import {
   WhiteLabelProgressBar,
 } from "@/components/ui/white-label";
-import { GoogleIcon } from "@/components/common/GoogleIcon";
 
 export const Route = createFileRoute("/cadastro-passageiro")({
   head: () => ({
@@ -168,24 +167,25 @@ export function CadastroPassageiroPage() {
       <div className="mx-auto w-full max-w-md pt-[max(0.25rem,calc(env(safe-area-inset-top,0px)))] flex items-center justify-between pb-2">
         <Link
           to="/"
-          className="flex min-h-[34px] min-w-[34px] h-8.5 w-8.5 items-center justify-center rounded-lg border text-foreground/80 shadow-2xs active:scale-95 transition-all cursor-pointer hover:opacity-80"
+          className="flex h-7 px-2.5 items-center gap-1 rounded-full border text-[11px] font-semibold shadow-2xs active:scale-95 transition-all cursor-pointer hover:opacity-80"
           style={{
             backgroundColor: colors.surface,
             borderColor: colors.inputBorder,
             color: colors.textSecondary,
           }}
-          aria-label="Voltar para login"
+          aria-label="Voltar para início"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-3 w-3" />
+          <span>Voltar</span>
         </Link>
         <span
           className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5"
           style={{ color: colors.primary }}
         >
-          <ShieldCheck className="h-4 w-4" />
+          <ShieldCheck className="h-3.5 w-3.5" />
           Passageiro {appName}
         </span>
-        <div className="w-8.5" />
+        <div className="w-8" />
       </div>
 
       <main className="w-full max-w-md mx-auto flex-1 flex flex-col justify-start py-2 sm:py-4">
@@ -193,9 +193,9 @@ export function CadastroPassageiroPage() {
           <NativeSurface
             elevation={1}
             padding="none"
-            className="w-full p-4 sm:p-7 rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_12px_40px_rgba(0,0,0,0.05)] space-y-3.5 transition-all duration-200"
+            className="w-full p-4 sm:p-7 rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_12px_40px_rgba(0,0,0,0.05)] space-y-3 transition-all duration-200"
           >
-            <form onSubmit={handleSubmit} className="space-y-3.5">
+            <form onSubmit={handleSubmit} className="space-y-3">
               {/* Indicador de Progresso Conectado à Cor Primária */}
               <WhiteLabelProgressBar
                 currentStep={1}
@@ -203,16 +203,16 @@ export function CadastroPassageiroPage() {
                 stepTitle="Dados pessoais"
               />
 
-              <div className="text-left border-b pb-3" style={{ borderColor: colors.inputBorder }}>
-                <div className="flex items-center gap-2.5 mb-1">
+              <div className="text-left border-b pb-2.5" style={{ borderColor: colors.inputBorder }}>
+                <div className="flex items-center gap-2 mb-0.5">
                   <div
-                    className="h-9 w-9 rounded-xl flex items-center justify-center text-white font-black shadow-sm"
+                    className="h-8 w-8 rounded-xl flex items-center justify-center text-white font-black shadow-sm"
                     style={{ backgroundColor: colors.primary }}
                   >
-                    <Zap className="h-5 w-5 stroke-[2.5]" />
+                    <Zap className="h-4 w-4 stroke-[2.5]" />
                   </div>
                   <h1
-                    className="text-xl sm:text-2xl font-black tracking-tight"
+                    className="text-lg sm:text-xl font-black tracking-tight"
                     style={{ color: colors.textPrimary }}
                   >
                     Cadastro de passageiro
@@ -221,50 +221,6 @@ export function CadastroPassageiroPage() {
                 <p className="text-xs font-normal" style={{ color: colors.textSecondary }}>
                   Crie sua conta para solicitar corridas de carro, moto e entregas com segurança.
                 </p>
-              </div>
-
-              {/* Botão de Cadastro 1-Click via Google */}
-              <div className="space-y-3 pt-1">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      setCarregando(true);
-                      setErroCadastro(null);
-                      const res = await supabaseAuthService.signInWithGoogle({
-                        role: "PASSAGEIRO",
-                        redirectUrl: "/app",
-                      });
-                      if (res.success) {
-                        if (res.user) {
-                          setNome(res.user.name || "");
-                          setEmail(res.user.email || "");
-                        }
-                        if (res.redirectUrl && !res.redirectUrl.startsWith("http")) {
-                          void navigate({ to: res.redirectUrl as any });
-                        }
-                      } else if (res.error) {
-                        setErroCadastro(res.error);
-                      }
-                    } catch (err: any) {
-                      setErroCadastro(err?.message || "Falha ao autenticar com o Google.");
-                    } finally {
-                      setCarregando(false);
-                    }
-                  }}
-                  disabled={carregando}
-                  className="w-full h-11 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-xs active:scale-[0.98] transition cursor-pointer disabled:opacity-60"
-                >
-                  <GoogleIcon className="w-4 h-4" />
-                  <span>Cadastrar com o Google</span>
-                </button>
-
-                <div className="relative flex items-center justify-center my-0.5">
-                  <div className="border-t border-slate-200 w-full" />
-                  <span className="bg-white px-2.5 text-[9.5px] text-slate-400 font-medium uppercase tracking-wider">
-                    ou preencha seus dados
-                  </span>
-                </div>
               </div>
 
               {erroCadastro && (
@@ -412,7 +368,8 @@ export function CadastroPassageiroPage() {
                 </label>
               </div>
 
-              <div className="pt-2">
+              {/* BARRA DE AÇÃO ANCORADA: SEMPRE VISÍVEL NO CELULAR, NUNCA CORTADA */}
+              <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 sm:static bg-white/95 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none pt-2.5 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] sm:pb-0 px-4 sm:px-0 border-t border-slate-100 sm:border-0 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] sm:shadow-none z-20 space-y-2">
                 <NativeButton
                   type="submit"
                   variant="filled"
@@ -423,19 +380,19 @@ export function CadastroPassageiroPage() {
                 >
                   Concluir cadastro
                 </NativeButton>
-              </div>
 
-              <div className="text-center pt-1">
-                <Link
-                  to="/auth"
-                  className="min-h-[48px] inline-flex items-center justify-center text-xs font-bold hover:underline transition-colors py-1"
-                  style={{ color: colors.textSecondary }}
-                >
-                  Já tem uma conta?{" "}
-                  <span className="font-extrabold underline ml-1" style={{ color: colors.primary }}>
-                    Fazer login
-                  </span>
-                </Link>
+                <div className="text-center">
+                  <Link
+                    to="/auth"
+                    className="inline-flex items-center justify-center text-xs font-bold hover:underline transition-colors py-0.5"
+                    style={{ color: colors.textSecondary }}
+                  >
+                    Já tem uma conta?{" "}
+                    <span className="font-extrabold underline ml-1" style={{ color: colors.primary }}>
+                      Fazer login
+                    </span>
+                  </Link>
+                </div>
               </div>
             </form>
           </NativeSurface>

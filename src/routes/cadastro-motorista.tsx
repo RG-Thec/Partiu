@@ -38,7 +38,6 @@ import {
   WhiteLabelProgressBar,
 } from "@/components/ui/white-label";
 import { Mail } from "lucide-react";
-import { GoogleIcon } from "@/components/common/GoogleIcon";
 
 
 export const Route = createFileRoute("/cadastro-motorista")({
@@ -179,29 +178,7 @@ export function CadastroMotoristaPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [etapa, sucesso]);
 
-  const [loadingGoogle, setLoadingGoogle] = useState(false);
 
-  async function handleGooglePreencher() {
-    try {
-      setLoadingGoogle(true);
-      setErroValidacao(null);
-      const res = await supabaseAuthService.signInWithGoogle({
-        role: "MOTORISTA",
-        redirectUrl: "/cadastro-motorista",
-      });
-      if (res.success && res.user) {
-        if (res.user.name && !nome) setNome(res.user.name);
-        if (res.user.email && !email) setEmail(res.user.email);
-        if (res.user.phone && !whatsapp) setWhatsapp(formatarTelefone(res.user.phone));
-      } else if (!res.success && res.error) {
-        setErroValidacao(res.error);
-      }
-    } catch (err: any) {
-      setErroValidacao(err?.message || "Não foi possível carregar os dados do Google.");
-    } finally {
-      setLoadingGoogle(false);
-    }
-  }
 
   useEffect(() => {
     async function preencherDeSessaoGoogle() {
@@ -422,30 +399,6 @@ export function CadastroMotoristaPage() {
                   </p>
                 </div>
 
-                {/* Botão de Preenchimento 1-Click via Google */}
-                <div className="space-y-2.5 pt-1">
-                  <button
-                    type="button"
-                    onClick={handleGooglePreencher}
-                    disabled={loadingGoogle}
-                    className="w-full h-11 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-xs active:scale-[0.98] transition cursor-pointer disabled:opacity-60"
-                  >
-                    {loadingGoogle ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
-                    ) : (
-                      <GoogleIcon className="w-4 h-4" />
-                    )}
-                    <span>Preencher dados com o Google</span>
-                  </button>
-
-                  <div className="relative flex items-center justify-center my-0.5">
-                    <div className="border-t border-slate-200 w-full" />
-                    <span className="bg-white px-2.5 text-[9.5px] text-slate-400 font-medium uppercase tracking-wider">
-                      ou preencha seus dados
-                    </span>
-                  </div>
-                </div>
-
                 <NativeInput
                   label="Nome Completo"
                   required
@@ -501,7 +454,8 @@ export function CadastroMotoristaPage() {
                   leftIcon={<ShieldCheck className="w-5 h-5 text-slate-400" />}
                 />
 
-                <div className="pt-2">
+                {/* BARRA DE AÇÃO ANCORADA: SEMPRE VISÍVEL NO CELULAR, NUNCA CORTADA */}
+                <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 sm:static bg-white/95 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none pt-2.5 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] sm:pb-0 px-4 sm:px-0 border-t border-slate-100 sm:border-0 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] sm:shadow-none z-20">
                   <NativeButton
                     type="button"
                     variant="filled"
@@ -650,7 +604,8 @@ export function CadastroMotoristaPage() {
                   </div>
                 )}
 
-                <div className="flex gap-3 mt-4">
+                {/* BARRA DE AÇÃO ANCORADA: SEMPRE VISÍVEL NO CELULAR, NUNCA CORTADA */}
+                <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 sm:static bg-white/95 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none pt-2.5 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] sm:pb-0 px-4 sm:px-0 border-t border-slate-100 sm:border-0 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] sm:shadow-none z-20 flex gap-3">
                   <div className="w-1/3">
                     <NativeButton
                       type="button"
@@ -892,7 +847,8 @@ export function CadastroMotoristaPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-3 mt-4">
+                {/* BARRA DE AÇÃO ANCORADA: SEMPRE VISÍVEL NO CELULAR, NUNCA CORTADA */}
+                <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 sm:static bg-white/95 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none pt-2.5 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] sm:pb-0 px-4 sm:px-0 border-t border-slate-100 sm:border-0 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] sm:shadow-none z-20 flex gap-3">
                   <div className="w-1/3">
                     <NativeButton
                       type="button"
@@ -1012,7 +968,8 @@ export function CadastroMotoristaPage() {
                   </div>
                 )}
 
-                <div className="flex gap-3 mt-4">
+                {/* BARRA DE AÇÃO ANCORADA: SEMPRE VISÍVEL NO CELULAR, NUNCA CORTADA */}
+                <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 sm:static bg-white/95 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none pt-2.5 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] sm:pb-0 px-4 sm:px-0 border-t border-slate-100 sm:border-0 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] sm:shadow-none z-20 flex gap-3">
                   <div className="w-1/3">
                     <NativeButton
                       type="button"
