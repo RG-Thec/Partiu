@@ -365,7 +365,15 @@ export function CentralOperacaoAdminPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <Link
+              to="/app/admin/diagnostico"
+              className="flex h-11 items-center gap-2 rounded-2xl bg-blue-950/60 hover:bg-blue-900/80 px-3.5 text-xs font-bold text-blue-300 border border-blue-800/60 transition-all cursor-pointer"
+              title="Diagnóstico Geoespacial & WebGL"
+            >
+              <Activity className="h-4 w-4 text-blue-400" />
+              <span className="hidden sm:inline">Diagnóstico Geo</span>
+            </Link>
             <button
               type="button"
               onClick={() => {

@@ -35,6 +35,7 @@ import { Route as AppAdminBannersRouteImport } from './routes/app.admin.banners'
 import { Route as AppAdminCaixaRouteImport } from './routes/app.admin.caixa'
 import { Route as AppAdminConfiguracoesRouteImport } from './routes/app.admin.configuracoes'
 import { Route as AppAdminDespachoRouteImport } from './routes/app.admin.despacho'
+import { Route as AppAdminDiagnosticoRouteImport } from './routes/app.admin.diagnostico'
 import { Route as AppAdminFinanceiroRouteImport } from './routes/app.admin.financeiro'
 import { Route as AppAdminFrotaRouteImport } from './routes/app.admin.frota'
 import { Route as AppAdminGrowthRouteImport } from './routes/app.admin.growth'
@@ -185,6 +186,11 @@ const AppAdminDespachoRoute = AppAdminDespachoRouteImport.update({
   path: '/despacho',
   getParentRoute: () => AppAdminRoute,
 } as any)
+const AppAdminDiagnosticoRoute = AppAdminDiagnosticoRouteImport.update({
+  id: '/diagnostico',
+  path: '/diagnostico',
+  getParentRoute: () => AppAdminRoute,
+} as any)
 const AppAdminFinanceiroRoute = AppAdminFinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
@@ -307,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/caixa': typeof AppAdminCaixaRoute
   '/app/admin/configuracoes': typeof AppAdminConfiguracoesRoute
   '/app/admin/despacho': typeof AppAdminDespachoRoute
+  '/app/admin/diagnostico': typeof AppAdminDiagnosticoRoute
   '/app/admin/financeiro': typeof AppAdminFinanceiroRoute
   '/app/admin/frota': typeof AppAdminFrotaRoute
   '/app/admin/growth': typeof AppAdminGrowthRoute
@@ -352,6 +359,7 @@ export interface FileRoutesByTo {
   '/app/admin/caixa': typeof AppAdminCaixaRoute
   '/app/admin/configuracoes': typeof AppAdminConfiguracoesRoute
   '/app/admin/despacho': typeof AppAdminDespachoRoute
+  '/app/admin/diagnostico': typeof AppAdminDiagnosticoRoute
   '/app/admin/financeiro': typeof AppAdminFinanceiroRoute
   '/app/admin/frota': typeof AppAdminFrotaRoute
   '/app/admin/growth': typeof AppAdminGrowthRoute
@@ -400,6 +408,7 @@ export interface FileRoutesById {
   '/app/admin/caixa': typeof AppAdminCaixaRoute
   '/app/admin/configuracoes': typeof AppAdminConfiguracoesRoute
   '/app/admin/despacho': typeof AppAdminDespachoRoute
+  '/app/admin/diagnostico': typeof AppAdminDiagnosticoRoute
   '/app/admin/financeiro': typeof AppAdminFinanceiroRoute
   '/app/admin/frota': typeof AppAdminFrotaRoute
   '/app/admin/growth': typeof AppAdminGrowthRoute
@@ -449,6 +458,7 @@ export interface FileRouteTypes {
     | '/app/admin/caixa'
     | '/app/admin/configuracoes'
     | '/app/admin/despacho'
+    | '/app/admin/diagnostico'
     | '/app/admin/financeiro'
     | '/app/admin/frota'
     | '/app/admin/growth'
@@ -494,6 +504,7 @@ export interface FileRouteTypes {
     | '/app/admin/caixa'
     | '/app/admin/configuracoes'
     | '/app/admin/despacho'
+    | '/app/admin/diagnostico'
     | '/app/admin/financeiro'
     | '/app/admin/frota'
     | '/app/admin/growth'
@@ -541,6 +552,7 @@ export interface FileRouteTypes {
     | '/app/admin/caixa'
     | '/app/admin/configuracoes'
     | '/app/admin/despacho'
+    | '/app/admin/diagnostico'
     | '/app/admin/financeiro'
     | '/app/admin/frota'
     | '/app/admin/growth'
@@ -760,6 +772,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminDespachoRouteImport
       parentRoute: typeof AppAdminRoute
     }
+    '/app/admin/diagnostico': {
+      id: '/app/admin/diagnostico'
+      path: '/diagnostico'
+      fullPath: '/app/admin/diagnostico'
+      preLoaderRoute: typeof AppAdminDiagnosticoRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
     '/app/admin/financeiro': {
       id: '/app/admin/financeiro'
       path: '/financeiro'
@@ -903,6 +922,7 @@ interface AppAdminRouteChildren {
   AppAdminCaixaRoute: typeof AppAdminCaixaRoute
   AppAdminConfiguracoesRoute: typeof AppAdminConfiguracoesRoute
   AppAdminDespachoRoute: typeof AppAdminDespachoRoute
+  AppAdminDiagnosticoRoute: typeof AppAdminDiagnosticoRoute
   AppAdminFinanceiroRoute: typeof AppAdminFinanceiroRoute
   AppAdminFrotaRoute: typeof AppAdminFrotaRoute
   AppAdminGrowthRoute: typeof AppAdminGrowthRoute
@@ -932,6 +952,7 @@ const AppAdminRouteChildren: AppAdminRouteChildren = {
   AppAdminCaixaRoute: AppAdminCaixaRoute,
   AppAdminConfiguracoesRoute: AppAdminConfiguracoesRoute,
   AppAdminDespachoRoute: AppAdminDespachoRoute,
+  AppAdminDiagnosticoRoute: AppAdminDiagnosticoRoute,
   AppAdminFinanceiroRoute: AppAdminFinanceiroRoute,
   AppAdminFrotaRoute: AppAdminFrotaRoute,
   AppAdminGrowthRoute: AppAdminGrowthRoute,

@@ -183,11 +183,11 @@ Definidas e documentadas em `docs/ux/foundation.md`:
   1. O administrador acessa a central de despacho ao vivo -> O mapa exibe marcadores de motoristas online, em viagem e chamadas em fila de despacho.
   2. O gestor visualiza alertas de tempo de resposta e filtros por status ou região -> As métricas do cluster regional atualizam a cada 5 segundos via Supabase Realtime.
   3. O gestor pode intervir em chamadas retidas ou auditar a conformidade de credenciamentos de motoristas -> Ações operacionais são registradas com trilha de auditoria completa.
-- **Expected result:** Painel operacional ao vivo com mapa geográfico de frotas atualizado e governança em tempo real.
-- **UI elements:** Mapa de despacho ao vivo, Painel de estatísticas em tempo real, Tabela de chamadas ativas, Botões de ação rápida e filtros
+- **Expected result:** Painel operacional ao vivo com mapa geográfico de frotas atualizado e governança em tempo real. Telas do passageiro mantidas 100% limpas de métricas técnicas, com o diagnóstico técnico de WebGL e GNSS segregado em página dedicada.
+- **UI elements:** Mapa de despacho ao vivo, Painel de estatísticas em tempo real, Cockpit de Diagnóstico Geoespacial & WebGL, Tabela de chamadas ativas, Botões de ação rápida e filtros
 - **States covered:** success, loading, error
 - **Errors & recovery:** Se o canal WebSocket em tempo real sofrer desconexão, o painel alterna automaticamente para polling HTTP a cada 5 segundos e alerta o operador no cabeçalho.
 - **Telemetry:** admin_dispatch_audit (action_type, target_ride_id)
 - **Status:** implemented
-- **Coverage:** src/routes/app.admin.despacho.tsx:1-150
+- **Coverage:** src/routes/app.admin.despacho.tsx:1-150, src/routes/app.admin.diagnostico.tsx:1-200, src/routes/app.admin.monitoramento.tsx:1-250
 - **Product:** unobserved

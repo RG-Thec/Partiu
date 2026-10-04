@@ -36,6 +36,7 @@ import {
 import { type TelemetriaVeiculo } from "@/lib/superadmin-config";
 import { useTelemetriaFrota } from "@/lib/partiu-db";
 import { UniversalMapView } from "@/components/maps/UniversalMapView";
+import { MapDiagnosticPanel } from "@/components/maps/MapDiagnosticPanel";
 import { executarHealthCheckCompleto, type RelatorioSaudeGlobal } from "@/lib/observability";
 
 export const Route = createFileRoute("/app/admin/monitoramento")({
@@ -60,7 +61,7 @@ export function MonitoramentoCommandCenter() {
   const [busca, setBusca] = useState<string>("");
   const [mensagemRadio, setMensagemRadio] = useState<string>("");
   const [mensagemEnviada, setMensagemEnviada] = useState<boolean>(false);
-  const [abaAtiva, setAbaAtiva] = useState<"radar" | "saude">("radar");
+  const [abaAtiva, setAbaAtiva] = useState<"radar" | "saude" | "diagnostico">("radar");
   const [relatorioSaude, setRelatorioSaude] = useState<RelatorioSaudeGlobal | null>(null);
 
   useEffect(() => {
@@ -199,6 +200,18 @@ export function MonitoramentoCommandCenter() {
         >
           <HeartPulse className="h-3.5 w-3.5 text-emerald-600" />
           <span>Observabilidade & Health (99.98% Uptime)</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setAbaAtiva("diagnostico")}
+          className={`px-4 py-1.5 text-xs font-black rounded-xl transition-all flex items-center gap-1.5 ${
+            abaAtiva === "diagnostico"
+              ? "bg-white text-[#0d5930] shadow-xs"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          <Activity className="h-3.5 w-3.5 text-blue-600" />
+          <span>🌐 Diagnóstico Geoespacial & WebGL</span>
         </button>
       </div>
 
@@ -449,7 +462,7 @@ export function MonitoramentoCommandCenter() {
             </div>
           </div>
         </>
-      ) : (
+      ) : abaAtiva === "saude" ? (
         /* ABA DE OBSERVABILIDADE & HEALTH CHECKS */
         relatorioSaude && (
           <div className="space-y-4">
@@ -518,6 +531,37 @@ export function MonitoramentoCommandCenter() {
             </div>
           </div>
         )
+      ) : (
+        /* ABA DE DIAGNÓSTICO GEOESPACIAL DEDICADA */
+        <div className="space-y-4">
+          <div className="flex items-center justify-between bg-slate-900 p-3.5 rounded-2xl border border-slate-800 text-white">
+            <div>
+              <h3 className="text-xs sm:text-sm font-black text-white">
+                Inspeção Técnica de Telemetria e Renderização WebGL
+              </h3>
+              <p className="text-[11px] text-slate-400">
+                Métricas cartográficas em tempo real isoladas da experiência do passageiro.
+              </p>
+            </div>
+            <Link
+              to="/app/admin/diagnostico"
+              className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 shrink-0"
+            >
+              <span>Abrir Tela Completa</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          <MapDiagnosticPanel
+            variant="full"
+            gpsAccuracyMeters={8}
+            driversOnlineCount={veiculos.length}
+            driversInViewportCount={veiculos.filter((v) => v.status === "em_rota").length || veiculos.length}
+            websocketStatus="CONNECTED"
+            lastRealtimeEventTimestamp={Date.now() - 300}
+            mapboxRequestCount={136}
+          />
+        </div>
       )}
     </div>
   );

@@ -33,6 +33,7 @@ whose code diverges from its record here is a "drifted" finding. -->
 | SCR-21 | Estúdio White Label | FLW-08 | [Figma Admin Theme](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=2010:918) | built | src/routes/app.admin.whitelabel.tsx:1-200 |
 | SCR-22 | Central de Incidentes SOS Admin | FLW-03 | [Figma Customer Chats](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=4001:884) | built | src/routes/app.admin.sos.tsx:1-150 |
 | SCR-23 | Configurações Globais do Sistema | FLW-08 | [Figma Admin Config](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=2010:918) | built | src/routes/app.admin.configuracoes.tsx:1-200 |
+| SCR-24 | Diagnóstico Geoespacial & WebGL | FLW-08 | [Figma Admin Map](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=2011:1124) | built | src/routes/app.admin.diagnostico.tsx:1-200 |
 
 ## Design system
 
@@ -386,3 +387,18 @@ whose code diverges from its record here is a "drifted" finding. -->
 - **Scenarios:** SCN-010
 - **Resources:** superadmin-config
 - **Status:** built
+
+### SCR-24: Diagnóstico Geoespacial & WebGL
+- **Used by:** FLW-08 step 8
+- **Purpose:** Painel técnico de observabilidade cartográfica, monitoramento de GPU/WebGL, teste de acurácia GNSS e latência WebSocket isolado das telas de passageiros
+- **Elements:** Card de FPS e aceleração WebGL, medidor de acurácia GPS com probe interativo, monitor de WebSocket Realtime, medidor de JS Heap, mapa de teste geodésico, tabela de telemetria da frota
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |-------|---------|-------------|----------|
+  | success | telemetria sincronizada | none — code first | Exibe taxas de FPS (60 Hz), precisão GNSS em metros, status WSS e contadores de requisições Mapbox |
+  | loading | medindo sinal GPS | none — code first | Spinner animado no botão Testar Sinal com leitura em tempo real via Geolocation API |
+- **Coverage:** src/routes/app.admin.diagnostico.tsx:1-200
+- **Scenarios:** SCN-008
+- **Resources:** MapDiagnosticPanel, UniversalMapView, useTelemetriaFrota
+- **Status:** built
+

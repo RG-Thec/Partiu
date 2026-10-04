@@ -105,6 +105,7 @@ export interface PartiuRideMapProps {
   activeMapStyle?: "streets" | "traffic" | "satellite" | undefined;
   onSelectMapStyle?: ((style: "streets" | "traffic" | "satellite") => void) | undefined;
   primaryRouteColor?: string | undefined;
+  showDiagnosticPanel?: boolean | undefined;
 }
 
 /**
@@ -208,6 +209,7 @@ export const PartiuRideMap = memo(
       activeMapStyle,
       onSelectMapStyle,
       primaryRouteColor,
+      showDiagnosticPanel = false,
     }: PartiuRideMapProps,
     ref
   ) {
@@ -1501,15 +1503,17 @@ export const PartiuRideMap = memo(
           </button>
         )}
 
-        {/* Painel de Diagnóstico e Observabilidade (ETAPA 9 - Telemetria Enterprise) */}
-        <MapDiagnosticPanel
-          gpsAccuracyMeters={userAccuracyMeters ?? 8}
-          driversOnlineCount={totalDrivers}
-          driversInViewportCount={viewportDriversCount || totalDrivers}
-          websocketStatus={isConnected ? "CONNECTED" : "CONNECTING"}
-          lastRealtimeEventTimestamp={lastEventTimestamp}
-          mapboxRequestCount={mapboxRequestCountRef.current}
-        />
+        {/* Painel de Diagnóstico e Observabilidade (Apenas se explicitamente solicitado em ambiente de teste ou admin) */}
+        {showDiagnosticPanel && (
+          <MapDiagnosticPanel
+            gpsAccuracyMeters={userAccuracyMeters ?? 8}
+            driversOnlineCount={totalDrivers}
+            driversInViewportCount={viewportDriversCount || totalDrivers}
+            websocketStatus={isConnected ? "CONNECTED" : "CONNECTING"}
+            lastRealtimeEventTimestamp={lastEventTimestamp}
+            mapboxRequestCount={mapboxRequestCountRef.current}
+          />
+        )}
       </div>
     );
   })
