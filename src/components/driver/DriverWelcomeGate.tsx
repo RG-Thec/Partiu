@@ -4,7 +4,6 @@ import {
   Car,
   ShieldCheck,
   ArrowRight,
-  Sparkles,
   DollarSign,
   Clock,
   Zap,
@@ -15,10 +14,10 @@ import { GoogleIcon } from "@/components/common/GoogleIcon";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 
 interface DriverWelcomeGateProps {
-  onEnterDemo: () => void;
+  onEnterDemo?: () => void;
 }
 
-export const DriverWelcomeGate: React.FC<DriverWelcomeGateProps> = ({ onEnterDemo }) => {
+export const DriverWelcomeGate: React.FC<DriverWelcomeGateProps> = () => {
   const navigate = useNavigate();
   const {
     nomeApp,
@@ -182,21 +181,6 @@ export const DriverWelcomeGate: React.FC<DriverWelcomeGateProps> = ({ onEnterDem
           >
             <span>Já sou parceiro cadastrado • Fazer login</span>
           </Link>
-
-          {/* Botão Modo Demonstração */}
-          <div className="pt-0.5 text-center">
-            <button
-              type="button"
-              onClick={onEnterDemo}
-              className="w-full h-8 rounded-lg bg-slate-100 hover:bg-slate-200/80 text-slate-600 font-medium text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Testar cockpit em modo demonstração</span>
-            </button>
-            <span className="text-[9.5px] text-slate-400 mt-1 block">
-              Acesso instantâneo para testar radar, taxímetro e GPS
-            </span>
-          </div>
         </div>
       </main>
 

@@ -1146,8 +1146,16 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
     const activeUser = typeof window !== "undefined"
       ? (supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null)
       : null;
-    const nomeUsuarioLogado = activeUser?.name || "Passageiro";
-    const telUsuarioLogado = activeUser?.phone || "";
+
+    if (!activeUser || !activeUser.id) {
+      if (typeof window !== "undefined") {
+        window.location.href = "/auth?role=PASSAGEIRO&redirect=/app";
+      }
+      return;
+    }
+
+    const nomeUsuarioLogado = activeUser.name || "Passageiro";
+    const telUsuarioLogado = activeUser.phone || "";
 
     const isOutraPessoa = viajanteOutraPessoa && Boolean(nomeOutroPassageiro.trim());
     const telPassageiro = isOutraPessoa && telefoneOutroPassageiro.trim() ? telefoneOutroPassageiro.trim() : telUsuarioLogado;

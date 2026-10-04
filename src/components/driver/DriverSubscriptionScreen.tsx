@@ -57,7 +57,6 @@ export const DriverSubscriptionScreen: React.FC<DriverSubscriptionScreenProps> =
     dismissCelebration,
     accessDecision,
     refreshAccess,
-    activateDemo,
   } = useSubscription();
 
   const driverId = props?.driverId || contextDriverId;
@@ -145,38 +144,11 @@ export const DriverSubscriptionScreen: React.FC<DriverSubscriptionScreenProps> =
     }
   };
 
-  const handleSimularAtivacaoDemo = async () => {
-    setIsSimulando(true);
-    try {
-      const activeDriverId = driverId || "mot-001";
-      const durationHours = cycleType === "MONTHLY" ? 720 : cycleType === "WEEKLY" ? 168 : 24;
-      await driverSubscriptionService.confirmDailyFeePayment(
-        activeDriverId,
-        "CARRO",
-        `TX_PAGO_${Date.now()}`,
-        currentPrice,
-        durationHours
-      );
-      if (activateDemo) {
-        await activateDemo();
-      }
-      await refreshAccess();
-    } catch (err) {
-      console.warn("[DriverSubscriptionScreen] Erro ao ativar:", err);
-      window.location.reload();
-    } finally {
-      setIsSimulando(false);
-    }
-  };
-
   const handleAtivarTrial = async () => {
     setIsSimulando(true);
     try {
       const activeDriverId = driverId || "mot-001";
       await driverSubscriptionService.activateTrial(activeDriverId, "CARRO");
-      if (activateDemo) {
-        await activateDemo();
-      }
       await refreshAccess();
       props?.onPaymentSuccess?.();
     } catch (err) {
@@ -649,21 +621,6 @@ export const DriverSubscriptionScreen: React.FC<DriverSubscriptionScreenProps> =
             />
             <span>Aguardando confirmação bancária. A tela liberará automaticamente.</span>
           </div>
-
-          {/* Botão de Liberação de Teste / Demonstração (APENAS EM DEV) */}
-          {environmentEngine.isDev() && (
-            <div className="pt-2 border-t border-white/10">
-              <button
-                type="button"
-                onClick={handleSimularAtivacaoDemo}
-                disabled={isSimulando}
-                className="w-full py-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-xs font-bold text-slate-300 hover:text-white transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
-              >
-                <Zap className="w-3.5 h-3.5" style={{ color: accentColor }} />
-                <span>{isSimulando ? "Ativando acesso..." : "[DEV ONLY] Entrar no Cockpit em Modo Demonstração"}</span>
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>

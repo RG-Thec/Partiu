@@ -26,24 +26,7 @@ export interface TokenizedCard {
 
 const STORAGE_CARTOES_KEY = "partiu_cartoes_credito_v1";
 
-const CARTOES_PADRAO: TokenizedCard[] = [
-  {
-    id: "card-1",
-    tokenId: "tok_mock_master_4242",
-    ultimosDigitos: "4242",
-    bandeira: "mastercard",
-    titular: "RODRIGO SILVA",
-    padrao: true,
-  },
-  {
-    id: "card-2",
-    tokenId: "tok_mock_visa_8899",
-    ultimosDigitos: "8899",
-    bandeira: "visa",
-    titular: "RODRIGO SILVA",
-    padrao: false,
-  },
-];
+const CARTOES_PADRAO: TokenizedCard[] = [];
 
 export class PaymentMethodService {
   private static instance: PaymentMethodService;
@@ -121,7 +104,7 @@ export class PaymentMethodService {
     userIdParam?: string
   ): Promise<{ success: boolean; cards: TokenizedCard[]; error?: string }> {
     const session = supabaseAuthService.getStoredSession();
-    const userId = userIdParam || session?.id || "usr-pax-rodrigo";
+    const userId = userIdParam || session?.id || "";
 
     const cleanNum = cardInput.numeroCartao.replace(/\D/g, "");
     if (cleanNum.length < 13) {

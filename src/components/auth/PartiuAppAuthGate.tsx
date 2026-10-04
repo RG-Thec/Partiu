@@ -14,8 +14,6 @@ import {
   UserCheck,
   Radio,
   Loader2,
-  ChevronDown,
-  Sparkles,
   Lock,
   User,
   KeyRound,
@@ -131,8 +129,6 @@ export function PartiuAppAuthGate({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Atalhos de Demonstração / Homologação
-  const [showDevQuickLogin, setShowDevQuickLogin] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
 
   async function handleGoogleSignIn() {
@@ -469,16 +465,6 @@ export function PartiuAppAuthGate({
     const res = await supabaseAuthService.resetPassword(targetEmail);
     setLoading(false);
     setSuccessMessage(res.message);
-  }
-
-  // Atalhos de Demonstração (1-Clique)
-  function handleQuickLogin(role: RoleType) {
-    setLoading(true);
-    const res = supabaseAuthService.quickDemoLogin(role);
-    setLoading(false);
-    if (res.success && res.redirectUrl) {
-      void navigate({ to: redirectDestination || res.redirectUrl, replace: true });
-    }
   }
 
   // Carregamento de Inicialização
@@ -1229,76 +1215,6 @@ export function PartiuAppAuthGate({
               )}
             </>
           )}
-
-          {/* =================================================================== */}
-          {/* MODO DEMONSTRAÇÃO / ACESSO RÁPIDO DISCRETO (HOMOLOGAÇÃO)            */}
-          {/* =================================================================== */}
-          <div className="pt-4 mt-6 border-t" style={{ borderColor: colors.inputBorder }}>
-            <button
-              type="button"
-              onClick={() => setShowDevQuickLogin(!showDevQuickLogin)}
-              className="w-full flex items-center justify-between text-xs font-bold transition py-1 cursor-pointer"
-              style={{ color: colors.textSecondary }}
-            >
-              <div className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>Atalhos de Demonstração (1-Clique)</span>
-              </div>
-              <ChevronDown
-                className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                  showDevQuickLogin ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-
-            {showDevQuickLogin && (
-              <div className="grid grid-cols-2 gap-2 pt-3 animate-in fade-in duration-200">
-                <button
-                  type="button"
-                  onClick={() => handleQuickLogin("PASSAGEIRO")}
-                  className="p-3 rounded-2xl border text-left flex items-center gap-2.5 transition-all hover:brightness-95 cursor-pointer shadow-xs"
-                  style={{
-                    backgroundColor: colors.inputBackground,
-                    borderColor: colors.inputBorder,
-                  }}
-                >
-                  <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
-                    <Car className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-xs font-bold block truncate" style={{ color: colors.textPrimary }}>
-                      Passageiro
-                    </span>
-                    <span className="text-[10px] block truncate" style={{ color: colors.textSecondary }}>
-                      Carlos Eduardo
-                    </span>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickLogin("MOTORISTA")}
-                  className="p-3 rounded-2xl border text-left flex items-center gap-2.5 transition-all hover:brightness-95 cursor-pointer shadow-xs"
-                  style={{
-                    backgroundColor: colors.inputBackground,
-                    borderColor: colors.inputBorder,
-                  }}
-                >
-                  <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                    <Radio className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-xs font-bold block truncate" style={{ color: colors.textPrimary }}>
-                      Motorista
-                    </span>
-                    <span className="text-[10px] block truncate" style={{ color: colors.textSecondary }}>
-                      Marcos Oliveira
-                    </span>
-                  </div>
-                </button>
-              </div>
-            )}
-          </div>
         </NativeSurface>
 
         {/* =================================================================== */}

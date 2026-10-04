@@ -1,7 +1,6 @@
 import React, { useState, useEffect, memo } from "react";
 import {
   ShieldAlert,
-  Sparkles,
   QrCode,
   Copy,
   Check,
@@ -56,20 +55,6 @@ export const DailyFeePaymentScreen = memo(function DailyFeePaymentScreen({
     navigator.clipboard.writeText(pixData.copiaECola);
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
-  }
-
-  async function handleSimularPagamento() {
-    setVerificando(true);
-    setStatusMsg(null);
-    try {
-      await driverSubscriptionService.simulateDailyFeePayment(driverId, vehicleType);
-      setSucesso(true);
-      setTimeout(() => {
-        onPaymentSuccess();
-      }, 1200);
-    } finally {
-      setVerificando(false);
-    }
   }
 
   async function handleVerificarPagamento() {
@@ -319,17 +304,6 @@ export const DailyFeePaymentScreen = memo(function DailyFeePaymentScreen({
               </>
             )}
           </button>
-
-          {environmentEngine.isDev() && (
-            <button
-              type="button"
-              disabled={verificando || sucesso}
-              onClick={handleSimularPagamento}
-              className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5" style={{ color: accentColor }} /> [DEV ONLY] Simular Pagamento Instantâneo
-            </button>
-          )}
         </div>
       </div>
     </div>

@@ -103,8 +103,8 @@ function PartiuPassengerHomeContent() {
   });
   const [userAvatar, setUserAvatar] = useState<string | null>(() => {
     return (
-      localStorage.getItem("partiu_user_avatar") ||
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+      (typeof window !== "undefined" ? localStorage.getItem("partiu_user_avatar") : null) ||
+      null
     );
   });
   const mapHandleRef = useRef<PartiuRideMapHandle | null>(null);

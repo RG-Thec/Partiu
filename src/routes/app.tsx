@@ -17,11 +17,6 @@ export const Route = createFileRoute("/app")({
       return { user: null };
     }
 
-    // Suporte a Acesso Demo Local para testes imediatos
-    if (typeof window !== "undefined" && localStorage.getItem("partiu_demo_user") === "true") {
-      return { user: { id: "demo-user-1", email: "demo@partiu.app.br" } };
-    }
-
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const session = sessionData?.session;

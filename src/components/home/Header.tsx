@@ -63,9 +63,9 @@ export const Header = memo(function Header({
     setImgFailed(false);
   }, [avatarUrl]);
 
-  // Foto do passageiro (com fallback oficial de demonstração de alta qualidade)
+  // Foto do passageiro (100% real: exibe foto cadastrada pelo usuário ou iniciais)
   const effectiveAvatar = !imgFailed
-    ? (avatarUrl || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_avatar") : null) || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80")
+    ? (avatarUrl || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_avatar") : null) || null)
     : null;
 
   return (

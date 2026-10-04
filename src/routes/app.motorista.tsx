@@ -274,15 +274,7 @@ export function PartiuDriverCockpitGuarded() {
   const isRegisteredDriver = activeUser?.role === "MOTORISTA";
 
   if (!isRegisteredDriver) {
-    return (
-      <DriverWelcomeGate
-        onEnterDemo={() => {
-          if (typeof window !== "undefined") {
-            window.location.href = "/cadastro-motorista";
-          }
-        }}
-      />
-    );
+    return <DriverWelcomeGate />;
   }
 
   const effectiveDriverId = activeUser?.id || "";
@@ -418,15 +410,15 @@ export function PartiuDriverCockpit() {
     return {
       id: effectiveDriverId,
       nome: activeUser?.name || "Motorista Parceiro",
-      telefone: activeUser?.phone || "(22) 99876-5432",
-      email: activeUser?.email || "motorista@partiuapp.com.br",
-      fotoUrl: activeUser?.avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+      telefone: activeUser?.phone || "",
+      email: activeUser?.email || "",
+      fotoUrl: activeUser?.avatarUrl || "",
       cpf: cpfEfetivo,
       chavePix: cpfEfetivo,
       veiculoModelo: (activeUser as any)?.vehicleModel || "Veículo Cadastrado",
       veiculoMarcaModelo: (activeUser as any)?.vehicleModel || "Veículo Cadastrado",
-      veiculoPlaca: (activeUser as any)?.vehiclePlate || "BRA-2E19",
-      veiculoCor: (activeUser as any)?.vehicleColor || "Prata",
+      veiculoPlaca: (activeUser as any)?.vehiclePlate || "",
+      veiculoCor: (activeUser as any)?.vehicleColor || "",
       modalidade: ((activeUser as any)?.vehicleType === "MOTO" ? "MOTO" : "CARRO") as any,
       categoria: ((activeUser as any)?.vehicleType === "MOTO" ? "MOTO" : "CARRO"),
       avaliacao: 5.0,
@@ -527,10 +519,20 @@ export function PartiuDriverCockpit() {
     return localStorage.getItem("partiu_driver_som_radar") !== "false";
   });
 
-  // Métricas do Dia (D+0)
+  // Métricas do Dia (D+0) 100% Reais e Auditáveis
   const [ganhosHoje, setGanhosHoje] = useState(() => getGanhosHojeMotorista());
-  const [corridasFeitas, setCorridasFeitas] = useState(9);
-  const [horasOnline] = useState("5h 20m");
+  const [corridasFeitas, setCorridasFeitas] = useState(() => {
+    try {
+      const historico = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("partiu_historico_corridas") || "[]") : [];
+      const hoje = new Date().toDateString();
+      return Array.isArray(historico)
+        ? historico.filter((c: any) => c.status === "CONCLUIDA" && new Date(c.criadoEm).toDateString() === hoje).length
+        : 0;
+    } catch {
+      return 0;
+    }
+  });
+  const [horasOnline] = useState("0h 00m");
   const [modalSosAberto, setModalSosAberto] = useState(false);
 
   // Estado da Corrida no Cockpit: IDLE -> OFFER -> HEADING_TO_PICKUP -> WAITING_PIN -> IN_PROGRESS
@@ -779,11 +781,11 @@ export function PartiuDriverCockpit() {
             driverId: perfilMotorista.id,
             fullName: perfilMotorista.nome,
             firstName: (perfilMotorista.nome || "Motorista").split(" ")[0],
-            avatarUrl: perfilMotorista.fotoUrl || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-            rating: perfilMotorista.avaliacao || 4.97,
-            vehicleModel: perfilMotorista.veiculoModelo || "Chevrolet Onix",
-            vehicleColor: perfilMotorista.veiculoCor || "Prata",
-            licensePlate: perfilMotorista.veiculoPlaca || "BRA-4X99",
+            avatarUrl: perfilMotorista.fotoUrl || "",
+            rating: perfilMotorista.avaliacao || 5.0,
+            vehicleModel: perfilMotorista.veiculoModelo || (perfilMotorista.categoria === "MOTO" ? "Motocicleta" : "Veículo de Passeio"),
+            vehicleColor: perfilMotorista.veiculoCor || "",
+            licensePlate: perfilMotorista.veiculoPlaca || "",
             category: perfilMotorista.categoria || "CARRO",
             distanceKm: 1.2,
             etaMinutes: 3,
@@ -865,11 +867,11 @@ export function PartiuDriverCockpit() {
                   driverId: perfilMotorista.id,
                   fullName: perfilMotorista.nome,
                   firstName: (perfilMotorista.nome || "Motorista").split(" ")[0],
-                  avatarUrl: perfilMotorista.fotoUrl || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-                  rating: perfilMotorista.avaliacao || 4.97,
-                  vehicleModel: perfilMotorista.veiculoModelo || "Chevrolet Onix",
-                  vehicleColor: perfilMotorista.veiculoCor || "Prata",
-                  licensePlate: perfilMotorista.veiculoPlaca || "BRA-4X99",
+                  avatarUrl: perfilMotorista.fotoUrl || "",
+                  rating: perfilMotorista.avaliacao || 5.0,
+                  vehicleModel: perfilMotorista.veiculoModelo || (perfilMotorista.categoria === "MOTO" ? "Motocicleta" : "Veículo de Passeio"),
+                  vehicleColor: perfilMotorista.veiculoCor || "",
+                  licensePlate: perfilMotorista.veiculoPlaca || "",
                   category: perfilMotorista.categoria || "CARRO",
                   distanceKm: 1.2,
                   etaMinutes: 3,
@@ -1060,12 +1062,12 @@ export function PartiuDriverCockpit() {
       id: perfilMotorista.id,
       nome: perfilMotorista.nome,
       telefone: perfilMotorista.telefone,
-      foto: perfilMotorista.fotoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
+      foto: perfilMotorista.fotoUrl || "",
       veiculo: perfilMotorista.veiculoModelo,
       placa: perfilMotorista.veiculoPlaca,
       avaliacao: perfilMotorista.avaliacaoMedia,
       totalViagens: perfilMotorista.totalCorridas || 0,
-      chavePix: perfilMotorista.chavePix || perfilMotorista.cpf || "(22) 99876-5432",
+      chavePix: perfilMotorista.chavePix || perfilMotorista.cpf || "",
       cidade: "Itaperuna",
     };
 

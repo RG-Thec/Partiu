@@ -35,14 +35,14 @@ export interface UserProfileData {
 const STORAGE_PREFERENCES_KEY = "partiu_user_preferences_v1";
 
 const DEFAULT_PROFILE: UserProfileData = {
-  id: "usr-pax-rodrigo",
-  name: "Rodrigo Silva",
-  email: "rodrigo@partiu.app",
-  phone: "(22) 99605-1620",
-  cpf: "084.192.524-88",
-  avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-  rating: 4.9,
-  totalTrips: 28,
+  id: "",
+  name: "Passageiro",
+  email: "",
+  phone: "",
+  cpf: "",
+  avatarUrl: "",
+  rating: 5.0,
+  totalTrips: 0,
   preferences: {
     prefPushNotifications: true,
     prefSoundsHaptics: true,
@@ -235,8 +235,8 @@ export class UserService {
           const { data } = supabase.storage.from("avatares").getPublicUrl(filePath);
           if (data?.publicUrl) {
             await this.updateUserProfile({
-              name: typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") || "Rodrigo" : "Rodrigo",
-              phone: typeof window !== "undefined" ? localStorage.getItem("partiu_user_phone") || "(22) 99605-1620" : "",
+              name: typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") || "Passageiro" : "Passageiro",
+              phone: typeof window !== "undefined" ? localStorage.getItem("partiu_user_phone") || "" : "",
               avatarUrl: data.publicUrl,
             });
             return { success: true, url: data.publicUrl };
