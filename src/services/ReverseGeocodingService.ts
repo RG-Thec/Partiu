@@ -11,7 +11,14 @@
  */
 
 import { MapboxConfig } from "@/config/MapboxConfig";
-import { LUGARES_CURADOS_ITAPERUNA } from "./GeocodingService";
+import {
+  LUGARES_CURADOS_ITAPERUNA,
+  calcularDistanciaHaversineMetros,
+} from "./GeocodingService";
+
+function isHighwayOrExpressway(name: string): boolean {
+  return /\b(RJ-\d+|BR-\d+|Rodovia|Estrada|Via Expressa|Highway)\b/i.test(name);
+}
 
 export interface ReverseGeocodedAddress {
   street: string;
@@ -46,6 +53,7 @@ export class ReverseGeocodingService {
 
   /**
    * Geocodificação reversa de coordenadas para endereço brasileiro estruturado
+   * com proteção estrita contra snapping indevido em rodovias e priorização da via residencial mais próxima.
    */
   public async reverseGeocode(
     coordsOrLat: [number, number] | { lat: number; lng: number } | number,
@@ -73,106 +81,35 @@ export class ReverseGeocodingService {
       return cached.address;
     }
 
-    // 1. Chamada à API Mapbox Geocoding v5
-    try {
-      const token = MapboxConfig.getAccessToken();
-      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&types=address,neighborhood,poi,locality&language=pt&country=BR`;
-
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 4000);
-      const response = await fetch(url, { method: "GET", signal: controller.signal });
-      clearTimeout(timeout);
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.features && data.features.length > 0) {
-          const primary = data.features[0];
-          const context = primary.context || [];
-
-          const street = primary.text || primary.place_name?.split(",")[0] || "Rua";
-          const number = primary.address || "";
-          const neighborhood =
-            context.find((c: any) => c.id.startsWith("neighborhood"))?.text ||
-            context.find((c: any) => c.id.startsWith("locality"))?.text ||
-            "Centro";
-          const rawState = context.find((c: any) => c.id.startsWith("region"))?.text || "RJ";
-          const regionCode = context.find((c: any) => c.id.startsWith("region"))?.short_code;
-          
-          let state = "RJ";
-          if (regionCode) {
-            state = regionCode.replace(/^BR-/i, "").toUpperCase();
-          } else {
-            const BRAZIL_STATES: Record<string, string> = {
-              "rio de janeiro": "RJ",
-              "sao paulo": "SP",
-              "são paulo": "SP",
-              "minas gerais": "MG",
-              "espirito santo": "ES",
-              "espírito santo": "ES",
-              "bahia": "BA",
-              "alagoas": "AL",
-              "sergipe": "SE",
-              "pernambuco": "PE",
-              "paraiba": "PB",
-              "paraíba": "PB",
-              "rio grande do norte": "RN",
-              "ceara": "CE",
-              "ceará": "CE",
-              "piaui": "PI",
-              "piauí": "PI",
-              "maranhao": "MA",
-              "maranhão": "MA",
-              "para": "PA",
-              "pará": "PA",
-              "amapa": "AP",
-              "amapá": "AP",
-              "amazonas": "AM",
-              "roraima": "RR",
-              "acre": "AC",
-              "rondonia": "RO",
-              "rondônia": "RO",
-              "tocantins": "TO",
-              "mato grosso": "MT",
-              "mato grosso do sul": "MS",
-              "goias": "GO",
-              "goiás": "GO",
-              "distrito federal": "DF",
-              "parana": "PR",
-              "paraná": "PR",
-              "santa catarina": "SC",
-              "rio grande do sul": "RS",
-            };
-            const normalizedName = rawState.toLowerCase().trim();
-            state = BRAZIL_STATES[normalizedName] || (rawState.length === 2 ? rawState.toUpperCase() : "RJ");
-          }
-
-          const city =
-            context.find((c: any) => c.id.startsWith("place"))?.text || "Itaperuna";
-          const postalCode = context.find((c: any) => c.id.startsWith("postcode"))?.text;
-
-          const streetPart = number ? `${street}, ${number}` : street;
-          const formattedAddress = `${streetPart}, ${neighborhood}, ${city} - ${state}`;
-
-          const result: ReverseGeocodedAddress = {
-            street,
-            number: number || undefined,
-            neighborhood,
-            city,
-            state,
-            postalCode: postalCode || undefined,
-            formattedAddress,
-            coords: [lng, lat],
-          };
-
-          this.cache.set(cacheKey, { address: result, timestamp: Date.now() });
-          return result;
-        }
+    // 1. Verificação de proximidade imediata ao catálogo local curado (< 45m)
+    // Se o passageiro estiver fisicamente dentro da rua sem saída ou via residencial catalogada,
+    // retorna instantaneamente o endereço exato com bairro correto.
+    let bestCurated = LUGARES_CURADOS_ITAPERUNA[0];
+    let minCuratedDist = Infinity;
+    for (const place of LUGARES_CURADOS_ITAPERUNA) {
+      const d = calcularDistanciaHaversineMetros([lng, lat], place.coords);
+      if (d < minCuratedDist) {
+        minCuratedDist = d;
+        bestCurated = place;
       }
-    } catch (err) {
-      console.warn("[ReverseGeocodingService] Falha no Mapbox, acionando fallback de alta precisão:", err);
     }
 
-    // 2. Fallback de Alta Precisão Nacional via OpenStreetMap Nominatim (Padrão Uber/WhatsApp)
+    if (minCuratedDist <= 45 && bestCurated) {
+      const bairro = bestCurated.bairro || "São Mateus";
+      const result: ReverseGeocodedAddress = {
+        street: bestCurated.label,
+        neighborhood: bairro,
+        city: "Itaperuna",
+        state: "RJ",
+        formattedAddress: bestCurated.endereco || `${bestCurated.label} - ${bairro}, Itaperuna - RJ`,
+        coords: [lng, lat],
+      };
+      this.cache.set(cacheKey, { address: result, timestamp: Date.now() });
+      return result;
+    }
+
+    // 2. Consulta de alta precisão via OpenStreetMap Nominatim (zoom=18 para ruas locais e sem saída)
+    let candidateNominatim: ReverseGeocodedAddress | null = null;
     try {
       const nomUrl = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
       const nomController = new AbortController();
@@ -189,13 +126,13 @@ export class ReverseGeocodingService {
           const addr = nomData.address;
           const street = addr.road || addr.pedestrian || addr.street || addr.suburb || "Rua Local";
           const number = addr.house_number || "";
-          const neighborhood = addr.neighbourhood || addr.suburb || addr.quarter || "Centro";
+          const neighborhood = addr.neighbourhood || addr.suburb || addr.quarter || bestCurated?.bairro || "São Mateus";
           const city = addr.city || addr.town || addr.municipality || addr.village || "Itaperuna";
           const state = addr.state ? (addr.state.length === 2 ? addr.state.toUpperCase() : "RJ") : "RJ";
           const streetPart = number ? `${street}, ${number}` : street;
           const formattedAddress = `${streetPart}, ${neighborhood}, ${city} - ${state}`;
 
-          const result: ReverseGeocodedAddress = {
+          candidateNominatim = {
             street,
             number: number || undefined,
             neighborhood,
@@ -205,37 +142,128 @@ export class ReverseGeocodingService {
             formattedAddress,
             coords: [lng, lat],
           };
-
-          this.cache.set(cacheKey, { address: result, timestamp: Date.now() });
-          return result;
         }
       }
     } catch {
-      // continua para fallback de catálogo
+      // continua para consulta Mapbox
     }
 
-    // 3. Fallback de Proximidade Imediata e Bairros de Itaperuna
-    let bestMatch = LUGARES_CURADOS_ITAPERUNA[0];
-    let minDistance = Infinity;
+    // 3. Consulta complementar via Mapbox Geocoding v5
+    let candidateMapbox: ReverseGeocodedAddress | null = null;
+    try {
+      const token = MapboxConfig.getAccessToken();
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}&types=address,neighborhood,poi,locality&language=pt&country=BR`;
 
-    for (const place of LUGARES_CURADOS_ITAPERUNA) {
-      const dLng = place.coords[0] - lng;
-      const dLat = place.coords[1] - lat;
-      const dist = dLng * dLng + dLat * dLat;
-      if (dist < minDistance) {
-        minDistance = dist;
-        bestMatch = place;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3500);
+      const response = await fetch(url, { method: "GET", signal: controller.signal });
+      clearTimeout(timeout);
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.features && data.features.length > 0) {
+          // Filtra primeiro features que não sejam rodovias se houver opção residencial
+          let selectedFeat = data.features[0];
+          for (const feat of data.features) {
+            const featName = feat.text || feat.place_name || "";
+            if (!isHighwayOrExpressway(featName)) {
+              selectedFeat = feat;
+              break;
+            }
+          }
+
+          const primary = selectedFeat;
+          const context = primary.context || [];
+
+          const street = primary.text || primary.place_name?.split(",")[0] || "Rua Local";
+          const number = primary.address || "";
+          const neighborhood =
+            context.find((c: any) => c.id.startsWith("neighborhood"))?.text ||
+            context.find((c: any) => c.id.startsWith("locality"))?.text ||
+            bestCurated?.bairro ||
+            "São Mateus";
+          const rawState = context.find((c: any) => c.id.startsWith("region"))?.text || "RJ";
+          const regionCode = context.find((c: any) => c.id.startsWith("region"))?.short_code;
+
+          let state = "RJ";
+          if (regionCode) {
+            state = regionCode.replace(/^BR-/i, "").toUpperCase();
+          } else {
+            state = rawState.length === 2 ? rawState.toUpperCase() : "RJ";
+          }
+
+          const city =
+            context.find((c: any) => c.id.startsWith("place"))?.text || "Itaperuna";
+          const postalCode = context.find((c: any) => c.id.startsWith("postcode"))?.text;
+
+          const streetPart = number ? `${street}, ${number}` : street;
+          const formattedAddress = `${streetPart}, ${neighborhood}, ${city} - ${state}`;
+
+          candidateMapbox = {
+            street,
+            number: number || undefined,
+            neighborhood,
+            city,
+            state,
+            postalCode: postalCode || undefined,
+            formattedAddress,
+            coords: [lng, lat],
+          };
+        }
+      }
+    } catch {
+      // fallback
+    }
+
+    // 4. Decisão Inteligente (Smart Road Snapping):
+    // Se o Mapbox indicou uma rodovia (ex: RJ-210) mas o Nominatim ou o catálogo local
+    // identificou uma via residencial (ex: Rua C, Rua Oscar Inácio Rodrigues, Rua Benedito Nicolau),
+    // descarta a rodovia e seleciona a via residencial mais próxima!
+    if (candidateMapbox && isHighwayOrExpressway(candidateMapbox.street)) {
+      if (candidateNominatim && !isHighwayOrExpressway(candidateNominatim.street)) {
+        this.cache.set(cacheKey, { address: candidateNominatim, timestamp: Date.now() });
+        return candidateNominatim;
+      }
+      if (bestCurated && minCuratedDist <= 200) {
+        const bairro = bestCurated.bairro || "São Mateus";
+        const resCurated: ReverseGeocodedAddress = {
+          street: bestCurated.label,
+          neighborhood: bairro,
+          city: "Itaperuna",
+          state: "RJ",
+          formattedAddress: bestCurated.endereco || `${bestCurated.label} - ${bairro}, Itaperuna - RJ`,
+          coords: [lng, lat],
+        };
+        this.cache.set(cacheKey, { address: resCurated, timestamp: Date.now() });
+        return resCurated;
       }
     }
 
-    const bairro = bestMatch.bairro || (bestMatch.sublabel ? bestMatch.sublabel.split("—")[0]?.trim() : "Centro");
-    const isNearby = minDistance < 0.00001;
-    const fallbackAddress = isNearby && bestMatch
-      ? (bestMatch.endereco || `${bestMatch.label} - ${bairro}, Itaperuna - RJ`)
-      : `Próximo a ${bestMatch.label} - ${bairro}, Itaperuna - RJ`;
+    // Se Nominatim encontrou uma via residencial detalhada, tem preferência para ruas locais e sem saída
+    if (candidateNominatim && !isHighwayOrExpressway(candidateNominatim.street)) {
+      this.cache.set(cacheKey, { address: candidateNominatim, timestamp: Date.now() });
+      return candidateNominatim;
+    }
+
+    if (candidateMapbox) {
+      this.cache.set(cacheKey, { address: candidateMapbox, timestamp: Date.now() });
+      return candidateMapbox;
+    }
+
+    if (candidateNominatim) {
+      this.cache.set(cacheKey, { address: candidateNominatim, timestamp: Date.now() });
+      return candidateNominatim;
+    }
+
+    // 5. Fallback Final do Catálogo Local de Itaperuna
+    const bairro = bestCurated.bairro || (bestCurated.sublabel ? bestCurated.sublabel.split("—")[0]?.trim() : "São Mateus");
+    const isNearby = minCuratedDist <= 120;
+    const fallbackAddress = isNearby && bestCurated
+      ? (bestCurated.endereco || `${bestCurated.label} - ${bairro}, Itaperuna - RJ`)
+      : `Próximo a ${bestCurated.label} - ${bairro}, Itaperuna - RJ`;
 
     const fallbackResult: ReverseGeocodedAddress = {
-      street: bestMatch.label || "Rua Local",
+      street: bestCurated.label || "Rua Local",
       neighborhood: bairro,
       city: "Itaperuna",
       state: "RJ",
@@ -255,29 +283,27 @@ export class ReverseGeocodingService {
     if (isNaN(lng) || isNaN(lat)) return "Rua Amadeu Tinoco Lacerda, 492 - Centro, Itaperuna - RJ";
 
     let bestMatch = LUGARES_CURADOS_ITAPERUNA[0];
-    let minDistance = Infinity;
+    let minDistanceMetros = Infinity;
 
     for (const place of LUGARES_CURADOS_ITAPERUNA) {
-      const dLng = place.coords[0] - lng;
-      const dLat = place.coords[1] - lat;
-      const dist = dLng * dLng + dLat * dLat;
-      if (dist < minDistance) {
-        minDistance = dist;
+      const dist = calcularDistanciaHaversineMetros(coords, place.coords);
+      if (dist < minDistanceMetros) {
+        minDistanceMetros = dist;
         bestMatch = place;
       }
     }
 
     if (!bestMatch) return "Rua Amadeu Tinoco Lacerda, 492 - Centro, Itaperuna - RJ";
 
-    const bairro = bestMatch.bairro || (bestMatch.sublabel ? bestMatch.sublabel.split("—")[0]?.trim() : "Centro");
+    const bairro = bestMatch.bairro || (bestMatch.sublabel ? bestMatch.sublabel.split("—")[0]?.trim() : "São Mateus");
 
-    // Proximidade imediata da via (< ~350 metros): usa o nome e endereço da via
-    if (minDistance < 0.00001) {
+    // Proximidade imediata da via (< ~120 metros): usa o nome e endereço exato da via mais próxima
+    if (minDistanceMetros <= 120) {
       return bestMatch.endereco || `${bestMatch.label} - ${bairro}, Itaperuna - RJ`;
     }
 
-    // Proximidade da malha urbana (< ~1.5 km): aponta a via e o bairro exato
-    if (minDistance < 0.00015) {
+    // Proximidade da malha urbana (< ~600 metros): aponta proximidade da via e bairro
+    if (minDistanceMetros <= 600) {
       return `Próximo a ${bestMatch.label} - ${bairro}, Itaperuna - RJ`;
     }
 

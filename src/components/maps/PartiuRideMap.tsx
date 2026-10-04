@@ -612,12 +612,8 @@ export const PartiuRideMap = memo(
         map.addSource("destination-pin-source", {
           type: "geojson",
           data: {
-            type: "Feature",
-            properties: {},
-            geometry: {
-              type: "Point",
-              coordinates: destinoCoords || origemCoords,
-            },
+            type: "FeatureCollection",
+            features: [],
           },
         });
       }
@@ -884,7 +880,14 @@ export const PartiuRideMap = memo(
 
     const destSource = map.getSource("destination-pin-source") as mapboxgl.GeoJSONSource | undefined;
     if (destSource) {
-      if (destinoCoords) {
+      const shouldShowDestPin =
+        status !== "IDLE" &&
+        status !== "SEARCHING_DESTINATION" &&
+        status !== "SELECTING_DESTINATION" &&
+        status !== "EDITING_PICKUP" &&
+        Boolean(destinoCoords);
+
+      if (shouldShowDestPin && destinoCoords) {
         destSource.setData({
           type: "Feature",
           properties: {},
@@ -900,7 +903,7 @@ export const PartiuRideMap = memo(
         });
       }
     }
-  }, [mapLoaded, destinoCoords]);
+  }, [mapLoaded, destinoCoords, status]);
 
   // 4. CONTROLE DE CÂMERA INTELIGENTE CONFORME ESTADO DA VIAGEM
   useEffect(() => {

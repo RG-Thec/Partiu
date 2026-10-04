@@ -492,10 +492,11 @@ function PartiuPassengerHomeContent() {
           origemCoords={origemCoords}
           destinoEndereco={destino || undefined}
           destinoCoords={
+            state !== "IDLE" &&
             state !== "SEARCHING_DESTINATION" &&
             state !== "SELECTING_DESTINATION" &&
             state !== "EDITING_PICKUP" &&
-            state !== "CONFIRMING_DESTINATION_MAP"
+            (Boolean(destino) || state === "CONFIRMING_DESTINATION_MAP")
               ? destinoCoords
               : undefined
           }
