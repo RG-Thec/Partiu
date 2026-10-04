@@ -1,0 +1,95 @@
+<!-- LOVABLE:BEGIN -->
+
+> [!IMPORTANT]
+> This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
+> published git history — force pushing, or rebasing/amending/squashing commits
+> that are already pushed — as it rewrites history on Lovable's side and the
+> user will likely lose their project history.
+>
+> Commits you push to the connected branch sync back to Lovable and show up in
+> the editor, so keep the branch in a working state.
+
+<!-- LOVABLE:END -->
+
+## UX scenarios — hard rule (super-ux)
+
+- `docs/ux/scenarios.md` is the source of truth for all user-facing
+  behavior; `docs/ux/foundation.md` (personas, JTBD, journeys, stories) and
+  `docs/ux/flows.md` (user flows) are the WHY and HOW layers scenarios
+  trace to.
+- Any change that touches user-facing behavior or interface MUST update, in
+  the same change: `docs/ux/scenarios.md`; affected flows; the affected
+  screens in `docs/ux/screens.md` (the UI map — states, elements,
+  coverage); and, when Figma is enabled, the Figma frame(s) plus their
+  links in `screens.md`. A screen whose code diverges from its record, or a
+  stale Figma link, is drift — the exact thing this system prevents.
+- Any new feature or project STARTS with the chain: which job does it
+  serve, which journey stage, which story — then flows and scenarios,
+  validated against the existing base, approved.
+- **Do NOT write interface code until the UX workflow is done first:** the
+  foundation → flows → screens → scenarios chain is designed and approved,
+  and — when Figma is enabled (default) — the UI is mocked up in Figma with
+  every screen linked to its frame. Building UI before this is the exact
+  mistake super-ux exists to prevent.
+- Visual identity is ONE locked style pack, recorded in `docs/ux/screens.md`
+  → Design system and obeyed by every Figma frame and every built screen —
+  picked with the **sheleg-design** companion skill when the project has no
+  design system of its own (recommended, not required). Inventing a palette,
+  type pairing, or motion per screen is visual drift.
+- After any UX change and before calling the work done, run the linter
+  `python3 docs/ux/lint.py` — it must pass (errors are drift/broken
+  structure; wire it into CI/pre-commit).
+- Use `/ux` as the entry point; skills: `vision` (what the product is and
+  refuses to become), `ux-foundation`, `ux-flows` (flows + Figma mockups),
+  `ux-scenarios` for maintenance, `ux-audit` for evidence-backed
+  verification, `brand-voice` and `copywriting` for everything the user
+  reads. Full map: the plugin's system-map reference.
+
+## Brand voice — hard rule (super-ux)
+
+- `docs/brand/` is the source of truth for how the product speaks:
+  `voice.md` (axes, narrative, invariants), `terminology.md` (our words and
+  the banned ones), `facts.md` (the only source of any public figure),
+  `channels.md` (one record per surface), `strings.md` (the interface string
+  registry), `locales/<code>.md`.
+- Any change to public-facing text (an interface string, a landing page, a
+  post, a store listing, an ad, an email) updates `docs/brand/` in the SAME
+  change. A new string with no registry row is drift, not a detail.
+- **Never quote a number that has no row in `facts.md`,** and never invent a
+  fact, statistic, quote or expert to fill a gap. Report the gap instead.
+- **One action keeps one name** across button, confirmation, toast, history,
+  notification and accessible name. Search `strings.md` before naming one.
+- **No humor, exclamation marks or emoji** on error, destructive confirm,
+  billing or paywall surfaces, in any voice.
+- **No rhetorical dash, and no full stop after a title.** A dash standing in
+  for a full stop, a comma or a colon is the loudest machine-drafting marker
+  the pack has, and a heading, button, menu item or page title is a name
+  rather than a statement. The dash a language requires stays: the Russian
+  copula, numeric ranges, direct speech. Choose the replacement from the
+  meaning, because a comma, a colon and a full stop state three different
+  relationships and find-and-replace picks the wrong one. `B062` and `B063`
+  catch what a machine can prove; the rest is in the skill's `ai-tells.md`.
+- Run `python3 docs/brand/lint.py` after any text change and before calling
+  work done. It must exit 0 — an error blocks and a warning is advice, which
+  is the same policy the UX linter has; `--strict` makes warnings block too.
+  Wire it into CI or pre-commit alongside the UX linter so copy drift cannot
+  merge.
+
+## Vision alignment — hard rule (super-ux)
+
+Before planning any new feature, capability or significant change, check it
+against `docs/ux/vision.md` — specifically the **anti-vision** and the
+**alignment test**.
+
+**Aligned** → proceed, and say in one line which part of the vision it serves.
+
+**Misaligned** → stop and say so before writing code:
+1. Name the conflict — which layer it contradicts, quoting that layer.
+2. Offer two paths: (a) reshape the feature to fit, with the specific change;
+   (b) amend the vision, saying which layer changes and what that costs.
+3. Wait for the decision. Do not pick one silently.
+
+**Do NOT trigger for:** bug fixes, refactors, dependency work, tests,
+documentation, or anything with no user-facing surface. A vision check on a
+typo fix is how a team learns to skip the check that matters.
+

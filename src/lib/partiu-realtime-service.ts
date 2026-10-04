@@ -1,0 +1,473 @@
+/**
+ * PARTIU MOBILIDADE URBANA — ENTERPRISE REALTIME & DISTRIBUTED DISPATCH SERVICE
+ * Orquestração em Tempo Real via Supabase Channels (Broadcast, Presence & Postgres Changes).
+ * Elimina o isolamento de localStorage e permite matching atômico entre aparelhos distintos.
+ */
+
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
+import type { CorridaPartiu, MotoristaInfo, ModalidadePartiu } from "./partiu-engine";
+import { silentCatchWarn } from "@/lib/structured-logger";
+
+
+const DISPATCH_CHANNEL_NAME = "partiu:dispatch-city";
+let dispatchChannel: any = null;
+let activeSubscription: any = null;
+
+export interface RealtimeDispatchMessage {
+  type: "TRIP_OFFERED" | "TRIP_ACCEPTED" | "DRIVER_ARRIVED" | "TRIP_STARTED" | "TRIP_COMPLETED" | "TRIP_CANCELLED" | "SOS_ALERT";
+  corrida: CorridaPartiu | null;
+  timestamp: number;
+}
+
+/**
+ * 1. INICIALIZAÇÃO DO CANAL SUPABASE REALTIME
+ * Estabelece conexão persistente WebSocket com multiplexação de salas.
+ */
+export function inicializarPartiuRealtime(
+  onAtualizacao?: (corrida: CorridaPartiu | null) => void
+): void {
+  if (typeof window === "undefined") return;
+
+  if (dispatchChannel) {
+    return; // Já inicializado
+  }
+
+  dispatchChannel = supabase.channel(DISPATCH_CHANNEL_NAME, {
+    config: {
+      broadcast: { ack: true, self: false },
+      presence: { key: `client-${Date.now()}` },
+    },
+  });
+
+  // Listener para eventos de broadcast entre celulares diferentes
+  dispatchChannel.on("broadcast", { event: "trip:sync" }, (payload: { payload: RealtimeDispatchMessage }) => {
+    const msg = payload.payload;
+    if (msg?.corrida) {
+      // Dispara o evento local para sincronizar todos os componentes React existentes
+      window.dispatchEvent(new CustomEvent("partiu:corrida-atualizada", { detail: msg.corrida }));
+      if (onAtualizacao) onAtualizacao(msg.corrida);
+    } else if (msg?.type === "TRIP_COMPLETED" || msg?.type === "TRIP_CANCELLED") {
+      window.dispatchEvent(new CustomEvent("partiu:corrida-atualizada", { detail: null }));
+      if (onAtualizacao) onAtualizacao(null);
+    }
+  });
+
+  // Inscrição no canal
+  dispatchChannel.subscribe((status: string) => {
+    if (status === "SUBSCRIBED") {
+      console.info("[PartiuRealtime] Canal de despacho urbano conectado via WebSocket.");
+    }
+  });
+}
+
+/**
+ * 2. BROADCAST DISTRIBUÍDO DE EVENTO
+ * Envia o evento de corrida para todos os motoristas conectados na cidade via WebSocket.
+ */
+export async function broadcastEventoCorrida(
+  type: RealtimeDispatchMessage["type"],
+  corrida: CorridaPartiu | null
+): Promise<void> {
+  if (typeof window !== "undefined") {
+    // 1. Notifica a UI local imediatamente
+    window.dispatchEvent(new CustomEvent("partiu:corrida-atualizada", { detail: corrida }));
+  }
+
+  if (!dispatchChannel) {
+    inicializarPartiuRealtime();
+  }
+
+  try {
+    if (dispatchChannel) {
+      await dispatchChannel.send({
+        type: "broadcast",
+        event: "trip:sync",
+        payload: {
+          type,
+          corrida,
+          timestamp: Date.now(),
+        },
+      });
+    }
+  } catch (err) {
+    console.warn("[PartiuRealtime] Falha ao enviar broadcast (fallback ativo):", err);
+  }
+}
+
+/**
+ * 3. CRIAR NOVA CORRIDA NO SUPABASE COM REALTIME BROADCAST
+ */
+export async function criarCorridaDistribuida(params: {
+  modalidade: ModalidadePartiu;
+  origem: string;
+  destino: string;
+  detalhesDestino?: string | undefined;
+  passageiroNome: string;
+  passageiroTelefone: string;
+  valor: number;
+  distanciaKm: number;
+  duracaoMin: number;
+  formaPagamento: "pix" | "cartao" | "dinheiro";
+  isEntrega?: boolean | undefined;
+  destinatarioNome?: string | undefined;
+  destinatarioTelefone?: string | undefined;
+  descricaoPacote?: string | undefined;
+  origemCoords?: { lat: number; lng: number } | undefined;
+  destinoCoords?: { lat: number; lng: number } | undefined;
+  passengerId?: string | undefined;
+}): Promise<CorridaPartiu> {
+  const pin = Math.floor(1000 + Math.random() * 9000).toString();
+  const id = `COR-${Date.now().toString().slice(-6)}`;
+  const valorCents = Math.round(params.valor * 100);
+
+  // Validação estrita de coordenadas geográficas reais (P0-04)
+  const origLat = params.origemCoords?.lat;
+  const origLng = params.origemCoords?.lng;
+  const destLat = params.destinoCoords?.lat;
+  const destLng = params.destinoCoords?.lng;
+
+  const isValidCoord = (lat: any, lng: any) =>
+    typeof lat === "number" &&
+    typeof lng === "number" &&
+    !isNaN(lat) &&
+    !isNaN(lng) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180 &&
+    (lat !== 0 || lng !== 0);
+
+  // Tentativa primária: chamada da RPC atômica no Supabase com coordenadas reais (quando disponíveis)
+  if (isValidCoord(origLat, origLng) && isValidCoord(destLat, destLng)) {
+    try {
+    const { data, error } = await (supabase as any).rpc("partiu_solicitar_corrida", {
+      p_modalidade: params.modalidade,
+      p_passageiro_nome: params.passageiroNome,
+      p_passageiro_telefone: params.passageiroTelefone,
+      p_origem_endereco: params.origem,
+      p_origem_detalhes: params.detalhesDestino || "",
+      p_origem_lat: origLat,
+      p_origem_lng: origLng,
+      p_destino_endereco: params.destino,
+      p_destino_detalhes: "",
+      p_destino_lat: destLat,
+      p_destino_lng: destLng,
+      p_distancia_km: params.distanciaKm,
+      p_duracao_min: params.duracaoMin,
+      p_valor_bruto_cents: valorCents,
+      p_forma_pagamento: params.formaPagamento,
+      p_is_entrega: !!params.isEntrega,
+      p_destinatario_nome: params.destinatarioNome || null,
+      p_destinatario_telefone: params.destinatarioTelefone || null,
+      p_descricao_pacote: params.descricaoPacote || null,
+    });
+
+    if (!error && data) {
+      const rpcData = data as any;
+      const corridaRpc: CorridaPartiu = {
+        id: rpcData.codigo_viagem || id,
+        modalidade: params.modalidade,
+        origem: params.origem,
+        destino: params.destino,
+        detalhesDestino: params.detalhesDestino,
+        passageiroNome: params.passageiroNome,
+        passageiroTelefone: params.passageiroTelefone,
+        valor: params.valor,
+        distanciaKm: params.distanciaKm,
+        duracaoMin: params.duracaoMin,
+        formaPagamento: params.formaPagamento,
+        pin: rpcData.pin_seguranca || pin,
+        status: "PROCURANDO",
+        criadoEm: Date.now(),
+        isEntrega: params.isEntrega,
+        destinatarioNome: params.destinatarioNome,
+        destinatarioTelefone: params.destinatarioTelefone,
+        descricaoPacote: params.descricaoPacote,
+        origemCoords: { lat: origLat!, lng: origLng! },
+        destinoCoords: { lat: destLat!, lng: destLng! },
+      };
+
+      await broadcastEventoCorrida("TRIP_OFFERED", corridaRpc);
+      return corridaRpc;
+    }
+  } catch (err) { silentCatchWarn("partiu-realtime-service", err); }
+}
+
+  // Persistência direta em public.rides no Supabase com coordenadas reais
+  if (isSupabaseConfigured()) {
+    try {
+      void (supabase as any).from("rides").insert({
+        id,
+        passenger_id: (params as any).passengerId || `pax-${id}`,
+        passenger_name: params.passageiroNome || "Passageiro Partiu",
+        passenger_phone: params.passageiroTelefone || null,
+        pickup_address: params.origem,
+        pickup_lat: origLat,
+        pickup_lng: origLng,
+        dropoff_address: params.destino,
+        dropoff_lat: destLat,
+        dropoff_lng: destLng,
+        status: "REQUESTED",
+        category: params.modalidade === "MOTO" ? "MOTO" : "CARRO",
+        vehicle_category: params.modalidade === "MOTO" ? "MOTO" : "CARRO",
+        price_estimated_brl: params.valor,
+        distance_km: params.distanciaKm,
+        duration_minutes: params.duracaoMin,
+        payment_method: params.formaPagamento,
+        pin,
+      }).then(({ error }: any) => {
+        if (error) silentCatchWarn("criarCorridaDistribuida:insert_rides", error);
+      });
+    } catch (dbErr) {
+      silentCatchWarn("criarCorridaDistribuida:insert_rides", dbErr);
+    }
+  }
+
+  // Objeto de corrida padrão com sincronização distribuída
+  const corrida: CorridaPartiu = {
+    id,
+    modalidade: params.modalidade,
+    origem: params.origem,
+    destino: params.destino,
+    detalhesDestino: params.detalhesDestino,
+    passageiroNome: params.passageiroNome || "Rodrigo",
+    passageiroTelefone: params.passageiroTelefone || "(22) 99999-0000",
+    valor: params.valor,
+    distanciaKm: params.distanciaKm,
+    duracaoMin: params.duracaoMin,
+    formaPagamento: params.formaPagamento,
+    pin,
+    status: "PROCURANDO",
+    criadoEm: Date.now(),
+    isEntrega: params.isEntrega,
+    destinatarioNome: params.destinatarioNome,
+    destinatarioTelefone: params.destinatarioTelefone,
+    descricaoPacote: params.descricaoPacote,
+  };
+
+  await broadcastEventoCorrida("TRIP_OFFERED", corrida);
+  return corrida;
+}
+
+/**
+ * 4. ACEITE ATÔMICO COM LOCK DISTRIBUÍDO E CAS
+ */
+export async function aceitarCorridaDistribuida(
+  corridaAtual: CorridaPartiu,
+  motorista: MotoristaInfo
+): Promise<{ sucesso: boolean; corrida: CorridaPartiu; motivo?: string | undefined }> {
+  // Reivindicação atômica com Fencing Token e Lock Distribuído
+  const { atomicMatchingEngine } = await import("./dispatch-atomic/atomic-matching");
+  const claimResult = await atomicMatchingEngine.claimRideAtomic(corridaAtual, motorista);
+
+  if (claimResult.success && claimResult.corrida) {
+    if (isSupabaseConfigured()) {
+      try {
+        void (supabase as any)
+          .from("rides")
+          .update({
+            status: "ACCEPTED",
+            driver_id: motorista.id,
+            driver_name: motorista.nome,
+            driver_phone: motorista.telefone,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", corridaAtual.id);
+      } catch (err) {
+        silentCatchWarn("aceitarCorridaDistribuida:update_rides", err);
+      }
+    }
+
+    // Broadcast imediato para que todos os aparelhos vejam a atribuição vencedora
+    await broadcastEventoCorrida("TRIP_ACCEPTED", claimResult.corrida);
+    return { sucesso: true, corrida: claimResult.corrida };
+  }
+
+  // Se outro condutor venceu o lock concorrente, emitir evento de rejeição graciosa para o cockpit
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent("partiu:claim-rejected", {
+        detail: {
+          motivo: claimResult.mensagem || "Outro motorista parceiro aceitou esta corrida no mesmo instante!",
+        },
+      })
+    );
+  }
+
+  return {
+    sucesso: false,
+    corrida: corridaAtual,
+    motivo: claimResult.mensagem,
+  };
+}
+
+/**
+ * 5. ATUALIZAR STATUS DE EMBARQUE / FINALIZAÇÃO
+ */
+export async function atualizarStatusCorridaDistribuida(
+  corridaAtual: CorridaPartiu,
+  novoStatus: CorridaPartiu["status"]
+): Promise<CorridaPartiu> {
+  const atualizada: CorridaPartiu = {
+    ...corridaAtual,
+    status: novoStatus,
+  };
+
+  const statusMapDb: Record<string, string> = {
+    CHEGOU: "DRIVER_ARRIVED",
+    EM_VIAGEM: "IN_PROGRESS",
+    A_CAMINHO: "DRIVER_EN_ROUTE",
+    CONCLUIDA: "COMPLETED",
+    CANCELADA: "CANCELLED",
+  };
+
+  if (isSupabaseConfigured()) {
+    try {
+      void (supabase as any)
+        .from("rides")
+        .update({
+          status: statusMapDb[novoStatus] || "IN_PROGRESS",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", corridaAtual.id);
+    } catch (err) {
+      silentCatchWarn("atualizarStatusCorridaDistribuida:update_rides", err);
+    }
+  }
+
+  const eventoTipo =
+    novoStatus === "CHEGOU"
+      ? "DRIVER_ARRIVED"
+      : novoStatus === "EM_VIAGEM"
+      ? "TRIP_STARTED"
+      : "TRIP_ACCEPTED";
+
+  await broadcastEventoCorrida(eventoTipo, atualizada);
+  return atualizada;
+}
+
+/**
+ * 6. FINALIZAR CORRIDA COM SPLIT FINANCEIRO D+0
+ */
+export async function finalizarCorridaDistribuida(
+  corridaAtual: CorridaPartiu
+): Promise<CorridaPartiu> {
+  const finalizada: CorridaPartiu = {
+    ...corridaAtual,
+    status: "CONCLUIDA",
+  };
+
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      // 1. Atualiza status na tabela canônica public.rides
+      await (supabase as any)
+        .from("rides")
+        .update({
+          status: "COMPLETED",
+          price_final_brl: corridaAtual.valor,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", corridaAtual.id);
+
+      // 2. Invoca liquidação financeira atômica D+0 e registro no ledger (public.partiu_wallets)
+      const { error: splitError } = await (supabase as any).rpc("partiu_concluir_corrida_split", {
+        p_corrida_id: corridaAtual.id,
+      });
+
+      if (splitError) {
+        silentCatchWarn("finalizarCorridaDistribuida:rpc_split", splitError);
+      }
+    } catch (err) {
+      silentCatchWarn("finalizarCorridaDistribuida:update_rides", err);
+    }
+  }
+
+  await broadcastEventoCorrida("TRIP_COMPLETED", null);
+  return finalizada;
+}
+
+/**
+ * 7. CANCELAR CORRIDA
+ */
+export async function cancelarCorridaDistribuida(corridaId?: string): Promise<void> {
+  let targetId = corridaId;
+  if (!targetId && typeof window !== "undefined") {
+    try {
+      const raw = localStorage.getItem("partiu_corrida_ativa_v3");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        targetId = parsed?.id;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  if (isSupabaseConfigured() && targetId) {
+    try {
+      await (supabase as any)
+        .from("rides")
+        .update({
+          status: "CANCELLED",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", targetId);
+    } catch (err) {
+      silentCatchWarn("cancelarCorridaDistribuida:update_rides", err);
+    }
+  }
+  await broadcastEventoCorrida("TRIP_CANCELLED", null);
+}
+
+export interface AlertaSOSTelemetria {
+  tipo?: string;
+  solicitanteNome?: string;
+  solicitanteTelefone?: string;
+  motoristaNome?: string;
+  veiculoPlaca?: string;
+  rodovia?: string;
+  coordenadas?: string;
+  descricao?: string;
+  corridaId?: string;
+  usuarioId?: string;
+}
+
+/**
+ * 8. REGISTRO E TRANSMISSÃO DE ALERTA DE EMERGÊNCIA SOS 190
+ * Grava na tabela public.alertas_sos e transmite via broadcast aos condutores e centrais de apoio.
+ */
+export async function registrarETransmitirAlertaSOS(telemetria: AlertaSOSTelemetria): Promise<void> {
+  console.warn("🚨 [SOS 190] Disparando alerta de emergência e telemetria:", telemetria);
+
+  if (isSupabaseConfigured()) {
+    try {
+      const payload: any = {
+        tipo: telemetria.tipo || "seguranca",
+        solicitante_nome: telemetria.solicitanteNome || "Usuário PARTIU",
+        solicitante_telefone: telemetria.solicitanteTelefone || "+5582999999999",
+        motorista_nome: telemetria.motoristaNome || null,
+        van_placa: telemetria.veiculoPlaca || null,
+        rodovia: telemetria.rodovia || "Perímetro Urbano",
+        coordenadas: telemetria.coordenadas || null,
+        status: "ativo",
+        descricao: telemetria.descricao || `SOS 190 acionado. Corrida: ${telemetria.corridaId || "N/A"}`,
+      };
+      if (telemetria.usuarioId) {
+        payload.usuario_id = telemetria.usuarioId;
+      }
+      await (supabase as any).from("alertas_sos").insert(payload);
+    } catch (err) {
+      silentCatchWarn("registrarETransmitirAlertaSOS:insert_alertas_sos", err);
+    }
+  }
+
+  try {
+    await broadcastEventoCorrida("SOS_ALERT", null);
+  } catch (err) {
+    silentCatchWarn("registrarETransmitirAlertaSOS:broadcast", err);
+  }
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("partiu:admin_sos_alert", { detail: telemetria }));
+  }
+}

@@ -1,0 +1,16 @@
+project_id = "wlmnwazdntayhrsndfor"
+
+[functions.payment-webhook]
+verify_jwt = false
+
+[functions.dispatch-ride]
+verify_jwt = true
+
+[functions.dispatch-worker]
+verify_jwt = true
+
+[functions.generate-driver-payment]
+verify_jwt = true
+
+[functions.verify-and-create-ride]
+verify_jwt = true

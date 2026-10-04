@@ -1,0 +1,76 @@
+@import "./styles.css";
+
+/* ========================================================================= */
+/* EFEITOS PROFISSIONAIS DA LANDING PAGE                                     */
+/* ========================================================================= */
+@keyframes landing-car-float {
+  0%, 100% {
+    transform: translateY(0px) scale(1.05);
+  }
+  50% {
+    transform: translateY(-7px) scale(1.06);
+  }
+}
+
+@keyframes landing-route-flow {
+  0% {
+    stroke-dashoffset: 40;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes landing-radar-pulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(2.3);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+@keyframes landing-shimmer {
+  0% {
+    transform: translateX(-120%) skewX(-15deg);
+  }
+  100% {
+    transform: translateX(250%) skewX(-15deg);
+  }
+}
+
+@keyframes landing-card-breathe {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-car-float {
+  animation: landing-car-float 5s ease-in-out infinite;
+}
+
+.animate-route-flow {
+  stroke-dasharray: 8 6;
+  animation: landing-route-flow 2.2s linear infinite;
+}
+
+.animate-radar-pulse {
+  animation: landing-radar-pulse 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-card-breathe {
+  animation: landing-card-breathe 4s ease-in-out infinite;
+}
+
+.animate-shimmer-pass {
+  animation: landing-shimmer 3.5s ease-in-out infinite;
+}
