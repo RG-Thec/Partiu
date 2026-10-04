@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/white-label";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { silentCatchWarn } from "@/lib/structured-logger";
+import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 
 export interface PartiuAppAuthGateProps {
   redirectDestination?: string | undefined;
