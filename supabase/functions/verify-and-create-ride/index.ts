@@ -100,12 +100,23 @@ serve(async (req: Request) => {
             encodedPolyline = data.routes[0].geometry || "";
           }
         }
-      } catch (err) {
-        console.warn("Mapbox directions fetch error in edge function:", err);
-      }
+    } else {
+      // Fallback geodésico server-side calibrado (malha urbana de 1.35x e velocidade média 24 km/h)
+      const dLat = ((destinationCoordinates[1] - pickupCoordinates[1]) * Math.PI) / 180;
+      const dLon = ((destinationCoordinates[0] - pickupCoordinates[0]) * Math.PI) / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos((pickupCoordinates[1] * Math.PI) / 180) *
+          Math.cos((destinationCoordinates[1] * Math.PI) / 180) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distMeters = 6371000 * c * 1.35;
+      distanceKm = Math.max(0.5, Math.round((distMeters / 1000) * 10) / 10);
+      durationMin = Math.max(2, Math.round((distanceKm / 24) * 60));
     }
 
-    // 3. Recálculo Oficial da Tarifa
+    // 3. Recálculo Oficial da Tarifa pelo Servidor
     const rawCost = baseFare + distanceKm * pricePerKm + durationMin * pricePerMinute;
     let categoryMultiplier = 1.0;
     let minFloor = 10.0;
@@ -131,29 +142,24 @@ serve(async (req: Request) => {
       minFloor = 35.0;
     }
 
-    let precoCalculado = Math.max(minFloor, rawCost * categoryMultiplier);
-    
-    // 4. Verificação Antifraude
-    // Se o token Mapbox estiver configurado no servidor, valida discrepância estrita (< 2%)
-    if (mapboxToken && clientClaimedFare && clientClaimedFare > 0) {
-      const precoFinalCheck = Math.round(precoCalculado * 100) / 100;
-      const discrepancy = Math.abs((clientClaimedFare - precoFinalCheck) / precoFinalCheck) * 100;
-      if (discrepancy > 2.0) {
+    const precoCalculado = Math.max(minFloor, rawCost * categoryMultiplier);
+    const precoFinal = Math.round(precoCalculado * 100) / 100;
+
+    // 4. Verificação Antifraude Server-Side Obrigatória
+    // Rejeita discrepâncias acima de 5% entre a tarifa declarada pelo cliente e o valor auditado
+    if (clientClaimedFare && clientClaimedFare > 0) {
+      const discrepancy = Math.abs((clientClaimedFare - precoFinal) / precoFinal) * 100;
+      if (discrepancy > 5.0) {
         return new Response(
           JSON.stringify({
             error: "FRAUD_DISCREPANCY_DETECTED",
-            message: `Tarifa do cliente diverge da tarifa calculada pelo servidor em ${discrepancy.toFixed(1)}%.`,
-            serverFare: precoFinalCheck,
+            message: `Tarifa informada pelo cliente diverge da tarifa calculada pelo servidor em ${discrepancy.toFixed(1)}%.`,
+            serverFare: precoFinal,
           }),
           { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-    } else if (!mapboxToken && clientClaimedFare && clientClaimedFare >= minFloor) {
-      // Fallback seguro se token Mapbox ainda não foi configurado nas secrets do servidor
-      precoCalculado = clientClaimedFare;
     }
-
-    const precoFinal = Math.round(precoCalculado * 100) / 100;
 
     // 5. Inserção Canônica na Tabela public.rides e espelhamento em partiu_corridas
     const pin = Math.floor(1000 + Math.random() * 9000).toString();

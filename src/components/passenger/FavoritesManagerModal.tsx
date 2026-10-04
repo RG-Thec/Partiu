@@ -59,14 +59,25 @@ export function FavoritesManagerModal({
   useEffect(() => {
     let ativo = true;
     if (!modoAdicionar || !busca.trim()) {
-      setLugares(LUGARES_CURADOS_ITAPERUNA);
+      if (modoAdicionar) {
+        geocodingService
+          .buscarLugares("", origemCoords)
+          .then((res) => {
+            if (ativo) setLugares(res);
+          })
+          .catch(() => {
+            if (ativo) setLugares(LUGARES_CURADOS_ITAPERUNA);
+          });
+      } else {
+        setLugares(LUGARES_CURADOS_ITAPERUNA);
+      }
       return;
     }
 
     setCarregando(true);
     const timer = setTimeout(async () => {
       try {
-        const resultados = await geocodingService.buscarLugares(busca.trim());
+        const resultados = await geocodingService.buscarLugares(busca.trim(), origemCoords);
         if (ativo) setLugares(resultados);
       } catch {
         if (ativo) setLugares(LUGARES_CURADOS_ITAPERUNA);
@@ -79,7 +90,7 @@ export function FavoritesManagerModal({
       ativo = false;
       clearTimeout(timer);
     };
-  }, [busca, modoAdicionar]);
+  }, [busca, modoAdicionar, origemCoords]);
 
   if (!isOpen) return null;
 

@@ -39,14 +39,21 @@ export function AddressSetupModal({
   useEffect(() => {
     let ativo = true;
     if (!busca.trim()) {
-      setLugares(LUGARES_CURADOS_ITAPERUNA);
+      geocodingService
+        .buscarLugares("", origemCoords)
+        .then((res) => {
+          if (ativo) setLugares(res);
+        })
+        .catch(() => {
+          if (ativo) setLugares(LUGARES_CURADOS_ITAPERUNA);
+        });
       return;
     }
 
     setCarregando(true);
     const timer = setTimeout(async () => {
       try {
-        const resultados = await geocodingService.buscarLugares(busca.trim());
+        const resultados = await geocodingService.buscarLugares(busca.trim(), origemCoords);
         if (ativo) setLugares(resultados);
       } catch {
         if (ativo) setLugares(LUGARES_CURADOS_ITAPERUNA);
@@ -59,7 +66,7 @@ export function AddressSetupModal({
       ativo = false;
       clearTimeout(timer);
     };
-  }, [busca]);
+  }, [busca, origemCoords]);
 
   if (!isOpen) return null;
 

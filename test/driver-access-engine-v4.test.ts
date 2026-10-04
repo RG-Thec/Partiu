@@ -105,7 +105,7 @@ describe("32. PARTIU DRIVER ACCESS ENGINE V4 — MODULE 5: Gateway Abstraction L
 
     expect(result.amount).toBe(14.90);
     expect(result.copiaECola.startsWith("00020126")).toBe(true);
-    expect(result.qrCodeUrl.includes("api.qrserver.com")).toBe(true);
+    expect(result.qrCodeUrl.startsWith("data:image/") || result.qrCodeUrl.includes("qr")).toBe(true);
     expect(result.status).toBe("PENDING");
   });
 

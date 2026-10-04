@@ -1006,39 +1006,11 @@ export const PartiuRideMap = memo(
     strategicMarkersRef.current.forEach((m) => m.remove());
     strategicMarkersRef.current = [];
 
-    const isEditingOrSelecting =
-      status === "IDLE" ||
-      status === "EDITING_PICKUP" ||
-      status === "SELECTING_DESTINATION" ||
-      status === "SEARCHING_DESTINATION" ||
-      status === "CONFIRMING_PICKUP";
-
-    if (isEditingOrSelecting && strategicPickups && strategicPickups.length > 0) {
-      strategicPickups.forEach((point) => {
-        const el = document.createElement("div");
-        el.className =
-          "group relative flex flex-col items-center cursor-pointer transition-transform hover:scale-110 active:scale-95 z-20 select-none";
-        el.innerHTML = `
-          <div class="px-2 py-0.5 mb-1 rounded-md bg-slate-950/90 text-[#0088FF] text-[10px] font-black tracking-tight shadow-md border border-white/10 whitespace-nowrap pointer-events-none opacity-90 group-hover:opacity-100 flex items-center gap-1">
-            <span>📍</span>
-            <span>${point.nome.split(" x ")[0] || point.nome}</span>
-          </div>
-          <div class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white shadow-xl flex items-center justify-center text-white ring-4 ring-emerald-400/30 group-hover:ring-emerald-400/60 transition-all">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div>
-        `;
-
-        el.addEventListener("click", (e) => {
-          e.stopPropagation();
-          map.flyTo({ center: point.coords, zoom: 16.2, duration: 600 });
-          onSelectStrategicPickup?.(point);
-        });
-
-        const marker = new mapboxgl.Marker({ element: el }).setLngLat(point.coords).addTo(map);
-        strategicMarkersRef.current.push(marker);
-      });
-    }
-  }, [mapLoaded, status, strategicPickups, onSelectStrategicPickup]);
+    // Pinos de pontos estratégicos removidos conforme solicitação do usuário:
+    // O mapa mantém exclusivamente o Ponto Azul exato do passageiro e a frota em tempo real
+    strategicMarkersRef.current.forEach((m) => m.remove());
+    strategicMarkersRef.current = [];
+  }, [mapLoaded]);
 
   // 7. LIVE TRACKING ENGINE (60FPS LERP & SMOOTH BEARING)
   useEffect(() => {

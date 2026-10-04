@@ -245,26 +245,19 @@ export class PixBillingService {
    * Avalia o acesso operacional do condutor via RPC Server-Side
    */
   public async evaluateDriverAccess(driverId: string): Promise<DriverAccessDecision> {
-    // 1. Verificação prévia de Modo Demonstração ou Diária ativa localmente
-    const isExplicitDemo = typeof window !== "undefined" && (
-      localStorage.getItem("partiu_driver_demo") === "true" ||
-      localStorage.getItem("partiu_demo_user") === "true" ||
-      localStorage.getItem(`partiu_demo_driver_${driverId}`) === "true"
-    );
+    // 1. Verificação prévia de assinatura ativa localmente
+    const activeLocalSub = driverSubscriptionService.getActiveSubscription(driverId);
 
-    const activeLocalSub = driverSubscriptionService.getActiveSubscription(driverId) ||
-      (isExplicitDemo ? driverSubscriptionService.getActiveSubscription("mot-001") : null);
-
-    if (isExplicitDemo || (activeLocalSub && activeLocalSub.status === "ACTIVE")) {
-      const expiresAt = activeLocalSub?.expires_at || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    if (activeLocalSub && activeLocalSub.status === "ACTIVE") {
+      const expiresAt = activeLocalSub.expires_at || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       return {
         is_eligible: true,
         status: "ACTIVE",
-        plan_id: "plano-diaria-essencial",
-        plan_name: "Diária Essencial (Modo Demonstração)",
-        priority_weight: 5.0,
+        plan_id: (activeLocalSub as any).plan_id || "plano-diaria-essencial",
+        plan_name: "Diária Operacional Ativa",
+        priority_weight: 1.0,
         expires_at: expiresAt,
-        amount_paid: activeLocalSub?.amount_paid || 14.90,
+        amount_paid: activeLocalSub.amount_paid || 14.90,
         reasons: [],
       };
     }
@@ -294,8 +287,7 @@ export class PixBillingService {
     }
 
     // Fallback in-process
-    const localSub = inMemorySubscriptions.get(driverId) ||
-      (isExplicitDemo ? inMemorySubscriptions.get("mot-001") : undefined);
+    const localSub = inMemorySubscriptions.get(driverId);
 
     if (!localSub) {
       return {

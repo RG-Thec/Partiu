@@ -6,6 +6,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import QRCode from "https://esm.sh/qrcode@1.5.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -142,7 +143,11 @@ serve(async (req) => {
           if (pointOfInteraction?.qr_code_base64) {
             qrCodeUrl = `data:image/png;base64,${pointOfInteraction.qr_code_base64}`;
           } else if (copiaECola) {
-            qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(copiaECola)}`;
+            try {
+              qrCodeUrl = await QRCode.toDataURL(copiaECola, { width: 300, margin: 1 });
+            } catch {
+              qrCodeUrl = "";
+            }
           }
         } else {
           const errText = await mpRes.text();
@@ -224,7 +229,11 @@ serve(async (req) => {
         `5918PARTIU TECNOLOGIA6005MACAE62070503${billingId.slice(-3)}6304`;
       const crc = calculateCRC16(rawPayloadSemCrc);
       copiaECola = `${rawPayloadSemCrc}${crc}`;
-      qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(copiaECola)}`;
+      try {
+        qrCodeUrl = await QRCode.toDataURL(copiaECola, { width: 300, margin: 1 });
+      } catch {
+        qrCodeUrl = "";
+      }
     }
 
     // 3. Persistência na tabela driver_billing

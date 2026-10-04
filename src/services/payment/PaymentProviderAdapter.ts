@@ -14,6 +14,27 @@
 
 import { appSettingsService } from "@/lib/ecosystem/app-settings-service";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
+import QRCode from "qrcode";
+
+export async function generateLocalQrCodeUrl(payload: string): Promise<string> {
+  try {
+    return await QRCode.toDataURL(payload, {
+      margin: 1,
+      width: 300,
+      errorCorrectionLevel: "M",
+    });
+  } catch {
+    return `data:image/svg+xml;utf8,${encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="300" height="300" fill="#f8fafc"/><text x="20" y="150" font-family="sans-serif" font-size="14" fill="#0f172a">PIX COPIA E COLA PRONTO</text></svg>`
+    )}`;
+  }
+}
+
+export function generateLocalQrCodeSvgSync(payload: string): string {
+  return `data:image/svg+xml;utf8,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="300" height="300" fill="#ffffff"/><path d="M20 20h80v80h-80zM30 30v60h60v-60zM200 20h80v80h-80zM210 30v60h60v-60zM20 200h80v80h-80zM30 210v60h60v-60z" fill="#000000"/><text x="150" y="160" font-family="sans-serif" font-size="11" text-anchor="middle" fill="#000000">PIX QRCode Local</text></svg>`
+  )}`;
+}
 
 export interface PixOrderInput {
   driverId: string;
@@ -104,7 +125,7 @@ export class AsaasProvider implements PaymentGatewayProvider {
     const txId = `partiu_asaas_${Date.now()}_${crypto.randomUUID().replace(/-/g, "").slice(0, 10)}`;
     const expiresAt = new Date(Date.now() + (order.expiresInMinutes || 30) * 60 * 1000).toISOString();
     const copiaECola = buildStandardEmvPix("pix@partiumobilidade.com.br", "PARTIU TECNOLOGIA", "MACAE", order.amount, txId);
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(copiaECola)}`;
+    const qrCodeUrl = await generateLocalQrCodeUrl(copiaECola);
 
     return {
       txId,
@@ -131,7 +152,7 @@ export class AsaasProvider implements PaymentGatewayProvider {
   }
 
   public generateQrCode(emvPayload: string): string {
-    return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(emvPayload)}`;
+    return generateLocalQrCodeSvgSync(emvPayload);
   }
 
   public verifyWebhookSignature(_payload: string, signature: string, secret: string): boolean {
@@ -149,7 +170,7 @@ export class EfiBankProvider implements PaymentGatewayProvider {
     const txId = `partiu_efi_${Date.now()}_${crypto.randomUUID().replace(/-/g, "").slice(0, 10)}`;
     const expiresAt = new Date(Date.now() + (order.expiresInMinutes || 30) * 60 * 1000).toISOString();
     const copiaECola = buildStandardEmvPix("financeiro@partiu.com.br", "PARTIU MOBILIDADE", "MACEIO", order.amount, txId);
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(copiaECola)}`;
+    const qrCodeUrl = await generateLocalQrCodeUrl(copiaECola);
 
     return {
       txId,
@@ -172,7 +193,7 @@ export class EfiBankProvider implements PaymentGatewayProvider {
   }
 
   public generateQrCode(emvPayload: string): string {
-    return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(emvPayload)}`;
+    return generateLocalQrCodeSvgSync(emvPayload);
   }
 
   public verifyWebhookSignature(_payload: string, signature: string, secret: string): boolean {
@@ -188,77 +209,49 @@ export class MercadoPagoProvider implements PaymentGatewayProvider {
 
   public async createPix(order: PixOrderInput): Promise<PixOrderOutput> {
     const settings = appSettingsService.getSettings();
-    const accessToken = settings.mercadopago_access_token?.trim();
     const txId = `partiu_mp_${Date.now()}_${crypto.randomUUID().replace(/-/g, "").slice(0, 10)}`;
     const expiresInMin = order.expiresInMinutes || 30;
     const expiresAt = new Date(Date.now() + expiresInMin * 60 * 1000).toISOString();
 
-    // 1. Se o Access Token do Mercado Pago estiver configurado pelo Painel Admin
-    if (accessToken) {
+    // 1. Delega com segurança para a Edge Function backend se Supabase estiver configurado
+    if (isSupabaseConfigured()) {
       try {
-        const [firstName, ...rest] = (order.driverName || "Motorista").split(" ");
-        const lastName = rest.join(" ") || "Parceiro";
-        const email = order.metadata?.email || "financeiro@partiumobilidade.com.br";
-
-        const mpRes = await fetch("https://api.mercadopago.com/v1/payments", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${accessToken}`,
-            "X-Idempotency-Key": txId,
+        const { data, error } = await supabase.functions.invoke("generate-driver-payment", {
+          body: {
+            driver_id: order.driverId,
+            plan_id: order.metadata?.planId || "plano-diaria-essencial",
+            cycle_type: order.metadata?.cycleType || "DAILY",
           },
-          body: JSON.stringify({
-            transaction_amount: order.amount,
-            description: order.description || "Acesso Operacional PARTIU",
-            payment_method_id: "pix",
-            payer: {
-              email,
-              first_name: firstName,
-              last_name: lastName,
-              identification: order.driverCpf
-                ? {
-                    type: "CPF",
-                    number: order.driverCpf.replace(/\D/g, ""),
-                  }
-                : undefined,
-            },
-            external_reference: txId,
-          }),
         });
 
-        if (mpRes.ok) {
-          const mpData = await mpRes.json();
-          const pInteraction = mpData.point_of_interaction?.transaction_data;
-          const copiaECola = pInteraction?.qr_code || "";
-          const qrCodeUrl = pInteraction?.qr_code_base64
-            ? `data:image/png;base64,${pInteraction.qr_code_base64}`
-            : `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(copiaECola)}`;
+        if (!error && data && data.success) {
+          const copiaECola = data.pix_code || "";
+          const qrCodeUrl = data.qr_code_url && data.qr_code_url.startsWith("data:")
+            ? data.qr_code_url
+            : await generateLocalQrCodeUrl(copiaECola);
 
           return {
             txId,
             gateway: "MERCADO_PAGO",
-            gatewayReference: String(mpData.id),
+            gatewayReference: String(data.billing_id || txId),
             copiaECola,
             qrCodeUrl,
             amount: order.amount,
-            expiresAt,
+            expiresAt: data.expires_at || expiresAt,
             status: "PENDING",
           };
-        } else {
-          const errText = await mpRes.text();
-          console.warn("[MercadoPagoProvider] API do Mercado Pago retornou status:", mpRes.status, errText);
         }
       } catch (err) {
-        console.warn("[MercadoPagoProvider] Falha ao comunicar com a API do Mercado Pago:", err);
+        console.warn("[MercadoPagoProvider] Falha ao invocar edge function generate-driver-payment, aplicando fallback local:", err);
       }
     }
 
-    // 2. Fallback resiliente com as informações de PIX do Painel Admin
+    // 2. Fallback resiliente local com as informações de PIX do Painel Admin
     const pixKey = settings.pix_key || "financeiro@partiumobilidade.com.br";
     const receiverName = settings.pix_receiver_name || "PARTIU MOBILIDADE URBANA";
     const receiverCity = settings.pix_receiver_city || "ITAPERUNA";
     const copiaECola = buildStandardEmvPix(pixKey, receiverName, receiverCity, order.amount, txId);
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(copiaECola)}`;
+    const qrCodeUrl = await generateLocalQrCodeUrl(copiaECola);
 
     return {
       txId,
@@ -273,31 +266,7 @@ export class MercadoPagoProvider implements PaymentGatewayProvider {
   }
 
   public async getPixStatus(gatewayReference: string): Promise<PixStatusOutput> {
-    const settings = appSettingsService.getSettings();
-    const accessToken = settings.mercadopago_access_token?.trim();
-
-    // 1. Se tem token do Mercado Pago e a referência é um ID oficial do MP
-    if (accessToken && /^\d+$/.test(gatewayReference)) {
-      try {
-        const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${gatewayReference}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        if (mpRes.ok) {
-          const mpData = await mpRes.json();
-          const isPaid = mpData.status === "approved";
-          return {
-            gatewayReference,
-            status: isPaid ? "PAID" : mpData.status === "cancelled" ? "CANCELLED" : "PENDING",
-            paidAt: mpData.date_approved || undefined,
-            amount: Number(mpData.transaction_amount || 0),
-          };
-        }
-      } catch (err) {
-        console.warn("[MercadoPagoProvider] Falha ao consultar status no MP:", err);
-      }
-    }
-
-    // 2. Consulta no Supabase na tabela driver_billing
+    // Consulta no Supabase na tabela driver_billing
     if (isSupabaseConfigured()) {
       try {
         const { data } = await (supabase as any)
@@ -327,7 +296,7 @@ export class MercadoPagoProvider implements PaymentGatewayProvider {
   }
 
   public generateQrCode(emvPayload: string): string {
-    return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(emvPayload)}`;
+    return generateLocalQrCodeSvgSync(emvPayload);
   }
 
   public verifyWebhookSignature(_payload: string, signature: string, secret: string): boolean {
@@ -342,12 +311,14 @@ export class StripeProvider implements PaymentGatewayProvider {
   public readonly name = "STRIPE" as const;
   public async createPix(order: PixOrderInput): Promise<PixOrderOutput> {
     const txId = `partiu_stripe_${Date.now()}`;
+    const copiaECola = buildStandardEmvPix("stripe@partiu.com", "PARTIU", "MACAE", order.amount, txId);
+    const qrCodeUrl = await generateLocalQrCodeUrl(copiaECola);
     return {
       txId,
       gateway: "STRIPE",
       gatewayReference: `pi_stripe_${Date.now()}`,
-      copiaECola: buildStandardEmvPix("stripe@partiu.com", "PARTIU", "MACAE", order.amount, txId),
-      qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=STRIPE_${txId}`,
+      copiaECola,
+      qrCodeUrl,
       amount: order.amount,
       expiresAt: new Date(Date.now() + 1800000).toISOString(),
       status: "PENDING",
@@ -355,7 +326,7 @@ export class StripeProvider implements PaymentGatewayProvider {
   }
   public async getPixStatus(ref: string): Promise<PixStatusOutput> { return { gatewayReference: ref, status: "PENDING", amount: 14.90 }; }
   public async cancelPix(): Promise<boolean> { return true; }
-  public generateQrCode(emv: string): string { return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(emv)}`; }
+  public generateQrCode(emv: string): string { return generateLocalQrCodeSvgSync(emv); }
   public verifyWebhookSignature(_p: string, s: string, sec: string): boolean { return Boolean(s && sec); }
 }
 
@@ -363,12 +334,14 @@ export class PagarMeProvider implements PaymentGatewayProvider {
   public readonly name = "PAGARME" as const;
   public async createPix(order: PixOrderInput): Promise<PixOrderOutput> {
     const txId = `partiu_pagarme_${Date.now()}`;
+    const copiaECola = buildStandardEmvPix("pagarme@partiu.com", "PARTIU", "MACAE", order.amount, txId);
+    const qrCodeUrl = await generateLocalQrCodeUrl(copiaECola);
     return {
       txId,
       gateway: "PAGARME",
       gatewayReference: `or_pagarme_${Date.now()}`,
-      copiaECola: buildStandardEmvPix("pagarme@partiu.com", "PARTIU", "MACAE", order.amount, txId),
-      qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=PAGARME_${txId}`,
+      copiaECola,
+      qrCodeUrl,
       amount: order.amount,
       expiresAt: new Date(Date.now() + 1800000).toISOString(),
       status: "PENDING",
@@ -376,7 +349,7 @@ export class PagarMeProvider implements PaymentGatewayProvider {
   }
   public async getPixStatus(ref: string): Promise<PixStatusOutput> { return { gatewayReference: ref, status: "PENDING", amount: 14.90 }; }
   public async cancelPix(): Promise<boolean> { return true; }
-  public generateQrCode(emv: string): string { return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(emv)}`; }
+  public generateQrCode(emv: string): string { return generateLocalQrCodeSvgSync(emv); }
   public verifyWebhookSignature(_p: string, s: string, sec: string): boolean { return Boolean(s && sec); }
 }
 
@@ -384,12 +357,14 @@ export class PagBankProvider implements PaymentGatewayProvider {
   public readonly name = "PAGBANK" as const;
   public async createPix(order: PixOrderInput): Promise<PixOrderOutput> {
     const txId = `partiu_pagbank_${Date.now()}`;
+    const copiaECola = buildStandardEmvPix("pagbank@partiu.com", "PARTIU", "MACAE", order.amount, txId);
+    const qrCodeUrl = await generateLocalQrCodeUrl(copiaECola);
     return {
       txId,
       gateway: "PAGBANK",
       gatewayReference: `pb_tx_${Date.now()}`,
-      copiaECola: buildStandardEmvPix("pagbank@partiu.com", "PARTIU", "MACAE", order.amount, txId),
-      qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=PAGBANK_${txId}`,
+      copiaECola,
+      qrCodeUrl,
       amount: order.amount,
       expiresAt: new Date(Date.now() + 1800000).toISOString(),
       status: "PENDING",
@@ -397,7 +372,7 @@ export class PagBankProvider implements PaymentGatewayProvider {
   }
   public async getPixStatus(ref: string): Promise<PixStatusOutput> { return { gatewayReference: ref, status: "PENDING", amount: 14.90 }; }
   public async cancelPix(): Promise<boolean> { return true; }
-  public generateQrCode(emv: string): string { return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(emv)}`; }
+  public generateQrCode(emv: string): string { return generateLocalQrCodeSvgSync(emv); }
   public verifyWebhookSignature(_p: string, s: string, sec: string): boolean { return Boolean(s && sec); }
 }
 

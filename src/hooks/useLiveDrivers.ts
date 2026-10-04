@@ -85,7 +85,7 @@ export function useLiveDrivers(options: UseLiveDriversOptions = {}) {
         const cutoffTime = new Date(Date.now() - 30 * 1000).toISOString();
         const { data, error } = await (supabase as any)
           .from("driver_locations")
-          .select("*")
+          .select("id, driver_id, latitude, longitude, heading, speed, status, category, updated_at")
           .gt("updated_at", cutoffTime)
           .in("status", [
             "AVAILABLE",

@@ -81,26 +81,7 @@ export class MapboxConfig {
   };
 
   /**
-   * Token público canônico integrado para garantir carregamento instantâneo em produção
-   */
-  private static getBuiltinProductionToken(): string {
-    try {
-      // Chave pública de cliente (pk.*) codificada para compatibilidade de build e GitHub Push Protection
-      const b64 = "cGsuZXlKMUlqb2ljbVJuYjIxbGN5SXNJbUVpT2lKamJYUXpOVEU0Ykhjd01ubHJNbmh2WkdVMk9IWnVlV3BxSW4wLjZnSHE2Sk01Y1pVYW5ZQmVCMVVXNkE=";
-      if (typeof atob === "function") {
-        return atob(b64);
-      }
-      if (typeof Buffer !== "undefined") {
-        return Buffer.from(b64, "base64").toString("utf-8");
-      }
-    } catch {
-      // Silencioso
-    }
-    return MapboxConfig.DEFAULT_TOKEN;
-  }
-
-  /**
-   * Resolve o token do Mapbox a partir das variáveis de ambiente disponíveis ou fallback integrado
+   * Resolve o token do Mapbox a partir das variáveis de ambiente disponíveis ou fallback de CI
    */
   public static getAccessToken(): string {
     const viteEnv = typeof import.meta !== "undefined" ? import.meta.env : undefined;
@@ -114,11 +95,12 @@ export class MapboxConfig {
       processEnv?.["VITE_MAPBOX_ACCESS_TOKEN"] ||
       processEnv?.["MAPBOX_TOKEN"];
 
-    if (envToken) {
-      return envToken;
+    if (envToken && envToken.trim().length > 0) {
+      return envToken.trim();
     }
 
-    return MapboxConfig.getBuiltinProductionToken();
+    // Em ambiente de teste / CI sem token configurado, retorna token sintético de teste
+    return MapboxConfig.DEFAULT_TOKEN;
   }
 
   /**

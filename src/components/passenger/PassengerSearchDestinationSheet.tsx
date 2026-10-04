@@ -101,9 +101,9 @@ const SearchDestinationItemRow = React.memo(function SearchDestinationItemRow({
         </p>
       </div>
 
-      {distText && (
+      {(item.distanciaFormatada || distText) && (
         <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-300 shrink-0">
-          {distText}
+          {item.distanciaFormatada ? `~${item.distanciaFormatada}` : distText}
         </span>
       )}
 
@@ -285,20 +285,27 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
     }
   }, [origem]);
 
-  // 4. Autocompletar Dinâmico em Tempo Real (Mapbox / Places API com refinamento a cada letra)
+  // 4. Autocompletar Dinâmico em Tempo Real estilo Google (com geobias na localização do usuário)
   useEffect(() => {
     let ativo = true;
     const termo = campoAtivo === "embarque" ? origemLocal : buscaDestino;
 
     if (!termo.trim() || (campoAtivo === "embarque" && termo === "Meu Local Atual")) {
-      setLugaresEncontrados(LUGARES_CURADOS_ITAPERUNA);
+      geocodingService
+        .buscarLugares("", origemCoords)
+        .then((locaisProximos) => {
+          if (ativo) setLugaresEncontrados(locaisProximos);
+        })
+        .catch(() => {
+          if (ativo) setLugaresEncontrados(LUGARES_CURADOS_ITAPERUNA);
+        });
       return;
     }
 
     setCarregandoLugares(true);
     const timer = setTimeout(async () => {
       try {
-        const resultados = await geocodingService.buscarLugares(termo);
+        const resultados = await geocodingService.buscarLugares(termo, origemCoords);
         if (ativo) {
           setLugaresEncontrados(resultados);
         }
@@ -307,13 +314,13 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
       } finally {
         if (ativo) setCarregandoLugares(false);
       }
-    }, 350);
+    }, 180);
 
     return () => {
       ativo = false;
       clearTimeout(timer);
     };
-  }, [buscaDestino, origemLocal, campoAtivo]);
+  }, [buscaDestino, origemLocal, campoAtivo, origemCoords]);
 
   // 5. Salvar e recuperar no histórico persistente
   function registrarViagemRecente(label: string, endereco: string, coords?: [number, number]) {
@@ -814,45 +821,29 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                 </div>
               )}
 
-              {/* LOCAIS SUGERIDOS EM ITAPERUNA */}
+              {/* LOCAIS SUGERIDOS EM ITAPERUNA POR PROXIMIDADE REAL */}
               <div className="space-y-1 pt-2 border-t border-slate-100">
                 <span className="text-xs font-black uppercase tracking-wider text-slate-700 block px-1">
-                  Locais Frequentes em Itaperuna
+                  Locais Próximos e Sugeridos
                 </span>
 
                 <div className="space-y-1">
-                  {LUGARES_CURADOS_ITAPERUNA.slice(0, 5).map((lugar) => {
-                    const distText = getDistanciaTexto(lugar.coords);
-                    return (
-                      <button
+                  {(lugaresEncontrados && lugaresEncontrados.length > 0
+                    ? lugaresEncontrados
+                    : LUGARES_CURADOS_ITAPERUNA
+                  )
+                    .slice(0, 6)
+                    .map((lugar) => (
+                      <SearchDestinationItemRow
                         key={lugar.id}
-                        type="button"
-                        onClick={() => handleSelectDestino(lugar.endereco, lugar.coords, lugar.label)}
-                        className="w-full p-3 flex items-center gap-3 text-left hover:bg-slate-50 rounded-2xl transition active:scale-[0.99] cursor-pointer group"
-                      >
-                        <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-slate-200/80 text-slate-700 flex items-center justify-center shrink-0 transition">
-                          {getCategoryIcon(lugar.label)}
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs sm:text-sm font-black text-slate-900 truncate leading-tight transition">
-                            {lugar.label}
-                          </p>
-                          <p className="text-xs text-slate-700 truncate mt-0.5 font-medium">
-                            {lugar.sublabel || lugar.endereco}
-                          </p>
-                        </div>
-
-                        {distText && (
-                          <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-300 shrink-0">
-                            {distText}
-                          </span>
-                        )}
-
-                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-700 shrink-0 transition" />
-                      </button>
-                    );
-                  })}
+                        item={lugar}
+                        distText={getDistanciaTexto(lugar.coords)}
+                        onSelect={(itemSel) =>
+                          handleSelectDestino(itemSel.endereco, itemSel.coords, itemSel.label)
+                        }
+                        getIcon={getCategoryIcon}
+                      />
+                    ))}
                 </div>
               </div>
             </div>

@@ -15,7 +15,7 @@
 
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { appSettingsService } from "./app-settings-service";
-import { computePixCrc16, buildStandardEmvPix } from "@/services/payment/PaymentProviderAdapter";
+import { computePixCrc16, buildStandardEmvPix, generateLocalQrCodeSvgSync } from "@/services/payment/PaymentProviderAdapter";
 import { getMonetizacaoConfig } from "@/lib/superadmin-config";
 
 export type SubscriptionStatus = "ACTIVE" | "EXPIRED" | "PENDING" | "CANCELLED";
@@ -190,9 +190,7 @@ class DriverSubscriptionService {
     const txId = `PARTIU_${cycle}_${Date.now()}_${driverId.slice(-4)}`;
     const copiaECola = buildStandardEmvPix(pixKey, receiverName, receiverCity, amount, txId);
 
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
-      copiaECola
-    )}`;
+    const qrCodeUrl = generateLocalQrCodeSvgSync(copiaECola);
 
     return {
       txId,

@@ -9,9 +9,10 @@ import { silentCatchWarn } from "@/lib/structured-logger";
  * - Mascaramento inteligente para logs e telas de operadores
  */
 
-const ENCRYPTION_MASTER_KEY = typeof process !== 'undefined' && process.env && process.env['DATA_ENCRYPTION_KEY']
-  ? process.env['DATA_ENCRYPTION_KEY']
-  : 'partiu_titanium_master_field_encryption_key_32bytes_aes_gcm_2026!';
+const ENCRYPTION_MASTER_KEY =
+  (typeof process !== 'undefined' && process.env && process.env['DATA_ENCRYPTION_KEY']) ||
+  (typeof import.meta !== 'undefined' && import.meta.env && (import.meta.env['DATA_ENCRYPTION_KEY'] as string)) ||
+  (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'ephemeral_enc_key_' + Date.now());
 
 export class FieldLevelEncryptionEngine {
   /**

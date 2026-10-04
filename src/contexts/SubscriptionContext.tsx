@@ -175,15 +175,8 @@ export function SubscriptionProvider({
     await refreshAccess();
   }, [driverId, triggerInstantActivation, refreshAccess]);
 
-  // Em produção, o desbloqueio depende estritamente do banco de dados (accessDecision.is_eligible)
-  const isUnlocked =
-    accessDecision.is_eligible ||
-    (environmentEngine.isDev() &&
-      typeof window !== "undefined" &&
-      (localStorage.getItem("partiu_demo_user") === "true" ||
-        localStorage.getItem("partiu_driver_demo") === "true" ||
-        localStorage.getItem("partiu_driver_demo_mode") === "true" ||
-        localStorage.getItem(`partiu_demo_driver_${driverId}`) === "true"));
+  // O desbloqueio operacional depende estritamente da decisão do servidor/banco (accessDecision.is_eligible)
+  const isUnlocked = Boolean(accessDecision.is_eligible);
 
   return (
     <SubscriptionContext.Provider

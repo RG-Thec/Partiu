@@ -82,9 +82,10 @@ export interface AuthSession {
 }
 
 // Chave mestra de assinatura JWT (em produção obtida de variáveis de ambiente seguras)
-const JWT_SECRET = typeof process !== 'undefined' && process.env && process.env['JWT_SECRET']
-  ? process.env['JWT_SECRET']
-  : 'partiu_titanium_shield_master_jwt_secret_2026_production_key_do_not_leak_99a8b7';
+const JWT_SECRET =
+  (typeof process !== 'undefined' && process.env && process.env['JWT_SECRET']) ||
+  (typeof import.meta !== 'undefined' && import.meta.env && (import.meta.env['JWT_SECRET'] as string)) ||
+  (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'ephemeral_dev_key_' + Date.now());
 
 // Registro de tokens revogados (JTI -> Timestamp expiração)
 const REVOKED_TOKENS = new Map<string, number>();
