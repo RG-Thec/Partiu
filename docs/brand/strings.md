@@ -13,6 +13,10 @@ Registro de decisões textuais da interface reconciliadas com a voz do produto.
 | action.driver.dismiss_alert | Dispensar alerta de elegibilidade | src/routes/app.motorista.tsx:1697 | SCN-002 | agreed |
 | action.auth.logout | Sair da conta | src/routes/app.perfil.tsx:498 | SCN-007 | agreed |
 | feedback.activity.retry | Tentar novamente | src/routes/app.bilhetes.tsx:179 | SCN-007 | agreed |
+| action.ride.request | Pedir corrida | src/components/landing/LandingHero.tsx:132 | SCN-001 | agreed |
+| action.driver.join | Dirigir com o Partiu | src/components/landing/LandingHero.tsx:132 | SCN-002 | agreed |
+| action.auth.google | Continuar com o Google | src/components/auth/PartiuAppAuthGate.tsx:635 | SCN-006 | agreed |
+| action.ride.search_prompt | Para onde vamos? | src/components/home/DestinationCard.tsx:145 | SCN-001 | agreed |
 
 ## Columns
 

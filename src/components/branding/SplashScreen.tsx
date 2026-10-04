@@ -9,16 +9,12 @@ export interface SplashScreenProps {
 }
 
 /**
- * 🚀 SPLASH SCREEN / TELA DE CARREGAMENTO ULTRA-CLEAN & MODERNA
- * ==============================================================================
- * Inspirada nos padrões visuais de classe mundial (Uber, Apple Maps, Lyft):
- * - Fundo limpo, profissional em tom claro com iluminação ambiente sutil.
- * - Emblema da marca em squircle minimalista com sombra suave.
- * - Tipografia premium e barra de progresso ultrafina de alta precisão.
- * - Transição fluida de 60 FPS com fade-out gradual.
- * ==============================================================================
+ * 🚀 SPLASH SCREEN ULTRA-CLEAN & RÁPIDA (PADRÃO UBER / LYFT)
+ * - Carregamento ágil (~500ms) sem travar a navegação do usuário.
+ * - Transição fluida com curva cubic-bezier acelerada.
+ * - Emblema minimalista e tipografia hierarquizada.
  */
-export function SplashScreen({ onFinish, minDurationMs = 1200 }: SplashScreenProps) {
+export function SplashScreen({ onFinish, minDurationMs = 550 }: SplashScreenProps) {
   const { branding } = useBranding();
   const brandTheme = useBrandTheme();
 
@@ -29,14 +25,14 @@ export function SplashScreen({ onFinish, minDurationMs = 1200 }: SplashScreenPro
 
   // Mapeamento dinâmico estrito do White Label corporativo
   const appName = branding?.app_name || brandTheme.nomeApp || "PARTIU";
-  const companyName = branding?.company_name || brandTheme.sloganApp || "Mobilidade urbana com segurança";
+  const companyName = branding?.company_name || brandTheme.sloganApp || "Mobilidade urbana";
   const primaryColor = branding?.primary_color || brandTheme.corPrimaria || "#FF6B00";
   const secondaryColor = branding?.secondary_color || brandTheme.corSecundaria || "#FF8800";
   const logoSrc = branding?.splash_logo_url || branding?.logo_url || "/favicon.svg";
 
   useEffect(() => {
     const startTime = Date.now();
-    const duration = Math.max(minDurationMs, 800);
+    const duration = Math.max(minDurationMs, 400);
 
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;
@@ -45,15 +41,13 @@ export function SplashScreen({ onFinish, minDurationMs = 1200 }: SplashScreenPro
 
       if (current >= 100) {
         clearInterval(interval);
+        setIsFadingOut(true);
         setTimeout(() => {
-          setIsFadingOut(true);
-          setTimeout(() => {
-            setIsVisible(false);
-            onFinish?.();
-          }, 350);
-        }, 120);
+          setIsVisible(false);
+          onFinish?.();
+        }, 220);
       }
-    }, 25);
+    }, 16);
 
     return () => clearInterval(interval);
   }, [minDurationMs, onFinish]);

@@ -125,37 +125,38 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             </p>
           </div>
 
-          {/* Cartões de Ação Principais: Quero ser passageiro / Quero ser motorista */}
-          <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 pt-1">
+          {/* Cartões de Ação Principais: Pedir corrida / Dirigir com o Partiu */}
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
             {actions.map((action, idx) => {
               const isPassenger = action.style === "primaryGradient" || action.type === "passenger";
+              const label = isPassenger ? "Pedir corrida" : "Dirigir com o Partiu";
+              const subtitle = isPassenger ? "Carro ou moto em minutos" : "100% repasse no Pix D+0";
 
               return (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => handleActionClick(action.targetUrl)}
-                  className="group relative flex items-center justify-between px-3 py-2 sm:px-3.5 sm:py-2 transition-all duration-200 active:scale-[0.98] cursor-pointer overflow-hidden min-h-[38px] sm:min-h-[40px]"
+                  className="group relative flex items-center justify-between px-3.5 py-2.5 transition-all duration-200 active:scale-[0.98] cursor-pointer overflow-hidden min-h-[46px] rounded-2xl shadow-xs"
                   style={{
-                    borderRadius: "12px",
                     ...(isPassenger
                       ? {
                           background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
-                          boxShadow: `0 2px 8px ${theme.primary}25`,
+                          boxShadow: `0 4px 14px ${theme.primary}30`,
                         }
                       : {
                           background: "#FFFFFF",
                           border: "1px solid #E2E8F0",
-                          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+                          boxShadow: "0 2px 6px rgba(0, 0, 0, 0.04)",
                         }),
                   }}
                 >
                   {/* Efeito Shimmer de Luz no Hover */}
                   <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     <div
-                      className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 shadow-2xs transition-transform duration-200 group-hover:scale-105"
+                      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-2xs transition-transform duration-200 group-hover:scale-105"
                       style={{
                         background: isPassenger
                           ? "rgba(255, 255, 255, 0.22)"
@@ -166,28 +167,28 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                       }}
                     >
                       {isPassenger ? (
-                        <User className="w-3.5 h-3.5 text-white stroke-[2.2]" />
+                        <User className="w-4 h-4 text-white stroke-[2.2]" />
                       ) : (
                         <Car
-                          className="w-3.5 h-3.5 stroke-[2.2]"
+                          className="w-4 h-4 stroke-[2.2]"
                           style={{ color: theme.primary }}
                         />
                       )}
                     </div>
                     <div className="flex flex-col text-left">
                       <span
-                        className={`text-[9.5px] font-medium leading-none ${
-                          isPassenger ? "text-white/85" : "text-slate-500"
-                        }`}
-                      >
-                        {action.type === "passenger" ? "Para pedir agora" : "Trabalhe conosco"}
-                      </span>
-                      <span
-                        className={`text-xs sm:text-[13px] font-semibold leading-tight mt-0.5 ${
+                        className={`text-xs sm:text-[13px] font-bold leading-tight ${
                           isPassenger ? "text-white" : "text-slate-900"
                         }`}
                       >
-                        {action.text.replace("\n", " ")}
+                        {label}
+                      </span>
+                      <span
+                        className={`text-[10px] font-medium leading-none mt-0.5 ${
+                          isPassenger ? "text-white/85" : "text-slate-500"
+                        }`}
+                      >
+                        {subtitle}
                       </span>
                     </div>
                   </div>
@@ -199,7 +200,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                         : "bg-slate-100 group-hover:bg-slate-900 text-slate-700 group-hover:text-white"
                     }`}
                   >
-                    <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </button>
               );

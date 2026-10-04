@@ -146,6 +146,8 @@ export function PartiuAppAuthGate({
       });
       if (res.success && res.redirectUrl && !res.redirectUrl.startsWith("http")) {
         void navigate({ to: res.redirectUrl as any });
+      } else if (!res.success && res.error && !res.error.includes("Google Client ID")) {
+        setErrorMessage(res.error);
       }
     } catch (err: any) {
       setErrorMessage(err?.message || "Falha ao autenticar com o Google. Tente novamente.");
@@ -623,25 +625,25 @@ export function PartiuAppAuthGate({
                     </p>
                   </div>
 
-                  {/* Botão de Entrada Rápida com Google */}
+                  {/* Botão de Entrada Rápida com Google (Padrão 1-Tap / OAuth Direto) */}
                   <button
                     type="button"
                     onClick={handleGoogleSignIn}
                     disabled={loadingGoogle || loading}
-                    className="w-full h-9 sm:h-9.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 font-semibold text-xs flex items-center justify-center gap-2 shadow-2xs active:scale-98 transition cursor-pointer disabled:opacity-60"
+                    className="w-full h-11 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-xs active:scale-[0.98] transition cursor-pointer disabled:opacity-60"
                   >
                     {loadingGoogle ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-600" />
+                      <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
                     ) : (
-                      <GoogleIcon className="w-3.5 h-3.5" />
+                      <GoogleIcon className="w-4 h-4" />
                     )}
                     <span>Continuar com o Google</span>
                   </button>
 
-                  <div className="relative flex items-center justify-center my-0.5">
+                  <div className="relative flex items-center justify-center my-2">
                     <div className="w-full border-t border-slate-200" />
-                    <span className="bg-white px-2.5 text-[9.5px] text-slate-400 font-medium uppercase tracking-wider">
-                      ou acesse com celular / e-mail
+                    <span className="bg-white px-3 text-xs text-slate-400 font-medium lowercase">
+                      ou
                     </span>
                   </div>
 
@@ -681,38 +683,6 @@ export function PartiuAppAuthGate({
                   >
                     Continuar
                   </NativeButton>
-
-                  {/* Divisor "ou" e Ações Secundárias (Inspirado no DriveMond) */}
-                  <div className="relative flex items-center justify-center my-1">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t" style={{ borderColor: colors.inputBorder }} />
-                    </div>
-                    <span
-                      className="relative px-3 text-xs uppercase font-extrabold tracking-wider"
-                      style={{
-                        backgroundColor: colors.surface,
-                        color: colors.textSecondary,
-                      }}
-                    >
-                      ou
-                    </span>
-                  </div>
-
-                  {features.allowSmsLogin && (
-                    <NativeButton
-                      type="button"
-                      variant="outlined"
-                      size="md"
-                      fullWidth
-                      onClick={() => {
-                        setPassengerStep("LOGIN_OTP");
-                        setErrorMessage(null);
-                      }}
-                      leftIcon={<Smartphone className="w-4 h-4" />}
-                    >
-                      Entrar via Código SMS (OTP)
-                    </NativeButton>
-                  )}
 
                   <div className="text-center pt-1.5">
                     <Link
@@ -1057,69 +1027,65 @@ export function PartiuAppAuthGate({
                     </p>
                   </div>
 
-                  {/* Benefícios Rápidos com NativeSurface */}
-                  <div className="grid grid-cols-1 gap-3 pt-1">
+                  {/* Benefícios Rápidos em Grid Compacta */}
+                  <div className="grid grid-cols-2 gap-2.5 pt-1">
                     <NativeSurface
                       elevation={1}
                       padding="sm"
-                      className="flex items-center gap-3.5"
+                      className="flex flex-col items-start gap-1.5 p-3 rounded-2xl"
                     >
-                      <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-black text-sm"
+                      <span
+                        className="px-2 py-0.5 rounded-md font-black text-xs inline-block"
                         style={{
                           backgroundColor: `${colors.primary}18`,
                           color: colors.primary,
                         }}
                       >
-                        0%
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold" style={{ color: colors.textPrimary }}>
-                          Taxa Zero no Plano Diário
-                        </h4>
-                        <p className="text-xs" style={{ color: colors.textSecondary }}>
-                          Você fica com 100% do valor de cada corrida realizada.
-                        </p>
-                      </div>
+                        0% Taxa
+                      </span>
+                      <h4 className="text-xs font-bold leading-tight" style={{ color: colors.textPrimary }}>
+                        Plano Diário
+                      </h4>
+                      <p className="text-[11px] leading-tight" style={{ color: colors.textSecondary }}>
+                        100% do valor da corrida é seu.
+                      </p>
                     </NativeSurface>
 
                     <NativeSurface
                       elevation={1}
                       padding="sm"
-                      className="flex items-center gap-3.5"
+                      className="flex flex-col items-start gap-1.5 p-3 rounded-2xl"
                     >
-                      <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-black text-sm"
+                      <span
+                        className="px-2 py-0.5 rounded-md font-black text-xs inline-block"
                         style={{
                           backgroundColor: `${colors.primary}18`,
                           color: colors.primary,
                         }}
                       >
-                        <CreditCard className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h4 className="text-xs font-bold" style={{ color: colors.textPrimary }}>
-                          Repasse Instantâneo no PIX
-                        </h4>
-                        <p className="text-xs" style={{ color: colors.textSecondary }}>
-                          Dinheiro direto na sua conta bancária sem intermediários.
-                        </p>
-                      </div>
+                        Pix D+0
+                      </span>
+                      <h4 className="text-xs font-bold leading-tight" style={{ color: colors.textPrimary }}>
+                        Repasse Imediato
+                      </h4>
+                      <p className="text-[11px] leading-tight" style={{ color: colors.textSecondary }}>
+                        Direto na sua conta bancária.
+                      </p>
                     </NativeSurface>
                   </div>
 
                   {/* BOTÕES DE ACESSO: GOOGLE 1-CLICK & CADASTRO DE VEÍCULO */}
-                  <div className="space-y-2 pt-1.5">
+                  <div className="space-y-2.5 pt-1">
                     <button
                       type="button"
                       onClick={handleGoogleSignIn}
                       disabled={loadingGoogle || loading}
-                      className="w-full h-9 sm:h-9.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 font-semibold text-xs flex items-center justify-center gap-2 shadow-2xs active:scale-98 transition cursor-pointer disabled:opacity-60"
+                      className="w-full h-11 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-xs active:scale-[0.98] transition cursor-pointer disabled:opacity-60"
                     >
                       {loadingGoogle ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-600" />
+                        <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
                       ) : (
-                        <GoogleIcon className="w-3.5 h-3.5" />
+                        <GoogleIcon className="w-4 h-4" />
                       )}
                       <span>Entrar com o Google</span>
                     </button>
@@ -1176,20 +1142,20 @@ export function PartiuAppAuthGate({
                     type="button"
                     onClick={handleGoogleSignIn}
                     disabled={loadingGoogle || loading}
-                    className="w-full h-9 sm:h-9.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 font-semibold text-xs flex items-center justify-center gap-2 shadow-2xs active:scale-98 transition cursor-pointer disabled:opacity-60"
+                    className="w-full h-11 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-xs active:scale-[0.98] transition cursor-pointer disabled:opacity-60"
                   >
                     {loadingGoogle ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-600" />
+                      <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
                     ) : (
-                      <GoogleIcon className="w-3.5 h-3.5" />
+                      <GoogleIcon className="w-4 h-4" />
                     )}
                     <span>Entrar no Cockpit com o Google</span>
                   </button>
 
-                  <div className="relative flex items-center justify-center my-0.5">
+                  <div className="relative flex items-center justify-center my-1">
                     <div className="w-full border-t border-slate-200" />
-                    <span className="bg-white px-2.5 text-[9.5px] text-slate-400 font-medium uppercase tracking-wider">
-                      ou acesse com e-mail e senha
+                    <span className="bg-white px-3 text-xs text-slate-400 font-medium lowercase">
+                      ou
                     </span>
                   </div>
 

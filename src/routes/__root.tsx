@@ -186,7 +186,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <BrandingProvider>
         <WhiteLabelThemeProvider>
-          <SplashScreen minDurationMs={1200} />
+          <SplashScreen minDurationMs={550} />
           <MobileViewportContainer>
             <Outlet />
           </MobileViewportContainer>

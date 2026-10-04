@@ -1,4 +1,4 @@
-import { Power, Wallet, Compass, Car, Flame, ArrowUpRight, ChevronRight, Target, TrendingUp, Clock, Radio } from "lucide-react";
+import { Power, Wallet, Compass, Car, Flame, ArrowUpRight, ChevronRight, Target, TrendingUp, Clock } from "lucide-react";
 import type { DriverDestination } from "@/services/DriverDestinationModeService";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
 
@@ -39,42 +39,18 @@ export function IdleState({
 
   return (
     <div className="space-y-3 animate-in fade-in slide-in-from-bottom duration-300">
-      {/* Radar Scanner Visual Widget (Figma Caber Driver Home Screen 79:1634) */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/20 p-2.5 flex items-center justify-between">
+      {/* Linha 1: Status Operacional Unificado & Botão Ficar Offline */}
+      <div className="flex items-center justify-between gap-2 p-2.5 rounded-2xl bg-slate-50 border border-slate-200/80">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="relative flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500/20 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
-            <Radio className="w-4 h-4 text-emerald-600 relative z-10" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
           </div>
-          <div className="min-w-0">
-            <span className="text-xs font-bold text-slate-800 block truncate leading-tight">
-              Radar ativo em 10 km
-            </span>
-            <span className="text-[10px] text-emerald-700 font-semibold block truncate">
-              Aguardando novas solicitações de passageiros
-            </span>
-          </div>
-        </div>
-        <span className="text-[10px] font-black uppercase text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full shrink-0 border border-emerald-300/60">
-          Alta Demanda
-        </span>
-      </div>
-
-      {/* Linha 1: Status do Trip Radar & Botão Ficar Offline */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <span className="relative flex h-3.5 w-3.5 shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-status-green opacity-75" />
-            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-brand-status-green" />
-          </span>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <h3 className="text-sm sm:text-base font-black text-slate-900 leading-none truncate">
-                Trip radar ativo
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900 leading-tight truncate">
+                Você está online
               </h3>
-              <span className="text-xs font-black text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-md border border-emerald-300 shrink-0">
-                Online
-              </span>
               {diariaRestanteTexto && (
                 <span
                   style={{
@@ -82,15 +58,15 @@ export function IdleState({
                     backgroundColor: `${colors.primary}12`,
                     borderColor: `${colors.primary}30`,
                   }}
-                  className="text-xs font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 shrink-0"
+                  className="text-[10px] font-bold px-1.5 py-0.2 rounded-md border flex items-center gap-1 shrink-0"
                 >
-                  <Clock className="w-3 h-3" style={{ color: colors.primary }} />
+                  <Clock className="w-2.5 h-2.5" style={{ color: colors.primary }} />
                   <span>{diariaRestanteTexto}</span>
                 </span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground font-medium mt-1 truncate">
-              Buscando chamadas próximas
+            <p className="text-[10px] sm:text-xs text-slate-500 font-medium truncate">
+              Radar ativo • Aguardando passageiros
             </p>
           </div>
         </div>
@@ -99,12 +75,12 @@ export function IdleState({
         <button
           type="button"
           onClick={onToggleOnline}
-          className="h-9 min-h-[36px] px-3 rounded-xl bg-muted/60 hover:bg-rose-50 hover:text-rose-700 text-muted-foreground font-semibold text-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0 border border-border shadow-2xs"
+          className="h-8 px-2.5 rounded-xl bg-white hover:bg-rose-50 hover:text-rose-700 text-slate-600 font-semibold text-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0 border border-slate-200 shadow-2xs"
           title="Ficar offline"
           aria-label="Ficar offline e pausar recebimento de corridas"
         >
-          <Power className="w-3.5 h-3.5 text-muted-foreground group-hover:text-rose-600" />
-          <span>Offline</span>
+          <Power className="w-3.5 h-3.5 text-slate-500 group-hover:text-rose-600" />
+          <span>Pausar</span>
         </button>
       </div>
 

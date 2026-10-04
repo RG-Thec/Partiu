@@ -97,16 +97,16 @@ export const DestinationCard = memo(function DestinationCard({
 
   return (
     <div className="w-full z-20 pointer-events-auto select-none">
-      <div className="bg-white rounded-t-[32px] shadow-2xl border-t border-slate-100 pt-3 pb-5 px-4 sm:px-5 space-y-3.5 text-left">
+      <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-lg border border-slate-200/80 p-3 sm:p-3.5 space-y-2.5 text-left">
         {/* DRAG HANDLE BAR CENTRAL */}
-        <div className="w-12 h-1.5 rounded-full bg-slate-300 mx-auto" />
+        <div className="w-10 h-1 rounded-full bg-slate-300 mx-auto" />
 
         {/* INDICADOR DE EMBARQUE ATUAL (AUTO-PREENCHIDO COM OPÇÃO DE ALTERAR) */}
         {currentAddress && currentAddress !== "Meu Local Atual" && (
-          <div className="flex items-center justify-between px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs shadow-2xs">
+          <div className="flex items-center justify-between px-2.5 py-1 bg-slate-50 border border-slate-200/60 rounded-xl text-xs">
             <div className="flex items-center gap-2 min-w-0 flex-1">
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-100 shrink-0" />
-              <span className="text-[11px] font-semibold text-slate-800 truncate">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-100 shrink-0" />
+              <span className="text-[11px] font-medium text-slate-700 truncate">
                 Embarque: <span className="font-bold text-slate-900">{currentAddress}</span>
               </span>
             </div>
@@ -117,7 +117,7 @@ export const DestinationCard = memo(function DestinationCard({
                   hapticFeedback.light();
                   onEditPickupClick();
                 }}
-                className="text-[11px] font-bold text-emerald-700 hover:text-emerald-800 ml-2 shrink-0 cursor-pointer hover:underline"
+                className="text-[10px] font-bold text-emerald-700 hover:text-emerald-800 ml-2 shrink-0 cursor-pointer hover:underline"
               >
                 Alterar
               </button>
@@ -130,30 +130,23 @@ export const DestinationCard = memo(function DestinationCard({
           <button
             type="button"
             onClick={handleSearch}
-            className="group flex-1 h-9.5 sm:h-10 px-3 py-1 rounded-xl border flex items-center transition-all duration-200 active:scale-[0.99] cursor-pointer text-left shadow-2xs"
-            style={{
-              backgroundColor: "var(--brand-soft)",
-              borderColor: "var(--brand-border-active)",
-            }}
+            className="group flex-1 h-9 sm:h-9.5 px-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100/80 flex items-center transition-all duration-200 active:scale-[0.99] cursor-pointer text-left shadow-2xs"
             aria-label="Para onde vamos? Buscar endereços"
           >
             {/* Botão com lupa estilizada na cor primária da marca */}
             <div
-              className="w-6.5 h-6.5 rounded-md flex items-center justify-center shadow-2xs shrink-0 group-hover:scale-105 transition-transform"
+              className="w-6 h-6 rounded-lg flex items-center justify-center shadow-2xs shrink-0 group-hover:scale-105 transition-transform"
               style={{
                 backgroundColor: corPrimaria || "var(--brand-primary-vibrant)",
                 color: corTextoPrimaria || "#FFFFFF",
               }}
             >
-              <Search className="w-3.5 h-3.5 stroke-[2.2]" />
+              <Search className="w-3 h-3 stroke-[2.2]" />
             </div>
 
             <div className="flex-1 min-w-0 ml-2">
-              <span className="text-xs sm:text-[13px] font-semibold text-slate-900 block truncate leading-tight">
+              <span className="text-xs font-bold text-slate-900 block truncate leading-tight">
                 Para onde vamos?
-              </span>
-              <span className="text-[10px] text-slate-500 font-normal block truncate leading-none mt-0.5">
-                Buscar destino
               </span>
             </div>
           </button>
@@ -165,20 +158,20 @@ export const DestinationCard = memo(function DestinationCard({
                 hapticFeedback.light();
                 onAdjustPinOnMap();
               }}
-              className="h-9.5 sm:h-10 px-2.5 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 flex flex-col items-center justify-center gap-0.5 text-slate-700 hover:text-slate-900 transition-all active:scale-95 shadow-2xs shrink-0 group cursor-pointer"
+              className="h-9 sm:h-9.5 px-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center gap-1 text-slate-700 hover:text-slate-900 transition-all active:scale-95 shadow-2xs shrink-0 cursor-pointer"
               title="Escolher destino diretamente no mapa"
               aria-label="Escolher destino no mapa"
             >
               <div
-                className="w-5 h-5 rounded-md flex items-center justify-center group-hover:scale-110 transition-transform"
+                className="w-5 h-5 rounded-md flex items-center justify-center"
                 style={{
-                  backgroundColor: `${corPrimaria || "#FF6B00"}18`,
+                  backgroundColor: `${corPrimaria || "#FF6B00"}15`,
                   color: corPrimaria || "#FF6B00",
                 }}
               >
                 <MapPin className="w-3 h-3 stroke-[2.2]" />
               </div>
-              <span className="text-[9.5px] font-semibold text-slate-600 group-hover:text-slate-900 tracking-tight leading-none">
+              <span className="text-[10px] font-semibold text-slate-700 tracking-tight">
                 No mapa
               </span>
             </button>
@@ -186,94 +179,51 @@ export const DestinationCard = memo(function DestinationCard({
         </div>
 
         {/* 2. SEÇÃO DE FAVORITOS OU DESTINOS RECENTES */}
-        <div className="pt-1">
-          {temHistorico ? (
-            <>
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-slate-900 stroke-[2.2]" />
-                  <h3 className="text-base font-bold text-slate-900">
-                    Destinos recentes
-                  </h3>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleSearch}
-                  className="text-sm font-semibold hover:underline cursor-pointer flex items-center gap-0.5"
-                  style={{ color: corPrimaria || "var(--brand-primary-vibrant)" }}
-                >
-                  <span>Ver todos</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
+        {temHistorico ? (
+          <div className="divide-y divide-slate-100 pt-0.5">
+            {itensHistorico.slice(0, 1).map((item) => (
+              <RecentAddressItemRow
+                key={item.id}
+                item={item}
+                onSelect={onSelectAddress}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 pt-0.5">
+            <button
+              type="button"
+              onClick={handleCasaClick}
+              className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 text-left transition active:scale-[0.98] cursor-pointer group"
+            >
+              <div
+                className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors"
+                style={{
+                  backgroundColor: `${corPrimaria || "#FF6B00"}15`,
+                  color: corPrimaria || "#FF6B00",
+                }}
+              >
+                <Home className="w-3 h-3 stroke-[2.2]" />
               </div>
-
-              {/* LISTA DE ITENS RECENTES */}
-              <div className="divide-y divide-slate-100">
-                {itensHistorico.map((item) => (
-                  <RecentAddressItemRow
-                    key={item.id}
-                    item={item}
-                    onSelect={onSelectAddress}
-                  />
-                ))}
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-slate-900 truncate">Casa</p>
               </div>
-            </>
-          ) : (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between mb-0.5">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                  Atalhos rápidos
-                </span>
-                <button
-                  type="button"
-                  onClick={handleSearch}
-                  className="text-xs font-semibold hover:underline cursor-pointer flex items-center gap-0.5"
-                  style={{ color: corPrimaria || "var(--brand-primary-vibrant)" }}
-                >
-                  <span>Buscar</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
+            </button>
 
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={handleCasaClick}
-                  className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 text-left transition active:scale-[0.98] cursor-pointer group"
-                >
-                  <div
-                    className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors"
-                    style={{
-                      backgroundColor: `${corPrimaria || "#FF6B00"}15`,
-                      color: corPrimaria || "#FF6B00",
-                    }}
-                  >
-                    <Home className="w-3.5 h-3.5 stroke-[2.2]" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold text-slate-900 truncate">Casa</p>
-                    <p className="text-[11px] text-slate-500 font-medium truncate">Definir</p>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleTrabalhoClick}
-                  className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 text-left transition active:scale-[0.98] cursor-pointer group"
-                >
-                  <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <Briefcase className="w-3.5 h-3.5 stroke-[2.2]" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold text-slate-900 truncate">Trabalho</p>
-                    <p className="text-[11px] text-slate-500 font-medium truncate">Definir</p>
-                  </div>
-                </button>
+            <button
+              type="button"
+              onClick={handleTrabalhoClick}
+              className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 text-left transition active:scale-[0.98] cursor-pointer group"
+            >
+              <div className="w-6 h-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <Briefcase className="w-3 h-3 stroke-[2.2]" />
               </div>
-            </div>
-          )}
-        </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-slate-900 truncate">Trabalho</p>
+              </div>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

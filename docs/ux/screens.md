@@ -51,45 +51,45 @@ whose code diverges from its record here is a "drifted" finding. -->
 
 ### SCR-01: Tela Inicial e Landing Page
 - **Used by:** FLW-05 step 1
-- **Purpose:** Apresentar a proposta de valor, cotação prévia e converter novos passageiros e condutores
-- **Elements:** Hero cinematográfico com backdrop de metrópole urbana e iluminação degradê dinâmica White Label, navbar flutuante com status da frota, seletor de modalidade passageiro/motorista, mockup cartográfico dark com rota ao vivo, bento grid de pilares operacionais, rodapé institucional
+- **Purpose:** Apresentar a proposta de valor essencial e converter novos passageiros e condutores com zero carga cognitiva
+- **Elements:** Hero minimalista mobile-first com iluminação sutil White Label, CTAs primários de alta conversão (Pedir corrida / Dirigir com o Partiu), prova social concisa (avaliação, tempo e segurança SOS), showcase responsivo e rodapé institucional
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |-------|---------|-------------|----------|
-  | success | padrão | none — code first | Exibe a landing institucional com cores dinâmicas do White Label e imagem urbana |
+  | success | padrão | none — code first | Exibe a landing institucional com cores dinâmicas do White Label e navegação mobile-first |
   | loading | carregando dados da cidade | none — code first | Skeleton nos cards de cotação |
   | error | falha de conexão | none — code first | Mensagem de contingência mantendo botões funcionais |
-- **Coverage:** src/routes/index.tsx:1-39
+- **Coverage:** src/routes/index.tsx:1-40, src/components/landing/LandingHero.tsx:1-498
 - **Scenarios:** SCN-005
 - **Resources:** src/components/landing/, useBrandTheme
 - **Status:** built
 
 ### SCR-02: Tela de Carregamento e Splash
 - **Used by:** FLW-05 step 2
-- **Purpose:** Inicializar sessão segura e carregar dados em cache com feedback de progresso
-- **Elements:** Logo oficial da plataforma, barra de progresso tecnológica, texto de status do carregamento
+- **Purpose:** Inicializar sessão segura e carregar recursos com feedback ágil e transição de 550ms
+- **Elements:** Emblema em squircle minimalista White Label com pulso suave, barra de progresso ultrafina e fade-out fluido
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |-------|---------|-------------|----------|
-  | success | dados carregados | none — code first | Fade-out suave transicionando para a tela solicitada |
-  | loading | em progresso | none — code first | Barra animada de 0 a 100% com mensagens contextuais |
+  | success | dados carregados | none — code first | Fade-out suave em 220ms transicionando para a tela solicitada |
+  | loading | em progresso | none — code first | Barra animada de 0 a 100% com curva acelerada (~550ms) |
   | error | falha crítica | none — code first | Exibe opção de recarregar a aplicação |
-- **Coverage:** src/components/branding/SplashScreen.tsx:1-200
+- **Coverage:** src/components/branding/SplashScreen.tsx:1-171
 - **Scenarios:** SCN-005
 - **Resources:** useBranding, useBrandTheme
 - **Status:** built
 
 ### SCR-03: Tela de Login e Autenticação Unificada
 - **Used by:** FLW-05 step 3
-- **Purpose:** Autenticar passageiros e motoristas via telefone, e-mail ou código OTP
-- **Elements:** Campo de telefone/e-mail, campo de senha com alternador de visibilidade, botão Entrar, atalho para cadastro
+- **Purpose:** Autenticação rápida com Google (1-Tap / OAuth direto), divisor único e entrada simplificada por celular ou e-mail
+- **Elements:** Botão Google proeminente no topo, divisor discreto, campo inteligente de contato com formatação BR automática, botão Continuar
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |-------|---------|-------------|----------|
   | success | credenciais válidas | none — code first | Redireciona para o cockpit ou mapa conforme a role |
-  | error | credenciais inválidas | none — code first | Alerta visual em vermelho com instrução de recuperação |
+  | error | credenciais inválidas | none — code first | Alerta visual discreto com instrução de recuperação |
   | loading | autenticando no Supabase | none — code first | Botão com spinner de carregamento e campos desabilitados |
-- **Coverage:** src/routes/auth.tsx:1-45
+- **Coverage:** src/routes/auth.tsx:1-45, src/components/auth/PartiuAppAuthGate.tsx:1-1400
 - **Scenarios:** SCN-006
 - **Resources:** supabaseAuthService, PartiuAppAuthGate
 - **Status:** built
@@ -153,8 +153,8 @@ whose code diverges from its record here is a "drifted" finding. -->
 
 ### SCR-08: Mapa e Solicitação de Viagem
 - **Used by:** FLW-01 step 1, FLW-06 step 2
-- **Purpose:** Permitir ao passageiro escolher destino, categoria e confirmar a corrida com valor garantido prévio
-- **Elements:** Campo de busca de endereço, mapa interativo Mapbox GL, botão de recentralizar GPS, seletor de categorias (Carro/Moto/Entrega), botão principal Confirmar Corrida
+- **Purpose:** Permitir ao passageiro escolher destino, categoria e confirmar a corrida com valor garantido prévio e foco máximo no mapa
+- **Elements:** Mapa interativo Mapbox GL com 70%+ de visibilidade contínua, botão circular de recentralizar GPS, card flutuante arredondado rounded-3xl com input minimalista "Para onde vamos?", pílula de embarque com alteração instantânea e atalhos rápidos
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |-------|---------|-------------|----------|
@@ -162,7 +162,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | empty | nenhum motorista online | none — code first | Informa ausência temporária de veículos no raio e sugere aguardar |
   | error | falha de geocodificação ou rede | none — code first | Mensagem de erro amigável com botão de tentar novamente |
   | loading | calculando rotas e tarifas | none — code first | Skeleton nos cards de categoria e traçado animado no mapa |
-- **Coverage:** src/routes/app.index.tsx:1-200
+- **Coverage:** src/routes/app.index.tsx:1-666, src/components/home/DestinationCard.tsx:1-280
 - **Scenarios:** SCN-001
 - **Resources:** src/components/map/, Mapbox GL, Supabase
 - **Status:** built
@@ -247,16 +247,16 @@ whose code diverges from its record here is a "drifted" finding. -->
 
 ### SCR-14: Cockpit Operacional do Motorista
 - **Used by:** FLW-01 step 6, FLW-02 step 1, FLW-04 step 1, FLW-06 step 3
-- **Purpose:** Fornecer ao motorista parceiro controle do modo online, recebimento de chamadas com ganho líquido e métricas diárias
-- **Elements:** Alternador Online/Offline, card de chamada recebida com contagem regressiva, resumo de faturamento do dia, botão de aceitar corrida
+- **Purpose:** Fornecer ao motorista parceiro controle do modo online, recebimento de chamadas com ganho líquido e métricas diárias com visão desobstruída
+- **Elements:** Barra superior com avatar e menu, status operacional unificado com alternador online/offline, resumo de ganhos do dia com taxa zero e repasse Pix D+0, atalhos para modo destino e taxímetro
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |-------|---------|-------------|----------|
-  | success | condutor online | none — code first | Mapa ativo aguardando chamadas e monitorando demanda |
+  | success | condutor online | none — code first | Mapa ativo com radar unificado e aguardo silencioso de chamadas |
   | empty | condutor offline | none — code first | Painel em repouso com resumo das corridas anteriores |
   | error | GPS desativado ou sem sinal | none — code first | Alerta visual solicitando ativação do serviço de localização |
   | loading | conectando ao despacho | none — code first | Spinner sutil de sincronização com o cluster PostGIS |
-- **Coverage:** src/routes/app.motorista.tsx:1-200
+- **Coverage:** src/routes/app.motorista.tsx:1-2636, src/components/driver/cockpit/states/IdleState.tsx:1-234
 - **Scenarios:** SCN-002
 - **Resources:** src/components/driver/, Supabase Realtime
 - **Status:** built
