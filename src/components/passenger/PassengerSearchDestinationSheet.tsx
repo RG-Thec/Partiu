@@ -174,6 +174,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
     origem,
     origemCoords,
     destino,
+    destinoCoords,
     setOrigemEndereco,
     swapOrigemDestino,
     selectDestination,
@@ -198,8 +199,10 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
     return destino && destino !== "Definir no mapa" ? destino : "";
   });
   const [isResolvingGps, setIsResolvingGps] = useState(false);
+  const hasUserClearedOriginRef = useRef(false);
 
   useEffect(() => {
+    if (hasUserClearedOriginRef.current) return;
     if (origem && !origem.includes("Localizando") && origem !== "Meu Local Atual") {
       setOrigemLocal(origem);
     }
@@ -207,6 +210,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
 
   // Resolução imediata proativa ao montar caso a origem ainda esteja no valor padrão ou pendente
   useEffect(() => {
+    if (hasUserClearedOriginRef.current) return;
     if (!origem || origem.includes("Localizando") || origem === "Meu Local Atual" || origem === DEFAULT_ORIGIN.endereco) {
       const coords = origemCoords || DEFAULT_ORIGIN.coords;
       const instant = reverseGeocodingService.resolveInstantProximityAddress(coords);
@@ -216,6 +220,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
       }
 
       geocodingService.geocodificarReverso(coords).then((nomeVia) => {
+        if (hasUserClearedOriginRef.current) return;
         if (nomeVia && !nomeVia.includes("Local no mapa")) {
           setOrigemLocal(nomeVia);
           setOrigemEndereco(nomeVia, coords);
@@ -305,12 +310,6 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
     return () => clearTimeout(timer);
   }, [campoAtivo]);
 
-  // 3. Sincronização da Origem quando o GPS resolver o endereço legível
-  useEffect(() => {
-    if (origem && origem !== "Meu Local Atual" && !origem.includes("Localizando")) {
-      setOrigemLocal(origem);
-    }
-  }, [origem]);
 
   // 4. Autocompletar Dinâmico em Tempo Real estilo Google (com geobias na localização do usuário)
   useEffect(() => {
@@ -387,9 +386,10 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
     selectDestination(endereco, coordsFinal);
   }
 
-  // 7. Seleção de Origem
+  // 7. Seleção de Origem por Sugestão da Lista
   function handleSelectOrigem(lugar: GeocodedPlace) {
     hapticFeedback.selection();
+    hasUserClearedOriginRef.current = false;
     setOrigemLocal(lugar.label);
     setOrigemEndereco(lugar.endereco, lugar.coords);
     // Move o foco automaticamente para o destino se estiver vazio
@@ -397,8 +397,76 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
       setCampoAtivo("destino");
       setTimeout(() => inputDestinoRef.current?.focus(), 60);
     } else {
-      // Se o destino já estiver preenchido, avança direto
-      selectDestination(buscaDestino, lugar.coords);
+      // Se o destino já estiver preenchido, avança direto mantendo o destino e suas coordenadas
+      selectDestination(buscaDestino, destinoCoords);
+    }
+  }
+
+  // 8. Seleção de Origem Personalizada (Digitada pelo Usuário)
+  function handleCustomOrigem(termo: string) {
+    hapticFeedback.selection();
+    const termoLimpo = termo.trim();
+    if (!termoLimpo) return;
+    hasUserClearedOriginRef.current = false;
+    const match = lugaresEncontrados.find(
+      (l) => l.label.toLowerCase() === termoLimpo.toLowerCase() || l.endereco.toLowerCase() === termoLimpo.toLowerCase()
+    ) || lugaresEncontrados[0];
+    const coordsFinal = match ? match.coords : (origemCoords || DEFAULT_ORIGIN.coords);
+    const rotuloFinal = match ? match.label : termoLimpo;
+    const enderecoFinal = match ? match.endereco : `${termoLimpo}, Itaperuna - RJ`;
+    setOrigemLocal(rotuloFinal);
+    setOrigemEndereco(enderecoFinal, coordsFinal);
+    if (!buscaDestino.trim()) {
+      setCampoAtivo("destino");
+      setTimeout(() => inputDestinoRef.current?.focus(), 60);
+    } else {
+      selectDestination(buscaDestino, destinoCoords);
+    }
+  }
+
+  // 9. Restaurar e Sincronizar com GPS Atual
+  async function handleUsarGpsAtual() {
+    hapticFeedback.light();
+    hasUserClearedOriginRef.current = false;
+    try {
+      localStorage.removeItem("partiu_origin_user_locked");
+    } catch (_) {}
+    setIsResolvingGps(true);
+    if (typeof navigator !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const coords: [number, number] = [pos.coords.longitude, pos.coords.latitude];
+          const instant = reverseGeocodingService.resolveInstantProximityAddress(coords);
+          if (instant) {
+            setOrigemLocal(instant);
+            setOrigemEndereco(instant, coords);
+          }
+          setIsResolvingGps(false);
+          const nomeVia = await geocodingService.geocodificarReverso(coords);
+          if (nomeVia && !nomeVia.includes("Local no mapa")) {
+            setOrigemLocal(nomeVia);
+            setOrigemEndereco(nomeVia, coords);
+          }
+        },
+        () => {
+          navigator.geolocation.getCurrentPosition(
+            async (pos2) => {
+              const coords2: [number, number] = [pos2.coords.longitude, pos2.coords.latitude];
+              const nomeVia = await geocodingService.geocodificarReverso(coords2);
+              setOrigemLocal(nomeVia);
+              setOrigemEndereco(nomeVia, coords2);
+              setIsResolvingGps(false);
+            },
+            () => {
+              setIsResolvingGps(false);
+            },
+            { enableHighAccuracy: true, timeout: 8000 }
+          );
+        },
+        { enableHighAccuracy: false, timeout: 2500, maximumAge: 60000 }
+      );
+    } else {
+      setIsResolvingGps(false);
     }
   }
 
@@ -608,78 +676,48 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                   value={origemLocal}
                   onFocus={() => setCampoAtivo("embarque")}
                   onChange={(e) => {
+                    hasUserClearedOriginRef.current = true;
                     setOrigemLocal(e.target.value);
                     setOrigemEndereco(e.target.value);
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && origemLocal.trim()) {
+                      handleCustomOrigem(origemLocal.trim());
+                    }
+                  }}
                   placeholder="Local de embarque..."
-                  className={`w-full text-xs sm:text-[13px] font-semibold text-slate-800 bg-transparent placeholder:text-slate-500 truncate outline-none py-1 transition ${
+                  className={`w-full text-xs sm:text-[13px] font-semibold bg-transparent placeholder:text-slate-400 truncate outline-none py-1 transition ${
                     campoAtivo === "embarque" ? "text-slate-950 font-bold" : "text-slate-700"
                   }`}
                 />
 
                 <div className="flex items-center gap-1 shrink-0">
-                  {origemLocal && origemLocal !== "Meu Local Atual" && (
-                    <button
-                      type="button"
-                      disabled={isResolvingGps}
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        hapticFeedback.light();
-                        setIsResolvingGps(true);
-                        if (typeof navigator !== "undefined" && navigator.geolocation) {
-                          navigator.geolocation.getCurrentPosition(
-                            async (pos) => {
-                              const coords: [number, number] = [pos.coords.longitude, pos.coords.latitude];
-                              const instant = reverseGeocodingService.resolveInstantProximityAddress(coords);
-                              if (instant) {
-                                setOrigemLocal(instant);
-                                setOrigemEndereco(instant, coords);
-                              }
-                              setIsResolvingGps(false);
-                              const nomeVia = await geocodingService.geocodificarReverso(coords);
-                              if (nomeVia && !nomeVia.includes("Local no mapa")) {
-                                setOrigemLocal(nomeVia);
-                                setOrigemEndereco(nomeVia, coords);
-                              }
-                            },
-                            () => {
-                              navigator.geolocation.getCurrentPosition(
-                                async (pos2) => {
-                                  const coords2: [number, number] = [pos2.coords.longitude, pos2.coords.latitude];
-                                  const nomeVia = await geocodingService.geocodificarReverso(coords2);
-                                  setOrigemLocal(nomeVia);
-                                  setOrigemEndereco(nomeVia, coords2);
-                                  setIsResolvingGps(false);
-                                },
-                                () => {
-                                  setIsResolvingGps(false);
-                                },
-                                { enableHighAccuracy: true, timeout: 8000 }
-                              );
-                            },
-                            { enableHighAccuracy: false, timeout: 2500, maximumAge: 60000 }
-                          );
-                        } else {
-                          setIsResolvingGps(false);
-                        }
-                      }}
-                      className="px-2 py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition hover:opacity-80 disabled:opacity-50"
-                      style={{ color: colors.primary }}
-                      title="Restaurar GPS atual"
-                    >
-                      {isResolvingGps ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: colors.primary }} />
-                      ) : (
-                        <Navigation className="w-3.5 h-3.5" style={{ fill: colors.primary, color: colors.primary }} />
-                      )}
-                      <span>GPS</span>
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    disabled={isResolvingGps}
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      await handleUsarGpsAtual();
+                    }}
+                    className="px-2 py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition hover:opacity-80 disabled:opacity-50"
+                    style={{ color: colors.primary }}
+                    title="Restaurar GPS atual"
+                  >
+                    {isResolvingGps ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: colors.primary }} />
+                    ) : (
+                      <Navigation className="w-3.5 h-3.5" style={{ fill: colors.primary, color: colors.primary }} />
+                    )}
+                    <span>GPS</span>
+                  </button>
+
                   {origemLocal && (
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
+                        hapticFeedback.light();
+                        hasUserClearedOriginRef.current = true;
                         setOrigemLocal("");
                         setOrigemEndereco("");
                         setCampoAtivo("embarque");
@@ -706,8 +744,13 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                   value={buscaDestino}
                   onFocus={() => setCampoAtivo("destino")}
                   onChange={(e) => setBuscaDestino(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && buscaDestino.trim()) {
+                      handleSelectDestino(buscaDestino.trim(), undefined, buscaDestino.trim());
+                    }
+                  }}
                   placeholder="Para onde você vai?"
-                  className="w-full text-xs sm:text-[13px] font-bold text-slate-950 bg-transparent placeholder:text-slate-500 placeholder:font-normal truncate outline-none py-1"
+                  className="w-full text-xs sm:text-[13px] font-bold text-slate-950 bg-transparent placeholder:text-slate-400 placeholder:font-normal truncate outline-none py-1"
                 />
 
                 {buscaDestino && (
@@ -791,116 +834,228 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
 
         {/* 4. CONTEÚDO DINÂMICO ROLÁVEL COM TECLADO ERGONÔMICO */}
         <div className="flex-1 overflow-y-auto divide-y divide-slate-100 px-4 sm:px-5 py-2">
-          {/* CASO A: USUÁRIO DIGITANDO NO CAMPO (AUTOCOMPLETAR DINÂMICO EM TEMPO REAL) */}
-          {buscaDestino.trim().length > 0 ? (
-            <div className="space-y-1 pt-1 pb-3">
-              {/* Opção Rápida no Topo: Buscar texto exato no mapa */}
-              <button
-                type="button"
-                onClick={() => handleSelectDestino(buscaDestino.trim(), undefined, buscaDestino.trim())}
-                style={{
-                  borderColor: `${colors.primary}60`,
-                  backgroundColor: `${colors.primary}15`,
-                  borderRadius: ui.borderRadius,
-                }}
-                className="w-full p-3 flex items-center gap-3 text-left transition active:scale-[0.99] cursor-pointer border mb-2 shadow-2xs"
-              >
-                <div
+          {campoAtivo === "embarque" ? (
+            /* ========================================================
+               MODO 1: CAMPO DE EMBARQUE SELECIONADO / EM EDIÇÃO
+               ======================================================== */
+            origemLocal.trim().length > 0 ? (
+              <div className="space-y-1 pt-1 pb-3">
+                {/* Opção Rápida no Topo: Definir texto digitado como local de embarque */}
+                <button
+                  type="button"
+                  onClick={() => handleCustomOrigem(origemLocal.trim())}
                   style={{
-                    backgroundColor: colors.primary,
-                    color: colors.surface,
+                    borderColor: `${colors.primary}60`,
+                    backgroundColor: `${colors.primary}15`,
                     borderRadius: ui.borderRadius,
                   }}
-                  className="w-8 h-8 flex items-center justify-center shrink-0 font-black shadow-2xs"
+                  className="w-full p-3 flex items-center gap-3 text-left transition active:scale-[0.99] cursor-pointer border mb-2 shadow-2xs"
                 >
-                  <Search className="w-4 h-4 stroke-[2.5]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-black text-slate-950 truncate">
-                    Buscar &ldquo;{buscaDestino}&rdquo;
-                  </p>
-                  <p className="text-xs text-slate-700 truncate font-medium">
-                    Ir para este endereço em Itaperuna, RJ
-                  </p>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
-              </button>
-
-              <span className="text-xs font-black uppercase tracking-wider text-slate-700 block px-1 pb-1">
-                Sugestões de Endereço (Tempo Real)
-              </span>
-
-              {/* Lista Refinada a Cada Letra Digitada ou Shimmer Skeleton */}
-              {carregandoLugares ? (
-                <AddressSearchSkeleton />
-              ) : (
-                lugaresEncontrados.map((item) => (
-                  <SearchDestinationItemRow
-                    key={item.id}
-                    item={item}
-                    distText={getDistanciaTexto(item.coords)}
-                    onSelect={
-                      campoAtivo === "embarque"
-                        ? handleSelectOrigem
-                        : (lugar) => handleSelectDestino(lugar.endereco, lugar.coords, lugar.label)
-                    }
-                    getIcon={getCategoryIcon}
-                  />
-                ))
-              )}
-            </div>
-          ) : (
-            /* CASO B: SEM DIGITAÇÃO -> AS ÚLTIMAS 2 VIAGENS RECENTES E LOCAIS POPULARES */
-            <div className="space-y-3 pt-1 pb-4">
-              {/* HISTÓRICO DAS ÚLTIMAS 2 VIAGENS (EXATAMENTE COMO NO VÍDEO DO APP 99) */}
-              {historicoRecente && historicoRecente.length > 0 && (
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between px-1 py-1">
-                    <span className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5 text-slate-600" />
-                      <span>Últimas Viagens</span>
-                    </span>
+                  <div
+                    style={{
+                      backgroundColor: colors.primary,
+                      color: colors.surface,
+                      borderRadius: ui.borderRadius,
+                    }}
+                    className="w-8 h-8 flex items-center justify-center shrink-0 font-black shadow-2xs"
+                  >
+                    <MapPin className="w-4 h-4 stroke-[2.5]" />
                   </div>
-
-                  <div className="space-y-1">
-                    {historicoRecente.slice(0, 2).map((item) => (
-                      <RecentTripItemRow
-                        key={item.id}
-                        item={item}
-                        distText={getDistanciaTexto(item.coords)}
-                        onSelect={handleSelectDestino}
-                      />
-                    ))}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-black text-slate-950 truncate">
+                      Definir &ldquo;{origemLocal}&rdquo; como local de embarque
+                    </p>
+                    <p className="text-xs text-slate-700 truncate font-medium">
+                      Definir este endereço de partida em Itaperuna, RJ
+                    </p>
                   </div>
-                </div>
-              )}
+                  <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
+                </button>
 
-              {/* LOCAIS SUGERIDOS EM ITAPERUNA POR PROXIMIDADE REAL */}
-              <div className="space-y-1 pt-2 border-t border-slate-100">
-                <span className="text-xs font-black uppercase tracking-wider text-slate-700 block px-1">
-                  Locais Próximos e Sugeridos
+                <span className="text-xs font-black uppercase tracking-wider text-slate-700 block px-1 pb-1">
+                  Sugestões de Embarque (Tempo Real)
                 </span>
 
-                <div className="space-y-1">
-                  {(lugaresEncontrados && lugaresEncontrados.length > 0
-                    ? lugaresEncontrados
-                    : LUGARES_CURADOS_ITAPERUNA
-                  )
-                    .slice(0, 6)
-                    .map((lugar) => (
-                      <SearchDestinationItemRow
-                        key={lugar.id}
-                        item={lugar}
-                        distText={getDistanciaTexto(lugar.coords)}
-                        onSelect={(itemSel) =>
-                          handleSelectDestino(itemSel.endereco, itemSel.coords, itemSel.label)
-                        }
-                        getIcon={getCategoryIcon}
-                      />
-                    ))}
+                {/* Lista Refinada a Cada Letra Digitada */}
+                {carregandoLugares ? (
+                  <AddressSearchSkeleton />
+                ) : (
+                  lugaresEncontrados.map((item) => (
+                    <SearchDestinationItemRow
+                      key={item.id}
+                      item={item}
+                      distText={getDistanciaTexto(item.coords)}
+                      onSelect={handleSelectOrigem}
+                      getIcon={getCategoryIcon}
+                    />
+                  ))
+                )}
+              </div>
+            ) : (
+              /* ESTADO: EMBARQUE VAZIO (EX: USUÁRIO CLICOU NO 'X') */
+              <div className="space-y-3 pt-1 pb-4">
+                {/* Botão de Destaque: Restaurar GPS Oficial */}
+                <button
+                  type="button"
+                  onClick={handleUsarGpsAtual}
+                  disabled={isResolvingGps}
+                  style={{
+                    borderRadius: ui.borderRadius,
+                  }}
+                  className="w-full p-3 flex items-center gap-3 text-left transition active:scale-[0.99] cursor-pointer bg-emerald-50 border border-emerald-200/90 hover:bg-emerald-100/70 shadow-2xs"
+                >
+                  <div className="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    {isResolvingGps ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    ) : (
+                      <Navigation className="w-4 h-4 fill-white text-white" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-black text-emerald-950 truncate">
+                      Usar minha localização atual (GPS)
+                    </p>
+                    <p className="text-xs text-emerald-700 truncate font-medium">
+                      Identificar ponto de embarque automaticamente
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-emerald-600 shrink-0" />
+                </button>
+
+                {/* Sugestões de locais próximos para embarque */}
+                <div className="space-y-1 pt-1">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-700 block px-1 pb-1">
+                    Locais Próximos Sugeridos para Embarque
+                  </span>
+                  <div className="space-y-1">
+                    {(lugaresEncontrados && lugaresEncontrados.length > 0
+                      ? lugaresEncontrados
+                      : LUGARES_CURADOS_ITAPERUNA
+                    )
+                      .slice(0, 6)
+                      .map((lugar) => (
+                        <SearchDestinationItemRow
+                          key={lugar.id}
+                          item={lugar}
+                          distText={getDistanciaTexto(lugar.coords)}
+                          onSelect={handleSelectOrigem}
+                          getIcon={getCategoryIcon}
+                        />
+                      ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )
+          ) : (
+            /* ========================================================
+               MODO 2: CAMPO DE DESTINO SELECIONADO / EM BUSCA
+               ======================================================== */
+            buscaDestino.trim().length > 0 ? (
+              <div className="space-y-1 pt-1 pb-3">
+                {/* Opção Rápida no Topo: Buscar texto exato no mapa */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectDestino(buscaDestino.trim(), undefined, buscaDestino.trim())}
+                  style={{
+                    borderColor: `${colors.primary}60`,
+                    backgroundColor: `${colors.primary}15`,
+                    borderRadius: ui.borderRadius,
+                  }}
+                  className="w-full p-3 flex items-center gap-3 text-left transition active:scale-[0.99] cursor-pointer border mb-2 shadow-2xs"
+                >
+                  <div
+                    style={{
+                      backgroundColor: colors.primary,
+                      color: colors.surface,
+                      borderRadius: ui.borderRadius,
+                    }}
+                    className="w-8 h-8 flex items-center justify-center shrink-0 font-black shadow-2xs"
+                  >
+                    <Search className="w-4 h-4 stroke-[2.5]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-black text-slate-950 truncate">
+                      Buscar &ldquo;{buscaDestino}&rdquo;
+                    </p>
+                    <p className="text-xs text-slate-700 truncate font-medium">
+                      Ir para este endereço em Itaperuna, RJ
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
+                </button>
+
+                <span className="text-xs font-black uppercase tracking-wider text-slate-700 block px-1 pb-1">
+                  Sugestões de Endereço (Tempo Real)
+                </span>
+
+                {/* Lista Refinada a Cada Letra Digitada ou Shimmer Skeleton */}
+                {carregandoLugares ? (
+                  <AddressSearchSkeleton />
+                ) : (
+                  lugaresEncontrados.map((item) => (
+                    <SearchDestinationItemRow
+                      key={item.id}
+                      item={item}
+                      distText={getDistanciaTexto(item.coords)}
+                      onSelect={(lugar) => handleSelectDestino(lugar.endereco, lugar.coords, lugar.label)}
+                      getIcon={getCategoryIcon}
+                    />
+                  ))
+                )}
+              </div>
+            ) : (
+              /* CASO B: SEM DIGITAÇÃO NO DESTINO -> HISTÓRICO E LOCAIS POPULARES */
+              <div className="space-y-3 pt-1 pb-4">
+                {/* HISTÓRICO DAS ÚLTIMAS 2 VIAGENS */}
+                {historicoRecente && historicoRecente.length > 0 && (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between px-1 py-1">
+                      <span className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5 text-slate-600" />
+                        <span>Últimas Viagens</span>
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      {historicoRecente.slice(0, 2).map((item) => (
+                        <RecentTripItemRow
+                          key={item.id}
+                          item={item}
+                          distText={getDistanciaTexto(item.coords)}
+                          onSelect={handleSelectDestino}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* LOCAIS SUGERIDOS EM ITAPERUNA POR PROXIMIDADE REAL */}
+                <div className="space-y-1 pt-2 border-t border-slate-100">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-700 block px-1">
+                    Locais Próximos e Sugeridos
+                  </span>
+
+                  <div className="space-y-1">
+                    {(lugaresEncontrados && lugaresEncontrados.length > 0
+                      ? lugaresEncontrados
+                      : LUGARES_CURADOS_ITAPERUNA
+                    )
+                      .slice(0, 6)
+                      .map((lugar) => (
+                        <SearchDestinationItemRow
+                          key={lugar.id}
+                          item={lugar}
+                          distText={getDistanciaTexto(lugar.coords)}
+                          onSelect={(itemSel) =>
+                            handleSelectDestino(itemSel.endereco, itemSel.coords, itemSel.label)
+                          }
+                          getIcon={getCategoryIcon}
+                        />
+                      ))}
+                  </div>
+                </div>
+              </div>
+            )
           )}
         </div>
       </div>

@@ -65,11 +65,13 @@ const RecentAddressItemRow = memo(function RecentAddressItemRow({
  */
 export const DestinationCard = memo(function DestinationCard({
   onSearchClick,
+  onEditPickupClick,
   onAdjustPinOnMap,
   onSelectAddress,
   onSelectCasa,
   onSelectTrabalho,
   recentAddresses = [],
+  currentAddress,
 }: DestinationCardProps) {
   const { corPrimaria, corTextoPrimaria } = useBrandTheme();
 
@@ -95,9 +97,33 @@ export const DestinationCard = memo(function DestinationCard({
 
   return (
     <div className="w-full z-20 pointer-events-auto select-none">
-      <div className="bg-white rounded-t-[32px] shadow-2xl border-t border-slate-100 pt-3 pb-5 px-4 sm:px-5 space-y-4 text-left">
+      <div className="bg-white rounded-t-[32px] shadow-2xl border-t border-slate-100 pt-3 pb-5 px-4 sm:px-5 space-y-3.5 text-left">
         {/* DRAG HANDLE BAR CENTRAL */}
         <div className="w-12 h-1.5 rounded-full bg-slate-300 mx-auto" />
+
+        {/* INDICADOR DE EMBARQUE ATUAL (AUTO-PREENCHIDO COM OPÇÃO DE ALTERAR) */}
+        {currentAddress && currentAddress !== "Meu Local Atual" && (
+          <div className="flex items-center justify-between px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs shadow-2xs">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-100 shrink-0" />
+              <span className="text-[11px] font-semibold text-slate-800 truncate">
+                Embarque: <span className="font-bold text-slate-900">{currentAddress}</span>
+              </span>
+            </div>
+            {onEditPickupClick && (
+              <button
+                type="button"
+                onClick={() => {
+                  hapticFeedback.light();
+                  onEditPickupClick();
+                }}
+                className="text-[11px] font-bold text-emerald-700 hover:text-emerald-800 ml-2 shrink-0 cursor-pointer hover:underline"
+              >
+                Alterar
+              </button>
+            )}
+          </div>
+        )}
 
         {/* 1. PÍLULA DE BUSCA "PARA ONDE VAMOS?" + ATALHO DIRETO "NO MAPA" */}
         <div className="flex items-center gap-2">
