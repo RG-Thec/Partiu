@@ -58,6 +58,12 @@ class PassengerGeocodingService {
       silentCatchWarn("passenger-geocoding-service", err);
     }
 
+    const enderecoInstantaneo = reverseGeocodingService.resolveInstantProximityAddress(coords);
+    if (enderecoInstantaneo) {
+      this.cacheReverso.set(key, enderecoInstantaneo);
+      return enderecoInstantaneo;
+    }
+
     return `Local no mapa (${coords[1].toFixed(4)}, ${coords[0].toFixed(4)})`;
   }
 }

@@ -19,6 +19,7 @@ import {
   User,
   Users,
   Compass,
+  Loader2,
 } from "lucide-react";
 import { usePassengerRide } from "@/contexts/PassengerRideContext";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
@@ -30,6 +31,7 @@ import {
   type GeocodedPlace,
   LUGARES_CURADOS_ITAPERUNA,
 } from "@/lib/passenger/geocoding-service";
+import { reverseGeocodingService } from "@/services/ReverseGeocodingService";
 import { addressService } from "@/services/AddressService";
 import { AddressSetupModal } from "@/components/passenger/AddressSetupModal";
 import { FavoritesManagerModal } from "@/components/passenger/FavoritesManagerModal";
@@ -185,17 +187,42 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
 
   // Estado dos inputs: Origem preenchida automaticamente com o GPS e Destino em branco
   const [origemLocal, setOrigemLocal] = useState<string>(() => {
-    return origem && origem !== "Meu Local Atual" ? origem : "Meu Local Atual";
+    if (origem && origem !== "Meu Local Atual" && !origem.includes("Localizando")) {
+      return origem;
+    }
+    const coords = origemCoords || DEFAULT_ORIGIN.coords;
+    const instant = reverseGeocodingService.resolveInstantProximityAddress(coords);
+    return instant || DEFAULT_ORIGIN.endereco;
   });
   const [buscaDestino, setBuscaDestino] = useState<string>(() => {
     return destino && destino !== "Definir no mapa" ? destino : "";
   });
+  const [isResolvingGps, setIsResolvingGps] = useState(false);
 
   useEffect(() => {
-    if (origem) {
+    if (origem && !origem.includes("Localizando") && origem !== "Meu Local Atual") {
       setOrigemLocal(origem);
     }
   }, [origem]);
+
+  // Resolução imediata proativa ao montar caso a origem ainda esteja no valor padrão ou pendente
+  useEffect(() => {
+    if (!origem || origem.includes("Localizando") || origem === "Meu Local Atual" || origem === DEFAULT_ORIGIN.endereco) {
+      const coords = origemCoords || DEFAULT_ORIGIN.coords;
+      const instant = reverseGeocodingService.resolveInstantProximityAddress(coords);
+      if (instant && instant !== origemLocal) {
+        setOrigemLocal(instant);
+        setOrigemEndereco(instant, coords);
+      }
+
+      geocodingService.geocodificarReverso(coords).then((nomeVia) => {
+        if (nomeVia && !nomeVia.includes("Local no mapa")) {
+          setOrigemLocal(nomeVia);
+          setOrigemEndereco(nomeVia, coords);
+        }
+      }).catch(() => {});
+    }
+  }, [origem, origemCoords, origemLocal, setOrigemEndereco]);
 
   // Campo ativo: Foco inicial direto no Embarque se state for EDITING_PICKUP, caso contrário no Destino
   const [campoAtivo, setCampoAtivo] = useState<"embarque" | "destino">(() => {
@@ -280,7 +307,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
 
   // 3. Sincronização da Origem quando o GPS resolver o endereço legível
   useEffect(() => {
-    if (origem && origem !== "Meu Local Atual") {
+    if (origem && origem !== "Meu Local Atual" && !origem.includes("Localizando")) {
       setOrigemLocal(origem);
     }
   }, [origem]);
@@ -594,30 +621,57 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                   {origemLocal && origemLocal !== "Meu Local Atual" && (
                     <button
                       type="button"
+                      disabled={isResolvingGps}
                       onClick={async (e) => {
                         e.stopPropagation();
                         hapticFeedback.light();
-                        setOrigemLocal("Localizando rua...");
+                        setIsResolvingGps(true);
                         if (typeof navigator !== "undefined" && navigator.geolocation) {
                           navigator.geolocation.getCurrentPosition(
                             async (pos) => {
                               const coords: [number, number] = [pos.coords.longitude, pos.coords.latitude];
+                              const instant = reverseGeocodingService.resolveInstantProximityAddress(coords);
+                              if (instant) {
+                                setOrigemLocal(instant);
+                                setOrigemEndereco(instant, coords);
+                              }
+                              setIsResolvingGps(false);
                               const nomeVia = await geocodingService.geocodificarReverso(coords);
-                              setOrigemLocal(nomeVia);
-                              setOrigemEndereco(nomeVia, coords);
+                              if (nomeVia && !nomeVia.includes("Local no mapa")) {
+                                setOrigemLocal(nomeVia);
+                                setOrigemEndereco(nomeVia, coords);
+                              }
                             },
                             () => {
-                              setOrigemLocal(origem || "Meu Local Atual");
+                              navigator.geolocation.getCurrentPosition(
+                                async (pos2) => {
+                                  const coords2: [number, number] = [pos2.coords.longitude, pos2.coords.latitude];
+                                  const nomeVia = await geocodingService.geocodificarReverso(coords2);
+                                  setOrigemLocal(nomeVia);
+                                  setOrigemEndereco(nomeVia, coords2);
+                                  setIsResolvingGps(false);
+                                },
+                                () => {
+                                  setIsResolvingGps(false);
+                                },
+                                { enableHighAccuracy: true, timeout: 8000 }
+                              );
                             },
-                            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                            { enableHighAccuracy: false, timeout: 2500, maximumAge: 60000 }
                           );
+                        } else {
+                          setIsResolvingGps(false);
                         }
                       }}
-                      className="px-2 py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition hover:opacity-80"
+                      className="px-2 py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition hover:opacity-80 disabled:opacity-50"
                       style={{ color: colors.primary }}
                       title="Restaurar GPS atual"
                     >
-                      <Navigation className="w-3.5 h-3.5" style={{ fill: colors.primary, color: colors.primary }} />
+                      {isResolvingGps ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: colors.primary }} />
+                      ) : (
+                        <Navigation className="w-3.5 h-3.5" style={{ fill: colors.primary, color: colors.primary }} />
+                      )}
                       <span>GPS</span>
                     </button>
                   )}

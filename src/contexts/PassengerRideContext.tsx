@@ -181,8 +181,16 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
     try {
       const saved = localStorage.getItem("partiu_saved_origin_address");
       if (saved && saved.trim() && saved !== "Meu Local Atual" && !saved.includes("Localizando")) return saved;
+      const savedCoords = localStorage.getItem("partiu_saved_origin_coords");
+      if (savedCoords) {
+        const parsed = JSON.parse(savedCoords);
+        if (Array.isArray(parsed) && parsed.length === 2 && !isNaN(parsed[0]) && !isNaN(parsed[1])) {
+          const prox = reverseGeocodingService.resolveInstantProximityAddress(parsed as [number, number]);
+          if (prox) return prox;
+        }
+      }
     } catch {}
-    return "Localizando via GPS...";
+    return DEFAULT_ORIGIN.endereco;
   });
   const [origemCoords, setOrigemCoords] = useState<[number, number]>(() => {
     try {
@@ -259,6 +267,17 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("partiu_saved_origin_coords", JSON.stringify(realCoords));
       } catch (err) { silentCatchWarn("PassengerRideContext", err); }
 
+      // Resolução instantânea imediata síncrona (0ms)
+      const instant = reverseGeocodingService.resolveInstantProximityAddress(realCoords);
+      if (instant) {
+        setOrigem((curr) => {
+          if (!curr || curr === DEFAULT_ORIGIN.endereco || curr.includes("Localizando") || curr === "Meu Local Atual") {
+            return instant;
+          }
+          return curr;
+        });
+      }
+
       reverseGeocodingService
         .reverseGeocode(realCoords)
         .then((res) => {
@@ -303,6 +322,20 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
         navigator.geolocation.getCurrentPosition(res, rej, opts);
       });
     };
+
+    // Fix instantâneo de rede / cache (5 a 50ms) se disponível
+    navigator.geolocation.getCurrentPosition(
+      (quickPos) => {
+        aplicarCoordenadasGps(
+          quickPos.coords.longitude,
+          quickPos.coords.latitude,
+          quickPos.coords.accuracy,
+          quickPos.coords.heading
+        );
+      },
+      () => {},
+      { enableHighAccuracy: false, timeout: 2500, maximumAge: 60000 }
+    );
 
     try {
       // Nível 1: Hardware GNSS Direto (Satélite de Alta Precisão)
@@ -804,32 +837,31 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
 
   // 1. Iniciar busca de destino (Transição IDLE -> SELECTING_DESTINATION)
   const startSearch = useCallback(() => {
-    // Garante que o GPS seja resolvido para o endereço de rua real do usuário
+    // Garante que a origem tenha um endereço real resolvido instantaneamente (0ms)
+    const currentCoords = origemCoordsRef.current || DEFAULT_ORIGIN.coords;
     if (!origem || origem === "Meu Local Atual" || origem === DEFAULT_ORIGIN.endereco || origem.includes("Localizando")) {
-      if (typeof navigator !== "undefined" && navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            const coords: [number, number] = [pos.coords.longitude, pos.coords.latitude];
-            setOrigemCoords(coords);
-            try {
-              const res = await reverseGeocodingService.reverseGeocode(coords);
-              const nomeVia = res?.formattedAddress || (await geocodingService.geocodificarReverso(coords));
-              if (nomeVia) {
-                setOrigem(nomeVia);
-                try {
-                  localStorage.setItem("partiu_saved_origin_address", nomeVia);
-                  localStorage.setItem("partiu_saved_origin_coords", JSON.stringify(coords));
-                } catch (_) {}
-              }
-            } catch (err) { silentCatchWarn("PassengerRideContext", err); }
-          },
-          () => {},
-          { enableHighAccuracy: true, timeout: 6000 }
-        );
+      const instant = reverseGeocodingService.resolveInstantProximityAddress(currentCoords);
+      if (instant) {
+        setOrigem(instant);
       }
     }
+
+    if (typeof navigator !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          aplicarCoordenadasGps(
+            pos.coords.longitude,
+            pos.coords.latitude,
+            pos.coords.accuracy,
+            pos.coords.heading
+          );
+        },
+        () => {},
+        { enableHighAccuracy: false, timeout: 2000, maximumAge: 30000 }
+      );
+    }
     setState("SELECTING_DESTINATION");
-  }, [origem]);
+  }, [origem, aplicarCoordenadasGps]);
 
   // 1.1 Iniciar modo de edição de ponto de embarque (Transição SELECTING_DESTINATION -> EDITING_PICKUP)
   const startEditingPickup = useCallback(() => {
@@ -864,11 +896,11 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
   // 1.5 Atualizar Ponto de Embarque diretamente pelo arraste do Mapa ou GPS
   const updatePickupLocationFromMap = useCallback(
     async (coords: [number, number], enderecoCustom?: string, isManualDrag: boolean = false) => {
-      // Deadband anti-churn: se não for endereço manual/customizado e estiver a menos de 20m, silencia
+      // Deadband anti-churn: se não for endereço manual/customizado e estiver a menos de 20m, silencia apenas se já tiver endereço válido
       if (!enderecoCustom && !isManualDrag && origemCoordsRef.current) {
         const deltaLng = Math.abs(origemCoordsRef.current[0] - coords[0]);
         const deltaLat = Math.abs(origemCoordsRef.current[1] - coords[1]);
-        if (deltaLng < 0.00018 && deltaLat < 0.00018) {
+        if (deltaLng < 0.00018 && deltaLat < 0.00018 && origem && !origem.includes("Localizando") && origem !== "Meu Local Atual") {
           return;
         }
       }
@@ -888,16 +920,24 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
           localStorage.setItem("partiu_saved_origin_address", enderecoCustom);
         } catch (_) {}
       } else {
+        const instant = reverseGeocodingService.resolveInstantProximityAddress(coords);
+        if (instant) {
+          setOrigem(instant);
+        }
         setIsResolvingAddress(true);
         try {
           const res = await reverseGeocodingService.reverseGeocode(coords);
           const nomeVia = res?.formattedAddress || (await geocodingService.geocodificarReverso(coords));
-          setOrigem(nomeVia);
-          try {
-            localStorage.setItem("partiu_saved_origin_address", nomeVia);
-          } catch (_) {}
+          if (nomeVia) {
+            setOrigem(nomeVia);
+            try {
+              localStorage.setItem("partiu_saved_origin_address", nomeVia);
+            } catch (_) {}
+          }
         } catch {
-          setOrigem("Ponto selecionado no mapa");
+          if (!instant) {
+            setOrigem("Ponto selecionado no mapa");
+          }
         } finally {
           setIsResolvingAddress(false);
         }

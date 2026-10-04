@@ -98,9 +98,9 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
     if (typeof window === "undefined") return ENDERECO_EM_BRANCO;
     const nome = localStorage.getItem("partiu_user_nome") || "Maria Clara";
     const tel = localStorage.getItem("partiu_user_telefone") || "";
-    const saved = localStorage.getItem("partiu_saved_origin_address") || "";
+    const saved = localStorage.getItem("partiu_saved_origin_address") || "Rua Amadeu Tinoco Lacerda, 492 - Centro, Itaperuna - RJ";
     return {
-      endereco: saved || "Localizando via GPS...",
+      endereco: saved,
       complemento: "",
       contatoNome: nome,
       contatoTelefone: tel,

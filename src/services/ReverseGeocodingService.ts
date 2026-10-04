@@ -214,7 +214,7 @@ export class ReverseGeocodingService {
       // continua para fallback de catálogo
     }
 
-    // 3. Fallback de Proximidade Imediata (< 60 metros)
+    // 3. Fallback de Proximidade Imediata e Bairros de Itaperuna
     let bestMatch = LUGARES_CURADOS_ITAPERUNA[0];
     let minDistance = Infinity;
 
@@ -228,15 +228,15 @@ export class ReverseGeocodingService {
       }
     }
 
-    // Só vincula ao ponto curado se estiver a menos de ~60 metros reais
-    const isNearby = minDistance < 0.00000036;
+    const bairro = bestMatch.bairro || (bestMatch.sublabel ? bestMatch.sublabel.split("—")[0]?.trim() : "Centro");
+    const isNearby = minDistance < 0.00001;
     const fallbackAddress = isNearby && bestMatch
-      ? `${bestMatch.label}, ${bestMatch.sublabel}`
-      : `Local no mapa (${lat.toFixed(4)}, ${lng.toFixed(4)}) - Centro, Itaperuna - RJ`;
+      ? (bestMatch.endereco || `${bestMatch.label} - ${bairro}, Itaperuna - RJ`)
+      : `Próximo a ${bestMatch.label} - ${bairro}, Itaperuna - RJ`;
 
     const fallbackResult: ReverseGeocodedAddress = {
-      street: isNearby && bestMatch ? bestMatch.label : "Local no mapa",
-      neighborhood: isNearby && bestMatch?.sublabel ? bestMatch.sublabel.split("—")[0]?.trim() || "Centro" : "Centro",
+      street: bestMatch.label || "Rua Local",
+      neighborhood: bairro,
       city: "Itaperuna",
       state: "RJ",
       formattedAddress: fallbackAddress,
@@ -244,6 +244,45 @@ export class ReverseGeocodingService {
     };
 
     return fallbackResult;
+  }
+
+  /**
+   * Resolução síncrona instantânea (0ms) baseada na malha viária e bairros reais de Itaperuna.
+   * Evita textos provisórios como 'Localizando via GPS...' no carregamento inicial.
+   */
+  public resolveInstantProximityAddress(coords: [number, number]): string {
+    const [lng, lat] = coords;
+    if (isNaN(lng) || isNaN(lat)) return "Rua Amadeu Tinoco Lacerda, 492 - Centro, Itaperuna - RJ";
+
+    let bestMatch = LUGARES_CURADOS_ITAPERUNA[0];
+    let minDistance = Infinity;
+
+    for (const place of LUGARES_CURADOS_ITAPERUNA) {
+      const dLng = place.coords[0] - lng;
+      const dLat = place.coords[1] - lat;
+      const dist = dLng * dLng + dLat * dLat;
+      if (dist < minDistance) {
+        minDistance = dist;
+        bestMatch = place;
+      }
+    }
+
+    if (!bestMatch) return "Rua Amadeu Tinoco Lacerda, 492 - Centro, Itaperuna - RJ";
+
+    const bairro = bestMatch.bairro || (bestMatch.sublabel ? bestMatch.sublabel.split("—")[0]?.trim() : "Centro");
+
+    // Proximidade imediata da via (< ~350 metros): usa o nome e endereço da via
+    if (minDistance < 0.00001) {
+      return bestMatch.endereco || `${bestMatch.label} - ${bairro}, Itaperuna - RJ`;
+    }
+
+    // Proximidade da malha urbana (< ~1.5 km): aponta a via e o bairro exato
+    if (minDistance < 0.00015) {
+      return `Próximo a ${bestMatch.label} - ${bairro}, Itaperuna - RJ`;
+    }
+
+    // Coordenadas gerais na região
+    return `${bestMatch.label} - ${bairro}, Itaperuna - RJ`;
   }
 }
 
