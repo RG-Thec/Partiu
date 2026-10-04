@@ -698,12 +698,9 @@ export const PartiuRideMap = memo(
     if (!mapContainer.current) return;
 
     try {
+      const currentToken = MapboxConfig.getAccessToken();
       const hasValidToken = MapboxConfig.hasValidToken();
-      if (hasValidToken && MAPBOX_TOKEN) {
-        mapboxgl.accessToken = MAPBOX_TOKEN;
-      } else {
-        mapboxgl.accessToken = "";
-      }
+      mapboxgl.accessToken = currentToken;
 
       const initialStyle = hasValidToken
         ? mapboxService.getStyleUrl("streets")
