@@ -83,6 +83,7 @@ function PartiuPassengerHomeContent() {
     updatePickupLocationFromMap,
     updateDestinationLocationFromMap,
     userAccuracyMeters,
+    forcarCentralizarUsuario,
   } = usePassengerRide();
 
   const { corPrimaria, corSecundaria } = useBrandTheme();
@@ -109,8 +110,9 @@ function PartiuPassengerHomeContent() {
   const mapHandleRef = useRef<PartiuRideMapHandle | null>(null);
   const handleRecenterMap = useCallback(() => {
     hapticFeedback.light();
+    forcarCentralizarUsuario();
     void mapHandleRef.current?.recenter();
-  }, []);
+  }, [forcarCentralizarUsuario]);
 
   // Identificação do passageiro para notificações em tempo real
   const activeUser = typeof window !== "undefined"
@@ -377,7 +379,7 @@ function PartiuPassengerHomeContent() {
       }
 
       lastGpsUpdateRef.current = { coords, timestamp: now };
-      updatePickupLocationFromMap(coords);
+      updatePickupLocationFromMap(coords, undefined, false);
     },
     [state, updatePickupLocationFromMap]
   );
@@ -504,7 +506,7 @@ function PartiuPassengerHomeContent() {
           onMapCenterChange={
             state === "CONFIRMING_DESTINATION_MAP"
               ? updateDestinationLocationFromMap
-              : updatePickupLocationFromMap
+              : (coords) => updatePickupLocationFromMap(coords, undefined, true)
           }
           onUserLocationChange={handleUserLocationChange}
           hideRecenter={state === "IDLE"}

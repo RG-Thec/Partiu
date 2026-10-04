@@ -910,7 +910,20 @@ export const PartiuRideMap = memo(
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
 
-    if (
+    if (status === "IDLE") {
+      const currentCenter = map.getCenter();
+      const distLng = Math.abs(currentCenter.lng - origemCoords[0]);
+      const distLat = Math.abs(currentCenter.lat - origemCoords[1]);
+      if (!lastIdleCenterRef.current || distLng > 0.0003 || distLat > 0.0003) {
+        lastIdleCenterRef.current = origemCoords;
+        map.easeTo({
+          center: origemCoords,
+          zoom: 16.5,
+          padding: cameraPadding || { top: 80, bottom: 260, left: 32, right: 32 },
+          duration: 800,
+        });
+      }
+    } else if (
       status === "SELECTING_DESTINATION" ||
       status === "SEARCHING_DESTINATION" ||
       status === "EDITING_PICKUP"
@@ -961,29 +974,6 @@ export const PartiuRideMap = memo(
         padding: cameraPadding || defaultProcurandoPadding,
         duration: 700,
       });
-    } else if (status === "IDLE") {
-      const last = lastIdleCenterRef.current;
-      const movedSignificantly =
-        !last ||
-        Math.abs(last[0] - origemCoords[0]) > 0.00010 ||
-        Math.abs(last[1] - origemCoords[1]) > 0.00010;
-
-      if (movedSignificantly) {
-        lastIdleCenterRef.current = origemCoords;
-        const defaultIdlePadding = {
-          top: 65,
-          bottom: typeof window !== "undefined" ? Math.max(360, Math.round(window.innerHeight * 0.52)) : 420,
-          left: 0,
-          right: 0,
-        };
-
-        map.easeTo({
-          center: origemCoords,
-          zoom: 16.5,
-          padding: cameraPadding || defaultIdlePadding,
-          duration: 700,
-        });
-      }
     } else {
       lastIdleCenterRef.current = null;
     }
@@ -1017,6 +1007,7 @@ export const PartiuRideMap = memo(
     strategicMarkersRef.current = [];
 
     const isEditingOrSelecting =
+      status === "IDLE" ||
       status === "EDITING_PICKUP" ||
       status === "SELECTING_DESTINATION" ||
       status === "SEARCHING_DESTINATION" ||
@@ -1371,7 +1362,7 @@ export const PartiuRideMap = memo(
   async function handleRecenter() {
     const defaultIdlePadding = {
       top: 65,
-      bottom: typeof window !== "undefined" ? Math.max(360, Math.round(window.innerHeight * 0.52)) : 420,
+      bottom: typeof window !== "undefined" ? Math.max(300, Math.round(window.innerHeight * 0.40)) : 320,
       left: 0,
       right: 0,
     };
@@ -1384,9 +1375,9 @@ export const PartiuRideMap = memo(
       if (mapRef.current) {
         mapRef.current.flyTo({
           center: coords,
-          zoom: 16.5,
+          zoom: 16.8,
           padding: cameraPadding || (status === "IDLE" ? defaultIdlePadding : { top: 0, bottom: 0, left: 0, right: 0 }),
-          duration: 800,
+          duration: 700,
         });
       }
     };
@@ -1397,19 +1388,18 @@ export const PartiuRideMap = memo(
       };
 
       try {
-        // Nível 1: GNSS Alta Precisão
-        const pos = await queryPos({ enableHighAccuracy: true, timeout: 3500, maximumAge: 0 });
+        // Nível 1: GNSS Alta Precisão com janela recente tolerante
+        const pos = await queryPos({ enableHighAccuracy: true, timeout: 6000, maximumAge: 5000 });
         flyToCoords([pos.coords.longitude, pos.coords.latitude], pos.coords.heading);
         return;
       } catch {
         try {
           // Nível 2: Rede / Wi-Fi (Instantâneo no PC)
-          const pos2 = await queryPos({ enableHighAccuracy: false, timeout: 5000, maximumAge: 30000 });
+          const pos2 = await queryPos({ enableHighAccuracy: false, timeout: 6000, maximumAge: 15000 });
           flyToCoords([pos2.coords.longitude, pos2.coords.latitude], pos2.coords.heading);
           return;
         } catch {
-          // GNSS/Wi-Fi indisponíveis. PROIBIDO o uso de geolocalização por IP.
-          console.warn("[PartiuRideMap] Sinal GNSS/Wi-Fi indisponível. Orientando usuário a buscar por endereço.");
+          console.warn("[PartiuRideMap] Sinal GNSS/Wi-Fi indisponível.");
           onLocationPermissionDenied?.();
         }
       }
@@ -1423,8 +1413,9 @@ export const PartiuRideMap = memo(
     if (!mapRef.current) return;
     mapRef.current.flyTo({
       center: origemCoords,
-      zoom: 16.5,
-      duration: 800,
+      zoom: 16.8,
+      padding: cameraPadding || (status === "IDLE" ? defaultIdlePadding : { top: 0, bottom: 0, left: 0, right: 0 }),
+      duration: 700,
     });
   }
 

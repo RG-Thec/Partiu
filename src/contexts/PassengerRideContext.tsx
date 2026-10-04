@@ -116,7 +116,7 @@ interface PassengerRideContextValue {
   startEditingPickup: () => void;
   selectStrategicPickup: (point: StrategicPickupPoint) => void;
   backToSelectingDestination: () => void;
-  updatePickupLocationFromMap: (coords: [number, number], endereco?: string) => void;
+  updatePickupLocationFromMap: (coords: [number, number], endereco?: string, isManualDrag?: boolean) => void;
   confirmPickupPin: () => void;
   isResolvingAddress: boolean;
 
@@ -242,21 +242,11 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
     (longitude: number, latitude: number, accuracy: number, heading: number | null | undefined): boolean => {
       if (!isValidCoordinate(longitude, latitude)) return false;
 
-      const isLowAccuracy = accuracy > 50;
-      const isLocked = typeof window !== "undefined" && localStorage.getItem("partiu_origin_user_locked") === "true";
-
-      if (isLocked && isLowAccuracy) {
-        setUserAccuracyMeters(accuracy);
-        setUserHeading(heading ?? null);
-        setGpsPermissionStatus("granted");
-        setHasRealGpsFix(true);
-        setGpsState("GPS_READY");
-        setIsGpsPermissionModalOpen(false);
-        return true;
-      }
-
+      const isLowAccuracy = accuracy > 75;
       const realCoords: [number, number] = [longitude, latitude];
+
       setOrigemCoords(realCoords);
+      origemCoordsRef.current = realCoords;
       setUserAccuracyMeters(accuracy || 15);
       setUserHeading(heading ?? null);
       setGpsPermissionStatus("granted");
@@ -264,13 +254,9 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       setGpsState(isLowAccuracy ? "GPS_WEAK_SIGNAL" : "GPS_READY");
       setIsGpsPermissionModalOpen(false);
 
-      if (isLowAccuracy && !isLocked) {
-        console.warn(`[Partiu GPS Real] Sinal impreciso (${Math.round(accuracy)}m > 50m). Solicitando confirmação de endereço.`);
-        setState((curr) => (curr === "IDLE" ? "EDITING_PICKUP" : curr));
-      }
-
       try {
         localStorage.setItem("partiu_gps_permission", "granted");
+        localStorage.setItem("partiu_saved_origin_coords", JSON.stringify(realCoords));
       } catch (err) { silentCatchWarn("PassengerRideContext", err); }
 
       reverseGeocodingService
@@ -281,7 +267,6 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
             setOrigem(nomeVia);
             try {
               localStorage.setItem("partiu_saved_origin_address", nomeVia);
-              localStorage.setItem("partiu_saved_origin_coords", JSON.stringify(realCoords));
             } catch (_) {}
           }
         })
@@ -293,7 +278,6 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
                 setOrigem(nomeVia);
                 try {
                   localStorage.setItem("partiu_saved_origin_address", nomeVia);
-                  localStorage.setItem("partiu_saved_origin_coords", JSON.stringify(realCoords));
                 } catch (_) {}
               }
             })
@@ -324,8 +308,8 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       // Nível 1: Hardware GNSS Direto (Satélite de Alta Precisão)
       const pos = await queryPosition({
         enableHighAccuracy: true,
-        timeout: 4000,
-        maximumAge: 0,
+        timeout: 10000,
+        maximumAge: 5000,
       });
 
       return aplicarCoordenadasGps(
@@ -351,8 +335,8 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
         // Nível 2: Rede / Wi-Fi / Provedor do Windows/Mobile (Instantâneo em Desktop/PC)
         const pos2 = await queryPosition({
           enableHighAccuracy: false,
-          timeout: 6000,
-          maximumAge: 30000,
+          timeout: 8000,
+          maximumAge: 15000,
         });
 
         return aplicarCoordenadasGps(
@@ -362,32 +346,17 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
           pos2.coords.heading
         );
       } catch (err2: any) {
-        console.warn("[Partiu GPS Nível 2 falhou]:", err2?.message, "-> GPS Físico indisponível. PROIBIDO o uso de IP.");
+        console.warn("[Partiu GPS Nível 2 falhou]:", err2?.message, "-> GPS Físico indisponível.");
         setGpsState("GPS_WEAK_SIGNAL");
-
-        // Regra de Produção Padrão Uber/99:
-        // Se o sinal for fraco, inexistente ou estiver em ambiente Desktop,
-        // NÃO tenta adivinhar localização via IP do provedor.
-        // Abre o fluxo de confirmação/busca de endereço.
-        const userHasLockedOrigin =
-          typeof window !== "undefined" &&
-          (localStorage.getItem("partiu_origin_user_locked") === "true" ||
-            Boolean(localStorage.getItem("partiu_saved_origin_coords")));
-
-        if (userHasLockedOrigin) {
-          setGpsPermissionStatus("granted");
-          setGpsState("GPS_READY");
-          return true;
-        }
-
-        // Solicita confirmação de endereço
-        setState((curr) => (curr === "IDLE" ? "EDITING_PICKUP" : curr));
         return false;
       }
     }
   }, [aplicarCoordenadasGps]);
 
   const forcarCentralizarUsuario = useCallback(() => {
+    try {
+      localStorage.removeItem("partiu_origin_user_locked");
+    } catch (_) {}
     setRecenterCount((c) => c + 1);
     void solicitarPermissaoGps();
   }, [solicitarPermissaoGps]);
@@ -419,7 +388,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       setHasRealGpsFix(true);
       setUserAccuracyMeters(accuracy || 15);
       setUserHeading(heading ?? null);
-      setGpsState(accuracy <= 60 ? "GPS_READY" : "GPS_WEAK_SIGNAL");
+      setGpsState(accuracy <= 75 ? "GPS_READY" : "GPS_WEAK_SIGNAL");
 
       setOrigemCoords((prev) => {
         // Deadband de micro-oscilação do GPS (~8 metros)
@@ -432,6 +401,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
         }
 
         const nextCoords: [number, number] = [longitude, latitude];
+        origemCoordsRef.current = nextCoords;
 
         const last = lastResolvedCoordsRef.current;
         if (
@@ -440,19 +410,54 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
           Math.abs(last[1] - latitude) > 0.00025
         ) {
           lastResolvedCoordsRef.current = nextCoords;
-          geocodingService
-            .geocodificarReverso(nextCoords)
-            .then((nomeVia) => {
+          reverseGeocodingService
+            .reverseGeocode(nextCoords)
+            .then((res) => {
+              const nomeVia = res?.formattedAddress;
               if (nomeVia) {
                 setOrigem((curr) => {
-                  if (!curr || curr === DEFAULT_ORIGIN.endereco || curr === "Meu Local Atual") {
+                  if (
+                    !curr ||
+                    curr === DEFAULT_ORIGIN.endereco ||
+                    curr === "Meu Local Atual" ||
+                    curr.includes("Localizando") ||
+                    curr === "Ponto selecionado no mapa"
+                  ) {
                     return nomeVia;
                   }
                   return curr;
                 });
+                try {
+                  localStorage.setItem("partiu_saved_origin_address", nomeVia);
+                  localStorage.setItem("partiu_saved_origin_coords", JSON.stringify(nextCoords));
+                } catch (_) {}
               }
             })
-            .catch(() => {});
+            .catch(() => {
+              geocodingService
+                .geocodificarReverso(nextCoords)
+                .then((nomeVia) => {
+                  if (nomeVia) {
+                    setOrigem((curr) => {
+                      if (
+                        !curr ||
+                        curr === DEFAULT_ORIGIN.endereco ||
+                        curr === "Meu Local Atual" ||
+                        curr.includes("Localizando") ||
+                        curr === "Ponto selecionado no mapa"
+                      ) {
+                        return nomeVia;
+                      }
+                      return curr;
+                    });
+                    try {
+                      localStorage.setItem("partiu_saved_origin_address", nomeVia);
+                      localStorage.setItem("partiu_saved_origin_coords", JSON.stringify(nextCoords));
+                    } catch (_) {}
+                  }
+                })
+                .catch(() => {});
+            });
         }
 
         return nextCoords;
@@ -472,14 +477,14 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
               console.warn("[Partiu GPS Watch Rede]:", err2.message);
               setGpsState("GPS_WEAK_SIGNAL");
             },
-            { enableHighAccuracy: false, timeout: 12000, maximumAge: 30000 }
+            { enableHighAccuracy: false, timeout: 12000, maximumAge: 15000 }
           );
         }
       },
       {
         enableHighAccuracy: true,
-        timeout: 8000,
-        maximumAge: 0,
+        timeout: 10000,
+        maximumAge: 5000,
       }
     );
 
@@ -858,9 +863,9 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
 
   // 1.5 Atualizar Ponto de Embarque diretamente pelo arraste do Mapa ou GPS
   const updatePickupLocationFromMap = useCallback(
-    async (coords: [number, number], enderecoCustom?: string) => {
+    async (coords: [number, number], enderecoCustom?: string, isManualDrag: boolean = false) => {
       // Deadband anti-churn: se não for endereço manual/customizado e estiver a menos de 20m, silencia
-      if (!enderecoCustom && origemCoordsRef.current) {
+      if (!enderecoCustom && !isManualDrag && origemCoordsRef.current) {
         const deltaLng = Math.abs(origemCoordsRef.current[0] - coords[0]);
         const deltaLat = Math.abs(origemCoordsRef.current[1] - coords[1]);
         if (deltaLng < 0.00018 && deltaLat < 0.00018) {
@@ -872,7 +877,9 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       origemCoordsRef.current = coords;
       try {
         localStorage.setItem("partiu_saved_origin_coords", JSON.stringify(coords));
-        localStorage.setItem("partiu_origin_user_locked", "true");
+        if (isManualDrag) {
+          localStorage.setItem("partiu_origin_user_locked", "true");
+        }
       } catch (_) {}
 
       if (enderecoCustom) {
@@ -883,7 +890,8 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       } else {
         setIsResolvingAddress(true);
         try {
-          const nomeVia = await geocodingService.geocodificarReverso(coords);
+          const res = await reverseGeocodingService.reverseGeocode(coords);
+          const nomeVia = res?.formattedAddress || (await geocodingService.geocodificarReverso(coords));
           setOrigem(nomeVia);
           try {
             localStorage.setItem("partiu_saved_origin_address", nomeVia);
