@@ -70,21 +70,13 @@ export const Header = memo(function Header({
 
   return (
     <header
-      className={`absolute top-0 left-0 right-0 z-30 w-full select-none pointer-events-auto bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-xs ${className}`}
-      style={{
-        paddingTop: safeTopPadding,
-        paddingBottom: 10,
-        paddingLeft: 14,
-        paddingRight: 14,
-        minHeight: "calc(env(safe-area-inset-top, 0px) + 58px)",
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        ...style,
-      }}
+      className={`absolute top-0 inset-x-0 z-30 w-full select-none pointer-events-none px-3.5 pt-[max(0.6rem,calc(env(safe-area-inset-top,0px)+6px))] pb-1.5 ${className}`}
+      style={style}
       aria-label="Cabeçalho Principal"
     >
+      <div
+        className="w-full max-w-lg mx-auto flex items-center justify-between px-3.5 py-2 rounded-2xl bg-white/92 backdrop-blur-xl border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.04)] pointer-events-auto"
+      >
       {/* ===================================================================== */}
       {/* 1. SEÇÃO ESQUERDA: AVATAR CIRCULAR COM FOTO DO PASSAGEIRO            */}
       {/* ===================================================================== */}
@@ -158,6 +150,7 @@ export const Header = memo(function Header({
             </span>
           )}
         </button>
+      </div>
       </div>
     </header>
   );

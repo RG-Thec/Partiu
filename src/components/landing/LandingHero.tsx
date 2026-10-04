@@ -126,7 +126,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           </div>
 
           {/* Cartões de Ação Principais: Pedir corrida / Dirigir com o Partiu */}
-          <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             {actions.map((action, idx) => {
               const isPassenger = action.style === "primaryGradient" || action.type === "passenger";
               const label = isPassenger ? "Pedir corrida" : "Dirigir com o Partiu";
@@ -137,26 +137,26 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                   key={idx}
                   type="button"
                   onClick={() => handleActionClick(action.targetUrl)}
-                  className="group relative flex items-center justify-between px-3.5 py-2.5 transition-all duration-200 active:scale-[0.98] cursor-pointer overflow-hidden min-h-[46px] rounded-2xl shadow-xs"
+                  className="group relative flex items-center justify-between px-4 py-3 transition-all duration-300 active:scale-[0.98] cursor-pointer overflow-hidden min-h-[52px] rounded-2xl shadow-xs hover:shadow-md"
                   style={{
                     ...(isPassenger
                       ? {
                           background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
-                          boxShadow: `0 4px 14px ${theme.primary}30`,
+                          boxShadow: `0 6px 20px ${theme.primary}35`,
                         }
                       : {
                           background: "#FFFFFF",
                           border: "1px solid #E2E8F0",
-                          boxShadow: "0 2px 6px rgba(0, 0, 0, 0.04)",
+                          boxShadow: "0 2px 10px rgba(0, 0, 0, 0.03)",
                         }),
                   }}
                 >
                   {/* Efeito Shimmer de Luz no Hover */}
                   <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-3">
                     <div
-                      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-2xs transition-transform duration-200 group-hover:scale-105"
+                      className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-2xs transition-transform duration-200 group-hover:scale-105"
                       style={{
                         background: isPassenger
                           ? "rgba(255, 255, 255, 0.22)"
@@ -167,24 +167,24 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                       }}
                     >
                       {isPassenger ? (
-                        <User className="w-4 h-4 text-white stroke-[2.2]" />
+                        <User className="w-4.5 h-4.5 text-white stroke-[2.2]" />
                       ) : (
                         <Car
-                          className="w-4 h-4 stroke-[2.2]"
+                          className="w-4.5 h-4.5 stroke-[2.2]"
                           style={{ color: theme.primary }}
                         />
                       )}
                     </div>
                     <div className="flex flex-col text-left">
                       <span
-                        className={`text-xs sm:text-[13px] font-bold leading-tight ${
+                        className={`text-xs sm:text-sm font-bold leading-tight ${
                           isPassenger ? "text-white" : "text-slate-900"
                         }`}
                       >
                         {label}
                       </span>
                       <span
-                        className={`text-[10px] font-medium leading-none mt-0.5 ${
+                        className={`text-[10.5px] font-medium leading-none mt-1 ${
                           isPassenger ? "text-white/85" : "text-slate-500"
                         }`}
                       >
@@ -194,46 +194,46 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                   </div>
 
                   <div
-                    className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                    className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-transform group-hover:translate-x-0.5 ${
                       isPassenger
                         ? "bg-white/20 group-hover:bg-white/30 text-white"
                         : "bg-slate-100 group-hover:bg-slate-900 text-slate-700 group-hover:text-white"
                     }`}
                   >
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    <ArrowRight className="w-3.5 h-3.5 stroke-[2.2]" />
                   </div>
                 </button>
               );
             })}
           </div>
 
-          {/* Grid de Prova Social e Métricas de Confiança */}
-          <div className="grid grid-cols-3 gap-3 sm:gap-6 pt-3 w-full max-w-lg border-t border-slate-200/90 text-left">
-            <div>
-              <div className="flex items-center gap-1.5 text-amber-500 text-sm sm:text-base font-black">
+          {/* Grid de Prova Social e Métricas de Confiança em Bento Cards */}
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 pt-2 w-full max-w-xl text-left">
+            <div className="p-3 rounded-2xl bg-white/95 border border-slate-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+              <div className="flex items-center gap-1.5 text-amber-500 text-sm sm:text-base font-extrabold">
                 <Star className="w-4 h-4 fill-amber-400 text-amber-500" />
                 <span>4.9</span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-0.5 font-medium leading-tight">
-                Avaliação dos condutores
+              <p className="text-[10.5px] text-slate-600 mt-1 font-medium leading-tight">
+                Nota média dos motoristas
               </p>
             </div>
-            <div>
-              <div className="flex items-center gap-1.5 text-emerald-600 text-sm sm:text-base font-black">
-                <Clock className="w-4 h-4" />
-                <span>&lt; 4 min</span>
+            <div className="p-3 rounded-2xl bg-white/95 border border-slate-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+              <div className="flex items-center gap-1.5 text-emerald-600 text-sm sm:text-base font-extrabold">
+                <Clock className="w-4 h-4 stroke-[2.2]" />
+                <span>&lt; 3 min</span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-0.5 font-medium leading-tight">
-                Tempo médio de chegada
+              <p className="text-[10.5px] text-slate-600 mt-1 font-medium leading-tight">
+                Tempo médio de embarque
               </p>
             </div>
-            <div>
-              <div className="flex items-center gap-1.5 text-sky-600 text-sm sm:text-base font-black">
-                <ShieldCheck className="w-4 h-4" />
+            <div className="p-3 rounded-2xl bg-white/95 border border-slate-200/80 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+              <div className="flex items-center gap-1.5 text-sky-600 text-sm sm:text-base font-extrabold">
+                <ShieldCheck className="w-4 h-4 stroke-[2.2]" />
                 <span>100%</span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-0.5 font-medium leading-tight">
-                Viagens com botão SOS
+              <p className="text-[10.5px] text-slate-600 mt-1 font-medium leading-tight">
+                Viagens monitoradas e SOS
               </p>
             </div>
           </div>
@@ -393,8 +393,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               </div>
             </div>
 
-            {/* SELETOR INTERATIVO DE CATEGORIAS ESTILO UBER (CABER DESIGN) */}
-            <div className="grid grid-cols-4 gap-1.5 mt-3">
+            {/* SELETOR INTERATIVO DE CATEGORIAS ESTILO DRIVELUX (SCREEN 2) */}
+            <div className="grid grid-cols-4 gap-2 mt-3.5 px-0.5">
               {(
                 [
                   { id: "economico", label: "Econômico", icon: Car },
@@ -410,50 +410,70 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                     key={cat.id}
                     type="button"
                     onClick={() => setActiveCategory(cat.id)}
-                    className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-lg transition-all duration-200 cursor-pointer border ${
-                      isSelected
-                        ? "bg-slate-900 text-white border-slate-900 shadow-2xs scale-102"
-                        : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
-                    }`}
+                    className="flex flex-col items-center justify-center group cursor-pointer transition-all active:scale-95"
                   >
-                    <IconComponent
-                      className="w-3.5 h-3.5 mb-0.5"
-                      style={isSelected ? { color: theme.primary } : undefined}
-                    />
-                    <span className="text-[9.5px] font-semibold tracking-tight leading-none">{cat.label}</span>
+                    <div
+                      className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xs ${
+                        isSelected
+                          ? "scale-105 shadow-md"
+                          : "bg-slate-100 group-hover:bg-slate-200/80 text-slate-600"
+                      }`}
+                      style={
+                        isSelected
+                          ? {
+                              background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
+                              boxShadow: `0 4px 12px ${theme.primary}35`,
+                              color: "#FFFFFF",
+                            }
+                          : undefined
+                      }
+                    >
+                      <IconComponent
+                        className={`w-5 h-5 transition-transform duration-300 ${
+                          isSelected ? "text-white stroke-[2.4]" : "text-slate-600 group-hover:text-slate-900"
+                        }`}
+                      />
+                    </div>
+                    <span
+                      className={`text-[10px] mt-1.5 transition-colors leading-none tracking-tight ${
+                        isSelected ? "font-bold text-slate-900" : "font-medium text-slate-500 group-hover:text-slate-700"
+                      }`}
+                    >
+                      {cat.label}
+                    </span>
                   </button>
                 );
               })}
             </div>
 
-            {/* CARD INFERIOR DO SMARTPHONE: DETALHES DINÂMICOS DA CATEGORIA SELECIONADA */}
-            <div className="mt-2.5 w-full bg-slate-50 rounded-xl p-2.5 border border-slate-200/90 flex items-center justify-between shadow-2xs">
-              <div className="flex items-center gap-2.5">
-                <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border bg-white shadow-2xs transition-colors"
-                  style={{
-                    borderColor: `${theme.primary}30`,
-                  }}
-                >
-                  {activeCategory === "moto" ? (
-                    <Bike className="w-4.5 h-4.5" style={{ color: theme.primary }} />
-                  ) : activeCategory === "entrega" ? (
-                    <Package className="w-4.5 h-4.5" style={{ color: theme.primary }} />
-                  ) : (
-                    <Car className="w-4.5 h-4.5" style={{ color: theme.primary }} />
-                  )}
-                </div>
-                <div className="flex flex-col text-left">
-                  <span className="text-[9.5px] text-slate-500 font-medium leading-none">
-                    {activeCategory === "economico"
-                      ? "Chevrolet Onix ou similar"
-                      : activeCategory === "comfort"
-                      ? "Sedan espaçoso com ar-condicionado"
-                      : activeCategory === "moto"
-                      ? "Honda Fan 160 • Agilidade urbana"
-                      : "Entrega expressa ponto a ponto"}
+            {/* CARD INFERIOR DO SMARTPHONE: VEÍCULO DRIVELUX EM DESTAQUE COM ESPECIFICAÇÕES */}
+            <div className="mt-3 w-full bg-white rounded-2xl p-3 border border-slate-200/90 shadow-[0_4px_16px_rgba(0,0,0,0.04)] flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200/60">
+                    {activeCategory === "moto"
+                      ? "1 Passageiro • Capacete Higienizado"
+                      : activeCategory === "entrega"
+                      ? "Até 15kg • Baú Lacrado"
+                      : "4 Lugares • Ar-Condicionado"}
                   </span>
-                  <span className="text-xs sm:text-[13px] font-bold text-slate-900 leading-tight mt-0.5">
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center gap-0.5">
+                    <CheckCircle2 className="w-2.5 h-2.5" />
+                    <span>Fixada</span>
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200/60">
+                  <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
+                  <span className="text-[10.5px] font-black text-amber-800">
+                    {activeCategory === "comfort" ? "5.0" : "4.9"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-0.5">
+                <div className="flex flex-col text-left">
+                  <span className="text-xs sm:text-[13px] font-extrabold text-slate-900 leading-tight">
                     {activeCategory === "economico"
                       ? "Partiu Econômico"
                       : activeCategory === "comfort"
@@ -462,32 +482,45 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                       ? "Partiu Moto Express"
                       : "Partiu Encomendas Flash"}
                   </span>
-                  <div className="flex items-center gap-1.5 mt-0.5 text-[10px] font-bold text-emerald-600">
-                    <CheckCircle2 className="w-2.5 h-2.5" />
-                    <span>
+                  <span className="text-[10px] text-slate-500 font-medium leading-none mt-0.5">
+                    {activeCategory === "economico"
+                      ? "Chevrolet Onix ou similar"
+                      : activeCategory === "comfort"
+                      ? "Sedan espaçoso com ar"
+                      : activeCategory === "moto"
+                      ? "Honda CG 160 • Agilidade urbana"
+                      : "Entrega expressa ponto a ponto"}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="text-right">
+                    <div className="text-xs sm:text-sm font-black text-slate-900 leading-none" style={{ color: theme.primary }}>
                       {activeCategory === "economico"
-                        ? "R$ 14,90 • Tarifa fixada"
+                        ? "R$ 14,90"
                         : activeCategory === "comfort"
-                        ? "R$ 19,90 • Tarifa fixada"
+                        ? "R$ 19,90"
                         : activeCategory === "moto"
-                        ? "R$ 8,90 • Mais econômico"
-                        : "R$ 10,50 • Entrega expressa"}
-                    </span>
+                        ? "R$ 8,90"
+                        : "R$ 10,50"}
+                    </div>
+                    <span className="text-[9px] text-slate-400 font-medium">estimado</span>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleActionClick("/cadastro-passageiro")}
+                    className="h-8 px-3 rounded-full text-white font-bold text-xs flex items-center gap-1 transition-all duration-200 active:scale-95 shadow-xs hover:shadow-sm cursor-pointer"
+                    style={{
+                      background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
+                      boxShadow: `0 2px 8px ${theme.primary}30`,
+                    }}
+                  >
+                    <span>Pedir</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
-
-              {/* Avaliação & CTA de Pedido */}
-              <button
-                type="button"
-                onClick={() => handleActionClick("/cadastro-passageiro")}
-                className="flex items-center gap-1 bg-amber-50 hover:bg-amber-100 px-2 py-1 rounded-lg border border-amber-200/80 cursor-pointer transition-colors shadow-2xs"
-              >
-                <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
-                <span className="text-[11px] font-bold text-amber-700">
-                  {activeCategory === "comfort" ? "5.0" : "4.9"}
-                </span>
-              </button>
             </div>
           </div>
         </div>

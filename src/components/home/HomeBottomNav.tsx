@@ -99,13 +99,13 @@ export const HomeBottomNav = memo(function HomeBottomNav({ activeTab }: HomeBott
       }}
       aria-label="Navegação Principal"
     >
-      <div className="flex items-center justify-around gap-1 p-1 rounded-full bg-white/95 backdrop-blur-md shadow-md border border-slate-200/80 max-w-[280px] sm:max-w-[300px] w-full mx-auto">
+      <div className="flex items-center justify-around gap-1.5 p-1.5 rounded-full bg-white/95 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-slate-200/80 max-w-[290px] sm:max-w-[310px] w-full mx-auto">
         {/* Aba 1: Corridas */}
         <Link
           to="/app"
-          className={`flex-1 flex items-center justify-center py-1.5 px-3 rounded-full transition-all duration-200 active:scale-95 cursor-pointer ${
+          className={`flex-1 flex items-center justify-center py-2 px-3.5 rounded-full transition-all duration-200 active:scale-95 cursor-pointer ${
             isCorridas
-              ? "font-semibold shadow-2xs text-white"
+              ? "font-bold shadow-xs text-white"
               : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/60"
           }`}
           style={
@@ -113,20 +113,20 @@ export const HomeBottomNav = memo(function HomeBottomNav({ activeTab }: HomeBott
               ? {
                   backgroundColor: primaryColor,
                   color: "#FFFFFF",
-                  boxShadow: `0 2px 8px ${primaryColor}30`,
+                  boxShadow: `0 3px 10px ${primaryColor}35`,
                 }
               : undefined
           }
           aria-label="Aba Corridas"
         >
           <Car
-            className={`w-3.5 h-3.5 transition-transform duration-200 ${
+            className={`w-4 h-4 transition-transform duration-200 ${
               isCorridas ? "text-white stroke-[2.4] scale-105" : "text-slate-500 stroke-[2]"
             }`}
           />
           <span
             className={`text-xs ml-1.5 tracking-tight ${
-              isCorridas ? "text-white font-semibold" : "text-slate-600 font-medium"
+              isCorridas ? "text-white font-bold" : "text-slate-600 font-medium"
             }`}
           >
             Corridas
@@ -136,9 +136,9 @@ export const HomeBottomNav = memo(function HomeBottomNav({ activeTab }: HomeBott
         {/* Aba 2: Entregas */}
         <Link
           to="/app/encomendas"
-          className={`flex-1 flex items-center justify-center py-1.5 px-3 rounded-full transition-all duration-200 active:scale-95 cursor-pointer ${
+          className={`flex-1 flex items-center justify-center py-2 px-3.5 rounded-full transition-all duration-200 active:scale-95 cursor-pointer ${
             isEntregas
-              ? "font-semibold shadow-2xs text-white"
+              ? "font-bold shadow-xs text-white"
               : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/60"
           }`}
           style={
@@ -146,20 +146,20 @@ export const HomeBottomNav = memo(function HomeBottomNav({ activeTab }: HomeBott
               ? {
                   backgroundColor: primaryColor,
                   color: "#FFFFFF",
-                  boxShadow: `0 2px 8px ${primaryColor}30`,
+                  boxShadow: `0 3px 10px ${primaryColor}35`,
                 }
               : undefined
           }
           aria-label="Aba Entregas"
         >
           <Package
-            className={`w-3.5 h-3.5 transition-transform duration-200 ${
+            className={`w-4 h-4 transition-transform duration-200 ${
               isEntregas ? "text-white stroke-[2.4] scale-105" : "text-slate-500 stroke-[2]"
             }`}
           />
           <span
             className={`text-xs ml-1.5 tracking-tight ${
-              isEntregas ? "text-white font-semibold" : "text-slate-600 font-medium"
+              isEntregas ? "text-white font-bold" : "text-slate-600 font-medium"
             }`}
           >
             Entregas

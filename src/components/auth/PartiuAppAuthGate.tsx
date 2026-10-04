@@ -600,7 +600,7 @@ export function PartiuAppAuthGate({
         <NativeSurface
           elevation={1}
           padding="none"
-          className="w-full p-4 sm:p-8 transition-all duration-300"
+          className="w-full p-5 sm:p-8 rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_12px_40px_rgba(0,0,0,0.05)] transition-all duration-300"
         >
           {/* =================================================================== */}
           {/* FLUXO DO PASSAGEIRO                                                 */}

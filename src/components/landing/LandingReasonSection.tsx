@@ -76,42 +76,42 @@ export const LandingReasonSection: React.FC<LandingReasonSectionProps> = ({
           {defaultCards.map((card, idx) => (
             <div
               key={idx}
-              className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between group"
+              className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between group"
             >
-              <div className="space-y-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+              <div className="space-y-4">
+                <div className="w-13 h-13 rounded-2xl bg-slate-50 border border-slate-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300 shadow-2xs">
                   {card.icon}
                 </div>
                 <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
                   {card.title}
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
                   {card.desc}
                 </p>
               </div>
 
               <div
-                className="pt-5 flex items-center gap-1.5 text-xs font-bold group-hover:translate-x-1 transition-transform"
+                className="pt-6 flex items-center gap-1.5 text-xs font-bold group-hover:translate-x-1 transition-transform"
                 style={{ color: theme.primary }}
               >
                 <span>Disponível no app</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3.5 h-3.5 stroke-[2.2]" />
               </div>
             </div>
           ))}
         </div>
 
         {/* Checklist de Diferenciais & Botão de Início */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-3 text-left w-full md:w-auto">
             <span className="text-xs font-black uppercase tracking-wider text-slate-500">
               Vantagens exclusivas
             </span>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
               {reasonSection.checklist.map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs sm:text-sm font-bold text-slate-800"
+                  className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-50 border border-slate-200/80 text-xs sm:text-sm font-bold text-slate-800 shadow-2xs"
                 >
                   <div
                     className="w-4 h-4 rounded-full flex items-center justify-center shrink-0"
@@ -128,14 +128,14 @@ export const LandingReasonSection: React.FC<LandingReasonSectionProps> = ({
           <button
             type="button"
             onClick={handleCtaClick}
-            className="group relative inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-lg text-white font-semibold text-xs transition-all duration-200 active:scale-95 shrink-0 w-full md:w-auto cursor-pointer shadow-2xs hover:shadow-xs min-h-[32px] h-8.5 sm:h-9"
+            className="group relative inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-white font-bold text-xs sm:text-sm transition-all duration-200 active:scale-95 shrink-0 w-full md:w-auto cursor-pointer shadow-md hover:shadow-lg min-h-[40px]"
             style={{
               background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
-              borderRadius: "10px",
+              boxShadow: `0 4px 14px ${theme.primary}35`,
             }}
           >
             <span>{reasonSection.ctaText || "Começar agora"}</span>
-            <ArrowRight className="w-3.5 h-3.5 text-white group-hover:translate-x-0.5 transition-transform" />
+            <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
       </div>

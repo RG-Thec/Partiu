@@ -20,29 +20,29 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
 
   return (
     <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-1 select-none z-30">
-      <div className="w-full flex items-center justify-between px-3 sm:px-4 py-1.5 rounded-xl bg-white/85 backdrop-blur-xl border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-all duration-300">
+      <div className="w-full flex items-center justify-between px-3.5 sm:px-5 py-2 rounded-full bg-white/90 backdrop-blur-xl border border-slate-200/80 shadow-[0_4px_24px_rgba(0,0,0,0.04)] transition-all duration-300">
         {/* Lado Esquerdo: Ícone da Marca com Gradiente + Nome e Subtítulo */}
-        <div className="flex items-center gap-2 group/brand cursor-default">
+        <div className="flex items-center gap-2.5 group/brand cursor-default">
           {/* Badge da logo com brilho e gradiente moderno */}
           <div
-            className="w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shadow-xs relative shrink-0 transition-all duration-300 group-hover/brand:scale-105 active:scale-95 cursor-pointer"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl flex items-center justify-center shadow-xs relative shrink-0 transition-all duration-300 group-hover/brand:scale-105 active:scale-95 cursor-pointer"
             style={{
               background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
-              boxShadow: `0 2px 8px ${theme.primary}25`,
+              boxShadow: `0 2px 10px ${theme.primary}30`,
             }}
           >
             {header.logoUrl ? (
               <img
                 src={header.logoUrl}
                 alt={header.brandName}
-                className="w-4.5 h-4.5 object-contain filter drop-shadow transition-transform duration-300 group-hover/brand:scale-105"
+                className="w-5 h-5 object-contain filter drop-shadow transition-transform duration-300 group-hover/brand:scale-105"
                 onError={(e) => {
                   (e.currentTarget as HTMLElement).style.display = "none";
                 }}
               />
             ) : (
               <svg
-                className="w-4.5 h-4.5 text-white transition-transform duration-300 group-hover/brand:scale-105"
+                className="w-5 h-5 text-white transition-transform duration-300 group-hover/brand:scale-105"
                 viewBox="0 0 24 24"
                 fill="currentColor"
               >
@@ -77,7 +77,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
         </div>
 
         {/* Centro (Desktop): Badge de Status Operacional em Tempo Real */}
-        <div className="hidden md:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50/90 border border-emerald-200/80 text-[11px] font-semibold text-emerald-800 shadow-2xs">
+        <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50/90 border border-emerald-200/80 text-[11px] font-semibold text-emerald-800 shadow-2xs">
           <span className="relative flex h-1.5 w-1.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
@@ -90,7 +90,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           <button
             type="button"
             onClick={() => onNavigate?.("/cadastro-motorista")}
-            className="hidden sm:inline-flex text-xs font-medium text-slate-600 hover:text-slate-900 transition-colors cursor-pointer px-2.5 py-1 rounded-lg hover:bg-slate-100/80"
+            className="hidden sm:inline-flex text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer px-3 py-1.5 rounded-full hover:bg-slate-100/80"
           >
             Seja um motorista
           </button>
@@ -98,16 +98,15 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           <button
             type="button"
             onClick={() => onNavigate?.("/auth")}
-            className="group/btn relative inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-white text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer shadow-2xs hover:shadow-xs overflow-hidden min-h-[30px] h-8"
+            className="group/btn relative inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-white text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer shadow-xs hover:shadow-sm overflow-hidden min-h-[32px] h-8.5"
             style={{
               background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
-              boxShadow: `0 2px 8px ${theme.primary}25`,
-              borderRadius: "10px",
+              boxShadow: `0 2px 10px ${theme.primary}30`,
             }}
           >
             <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
             <span>Entrar</span>
-            <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform" />
+            <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
           </button>
         </div>
       </div>

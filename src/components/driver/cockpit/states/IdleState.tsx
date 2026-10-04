@@ -40,15 +40,15 @@ export function IdleState({
   return (
     <div className="space-y-3 animate-in fade-in slide-in-from-bottom duration-300">
       {/* Linha 1: Status Operacional Unificado & Botão Ficar Offline */}
-      <div className="flex items-center justify-between gap-2 p-2.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+      <div className="flex items-center justify-between gap-2.5 p-3 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="relative flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500/20 shrink-0">
+          <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500/15 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <h3 className="text-xs sm:text-sm font-bold text-slate-900 leading-tight truncate">
+              <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-tight truncate">
                 Você está online
               </h3>
               {diariaRestanteTexto && (
@@ -58,15 +58,15 @@ export function IdleState({
                     backgroundColor: `${colors.primary}12`,
                     borderColor: `${colors.primary}30`,
                   }}
-                  className="text-[10px] font-bold px-1.5 py-0.2 rounded-md border flex items-center gap-1 shrink-0"
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 shrink-0"
                 >
                   <Clock className="w-2.5 h-2.5" style={{ color: colors.primary }} />
                   <span>{diariaRestanteTexto}</span>
                 </span>
               )}
             </div>
-            <p className="text-[10px] sm:text-xs text-slate-500 font-medium truncate">
-              Radar ativo • Aguardando passageiros
+            <p className="text-[10px] sm:text-xs text-slate-500 font-medium truncate mt-0.5">
+              Radar ativo • Aguardando chamadas na região
             </p>
           </div>
         </div>
@@ -75,7 +75,7 @@ export function IdleState({
         <button
           type="button"
           onClick={onToggleOnline}
-          className="h-8 px-2.5 rounded-xl bg-white hover:bg-rose-50 hover:text-rose-700 text-slate-600 font-semibold text-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0 border border-slate-200 shadow-2xs"
+          className="h-8.5 px-3 rounded-full bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0 border border-slate-200/80 shadow-2xs"
           title="Ficar offline"
           aria-label="Ficar offline e pausar recebimento de corridas"
         >
@@ -86,36 +86,34 @@ export function IdleState({
 
       {/* Linha 2: Resumo de Faturamento Direto P2P (100% Seu • 0% Comissão) */}
       <div
-        style={{
-          borderRadius: ui.borderRadius,
-          backgroundColor: `${colors.primary}0D`,
-          borderColor: `${colors.primary}30`,
-        }}
-        className="flex items-center justify-between p-3 border gap-2.5 shadow-2xs"
+        className="flex items-center justify-between p-3.5 rounded-3xl bg-white border border-slate-200/80 shadow-[0_4px_16px_rgba(0,0,0,0.03)] gap-3"
       >
         <button
           type="button"
           onClick={handleOpenFinance}
-          className="flex items-center gap-2.5 text-left active:scale-98 transition cursor-pointer flex-1 min-w-0"
+          className="flex items-center gap-3 text-left active:scale-[0.99] transition cursor-pointer flex-1 min-w-0"
         >
           <div
-            style={{ borderRadius: ui.borderRadius, borderColor: `${colors.primary}30` }}
-            className="w-9 h-9 bg-white flex items-center justify-center shrink-0 border shadow-xs"
+            className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-2xs"
+            style={{
+              backgroundColor: `${colors.primary}12`,
+              borderColor: `${colors.primary}25`,
+            }}
           >
-            <TrendingUp className="w-4 h-4" style={{ color: colors.primary }} />
+            <TrendingUp className="w-5 h-5" style={{ color: colors.primary }} />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <span className="text-[11px] text-muted-foreground font-bold uppercase tracking-wide block truncate">
+              <span className="text-[10.5px] text-slate-500 font-bold uppercase tracking-wider block truncate">
                 Ganhos de hoje
               </span>
-              <span className="text-[9px] font-black uppercase text-emerald-800 bg-emerald-100 px-1 py-0.2 rounded shrink-0">
+              <span className="text-[9px] font-black uppercase text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded-full shrink-0">
                 0% taxa
               </span>
             </div>
             <div
               style={{ color: colors.primary }}
-              className="text-lg sm:text-xl font-extrabold leading-tight truncate my-0.5"
+              className="text-xl sm:text-2xl font-black leading-tight truncate my-0.5"
             >
               {ganhosHoje.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
             </div>
@@ -130,11 +128,10 @@ export function IdleState({
           onClick={handleOpenFinance}
           style={{
             backgroundColor: colors.primary,
-            color: colors.surface,
-            borderRadius: ui.borderRadius,
-            boxShadow: ui.buttonShadow,
+            color: "#FFFFFF",
+            boxShadow: `0 2px 10px ${colors.primary}35`,
           }}
-          className="h-9 min-h-[36px] px-3 hover:brightness-105 active:scale-95 font-bold text-xs transition cursor-pointer shrink-0 flex items-center gap-1.5"
+          className="h-9 min-h-[36px] px-3.5 rounded-full hover:brightness-105 active:scale-95 font-bold text-xs transition cursor-pointer shrink-0 flex items-center gap-1.5 shadow-xs"
           aria-label="Abrir extrato e metas"
         >
           <Target className="w-3.5 h-3.5 stroke-[2.4]" />
@@ -167,17 +164,17 @@ export function IdleState({
           <button
             type="button"
             onClick={onOpenModoDestino}
-            className="p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200/90 text-left transition active:scale-95 cursor-pointer flex flex-col justify-between shadow-2xs"
+            className="p-3 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200/90 text-left transition active:scale-95 cursor-pointer flex flex-col justify-between shadow-2xs"
           >
             <div className="flex items-center justify-between">
               <span className="text-lg">🎯</span>
-              <span className="text-xs font-bold text-slate-600 bg-slate-200/70 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200/60">
                 {remainingDestinationUses} restantes
               </span>
             </div>
-            <div className="mt-1.5">
-              <span className="text-xs font-black text-slate-900 block leading-tight">Modo destino</span>
-              <span className="text-xs text-slate-500 font-medium">Direcionar rota</span>
+            <div className="mt-2">
+              <span className="text-xs font-extrabold text-slate-900 block leading-tight">Modo destino</span>
+              <span className="text-[10.5px] text-slate-500 font-medium">Direcionar trajeto</span>
             </div>
           </button>
         )}
@@ -186,24 +183,24 @@ export function IdleState({
         <button
           type="button"
           onClick={onOpenTaximetro}
-          className="p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200/90 text-left transition active:scale-95 cursor-pointer flex flex-col justify-between shadow-2xs"
+          className="p-3 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200/90 text-left transition active:scale-95 cursor-pointer flex flex-col justify-between shadow-2xs"
         >
           <div className="flex items-center justify-between">
             <span className="text-lg">⏱️</span>
             <span
               style={{
                 color: colors.primary,
-                backgroundColor: `${colors.primary}15`,
-                borderColor: `${colors.primary}30`,
+                backgroundColor: `${colors.primary}12`,
+                borderColor: `${colors.primary}25`,
               }}
-              className="text-xs font-bold px-2 py-0.5 rounded-full border"
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
             >
               Corrida de rua
             </span>
           </div>
-          <div className="mt-1.5">
-            <span className="text-xs font-black text-slate-900 block leading-tight">Taxímetro</span>
-            <span className="text-xs text-slate-500 font-medium">Passageiro de rua</span>
+          <div className="mt-2">
+            <span className="text-xs font-extrabold text-slate-900 block leading-tight">Taxímetro</span>
+            <span className="text-[10.5px] text-slate-500 font-medium">Passageiro de rua</span>
           </div>
         </button>
       </div>

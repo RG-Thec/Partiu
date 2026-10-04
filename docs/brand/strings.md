@@ -17,6 +17,9 @@ Registro de decisões textuais da interface reconciliadas com a voz do produto.
 | action.driver.join | Dirigir com o Partiu | src/components/landing/LandingHero.tsx:132 | SCN-002 | agreed |
 | action.auth.google | Continuar com o Google | src/components/auth/PartiuAppAuthGate.tsx:635 | SCN-006 | agreed |
 | action.ride.search_prompt | Para onde vamos? | src/components/home/DestinationCard.tsx:145 | SCN-001 | agreed |
+| action.ride.search_prompt_today | Para onde vamos hoje? | src/components/home/DestinationCard.tsx:148 | SCN-001 | agreed |
+| action.hero.pedir_agora | Pedir | src/components/landing/LandingHero.tsx:490 | SCN-001 | agreed |
+| action.reason.start_now | Começar agora | src/components/landing/LandingReasonSection.tsx:135 | SCN-001 | agreed |
 
 ## Columns
 

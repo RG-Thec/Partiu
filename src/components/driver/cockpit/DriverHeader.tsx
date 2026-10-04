@@ -48,8 +48,7 @@ export function DriverHeader({
   return (
     <header className="absolute top-0 inset-x-0 z-30 pt-[max(0.6rem,calc(env(safe-area-inset-top,0px)+6px))] px-3.5 pb-1.5 pointer-events-none">
       <div
-        style={{ borderRadius: ui.borderRadius }}
-        className="flex items-center justify-between pointer-events-auto bg-card/95 backdrop-blur-md px-3 py-2 min-h-[52px] border border-border shadow-xs max-w-lg mx-auto"
+        className="flex items-center justify-between pointer-events-auto bg-white/95 backdrop-blur-xl px-3 py-2 min-h-[52px] rounded-2xl border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.04)] max-w-lg mx-auto"
       >
         {/* ================================================================= */}
         {/* ESQUERDA: AVATAR DO MOTORISTA (PERFIL) + BOTÃO DE MENU LATERAL     */}

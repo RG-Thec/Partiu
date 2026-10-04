@@ -371,7 +371,7 @@ export function CadastroMotoristaPage() {
           <NativeSurface
             elevation={1}
             padding="none"
-            className="w-full p-5 sm:p-8 space-y-4 transition-all duration-200"
+            className="w-full p-5 sm:p-8 rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_12px_40px_rgba(0,0,0,0.05)] space-y-4 transition-all duration-200"
           >
             {/* Error Banner */}
             {erroValidacao && (
@@ -428,12 +428,12 @@ export function CadastroMotoristaPage() {
                     type="button"
                     onClick={handleGooglePreencher}
                     disabled={loadingGoogle}
-                    className="w-full h-9 sm:h-9.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 font-semibold text-xs flex items-center justify-center gap-2 shadow-2xs active:scale-98 transition cursor-pointer disabled:opacity-60"
+                    className="w-full h-11 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-xs active:scale-[0.98] transition cursor-pointer disabled:opacity-60"
                   >
                     {loadingGoogle ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-600" />
+                      <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
                     ) : (
-                      <GoogleIcon className="w-3.5 h-3.5" />
+                      <GoogleIcon className="w-4 h-4" />
                     )}
                     <span>Preencher dados com o Google</span>
                   </button>

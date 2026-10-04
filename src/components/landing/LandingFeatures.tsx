@@ -29,10 +29,7 @@ export const LandingFeatures: React.FC<LandingFeaturesProps> = ({
           return (
             <div
               key={idx}
-              className="group relative flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl bg-white hover:bg-slate-50/90 border border-slate-200/90 hover:border-slate-300 shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-0.5 cursor-default overflow-hidden"
-              style={{
-                borderRadius: theme.buttonRadius || "16px",
-              }}
+              className="group relative flex items-center gap-3.5 p-4 sm:p-5 rounded-3xl bg-white hover:bg-slate-50/80 border border-slate-200/80 hover:border-slate-300 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1 cursor-default overflow-hidden"
             >
               {/* Efeito Glow na Borda Superior ao Passar o Mouse */}
               <div
@@ -44,13 +41,13 @@ export const LandingFeatures: React.FC<LandingFeaturesProps> = ({
 
               {/* Ícone com Container Arredondado */}
               <div
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 shadow-2xs transition-transform duration-300 group-hover:scale-105 bg-slate-50 border border-slate-200/80"
+                className="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs transition-transform duration-300 group-hover:scale-105 bg-slate-50 border border-slate-200/80"
               >
                 {feature.iconUrl ? (
                   <img
                     src={feature.iconUrl}
                     alt={feature.text}
-                    className="w-5 h-5 sm:w-5.5 sm:h-5.5 object-contain"
+                    className="w-6 h-6 object-contain"
                     onError={(e) => {
                       (e.currentTarget as HTMLElement).style.display = "none";
                     }}
@@ -62,10 +59,10 @@ export const LandingFeatures: React.FC<LandingFeaturesProps> = ({
 
               {/* Textos com Tipografia Acessível em Sentence Case */}
               <div className="flex flex-col min-w-0">
-                <span className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight leading-tight transition-colors">
+                <span className="text-xs sm:text-sm font-extrabold text-slate-900 tracking-tight leading-tight transition-colors">
                   {feature.text}
                 </span>
-                <span className="text-[11px] sm:text-xs text-slate-500 font-normal leading-tight mt-0.5 truncate">
+                <span className="text-[11px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5 truncate">
                   {feature.subtext}
                 </span>
               </div>

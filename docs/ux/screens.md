@@ -37,9 +37,9 @@ whose code diverges from its record here is a "drifted" finding. -->
 
 ## Design system
 
-- **Style pack:** Caber Mobility Design Pack
-- **Figma library:** [FREE Caber - Uber Like App UI (Community)](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443/FREE-Caber--Uber-Like-App-UI--Community-)
-- **Tokens in code:** src/styles.css
+- **Style pack:** DriveLux & Caber Executive Mobility Design Pack
+- **Design reference:** DriveLux Executive Design System (Rent. Drive. Explore.) & [Caber Community](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443/FREE-Caber--Uber-Like-App-UI--Community-)
+- **Tokens in code:** src/styles.css, WhiteLabelThemeContext
 - **Component source:** src/components/
 - **Assets:** src/assets/
 
@@ -51,8 +51,8 @@ whose code diverges from its record here is a "drifted" finding. -->
 
 ### SCR-01: Tela Inicial e Landing Page
 - **Used by:** FLW-05 step 1
-- **Purpose:** Apresentar a proposta de valor essencial e converter novos passageiros e condutores com zero carga cognitiva
-- **Elements:** Hero minimalista mobile-first com iluminação sutil White Label, CTAs primários de alta conversão (Pedir corrida / Dirigir com o Partiu), prova social concisa (avaliação, tempo e segurança SOS), showcase responsivo e rodapé institucional
+- **Purpose:** Apresentar a proposta de valor essencial e converter novos passageiros e condutores com padrão executivo empresarial e zero carga cognitiva
+- **Elements:** Header em ilha de vidro flutuante, Hero minimalista mobile-first com iluminação sutil White Label, CTAs primários em pílulas executivas com efeito shimmer (Pedir corrida / Dirigir com o Partiu), Bento-grid de prova social (avaliação 4.9, tempo < 3min e 100% SOS), showcase interativo com seletor de categorias em ícones circulares e card de veículo com tarifa fixada instantânea
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |-------|---------|-------------|----------|
