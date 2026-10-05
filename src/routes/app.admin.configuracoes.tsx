@@ -274,6 +274,10 @@ export function ConfiguracoesAdminPage() {
     if (s.mercadopago_public_key) setMercadopagoPublicKey(s.mercadopago_public_key);
     if (s.mercadopago_webhook_secret) setMercadopagoWebhookSecret(s.mercadopago_webhook_secret);
     if (s.mercadopago_sandbox !== undefined) setMercadopagoSandbox(s.mercadopago_sandbox);
+    if (s.base_fare_ride) setTarifaBaseEssencial(String(s.base_fare_ride));
+    if (s.price_per_km) setValorKmEssencial(String(s.price_per_km));
+    if (s.price_per_minute) setValorMinutoEssencial(String(s.price_per_minute));
+    if (s.pix_key) setChavePixPadrao(s.pix_key);
 
     try {
       const cfg = getSuperAdminConfig();
@@ -337,39 +341,56 @@ export function ConfiguracoesAdminPage() {
   const [wlWhatsapp, setWlWhatsapp] = useState("(82) 99111-2233");
   const [cidadeAtivadaSucesso, setCidadeAtivadaSucesso] = useState(false);
 
-  // Lista de Cidades White Label Ativas
-  const [cidadesAtivas, setCidadesAtivas] = useState<CidadeTenant[]>([
-    {
-      id: "ten_mcz",
-      nome: "Maceió",
-      uf: "AL",
-      nomeApp: "Partiu Maceió",
-      corPrimaria: "#0088FF",
-      preset: "Moderno",
-      tarifaBase: 5.5,
-      comissaoPercent: 12.5,
-      chavePix: "financeiro@partiumobilidade.com.br",
-      whatsapp: "(82) 99888-7766",
-      status: "ATIVA",
-    },
-    {
-      id: "ten_arp",
-      nome: "Arapiraca",
-      uf: "AL",
-      nomeApp: "Partiu Arapiraca",
-      corPrimaria: "#F59E0B",
-      preset: "Arredondado",
-      tarifaBase: 5.0,
-      comissaoPercent: 10.0,
-      chavePix: "financeiro.arapiraca@partiu.app",
-      whatsapp: "(82) 99111-2233",
-      status: "ATIVA",
-    },
-  ]);
+  // Lista de Cidades White Label Ativas com persistência local
+  const [cidadesAtivas, setCidadesAtivas] = useState<CidadeTenant[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("partiu_cidades_ativas");
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return [
+      {
+        id: "ten_mcz",
+        nome: "Maceió",
+        uf: "AL",
+        nomeApp: "Partiu Maceió",
+        corPrimaria: "#0088FF",
+        preset: "Moderno",
+        tarifaBase: 5.5,
+        comissaoPercent: 12.5,
+        chavePix: "financeiro@partiumobilidade.com.br",
+        whatsapp: "(82) 99888-7766",
+        status: "ATIVA",
+      },
+      {
+        id: "ten_arp",
+        nome: "Arapiraca",
+        uf: "AL",
+        nomeApp: "Partiu Arapiraca",
+        corPrimaria: "#F59E0B",
+        preset: "Arredondado",
+        tarifaBase: 5.0,
+        comissaoPercent: 10.0,
+        chavePix: "financeiro.arapiraca@partiu.app",
+        whatsapp: "(82) 99111-2233",
+        status: "ATIVA",
+      },
+    ];
+  });
 
-  function handleSalvarEssencial(e: React.FormEvent) {
+  async function handleSalvarEssencial(e: React.FormEvent) {
     e.preventDefault();
     try {
+      // 1. Persistência Canônica no Supabase (Fonte da verdade consumida por PricingService e Apps)
+      await appSettingsService.updateSettings({
+        base_fare_ride: Number(tarifaBaseEssencial) || 5.5,
+        price_per_km: Number(valorKmEssencial) || 2.1,
+        price_per_minute: Number(valorMinutoEssencial) || 0.35,
+        pix_key: chavePixPadrao,
+      });
+
+      // 2. Persistência de sincronização local/legada no SuperAdminConfig
       const superAdminConfig = getSuperAdminConfig();
       if (superAdminConfig.tarifas) {
         superAdminConfig.tarifas.raioBuscaKm = Number(raioInicialKm) || 3;
@@ -387,7 +408,9 @@ export function ConfiguracoesAdminPage() {
         superAdminConfig.pix.chavePixManual = chavePixPadrao;
       }
       saveSuperAdminConfig(superAdminConfig);
-    } catch {}
+    } catch (err) {
+      console.warn("Falha ao salvar configurações essenciais:", err);
+    }
     setSucessoEssencial(true);
     setTimeout(() => setSucessoEssencial(false), 2500);
   }
@@ -419,7 +442,15 @@ export function ConfiguracoesAdminPage() {
       status: "ATIVA",
     };
 
-    setCidadesAtivas((prev) => [novaCidade, ...prev]);
+    setCidadesAtivas((prev) => {
+      const updated = [novaCidade, ...prev];
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("partiu_cidades_ativas", JSON.stringify(updated));
+        } catch {}
+      }
+      return updated;
+    });
     setCidadeAtivadaSucesso(true);
   }
 

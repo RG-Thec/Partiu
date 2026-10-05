@@ -131,34 +131,8 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
         const loaded = data as unknown as AppBrandingRecord;
         const savedPaletteId = typeof window !== "undefined" ? localStorage.getItem("partiu_active_palette_id") : null;
         
-        // Auto-heal: se o registro do banco ainda for o seed antigo (#003366 com fundo #0B132B)
-        // e o usuário não escolheu a paleta Azul Real, migra para o padrão Laranja Solar e atualiza o banco
-        if (
-          loaded.tenant_id === "default" &&
-          loaded.primary_color === "#003366" &&
-          loaded.background_color === "#0B132B" &&
-          savedPaletteId !== "paleta-azul-real"
-        ) {
-          applyBrandingTheme(DEFAULT_BRANDING);
-          void supabase
-            .from("app_branding" as any)
-            .update({
-              primary_color: DEFAULT_BRANDING.primary_color,
-              secondary_color: DEFAULT_BRANDING.secondary_color,
-              accent_color: DEFAULT_BRANDING.accent_color,
-              background_color: DEFAULT_BRANDING.background_color,
-              surface_color: DEFAULT_BRANDING.surface_color,
-              text_primary: DEFAULT_BRANDING.text_primary,
-              text_secondary: DEFAULT_BRANDING.text_secondary,
-              header_gradient_start: DEFAULT_BRANDING.header_gradient_start,
-              header_gradient_end: DEFAULT_BRANDING.header_gradient_end,
-              footer_gradient_start: DEFAULT_BRANDING.footer_gradient_start,
-              footer_gradient_end: DEFAULT_BRANDING.footer_gradient_end,
-            })
-            .eq("tenant_id", "default");
-        } else {
-          applyBrandingTheme(loaded);
-        }
+        // Aplica fielmente a identidade visual configurada no banco de dados
+        applyBrandingTheme(loaded);
         setLastSyncedAt(new Date());
       } else if (tenantId !== "default") {
         // Fallback para default

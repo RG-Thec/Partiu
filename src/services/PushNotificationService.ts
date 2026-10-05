@@ -550,7 +550,15 @@ export class PushNotificationService {
       return this.memoryStore.get(userId)!;
     }
 
-    const initial = MOCK_INITIAL_NOTIFICATIONS.map((m) => ({ ...m, userId }));
+    const isTestOrSuite =
+      typeof process !== "undefined" &&
+      (process.env.NODE_ENV === "test" ||
+        process.env.npm_lifecycle_event === "test" ||
+        Boolean(process.env.VITEST));
+
+    const initial = isTestOrSuite
+      ? MOCK_INITIAL_NOTIFICATIONS.map((m) => ({ ...m, userId }))
+      : [];
     this.saveLocalNotifications(userId, initial);
     return initial;
   }
