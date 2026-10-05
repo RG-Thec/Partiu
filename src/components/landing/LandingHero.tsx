@@ -193,12 +193,12 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             />
           </div>
 
-          {/* Seletor Pill Rápido (Carro & Moto) - Slim, Clean e Profissional */}
-          <div className="inline-flex items-center p-0.5 rounded-full bg-slate-100/90 border border-slate-200/80 shadow-2xs mt-1 relative z-10 gap-0.5">
+          {/* Seletor (Carro & Moto) - Ultra-slim, Linhas Retas/Clean, Sem Altura Excessiva */}
+          <div className="inline-flex items-center p-[2px] rounded-lg bg-slate-100/90 border border-slate-200/80 shadow-2xs mt-1 relative z-10 gap-0.5">
             <button
               type="button"
               onClick={() => setVehicleMode("car")}
-              className={`h-6 px-2.5 flex items-center gap-1.5 rounded-full text-[10.5px] font-bold transition-all duration-200 cursor-pointer ${
+              className={`h-5 px-2.5 flex items-center gap-1 rounded-md text-[10px] font-bold transition-all duration-200 cursor-pointer ${
                 vehicleMode === "car"
                   ? "bg-slate-900 text-white shadow-2xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -210,7 +210,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <button
               type="button"
               onClick={() => setVehicleMode("moto")}
-              className={`h-6 px-2.5 flex items-center gap-1.5 rounded-full text-[10.5px] font-bold transition-all duration-200 cursor-pointer ${
+              className={`h-5 px-2.5 flex items-center gap-1 rounded-md text-[10px] font-bold transition-all duration-200 cursor-pointer ${
                 vehicleMode === "moto"
                   ? "bg-slate-900 text-white shadow-2xs"
                   : "text-slate-600 hover:text-slate-900"
@@ -331,32 +331,32 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             </p>
           </div>
 
-          {/* Badge de Categorias Oficiais: Carro & Moto com Transição Sincronizada */}
-          <div className="inline-flex items-center gap-1.5 p-1 rounded-full bg-slate-100/90 border border-slate-200/80 shadow-2xs">
-            <span className="text-[10.5px] font-bold text-slate-500 pl-2 pr-0.5">Categorias:</span>
+          {/* Badge de Categorias Oficiais: Carro & Moto - Ultra-slim e Clean */}
+          <div className="inline-flex items-center gap-1.5 p-[2px] rounded-lg bg-slate-100/90 border border-slate-200/80 shadow-2xs">
+            <span className="text-[10px] font-bold text-slate-500 pl-2 pr-0.5">Categorias:</span>
             <div className="flex items-center gap-0.5">
               <button
                 type="button"
                 onClick={() => setVehicleMode("car")}
-                className={`h-6.5 px-2.5 flex items-center gap-1.5 rounded-full text-[11px] font-bold transition-all duration-200 cursor-pointer ${
+                className={`h-5.5 px-2.5 flex items-center gap-1 rounded-md text-[10.5px] font-bold transition-all duration-200 cursor-pointer ${
                   vehicleMode === "car"
                     ? "bg-slate-900 text-white shadow-2xs"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
                 }`}
               >
-                <Car className="w-3 h-3" />
+                <Car className="w-2.5 h-2.5" />
                 <span>Carro</span>
               </button>
               <button
                 type="button"
                 onClick={() => setVehicleMode("moto")}
-                className={`h-6.5 px-2.5 flex items-center gap-1.5 rounded-full text-[11px] font-bold transition-all duration-200 cursor-pointer ${
+                className={`h-5.5 px-2.5 flex items-center gap-1 rounded-md text-[10.5px] font-bold transition-all duration-200 cursor-pointer ${
                   vehicleMode === "moto"
                     ? "bg-slate-900 text-white shadow-2xs"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
                 }`}
               >
-                <Bike className="w-3 h-3" />
+                <Bike className="w-2.5 h-2.5" />
                 <span>Moto</span>
               </button>
             </div>
