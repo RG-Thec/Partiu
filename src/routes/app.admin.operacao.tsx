@@ -348,30 +348,30 @@ export function CentralOperacaoAdminPage() {
   const sosCount = ticketsSuporte.filter((t) => t.prioridade === "SOS_CRITICAL" && t.status !== "RESOLVIDO").length;
 
   return (
-    <div className="w-full space-y-6 pb-20">
+    <div className="w-full space-y-8 pb-20">
       {/* 1. Header Executivo Operacional */}
-      <div className="rounded-3xl bg-slate-950 p-5 sm:p-7 text-white shadow-xl border border-slate-800 relative overflow-hidden">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="rounded-3xl bg-slate-950 p-6 sm:p-8 xl:p-10 text-white shadow-xl border border-slate-800 relative overflow-hidden">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#0088FF]/15 px-3 py-1 text-xs font-black uppercase tracking-wider text-primary-500 border border-yellow-500/25 mb-2">
-              <span className="h-2 w-2 rounded-full bg-primary-600 animate-ping" />
+            <div className="inline-flex items-center gap-2.5 rounded-full bg-[#0088FF]/15 px-4 py-1.5 text-xs sm:text-sm font-black uppercase tracking-wider text-primary-500 border border-yellow-500/25 mb-2.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-primary-600 animate-ping" />
               <span>Cockpit Central de Operação Urbana</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+            <h1 className="text-3xl sm:text-4xl xl:text-5xl font-black tracking-tight">
               Gestão da Operação em <span className="text-[#0088FF]">Tempo Real</span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-normal mt-1">
+            <p className="text-sm sm:text-base lg:text-lg text-slate-300 max-w-3xl font-normal leading-relaxed mt-2">
               Supervisão de viagens de passageiros, entregas flash com duplo PIN e resolução imediata da fila de ocorrências e SOS 190.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-3 shrink-0">
             <Link
               to="/app/admin/diagnostico"
-              className="flex h-11 items-center gap-2 rounded-2xl bg-blue-950/60 hover:bg-blue-900/80 px-3.5 text-xs font-bold text-blue-300 border border-blue-800/60 transition-all cursor-pointer"
+              className="flex h-12 items-center gap-2 rounded-2xl bg-blue-950/60 hover:bg-blue-900/80 px-4 text-xs sm:text-sm font-bold text-blue-300 border border-blue-800/60 transition-all cursor-pointer shadow-sm"
               title="Diagnóstico Geoespacial & WebGL"
             >
-              <Activity className="h-4 w-4 text-blue-400" />
+              <Activity className="h-4.5 w-4.5 text-blue-400" />
               <span className="hidden sm:inline">Diagnóstico Geo</span>
             </Link>
             <button
@@ -381,9 +381,9 @@ export function CentralOperacaoAdminPage() {
                 recarregarSOS();
                 recarregarMotoristas();
               }}
-              className="flex h-11 items-center gap-2 rounded-2xl bg-slate-900 px-4 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-800 transition-all cursor-pointer"
+              className="flex h-12 items-center gap-2.5 rounded-2xl bg-slate-900 px-5 text-sm font-bold text-slate-200 hover:bg-slate-800 hover:text-white border border-slate-700/80 transition-all cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98]"
             >
-              <RefreshCw className="h-4 w-4 text-[#0088FF]" />
+              <RefreshCw className="h-4.5 w-4.5 text-[#0088FF]" />
               <span>Sincronizar</span>
             </button>
           </div>
@@ -391,20 +391,20 @@ export function CentralOperacaoAdminPage() {
       </div>
 
       {/* 2. Barra de Abas Principais (Corridas | Entregas | Suporte & SOS) */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-2 rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100/80 rounded-xl overflow-x-auto no-scrollbar scroll-smooth">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white p-2.5 sm:p-3 rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div className="flex items-center gap-2 p-1 bg-slate-100/90 rounded-2xl overflow-x-auto no-scrollbar scroll-smooth">
           <button
             type="button"
             onClick={() => setAbaAtiva("corridas")}
-            className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer shrink-0 ${
+            className={`flex items-center gap-2.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer shrink-0 ${
               abaAtiva === "corridas"
-                ? "bg-slate-950 text-white shadow-xs"
+                ? "bg-slate-950 text-white shadow-sm"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <Car className="h-4 w-4 text-[#0088FF]" />
+            <Car className="h-4.5 w-4.5 text-[#0088FF]" />
             <span>Corridas</span>
-            <span className="ml-1 rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-primary-500">
+            <span className="ml-1 rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-primary-500 font-bold">
               {corridas.length}
             </span>
           </button>
@@ -412,15 +412,15 @@ export function CentralOperacaoAdminPage() {
           <button
             type="button"
             onClick={() => setAbaAtiva("entregas")}
-            className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer shrink-0 ${
+            className={`flex items-center gap-2.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer shrink-0 ${
               abaAtiva === "entregas"
-                ? "bg-slate-950 text-white shadow-xs"
+                ? "bg-slate-950 text-white shadow-sm"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <Package className="h-4 w-4 text-[#0088FF]" />
+            <Package className="h-4.5 w-4.5 text-[#0088FF]" />
             <span>Entregas (Flash)</span>
-            <span className="ml-1 rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-primary-500">
+            <span className="ml-1 rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-primary-500 font-bold">
               {entregas.length}
             </span>
           </button>
@@ -428,20 +428,20 @@ export function CentralOperacaoAdminPage() {
           <button
             type="button"
             onClick={() => setAbaAtiva("suporte")}
-            className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs font-black transition-all cursor-pointer shrink-0 ${
+            className={`flex items-center gap-2.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer shrink-0 ${
               abaAtiva === "suporte"
-                ? "bg-red-600 text-white shadow-xs"
+                ? "bg-red-600 text-white shadow-sm"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <ShieldAlert className="h-4 w-4 text-white" />
+            <ShieldAlert className="h-4.5 w-4.5 text-white" />
             <span>Fila SOS</span>
             {sosCount > 0 ? (
-              <span className="ml-1 rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-red-600 animate-pulse">
+              <span className="ml-1 rounded-full bg-white px-2.5 py-0.5 text-xs font-black text-red-600 animate-pulse">
                 {sosCount} SOS
               </span>
             ) : (
-              <span className="ml-1 rounded-full bg-slate-200 px-2 py-0.5 text-[10px] text-slate-700">
+              <span className="ml-1 rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-bold text-slate-700">
                 {ticketsSuporte.length}
               </span>
             )}
@@ -450,22 +450,22 @@ export function CentralOperacaoAdminPage() {
 
         {/* Input de Busca Rápida Unificada (Passageiro, Motorista, Cidade, Endereço) */}
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-slate-400" />
           <input
             type="text"
             placeholder="Buscar passageiro, motorista, cidade ou endereço..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full h-10 rounded-xl bg-slate-50 pl-9 pr-8 text-xs font-bold text-slate-800 border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-amber-400"
+            className="w-full h-12 rounded-2xl bg-slate-50 pl-10 pr-9 text-xs sm:text-sm font-bold text-slate-800 border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-amber-400"
           />
           {busca && (
             <button
               type="button"
               onClick={() => setBusca("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-full"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 rounded-full"
               title="Limpar busca"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
@@ -475,16 +475,16 @@ export function CentralOperacaoAdminPage() {
       {abaAtiva === "corridas" && (
         <div className="space-y-4">
           {/* Filtros Rápidos de Corrida */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0">Filtrar:</span>
+          <div className="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar">
+            <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider shrink-0">Filtrar:</span>
             {(["TODAS", "EM_ANDAMENTO", "FINALIZADAS", "CANCELADAS"] as FiltroStatusCorrida[]).map((f) => (
               <button
                 key={f}
                 type="button"
                 onClick={() => setFiltroCorrida(f)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer shrink-0 ${
                   filtroCorrida === f
-                    ? "bg-slate-900 text-white shadow-xs"
+                    ? "bg-slate-900 text-white shadow-sm"
                     : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
                 }`}
               >
@@ -497,52 +497,52 @@ export function CentralOperacaoAdminPage() {
           </div>
 
           {/* Versão Mobile (Cards Empilhados) */}
-          <div className="grid grid-cols-1 gap-3 md:hidden">
+          <div className="grid grid-cols-1 gap-3.5 md:hidden">
             {corridasFiltradas.length === 0 ? (
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 text-center text-slate-400 text-xs">
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 text-center text-slate-400 text-sm">
                 Nenhuma corrida encontrada para os filtros selecionados.
               </div>
             ) : (
               corridasFiltradas.map((c) => (
-                <div key={c.id} className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                <div key={c.id} className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-black shrink-0 ${
+                      <span className={`px-2.5 py-1 rounded-lg text-xs font-black shrink-0 ${
                         c.modal === "CARRO" ? "bg-primary-50 text-amber-800" : "bg-blue-100 text-blue-800"
                       }`}>
                         {c.modal}
                       </span>
-                      <p className="font-bold text-slate-900 text-xs truncate">{c.cidade}</p>
+                      <p className="font-black text-slate-900 text-sm truncate">{c.cidade}</p>
                     </div>
-                    <span className="font-black text-slate-950 text-sm shrink-0">
+                    <span className="font-black text-slate-950 text-base shrink-0">
                       R$ {c.valor.toFixed(2).replace(".", ",")}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
                     <div>
-                      <span className="text-[10px] font-black uppercase text-slate-400 block">Passageiro:</span>
+                      <span className="text-xs font-black uppercase text-slate-400 block">Passageiro:</span>
                       <p className="font-bold text-slate-900 truncate">{c.passageiroNome}</p>
-                      <span className="text-[10px] text-slate-500">{c.passageiroTelefone}</span>
+                      <span className="text-xs text-slate-500">{c.passageiroTelefone}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] font-black uppercase text-slate-400 block">Motorista:</span>
+                      <span className="text-xs font-black uppercase text-slate-400 block">Motorista:</span>
                       <p className="font-bold text-slate-900 truncate">{c.motoristaNome}</p>
-                      <span className="text-[10px] text-slate-500">{c.motoristaTelefone}</span>
+                      <span className="text-xs text-slate-500">{c.motoristaTelefone}</span>
                     </div>
                   </div>
 
-                  <div className="text-xs bg-slate-50 p-2 rounded-xl border border-slate-100">
-                    <p className="text-[11px] text-slate-600 truncate">
+                  <div className="text-xs sm:text-sm bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <p className="text-slate-700 truncate font-medium">
                       <span className="font-bold text-emerald-600">De:</span> {c.origem}
                     </p>
-                    <p className="text-[11px] text-slate-600 truncate mt-0.5">
+                    <p className="text-slate-700 truncate font-medium mt-1">
                       <span className="font-bold text-primary-700">Para:</span> {c.destino}
                     </p>
                   </div>
 
                   <div className="flex items-center justify-between gap-2 pt-1">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase ${
                       c.status === "EM_ANDAMENTO"
                         ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
                         : c.status === "FINALIZADA"
@@ -551,16 +551,16 @@ export function CentralOperacaoAdminPage() {
                         ? "bg-red-100 text-red-700"
                         : "bg-primary-50 text-yellow-800"
                     }`}>
-                      {c.status === "EM_ANDAMENTO" && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />}
+                      {c.status === "EM_ANDAMENTO" && <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />}
                       {c.status.replace("_", " ")}
                     </span>
 
                     <button
                       type="button"
                       onClick={() => setCorridaDetalhe(c)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 active:scale-95 text-white font-bold text-xs cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 active:scale-95 text-white font-bold text-xs sm:text-sm cursor-pointer shadow-sm"
                     >
-                      <Eye className="h-3.5 w-3.5 text-[#0088FF]" />
+                      <Eye className="h-4 w-4 text-[#0088FF]" />
                       <span>Detalhes</span>
                     </button>
                   </div>
@@ -569,55 +569,55 @@ export function CentralOperacaoAdminPage() {
             )}
           </div>
 
-          {/* Versão Desktop (Tabela) */}
-          <div className="hidden md:block bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+          {/* Versão Desktop (Tabela Expansiva) */}
+          <div className="hidden md:block bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-500 uppercase font-black tracking-wider text-[10px] border-b border-slate-200">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50/90 text-slate-600 uppercase font-black tracking-wider text-xs border-b border-slate-200">
                   <tr>
-                    <th className="p-4">Passageiro</th>
-                    <th className="p-4">Motorista &amp; Modal</th>
-                    <th className="p-4">Cidade / Trajeto</th>
-                    <th className="p-4">Status</th>
-                    <th className="p-4 text-right">Valor</th>
-                    <th className="p-4 text-center">Ações Rápidas</th>
+                    <th className="py-4 px-6">Passageiro</th>
+                    <th className="py-4 px-6">Motorista &amp; Modal</th>
+                    <th className="py-4 px-6">Cidade / Trajeto</th>
+                    <th className="py-4 px-6">Status</th>
+                    <th className="py-4 px-6 text-right">Valor</th>
+                    <th className="py-4 px-6 text-center">Ações Rápidas</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {corridasFiltradas.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-slate-400">
+                      <td colSpan={6} className="p-10 text-center text-slate-400 text-base">
                         Nenhuma corrida encontrada para os filtros selecionados.
                       </td>
                     </tr>
                   ) : (
                     corridasFiltradas.map((c) => (
                       <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="p-4">
-                          <p className="font-bold text-slate-900">{c.passageiroNome}</p>
-                          <span className="text-[11px] text-slate-500">{c.passageiroTelefone}</span>
+                        <td className="py-4.5 px-6">
+                          <p className="font-black text-slate-900 text-sm sm:text-base">{c.passageiroNome}</p>
+                          <span className="text-xs sm:text-sm text-slate-500 font-medium">{c.passageiroTelefone}</span>
                         </td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-2">
-                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
+                        <td className="py-4.5 px-6">
+                          <div className="flex items-center gap-2.5">
+                            <span className={`px-2.5 py-1 rounded-lg text-xs font-black ${
                               c.modal === "CARRO" ? "bg-primary-50 text-amber-800" : "bg-blue-100 text-blue-800"
                             }`}>
                               {c.modal}
                             </span>
                             <div>
-                              <p className="font-bold text-slate-900">{c.motoristaNome}</p>
-                              <span className="text-[11px] text-slate-500">{c.motoristaTelefone}</span>
+                              <p className="font-black text-slate-900 text-sm sm:text-base">{c.motoristaNome}</p>
+                              <span className="text-xs sm:text-sm text-slate-500 font-medium">{c.motoristaTelefone}</span>
                             </div>
                           </div>
                         </td>
-                        <td className="p-4">
-                          <p className="font-bold text-slate-900">{c.cidade}</p>
-                          <p className="text-[11px] text-slate-500 truncate max-w-xs">
+                        <td className="py-4.5 px-6">
+                          <p className="font-black text-slate-900 text-sm sm:text-base">{c.cidade}</p>
+                          <p className="text-xs sm:text-sm text-slate-600 font-medium truncate max-w-sm">
                             {c.origem} → {c.destino}
                           </p>
                         </td>
-                        <td className="p-4">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                        <td className="py-4.5 px-6">
+                          <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase ${
                             c.status === "EM_ANDAMENTO"
                               ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
                               : c.status === "FINALIZADA"
@@ -626,20 +626,20 @@ export function CentralOperacaoAdminPage() {
                               ? "bg-red-100 text-red-700"
                               : "bg-primary-50 text-yellow-800"
                           }`}>
-                            {c.status === "EM_ANDAMENTO" && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />}
+                            {c.status === "EM_ANDAMENTO" && <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />}
                             {c.status.replace("_", " ")}
                           </span>
                         </td>
-                        <td className="p-4 text-right font-black text-slate-900 text-sm">
+                        <td className="py-4.5 px-6 text-right font-black text-slate-950 text-base sm:text-lg">
                           R$ {c.valor.toFixed(2).replace(".", ",")}
                         </td>
-                        <td className="p-4 text-center">
+                        <td className="py-4.5 px-6 text-center">
                           <button
                             type="button"
                             onClick={() => setCorridaDetalhe(c)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold text-xs transition-all cursor-pointer shadow-xs"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-sm"
                           >
-                            <Eye className="h-3.5 w-3.5 text-[#0088FF]" />
+                            <Eye className="h-4 w-4 text-[#0088FF]" />
                             <span>Detalhes</span>
                           </button>
                         </td>
@@ -657,16 +657,16 @@ export function CentralOperacaoAdminPage() {
       {abaAtiva === "entregas" && (
         <div className="space-y-4">
           {/* Filtros Rápidos de Entrega */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0">Filtrar:</span>
+          <div className="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar">
+            <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider shrink-0">Filtrar:</span>
             {(["TODAS", "EM_ANDAMENTO", "CONCLUIDAS", "CANCELADAS"] as FiltroStatusEntrega[]).map((f) => (
               <button
                 key={f}
                 type="button"
                 onClick={() => setFiltroEntrega(f)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer shrink-0 ${
                   filtroEntrega === f
-                    ? "bg-slate-900 text-white shadow-xs"
+                    ? "bg-slate-900 text-white shadow-sm"
                     : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
                 }`}
               >
@@ -679,52 +679,52 @@ export function CentralOperacaoAdminPage() {
           </div>
 
           {/* Versão Mobile (Cards Empilhados para Entregas) */}
-          <div className="grid grid-cols-1 gap-3 md:hidden">
+          <div className="grid grid-cols-1 gap-3.5 md:hidden">
             {entregasFiltradas.length === 0 ? (
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 text-center text-slate-400 text-xs">
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 text-center text-slate-400 text-sm">
                 Nenhuma entrega encontrada para os filtros selecionados.
               </div>
             ) : (
               entregasFiltradas.map((e) => (
-                <div key={e.id} className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                <div key={e.id} className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
                     <div className="min-w-0">
-                      <span className="text-[10px] font-black uppercase text-amber-700 bg-primary-50 px-2 py-0.5 rounded-md border border-amber-200">
+                      <span className="text-xs font-black uppercase text-amber-700 bg-primary-50 px-2.5 py-1 rounded-lg border border-amber-200">
                         {e.cidade}
                       </span>
                     </div>
-                    <span className="font-black text-slate-950 text-sm shrink-0">
+                    <span className="font-black text-slate-950 text-base shrink-0">
                       R$ {e.valor.toFixed(2).replace(".", ",")}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
                     <div>
-                      <span className="text-[10px] font-black uppercase text-slate-400 block">Remetente:</span>
+                      <span className="text-xs font-black uppercase text-slate-400 block">Remetente:</span>
                       <p className="font-bold text-slate-900 truncate">{e.remetenteNome}</p>
-                      <span className="text-[10px] text-slate-500">{e.remetenteTelefone}</span>
+                      <span className="text-xs text-slate-500">{e.remetenteTelefone}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] font-black uppercase text-slate-400 block">Destinatário:</span>
+                      <span className="text-xs font-black uppercase text-slate-400 block">Destinatário:</span>
                       <p className="font-bold text-slate-900 truncate">{e.destinatarioNome}</p>
-                      <span className="text-[10px] text-slate-500">{e.destinatarioTelefone}</span>
+                      <span className="text-xs text-slate-500">{e.destinatarioTelefone}</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs">
-                    <span className="text-[10px] font-black uppercase text-slate-500">Duplo PIN:</span>
+                  <div className="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-100 text-xs sm:text-sm">
+                    <span className="text-xs font-black uppercase text-slate-500">Duplo PIN:</span>
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 bg-primary-50 text-amber-900 font-mono font-black text-xs rounded-md">
+                      <span className="px-2.5 py-1 bg-primary-50 text-amber-900 font-mono font-black text-xs rounded-lg">
                         PIN 1: {e.pickupPin}
                       </span>
-                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-900 font-mono font-black text-xs rounded-md">
+                      <span className="px-2.5 py-1 bg-emerald-100 text-emerald-900 font-mono font-black text-xs rounded-lg">
                         PIN 2: {e.dropoffPin}
                       </span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between gap-2 pt-1">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase ${
                       e.status === "EM_TRANSITO" || e.status === "COLETANDO"
                         ? "bg-blue-100 text-blue-800 border border-blue-300"
                         : e.status === "CONCLUIDA"
@@ -737,9 +737,9 @@ export function CentralOperacaoAdminPage() {
                     <button
                       type="button"
                       onClick={() => setEntregaDetalhe(e)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 active:scale-95 text-white font-bold text-xs cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 active:scale-95 text-white font-bold text-xs sm:text-sm cursor-pointer shadow-sm"
                     >
-                      <Eye className="h-3.5 w-3.5 text-[#0088FF]" />
+                      <Eye className="h-4 w-4 text-[#0088FF]" />
                       <span>Ver Pacote</span>
                     </button>
                   </div>
@@ -748,55 +748,55 @@ export function CentralOperacaoAdminPage() {
             )}
           </div>
 
-          {/* Versão Desktop (Tabela) */}
-          <div className="hidden md:block bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+          {/* Versão Desktop (Tabela Expansiva) */}
+          <div className="hidden md:block bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-500 uppercase font-black tracking-wider text-[10px] border-b border-slate-200">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50/90 text-slate-600 uppercase font-black tracking-wider text-xs border-b border-slate-200">
                   <tr>
-                    <th className="p-4">Remetente</th>
-                    <th className="p-4">Destinatário</th>
-                    <th className="p-4">Entregador</th>
-                    <th className="p-4 text-center">Duplo PIN (Segurança)</th>
-                    <th className="p-4">Status</th>
-                    <th className="p-4 text-right">Valor</th>
-                    <th className="p-4 text-center">Ações Rápidas</th>
+                    <th className="py-4 px-6">Remetente</th>
+                    <th className="py-4 px-6">Destinatário</th>
+                    <th className="py-4 px-6">Entregador</th>
+                    <th className="py-4 px-6 text-center">Duplo PIN (Segurança)</th>
+                    <th className="py-4 px-6">Status</th>
+                    <th className="py-4 px-6 text-right">Valor</th>
+                    <th className="py-4 px-6 text-center">Ações Rápidas</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {entregasFiltradas.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="p-8 text-center text-slate-400">
+                      <td colSpan={7} className="p-10 text-center text-slate-400 text-base">
                         Nenhuma entrega encontrada para os filtros selecionados.
                       </td>
                     </tr>
                   ) : (
                     entregasFiltradas.map((e) => (
                       <tr key={e.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="p-4">
-                          <p className="font-bold text-slate-900">{e.remetenteNome}</p>
-                          <span className="text-[11px] text-slate-500">{e.remetenteTelefone}</span>
+                        <td className="py-4.5 px-6">
+                          <p className="font-black text-slate-900 text-sm sm:text-base">{e.remetenteNome}</p>
+                          <span className="text-xs sm:text-sm text-slate-500 font-medium">{e.remetenteTelefone}</span>
                         </td>
-                        <td className="p-4">
-                          <p className="font-bold text-slate-900">{e.destinatarioNome}</p>
-                          <span className="text-[11px] text-slate-500">{e.destinatarioTelefone}</span>
+                        <td className="py-4.5 px-6">
+                          <p className="font-black text-slate-900 text-sm sm:text-base">{e.destinatarioNome}</p>
+                          <span className="text-xs sm:text-sm text-slate-500 font-medium">{e.destinatarioTelefone}</span>
                         </td>
-                        <td className="p-4">
-                          <p className="font-bold text-slate-900">{e.entregadorNome}</p>
-                          <span className="text-[10px] font-bold text-slate-500">{e.cidade}</span>
+                        <td className="py-4.5 px-6">
+                          <p className="font-black text-slate-900 text-sm sm:text-base">{e.entregadorNome}</p>
+                          <span className="text-xs sm:text-sm font-bold text-slate-500">{e.cidade}</span>
                         </td>
-                        <td className="p-4 text-center">
+                        <td className="py-4.5 px-6 text-center">
                           <div className="inline-flex items-center gap-2">
-                            <span className="px-2 py-1 bg-primary-50 border border-primary-500 text-amber-900 font-mono font-black text-xs rounded-lg" title="PIN 1 (Coleta)">
+                            <span className="px-3 py-1 bg-primary-50 border border-primary-500 text-amber-900 font-mono font-black text-xs sm:text-sm rounded-xl" title="PIN 1 (Coleta)">
                               PIN 1: {e.pickupPin}
                             </span>
-                            <span className="px-2 py-1 bg-emerald-50 border border-emerald-300 text-emerald-900 font-mono font-black text-xs rounded-lg" title="PIN 2 (Entrega)">
+                            <span className="px-3 py-1 bg-emerald-50 border border-emerald-300 text-emerald-900 font-mono font-black text-xs sm:text-sm rounded-xl" title="PIN 2 (Entrega)">
                               PIN 2: {e.dropoffPin}
                             </span>
                           </div>
                         </td>
-                        <td className="p-4">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                        <td className="py-4.5 px-6">
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase ${
                             e.status === "EM_TRANSITO" || e.status === "COLETANDO"
                               ? "bg-blue-100 text-blue-800 border border-blue-300"
                               : e.status === "CONCLUIDA"
@@ -806,16 +806,16 @@ export function CentralOperacaoAdminPage() {
                             {e.status}
                           </span>
                         </td>
-                        <td className="p-4 text-right font-black text-slate-900 text-sm">
+                        <td className="py-4.5 px-6 text-right font-black text-slate-950 text-base sm:text-lg">
                           R$ {e.valor.toFixed(2).replace(".", ",")}
                         </td>
-                        <td className="p-4 text-center">
+                        <td className="py-4.5 px-6 text-center">
                           <button
                             type="button"
                             onClick={() => setEntregaDetalhe(e)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-all cursor-pointer shadow-xs"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-sm"
                           >
-                            <Eye className="h-3.5 w-3.5 text-[#0088FF]" />
+                            <Eye className="h-4 w-4 text-[#0088FF]" />
                             <span>Ver Pacote</span>
                           </button>
                         </td>
@@ -833,18 +833,18 @@ export function CentralOperacaoAdminPage() {
       {abaAtiva === "suporte" && (
         <div className="space-y-4">
           {/* Filtros de Prioridade da Fila */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Criticidade:</span>
+          <div className="flex items-center gap-2.5 overflow-x-auto pb-1">
+            <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider">Criticidade:</span>
             {(["TODOS", "SOS_CRITICAL", "ALTA", "MEDIA", "BAIXA"] as FiltroPrioridadeSuporte[]).map((p) => (
               <button
                 key={p}
                 type="button"
                 onClick={() => setFiltroSuporte(p)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                   filtroSuporte === p
                     ? p === "SOS_CRITICAL"
-                      ? "bg-red-600 text-white shadow-xs"
-                      : "bg-slate-900 text-white shadow-xs"
+                      ? "bg-red-600 text-white shadow-sm"
+                      : "bg-slate-900 text-white shadow-sm"
                     : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
                 }`}
               >
@@ -858,9 +858,9 @@ export function CentralOperacaoAdminPage() {
           </div>
 
           {/* Cards da Fila Ordenada por Criticidade */}
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 gap-4">
             {ticketsFiltrados.length === 0 ? (
-              <div className="bg-white p-8 rounded-3xl border border-slate-200 text-center text-slate-400">
+              <div className="bg-white p-10 rounded-3xl border border-slate-200 text-center text-slate-400 text-base">
                 Nenhum chamado de suporte pendente no momento. Fila 100% zerada!
               </div>
             ) : (
@@ -870,17 +870,17 @@ export function CentralOperacaoAdminPage() {
                 return (
                   <div
                     key={t.id}
-                    className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                    className={`p-5 sm:p-7 rounded-3xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-5 ${
                       isSos
-                        ? "bg-red-50/90 border-red-300 shadow-md shadow-red-500/10"
+                        ? "bg-red-50/95 border-red-300 shadow-md shadow-red-500/10"
                         : t.status === "RESOLVIDO"
                         ? "bg-slate-50 border-slate-200 opacity-75"
-                        : "bg-white border-slate-200/90 shadow-xs"
+                        : "bg-white border-slate-200/90 shadow-sm hover:shadow-md"
                     }`}
                   >
-                    <div className="space-y-1.5 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                    <div className="space-y-2 flex-1">
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
                           isSos
                             ? "bg-red-600 text-white animate-pulse"
                             : t.prioridade === "ALTA"
@@ -892,18 +892,18 @@ export function CentralOperacaoAdminPage() {
                           {isSos ? "🚨 SOS 190 (EMERGÊNCIA)" : `${t.prioridade} PRIORIDADE`}
                         </span>
 
-                        <span className="font-mono text-xs font-bold text-slate-500">
+                        <span className="font-mono text-xs sm:text-sm font-bold text-slate-500">
                           {t.protocolo}
                         </span>
 
-                        <span className="text-xs text-slate-400">• Criado às {t.criadoEm}</span>
+                        <span className="text-xs sm:text-sm text-slate-400 font-medium">• Criado às {t.criadoEm}</span>
                       </div>
 
-                      <p className={`text-sm font-bold ${isSos ? "text-red-950" : "text-slate-900"}`}>
+                      <p className={`text-base sm:text-lg font-black leading-snug ${isSos ? "text-red-950" : "text-slate-900"}`}>
                         {t.descricao}
                       </p>
 
-                      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 pt-1">
+                      <div className="flex flex-wrap items-center gap-5 text-xs sm:text-sm text-slate-600 pt-1">
                         <span><strong>Passageiro:</strong> {t.usuarioNome} ({t.usuarioTelefone})</span>
                         <span><strong>Motorista:</strong> {t.motoristaNome}</span>
                         <span><strong>Cidade:</strong> {t.cidade}</span>
@@ -911,33 +911,33 @@ export function CentralOperacaoAdminPage() {
                     </div>
 
                     {/* Ações em Menos de 3 Cliques */}
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2.5 shrink-0">
                       {isSos && (
                         <a
                           href="tel:190"
-                          className="flex h-10 items-center gap-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white px-3.5 text-xs font-black shadow-xs transition-all"
+                          className="flex h-11 items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 text-white px-4 text-xs sm:text-sm font-black shadow-sm transition-all"
                         >
-                          <PhoneCall className="h-4 w-4" />
+                          <PhoneCall className="h-4.5 w-4.5" />
                           <span>Ligar 190</span>
                         </a>
                       )}
 
                       <a
-                        href={`https://wa.me/55${t.usuarioTelefone.replace(/D/g, "")}?text=Olá ${encodeURIComponent(t.usuarioNome)}, sou da Central de Atendimento PARTIU referente ao protocolo ${t.protocolo}.`}
+                        href={`https://wa.me/55${t.usuarioTelefone.replace(/\D/g, "")}?text=Olá ${encodeURIComponent(t.usuarioNome)}, sou da Central de Atendimento PARTIU referente ao protocolo ${t.protocolo}.`}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex h-10 items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 text-xs font-bold shadow-xs transition-all"
+                        className="flex h-11 items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 text-xs sm:text-sm font-bold shadow-sm transition-all"
                       >
-                        <MessageSquare className="h-4 w-4" />
+                        <MessageSquare className="h-4.5 w-4.5" />
                         <span>WhatsApp</span>
                       </a>
 
                       <button
                         type="button"
                         onClick={() => setTicketDetalhe(t)}
-                        className="flex h-10 items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-3.5 text-xs font-bold shadow-xs transition-all cursor-pointer"
+                        className="flex h-11 items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-4 text-xs sm:text-sm font-bold shadow-sm transition-all cursor-pointer"
                       >
-                        <CheckCircle2 className="h-4 w-4 text-[#0088FF]" />
+                        <CheckCircle2 className="h-4.5 w-4.5 text-[#0088FF]" />
                         <span>Atender / Resolver</span>
                       </button>
                     </div>

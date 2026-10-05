@@ -224,30 +224,30 @@ function SuperAdminLayout() {
       {/* 1. Sidebar Fixa no Desktop (6 Módulos Oficiais) */}
       <aside
         className={`hidden md:flex flex-col justify-between bg-slate-950 text-white border-r border-slate-800 shrink-0 sticky top-0 h-screen transition-all duration-300 z-40 ${
-          recolhido ? "w-20 p-2.5" : "w-64 lg:w-72 p-4"
+          recolhido ? "w-20 p-3" : "w-72 lg:w-80 p-5"
         }`}
       >
         <div className="space-y-4 flex-1 flex flex-col min-h-0">
           {/* Topo da Sidebar: Logo & Botão de Recolher */}
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3.5">
             {!recolhido ? (
-              <Link to="/app/admin" className="flex items-center gap-2.5 min-w-0">
+              <Link to="/app/admin" className="flex items-center gap-3 min-w-0">
                 <div
-                  className="flex h-10 w-10 items-center justify-center text-white shadow-md shrink-0 font-black"
+                  className="flex h-11 w-11 items-center justify-center text-white shadow-md shrink-0 font-black"
                   style={{
                     backgroundColor: colors.primary,
                     borderRadius: ui.borderRadius,
                     boxShadow: ui.buttonShadow,
                   }}
                 >
-                  <Zap className="h-5 w-5 fill-white stroke-[2.5]" />
+                  <Zap className="h-5.5 w-5.5 fill-white stroke-[2.5]" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-base font-black tracking-tight leading-none text-white truncate">
+                  <p className="text-lg font-black tracking-tight leading-none text-white truncate">
                     {branding.appName.toUpperCase()} <span style={{ color: colors.primary }}>OPERATIONS</span>
                   </p>
                   <span
-                    className="text-[10px] font-black tracking-wider uppercase mt-1 block truncate"
+                    className="text-xs font-black tracking-wider uppercase mt-1.5 block truncate"
                     style={{ color: colors.primary }}
                   >
                     {roleMeta.titulo}
@@ -257,14 +257,14 @@ function SuperAdminLayout() {
             ) : (
               <div className="mx-auto">
                 <div
-                  className="flex h-10 w-10 items-center justify-center text-white shadow-md"
+                  className="flex h-11 w-11 items-center justify-center text-white shadow-md"
                   style={{
                     backgroundColor: colors.primary,
                     borderRadius: ui.borderRadius,
                     boxShadow: ui.buttonShadow,
                   }}
                 >
-                  <Zap className="h-5 w-5 fill-white stroke-[2.5]" />
+                  <Zap className="h-5.5 w-5.5 fill-white stroke-[2.5]" />
                 </div>
               </div>
             )}
@@ -277,23 +277,23 @@ function SuperAdminLayout() {
               }`}
               title={recolhido ? "Expandir Menu" : "Recolher Menu"}
             >
-              {recolhido ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+              {recolhido ? <PanelLeftOpen className="h-4.5 w-4.5" /> : <PanelLeftClose className="h-4.5 w-4.5" />}
             </button>
           </div>
 
           {/* Seletor de Perfil RBAC (5 Perfis Nacionais) */}
           {!recolhido && (
-            <div className="p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800/90 space-y-1.5">
+            <div className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800/90 space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
                   Perfil Operacional (RBAC)
                 </span>
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
               </div>
               <select
                 value={roleAtiva}
                 onChange={(e) => handleTrocarRole(e.target.value as AdminRole)}
-                className="w-full bg-slate-950 border border-slate-800 text-xs font-bold text-white rounded-xl px-2.5 py-1.5 focus:ring-1 focus:ring-amber-400 focus:outline-hidden"
+                className="w-full bg-slate-950 border border-slate-800 text-xs font-bold text-white rounded-xl px-3 py-2 focus:ring-1 focus:ring-amber-400 focus:outline-hidden"
               >
                 {ROLES_DISPONIVEIS.map((r) => (
                   <option key={r.id} value={r.id} className="bg-slate-950 text-white font-bold">
@@ -305,9 +305,9 @@ function SuperAdminLayout() {
           )}
 
           {/* 6 MÓDULOS OFICIAIS DE NAVEGAÇÃO */}
-          <nav className="flex-1 overflow-y-auto space-y-1.5 custom-admin-scrollbar pr-0.5">
+          <nav className="flex-1 overflow-y-auto space-y-2 custom-admin-scrollbar pr-0.5">
             {!recolhido && (
-              <p className="px-2 pt-1 text-[10px] font-black uppercase tracking-wider text-slate-500">
+              <p className="px-2 pt-1 text-xs font-black uppercase tracking-wider text-slate-500">
                 Menu de Operações ({menuFiltrado.length})
               </p>
             )}
@@ -332,24 +332,24 @@ function SuperAdminLayout() {
                         }
                       : { borderRadius: ui.borderRadius }
                   }
-                  className={`group flex items-center justify-between px-3 py-2.5 text-xs font-bold transition-all relative ${
+                  className={`group flex items-center justify-between px-3.5 py-3 text-sm font-bold transition-all relative ${
                     isAtivo
                       ? "font-black"
                       : "text-slate-300 hover:bg-slate-900 hover:text-white"
                   } ${recolhido ? "justify-center px-2" : ""}`}
                   title={recolhido ? item.label : undefined}
                 >
-                  <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex items-center gap-3.5 min-w-0">
                     <Icon
-                      className={`h-4 w-4 shrink-0 transition-transform group-hover:scale-110 ${
+                      className={`h-5 w-5 shrink-0 transition-transform group-hover:scale-110 ${
                         isAtivo ? "text-white stroke-[2.5]" : "text-slate-400"
                       }`}
                     />
                     {!recolhido && (
                       <div className="truncate">
-                        <p className="truncate leading-none">{item.label}</p>
-                        <span className={`text-[10px] block font-medium truncate mt-0.5 ${
-                          isAtivo ? "text-white/80" : "text-slate-500"
+                        <p className="truncate text-sm font-black leading-none">{item.label}</p>
+                        <span className={`text-xs block font-medium truncate mt-1 ${
+                          isAtivo ? "text-white/90" : "text-slate-400"
                         }`}>
                           {item.descricao}
                         </span>
@@ -359,9 +359,9 @@ function SuperAdminLayout() {
 
                   {!recolhido && item.badge && (
                     <span
-                      className={`ml-1.5 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider shrink-0 ${
+                      className={`ml-1.5 px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider shrink-0 ${
                         isAtivo
-                          ? "bg-slate-950 text-primary-500"
+                          ? "bg-slate-950 text-white"
                           : "bg-slate-800 text-slate-300"
                       }`}
                     >
@@ -375,30 +375,30 @@ function SuperAdminLayout() {
         </div>
 
         {/* Rodapé da Sidebar: Sessão & Logout */}
-        <div className="border-t border-slate-800/80 pt-3 mt-2 space-y-2">
+        <div className="border-t border-slate-800/80 pt-3.5 mt-2 space-y-2">
           {!recolhido ? (
-            <div className="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-2xl border border-slate-800/60">
+            <div className="flex items-center justify-between bg-slate-900/80 p-3 rounded-2xl border border-slate-800/80">
               <div className="min-w-0 pr-2">
-                <p className="text-xs font-bold text-white truncate">{contaAtiva.nome}</p>
-                <p className="text-[10px] text-slate-400 truncate">{contaAtiva.email}</p>
+                <p className="text-sm font-black text-white truncate">{contaAtiva.nome}</p>
+                <p className="text-xs text-slate-400 truncate mt-0.5">{contaAtiva.email}</p>
               </div>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="h-8 w-8 rounded-xl bg-slate-800 hover:bg-red-950 text-slate-400 hover:text-red-300 flex items-center justify-center transition-all cursor-pointer shrink-0"
+                className="h-9 w-9 rounded-xl bg-slate-800 hover:bg-red-950 text-slate-400 hover:text-red-300 flex items-center justify-center transition-all cursor-pointer shrink-0"
                 title="Sair"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-4.5 w-4.5" />
               </button>
             </div>
           ) : (
             <button
               type="button"
               onClick={handleLogout}
-              className="mx-auto h-9 w-9 rounded-xl bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-300 flex items-center justify-center transition-all cursor-pointer"
+              className="mx-auto h-10 w-10 rounded-xl bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-300 flex items-center justify-center transition-all cursor-pointer"
               title="Sair"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-4.5 w-4.5" />
             </button>
           )}
         </div>
@@ -406,65 +406,65 @@ function SuperAdminLayout() {
 
       {/* 2. Container Principal & Topbar */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="min-h-12 h-12 sm:h-13 pt-[env(safe-area-inset-top,0px)] bg-white border-b border-slate-200/80 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
-          <div className="flex items-center gap-2 sm:gap-2.5 py-1">
+        <header className="min-h-16 h-16 sm:h-20 pt-[env(safe-area-inset-top,0px)] bg-white border-b border-slate-200/80 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+          <div className="flex items-center gap-3 sm:gap-4 py-1">
             <button
               type="button"
               onClick={() => setMenuAbertoMobile(true)}
-              className="flex md:hidden h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-95 transition cursor-pointer shrink-0"
+              className="flex md:hidden h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-95 transition cursor-pointer shrink-0"
               aria-label="Abrir Menu de Navegação"
             >
-              <Menu className="h-4 w-4" />
+              <Menu className="h-5 w-5" />
             </button>
 
-            <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-slate-500">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-slate-900 font-bold">Central Nacional Ativa:</span>
-              <span className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded-md font-mono text-[11px]">1.000 Cidades</span>
+            <div className="hidden sm:flex items-center gap-2.5 text-sm font-semibold text-slate-500">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-slate-900 font-bold text-sm sm:text-base">Central Nacional Ativa:</span>
+              <span className="bg-slate-100 text-slate-800 px-2.5 py-1 rounded-lg font-mono text-xs sm:text-sm font-bold">1.000 Cidades</span>
             </div>
 
-            <div className="flex sm:hidden items-center gap-1.5 min-w-0">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
-              <span className="text-[11px] font-bold text-slate-900 truncate">PARTIU Ops</span>
+            <div className="flex sm:hidden items-center gap-2 min-w-0">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shrink-0" />
+              <span className="text-sm font-bold text-slate-900 truncate">PARTIU Ops</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 py-1">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 py-1">
             {/* Atalho Rápido para Operação ao Vivo */}
             <Link
               to="/app/admin/operacao"
-              className="flex items-center gap-1.5 px-2.5 py-1 h-8 rounded-lg bg-emerald-50 text-emerald-900 text-xs font-semibold border border-emerald-200/80 hover:bg-emerald-100 active:scale-95 transition-all"
+              className="flex items-center gap-2 px-3.5 py-2 h-10 rounded-xl bg-emerald-50 text-emerald-900 text-xs sm:text-sm font-bold border border-emerald-200/80 hover:bg-emerald-100 active:scale-95 transition-all shadow-2xs"
             >
-              <Radio className="h-3.5 w-3.5 animate-pulse text-emerald-600 shrink-0" />
+              <Radio className="h-4 w-4 animate-pulse text-emerald-600 shrink-0" />
               <span className="hidden sm:inline">Operação Realtime</span>
-              <span className="sm:hidden text-[10px]">Ao Vivo</span>
+              <span className="sm:hidden text-xs">Ao Vivo</span>
             </Link>
 
             {/* Minha Conta */}
             <button
               type="button"
               onClick={abrirModalConta}
-              className="flex h-8 items-center gap-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 active:scale-95 px-2.5 text-xs font-semibold text-slate-800 transition-all border border-slate-200 cursor-pointer"
+              className="flex h-10 items-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 px-3.5 text-xs sm:text-sm font-bold text-slate-800 transition-all border border-slate-200 cursor-pointer shadow-2xs"
             >
-              <Key className="h-3.5 w-3.5 text-primary-700 shrink-0" />
+              <Key className="h-4 w-4 text-primary-700 shrink-0" />
               <span className="hidden lg:inline">{contaAtiva.email}</span>
-              <span className="lg:hidden text-[11px]">Conta</span>
+              <span className="lg:hidden text-xs">Conta</span>
             </button>
 
             {/* Sair */}
             <button
               type="button"
               onClick={handleLogout}
-              className="flex h-8 px-2.5 items-center gap-1 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-red-900 active:scale-95 transition-all cursor-pointer"
+              className="flex h-10 px-3.5 items-center gap-1.5 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-bold hover:bg-red-900 active:scale-95 transition-all cursor-pointer shadow-2xs"
               title="Sair da Conta"
             >
-              <LogOut className="h-3.5 w-3.5 shrink-0" />
+              <LogOut className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">Sair</span>
             </button>
           </div>
         </header>
 
-        <main className="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto pb-safe">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 xl:p-10 w-full min-w-0 pb-safe">
           <Outlet />
         </main>
       </div>

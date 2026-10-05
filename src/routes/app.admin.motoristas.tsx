@@ -228,30 +228,30 @@ export function QuadroMotoristasAdminPage() {
   }
 
   return (
-    <div className="w-full space-y-6 pb-20">
+    <div className="w-full space-y-6 sm:space-y-8 pb-20">
       {/* 1. Header Executivo Frota (Light Theme Padrão 8.png) */}
-      <div className="rounded-3xl bg-white p-5 sm:p-6 border border-slate-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="rounded-3xl bg-white p-6 sm:p-8 xl:p-10 border border-slate-200/90 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-[#0088FF] border border-blue-200/60 mb-2">
-            <ShieldCheck className="h-3.5 w-3.5" />
+          <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3.5 py-1.5 text-xs sm:text-sm font-bold text-[#0088FF] border border-blue-200/60 mb-3">
+            <ShieldCheck className="h-4 w-4" />
             <span>Painel Administrativo • Frota Carro e Moto</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#003366]">
+          <h1 className="text-3xl sm:text-4xl xl:text-5xl font-black tracking-tight text-[#003366]">
             Gestão de Motoristas
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 max-w-2xl font-normal mt-1">
-            Controle central da frota urbana, aprovação inteligente com validação documental e ativação autônoma.
+          <p className="text-sm sm:text-base xl:text-lg text-slate-500 max-w-3xl font-medium mt-2">
+            Controle central da frota urbana, esteira inteligente de aprovação com validação documental e ativação autônoma.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={handleExecutarEsteiraOCR}
             disabled={processandoOcr}
-            className="flex h-10 items-center gap-2 rounded-xl bg-[#0088FF] hover:bg-[#003366] text-white px-4 text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+            className="flex h-11 sm:h-12 items-center gap-2.5 rounded-2xl bg-[#0088FF] hover:bg-[#003366] text-white px-5 sm:px-6 text-xs sm:text-sm font-black shadow-md transition-all cursor-pointer disabled:opacity-50 active:scale-95"
           >
-            <Sparkles className="h-4 w-4" />
+            <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
             <span>{processandoOcr ? "Analisando OCR..." : "Esteira OCR Automática"}</span>
           </button>
 
@@ -261,7 +261,7 @@ export function QuadroMotoristasAdminPage() {
               recarregarMotoristas();
               recarregarPendentes();
             }}
-            className="flex h-10 items-center gap-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 px-3.5 text-xs font-medium border border-slate-200 transition-all cursor-pointer active:scale-95"
+            className="flex h-11 sm:h-12 items-center gap-2 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-700 px-4 sm:px-5 text-xs sm:text-sm font-bold border border-slate-200 transition-all cursor-pointer active:scale-95"
             title="Recarregar dados"
           >
             <RefreshCw className="h-4 w-4 text-[#0088FF]" />
@@ -271,60 +271,60 @@ export function QuadroMotoristasAdminPage() {
       </div>
 
       {/* 2. DASHBOARD DA FROTA — 4 CARDS MÉTRICOS (PADRÃO 8.PNG) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* Total de Motoristas */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Total de Motoristas</span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0088FF] flex items-center justify-center">
-              <Users className="w-4 h-4" />
+            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Total de Motoristas</span>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-blue-50 text-[#0088FF] flex items-center justify-center">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
           </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-slate-800">{totalCadastrados}</span>
-            <span className="text-[11px] font-semibold text-[#22C55E]">↑ 12% vs. mês anterior</span>
+          <div className="mt-3 flex items-baseline gap-2.5">
+            <span className="text-2xl sm:text-4xl font-black text-slate-900">{totalCadastrados}</span>
+            <span className="text-xs sm:text-sm font-bold text-[#22C55E]">↑ 12% vs. mês ant.</span>
           </div>
         </div>
 
         {/* Aprovados */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Aprovados</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-[#22C55E] flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4" />
+            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Aprovados</span>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-50 text-[#22C55E] flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
           </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-[#22C55E]">{totalOnline + totalOffline}</span>
-            <span className="text-[11px] font-medium text-slate-400">80% do total</span>
+          <div className="mt-3 flex items-baseline gap-2.5">
+            <span className="text-2xl sm:text-4xl font-black text-[#22C55E]">{totalOnline + totalOffline}</span>
+            <span className="text-xs sm:text-sm font-semibold text-slate-500">80% do total</span>
           </div>
         </div>
 
         {/* Pendentes */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Pendentes</span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
-              <Clock className="w-4 h-4" />
+            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Pendentes</span>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center">
+              <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
           </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-amber-500">{totalPendentes}</span>
-            <span className="text-[11px] font-medium text-slate-400">13% do total</span>
+          <div className="mt-3 flex items-baseline gap-2.5">
+            <span className="text-2xl sm:text-4xl font-black text-amber-500">{totalPendentes}</span>
+            <span className="text-xs sm:text-sm font-semibold text-slate-500">13% do total</span>
           </div>
         </div>
 
         {/* Suspensos */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Suspensos</span>
-            <div className="w-8 h-8 rounded-xl bg-rose-50 text-[#EF4444] flex items-center justify-center">
-              <AlertTriangle className="w-4 h-4" />
+            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Suspensos</span>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-rose-50 text-[#EF4444] flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
           </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-[#EF4444]">{totalSuspensos}</span>
-            <span className="text-[11px] font-medium text-slate-400">7% do total</span>
+          <div className="mt-3 flex items-baseline gap-2.5">
+            <span className="text-2xl sm:text-4xl font-black text-[#EF4444]">{totalSuspensos}</span>
+            <span className="text-xs sm:text-sm font-semibold text-slate-500">7% do total</span>
           </div>
         </div>
       </div>
@@ -334,17 +334,17 @@ export function QuadroMotoristasAdminPage() {
         {/* COLUNA ESQUERDA: FILTROS + TABELA (LG:COL-SPAN-8) */}
         <div className="lg:col-span-8 space-y-4">
           {/* BARRA DE BUSCA & FILTROS */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-xs">
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm">
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
               {(["TODOS", "ONLINE", "PENDENTE", "OFFLINE", "SUSPENSO"] as StatusMotorista[]).map((st) => (
                 <button
                   key={st}
                   type="button"
                   onClick={() => setFiltroStatus(st)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer shrink-0 ${
+                  className={`px-3.5 sm:px-4.5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer shrink-0 ${
                     filtroStatus === st
-                      ? "bg-[#003366] text-white shadow-xs"
-                      : "bg-slate-100 text-slate-600 hover:text-slate-900"
+                      ? "bg-[#003366] text-white shadow-sm"
+                      : "bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200/70"
                   }`}
                 >
                   {st === "TODOS" && "Todos"}
@@ -356,35 +356,35 @@ export function QuadroMotoristasAdminPage() {
               ))}
             </div>
 
-            <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
               <input
                 type="text"
-                placeholder="Buscar motorista..."
+                placeholder="Buscar motorista, placa ou CNH..."
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
-                className="w-full h-9 pl-9 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:outline-hidden focus:ring-1 focus:ring-[#0088FF]"
+                className="w-full h-11 sm:h-12 pl-11 pr-4 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#0088FF]"
               />
             </div>
           </div>
 
           {/* TABELA DE MOTORISTAS DESKTOP (PADRÃO 8.PNG COM CHECKLIST DOCUMENTAL) */}
-          <div className="hidden sm:block bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs">
+          <div className="hidden sm:block bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50/80 text-slate-500 uppercase font-semibold text-[10px] border-b border-slate-100">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50/90 text-slate-500 uppercase font-black text-xs sm:text-sm tracking-wider border-b border-slate-200">
                   <tr>
-                    <th className="p-3.5 pl-4">Motorista</th>
-                    <th className="p-3.5">Veículo</th>
-                    <th className="p-3.5">Documentos</th>
-                    <th className="p-3.5">Status</th>
-                    <th className="p-3.5 pr-4 text-right">Ações</th>
+                    <th className="py-4.5 px-6">Motorista</th>
+                    <th className="py-4.5 px-6">Veículo</th>
+                    <th className="py-4.5 px-6">Documentos</th>
+                    <th className="py-4.5 px-6">Status</th>
+                    <th className="py-4.5 px-6 text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {motoristasFiltrados.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="p-8 text-center text-slate-400">
+                      <td colSpan={5} className="py-12 px-6 text-center text-slate-400 text-sm font-medium">
                         Nenhum motorista encontrado para os filtros selecionados.
                       </td>
                     </tr>
@@ -393,32 +393,32 @@ export function QuadroMotoristasAdminPage() {
                       const isPendente = m.status === "PENDENTE";
 
                       return (
-                        <tr key={m.id} className="hover:bg-slate-50/60 transition-colors">
-                          <td className="p-3.5 pl-4">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-full bg-blue-50 text-[#0088FF] border border-blue-100 flex items-center justify-center font-bold text-xs shrink-0">
+                        <tr key={m.id} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="py-4.5 px-6">
+                            <div className="flex items-center gap-3.5">
+                              <div className="w-11 h-11 rounded-2xl bg-blue-50 text-[#0088FF] border border-blue-200/60 flex items-center justify-center font-black text-base shrink-0 shadow-xs">
                                 {m.nome.charAt(0)}
                               </div>
                               <div>
-                                <p className="font-semibold text-slate-800 flex items-center gap-1">
+                                <p className="font-black text-sm sm:text-base text-slate-900 flex items-center gap-1.5">
                                   {m.nome}
-                                  <span className="text-amber-500 text-[10px] flex items-center">
+                                  <span className="text-amber-500 text-xs sm:text-sm font-black flex items-center">
                                     ★ {m.rating.toFixed(1)}
                                   </span>
                                 </p>
-                                <span className="text-[11px] text-slate-400">{m.telefone}</span>
+                                <span className="text-xs sm:text-sm text-slate-500 font-medium">{m.telefone}</span>
                               </div>
                             </div>
                           </td>
 
-                          <td className="p-3.5">
-                            <p className="font-medium text-slate-800">{m.veiculoModelo}</p>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className="text-[10px] text-slate-400 font-mono uppercase">
+                          <td className="py-4.5 px-6">
+                            <p className="font-bold text-sm sm:text-base text-slate-900">{m.veiculoModelo}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs sm:text-sm text-slate-500 font-mono font-bold uppercase">
                                 {m.veiculoPlaca}
                               </span>
                               <span
-                                className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black border ${
+                                className={`inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-black border ${
                                   m.modal === "CARRO"
                                     ? "bg-blue-50 text-blue-700 border-blue-200"
                                     : m.modal === "MOTO"
@@ -434,23 +434,23 @@ export function QuadroMotoristasAdminPage() {
                           </td>
 
                           {/* Checklist de Documentos */}
-                          <td className="p-3.5">
+                          <td className="py-4.5 px-6">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-50 text-[#22C55E] text-[10px] font-semibold border border-emerald-100">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-[#22C55E] text-xs font-bold border border-emerald-200/60">
                                 ✓ CNH
                               </span>
-                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-50 text-[#22C55E] text-[10px] font-semibold border border-emerald-100">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-[#22C55E] text-xs font-bold border border-emerald-200/60">
                                 ✓ CRLV
                               </span>
-                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-50 text-[#22C55E] text-[10px] font-semibold border border-emerald-100">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-[#22C55E] text-xs font-bold border border-emerald-200/60">
                                 ✓ Antecedentes
                               </span>
                             </div>
                           </td>
 
-                          <td className="p-3.5">
+                          <td className="py-4.5 px-6">
                             <span
-                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
+                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs sm:text-sm font-black ${
                                 m.status === "ONLINE"
                                   ? "bg-emerald-50 text-[#22C55E] border border-emerald-200"
                                   : m.status === "PENDENTE"
@@ -467,15 +467,15 @@ export function QuadroMotoristasAdminPage() {
                             </span>
                           </td>
 
-                          <td className="p-3.5 pr-4 text-right">
+                          <td className="py-4.5 px-6 text-right">
                             {isPendente ? (
-                              <div className="inline-flex items-center gap-1.5 justify-end">
+                              <div className="inline-flex items-center gap-2 justify-end">
                                 <button
                                   type="button"
                                   onClick={() => handleAprovar(m)}
-                                  className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs transition shadow-xs flex items-center gap-1 cursor-pointer"
+                                  className="h-10 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm transition shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95"
                                 >
-                                  <CheckCircle2 className="h-3 w-3" />
+                                  <CheckCircle2 className="h-4 w-4" />
                                   <span>Aprovar ({m.modal})</span>
                                 </button>
                                 <button
@@ -484,24 +484,24 @@ export function QuadroMotoristasAdminPage() {
                                     setMotoristaSelecionado(m);
                                     setModalRejeitarAberto(true);
                                   }}
-                                  className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-[#EF4444] font-medium text-xs border border-rose-200 transition cursor-pointer flex items-center gap-1"
+                                  className="h-10 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-[#EF4444] font-bold text-xs sm:text-sm border border-rose-200 transition cursor-pointer flex items-center gap-1.5 active:scale-95"
                                 >
-                                  <UserX className="h-3 w-3" />
+                                  <UserX className="h-4 w-4" />
                                   <span>Rejeitar</span>
                                 </button>
                               </div>
                             ) : (
-                              <div className="inline-flex items-center gap-1.5 justify-end">
+                              <div className="inline-flex items-center gap-2 justify-end">
                                 <button
                                   type="button"
                                   onClick={() => {
                                     const msg = encodeURIComponent(`Olá ${m.nome}, contato da Central PARTIU Operações.`);
                                     window.open(`https://wa.me/55${m.telefone.replace(/\D/g, "")}?text=${msg}`, "_blank");
                                   }}
-                                  className="p-1.5 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-500 hover:text-emerald-600 transition cursor-pointer"
+                                  className="h-10 w-10 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-500 hover:text-emerald-600 border border-slate-200 flex items-center justify-center transition cursor-pointer active:scale-95"
                                   title="WhatsApp"
                                 >
-                                  <Phone className="h-3.5 w-3.5" />
+                                  <Phone className="h-4 w-4" />
                                 </button>
                                 <button
                                   type="button"
@@ -510,7 +510,7 @@ export function QuadroMotoristasAdminPage() {
                                     setCategoriaEdicao(m.modal);
                                     setModalDetalhesAberto(true);
                                   }}
-                                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs transition cursor-pointer"
+                                  className="h-10 px-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm border border-slate-200 transition cursor-pointer active:scale-95"
                                 >
                                   Ver Detalhes
                                 </button>
@@ -558,27 +558,27 @@ export function QuadroMotoristasAdminPage() {
           </div>
         </div>
 
-        {/* COLUNA DIREITA: WIDGETS DE GESTÃO (LG:COL-SPAN-4 SPACE-Y-4) */}
-        <div className="lg:col-span-4 space-y-4">
+        {/* COLUNA DIREITA: WIDGETS DE GESTÃO (LG:COL-SPAN-4 SPACE-Y-5) */}
+        <div className="lg:col-span-4 space-y-5">
           {/* WIDGET 1: CONFIGURAÇÃO DE TEMA (BRANDING CONFORME 8.PNG) */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0088FF] flex items-center justify-center">
-                <Palette className="w-4 h-4" />
+          <div className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0088FF] flex items-center justify-center shadow-xs">
+                <Palette className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-800">Configuração de Tema</h3>
-                <p className="text-[11px] text-slate-500">Identidade visual do aplicativo</p>
+                <h3 className="text-base sm:text-lg font-black text-slate-900">Configuração de Tema</h3>
+                <p className="text-xs sm:text-sm text-slate-500">Identidade visual do aplicativo</p>
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <label className="text-xs font-medium text-slate-600 block mb-1">Tema Ativo</label>
+                <label className="text-xs sm:text-sm font-bold text-slate-700 block mb-1.5">Tema Ativo</label>
                 <select
                   value={temaSelecionado}
                   onChange={(e) => setTemaSelecionado(e.target.value)}
-                  className="w-full h-9 px-3 rounded-xl border border-slate-200 text-xs font-medium bg-slate-50 text-slate-700 focus:outline-hidden focus:ring-1 focus:ring-[#0088FF]"
+                  className="w-full h-11 px-3.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold bg-slate-50 text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#0088FF]"
                 >
                   <option value="Azul Tech (Padrão)">Azul Tech (Padrão)</option>
                   <option value="Verde Esmeralda">Verde Esmeralda</option>
@@ -588,49 +588,49 @@ export function QuadroMotoristasAdminPage() {
 
               {/* Swatches dos Tokens Oficiais */}
               <div>
-                <span className="text-[11px] font-medium text-slate-500 block mb-1.5">Paleta Corporativa</span>
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
-                    <div className="w-full h-6 rounded-lg bg-[#003366] mb-1 shadow-xs" />
-                    <span className="text-[10px] font-bold text-slate-700 block">Primária</span>
-                    <span className="text-[9px] font-mono text-slate-400">#003366</span>
+                <span className="text-xs sm:text-sm font-bold text-slate-600 block mb-2">Paleta Corporativa</span>
+                <div className="grid grid-cols-3 gap-2.5 text-center">
+                  <div className="p-2.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+                    <div className="w-full h-8 rounded-xl bg-[#003366] mb-1.5 shadow-xs" />
+                    <span className="text-xs font-black text-slate-800 block">Primária</span>
+                    <span className="text-[10px] font-mono text-slate-500">#003366</span>
                   </div>
-                  <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
-                    <div className="w-full h-6 rounded-lg bg-[#0088FF] mb-1 shadow-xs" />
-                    <span className="text-[10px] font-bold text-slate-700 block">Secundária</span>
-                    <span className="text-[9px] font-mono text-slate-400">#0088FF</span>
+                  <div className="p-2.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+                    <div className="w-full h-8 rounded-xl bg-[#0088FF] mb-1.5 shadow-xs" />
+                    <span className="text-xs font-black text-slate-800 block">Secundária</span>
+                    <span className="text-[10px] font-mono text-slate-500">#0088FF</span>
                   </div>
-                  <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
-                    <div className="w-full h-6 rounded-lg bg-[#00C6FF] mb-1 shadow-xs" />
-                    <span className="text-[10px] font-bold text-slate-700 block">Acento</span>
-                    <span className="text-[9px] font-mono text-slate-400">#00C6FF</span>
+                  <div className="p-2.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+                    <div className="w-full h-8 rounded-xl bg-[#00C6FF] mb-1.5 shadow-xs" />
+                    <span className="text-xs font-black text-slate-800 block">Acento</span>
+                    <span className="text-[10px] font-mono text-slate-500">#00C6FF</span>
                   </div>
                 </div>
               </div>
 
               <Link
                 to="/app/admin/whitelabel"
-                className="w-full py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100/80 text-[#0088FF] font-semibold text-xs border border-blue-200/60 flex items-center justify-center gap-1.5 transition active:scale-95"
+                className="w-full h-11 sm:h-12 px-4 rounded-xl sm:rounded-2xl bg-blue-50 hover:bg-blue-100 text-[#0088FF] font-black text-xs sm:text-sm border border-blue-200/80 flex items-center justify-center gap-2 transition active:scale-95"
               >
                 <span>Editar Tema no Studio White Label</span>
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
 
           {/* WIDGET 2: TAXA DE COMISSÃO (PADRÃO 8.PNG) */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-3.5">
+          <div className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0088FF] flex items-center justify-center">
-                  <Sliders className="w-4 h-4" />
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0088FF] flex items-center justify-center shadow-xs">
+                  <Sliders className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-800">Taxa de Comissão</h3>
-                  <p className="text-[11px] text-slate-500">Retenção da plataforma por corrida</p>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900">Taxa de Comissão</h3>
+                  <p className="text-xs sm:text-sm text-slate-500">Retenção da plataforma por corrida</p>
                 </div>
               </div>
-              <span className="text-lg font-bold text-[#003366]">{taxaComissao}%</span>
+              <span className="text-2xl sm:text-3xl font-black text-[#003366]">{taxaComissao}%</span>
             </div>
 
             <input
@@ -639,39 +639,39 @@ export function QuadroMotoristasAdminPage() {
               max="30"
               value={taxaComissao}
               onChange={(e) => setTaxaComissao(Number(e.target.value))}
-              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#0088FF]"
+              className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#0088FF]"
             />
 
-            <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-100">
-              <span>Repasse ao condutor:</span>
-              <span className="font-semibold text-emerald-600">{100 - taxaComissao}% líquido</span>
+            <div className="flex items-center justify-between text-xs sm:text-sm text-slate-500 pt-2 border-t border-slate-100">
+              <span className="font-medium">Repasse ao condutor:</span>
+              <span className="font-black text-emerald-600">{100 - taxaComissao}% líquido</span>
             </div>
           </div>
 
           {/* WIDGET 3: OPERAÇÃO EM TEMPO REAL (PADRÃO 8.PNG) */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0088FF] flex items-center justify-center">
-                <Zap className="w-4 h-4" />
+          <div className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0088FF] flex items-center justify-center shadow-xs">
+                <Zap className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-800">Operação em Tempo Real</h3>
-                <p className="text-[11px] text-slate-500">Métricas instantâneas do despachador</p>
+                <h3 className="text-base sm:text-lg font-black text-slate-900">Operação em Tempo Real</h3>
+                <p className="text-xs sm:text-sm text-slate-500">Métricas instantâneas do despachador</p>
               </div>
             </div>
 
-            <div className="space-y-2 text-xs pt-1">
-              <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
-                <span className="text-slate-500">Corridas em Andamento:</span>
-                <span className="font-bold text-[#003366]">14 ativas</span>
+            <div className="space-y-2.5 text-xs sm:text-sm pt-1">
+              <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                <span className="text-slate-500 font-medium">Corridas em Andamento:</span>
+                <span className="font-black text-[#003366] text-sm sm:text-base">14 ativas</span>
               </div>
-              <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
-                <span className="text-slate-500">Condutores Conectados:</span>
-                <span className="font-bold text-emerald-600">{totalOnline} online</span>
+              <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                <span className="text-slate-500 font-medium">Condutores Conectados:</span>
+                <span className="font-black text-emerald-600 text-sm sm:text-base">{totalOnline} online</span>
               </div>
-              <div className="flex items-center justify-between py-1.5">
-                <span className="text-slate-500">Tempo Médio de Espera:</span>
-                <span className="font-bold text-slate-800">3.8 min</span>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-slate-500 font-medium">Tempo Médio de Espera:</span>
+                <span className="font-black text-slate-900 text-sm sm:text-base">3.8 min</span>
               </div>
             </div>
           </div>

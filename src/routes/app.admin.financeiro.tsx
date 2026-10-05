@@ -256,19 +256,19 @@ export function PainelFinanceiroUnificadoPage() {
   }
 
   return (
-    <div className="w-full space-y-6 pb-20">
+    <div className="w-full space-y-6 sm:space-y-8 pb-20">
       {/* 1. Header Executivo Financeiro */}
-      <div className="rounded-3xl bg-slate-950 p-5 sm:p-7 text-white shadow-xl border border-slate-800 relative overflow-hidden">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="rounded-3xl bg-slate-950 p-6 sm:p-8 xl:p-10 text-white shadow-xl border border-slate-800 relative overflow-hidden">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#0088FF]/15 px-3 py-1 text-xs font-black uppercase tracking-wider text-primary-500 border border-yellow-500/25 mb-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#0088FF]/15 px-3.5 py-1.5 text-xs sm:text-sm font-black uppercase tracking-wider text-[#0088FF] border border-[#0088FF]/30 mb-3">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
               <span>Faturamento SaaS 0% Comissão • Liquidação Direta</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+            <h1 className="text-3xl sm:text-4xl xl:text-5xl font-black tracking-tight">
               Governança <span className="text-[#0088FF]">Financeira &amp; Monetização SaaS</span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-normal mt-1">
+            <p className="text-sm sm:text-base xl:text-lg text-slate-300 max-w-3xl font-medium mt-2">
               Unificação completa de Faturamento de Diárias SaaS, Volume Transacionado (100% direto aos condutores) e Gestão Tarifária de Carro e Moto.
             </p>
           </div>
@@ -276,50 +276,50 @@ export function PainelFinanceiroUnificadoPage() {
       </div>
 
       {/* 2. Barra de Abas Principais (Consolidado | Diárias SaaS | Tarifas | Assinaturas) */}
-      <div className="flex items-center gap-1.5 p-1 bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-x-auto no-scrollbar scroll-smooth">
+      <div className="flex items-center gap-2 p-1.5 sm:p-2 bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-sm overflow-x-auto no-scrollbar scroll-smooth">
         <button
           type="button"
           onClick={() => setAbaAtiva("consolidado")}
-          className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
-            abaAtiva === "consolidado" ? "bg-slate-950 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+          className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer shrink-0 ${
+            abaAtiva === "consolidado" ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <TrendingUp className="h-4 w-4 text-[#0088FF]" />
+          <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-[#0088FF]" />
           <span>Visão Consolidada</span>
         </button>
 
         <button
           type="button"
           onClick={() => setAbaAtiva("diarias")}
-          className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
-            abaAtiva === "diarias" ? "bg-slate-950 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+          className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer shrink-0 ${
+            abaAtiva === "diarias" ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <Layers className="h-4 w-4 text-[#0088FF]" />
+          <Layers className="h-4 w-4 sm:h-5 sm:w-5 text-[#0088FF]" />
           <span>Monetização &amp; Planos SaaS</span>
         </button>
 
         <button
           type="button"
           onClick={() => setAbaAtiva("tarifas")}
-          className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
-            abaAtiva === "tarifas" ? "bg-slate-950 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+          className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer shrink-0 ${
+            abaAtiva === "tarifas" ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <DollarSign className="h-4 w-4 text-[#0088FF]" />
+          <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-[#0088FF]" />
           <span>Gestão Tarifária</span>
         </button>
 
         <button
           type="button"
           onClick={() => setAbaAtiva("assinaturas")}
-          className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
-            abaAtiva === "assinaturas" ? "bg-slate-950 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+          className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer shrink-0 ${
+            abaAtiva === "assinaturas" ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <Receipt className="h-4 w-4 text-[#0088FF]" />
+          <Receipt className="h-4 w-4 sm:h-5 sm:w-5 text-[#0088FF]" />
           <span>Extrato de Assinaturas &amp; Diárias</span>
-          <span className="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] text-emerald-900 font-bold">
+          <span className="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-900 font-bold">
             100% Repasse D+0
           </span>
         </button>
@@ -327,21 +327,21 @@ export function PainelFinanceiroUnificadoPage() {
 
       {/* 3. ABA 1: VISÃO CONSOLIDADA (5 INDICADORES OBRIGATÓRIOS) */}
       {abaAtiva === "consolidado" && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
+        <div className="space-y-6 sm:space-y-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
             {/* Receita do Dia */}
-            <div className="bg-white p-3.5 sm:p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col justify-between">
-              <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">Receita do Dia</span>
-              <div className="pt-2 sm:pt-3">
-                <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+              <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider">Receita do Dia</span>
+              <div className="pt-3 sm:pt-4">
+                <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-slate-900 tracking-tight">
                   R$ {receitaHoje.toFixed(2).replace(".", ",")}
                 </p>
                 {receitaHoje > 0 ? (
-                  <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1 mt-0.5">
-                    <ArrowUpRight className="h-3 w-3" /> Faturamento apurado
+                  <span className="text-xs sm:text-sm text-emerald-600 font-bold flex items-center gap-1 mt-1">
+                    <ArrowUpRight className="h-4 w-4" /> Faturamento apurado
                   </span>
                 ) : (
-                  <span className="text-[10px] text-slate-400 font-bold mt-0.5 block truncate">
+                  <span className="text-xs sm:text-sm text-slate-400 font-bold mt-1 block truncate">
                     Aguardando corridas
                   </span>
                 )}
@@ -349,52 +349,52 @@ export function PainelFinanceiroUnificadoPage() {
             </div>
 
             {/* Receita do Mês */}
-            <div className="bg-white p-3.5 sm:p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col justify-between">
-              <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">Receita do Mês</span>
-              <div className="pt-2 sm:pt-3">
-                <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+              <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider">Receita do Mês</span>
+              <div className="pt-3 sm:pt-4">
+                <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-slate-900 tracking-tight">
                   R$ {receitaMes.toFixed(2).replace(".", ",")}
                 </p>
-                <span className="text-[10px] text-slate-500 font-bold mt-0.5 block truncate">
+                <span className="text-xs sm:text-sm text-slate-500 font-bold mt-1 block truncate">
                   {receitaMes > 0 ? "Volume acumulado" : "Início do período"}
                 </span>
               </div>
             </div>
 
             {/* PIX Recebidos */}
-            <div className="bg-white p-3.5 sm:p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col justify-between">
-              <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">PIX Recebidos</span>
-              <div className="pt-2 sm:pt-3">
-                <p className="text-xl sm:text-2xl font-black text-emerald-600 tracking-tight">
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+              <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider">PIX Recebidos</span>
+              <div className="pt-3 sm:pt-4">
+                <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-emerald-600 tracking-tight">
                   R$ {pixRecebidosVolume.toFixed(2).replace(".", ",")}
                 </p>
-                <span className="text-[10px] text-emerald-700 font-bold mt-0.5 block truncate">
+                <span className="text-xs sm:text-sm text-emerald-700 font-bold mt-1 block truncate">
                   {pixProcessadosQtd > 0 ? "Transações confirmadas" : "Nenhum PIX hoje"}
                 </span>
               </div>
             </div>
 
             {/* PIX Processados */}
-            <div className="bg-white p-3.5 sm:p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col justify-between">
-              <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">PIX Processados</span>
-              <div className="pt-2 sm:pt-3">
-                <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+              <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider">PIX Processados</span>
+              <div className="pt-3 sm:pt-4">
+                <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-slate-900 tracking-tight">
                   {pixProcessadosQtd}
                 </p>
-                <span className="text-[10px] text-slate-500 font-bold mt-0.5 block truncate">
+                <span className="text-xs sm:text-sm text-slate-500 font-bold mt-1 block truncate">
                   Liquidação imediata (&lt;2s)
                 </span>
               </div>
             </div>
 
             {/* Faturamento SaaS Diárias */}
-            <div className="bg-white p-3.5 sm:p-5 rounded-3xl border border-slate-200 shadow-xs flex flex-col justify-between col-span-2 sm:col-span-1">
-              <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">Faturamento SaaS Diárias</span>
-              <div className="pt-2 sm:pt-3">
-                <p className="text-xl sm:text-2xl font-black text-emerald-600 tracking-tight">
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between col-span-2 sm:col-span-1">
+              <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider">Faturamento SaaS Diárias</span>
+              <div className="pt-3 sm:pt-4">
+                <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-emerald-600 tracking-tight">
                   R$ {faturamentoSaasHoje.toFixed(2).replace(".", ",")}
                 </p>
-                <span className="text-[10px] text-emerald-700 font-bold mt-0.5 block truncate">
+                <span className="text-xs sm:text-sm text-emerald-700 font-bold mt-1 block truncate">
                   Receita Líquida do App
                 </span>
               </div>
@@ -402,14 +402,14 @@ export function PainelFinanceiroUnificadoPage() {
           </div>
 
           {/* Destaque FinOps & Auditoria */}
-          <div className="p-6 rounded-3xl bg-slate-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-primary-600/20 text-[#0088FF] flex items-center justify-center font-black">
-                <ShieldCheck className="h-6 w-6" />
+          <div className="p-6 sm:p-8 rounded-3xl bg-slate-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-md">
+            <div className="flex items-center gap-4 sm:gap-5">
+              <div className="h-14 w-14 rounded-2xl bg-blue-500/20 text-[#0088FF] flex items-center justify-center font-black shrink-0">
+                <ShieldCheck className="h-7 w-7" />
               </div>
               <div>
-                <h3 className="text-base font-black">Livro-Razão (Ledger) com Validação Estrita</h3>
-                <p className="text-xs text-slate-300">
+                <h3 className="text-lg sm:text-xl font-black">Livro-Razão (Ledger) com Validação Estrita</h3>
+                <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1 max-w-2xl">
                   Todas as transações são auditadas com precisão em centavos inteiros (Minor Units). Zero divergência de saldo.
                 </p>
               </div>
@@ -417,7 +417,7 @@ export function PainelFinanceiroUnificadoPage() {
             <button
               type="button"
               onClick={() => alert("Relatório contábil gerado! O arquivo CSV do livro-razão está pronto para download.")}
-              className="flex h-11 items-center gap-2 rounded-2xl bg-white text-slate-950 px-4 text-xs font-black hover:bg-slate-100 transition-all cursor-pointer shrink-0"
+              className="flex h-12 items-center gap-2 rounded-2xl bg-white text-slate-950 px-6 text-xs sm:text-sm font-black hover:bg-slate-100 transition-all cursor-pointer shrink-0 active:scale-95 shadow-sm"
             >
               <Download className="h-4 w-4" />
               <span>Exportar Livro-Razão</span>
@@ -1056,51 +1056,51 @@ export function PainelFinanceiroUnificadoPage() {
           </div>
 
           {/* Cards de Métricas SaaS */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-xs">
-              <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow">
+              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500 block">
                 Diárias Hoje
               </span>
-              <p className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
+              <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-slate-900 mt-2">
                 R$ {saasMetrics.totalRevenueToday.toFixed(2).replace(".", ",")}
               </p>
-              <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
-                <CheckCircle2 className="w-3 h-3" /> PIX D+0 Reconhecido
+              <span className="text-xs sm:text-sm font-bold text-emerald-600 flex items-center gap-1.5 mt-1.5">
+                <CheckCircle2 className="w-4 h-4" /> PIX D+0 Reconhecido
               </span>
             </div>
 
-            <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-xs">
-              <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow">
+              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500 block">
                 Faturamento SaaS (Mês)
               </span>
-              <p className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
+              <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-slate-900 mt-2">
                 R$ {saasMetrics.totalRevenueMonth.toFixed(2).replace(".", ",")}
               </p>
-              <span className="text-[10px] font-bold text-blue-600 flex items-center gap-1 mt-1">
-                <TrendingUp className="w-3 h-3" /> Receita da Plataforma
+              <span className="text-xs sm:text-sm font-bold text-blue-600 flex items-center gap-1.5 mt-1.5">
+                <TrendingUp className="w-4 h-4" /> Receita da Plataforma
               </span>
             </div>
 
-            <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-xs">
-              <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow">
+              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500 block">
                 Condutores Desbloqueados
               </span>
-              <p className="text-xl sm:text-2xl font-black text-emerald-600 mt-1">
+              <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-emerald-600 mt-2">
                 {saasMetrics.activeDriversCount}
               </p>
-              <span className="text-[10px] font-bold text-slate-500 block mt-1">
+              <span className="text-xs sm:text-sm font-bold text-slate-500 block mt-1.5">
                 Diária Válida (24h)
               </span>
             </div>
 
-            <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-xs">
-              <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow">
+              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500 block">
                 Condutores Vencidos / Bloqueados
               </span>
-              <p className="text-xl sm:text-2xl font-black text-amber-600 mt-1">
+              <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-amber-600 mt-2">
                 {saasMetrics.expiredDriversCount}
               </p>
-              <span className="text-[10px] font-bold text-slate-500 block mt-1">
+              <span className="text-xs sm:text-sm font-bold text-slate-500 block mt-1.5">
                 Cockpit Travado (Aguardando PIX)
               </span>
             </div>
@@ -1168,24 +1168,24 @@ export function PainelFinanceiroUnificadoPage() {
           </div>
 
           {/* Versão Desktop (Tabela) */}
-          <div className="hidden md:block bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
+          <div className="hidden md:block bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-500 uppercase font-black tracking-wider text-[10px] border-b border-slate-200">
+              <table className="w-full text-left">
+                <thead className="bg-slate-50/90 text-slate-500 uppercase font-black tracking-wider text-xs sm:text-sm border-b border-slate-200">
                   <tr>
-                    <th className="p-4">Condutor &amp; Modal</th>
-                    <th className="p-4">Início da Diária</th>
-                    <th className="p-4">Expiração (24 Horas)</th>
-                    <th className="p-4 text-right">Valor Pago (PIX)</th>
-                    <th className="p-4">Status do Cockpit</th>
-                    <th className="p-4 font-mono text-[10px]">PIX TxID</th>
+                    <th className="py-4.5 px-6">Condutor &amp; Modal</th>
+                    <th className="py-4.5 px-6">Início da Diária</th>
+                    <th className="py-4.5 px-6">Expiração (24 Horas)</th>
+                    <th className="py-4.5 px-6 text-right">Valor Pago (PIX)</th>
+                    <th className="py-4.5 px-6">Status do Cockpit</th>
+                    <th className="py-4.5 px-6 font-mono text-xs">PIX TxID</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {assinaturas.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-slate-400 text-xs">
-                        Nenhuma diária ou assinatura registrada.
+                      <td colSpan={6} className="py-12 px-6 text-center text-slate-400 text-sm font-medium">
+                        Nenhuma diária ou assinatura registrada até o momento.
                       </td>
                     </tr>
                   ) : (
@@ -1196,41 +1196,41 @@ export function PainelFinanceiroUnificadoPage() {
                       const tempoRestante = driverSubscriptionService.getRemainingTime(sub);
 
                       return (
-                        <tr key={sub.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="p-4">
-                            <div className="flex items-center gap-2">
-                              <span className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
-                                sub.vehicle_type === "CARRO" ? "bg-primary-50 text-amber-900" : "bg-blue-100 text-blue-900"
+                        <tr key={sub.id} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="py-4.5 px-6">
+                            <div className="flex items-center gap-3">
+                              <span className={`px-2.5 py-1 rounded-lg text-xs font-black ${
+                                sub.vehicle_type === "CARRO" ? "bg-blue-50 text-blue-800 border border-blue-200" : "bg-amber-50 text-amber-800 border border-amber-200"
                               }`}>
                                 {sub.vehicle_type}
                               </span>
-                              <span className="font-bold text-slate-900">{sub.driver_id}</span>
+                              <span className="font-black text-sm sm:text-base text-slate-900">{sub.driver_id}</span>
                             </div>
                           </td>
 
-                          <td className="p-4 font-mono font-bold text-slate-600">
+                          <td className="py-4.5 px-6 font-mono font-bold text-xs sm:text-sm text-slate-700">
                             {new Date(sub.starts_at).toLocaleDateString("pt-BR")} às{" "}
                             {new Date(sub.starts_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                           </td>
 
-                          <td className="p-4 font-bold text-slate-700">
+                          <td className="py-4.5 px-6 font-bold text-xs sm:text-sm text-slate-700">
                             {isAtiva ? (
-                              <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                              <span className="text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200/80 inline-flex items-center gap-1.5 font-black">
                                 ⏱️ Restam {tempoRestante.formatted}
                               </span>
                             ) : (
-                              <span className="text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                              <span className="text-rose-700 bg-rose-50 px-3 py-1 rounded-xl border border-rose-200/80 inline-flex items-center gap-1.5 font-bold">
                                 Expirada em {new Date(sub.expires_at).toLocaleDateString("pt-BR")}
                               </span>
                             )}
                           </td>
 
-                          <td className="p-4 text-right font-black text-slate-900 text-sm">
+                          <td className="py-4.5 px-6 text-right font-black text-slate-900 text-base sm:text-lg">
                             R$ {sub.amount_paid.toFixed(2).replace(".", ",")}
                           </td>
 
-                          <td className="p-4">
-                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                          <td className="py-4.5 px-6">
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs sm:text-sm font-black uppercase ${
                               isAtiva
                                 ? "bg-emerald-100 text-emerald-800"
                                 : "bg-rose-100 text-rose-800"
@@ -1239,7 +1239,7 @@ export function PainelFinanceiroUnificadoPage() {
                             </span>
                           </td>
 
-                          <td className="p-4 font-mono text-[10px] text-slate-400">
+                          <td className="py-4.5 px-6 font-mono text-xs sm:text-sm text-slate-500 font-medium">
                             {sub.pix_txid}
                           </td>
                         </tr>

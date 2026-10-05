@@ -378,19 +378,19 @@ export function ConfiguracoesAdminPage() {
   }
 
   return (
-    <div className="w-full space-y-6 pb-20">
+    <div className="w-full space-y-6 sm:space-y-8 pb-20">
       {/* 1. Header Executivo Configurações */}
-      <div className="rounded-3xl bg-slate-950 p-5 sm:p-7 text-white shadow-xl border border-slate-800 relative overflow-hidden">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="rounded-3xl bg-slate-950 p-6 sm:p-8 xl:p-10 text-white shadow-xl border border-slate-800 relative overflow-hidden">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#0088FF]/15 px-3 py-1 text-xs font-black uppercase tracking-wider text-primary-500 border border-yellow-500/25 mb-2">
-              <Sliders className="h-3.5 w-3.5 text-[#0088FF]" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#0088FF]/15 px-3.5 py-1.5 text-xs sm:text-sm font-black uppercase tracking-wider text-[#0088FF] border border-[#0088FF]/30 mb-3">
+              <Sliders className="h-4 w-4 text-[#0088FF]" />
               <span>Progressive Disclosure &amp; Multi-Cidade</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+            <h1 className="text-3xl sm:text-4xl xl:text-5xl font-black tracking-tight">
               Configurações &amp; <span className="text-[#0088FF]">White Label Expresso</span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-normal mt-1">
+            <p className="text-sm sm:text-base xl:text-lg text-slate-300 max-w-3xl font-medium mt-2">
               Configurações essenciais sempre acessíveis, dados técnicos protegidos por desafio de segurança e assistente de ativação de cidade em 4 passos.
             </p>
           </div>
@@ -398,17 +398,17 @@ export function ConfiguracoesAdminPage() {
       </div>
 
       {/* 2. Barra de Abas (Modo Essencial | White Label Expresso | Modo Avançado Protegido) */}
-      <div className="flex flex-wrap items-center gap-1.5 p-1 bg-white rounded-2xl border border-slate-200 shadow-xs max-w-fit">
+      <div className="flex flex-wrap items-center gap-2 p-1.5 sm:p-2 bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm max-w-fit">
         <button
           type="button"
           onClick={() => setAbaAtiva("essencial")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-            abaAtiva === "essencial" ? "bg-slate-950 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+          className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
+            abaAtiva === "essencial" ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <CheckCircle2 className="h-4 w-4 text-[#0088FF]" />
+          <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-[#0088FF]" />
           <span>Modo Essencial</span>
-          <span className="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] text-emerald-900 font-bold">
+          <span className="ml-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs text-emerald-900 font-bold">
             Sempre Visível
           </span>
         </button>
@@ -416,13 +416,13 @@ export function ConfiguracoesAdminPage() {
         <button
           type="button"
           onClick={() => setAbaAtiva("whitelabel")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-            abaAtiva === "whitelabel" ? "bg-slate-950 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+          className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
+            abaAtiva === "whitelabel" ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <Sparkles className="h-4 w-4 text-[#0088FF]" />
+          <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-[#0088FF]" />
           <span>White Label Expresso</span>
-          <span className="ml-1 rounded-full bg-primary-50 px-2 py-0.5 text-[10px] text-amber-900 font-bold">
+          <span className="ml-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs text-blue-900 font-bold">
             4 Passos (&lt;15 min)
           </span>
         </button>
@@ -430,17 +430,17 @@ export function ConfiguracoesAdminPage() {
         <button
           type="button"
           onClick={() => setAbaAtiva("avancado")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-            abaAtiva === "avancado" ? "bg-slate-950 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+          className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
+            abaAtiva === "avancado" ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
           {modoAvancadoDesbloqueado ? (
-            <Unlock className="h-4 w-4 text-emerald-400" />
+            <Unlock className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
           ) : (
-            <Lock className="h-4 w-4 text-rose-500" />
+            <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-rose-500" />
           )}
           <span>Modo Avançado</span>
-          <span className={`ml-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+          <span className={`ml-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${
             modoAvancadoDesbloqueado ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"
           }`}>
             {modoAvancadoDesbloqueado ? "Desbloqueado" : "Protegido"}
