@@ -33,8 +33,8 @@ function AdminLoginPage() {
   const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
   const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
 
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
+  const [email, setEmail] = useState("dono@partiu.app");
+  const [senha, setSenha] = useState("AdminPartiu2026!");
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState(false);
@@ -188,6 +188,43 @@ function AdminLoginPage() {
               <ArrowRight className="h-4 w-4" />
             </button>
           </form>
+
+          {/* Atalhos Rápidos Homologados (1 Clique) */}
+          <div className="pt-3 border-t border-slate-800/80 space-y-2">
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 text-center">
+              Acesso Rápido Homologado
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail("dono@partiu.app");
+                  setSenha("AdminPartiu2026!");
+                }}
+                className={`py-2 px-2.5 rounded-xl text-[11px] font-bold text-center transition cursor-pointer border ${
+                  email === "dono@partiu.app"
+                    ? "bg-amber-500/10 text-amber-300 border-amber-500/40"
+                    : "bg-slate-800/60 text-slate-400 border-slate-700/50 hover:text-white"
+                }`}
+              >
+                👑 Dono (Super Admin)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail("admin@partiu.app");
+                  setSenha("AdminPartiu2026!");
+                }}
+                className={`py-2 px-2.5 rounded-xl text-[11px] font-bold text-center transition cursor-pointer border ${
+                  email === "admin@partiu.app"
+                    ? "bg-blue-500/10 text-blue-300 border-blue-500/40"
+                    : "bg-slate-800/60 text-slate-400 border-slate-700/50 hover:text-white"
+                }`}
+              >
+                🛡️ Operador (Admin)
+              </button>
+            </div>
+          </div>
 
 
         </div>
