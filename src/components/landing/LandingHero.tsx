@@ -193,30 +193,30 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             />
           </div>
 
-          {/* Seletor (Carro & Moto) - Largo Horizontalmente, Fino na Vertical */}
+          {/* Seletor (Carro & Moto) - Largo Horizontalmente, Fino na Vertical (-20%) */}
           <div className="inline-flex items-center p-0.5 rounded-full bg-slate-100/90 border border-slate-200/80 shadow-2xs mt-1 relative z-10 gap-1">
             <button
               type="button"
               onClick={() => setVehicleMode("car")}
-              className={`h-6 px-4.5 flex items-center justify-center gap-1.5 rounded-full text-xs font-bold leading-none transition-all duration-200 cursor-pointer ${
+              className={`h-[19px] px-4.5 flex items-center justify-center gap-1.5 rounded-full text-[11px] font-bold leading-none transition-all duration-200 cursor-pointer ${
                 vehicleMode === "car"
                   ? "bg-slate-900 text-white shadow-2xs"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <Car className="w-3 h-3" />
+              <Car className="w-2.5 h-2.5" />
               <span>Carro</span>
             </button>
             <button
               type="button"
               onClick={() => setVehicleMode("moto")}
-              className={`h-6 px-4.5 flex items-center justify-center gap-1.5 rounded-full text-xs font-bold leading-none transition-all duration-200 cursor-pointer ${
+              className={`h-[19px] px-4.5 flex items-center justify-center gap-1.5 rounded-full text-[11px] font-bold leading-none transition-all duration-200 cursor-pointer ${
                 vehicleMode === "moto"
                   ? "bg-slate-900 text-white shadow-2xs"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <Bike className="w-3 h-3" />
+              <Bike className="w-2.5 h-2.5" />
               <span>Moto</span>
             </button>
           </div>
@@ -331,32 +331,32 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             </p>
           </div>
 
-          {/* Badge de Categorias Oficiais: Carro & Moto - Largo Horizontalmente, Fino na Vertical */}
-          <div className="inline-flex items-center gap-1.5 p-1 rounded-full bg-slate-100/90 border border-slate-200/80 shadow-2xs">
-            <span className="text-[11px] font-bold text-slate-500 pl-2.5 pr-0.5">Categorias:</span>
+          {/* Badge de Categorias Oficiais: Carro & Moto - Largo Horizontalmente, Fino na Vertical (-20%) */}
+          <div className="inline-flex items-center gap-1.5 p-0.5 rounded-full bg-slate-100/90 border border-slate-200/80 shadow-2xs">
+            <span className="text-[10.5px] font-bold text-slate-500 pl-2.5 pr-0.5">Categorias:</span>
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => setVehicleMode("car")}
-                className={`h-6.5 px-4 flex items-center justify-center gap-1.5 rounded-full text-xs font-bold leading-none transition-all duration-200 cursor-pointer ${
+                className={`h-5 px-4 flex items-center justify-center gap-1.5 rounded-full text-[11px] font-bold leading-none transition-all duration-200 cursor-pointer ${
                   vehicleMode === "car"
                     ? "bg-slate-900 text-white shadow-2xs"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
                 }`}
               >
-                <Car className="w-3 h-3" />
+                <Car className="w-2.5 h-2.5" />
                 <span>Carro</span>
               </button>
               <button
                 type="button"
                 onClick={() => setVehicleMode("moto")}
-                className={`h-6.5 px-4 flex items-center justify-center gap-1.5 rounded-full text-xs font-bold leading-none transition-all duration-200 cursor-pointer ${
+                className={`h-5 px-4 flex items-center justify-center gap-1.5 rounded-full text-[11px] font-bold leading-none transition-all duration-200 cursor-pointer ${
                   vehicleMode === "moto"
                     ? "bg-slate-900 text-white shadow-2xs"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
                 }`}
               >
-                <Bike className="w-3 h-3" />
+                <Bike className="w-2.5 h-2.5" />
                 <span>Moto</span>
               </button>
             </div>
