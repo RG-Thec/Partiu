@@ -21,7 +21,7 @@ END;
 $$;
 
 DROP TRIGGER IF EXISTS trg_auto_confirm_user ON auth.users;
-CREATE TRIGGER trg_auto_confirm_user
+CREATE OR REPLACE TRIGGER trg_auto_confirm_user
 BEFORE INSERT ON auth.users
 FOR EACH ROW
 EXECUTE FUNCTION public.fn_auto_confirm_user();
