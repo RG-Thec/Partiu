@@ -859,20 +859,6 @@ export function CadastroMotoristaPage() {
                       />
                     </label>
                   </div>
-
-                  {/* Selfie Oficial do Motorista com a Câmera */}
-                  <CameraPhotoCapture
-                    label="Selfie oficial do condutor"
-                    sublabel="Foto capturada para identificação e auditoria de segurança"
-                    value={fotoPerfilUrl}
-                    onChange={(capturedUrl) => {
-                      setFotoPerfilUrl(capturedUrl);
-                      if (erroValidacao?.includes("selfie") || erroValidacao?.includes("foto")) {
-                        setErroValidacao(null);
-                      }
-                    }}
-                    required
-                  />
                 </div>
 
                 <div className="pt-2 flex gap-2.5">
@@ -901,10 +887,6 @@ export function CadastroMotoristaPage() {
                         setErroValidacao(null);
                         if (!cnh) {
                           setErroValidacao("Por favor, preencha o número da CNH.");
-                          return;
-                        }
-                        if (!fotoPerfilUrl) {
-                          setErroValidacao("A selfie oficial pela câmera do celular é obrigatória.");
                           return;
                         }
                         setEtapa(4);
