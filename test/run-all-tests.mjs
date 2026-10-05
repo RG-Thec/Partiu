@@ -1,3 +1,4 @@
+process.env.NODE_ENV = "test";
 import { describe, test, testAsync, expect, getSummary, waitForAllTests } from "./test-harness.mjs";
 import {
   transitionTripState,

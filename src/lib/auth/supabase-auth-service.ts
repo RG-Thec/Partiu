@@ -836,9 +836,21 @@ export class SupabaseAuthService {
           } catch (dbErr) {
             silentCatchWarn("signUpPassenger:partiu_passageiros", dbErr);
           }
+
+          if (!data.session) {
+            try {
+              await supabase.auth.signInWithPassword({
+                email: cleanEmail,
+                password,
+              });
+            } catch (sErr) {
+              silentCatchWarn("signUpPassenger:autoSignIn", sErr);
+            }
+          }
         }
-      } catch (err) {
-        console.warn("Erro no cadastro Supabase:", err);
+      } catch (err: any) {
+        silentCatchWarn("signUpPassenger:supabase", err);
+        return { success: false, error: err?.message || "Erro ao conectar com o serviço de cadastro." };
       }
     }
 
@@ -981,6 +993,17 @@ export class SupabaseAuthService {
             });
           } catch (mErr) {
             silentCatchWarn("signUpDriver:partiu_motoristas", mErr);
+          }
+
+          if (!data.session) {
+            try {
+              await supabase.auth.signInWithPassword({
+                email: cleanEmail,
+                password,
+              });
+            } catch (sErr) {
+              silentCatchWarn("signUpDriver:autoSignIn", sErr);
+            }
           }
         }
       } catch (err: any) {

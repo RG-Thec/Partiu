@@ -7,11 +7,8 @@ import {
   DollarSign,
   Clock,
   Zap,
-  Loader2,
 } from "lucide-react";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
-import { GoogleIcon } from "@/components/common/GoogleIcon";
-import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 
 interface DriverWelcomeGateProps {
   onEnterDemo?: () => void;
@@ -27,24 +24,7 @@ export const DriverWelcomeGate: React.FC<DriverWelcomeGateProps> = () => {
     corCabecalhoFim,
   } = useBrandTheme();
 
-  const [loadingGoogle, setLoadingGoogle] = useState(false);
-
   const brandGradient = `linear-gradient(135deg, ${corCabecalhoInicio || corPrimaria || "#FF6B00"} 0%, ${corCabecalhoFim || corSecundaria || "#FFB800"} 100%)`;
-
-  const handleGoogleAuth = async () => {
-    try {
-      setLoadingGoogle(true);
-      const res = await supabaseAuthService.signInWithGoogle({
-        role: "MOTORISTA",
-        redirectUrl: "/app/motorista",
-      });
-      if (res.success && res.redirectUrl && !res.redirectUrl.startsWith("http")) {
-        void navigate({ to: res.redirectUrl as any });
-      }
-    } finally {
-      setLoadingGoogle(false);
-    }
-  };
 
   return (
     <div className="min-h-[100dvh] w-full bg-slate-50 text-slate-900 flex flex-col justify-between p-4 sm:p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] font-sans animate-in fade-in duration-300">
@@ -139,29 +119,6 @@ export const DriverWelcomeGate: React.FC<DriverWelcomeGateProps> = () => {
 
         {/* Botões de Ação Proporcionais e Responsivos */}
         <div className="space-y-2 pt-1">
-          {/* Botão Google 1-Click */}
-          <button
-            type="button"
-            onClick={handleGoogleAuth}
-            disabled={loadingGoogle}
-            className="w-full h-9 sm:h-9.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 font-semibold text-xs flex items-center justify-center gap-2 shadow-2xs active:scale-98 transition cursor-pointer disabled:opacity-60"
-          >
-            {loadingGoogle ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-600" />
-            ) : (
-              <GoogleIcon className="w-3.5 h-3.5" />
-            )}
-            <span>Entrar com o Google</span>
-          </button>
-
-          {/* Divisor Visual */}
-          <div className="relative flex items-center justify-center my-0.5">
-            <div className="border-t border-slate-200 w-full" />
-            <span className="bg-slate-50 px-2.5 text-[9.5px] text-slate-400 font-medium uppercase tracking-wider">
-              ou
-            </span>
-          </div>
-
           {/* Botão Cadastrar Veículo */}
           <Link
             to="/cadastro-motorista"

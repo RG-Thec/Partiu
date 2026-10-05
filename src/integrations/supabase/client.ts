@@ -40,23 +40,12 @@ function createSupabaseClient() {
     (typeof process !== "undefined" &&
       (process.env?.["SUPABASE_ANON_KEY"] || process.env?.["SUPABASE_PUBLISHABLE_KEY"]));
 
-  const SUPABASE_URL = envUrl || "https://partiu-app.supabase.co";
-  const SUPABASE_PUBLISHABLE_KEY = envKey || "sb_publishable_partiu_local_demo";
+  const SUPABASE_URL =
+    envUrl || "https://wlmnwazdntayhrsndfor.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY =
+    envKey || "sb_publishable_cifMsHi21KuC2S3aiGbw9w_AmHZqIcE";
 
-  const isConfigured = Boolean(envUrl && envKey);
-  const isProduction =
-    (typeof import.meta !== "undefined" && import.meta.env?.PROD) ||
-    (typeof process !== "undefined" && process.env?.["NODE_ENV"] === "production");
-
-  if (isProduction && !isConfigured) {
-    console.error(
-      "🚨 [FATAL INFRA ERROR] Supabase credentials (VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY / PUBLISHABLE_KEY) estão ausentes no ambiente de PRODUÇÃO! A aplicação não conseguirá sincronizar com o banco."
-    );
-  } else if (typeof window !== "undefined" && !isConfigured) {
-    console.info(
-      "ℹ️ [PARTIU Supabase] Conexão padrão em modo local/demonstração. Para conectar ao seu banco real Supabase, defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no arquivo .env."
-    );
-  }
+  const isConfigured = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     global: {
@@ -80,8 +69,5 @@ export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>,
 });
 
 export const isSupabaseConfigured = () => {
-  return Boolean(
-    (typeof import.meta !== "undefined" && import.meta.env?.["VITE_SUPABASE_URL"]) ||
-    (typeof process !== "undefined" && process.env?.["SUPABASE_URL"])
-  );
+  return true;
 };

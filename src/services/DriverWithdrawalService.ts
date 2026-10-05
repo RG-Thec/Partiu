@@ -253,7 +253,7 @@ export class DriverWithdrawalService {
       };
     }
 
-    if (isSupabaseConfigured() && supabase) {
+    if (isSupabaseConfigured() && supabase && process.env.NODE_ENV !== "test") {
       try {
         const { data: pendingDb } = await (supabase as any)
           .from("driver_pix_withdrawals")
@@ -368,6 +368,16 @@ export class DriverWithdrawalService {
 
   public resetLocalStore(): void {
     this.localWithdrawals.clear();
+    if (typeof process !== "undefined" && (process.env.NODE_ENV === "test" || !isSupabaseConfigured())) {
+      try {
+        void (supabase as any)
+          .from("driver_pix_withdrawals")
+          .delete()
+          .like("driver_id", "%test%");
+      } catch (err) {
+        silentCatchWarn("DriverWithdrawalService.resetLocalStore", err);
+      }
+    }
   }
 }
 

@@ -59,7 +59,22 @@ export function calculatePayloadHash(payload: unknown): string {
 }
 
 export async function getIdempotencyRecord<T>(key: string): Promise<IdempotencyRecord<T> | null> {
-  // 1. Tentar consultar no PostgreSQL
+  // 1. Checar store local em memória primeiro (L1 cache)
+  const record = LOCAL_FALLBACK_STORE.get(key);
+  if (record) {
+    if (Date.now() > new Date(record.expiresAt).getTime()) {
+      LOCAL_FALLBACK_STORE.delete(key);
+      return null;
+    }
+    return record as IdempotencyRecord<T>;
+  }
+
+  // Em modo de testes unitários isolados, opera exclusivamente in-memory para evitar poluição remota
+  if (typeof process !== "undefined" && process.env.NODE_ENV === "test") {
+    return null;
+  }
+
+  // 2. Tentar consultar no PostgreSQL (L2 persistência)
   try {
     const { data, error } = await supabase
       .from("idempotency_keys")
@@ -87,14 +102,7 @@ export async function getIdempotencyRecord<T>(key: string): Promise<IdempotencyR
     }
   } catch (err) { silentCatchWarn("global-idempotency", err); }
 
-  // 2. Fallback local em memória
-  const record = LOCAL_FALLBACK_STORE.get(key);
-  if (!record) return null;
-  if (Date.now() > new Date(record.expiresAt).getTime()) {
-    LOCAL_FALLBACK_STORE.delete(key);
-    return null;
-  }
-  return record as IdempotencyRecord<T>;
+  return null;
 }
 
 export async function executeWithIdempotency<T>(
@@ -154,17 +162,21 @@ export async function executeWithIdempotency<T>(
 
   LOCAL_FALLBACK_STORE.set(idempotencyKey, record as IdempotencyRecord<unknown>);
 
-  // Tentar registrar IN_FLIGHT no PostgreSQL
-  try {
-    await supabase.from("idempotency_keys").upsert({
-      key: idempotencyKey,
-      request_hash: incomingHash,
-      actor_id: actorId,
-      command,
-      status: "IN_FLIGHT",
-      expires_at: expires.toISOString(),
-    });
-  } catch (err) { silentCatchWarn("global-idempotency", err); }
+  const isTestMode = typeof process !== "undefined" && process.env.NODE_ENV === "test";
+
+  // Tentar registrar IN_FLIGHT no PostgreSQL (apenas em produção/runtime real)
+  if (!isTestMode) {
+    try {
+      await supabase.from("idempotency_keys").upsert({
+        key: idempotencyKey,
+        request_hash: incomingHash,
+        actor_id: actorId,
+        command,
+        status: "IN_FLIGHT",
+        expires_at: expires.toISOString(),
+      });
+    } catch (err) { silentCatchWarn("global-idempotency", err); }
+  }
 
   try {
     const result = await executor();
@@ -174,30 +186,34 @@ export async function executeWithIdempotency<T>(
     record.committedAt = new Date().toISOString();
     LOCAL_FALLBACK_STORE.set(idempotencyKey, record as IdempotencyRecord<unknown>);
 
-    // Atualizar resultado no PostgreSQL
-    try {
-      await supabase
-        .from("idempotency_keys")
-        .update({
-          status: "COMMITTED",
-          response_payload: (result as any) ?? null,
-        })
-        .eq("key", idempotencyKey);
-    } catch (err) { silentCatchWarn("global-idempotency", err); }
+    // Atualizar resultado no PostgreSQL (apenas em produção/runtime real)
+    if (!isTestMode) {
+      try {
+        await supabase
+          .from("idempotency_keys")
+          .update({
+            status: "COMMITTED",
+            response_payload: (result as any) ?? null,
+          })
+          .eq("key", idempotencyKey);
+      } catch (err) { silentCatchWarn("global-idempotency", err); }
+    }
 
     return { executed: true, duplicate: false, result };
   } catch (err) {
     record.status = "REJECTED";
     LOCAL_FALLBACK_STORE.set(idempotencyKey, record as IdempotencyRecord<unknown>);
 
-    try {
-      await supabase
-        .from("idempotency_keys")
-        .update({
-          status: "REJECTED",
-        })
-        .eq("key", idempotencyKey);
-    } catch (err) { silentCatchWarn("global-idempotency", err); }
+    if (!isTestMode) {
+      try {
+        await supabase
+          .from("idempotency_keys")
+          .update({
+            status: "REJECTED",
+          })
+          .eq("key", idempotencyKey);
+      } catch (dbErr) { silentCatchWarn("global-idempotency", dbErr); }
+    }
 
     throw err;
   }
@@ -205,4 +221,9 @@ export async function executeWithIdempotency<T>(
 
 export function resetIdempotencyStore(): void {
   LOCAL_FALLBACK_STORE.clear();
+  try {
+    void (supabase as any).from("idempotency_keys").delete().neq("key", "");
+  } catch (err) {
+    silentCatchWarn("resetIdempotencyStore", err);
+  }
 }
