@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
+  Clock,
   Copy,
   CreditCard,
   DollarSign,
@@ -233,6 +234,14 @@ export function ConfiguracoesAdminPage() {
   const [chavePixPadrao, setChavePixPadrao] = useState("financeiro@partiumobilidade.com.br");
   const [sucessoEssencial, setSucessoEssencial] = useState(false);
 
+  // Parâmetros de Despacho & Tarifação da Plataforma (Paridade com Painel Demo)
+  const [taxaAppModo, setTaxaAppModo] = useState<"percentual" | "fixo">("percentual");
+  const [taxaAppPercentual, setTaxaAppPercentual] = useState("10.0");
+  const [taxaAppFixa, setTaxaAppFixa] = useState("2.50");
+  const [raioInicialKm, setRaioInicialKm] = useState("3.0");
+  const [raioIncrementoKmPorMin, setRaioIncrementoKmPorMin] = useState("1.5");
+  const [tempoLimiteBuscaMin, setTempoLimiteBuscaMin] = useState("5");
+
   // 2. MODO AVANÇADO (PROTEGIDO POR CONFIRMAÇÃO / DESBLOQUEIO)
   const [modoAvancadoDesbloqueado, setModoAvancadoDesbloqueado] = useState(false);
   const [modalDesbloquearAberto, setModalDesbloquearAberto] = useState(false);
@@ -265,6 +274,24 @@ export function ConfiguracoesAdminPage() {
     if (s.mercadopago_public_key) setMercadopagoPublicKey(s.mercadopago_public_key);
     if (s.mercadopago_webhook_secret) setMercadopagoWebhookSecret(s.mercadopago_webhook_secret);
     if (s.mercadopago_sandbox !== undefined) setMercadopagoSandbox(s.mercadopago_sandbox);
+
+    try {
+      const cfg = getSuperAdminConfig();
+      if (cfg.tarifas?.raioBuscaKm) setRaioInicialKm(String(cfg.tarifas.raioBuscaKm));
+      if (cfg.tarifas?.partiuPop) {
+        if (cfg.tarifas.partiuPop.tarifaBase) setTarifaBaseEssencial(String(cfg.tarifas.partiuPop.tarifaBase));
+        if (cfg.tarifas.partiuPop.valorKm) setValorKmEssencial(String(cfg.tarifas.partiuPop.valorKm));
+        if (cfg.tarifas.partiuPop.valorMinuto) setValorMinutoEssencial(String(cfg.tarifas.partiuPop.valorMinuto));
+        if (cfg.tarifas.partiuPop.tarifaMinima) setTarifaMinimaEssencial(String(cfg.tarifas.partiuPop.tarifaMinima));
+      }
+      if (cfg.estrategicos?.taxaCooperativaPercent) {
+        setComissaoFranquia(String(cfg.estrategicos.taxaCooperativaPercent));
+        setTaxaAppPercentual(String(cfg.estrategicos.taxaCooperativaPercent));
+      }
+      if (cfg.pix?.chavePixManual) {
+        setChavePixPadrao(cfg.pix.chavePixManual);
+      }
+    } catch {}
   }, []);
 
   async function handleSalvarTecnico(e?: React.FormEvent) {
@@ -342,6 +369,25 @@ export function ConfiguracoesAdminPage() {
 
   function handleSalvarEssencial(e: React.FormEvent) {
     e.preventDefault();
+    try {
+      const superAdminConfig = getSuperAdminConfig();
+      if (superAdminConfig.tarifas) {
+        superAdminConfig.tarifas.raioBuscaKm = Number(raioInicialKm) || 3;
+        if (superAdminConfig.tarifas.partiuPop) {
+          superAdminConfig.tarifas.partiuPop.tarifaBase = Number(tarifaBaseEssencial) || 5.5;
+          superAdminConfig.tarifas.partiuPop.valorKm = Number(valorKmEssencial) || 2.1;
+          superAdminConfig.tarifas.partiuPop.valorMinuto = Number(valorMinutoEssencial) || 0.35;
+          superAdminConfig.tarifas.partiuPop.tarifaMinima = Number(tarifaMinimaEssencial) || 8.0;
+        }
+      }
+      if (superAdminConfig.estrategicos) {
+        superAdminConfig.estrategicos.taxaCooperativaPercent = Number(comissaoFranquia) || 12.5;
+      }
+      if (superAdminConfig.pix) {
+        superAdminConfig.pix.chavePixManual = chavePixPadrao;
+      }
+      saveSuperAdminConfig(superAdminConfig);
+    } catch {}
     setSucessoEssencial(true);
     setTimeout(() => setSucessoEssencial(false), 2500);
   }
@@ -719,6 +765,247 @@ export function ConfiguracoesAdminPage() {
                       <span>Ícone da aba do navegador atualizado com sucesso!</span>
                     </div>
                   )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card de Tarifação Base de Mobilidade (PARTIU Pop) */}
+          <div className="bg-white p-6 sm:p-10 rounded-3xl border border-slate-200/90 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-5">
+              <div>
+                <div className="flex items-center gap-3">
+                  <DollarSign className="h-7 w-7 text-emerald-600" />
+                  <h3 className="text-xl sm:text-2xl font-black text-slate-900">
+                    Tarifação Base de Corridas (PARTIU Pop)
+                  </h3>
+                </div>
+                <p className="text-sm sm:text-base text-slate-600 font-medium mt-1">
+                  Composição de valores por quilometragem e tempo para cálculo de estimativa e encerramento.
+                </p>
+              </div>
+              <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-800 text-xs sm:text-sm font-black border border-emerald-200 self-start sm:self-auto">
+                <Zap className="h-4 w-4 text-emerald-600" />
+                Cálculo em Tempo Real
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="space-y-2.5">
+                <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+                  Tarifa Base / Bandeirada
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-bold text-slate-400">R$</span>
+                  <input
+                    type="number"
+                    step="0.10"
+                    value={tarifaBaseEssencial}
+                    onChange={(e) => setTarifaBaseEssencial(e.target.value)}
+                    className="w-full h-14 sm:h-16 pl-12 pr-4 rounded-2xl border border-slate-300 text-base sm:text-lg font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
+                  />
+                </div>
+                <p className="text-xs text-slate-500 font-medium">Valor fixo de partida.</p>
+              </div>
+
+              <div className="space-y-2.5">
+                <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+                  Valor por KM Rodado
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-bold text-slate-400">R$</span>
+                  <input
+                    type="number"
+                    step="0.10"
+                    value={valorKmEssencial}
+                    onChange={(e) => setValorKmEssencial(e.target.value)}
+                    className="w-full h-14 sm:h-16 pl-12 pr-4 rounded-2xl border border-slate-300 text-base sm:text-lg font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
+                  />
+                </div>
+                <p className="text-xs text-slate-500 font-medium">Multiplicado pelos km totais.</p>
+              </div>
+
+              <div className="space-y-2.5">
+                <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+                  Valor por Minuto
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-bold text-slate-400">R$</span>
+                  <input
+                    type="number"
+                    step="0.05"
+                    value={valorMinutoEssencial}
+                    onChange={(e) => setValorMinutoEssencial(e.target.value)}
+                    className="w-full h-14 sm:h-16 pl-12 pr-4 rounded-2xl border border-slate-300 text-base sm:text-lg font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
+                  />
+                </div>
+                <p className="text-xs text-slate-500 font-medium">Multiplicado pelo tempo em trânsito.</p>
+              </div>
+
+              <div className="space-y-2.5">
+                <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+                  Tarifa Mínima Garantida (Piso)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-bold text-slate-400">R$</span>
+                  <input
+                    type="number"
+                    step="0.50"
+                    value={tarifaMinimaEssencial}
+                    onChange={(e) => setTarifaMinimaEssencial(e.target.value)}
+                    className="w-full h-14 sm:h-16 pl-12 pr-4 rounded-2xl border border-slate-300 text-base sm:text-lg font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
+                  />
+                </div>
+                <p className="text-xs text-slate-500 font-medium">Valor mínimo cobrado por corrida.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Card de Parâmetros de Despacho & Comissão da Plataforma */}
+          <div className="bg-white p-6 sm:p-10 rounded-3xl border border-slate-200/90 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-5">
+              <div>
+                <div className="flex items-center gap-3">
+                  <Radio className="h-7 w-7 text-[#0088FF]" />
+                  <h3 className="text-xl sm:text-2xl font-black text-slate-900">
+                    Parâmetros de Despacho &amp; Comissão da Plataforma
+                  </h3>
+                </div>
+                <p className="text-sm sm:text-base text-slate-600 font-medium mt-1">
+                  Configurações de retenção da plataforma e algoritmos progressivos de despacho de motoristas.
+                </p>
+              </div>
+              <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 text-blue-900 text-xs sm:text-sm font-black border border-blue-200 self-start sm:self-auto">
+                <Radio className="h-4 w-4 text-[#0088FF]" />
+                Algoritmo Inteligente
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Modo da Taxa da Plataforma */}
+              <div className="space-y-2.5">
+                <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+                  Modo da Taxa App
+                </label>
+                <div className="flex rounded-2xl bg-slate-100 p-1 border border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => setTaxaAppModo("percentual")}
+                    className={`flex-1 py-3 px-3 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
+                      taxaAppModo === "percentual"
+                        ? "bg-slate-950 text-white shadow-sm"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    % Percentual
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTaxaAppModo("fixo")}
+                    className={`flex-1 py-3 px-3 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
+                      taxaAppModo === "fixo"
+                        ? "bg-slate-950 text-white shadow-sm"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    R$ Fixo
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500 font-medium">Formato da taxa retida pela plataforma.</p>
+              </div>
+
+              {/* Valor da Taxa App */}
+              <div className="space-y-2.5">
+                <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+                  {taxaAppModo === "percentual" ? "Taxa Plataforma (%)" : "Taxa Fixa por Corrida (R$)"}
+                </label>
+                <div className="relative">
+                  {taxaAppModo === "fixo" && (
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-bold text-slate-400">R$</span>
+                  )}
+                  <input
+                    type="number"
+                    step={taxaAppModo === "percentual" ? "0.5" : "0.50"}
+                    value={taxaAppModo === "percentual" ? taxaAppPercentual : taxaAppFixa}
+                    onChange={(e) => {
+                      if (taxaAppModo === "percentual") {
+                        setTaxaAppPercentual(e.target.value);
+                        setComissaoFranquia(e.target.value);
+                      } else {
+                        setTaxaAppFixa(e.target.value);
+                      }
+                    }}
+                    className={`w-full h-14 sm:h-16 ${taxaAppModo === "fixo" ? "pl-12 pr-4" : "px-5 pr-12"} rounded-2xl border border-slate-300 text-base sm:text-lg font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]`}
+                  />
+                  {taxaAppModo === "percentual" && (
+                    <span className="absolute right-5 top-1/2 -translate-y-1/2 text-base sm:text-lg font-bold text-slate-400">%</span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500 font-medium">
+                  {taxaAppModo === "percentual" ? "Ex: 10% retido do subtotal" : "Ex: R$ 2,50 fixos por corrida"}
+                </p>
+              </div>
+
+              {/* Raio Inicial */}
+              <div className="space-y-2.5">
+                <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+                  Raio Inicial de Busca
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="0.5"
+                    value={raioInicialKm}
+                    onChange={(e) => setRaioInicialKm(e.target.value)}
+                    className="w-full h-14 sm:h-16 px-5 pr-14 rounded-2xl border border-slate-300 text-base sm:text-lg font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
+                  />
+                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-bold text-slate-400">km</span>
+                </div>
+                <p className="text-xs text-slate-500 font-medium">Distância inicial dos motoristas mais próximos.</p>
+              </div>
+
+              {/* Expansão do Raio & Limite */}
+              <div className="space-y-2.5">
+                <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+                  Expansão do Raio / Minuto
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="0.5"
+                    value={raioIncrementoKmPorMin}
+                    onChange={(e) => setRaioIncrementoKmPorMin(e.target.value)}
+                    className="w-full h-14 sm:h-16 px-5 pr-18 rounded-2xl border border-slate-300 text-base sm:text-lg font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-bold text-slate-400">km/min</span>
+                </div>
+                <p className="text-xs text-slate-500 font-medium">Aumenta o raio a cada minuto de busca.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+              <div className="space-y-2.5">
+                <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+                  Tempo Limite Máximo de Busca
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={tempoLimiteBuscaMin}
+                    onChange={(e) => setTempoLimiteBuscaMin(e.target.value)}
+                    className="w-full h-14 sm:h-16 px-5 pr-16 rounded-2xl border border-slate-300 text-base sm:text-lg font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
+                  />
+                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-bold text-slate-400">min</span>
+                </div>
+                <p className="text-xs text-slate-500 font-medium">Tempo até declarar sem motoristas disponíveis.</p>
+              </div>
+
+              <div className="space-y-2.5 flex flex-col justify-end">
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-600 font-medium flex items-center gap-3">
+                  <Clock className="h-6 w-6 text-[#0088FF] shrink-0" />
+                  <span>
+                    O algoritmo expande progressivamente o despacho a partir de <strong>{raioInicialKm} km</strong>, aumentando <strong>+{raioIncrementoKmPorMin} km</strong> por minuto até o limite de <strong>{tempoLimiteBuscaMin} min</strong>.
+                  </span>
                 </div>
               </div>
             </div>

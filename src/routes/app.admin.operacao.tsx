@@ -21,7 +21,11 @@ import {
   Radio,
   RefreshCw,
   Search,
-  Send,
+  DollarSign,
+  FileSpreadsheet,
+  FileText,
+  Printer,
+  Receipt,
   ShieldAlert,
   ShieldCheck,
   Truck,
@@ -40,6 +44,7 @@ import {
   type PartiuRideRecord,
 } from "@/lib/partiu-db";
 import { UniversalMapView } from "@/components/maps/UniversalMapView";
+import { exportarParaCSV } from "@/lib/export-csv";
 
 export const Route = createFileRoute("/app/admin/operacao")({
   head: () => ({
@@ -474,26 +479,58 @@ export function CentralOperacaoAdminPage() {
       {/* 3. ABA 1: LISTAGEM DE CORRIDAS (CARDS NO MOBILE / TABELA NO DESKTOP) */}
       {abaAtiva === "corridas" && (
         <div className="space-y-4">
-          {/* Filtros Rápidos de Corrida */}
-          <div className="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar">
-            <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider shrink-0">Filtrar:</span>
-            {(["TODAS", "EM_ANDAMENTO", "FINALIZADAS", "CANCELADAS"] as FiltroStatusCorrida[]).map((f) => (
-              <button
-                key={f}
-                type="button"
-                onClick={() => setFiltroCorrida(f)}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer shrink-0 ${
-                  filtroCorrida === f
-                    ? "bg-slate-900 text-white shadow-sm"
-                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                {f === "TODAS" && "Todas"}
-                {f === "EM_ANDAMENTO" && "🟢 Em Andamento"}
-                {f === "FINALIZADAS" && "🏁 Finalizadas"}
-                {f === "CANCELADAS" && "❌ Canceladas"}
-              </button>
-            ))}
+          {/* Barra de Filtros e Exportação CSV (Inspirado no Painel de Referência) */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar">
+              <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider shrink-0">Filtrar:</span>
+              {(["TODAS", "EM_ANDAMENTO", "FINALIZADAS", "CANCELADAS"] as FiltroStatusCorrida[]).map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setFiltroCorrida(f)}
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer shrink-0 ${
+                    filtroCorrida === f
+                      ? "bg-slate-900 text-white shadow-sm"
+                      : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                  }`}
+                >
+                  {f === "TODAS" && "Todas"}
+                  {f === "EM_ANDAMENTO" && "🟢 Em Andamento"}
+                  {f === "FINALIZADAS" && "🏁 Finalizadas"}
+                  {f === "CANCELADAS" && "❌ Canceladas"}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                exportarParaCSV(
+                  "corridas_operacao",
+                  ["ID", "Passageiro", "Telefone Passageiro", "Motorista", "Telefone Motorista", "Modal", "Cidade", "Origem", "Destino", "Status", "Valor R$", "Duração Min", "Horário"],
+                  corridasFiltradas.map((c) => [
+                    c.id,
+                    c.passageiroNome,
+                    c.passageiroTelefone,
+                    c.motoristaNome,
+                    c.motoristaTelefone,
+                    c.modal,
+                    c.cidade,
+                    c.origem,
+                    c.destino,
+                    c.status,
+                    c.valor.toFixed(2),
+                    c.duracaoEstimadaMin,
+                    c.iniciadaEm,
+                  ])
+                );
+              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs sm:text-sm font-bold border border-emerald-300 transition-all cursor-pointer shadow-xs shrink-0"
+              title="Baixar planilha de corridas"
+            >
+              <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+              <span>Exportar CSV</span>
+            </button>
           </div>
 
           {/* Versão Mobile (Cards Empilhados) */}
@@ -656,26 +693,60 @@ export function CentralOperacaoAdminPage() {
       {/* 4. ABA 2: LISTAGEM DE ENTREGAS COM DUPLO PIN (CARDS NO MOBILE / TABELA NO DESKTOP) */}
       {abaAtiva === "entregas" && (
         <div className="space-y-4">
-          {/* Filtros Rápidos de Entrega */}
-          <div className="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar">
-            <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider shrink-0">Filtrar:</span>
-            {(["TODAS", "EM_ANDAMENTO", "CONCLUIDAS", "CANCELADAS"] as FiltroStatusEntrega[]).map((f) => (
-              <button
-                key={f}
-                type="button"
-                onClick={() => setFiltroEntrega(f)}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer shrink-0 ${
-                  filtroEntrega === f
-                    ? "bg-slate-900 text-white shadow-sm"
-                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-                }`}
-              >
-                {f === "TODAS" && "Todas"}
-                {f === "EM_ANDAMENTO" && "📦 Em Andamento"}
-                {f === "CONCLUIDAS" && "✅ Concluídas"}
-                {f === "CANCELADAS" && "❌ Canceladas"}
-              </button>
-            ))}
+          {/* Filtros Rápidos de Entrega e Exportação CSV */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar">
+              <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider shrink-0">Filtrar:</span>
+              {(["TODAS", "EM_ANDAMENTO", "CONCLUIDAS", "CANCELADAS"] as FiltroStatusEntrega[]).map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setFiltroEntrega(f)}
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer shrink-0 ${
+                    filtroEntrega === f
+                      ? "bg-slate-900 text-white shadow-sm"
+                      : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                  }`}
+                >
+                  {f === "TODAS" && "Todas"}
+                  {f === "EM_ANDAMENTO" && "📦 Em Andamento"}
+                  {f === "CONCLUIDAS" && "✅ Concluídas"}
+                  {f === "CANCELADAS" && "❌ Canceladas"}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                exportarParaCSV(
+                  "entregas_flash",
+                  ["ID", "Remetente", "Telefone Remetente", "Destinatário", "Telefone Destinatário", "Entregador", "Modal", "Cidade", "Origem", "Destino", "Status", "Valor R$", "PIN Coleta", "PIN Entrega", "Horário"],
+                  entregasFiltradas.map((e) => [
+                    e.id,
+                    e.remetenteNome,
+                    e.remetenteTelefone,
+                    e.destinatarioNome,
+                    e.destinatarioTelefone,
+                    e.entregadorNome,
+                    e.modal,
+                    e.cidade,
+                    e.origem,
+                    e.destino,
+                    e.status,
+                    e.valor.toFixed(2),
+                    e.pickupPin,
+                    e.dropoffPin,
+                    e.solicitadaEm,
+                  ])
+                );
+              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs sm:text-sm font-bold border border-emerald-300 transition-all cursor-pointer shadow-xs shrink-0"
+              title="Baixar planilha de entregas"
+            >
+              <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+              <span>Exportar CSV</span>
+            </button>
           </div>
 
           {/* Versão Mobile (Cards Empilhados para Entregas) */}
@@ -949,63 +1020,248 @@ export function CentralOperacaoAdminPage() {
         </div>
       )}
 
-      {/* MODAL DETALHE DA CORRIDA */}
-      {corridaDetalhe && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <div className="flex items-center gap-2">
-                <Car className="h-5 w-5 text-primary-600" />
-                <h3 className="text-base font-black text-slate-900">Detalhes da Corrida ({corridaDetalhe.id})</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setCorridaDetalhe(null)}
-                className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-slate-100 text-slate-500"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+      {/* MODAL DETALHE DA CORRIDA (RAIO-X COMPLETO - INSPIRADO NO PAINEL DE REFERÊNCIA) */}
+      {corridaDetalhe && (() => {
+        const isCarro = corridaDetalhe.modal === "CARRO";
+        const tarifaBase = isCarro ? 5.00 : 4.00;
+        const taxaKm = isCarro ? 2.00 : 1.20;
+        const taxaMin = isCarro ? 0.30 : 0.20;
+        const distanciaKm = Math.max(1.2, Math.round((corridaDetalhe.duracaoEstimadaMin * 0.45) * 10) / 10);
+        const tempoMin = corridaDetalhe.duracaoEstimadaMin;
+        const valorKm = Math.round(distanciaKm * taxaKm * 100) / 100;
+        const valorTempo = Math.round(tempoMin * taxaMin * 100) / 100;
+        const subtotal = Math.round((tarifaBase + valorKm + valorTempo) * 100) / 100;
+        const precoFinal = corridaDetalhe.valor > 0 ? corridaDetalhe.valor : subtotal;
+        const taxaAppValor = Math.round(precoFinal * 0.10 * 100) / 100;
+        const liquidoMotorista = Math.round((precoFinal - taxaAppValor) * 100) / 100;
 
-            <div className="space-y-3 text-xs">
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
-                <p className="font-bold text-slate-700">Origem:</p>
-                <p className="text-slate-900">{corridaDetalhe.origem}</p>
-                <p className="font-bold text-slate-700 pt-1">Destino:</p>
-                <p className="text-slate-900">{corridaDetalhe.destino}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                  <span className="text-slate-500 block">Passageiro</span>
-                  <p className="font-bold text-slate-900">{corridaDetalhe.passageiroNome}</p>
-                  <p className="text-slate-600">{corridaDetalhe.passageiroTelefone}</p>
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 sm:p-6 backdrop-blur-xs overflow-y-auto">
+            <div className="w-full max-w-4xl rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-auto max-h-[92vh]">
+              {/* Header do Modal */}
+              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4.5 bg-slate-50/80 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className={`h-11 w-11 rounded-2xl flex items-center justify-center font-black ${
+                    isCarro ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"
+                  }`}>
+                    {isCarro ? <Car className="h-6 w-6 stroke-[2.5]" /> : <Zap className="h-6 w-6 stroke-[2.5]" />}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2.5">
+                      <h3 className="text-lg sm:text-xl font-black text-slate-900">
+                        Corrida #{corridaDetalhe.id}
+                      </h3>
+                      <span className={`px-3 py-0.5 rounded-full text-xs font-black uppercase ${
+                        corridaDetalhe.status === "EM_ANDAMENTO"
+                          ? "bg-emerald-100 text-emerald-800 border border-emerald-300 animate-pulse"
+                          : corridaDetalhe.status === "FINALIZADA"
+                          ? "bg-slate-100 text-slate-700"
+                          : corridaDetalhe.status === "CANCELADA"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-amber-100 text-amber-800"
+                      }`}>
+                        {corridaDetalhe.status.replace("_", " ")}
+                      </span>
+                    </div>
+                    <span className="text-xs text-slate-500 font-medium">{corridaDetalhe.cidade} • Solicitada às {corridaDetalhe.iniciadaEm}</span>
+                  </div>
                 </div>
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                  <span className="text-slate-500 block">Motorista</span>
-                  <p className="font-bold text-slate-900">{corridaDetalhe.motoristaNome}</p>
-                  <p className="text-slate-600">{corridaDetalhe.motoristaTelefone}</p>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="h-10 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                    title="Imprimir Comprovante"
+                  >
+                    <Printer className="h-4 w-4" />
+                    <span className="hidden sm:inline">Recibo</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCorridaDetalhe(null)}
+                    className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-200 text-slate-500 transition-all cursor-pointer"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-3 rounded-xl bg-primary-50 border border-amber-200">
-                <span className="font-bold text-amber-900">Valor Total da Corrida:</span>
-                <span className="text-base font-black text-amber-950">
-                  R$ {corridaDetalhe.valor.toFixed(2).replace(".", ",")}
-                </span>
+              {/* Corpo em 2 Colunas */}
+              <div className="p-6 overflow-y-auto space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  {/* Coluna Esquerda: Trajeto, Passageiro, Motorista (7 colunas) */}
+                  <div className="lg:col-span-7 space-y-4">
+                    {/* Trajeto Completo */}
+                    <div className="p-4.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                          <MapPin className="h-4 w-4 text-emerald-600" /> Itinerário de Corrida
+                        </span>
+                        <span className="text-xs font-bold text-slate-600 font-mono">
+                          {distanciaKm} km • ~{tempoMin} min
+                        </span>
+                      </div>
+
+                      <div className="space-y-2.5 text-xs sm:text-sm">
+                        <div className="flex items-start gap-2.5">
+                          <span className="h-3 w-3 rounded-full bg-emerald-500 mt-1 shrink-0" />
+                          <div>
+                            <span className="text-[11px] font-bold text-slate-400 uppercase block">Ponto de Origem</span>
+                            <p className="font-bold text-slate-900 leading-snug">{corridaDetalhe.origem}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-2.5">
+                          <span className="h-3 w-3 rounded-full bg-red-500 mt-1 shrink-0" />
+                          <div>
+                            <span className="text-[11px] font-bold text-slate-400 uppercase block">Ponto de Destino</span>
+                            <p className="font-bold text-slate-900 leading-snug">{corridaDetalhe.destino}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Cards dos Envolvidos */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      {/* Passageiro */}
+                      <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2.5 shadow-xs">
+                        <div className="flex items-center gap-3">
+                          <div className="h-11 w-11 rounded-2xl bg-primary-50 text-amber-800 flex items-center justify-center font-black shrink-0">
+                            <User className="h-5 w-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Passageiro</span>
+                            <p className="font-black text-slate-900 text-sm truncate">{corridaDetalhe.passageiroNome}</p>
+                            <span className="text-xs text-slate-500">{corridaDetalhe.passageiroTelefone}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                          <a
+                            href={`tel:${corridaDetalhe.passageiroTelefone.replace(/\D/g, "")}`}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all"
+                          >
+                            <Phone className="h-3.5 w-3.5" /> Ligar
+                          </a>
+                          <a
+                            href={`https://wa.me/55${corridaDetalhe.passageiroTelefone.replace(/\D/g, "")}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-all border border-emerald-200"
+                          >
+                            <MessageSquare className="h-3.5 w-3.5 text-emerald-600" /> WhatsApp
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Motorista */}
+                      <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2.5 shadow-xs">
+                        <div className="flex items-center gap-3">
+                          <div className="h-11 w-11 rounded-2xl bg-blue-50 text-blue-800 flex items-center justify-center font-black shrink-0">
+                            {isCarro ? <Car className="h-5 w-5" /> : <Zap className="h-5 w-5" />}
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Motorista • {corridaDetalhe.modal}</span>
+                            <p className="font-black text-slate-900 text-sm truncate">{corridaDetalhe.motoristaNome}</p>
+                            <span className="text-xs text-slate-500">{corridaDetalhe.motoristaTelefone}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                          <a
+                            href={`tel:${corridaDetalhe.motoristaTelefone.replace(/\D/g, "")}`}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all"
+                          >
+                            <Phone className="h-3.5 w-3.5" /> Ligar
+                          </a>
+                          <a
+                            href={`https://wa.me/55${corridaDetalhe.motoristaTelefone.replace(/\D/g, "")}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-all border border-emerald-200"
+                          >
+                            <MessageSquare className="h-3.5 w-3.5 text-emerald-600" /> WhatsApp
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Coluna Direita: Resumo Financeiro / Raio-X Contábil (5 colunas) */}
+                  <div className="lg:col-span-5 space-y-4">
+                    <div className="p-5 rounded-2xl bg-slate-950 text-white border border-slate-800 space-y-3.5 shadow-md">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                        <span className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                          <Receipt className="h-4 w-4 text-amber-400" /> Resumo Financeiro
+                        </span>
+                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-300">
+                          {isCarro ? "Carro Popular" : "Moto Flash"}
+                        </span>
+                      </div>
+
+                      <div className="space-y-2 text-xs sm:text-sm font-medium text-slate-300">
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Tarifa Base:</span>
+                          <span className="font-mono text-white">R$ {tarifaBase.toFixed(2).replace(".", ",")}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Distância ({distanciaKm} km × R$ {taxaKm.toFixed(2)}):</span>
+                          <span className="font-mono text-white">R$ {valorKm.toFixed(2).replace(".", ",")}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Tempo ({tempoMin} min × R$ {taxaMin.toFixed(2)}):</span>
+                          <span className="font-mono text-white">R$ {valorTempo.toFixed(2).replace(".", ",")}</span>
+                        </div>
+                        <div className="flex justify-between border-t border-slate-800/80 pt-1.5">
+                          <span className="text-slate-400">Subtotal Operacional:</span>
+                          <span className="font-mono font-bold text-white">R$ {subtotal.toFixed(2).replace(".", ",")}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Paradas Extras:</span>
+                          <span className="font-mono text-white">R$ 0,00</span>
+                        </div>
+
+                        <div className="border-t border-slate-800 pt-2.5 flex items-center justify-between">
+                          <span className="text-sm font-black text-white">Preço Final:</span>
+                          <span className="text-lg font-black text-amber-400 font-mono">
+                            R$ {precoFinal.toFixed(2).replace(".", ",")}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-slate-900 border border-slate-800/80 space-y-1.5 text-xs">
+                        <div className="flex justify-between text-slate-400">
+                          <span>Taxa Plataforma (10%):</span>
+                          <span className="font-mono text-emerald-400 font-bold">R$ {taxaAppValor.toFixed(2).replace(".", ",")}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-200 font-bold border-t border-slate-800 pt-1">
+                          <span>Líquido do Motorista:</span>
+                          <span className="font-mono text-white font-black text-sm">R$ {liquidoMotorista.toFixed(2).replace(".", ",")}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
+                        <span>Forma de Pagamento:</span>
+                        <span className="font-bold text-white">PIX / Dinheiro</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Rodapé do Modal */}
+              <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setCorridaDetalhe(null)}
+                  className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm cursor-pointer shadow-sm transition-all"
+                >
+                  Fechar Detalhes
+                </button>
               </div>
             </div>
-
-            <button
-              type="button"
-              onClick={() => setCorridaDetalhe(null)}
-              className="w-full h-11 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition-all"
-            >
-              Fechar Detalhes
-            </button>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* MODAL DETALHE DO TICKET DE SUPORTE */}
       {ticketDetalhe && (

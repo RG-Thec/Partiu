@@ -971,4 +971,45 @@ input:-webkit-autofill:focus {
   padding-top: max(16px, env(safe-area-inset-top, 16px));
 }
 
+/* ========================================================================= */
+/* ADMIN PRINT REPORTING STYLES (@media print)                              */
+/* ========================================================================= */
+@media print {
+  aside,
+  header,
+  .no-print,
+  button:not(.allow-print),
+  input,
+  select,
+  .btn-no-print {
+    display: none !important;
+  }
+
+  body,
+  .admin-scope {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 12pt !important;
+  }
+
+  .main-content,
+  main {
+    margin-left: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  th,
+  td {
+    border: 1px solid #e2e8f0 !important;
+    padding: 6px 10px !important;
+  }
+}
+
+
 
