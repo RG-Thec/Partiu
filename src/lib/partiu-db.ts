@@ -91,23 +91,33 @@ export function usePartiuRidesRealtime() {
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
 
-    const channel = supabase
-      .channel("admin_rides_live_feed")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "rides",
-        },
-        () => {
-          void qc.invalidateQueries({ queryKey: CHAVES_PARTIU_RIDES });
-        }
-      )
-      .subscribe();
+    let channel: any = null;
+    try {
+      const channelId = `admin_rides_live_${Math.random().toString(36).substring(2, 9)}`;
+      channel = supabase
+        .channel(channelId)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "rides",
+          },
+          () => {
+            void qc.invalidateQueries({ queryKey: CHAVES_PARTIU_RIDES });
+          }
+        )
+        .subscribe();
+    } catch (err) {
+      console.warn("Falha ao registrar canal de rides:", err);
+    }
 
     return () => {
-      void supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          void supabase.removeChannel(channel);
+        } catch {}
+      }
     };
   }, [qc]);
 }

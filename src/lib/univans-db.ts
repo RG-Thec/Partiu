@@ -341,18 +341,29 @@ export function useRealtimeTabela(
   const qc = useQueryClient();
   const chave = JSON.stringify(chaveCache);
   useEffect(() => {
-    const canal = supabase
-      .channel(`rt_${tabela}_${filtro ?? "all"}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: tabela, ...(filtro ? { filter: filtro } : {}) },
-        () => {
-          void qc.invalidateQueries({ queryKey: JSON.parse(chave) as unknown[] });
-        },
-      )
-      .subscribe();
+    let canal: any = null;
+    try {
+      const channelId = `rt_${tabela}_${filtro ?? "all"}_${Math.random().toString(36).substring(2, 9)}`;
+      canal = supabase
+        .channel(channelId)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: tabela, ...(filtro ? { filter: filtro } : {}) },
+          () => {
+            void qc.invalidateQueries({ queryKey: JSON.parse(chave) as unknown[] });
+          },
+        )
+        .subscribe();
+    } catch (err) {
+      console.warn("Falha ao registrar canal de tabela:", err);
+    }
+
     return () => {
-      void supabase.removeChannel(canal);
+      if (canal) {
+        try {
+          void supabase.removeChannel(canal);
+        } catch {}
+      }
     };
   }, [tabela, filtro, chave, qc]);
 }
@@ -1097,23 +1108,33 @@ export function useAlertasSOS(): UseQueryResult<AlertaSOSRow[]> {
 export function useAlertasSOSRealtime() {
   const qc = useQueryClient();
   useEffect(() => {
-    const channel = supabase
-      .channel("alertas-sos-channel")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "alertas_sos",
-        },
-        () => {
-          void qc.invalidateQueries({ queryKey: ["alertas_sos"] });
-        },
-      )
-      .subscribe();
+    let channel: any = null;
+    try {
+      const channelId = `alertas-sos-${Math.random().toString(36).substring(2, 9)}`;
+      channel = supabase
+        .channel(channelId)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "alertas_sos",
+          },
+          () => {
+            void qc.invalidateQueries({ queryKey: ["alertas_sos"] });
+          },
+        )
+        .subscribe();
+    } catch (err) {
+      console.warn("Falha ao registrar canal de alertas SOS:", err);
+    }
 
     return () => {
-      void supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          void supabase.removeChannel(channel);
+        } catch {}
+      }
     };
   }, [qc]);
 }

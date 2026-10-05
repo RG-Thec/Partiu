@@ -140,25 +140,35 @@ export function AdminAprovacoesPage() {
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
 
-    const channel = supabase
-      .channel("admin_motoristas_realtime")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "partiu_motoristas",
-        },
-        () => {
-          void qc.invalidateQueries({ queryKey: ["admin", "solicitacoes_motoristas"] });
-          void qc.invalidateQueries({ queryKey: ["admin", "motoristas_pendentes"] });
-          void qc.invalidateQueries({ queryKey: ["admin", "motoristas"] });
-        }
-      )
-      .subscribe();
+    let channel: any = null;
+    try {
+      const channelId = `admin_motoristas_${Math.random().toString(36).substring(2, 9)}`;
+      channel = supabase
+        .channel(channelId)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "partiu_motoristas",
+          },
+          () => {
+            void qc.invalidateQueries({ queryKey: ["admin", "solicitacoes_motoristas"] });
+            void qc.invalidateQueries({ queryKey: ["admin", "motoristas_pendentes"] });
+            void qc.invalidateQueries({ queryKey: ["admin", "motoristas"] });
+          }
+        )
+        .subscribe();
+    } catch (err) {
+      console.warn("Falha ao registrar canal de motoristas:", err);
+    }
 
     return () => {
-      void supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          void supabase.removeChannel(channel);
+        } catch {}
+      }
     };
   }, [qc]);
 

@@ -141,8 +141,9 @@ export function useLiveDrivers(options: UseLiveDriversOptions = {}) {
 
     if (isSupabaseConfigured()) {
       try {
+        const channelId = `realtime-driver-locations-${Math.random().toString(36).substring(2, 9)}`;
         channel = (supabase as any)
-          .channel("realtime-driver-locations-feed")
+          .channel(channelId)
           .on(
             "postgres_changes",
             {
