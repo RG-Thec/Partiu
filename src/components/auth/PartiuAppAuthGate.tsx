@@ -472,7 +472,7 @@ export function PartiuAppAuthGate({
       {/* ===================================================================== */}
       {/* 2. ÁREA CENTRAL DO NOVO FLUXO UNIFICADO (MAGIC FLOW)                  */}
       {/* ===================================================================== */}
-      <main className="flex-1 w-full max-w-md mx-auto px-3.5 sm:px-6 py-2 sm:py-4 flex flex-col justify-start pb-28 sm:pb-6">
+      <main className="flex-1 w-full max-w-md mx-auto px-3.5 sm:px-6 py-2 sm:py-4 flex flex-col justify-start pb-6 sm:pb-8">
         
         {/* Toggle Sutil no Topo com Animação Fluida (Passageiro vs Motorista) */}
         <div className="mb-4 sm:mb-6">

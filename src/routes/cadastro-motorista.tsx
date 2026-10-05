@@ -375,7 +375,7 @@ export function CadastroMotoristaPage() {
         </Link>
       </div>
 
-      <main className="flex-1 max-w-xl w-full mx-auto p-3.5 sm:p-5 flex flex-col justify-start pb-28 sm:pb-6">
+      <main className="flex-1 max-w-xl w-full mx-auto p-3.5 sm:p-5 flex flex-col justify-start pb-6 sm:pb-8">
         {!sucesso ? (
           <NativeSurface
             elevation={1}
@@ -486,8 +486,7 @@ export function CadastroMotoristaPage() {
                   leftIcon={<ShieldCheck className="w-4 h-4 text-slate-400" />}
                 />
 
-                {/* BARRA DE AÇÃO ANCORADA: SEMPRE VISÍVEL NO CELULAR, NUNCA CORTADA */}
-                <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md pt-2.5 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] px-4 sm:px-0 border-t border-slate-100 dark:border-slate-800 shadow-[0_-6px_20px_rgba(0,0,0,0.06)] sm:shadow-none z-30">
+                <div className="pt-2">
                   <NativeButton
                     type="button"
                     variant="filled"
@@ -638,8 +637,7 @@ export function CadastroMotoristaPage() {
                   </div>
                 )}
 
-                {/* BARRA DE AÇÃO ANCORADA: SEMPRE VISÍVEL NO CELULAR, NUNCA CORTADA */}
-                <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md pt-2.5 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] px-4 sm:px-0 border-t border-slate-100 dark:border-slate-800 shadow-[0_-6px_20px_rgba(0,0,0,0.06)] sm:shadow-none z-30 flex gap-2.5">
+                <div className="pt-2 flex gap-2.5">
                   <div className="w-1/3">
                     <NativeButton
                       type="button"
@@ -858,8 +856,7 @@ export function CadastroMotoristaPage() {
                   />
                 </div>
 
-                {/* BARRA DE AÇÃO ANCORADA: SEMPRE VISÍVEL NO CELULAR, NUNCA CORTADA */}
-                <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md pt-2.5 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] px-4 sm:px-0 border-t border-slate-100 dark:border-slate-800 shadow-[0_-6px_20px_rgba(0,0,0,0.06)] sm:shadow-none z-30 flex gap-2.5">
+                <div className="pt-2 flex gap-2.5">
                   <div className="w-1/3">
                     <NativeButton
                       type="button"
@@ -981,8 +978,7 @@ export function CadastroMotoristaPage() {
                   </div>
                 )}
 
-                {/* BARRA DE AÇÃO ANCORADA: SEMPRE VISÍVEL NO CELULAR, NUNCA CORTADA */}
-                <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md pt-2.5 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] px-4 sm:px-0 border-t border-slate-100 dark:border-slate-800 shadow-[0_-6px_20px_rgba(0,0,0,0.06)] sm:shadow-none z-30 flex gap-2.5">
+                <div className="pt-2 flex gap-2.5">
                   <div className="w-1/3">
                     <NativeButton
                       type="button"

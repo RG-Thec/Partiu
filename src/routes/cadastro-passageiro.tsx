@@ -204,7 +204,7 @@ export function CadastroPassageiroPage() {
         </Link>
       </div>
 
-      <main className="w-full max-w-md mx-auto flex-1 flex flex-col justify-start py-2 sm:py-3 pb-28 sm:pb-6">
+      <main className="w-full max-w-md mx-auto flex-1 flex flex-col justify-start py-2 sm:py-3 pb-6 sm:pb-8">
         {!sucesso ? (
           <NativeSurface
             elevation={1}
@@ -335,33 +335,30 @@ export function CadastroPassageiroPage() {
                 </label>
               </div>
 
-              {/* BARRA DE AÇÃO ANCORADA: SEMPRE VISÍVEL NO CELULAR, NUNCA CORTADA */}
-              <div className="fixed sm:static bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md pt-2 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] px-4 sm:px-0 border-t border-slate-200/80 dark:border-slate-800/80 sm:border-0 sm:bg-transparent shadow-[0_-8px_24px_rgba(0,0,0,0.08)] sm:shadow-none space-y-1.5">
-                <div className="max-w-md mx-auto w-full space-y-1.5">
-                  <NativeButton
-                    type="submit"
-                    variant="filled"
-                    size="lg"
-                    fullWidth
-                    isLoading={carregando}
-                    rightIcon={<CheckCircle2 className="h-4 w-4" />}
-                  >
-                    Concluir cadastro
-                  </NativeButton>
+              <div className="pt-2 space-y-2">
+                <NativeButton
+                  type="submit"
+                  variant="filled"
+                  size="lg"
+                  fullWidth
+                  isLoading={carregando}
+                  rightIcon={<CheckCircle2 className="h-4 w-4" />}
+                >
+                  Concluir cadastro
+                </NativeButton>
 
-                  <div className="text-center">
-                    <Link
-                      to="/auth"
-                      search={{ role: "PASSAGEIRO" }}
-                      className="inline-flex items-center justify-center text-xs font-semibold hover:underline py-0.5"
-                      style={{ color: colors.textSecondary }}
-                    >
-                      Já tem uma conta?{" "}
-                      <span className="font-extrabold underline ml-1" style={{ color: colors.primary }}>
-                        Fazer login
-                      </span>
-                    </Link>
-                  </div>
+                <div className="text-center">
+                  <Link
+                    to="/auth"
+                    search={{ role: "PASSAGEIRO" }}
+                    className="inline-flex items-center justify-center text-xs font-semibold hover:underline py-1"
+                    style={{ color: colors.textSecondary }}
+                  >
+                    Já tem uma conta?{" "}
+                    <span className="font-extrabold underline ml-1" style={{ color: colors.primary }}>
+                      Fazer login
+                    </span>
+                  </Link>
                 </div>
               </div>
             </form>

@@ -377,7 +377,7 @@ export const CameraPhotoCapture: React.FC<CameraPhotoCaptureProps> = ({
           {/* Textos informativos */}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
+              <span className="text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight">
                 {label}
               </span>
               {required && (
@@ -387,7 +387,7 @@ export const CameraPhotoCapture: React.FC<CameraPhotoCaptureProps> = ({
               )}
             </div>
 
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5 font-medium">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium leading-tight">
               {temFoto ? "Selfie capturada com sucesso!" : sublabel}
             </p>
 
