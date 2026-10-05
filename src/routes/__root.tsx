@@ -17,7 +17,6 @@ import { RouteLoadingPendingScreen } from "@/components/layout/RouteLoadingPendi
 import { BrandingProvider, SplashScreen } from "@/components/branding";
 import { WhiteLabelThemeProvider } from "@/contexts/WhiteLabelThemeContext";
 import { setupGlobalErrorLogging } from "@/lib/structured-logger";
-import { GoogleConfigModal } from "@/components/auth/GoogleConfigModal";
 
 function NotFoundComponent() {
   return (
@@ -190,7 +189,6 @@ function RootComponent() {
           <MobileViewportContainer>
             <Outlet />
           </MobileViewportContainer>
-          <GoogleConfigModal />
         </WhiteLabelThemeProvider>
       </BrandingProvider>
     </QueryClientProvider>

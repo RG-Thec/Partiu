@@ -43,7 +43,7 @@ export function TopNav() {
         <nav className="flex items-center gap-1.5 sm:gap-2">
           <Link
             to="/app/motorista"
-            className="h-7 flex items-center bg-muted/80 hover:bg-muted px-2.5 py-0.5 text-[11px] font-semibold text-foreground transition-colors cursor-pointer active:scale-95 border border-border rounded-full"
+            className="h-6.5 sm:h-7 flex items-center bg-muted/80 hover:bg-muted px-2 sm:px-2.5 text-[10px] sm:text-[11px] font-bold text-foreground transition-colors cursor-pointer active:scale-95 border border-border rounded-full"
           >
             Motorista parceiro
           </Link>
@@ -53,10 +53,10 @@ export function TopNav() {
               backgroundColor: colors.primary,
               color: "#FFFFFF",
             }}
-            className="h-7 flex items-center gap-1 px-3 py-0.5 text-[11px] font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer hover:opacity-95 rounded-full"
+            className="h-6.5 sm:h-7 flex items-center gap-1 px-2.5 sm:px-3 text-[10px] sm:text-[11px] font-bold shadow-2xs transition-all active:scale-95 cursor-pointer hover:opacity-95 rounded-full"
           >
             <span>Pedir agora</span>
-            <ArrowRight className="h-3 w-3" />
+            <ArrowRight className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
           </Link>
         </nav>
       </div>

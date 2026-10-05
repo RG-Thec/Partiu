@@ -343,18 +343,47 @@ export function CadastroMotoristaPage() {
         fontFamily: ui.fontFamily,
       }}
     >
-      <TopNav />
+      {/* Top Header Profissional e Compacto */}
+      <div className="w-full max-w-xl mx-auto px-4 pt-[max(0.5rem,calc(env(safe-area-inset-top,0px)))] flex items-center justify-between pb-2">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition active:scale-95 shadow-2xs"
+          aria-label="Voltar para início"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Voltar</span>
+        </Link>
+        <span
+          className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 px-3 py-1 rounded-full border"
+          style={{
+            borderColor: `${colors.primary}33`,
+            backgroundColor: `${colors.primary}12`,
+            color: colors.primary,
+          }}
+        >
+          <Car className="h-3.5 w-3.5" />
+          Motorista Parceiro {nomeApp}
+        </span>
+        <Link
+          to="/auth"
+          search={{ role: "MOTORISTA" }}
+          className="text-xs font-bold hover:underline transition"
+          style={{ color: colors.primary }}
+        >
+          Já sou parceiro
+        </Link>
+      </div>
 
-      <main className="flex-1 max-w-xl w-full mx-auto p-3.5 sm:p-6 flex flex-col justify-start pb-[max(2.5rem,calc(env(safe-area-inset-bottom,0px)+2rem))]">
+      <main className="flex-1 max-w-xl w-full mx-auto p-3.5 sm:p-5 flex flex-col justify-start pb-[max(2rem,calc(env(safe-area-inset-bottom,0px)+1.5rem))]">
         {!sucesso ? (
           <NativeSurface
             elevation={1}
             padding="none"
-            className="w-full p-4 sm:p-7 rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_12px_40px_rgba(0,0,0,0.05)] space-y-4 transition-all duration-200"
+            className="w-full p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_8px_30px_rgba(0,0,0,0.04)] space-y-3.5 transition-all duration-200"
           >
             {/* Error Banner */}
             {erroValidacao && (
-              <div className="mb-4 p-3.5 rounded-2xl bg-destructive/15 border border-destructive/30 text-destructive text-xs font-bold flex items-center justify-between gap-2 animate-in fade-in">
+              <div className="mb-2 p-3 rounded-xl bg-destructive/15 border border-destructive/30 text-destructive text-xs font-bold flex items-center justify-between gap-2 animate-in fade-in">
                 <div className="flex items-center gap-2">
                   <ShieldAlert className="h-4 w-4 shrink-0" />
                   <span>{erroValidacao}</span>
@@ -370,7 +399,7 @@ export function CadastroMotoristaPage() {
             )}
 
             {/* Header de Etapas Conectado à Cor Primária */}
-            <div className="mb-6">
+            <div className="mb-2">
               <WhiteLabelProgressBar
                 currentStep={etapa}
                 totalSteps={4}
@@ -386,17 +415,17 @@ export function CadastroMotoristaPage() {
               />
             </div>
 
-            {/* ETAPA 1: DADOS PESSOAIS COM ALTO CONTRASTE (SUBSTITUI FUNDO AZULADO ANTIGO) */}
+            {/* ETAPA 1: DADOS PESSOAIS */}
             {etapa === 1 && (
-              <div className="space-y-4 animate-in fade-in-50 duration-200 text-left">
-                <div className="border-b pb-3" style={{ borderColor: colors.inputBorder }}>
+              <div className="space-y-3 animate-in fade-in-50 duration-200 text-left">
+                <div className="border-b pb-2" style={{ borderColor: colors.inputBorder }}>
                   <h2
-                    className="text-xl sm:text-2xl font-black tracking-tight"
+                    className="text-lg sm:text-xl font-black tracking-tight"
                     style={{ color: colors.textPrimary }}
                   >
                     Informações Pessoais
                   </h2>
-                  <p className="text-xs font-normal" style={{ color: colors.textSecondary }}>
+                  <p className="text-[11px] sm:text-xs font-normal" style={{ color: colors.textSecondary }}>
                     Comece informando seus dados básicos para contato e validação
                   </p>
                 </div>
@@ -407,17 +436,17 @@ export function CadastroMotoristaPage() {
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   placeholder="Seu nome como na CNH"
-                  leftIcon={<User className="w-5 h-5 text-slate-400" />}
+                  leftIcon={<User className="w-4 h-4 text-slate-400" />}
                 />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <NativeInput
                     label="CPF"
                     required
                     value={cpf}
                     onChange={(e) => setCpf(formatarCpf(e.target.value))}
                     placeholder="000.000.000-00"
-                    leftIcon={<FileText className="w-5 h-5 text-slate-400" />}
+                    leftIcon={<FileText className="w-4 h-4 text-slate-400" />}
                   />
                   <NativeInput
                     label="WhatsApp"
@@ -427,8 +456,8 @@ export function CadastroMotoristaPage() {
                     onChange={(e) => setWhatsapp(formatarTelefone(e.target.value))}
                     placeholder="(82) 99999-9999"
                     leftIcon={
-                      <div className="flex items-center gap-1.5 pl-0.5 text-xs font-black text-slate-700 dark:text-slate-200 select-none">
-                        <span className="text-base leading-none">🇧🇷</span>
+                      <div className="flex items-center gap-1 pl-0.5 text-xs font-black text-slate-700 dark:text-slate-200 select-none">
+                        <span className="text-sm leading-none">🇧🇷</span>
                         <span>+55</span>
                       </div>
                     }
@@ -442,7 +471,7 @@ export function CadastroMotoristaPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu.email@exemplo.com"
-                  leftIcon={<Mail className="w-5 h-5 text-slate-400" />}
+                  leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
                 />
 
                 <NativeInput
@@ -453,17 +482,17 @@ export function CadastroMotoristaPage() {
                   onChange={(e) => setSenha(e.target.value)}
                   placeholder="Mínimo 6 dígitos para entrar no App"
                   helperText="Crie uma senha de acesso para gerenciar suas corridas no cockpit."
-                  leftIcon={<ShieldCheck className="w-5 h-5 text-slate-400" />}
+                  leftIcon={<ShieldCheck className="w-4 h-4 text-slate-400" />}
                 />
 
                 {/* BARRA DE AÇÃO ANCORADA: SEMPRE VISÍVEL NO CELULAR, NUNCA CORTADA */}
-                <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 sm:static bg-white/95 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none pt-2.5 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] sm:pb-0 px-4 sm:px-0 border-t border-slate-100 sm:border-0 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] sm:shadow-none z-20">
+                <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md pt-2.5 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] px-4 sm:px-0 border-t border-slate-100 dark:border-slate-800 shadow-[0_-6px_20px_rgba(0,0,0,0.06)] sm:shadow-none z-30">
                   <NativeButton
                     type="button"
                     variant="filled"
-                    size="md"
+                    size="lg"
                     fullWidth
-                    rightIcon={<ArrowRight className="h-4.5 w-4.5" />}
+                    rightIcon={<ArrowRight className="h-4 w-4" />}
                     onClick={() => {
                       setErroValidacao(null);
                       if (!nome || !whatsapp || !email) {
@@ -485,10 +514,12 @@ export function CadastroMotoristaPage() {
 
             {/* ETAPA 2: VEÍCULO */}
             {etapa === 2 && (
-              <div className="space-y-4 animate-in fade-in-50 duration-200">
-                <div className="border-b border-border pb-3">
-                  <h2 className="text-xl font-black text-foreground">Dados do Veículo</h2>
-                  <p className="text-xs text-muted-foreground">
+              <div className="space-y-3 animate-in fade-in-50 duration-200">
+                <div className="border-b pb-2" style={{ borderColor: colors.inputBorder }}>
+                  <h2 className="text-lg sm:text-xl font-black" style={{ color: colors.textPrimary }}>
+                    Dados do Veículo
+                  </h2>
+                  <p className="text-[11px] sm:text-xs" style={{ color: colors.textSecondary }}>
                     Selecione a categoria que você vai dirigir no {nomeApp}
                   </p>
                 </div>
@@ -513,7 +544,7 @@ export function CadastroMotoristaPage() {
                             borderColor: colors.inputBorder,
                           }
                     }
-                    className={`flex items-center justify-center gap-2 h-9 sm:h-9.5 rounded-xl border font-semibold text-xs transition-all cursor-pointer ${
+                    className={`flex items-center justify-center gap-1.5 h-9 rounded-xl border font-semibold text-xs transition-all cursor-pointer ${
                       tipoVeiculo === "carro"
                         ? "shadow-2xs"
                         : "text-foreground/80 hover:text-foreground hover:bg-card"
@@ -540,7 +571,7 @@ export function CadastroMotoristaPage() {
                             borderColor: colors.inputBorder,
                           }
                     }
-                    className={`flex items-center justify-center gap-2 h-9 sm:h-9.5 rounded-xl border font-semibold text-xs transition-all cursor-pointer ${
+                    className={`flex items-center justify-center gap-1.5 h-9 rounded-xl border font-semibold text-xs transition-all cursor-pointer ${
                       tipoVeiculo === "moto"
                         ? "shadow-2xs"
                         : "text-foreground/80 hover:text-foreground hover:bg-card"
@@ -557,10 +588,10 @@ export function CadastroMotoristaPage() {
                   value={veiculoModelo}
                   onChange={(e) => setVeiculoModelo(e.target.value)}
                   placeholder={tipoVeiculo === "carro" ? "Ex: Chevrolet Onix 1.0" : "Ex: Honda CG 160 Fan"}
-                  leftIcon={<Car className="h-5 w-5 text-slate-400" />}
+                  leftIcon={<Car className="w-4 h-4 text-slate-400" />}
                 />
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                   <NativeInput
                     label="Ano de Fabricação"
                     required
@@ -585,7 +616,7 @@ export function CadastroMotoristaPage() {
 
                 {tipoVeiculo === "carro" && (
                   <div
-                    className="flex items-center gap-2.5 p-3.5 border"
+                    className="flex items-center gap-2 p-2.5 rounded-xl border"
                     style={{
                       borderRadius: ui.borderRadius,
                       backgroundColor: colors.inputBackground,
@@ -598,21 +629,21 @@ export function CadastroMotoristaPage() {
                       checked={temArCondicionado}
                       onChange={(e) => setTemArCondicionado(e.target.checked)}
                       style={{ accentColor: colors.primary }}
-                      className="h-4.5 w-4.5 rounded cursor-pointer"
+                      className="h-4 w-4 rounded cursor-pointer shrink-0"
                     />
-                    <label htmlFor="arCond" className="text-xs text-foreground font-bold cursor-pointer">
+                    <label htmlFor="arCond" className="text-xs text-foreground font-semibold cursor-pointer">
                       Possui Ar-Condicionado Funcionando
                     </label>
                   </div>
                 )}
 
                 {/* BARRA DE AÇÃO ANCORADA: SEMPRE VISÍVEL NO CELULAR, NUNCA CORTADA */}
-                <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 sm:static bg-white/95 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none pt-2.5 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] sm:pb-0 px-4 sm:px-0 border-t border-slate-100 sm:border-0 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] sm:shadow-none z-20 flex gap-3">
+                <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md pt-2.5 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] px-4 sm:px-0 border-t border-slate-100 dark:border-slate-800 shadow-[0_-6px_20px_rgba(0,0,0,0.06)] sm:shadow-none z-30 flex gap-2.5">
                   <div className="w-1/3">
                     <NativeButton
                       type="button"
                       variant="outlined"
-                      size="md"
+                      size="lg"
                       fullWidth
                       onClick={() => {
                         setErroValidacao(null);
@@ -626,9 +657,9 @@ export function CadastroMotoristaPage() {
                     <NativeButton
                       type="button"
                       variant="filled"
-                      size="md"
+                      size="lg"
                       fullWidth
-                      rightIcon={<ArrowRight className="h-4.5 w-4.5" />}
+                      rightIcon={<ArrowRight className="h-4 w-4" />}
                       onClick={() => {
                         setErroValidacao(null);
                         if (!veiculoPlaca) {
@@ -647,10 +678,12 @@ export function CadastroMotoristaPage() {
 
             {/* ETAPA 3: CNH & EAR */}
             {etapa === 3 && (
-              <div className="space-y-4 animate-in fade-in-50 duration-200">
-                <div className="border-b border-border pb-3">
-                  <h2 className="text-xl font-black text-foreground">Habilitação Profissional</h2>
-                  <p className="text-xs text-muted-foreground">
+              <div className="space-y-3 animate-in fade-in-50 duration-200">
+                <div className="border-b pb-2" style={{ borderColor: colors.inputBorder }}>
+                  <h2 className="text-lg sm:text-xl font-black" style={{ color: colors.textPrimary }}>
+                    Habilitação Profissional
+                  </h2>
+                  <p className="text-[11px] sm:text-xs" style={{ color: colors.textSecondary }}>
                     Sua CNH deve ter a observação EAR (Exerce Atividade Remunerada)
                   </p>
                 </div>
@@ -658,14 +691,14 @@ export function CadastroMotoristaPage() {
                 <NativeInput
                   label="Número do Registro da CNH"
                   required
-                  leftIcon={<FileText className="h-5 w-5 text-slate-400" />}
+                  leftIcon={<FileText className="w-4 h-4 text-slate-400" />}
                   value={cnh}
                   onChange={(e) => setCnh(e.target.value)}
                   placeholder="Ex: 01234567890"
                 />
 
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-black uppercase text-foreground/80">
+                <div className="space-y-1">
+                  <label className="block text-xs font-semibold uppercase" style={{ color: colors.textPrimary }}>
                     Categoria da CNH
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -682,8 +715,8 @@ export function CadastroMotoristaPage() {
                             borderColor: isSelected ? colors.primary : colors.inputBorder,
                             color: isSelected ? "#FFFFFF" : colors.textPrimary,
                           }}
-                          className={`h-11 border font-black text-xs transition-all cursor-pointer ${
-                            isSelected ? "shadow-sm" : "hover:border-primary/50"
+                          className={`h-9 border font-black text-xs transition-all cursor-pointer ${
+                            isSelected ? "shadow-2xs" : "hover:border-primary/50"
                           }`}
                         >
                           Categoria {cat}
@@ -699,36 +732,36 @@ export function CadastroMotoristaPage() {
                     backgroundColor: `${colors.primary}0D`,
                     borderColor: `${colors.primary}33`,
                   }}
-                  className="p-4 border space-y-2"
+                  className="p-3 border space-y-1.5"
                 >
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="h-5 w-5 shrink-0" style={{ color: colors.primary }} />
-                    <strong className="text-xs font-black text-foreground">
+                  <div className="flex items-center gap-1.5">
+                    <ShieldCheck className="h-4 w-4 shrink-0" style={{ color: colors.primary }} />
+                    <strong className="text-xs font-bold text-foreground">
                       Exerce Atividade Remunerada (EAR)
                     </strong>
                   </div>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-[11px] text-muted-foreground leading-tight">
                     Exigência legal do Código de Trânsito Brasileiro (CTB) para dirigir por aplicativo.
                   </p>
-                  <div className="flex items-center gap-2 pt-1">
+                  <div className="flex items-center gap-2 pt-0.5">
                     <input
                       type="checkbox"
                       id="temEar"
                       checked={possuiEAR}
                       onChange={(e) => setPossuiEAR(e.target.checked)}
                       style={{ accentColor: colors.primary }}
-                      className="h-4.5 w-4.5 rounded cursor-pointer"
+                      className="h-4 w-4 rounded cursor-pointer shrink-0"
                     />
-                    <label htmlFor="temEar" className="text-xs text-foreground font-bold cursor-pointer">
+                    <label htmlFor="temEar" className="text-xs text-foreground font-semibold cursor-pointer">
                       Sim, minha CNH possui a sigla EAR
                     </label>
                   </div>
                 </div>
 
                 {/* Upload de Documentos Obrigatórios */}
-                <div className="space-y-3 pt-2">
-                  <label className="block text-xs font-black uppercase text-foreground/80">
-                    Fotos dos Documentos (Auditoria & Compliance)
+                <div className="space-y-2.5 pt-1">
+                  <label className="block text-xs font-semibold uppercase" style={{ color: colors.textPrimary }}>
+                    Fotos dos Documentos (Auditoria &amp; Compliance)
                   </label>
 
                   {/* Foto da CNH */}
@@ -738,27 +771,27 @@ export function CadastroMotoristaPage() {
                       backgroundColor: colors.inputBackground,
                       borderColor: colors.inputBorder,
                     }}
-                    className="p-3.5 border space-y-2"
+                    className="p-2.5 border space-y-1.5"
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4" style={{ color: colors.primary }} />
-                        <span className="text-xs font-bold text-foreground">Foto da CNH (Aberta ou Frente/Verso)</span>
+                      <div className="flex items-center gap-1.5">
+                        <FileText className="h-3.5 w-3.5" style={{ color: colors.primary }} />
+                        <span className="text-xs font-semibold text-foreground">Foto da CNH (Frente/Verso)</span>
                       </div>
                       {cnhUrl && (
-                        <span className="flex items-center gap-1 text-[10px] font-black text-emerald-600 bg-emerald-500/15 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-500/15 px-1.5 py-0.5 rounded-md border border-emerald-500/20">
                           <Check className="h-3 w-3" /> Anexada
                         </span>
                       )}
                     </div>
                     <label
                       style={{ borderRadius: ui.borderRadius }}
-                      className="flex items-center justify-center gap-2 w-full h-11 bg-card border border-dashed border-input hover:border-primary text-xs font-bold text-foreground cursor-pointer transition-colors"
+                      className="flex items-center justify-center gap-1.5 w-full h-9 bg-card border border-dashed border-input hover:border-primary text-xs font-semibold text-foreground cursor-pointer transition-colors"
                     >
                       {uploadingDoc === "cnh" ? (
-                        <Loader2 className="h-4 w-4 animate-spin" style={{ color: colors.primary }} />
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" style={{ color: colors.primary }} />
                       ) : (
-                        <Upload className="h-4 w-4 text-muted-foreground" />
+                        <Upload className="h-3.5 w-3.5 text-muted-foreground" />
                       )}
                       <span>{cnhUrl ? "Trocar foto da CNH" : "Anexar CNH"}</span>
                       <input
@@ -777,27 +810,27 @@ export function CadastroMotoristaPage() {
                       backgroundColor: colors.inputBackground,
                       borderColor: colors.inputBorder,
                     }}
-                    className="p-3.5 border space-y-2"
+                    className="p-2.5 border space-y-1.5"
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4" style={{ color: colors.primary }} />
-                        <span className="text-xs font-bold text-foreground">Documento do Veículo (CRLV Digital)</span>
+                      <div className="flex items-center gap-1.5">
+                        <FileText className="h-3.5 w-3.5" style={{ color: colors.primary }} />
+                        <span className="text-xs font-semibold text-foreground">Documento do Veículo (CRLV)</span>
                       </div>
                       {crlvUrl && (
-                        <span className="flex items-center gap-1 text-[10px] font-black text-emerald-600 bg-emerald-500/15 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-500/15 px-1.5 py-0.5 rounded-md border border-emerald-500/20">
                           <Check className="h-3 w-3" /> Anexado
                         </span>
                       )}
                     </div>
                     <label
                       style={{ borderRadius: ui.borderRadius }}
-                      className="flex items-center justify-center gap-2 w-full h-11 bg-card border border-dashed border-input hover:border-primary text-xs font-bold text-foreground cursor-pointer transition-colors"
+                      className="flex items-center justify-center gap-1.5 w-full h-9 bg-card border border-dashed border-input hover:border-primary text-xs font-semibold text-foreground cursor-pointer transition-colors"
                     >
                       {uploadingDoc === "crlv" ? (
-                        <Loader2 className="h-4 w-4 animate-spin" style={{ color: colors.primary }} />
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" style={{ color: colors.primary }} />
                       ) : (
-                        <Upload className="h-4 w-4 text-muted-foreground" />
+                        <Upload className="h-3.5 w-3.5 text-muted-foreground" />
                       )}
                       <span>{crlvUrl ? "Trocar CRLV" : "Anexar CRLV"}</span>
                       <input
@@ -816,27 +849,27 @@ export function CadastroMotoristaPage() {
                       backgroundColor: colors.inputBackground,
                       borderColor: colors.inputBorder,
                     }}
-                    className="p-3.5 border space-y-2"
+                    className="p-2.5 border space-y-1.5"
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Camera className="h-4 w-4" style={{ color: colors.primary }} />
-                        <span className="text-xs font-bold text-foreground">Selfie do Condutor (Validação Facial)</span>
+                      <div className="flex items-center gap-1.5">
+                        <Camera className="h-3.5 w-3.5" style={{ color: colors.primary }} />
+                        <span className="text-xs font-semibold text-foreground">Selfie do Condutor</span>
                       </div>
                       {fotoPerfilUrl && (
-                        <span className="flex items-center gap-1 text-[10px] font-black text-emerald-600 bg-emerald-500/15 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-500/15 px-1.5 py-0.5 rounded-md border border-emerald-500/20">
                           <Check className="h-3 w-3" /> Anexada
                         </span>
                       )}
                     </div>
                     <label
                       style={{ borderRadius: ui.borderRadius }}
-                      className="flex items-center justify-center gap-2 w-full h-11 bg-card border border-dashed border-input hover:border-primary text-xs font-bold text-foreground cursor-pointer transition-colors"
+                      className="flex items-center justify-center gap-1.5 w-full h-9 bg-card border border-dashed border-input hover:border-primary text-xs font-semibold text-foreground cursor-pointer transition-colors"
                     >
                       {uploadingDoc === "foto" ? (
-                        <Loader2 className="h-4 w-4 animate-spin" style={{ color: colors.primary }} />
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" style={{ color: colors.primary }} />
                       ) : (
-                        <Camera className="h-4 w-4 text-muted-foreground" />
+                        <Camera className="h-3.5 w-3.5 text-muted-foreground" />
                       )}
                       <span>{fotoPerfilUrl ? "Tirar outra selfie" : "Tirar selfie"}</span>
                       <input
@@ -850,12 +883,12 @@ export function CadastroMotoristaPage() {
                 </div>
 
                 {/* BARRA DE AÇÃO ANCORADA: SEMPRE VISÍVEL NO CELULAR, NUNCA CORTADA */}
-                <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 sm:static bg-white/95 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none pt-2.5 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] sm:pb-0 px-4 sm:px-0 border-t border-slate-100 sm:border-0 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] sm:shadow-none z-20 flex gap-3">
+                <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md pt-2.5 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] px-4 sm:px-0 border-t border-slate-100 dark:border-slate-800 shadow-[0_-6px_20px_rgba(0,0,0,0.06)] sm:shadow-none z-30 flex gap-2.5">
                   <div className="w-1/3">
                     <NativeButton
                       type="button"
                       variant="outlined"
-                      size="md"
+                      size="lg"
                       fullWidth
                       onClick={() => {
                         setErroValidacao(null);
@@ -869,9 +902,9 @@ export function CadastroMotoristaPage() {
                     <NativeButton
                       type="button"
                       variant="filled"
-                      size="md"
+                      size="lg"
                       fullWidth
-                      rightIcon={<ArrowRight className="h-4.5 w-4.5" />}
+                      rightIcon={<ArrowRight className="h-4 w-4" />}
                       onClick={() => {
                         setErroValidacao(null);
                         if (!cnh) {
@@ -890,20 +923,22 @@ export function CadastroMotoristaPage() {
 
             {/* ETAPA 4: REPASSE PIX D+0 */}
             {etapa === 4 && (
-              <form onSubmit={handleFinalizarCadastro} className="space-y-4 animate-in fade-in-50 duration-200">
-                <div className="border-b border-border pb-3">
-                  <h2 className="text-xl font-black text-foreground">Chave PIX para Recebimentos</h2>
-                  <p className="text-xs text-muted-foreground">
-                    No {nomeApp} você recebe de 95% a até 100% do valor de cada corrida imediatamente via PIX (D+0) conforme o seu plano de assinatura
+              <form onSubmit={handleFinalizarCadastro} className="space-y-3 animate-in fade-in-50 duration-200">
+                <div className="border-b pb-2" style={{ borderColor: colors.inputBorder }}>
+                  <h2 className="text-lg sm:text-xl font-black" style={{ color: colors.textPrimary }}>
+                    Chave PIX para Recebimentos
+                  </h2>
+                  <p className="text-[11px] sm:text-xs" style={{ color: colors.textSecondary }}>
+                    No {nomeApp} você recebe com repasse imediato via PIX (D+0)
                   </p>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="block text-xs font-black uppercase text-foreground/80">
-                      Chave PIX Obrigatória (CPF do Titular)
+                    <label className="block text-xs font-semibold uppercase" style={{ color: colors.textPrimary }}>
+                      Chave PIX (CPF do Titular)
                     </label>
-                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 border border-emerald-500/30">
+                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 border border-emerald-500/30">
                       Exclusivo CPF
                     </span>
                   </div>
@@ -914,16 +949,16 @@ export function CadastroMotoristaPage() {
                       backgroundColor: colors.inputBackground,
                       borderColor: colors.inputBorder,
                     }}
-                    className="p-4 border space-y-2.5"
+                    className="p-3 border space-y-1.5"
                   >
-                    <div className="flex items-center justify-between pb-2 border-b border-border">
+                    <div className="flex items-center justify-between pb-1.5 border-b border-border">
                       <span className="text-xs text-muted-foreground font-medium">CPF do Titular:</span>
-                      <span className="text-sm font-mono font-black" style={{ color: colors.primary }}>
+                      <span className="text-xs sm:text-sm font-mono font-bold" style={{ color: colors.primary }}>
                         {cpf || "Preencha o CPF na Etapa 1"}
                       </span>
                     </div>
                     <p className="text-[11px] text-muted-foreground leading-snug">
-                      Por exigência do Banco Central e segurança antifraude da sua conta, os repasses via PIX (D+0) são efetuados exclusivamente para a conta bancária vinculada ao CPF do titular cadastrado.
+                      Por exigência do Banco Central, repasses PIX são efetuados para a conta vinculada ao CPF cadastrado.
                     </p>
                   </div>
                 </div>
@@ -934,13 +969,13 @@ export function CadastroMotoristaPage() {
                     backgroundColor: `${colors.primary}0D`,
                     borderColor: `${colors.primary}33`,
                   }}
-                  className="p-4 border space-y-2"
+                  className="p-3 border space-y-1.5"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-black" style={{ color: colors.primary }}>Modelo Híbrido {nomeApp}</span>
                     <span className="text-xs font-black text-emerald-600">Até 100% Líquido</span>
                   </div>
-                  <div className="text-foreground text-[11px] space-y-1">
+                  <div className="text-foreground text-[11px] space-y-0.5">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">• Plano Free (Gratuito)</span>
                       <span className="font-bold">5% taxa por corrida</span>
@@ -950,33 +985,29 @@ export function CadastroMotoristaPage() {
                       <span className="font-bold">3% taxa por corrida</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">• Plano Prata</span>
-                      <span className="font-bold">1% taxa por corrida</span>
-                    </div>
-                    <div className="flex justify-between">
                       <span className="text-muted-foreground">• Plano Ouro</span>
-                      <span className="font-black text-emerald-600">0% de taxa (100% seu!)</span>
+                      <span className="font-black text-emerald-600">0% taxa (100% seu)</span>
                     </div>
                   </div>
-                  <p className="text-[10px] text-muted-foreground pt-1">
+                  <p className="text-[10px] text-muted-foreground pt-0.5">
                     ⚡ Sem surpresas ou taxas escondidas. Você começa no Free e pode evoluir quando quiser!
                   </p>
                 </div>
 
                 {erroCadastro && (
-                  <div className="rounded-2xl bg-destructive/15 border border-destructive/30 p-3.5 text-xs text-destructive flex items-center gap-2 mt-3 animate-in fade-in">
+                  <div className="rounded-xl bg-destructive/15 border border-destructive/30 p-3 text-xs text-destructive flex items-center gap-2 mt-2 animate-in fade-in">
                     <ShieldAlert className="h-4 w-4 shrink-0" />
                     <span>{erroCadastro}</span>
                   </div>
                 )}
 
                 {/* BARRA DE AÇÃO ANCORADA: SEMPRE VISÍVEL NO CELULAR, NUNCA CORTADA */}
-                <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 sm:static bg-white/95 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none pt-2.5 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] sm:pb-0 px-4 sm:px-0 border-t border-slate-100 sm:border-0 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] sm:shadow-none z-20 flex gap-3">
+                <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md pt-2.5 pb-[max(0.75rem,calc(env(safe-area-inset-bottom,0px)+0.5rem))] px-4 sm:px-0 border-t border-slate-100 dark:border-slate-800 shadow-[0_-6px_20px_rgba(0,0,0,0.06)] sm:shadow-none z-30 flex gap-2.5">
                   <div className="w-1/3">
                     <NativeButton
                       type="button"
                       variant="outlined"
-                      size="md"
+                      size="lg"
                       fullWidth
                       disabled={carregando}
                       onClick={() => {
@@ -991,7 +1022,7 @@ export function CadastroMotoristaPage() {
                     <NativeButton
                       type="submit"
                       variant="filled"
-                      size="md"
+                      size="lg"
                       fullWidth
                       isLoading={carregando}
                       leftIcon={<CheckCircle2 className="h-4 w-4" />}

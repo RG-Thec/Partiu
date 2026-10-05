@@ -513,23 +513,23 @@ export function PartiuAppAuthGate({
             <>
               {/* ETAPA 1 DO PASSAGEIRO: FLUXO UNIFICADO (MAGIC FLOW) */}
               {passengerStep === "MAGIC_ENTRY" && (
-                <form onSubmit={handleMagicFlowSubmit} className="space-y-4">
-                  <div className="space-y-1.5 text-left">
+                <form onSubmit={handleMagicFlowSubmit} className="space-y-3.5">
+                  <div className="space-y-1 text-left">
                     <h1
-                      className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight"
+                      className="text-xl sm:text-2xl font-black tracking-tight leading-tight"
                       style={{ color: colors.textPrimary }}
                     >
                       Qual é o seu celular ou e-mail?
                     </h1>
                     <p
-                      className="text-xs sm:text-sm font-normal leading-relaxed"
+                      className="text-[11px] sm:text-xs font-normal leading-relaxed"
                       style={{ color: colors.textSecondary }}
                     >
                       Informe seu número de celular ou e-mail para acessar ou criar sua conta.
                     </p>
                   </div>
 
-                  {/* Input Nativo com Altura de 52px e Clear Button */}
+                  {/* Input Nativo com Clear Button */}
                   <NativeInput
                     label="Celular ou E-mail"
                     value={contactInput}
@@ -544,10 +544,10 @@ export function PartiuAppAuthGate({
                     }}
                     leftIcon={
                       detectedContactType === "EMAIL" ? (
-                        <Mail className="w-5 h-5 text-slate-400" />
+                        <Mail className="w-4 h-4 text-slate-400" />
                       ) : (
-                        <div className="flex items-center gap-1.5 pl-0.5 text-xs font-black text-slate-700 dark:text-slate-200 select-none">
-                          <span className="text-base leading-none">🇧🇷</span>
+                        <div className="flex items-center gap-1 pl-0.5 text-xs font-black text-slate-700 dark:text-slate-200 select-none">
+                          <span className="text-sm leading-none">🇧🇷</span>
                           <span>+55</span>
                         </div>
                       )
@@ -558,7 +558,7 @@ export function PartiuAppAuthGate({
                   <NativeButton
                     type="submit"
                     variant="filled"
-                    size="md"
+                    size="lg"
                     fullWidth
                     isLoading={loading}
                     rightIcon={<ArrowRight className="w-4 h-4" />}
@@ -566,7 +566,7 @@ export function PartiuAppAuthGate({
                     Continuar
                   </NativeButton>
 
-                  <div className="text-center pt-1.5">
+                  <div className="text-center pt-1">
                     <Link
                       to="/escolher-tipo-cadastro"
                       className="inline-flex items-center justify-center py-1 text-xs font-medium hover:underline cursor-pointer"
@@ -676,11 +676,11 @@ export function PartiuAppAuthGate({
 
               {/* ETAPA 2B: LOGIN COM SENHA */}
               {passengerStep === "LOGIN_PASSWORD" && (
-                <form onSubmit={handlePasswordLogin} className="space-y-5 animate-in fade-in duration-200">
-                  <div className="space-y-2 text-left">
+                <form onSubmit={handlePasswordLogin} className="space-y-4 animate-in fade-in duration-200">
+                  <div className="space-y-1.5 text-left">
                     <div className="flex items-center justify-between">
                       <span
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
                         style={{
                           backgroundColor: colors.inputBackground,
                           color: colors.textPrimary,
@@ -704,19 +704,19 @@ export function PartiuAppAuthGate({
                     </div>
 
                     <h2
-                      className="text-2xl font-extrabold tracking-tight pt-1"
+                      className="text-xl sm:text-2xl font-black tracking-tight pt-0.5"
                       style={{ color: colors.textPrimary }}
                     >
                       {recognizedUserName ? `Olá, ${recognizedUserName.split(" ")[0]}!` : "Bem-vindo de volta!"}
                     </h2>
-                    <p className="text-xs sm:text-sm font-normal" style={{ color: colors.textSecondary }}>
+                    <p className="text-[11px] sm:text-xs font-normal" style={{ color: colors.textSecondary }}>
                       Digite sua senha para acessar sua conta.
                     </p>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs sm:text-sm font-bold" style={{ color: colors.textPrimary }}>
+                      <label className="text-xs font-semibold" style={{ color: colors.textPrimary }}>
                         Sua Senha
                       </label>
                       <button
@@ -741,7 +741,7 @@ export function PartiuAppAuthGate({
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
-                          className="min-h-[48px] min-w-[48px] -mr-3 flex items-center justify-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                          className="min-h-[40px] min-w-[40px] -mr-2 flex items-center justify-center text-slate-400 hover:text-slate-600 cursor-pointer"
                         >
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -752,7 +752,7 @@ export function PartiuAppAuthGate({
                   <NativeButton
                     type="submit"
                     variant="filled"
-                    size="md"
+                    size="lg"
                     fullWidth
                     isLoading={loading}
                     rightIcon={<ArrowRight className="w-4 h-4" />}
@@ -764,21 +764,22 @@ export function PartiuAppAuthGate({
 
               {/* ETAPA 2C: CADASTRO STEP 1 (DADOS PESSOAIS) */}
               {passengerStep === "SIGNUP_STEP_1" && (
-                <form onSubmit={handlePassengerSignUp} className="space-y-4 animate-in fade-in duration-200">
+                <form onSubmit={handlePassengerSignUp} className="space-y-3 animate-in fade-in duration-200">
                   <WhiteLabelProgressBar
                     currentStep={1}
                     totalSteps={2}
                     stepTitle="Dados Pessoais"
+                    className="mb-1"
                   />
 
-                  <div className="text-left border-b pb-3" style={{ borderColor: colors.inputBorder }}>
+                  <div className="text-left border-b pb-2" style={{ borderColor: colors.inputBorder }}>
                     <h2
-                      className="text-xl sm:text-2xl font-extrabold tracking-tight"
+                      className="text-lg sm:text-xl font-black tracking-tight"
                       style={{ color: colors.textPrimary }}
                     >
                       Criar sua conta
                     </h2>
-                    <p className="text-xs font-normal" style={{ color: colors.textSecondary }}>
+                    <p className="text-[11px] sm:text-xs font-normal" style={{ color: colors.textSecondary }}>
                       Preencha seus dados para pedir corridas com rapidez e segurança.
                     </p>
                   </div>
@@ -790,11 +791,11 @@ export function PartiuAppAuthGate({
                     onChange={(e) => setNome(e.target.value)}
                     placeholder="Como deseja ser chamado(a)"
                     required
-                    leftIcon={<User className="w-5 h-5 text-slate-400" />}
+                    leftIcon={<User className="w-4 h-4 text-slate-400" />}
                   />
 
                   {/* CPF e Celular em Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {features.requireCpfOnSignup && (
                       <NativeInput
                         label="CPF"
@@ -802,7 +803,7 @@ export function PartiuAppAuthGate({
                         onChange={(e) => handleCpfChange(e.target.value)}
                         placeholder="000.000.000-00"
                         required
-                        leftIcon={<FileText className="w-5 h-5 text-slate-400" />}
+                        leftIcon={<FileText className="w-4 h-4 text-slate-400" />}
                       />
                     )}
                     <NativeInput
@@ -811,7 +812,7 @@ export function PartiuAppAuthGate({
                       onChange={(e) => handleTelefoneChange(e.target.value)}
                       placeholder="(82) 99841-2940"
                       required
-                      leftIcon={<Smartphone className="w-5 h-5 text-slate-400" />}
+                      leftIcon={<Smartphone className="w-4 h-4 text-slate-400" />}
                     />
                   </div>
 
@@ -823,7 +824,7 @@ export function PartiuAppAuthGate({
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="seu.email@exemplo.com"
                     required
-                    leftIcon={<Mail className="w-5 h-5 text-slate-400" />}
+                    leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
                   />
 
                   {/* Criar Senha */}
@@ -835,13 +836,13 @@ export function PartiuAppAuthGate({
                     placeholder="Mínimo 6 caracteres"
                     required
                     helperText="Crie uma senha segura para entrar no app."
-                    leftIcon={<KeyRound className="w-5 h-5 text-slate-400" />}
+                    leftIcon={<KeyRound className="w-4 h-4 text-slate-400" />}
                     rightIcon={
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
-                        className="min-h-[48px] min-w-[48px] -mr-3 flex items-center justify-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                        className="min-h-[40px] min-w-[40px] -mr-2 flex items-center justify-center text-slate-400 hover:text-slate-600 cursor-pointer"
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -851,7 +852,7 @@ export function PartiuAppAuthGate({
                   <NativeButton
                     type="submit"
                     variant="filled"
-                    size="md"
+                    size="lg"
                     fullWidth
                     isLoading={loading}
                     rightIcon={<ArrowRight className="w-4 h-4" />}
@@ -859,11 +860,11 @@ export function PartiuAppAuthGate({
                     Criar Conta e Começar
                   </NativeButton>
 
-                  <div className="text-center pt-2">
+                  <div className="text-center pt-1.5">
                     <button
                       type="button"
                       onClick={() => setPassengerStep("MAGIC_ENTRY")}
-                      className="min-h-[48px] inline-flex items-center justify-center text-xs font-bold hover:underline cursor-pointer"
+                      className="min-h-[40px] inline-flex items-center justify-center text-xs font-semibold hover:underline cursor-pointer"
                       style={{ color: colors.textSecondary }}
                     >
                       Voltar e trocar contato
@@ -879,10 +880,10 @@ export function PartiuAppAuthGate({
           {/* =================================================================== */}
           {activeRole === "MOTORISTA" && (
             <>
-              {/* VISÃO 1: PORTAL DO MOTORISTA COM FOCO EM CONVERSÃO (TAREFA 3) */}
+              {/* VISÃO 1: PORTAL DO MOTORISTA */}
               {driverView === "PORTAL" && (
-                <div className="space-y-6 text-left animate-in fade-in duration-200">
-                  <div className="space-y-2">
+                <div className="space-y-4 text-left animate-in fade-in duration-200">
+                  <div className="space-y-1.5">
                     <span
                       className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider"
                       style={{
@@ -895,29 +896,29 @@ export function PartiuAppAuthGate({
                     </span>
 
                     <h1
-                      className="text-2xl sm:text-3xl font-black tracking-tight leading-tight"
+                      className="text-xl sm:text-2xl font-black tracking-tight leading-tight"
                       style={{ color: colors.textPrimary }}
                     >
                       Dirija com a {appName}
                     </h1>
 
                     <p
-                      className="text-sm font-normal leading-relaxed"
+                      className="text-[11px] sm:text-xs font-normal leading-relaxed"
                       style={{ color: colors.textSecondary }}
                     >
-                      Aumente seus ganhos com planos a partir de 0% de comissão e repasse imediato de 100% das corridas via PIX D+0.
+                      Planos a partir de 0% de taxa e repasse imediato de até 100% via PIX D+0.
                     </p>
                   </div>
 
                   {/* Benefícios Rápidos em Grid Compacta */}
-                  <div className="grid grid-cols-2 gap-2.5 pt-1">
+                  <div className="grid grid-cols-2 gap-2 pt-0.5">
                     <NativeSurface
                       elevation={1}
                       padding="sm"
-                      className="flex flex-col items-start gap-1.5 p-3 rounded-2xl"
+                      className="flex flex-col items-start gap-1 p-2.5 rounded-xl border border-slate-200/80"
                     >
                       <span
-                        className="px-2 py-0.5 rounded-md font-black text-xs inline-block"
+                        className="px-1.5 py-0.5 rounded font-black text-[10px] inline-block"
                         style={{
                           backgroundColor: `${colors.primary}18`,
                           color: colors.primary,
@@ -928,7 +929,7 @@ export function PartiuAppAuthGate({
                       <h4 className="text-xs font-bold leading-tight" style={{ color: colors.textPrimary }}>
                         Plano Diário
                       </h4>
-                      <p className="text-[11px] leading-tight" style={{ color: colors.textSecondary }}>
+                      <p className="text-[10px] leading-tight" style={{ color: colors.textSecondary }}>
                         100% do valor da corrida é seu.
                       </p>
                     </NativeSurface>
@@ -936,10 +937,10 @@ export function PartiuAppAuthGate({
                     <NativeSurface
                       elevation={1}
                       padding="sm"
-                      className="flex flex-col items-start gap-1.5 p-3 rounded-2xl"
+                      className="flex flex-col items-start gap-1 p-2.5 rounded-xl border border-slate-200/80"
                     >
                       <span
-                        className="px-2 py-0.5 rounded-md font-black text-xs inline-block"
+                        className="px-1.5 py-0.5 rounded font-black text-[10px] inline-block"
                         style={{
                           backgroundColor: `${colors.primary}18`,
                           color: colors.primary,
@@ -950,21 +951,21 @@ export function PartiuAppAuthGate({
                       <h4 className="text-xs font-bold leading-tight" style={{ color: colors.textPrimary }}>
                         Repasse Imediato
                       </h4>
-                      <p className="text-[11px] leading-tight" style={{ color: colors.textSecondary }}>
+                      <p className="text-[10px] leading-tight" style={{ color: colors.textSecondary }}>
                         Direto na sua conta bancária.
                       </p>
                     </NativeSurface>
                   </div>
 
                   {/* BOTÃO PRINCIPAL: CADASTRO DE VEÍCULO */}
-                  <div className="space-y-2.5 pt-1">
+                  <div className="space-y-2 pt-1">
                     <Link
                       to="/cadastro-motorista"
                       className="w-full flex items-center justify-center"
                     >
                       <NativeButton
                         variant="filled"
-                        size="md"
+                        size="lg"
                         fullWidth
                         rightIcon={<ArrowRight className="w-4 h-4" />}
                       >
@@ -980,7 +981,7 @@ export function PartiuAppAuthGate({
                           setDriverView("LOGIN");
                           setErrorMessage(null);
                         }}
-                        className="inline-flex items-center justify-center py-1 text-xs font-medium hover:underline cursor-pointer"
+                        className="inline-flex items-center justify-center py-1 text-xs font-semibold hover:underline cursor-pointer"
                         style={{ color: colors.textSecondary }}
                       >
                         Já sou parceiro (Entrar com e-mail/celular e senha)
@@ -992,15 +993,15 @@ export function PartiuAppAuthGate({
 
               {/* VISÃO 2: LOGIN DO MOTORISTA PARCEIRO */}
               {driverView === "LOGIN" && (
-                <form onSubmit={handlePasswordLogin} className="space-y-4 text-left animate-in fade-in duration-200">
-                  <div className="space-y-1 border-b pb-3" style={{ borderColor: colors.inputBorder }}>
+                <form onSubmit={handlePasswordLogin} className="space-y-3.5 text-left animate-in fade-in duration-200">
+                  <div className="space-y-1 border-b pb-2" style={{ borderColor: colors.inputBorder }}>
                     <h2
-                      className="text-xl sm:text-2xl font-black tracking-tight"
+                      className="text-lg sm:text-xl font-black tracking-tight"
                       style={{ color: colors.textPrimary }}
                     >
                       Cockpit do Motorista
                     </h2>
-                    <p className="text-xs font-normal" style={{ color: colors.textSecondary }}>
+                    <p className="text-[11px] sm:text-xs font-normal" style={{ color: colors.textSecondary }}>
                       Informe seu e-mail ou celular cadastrado e sua senha.
                     </p>
                   </div>
@@ -1012,12 +1013,12 @@ export function PartiuAppAuthGate({
                     placeholder="motorista@exemplo.com"
                     autoFocus
                     required
-                    leftIcon={<User className="w-5 h-5 text-slate-400" />}
+                    leftIcon={<User className="w-4 h-4 text-slate-400" />}
                   />
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs sm:text-sm font-bold" style={{ color: colors.textPrimary }}>
+                      <label className="text-xs font-semibold" style={{ color: colors.textPrimary }}>
                         Senha de Acesso
                       </label>
                       <button
@@ -1036,13 +1037,13 @@ export function PartiuAppAuthGate({
                       onChange={(e) => setSenha(e.target.value)}
                       placeholder="Sua senha de motorista"
                       required
-                      leftIcon={<KeyRound className="w-5 h-5 text-slate-400" />}
+                      leftIcon={<KeyRound className="w-4 h-4 text-slate-400" />}
                       rightIcon={
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
-                          className="min-h-[48px] min-w-[48px] -mr-3 flex items-center justify-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                          className="min-h-[40px] min-w-[40px] -mr-2 flex items-center justify-center text-slate-400 hover:text-slate-600 cursor-pointer"
                         >
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -1053,7 +1054,7 @@ export function PartiuAppAuthGate({
                   <NativeButton
                     type="submit"
                     variant="filled"
-                    size="md"
+                    size="lg"
                     fullWidth
                     isLoading={loading}
                     rightIcon={<ArrowRight className="w-4 h-4" />}
@@ -1061,11 +1062,11 @@ export function PartiuAppAuthGate({
                     Entrar no Cockpit
                   </NativeButton>
 
-                  <div className="text-center pt-2">
+                  <div className="text-center pt-1.5">
                     <button
                       type="button"
                       onClick={() => setDriverView("PORTAL")}
-                      className="min-h-[48px] inline-flex items-center justify-center text-xs font-bold hover:underline cursor-pointer"
+                      className="min-h-[40px] inline-flex items-center justify-center text-xs font-semibold hover:underline cursor-pointer"
                       style={{ color: colors.textSecondary }}
                     >
                       Ainda não é cadastrado? Quero me cadastrar
@@ -1078,70 +1079,70 @@ export function PartiuAppAuthGate({
         </NativeSurface>
 
         {/* =================================================================== */}
-        {/* BADGES DE CONFIANÇA DO ECOSSISTEMA (INSPIRADO NO DRIVEMOND)         */}
+        {/* BADGES DE CONFIANÇA DO ECOSSISTEMA                                  */}
         {/* =================================================================== */}
-        <div className="pt-5 pb-2">
+        <div className="pt-3 pb-1">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
             <div
-              className="flex flex-col items-center p-2.5 rounded-2xl border transition-all"
+              className="flex flex-col items-center p-2 rounded-xl border transition-all"
               style={{
                 backgroundColor: colors.surface,
                 borderColor: colors.inputBorder,
               }}
             >
-              <ShieldCheck className="w-5 h-5 mb-1 stroke-[2]" style={{ color: colors.primary }} />
-              <span className="text-xs font-bold leading-tight" style={{ color: colors.textPrimary }}>
+              <ShieldCheck className="w-4 h-4 mb-0.5 stroke-[2]" style={{ color: colors.primary }} />
+              <span className="text-[11px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
                 Seguro
               </span>
-              <span className="text-[10px] leading-tight" style={{ color: colors.textSecondary }}>
+              <span className="text-[9px] leading-tight" style={{ color: colors.textSecondary }}>
                 em cada viagem
               </span>
             </div>
 
             <div
-              className="flex flex-col items-center p-2.5 rounded-2xl border transition-all"
+              className="flex flex-col items-center p-2 rounded-xl border transition-all"
               style={{
                 backgroundColor: colors.surface,
                 borderColor: colors.inputBorder,
               }}
             >
-              <Zap className="w-5 h-5 mb-1 stroke-[2]" style={{ color: colors.primary }} />
-              <span className="text-xs font-bold leading-tight" style={{ color: colors.textPrimary }}>
+              <Zap className="w-4 h-4 mb-0.5 stroke-[2]" style={{ color: colors.primary }} />
+              <span className="text-[11px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
                 Rápido
               </span>
-              <span className="text-[10px] leading-tight" style={{ color: colors.textSecondary }}>
+              <span className="text-[9px] leading-tight" style={{ color: colors.textSecondary }}>
                 e prático
               </span>
             </div>
 
             <div
-              className="flex flex-col items-center p-2.5 rounded-2xl border transition-all"
+              className="flex flex-col items-center p-2 rounded-xl border transition-all"
               style={{
                 backgroundColor: colors.surface,
                 borderColor: colors.inputBorder,
               }}
             >
-              <MapPin className="w-5 h-5 mb-1 stroke-[2]" style={{ color: colors.primary }} />
-              <span className="text-xs font-bold leading-tight" style={{ color: colors.textPrimary }}>
+              <MapPin className="w-4 h-4 mb-0.5 stroke-[2]" style={{ color: colors.primary }} />
+              <span className="text-[11px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
                 Na sua cidade
               </span>
-              <span className="text-[10px] leading-tight" style={{ color: colors.textSecondary }}>
+              <span className="text-[9px] leading-tight" style={{ color: colors.textSecondary }}>
                 sempre perto
               </span>
             </div>
 
             <div
-              className="flex flex-col items-center p-2.5 rounded-2xl border transition-all"
+              className="flex flex-col items-center p-2 rounded-xl border transition-all"
               style={{
                 backgroundColor: colors.surface,
                 borderColor: colors.inputBorder,
               }}
             >
-              <CheckCircle2 className="w-5 h-5 mb-1 stroke-[2]" style={{ color: colors.primary }} />
-              <span className="text-xs font-bold leading-tight" style={{ color: colors.textPrimary }}>
+              <CheckCircle2 className="w-4 h-4 mb-0.5 stroke-[2]" style={{ color: colors.primary }} />
+              <span className="text-[11px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
                 Tarifa Justa
               </span>
-              <span className="text-[10px] leading-tight" style={{ color: colors.textSecondary }}>
+              <span className="text-[9px] leading-tight" style={{ color: colors.textSecondary }}>
                 sem surpresas
               </span>
             </div>
@@ -1151,20 +1152,20 @@ export function PartiuAppAuthGate({
         {/* =================================================================== */}
         {/* 3. RODAPÉ DE SEGURANÇA E CONFORMIDADE                               */}
         {/* =================================================================== */}
-        <footer className="w-full text-center py-5 space-y-1.5 select-none">
+        <footer className="w-full text-center py-3 space-y-1 select-none">
           <div
-            className="flex flex-wrap items-center justify-center gap-2.5 text-xs font-semibold"
+            className="flex flex-wrap items-center justify-center gap-2 text-[11px] font-semibold"
             style={{ color: colors.textSecondary }}
           >
             <span className="flex items-center gap-1 text-emerald-600 font-bold">
-              <ShieldCheck className="h-3.5 w-3.5" /> Conexão Segura SSL
+              <ShieldCheck className="h-3 w-3" /> Conexão Segura SSL
             </span>
             <span>•</span>
             <span>Conforme LGPD</span>
             <span>•</span>
             <span>PIX Instantâneo</span>
           </div>
-          <p className="text-[11px]" style={{ color: colors.textSecondary }}>
+          <p className="text-[10px]" style={{ color: colors.textSecondary }}>
             © {new Date().getFullYear()} {appName}. Todos os direitos reservados.
           </p>
         </footer>

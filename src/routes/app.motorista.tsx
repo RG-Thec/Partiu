@@ -329,7 +329,7 @@ export function PartiuDriverCockpit() {
   // Status de Moderação Documental (Supabase Profiles & Realtime)
   const [driverApprovalStatus, setDriverApprovalStatus] = useState<string>(() => {
     if (activeUser?.role === "MOTORISTA") {
-      return activeUser.driverApprovalStatus || "aprovado";
+      return activeUser.driverApprovalStatus || "pendente";
     }
     return "aprovado";
   });
@@ -369,7 +369,7 @@ export function PartiuDriverCockpit() {
 
   // Status de Disponibilidade & Trava de Diária Inteligente (SaaS Model)
   const [isOnline, setIsOnline] = useState(() => {
-    if (activeUser?.role === "MOTORISTA" && activeUser.driverApprovalStatus === "pendente") {
+    if (activeUser?.role === "MOTORISTA" && activeUser.driverApprovalStatus !== "aprovado") {
       return false;
     }
     return driverSubscriptionService.isDriverUnlocked(effectiveDriverId);
