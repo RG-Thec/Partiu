@@ -1,24 +1,30 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
 import {
+  Activity,
   Bell,
   Car,
   ChevronDown,
+  ChevronRight,
   CreditCard,
   Crown,
   DollarSign,
   Key,
+  Layers,
   LayoutDashboard,
   LogOut,
   Megaphone,
   Menu,
+  Palette,
   PanelLeftClose,
   PanelLeftOpen,
+  PhoneCall,
   Printer,
   Radio,
   ShieldAlert,
   Sliders,
   Sparkles,
+  TrendingUp,
   UserCheck,
   Users,
   X,
@@ -50,7 +56,15 @@ export const Route = createFileRoute("/app/admin")({
   component: SuperAdminLayout,
 });
 
-interface ItemMenuAdmin {
+export interface SubItemMenuAdmin {
+  to: string;
+  label: string;
+  icon?: any;
+  badge?: string;
+  badgeVariant?: "default" | "critical" | "warning";
+}
+
+export interface ItemMenuAdmin {
   to: string;
   label: string;
   icon: any;
@@ -59,11 +73,12 @@ interface ItemMenuAdmin {
   badgeVariant?: "default" | "critical" | "warning";
   moduleId: AdminModuleId;
   descricao: string;
+  subItens?: SubItemMenuAdmin[];
 }
 
 /**
- * 🏛️ CENTRAL DE OPERAÇÕES NACIONAL PARTIU — ESTRUTURA OFICIAL V4
- * Estritamente 6 Módulos Operacionais Principais (Padrão Uber / 99 / Stripe)
+ * 🏛️ CENTRAL DE OPERAÇÕES NACIONAL PARTIU — ESTRUTURA OFICIAL V4 EXPANDIDA
+ * Estritamente os 6 Módulos Oficiais (RBAC) com Sub-Módulos Operacionais Integrados
  */
 const MENU_PRINCIPAL: ItemMenuAdmin[] = [
   {
@@ -73,6 +88,10 @@ const MENU_PRINCIPAL: ItemMenuAdmin[] = [
     exact: true,
     moduleId: "dashboard",
     descricao: "Centro nervoso & Mapa em tempo real",
+    subItens: [
+      { to: "/app/admin", label: "Visão Geral Executiva", icon: LayoutDashboard },
+      { to: "/app/admin/diagnostico", label: "Diagnóstico GNSS & WebGL", icon: Activity, badge: "GPS" },
+    ],
   },
   {
     to: "/app/admin/operacao",
@@ -82,42 +101,65 @@ const MENU_PRINCIPAL: ItemMenuAdmin[] = [
     badge: "Ao Vivo",
     moduleId: "operacao",
     descricao: "Corridas, Entregas & Fila SOS",
+    subItens: [
+      { to: "/app/admin/operacao", label: "Fila de Corridas & SOS", icon: Radio },
+      { to: "/app/admin/despacho", label: "Despacho Manual & Flash", icon: PhoneCall, badge: "Central" },
+      { to: "/app/admin/frota", label: "Radar de Frotas", icon: Car },
+    ],
   },
   {
     to: "/app/admin/motoristas",
-    label: "Motoristas",
+    label: "Motoristas & Usuários",
     icon: Users,
     exact: false,
     badge: "Carro/Moto",
     moduleId: "motoristas",
-    descricao: "Frota & Aprovação Inteligente",
+    descricao: "Frota, Aprovação & Passageiros",
+    subItens: [
+      { to: "/app/admin/motoristas", label: "Gestão de Motoristas", icon: Users },
+      { to: "/app/admin/aprovacoes", label: "Fila de CNH & Documentos", icon: UserCheck, badge: "CNH" },
+      { to: "/app/admin/passageiros", label: "Base de Passageiros", icon: Users, badge: "App" },
+    ],
   },
   {
     to: "/app/admin/financeiro",
-    label: "Financeiro",
+    label: "Financeiro & SaaS",
     icon: DollarSign,
     exact: false,
     badge: "D+0",
     moduleId: "financeiro",
     descricao: "Consolidado, Diárias SaaS & Tarifas",
+    subItens: [
+      { to: "/app/admin/financeiro", label: "Extrato D+0 & Repasses", icon: DollarSign },
+      { to: "/app/admin/monetizacao", label: "Diárias SaaS & Planos", icon: CreditCard, badge: "Planos" },
+      { to: "/app/admin/caixa", label: "Fechamento de Caixa", icon: Layers },
+    ],
   },
   {
     to: "/app/admin/marketing",
-    label: "Marketing",
+    label: "Marketing & Growth",
     icon: Megaphone,
     exact: false,
     badge: "CMS",
     moduleId: "marketing",
-    descricao: "Banners Mobile, Cupons & Push",
+    descricao: "Banners Mobile, Cupons & Growth",
+    subItens: [
+      { to: "/app/admin/marketing", label: "Banners Mobile & Cupons", icon: Megaphone },
+      { to: "/app/admin/growth", label: "Indique & Ganhe (Fidelidade)", icon: TrendingUp, badge: "Viral" },
+    ],
   },
   {
     to: "/app/admin/configuracoes",
-    label: "Configurações",
+    label: "Configurações & White Label",
     icon: Sliders,
     exact: false,
     badge: "White Label",
     moduleId: "configuracoes",
-    descricao: "Modo Essencial & Assistente de Cidades",
+    descricao: "Modo Essencial & White Label Studio",
+    subItens: [
+      { to: "/app/admin/configuracoes", label: "Modo Essencial & Gateways", icon: Sliders },
+      { to: "/app/admin/whitelabel", label: "White Label Studio OS", icon: Palette, badge: "Studio" },
+    ],
   },
 ];
 
@@ -360,70 +402,103 @@ function SuperAdminLayout() {
               const Icon = item.icon;
               const isAtivo = item.exact
                 ? href === item.to || href === item.to + "/"
-                : href.startsWith(item.to);
+                : href.startsWith(item.to) || (item.subItens?.some((s) => href.startsWith(s.to)) ?? false);
 
               return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  style={
-                    isAtivo
-                      ? {
-                          backgroundColor: colors.primary,
-                          color: "#FFFFFF",
-                          borderRadius: ui.borderRadius,
-                          boxShadow: ui.buttonShadow,
-                        }
-                      : { borderRadius: ui.borderRadius }
-                  }
-                  className={`group flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4 text-base sm:text-lg font-bold transition-all relative min-h-[64px] ${
-                    isAtivo
-                      ? "font-black"
-                      : "text-slate-300 hover:bg-slate-900 hover:text-white"
-                  } ${recolhido ? "justify-center px-2" : ""}`}
-                  title={recolhido ? item.label : undefined}
-                >
-                  <div className="flex items-center gap-4 min-w-0">
-                    <Icon
-                      className={`h-6 w-6 sm:h-7 sm:w-7 shrink-0 transition-transform group-hover:scale-110 ${
-                        isAtivo ? "text-white stroke-[2.5]" : "text-slate-400"
-                      }`}
-                    />
-                    {!recolhido && (
-                      <div className="truncate">
-                        <p className="truncate text-base sm:text-lg xl:text-xl font-black leading-snug">{item.label}</p>
-                        <span className={`text-xs sm:text-sm xl:text-base block font-medium truncate mt-1 ${
-                          isAtivo ? "text-white/95 font-semibold" : "text-slate-400"
-                        }`}>
-                          {item.descricao}
-                        </span>
-                      </div>
+                <div key={item.to} className="space-y-1">
+                  <Link
+                    to={item.to}
+                    style={
+                      isAtivo
+                        ? {
+                            backgroundColor: colors.primary,
+                            color: "#FFFFFF",
+                            borderRadius: ui.borderRadius,
+                            boxShadow: ui.buttonShadow,
+                          }
+                        : { borderRadius: ui.borderRadius }
+                    }
+                    className={`group flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4 text-base sm:text-lg font-bold transition-all relative min-h-[64px] ${
+                      isAtivo
+                        ? "font-black"
+                        : "text-slate-300 hover:bg-slate-900 hover:text-white"
+                    } ${recolhido ? "justify-center px-2" : ""}`}
+                    title={recolhido ? item.label : undefined}
+                  >
+                    <div className="flex items-center gap-4 min-w-0">
+                      <Icon
+                        className={`h-6 w-6 sm:h-7 sm:w-7 shrink-0 transition-transform group-hover:scale-110 ${
+                          isAtivo ? "text-white stroke-[2.5]" : "text-slate-400"
+                        }`}
+                      />
+                      {!recolhido && (
+                        <div className="truncate">
+                          <p className="truncate text-base sm:text-lg xl:text-xl font-black leading-snug">{item.label}</p>
+                          <span className={`text-xs sm:text-sm xl:text-base block font-medium truncate mt-1 ${
+                            isAtivo ? "text-white/95 font-semibold" : "text-slate-400"
+                          }`}>
+                            {item.descricao}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {recolhido && item.badgeVariant === "critical" && (
+                      <span className="absolute top-2 right-2 h-3.5 w-3.5 rounded-full bg-red-600 animate-pulse border-2 border-slate-950" />
                     )}
-                  </div>
+                    {recolhido && item.badgeVariant === "warning" && (
+                      <span className="absolute top-2 right-2 h-3.5 w-3.5 rounded-full bg-amber-400 border-2 border-slate-950" />
+                    )}
 
-                  {recolhido && item.badgeVariant === "critical" && (
-                    <span className="absolute top-2 right-2 h-3.5 w-3.5 rounded-full bg-red-600 animate-pulse border-2 border-slate-950" />
-                  )}
-                  {recolhido && item.badgeVariant === "warning" && (
-                    <span className="absolute top-2 right-2 h-3.5 w-3.5 rounded-full bg-amber-400 border-2 border-slate-950" />
-                  )}
+                    {!recolhido && item.badge && (
+                      <span
+                        className={`ml-2 px-3 py-1 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider shrink-0 ${
+                          item.badgeVariant === "critical"
+                            ? "bg-red-600 text-white animate-pulse shadow-md shadow-red-500/50"
+                            : item.badgeVariant === "warning"
+                            ? "bg-amber-400 text-slate-950 font-black shadow-sm"
+                            : isAtivo
+                            ? "bg-slate-950 text-white"
+                            : "bg-slate-800 text-slate-300"
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </Link>
 
-                  {!recolhido && item.badge && (
-                    <span
-                      className={`ml-2 px-3 py-1 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider shrink-0 ${
-                        item.badgeVariant === "critical"
-                          ? "bg-red-600 text-white animate-pulse shadow-md shadow-red-500/50"
-                          : item.badgeVariant === "warning"
-                          ? "bg-amber-400 text-slate-950 font-black shadow-sm"
-                          : isAtivo
-                          ? "bg-slate-950 text-white"
-                          : "bg-slate-800 text-slate-300"
-                      }`}
-                    >
-                      {item.badge}
-                    </span>
+                  {/* Sub-itens de navegação rápida quando o módulo estiver ativo */}
+                  {!recolhido && isAtivo && item.subItens && item.subItens.length > 0 && (
+                    <div className="pl-4 pr-1 py-1 space-y-1 border-l-2 border-slate-800 ml-5 my-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                      {item.subItens.map((sub) => {
+                        const SubIcon = sub.icon || ChevronRight;
+                        const isSubAtivo = href === sub.to || (sub.to !== item.to && href.startsWith(sub.to));
+
+                        return (
+                          <Link
+                            key={sub.to}
+                            to={sub.to}
+                            className={`flex items-center justify-between px-3.5 py-2.5 text-sm sm:text-base font-bold rounded-xl transition-all ${
+                              isSubAtivo
+                                ? "bg-slate-900 text-amber-400 font-black border border-amber-400/40 shadow-xs"
+                                : "text-slate-400 hover:text-white hover:bg-slate-900/60"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 truncate">
+                              <SubIcon className={`h-4 w-4 shrink-0 ${isSubAtivo ? "text-amber-400" : "text-slate-500"}`} />
+                              <span className="truncate">{sub.label}</span>
+                            </div>
+                            {sub.badge && (
+                              <span className="px-2 py-0.5 text-xs font-black uppercase rounded-lg bg-slate-800 text-slate-300">
+                                {sub.badge}
+                              </span>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
                   )}
-                </Link>
+                </div>
               );
             })}
           </nav>
@@ -506,6 +581,26 @@ function SuperAdminLayout() {
                 <span>{motoristasPendentes} Pendente{motoristasPendentes > 1 ? "s" : ""}</span>
               </Link>
             )}
+
+            {/* Atalho Rápido para Despacho Telefônico & Flash */}
+            <Link
+              to="/app/admin/despacho"
+              className="hidden 2xl:flex items-center gap-2 px-3.5 sm:px-4 py-2 h-11 sm:h-13 rounded-2xl bg-blue-50 text-blue-900 text-xs sm:text-sm font-black border border-blue-200/80 hover:bg-blue-100 active:scale-95 transition-all shadow-xs"
+              title="Central Telefônica de Despacho e Atendimento"
+            >
+              <PhoneCall className="h-4.5 w-4.5 text-blue-600 shrink-0" />
+              <span>Despacho Manual</span>
+            </Link>
+
+            {/* Atalho Rápido para Studio White Label OS */}
+            <Link
+              to="/app/admin/whitelabel"
+              className="hidden xl:flex items-center gap-2 px-3.5 sm:px-4 py-2 h-11 sm:h-13 rounded-2xl bg-indigo-50 text-indigo-900 text-xs sm:text-sm font-black border border-indigo-200/80 hover:bg-indigo-100 active:scale-95 transition-all shadow-xs"
+              title="White Label Studio OS (Design, Brand, Multi-Negócios)"
+            >
+              <Sparkles className="h-4.5 w-4.5 text-indigo-600 shrink-0" />
+              <span>Studio White Label</span>
+            </Link>
 
             {/* Atalho Rápido para Operação ao Vivo */}
             <Link
@@ -619,44 +714,78 @@ function SuperAdminLayout() {
                   const Icon = item.icon;
                   const isAtivo = item.exact
                     ? href === item.to || href === item.to + "/"
-                    : href.startsWith(item.to);
+                    : href.startsWith(item.to) || (item.subItens?.some((s) => href.startsWith(s.to)) ?? false);
 
                   return (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      onClick={() => setMenuAbertoMobile(false)}
-                      style={
-                        isAtivo
-                          ? {
-                              backgroundColor: colors.primary,
-                              color: "#FFFFFF",
-                              borderRadius: ui.borderRadius,
-                            }
-                          : { borderRadius: ui.borderRadius }
-                      }
-                      className={`flex items-center justify-between px-4 sm:px-5 py-4 text-base sm:text-lg font-bold transition-all min-h-[58px] rounded-2xl ${
-                        isAtivo
-                          ? "font-black"
-                          : "text-slate-300 hover:bg-slate-900 hover:text-white"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3.5">
-                        <Icon className={`h-6 w-6 ${isAtivo ? "text-white" : "text-slate-400"}`} />
-                        <span>{item.label}</span>
-                      </div>
-                      {item.badge && (
-                        <span className={`text-xs sm:text-sm px-3 py-1 rounded-xl font-black uppercase tracking-wider ${
-                          item.badgeVariant === "critical"
-                            ? "bg-red-600 text-white animate-pulse"
-                            : item.badgeVariant === "warning"
-                            ? "bg-amber-400 text-slate-950 font-black"
-                            : "bg-slate-900 text-primary-500"
-                        }`}>
-                          {item.badge}
-                        </span>
+                    <div key={item.to} className="space-y-1">
+                      <Link
+                        to={item.to}
+                        onClick={() => setMenuAbertoMobile(false)}
+                        style={
+                          isAtivo
+                            ? {
+                                backgroundColor: colors.primary,
+                                color: "#FFFFFF",
+                                borderRadius: ui.borderRadius,
+                              }
+                            : { borderRadius: ui.borderRadius }
+                        }
+                        className={`flex items-center justify-between px-4 sm:px-5 py-4 text-base sm:text-lg font-bold transition-all min-h-[58px] rounded-2xl ${
+                          isAtivo
+                            ? "font-black"
+                            : "text-slate-300 hover:bg-slate-900 hover:text-white"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3.5">
+                          <Icon className={`h-6 w-6 ${isAtivo ? "text-white" : "text-slate-400"}`} />
+                          <span>{item.label}</span>
+                        </div>
+                        {item.badge && (
+                          <span className={`text-xs sm:text-sm px-3 py-1 rounded-xl font-black uppercase tracking-wider ${
+                            item.badgeVariant === "critical"
+                              ? "bg-red-600 text-white animate-pulse"
+                              : item.badgeVariant === "warning"
+                              ? "bg-amber-400 text-slate-950 font-black"
+                              : "bg-slate-900 text-primary-500"
+                          }`}>
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+
+                      {/* Sub-itens de navegação no mobile drawer */}
+                      {isAtivo && item.subItens && item.subItens.length > 0 && (
+                        <div className="pl-4 pr-1 py-1 space-y-1 border-l-2 border-slate-800 ml-4 my-1">
+                          {item.subItens.map((sub) => {
+                            const SubIcon = sub.icon || ChevronRight;
+                            const isSubAtivo = href === sub.to || (sub.to !== item.to && href.startsWith(sub.to));
+
+                            return (
+                              <Link
+                                key={sub.to}
+                                to={sub.to}
+                                onClick={() => setMenuAbertoMobile(false)}
+                                className={`flex items-center justify-between px-3.5 py-2.5 text-sm font-bold rounded-xl transition-all ${
+                                  isSubAtivo
+                                    ? "bg-slate-900 text-amber-400 font-black border border-amber-400/40"
+                                    : "text-slate-400 hover:text-white hover:bg-slate-900/60"
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 truncate">
+                                  <SubIcon className={`h-4 w-4 shrink-0 ${isSubAtivo ? "text-amber-400" : "text-slate-500"}`} />
+                                  <span className="truncate">{sub.label}</span>
+                                </div>
+                                {sub.badge && (
+                                  <span className="px-2 py-0.5 text-xs font-black uppercase rounded bg-slate-800 text-slate-300">
+                                    {sub.badge}
+                                  </span>
+                                )}
+                              </Link>
+                            );
+                          })}
+                        </div>
                       )}
-                    </Link>
+                    </div>
                   );
                 })}
               </nav>
