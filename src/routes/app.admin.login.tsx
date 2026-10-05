@@ -9,7 +9,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { loginAdmin } from "@/lib/admin-rbac";
-import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 
 export const Route = createFileRoute("/app/admin/login")({
   ssr: false,
@@ -29,8 +29,9 @@ export const Route = createFileRoute("/app/admin/login")({
 function AdminLoginPage() {
   const navigate = useNavigate();
   const { appConfig } = useTheme();
-  const { branding } = appConfig;
-  const { colors, ui } = branding;
+  const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
+  const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+  const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
 
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");

@@ -141,8 +141,9 @@ export const LandingLiveCustomizer: React.FC<LandingLiveCustomizerProps> = ({
                 </label>
                 <div className="grid grid-cols-1 gap-1.5">
                   {PRESET_PALETTES.map((palette, i) => {
+                    const currentPrimary = data?.theme?.primary || "#FF6B00";
                     const isSelected =
-                      data.theme.primary.toLowerCase() === palette.primary.toLowerCase();
+                      currentPrimary.toLowerCase() === palette.primary.toLowerCase();
 
                     return (
                       <button
@@ -152,7 +153,7 @@ export const LandingLiveCustomizer: React.FC<LandingLiveCustomizerProps> = ({
                           onChange({
                             ...data,
                             theme: {
-                              ...data.theme,
+                              ...(data?.theme || {}),
                               primary: palette.primary,
                               secondary: palette.secondary,
                               bgDark: { gradient: palette.gradient },
@@ -200,12 +201,12 @@ export const LandingLiveCustomizer: React.FC<LandingLiveCustomizerProps> = ({
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
-                      value={data.theme.primary}
+                      value={data?.theme?.primary || "#FF6B00"}
                       onChange={(e) => updateTheme("primary", e.target.value)}
                       className="w-7 h-7 rounded border border-slate-300 cursor-pointer p-0"
                     />
                     <span className="font-mono text-[11px] uppercase text-slate-500">
-                      {data.theme.primary}
+                      {data?.theme?.primary || "#FF6B00"}
                     </span>
                   </div>
                 </div>
@@ -215,12 +216,12 @@ export const LandingLiveCustomizer: React.FC<LandingLiveCustomizerProps> = ({
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
-                      value={data.theme.secondary}
+                      value={data?.theme?.secondary || "#FFB800"}
                       onChange={(e) => updateTheme("secondary", e.target.value)}
                       className="w-7 h-7 rounded border border-slate-300 cursor-pointer p-0"
                     />
                     <span className="font-mono text-[11px] uppercase text-slate-500">
-                      {data.theme.secondary}
+                      {data?.theme?.secondary || "#FFB800"}
                     </span>
                   </div>
                 </div>

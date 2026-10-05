@@ -28,7 +28,7 @@ import { NetworkReconnectionBanner } from "@/components/passenger/NetworkReconne
 import { GpsPermissionModal } from "@/components/passenger/GpsPermissionModal";
 import { PartiuRideMap, type PartiuRideMapHandle } from "@/components/maps/PartiuRideMap";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
-import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 import { getStatusPermissaoPush } from "@/lib/push-notifications";
 import { useScrollInterpolation } from "@/hooks/useScrollInterpolation";
 import { NotificationCenterModal } from "@/components/notifications/NotificationCenterModal";
@@ -88,7 +88,10 @@ function PartiuPassengerHomeContent() {
 
   const { corPrimaria, corSecundaria } = useBrandTheme();
   const { appConfig } = useTheme();
-  const { colors, ui, appName } = appConfig.branding;
+  const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
+  const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+  const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
+  const appName = branding?.appName || DEFAULT_APP_CONFIG.branding.appName;
 
   const [drawerAberto, setDrawerAberto] = useState(false);
   const [modalPushAberto, setModalPushAberto] = useState(false);

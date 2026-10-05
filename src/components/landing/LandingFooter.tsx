@@ -7,18 +7,21 @@ interface LandingFooterProps {
 }
 
 export const LandingFooter: React.FC<LandingFooterProps> = ({ footer, theme }) => {
+  const primaryColor = theme?.primary || "#FF6B00";
+  const secondaryColor = theme?.secondary || "#FFB800";
+
   return (
     <footer
       className="relative w-full overflow-hidden pt-8 select-none"
       style={{
-        backgroundColor: theme.bgLight || "#F8FAFC",
+        backgroundColor: theme?.bgLight || "#F8FAFC",
       }}
     >
       {/* Linha Divisória Central com Identificador da Marca */}
       <div className="w-full px-6 flex items-center justify-center gap-3 pb-8 group/footer">
         <div className="flex-1 h-[1px] bg-slate-300/80 max-w-[80px] sm:max-w-[120px] transition-colors duration-300 group-hover/footer:bg-slate-400" />
         <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 group-hover/footer:text-slate-800 transition-all duration-300 whitespace-nowrap cursor-default">
-          {footer.brandName} • {footer.urbanMobilityText || "Mobilidade urbana"}
+          {footer?.brandName || "PARTIU"} • {footer?.urbanMobilityText || "Mobilidade urbana"}
         </span>
         <div className="flex-1 h-[1px] bg-slate-300/80 max-w-[80px] sm:max-w-[120px] transition-colors duration-300 group-hover/footer:bg-slate-400" />
       </div>
@@ -32,9 +35,9 @@ export const LandingFooter: React.FC<LandingFooterProps> = ({ footer, theme }) =
         >
           <defs>
             <linearGradient id="footerDynamicGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor={theme.primary || "#FF6B00"} />
-              <stop offset="50%" stopColor={theme.secondary || theme.primary || "#FFB800"} />
-              <stop offset="100%" stopColor={theme.primary || "#FF6B00"} />
+              <stop offset="0%" stopColor={primaryColor} />
+              <stop offset="50%" stopColor={secondaryColor} />
+              <stop offset="100%" stopColor={primaryColor} />
             </linearGradient>
           </defs>
           <path

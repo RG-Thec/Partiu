@@ -477,7 +477,7 @@ export function ConfiguracoesAdminPage() {
           {/* Card de Cor Primária & Identidade Visual Global */}
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-6">
             {/* Seletor de Paletas Monocromáticas de 1-Clique */}
-            <PalettePickerSection onPaletteSelect={(p) => setCorPrimariaApp(p.colors.primary)} />
+            <PalettePickerSection onPaletteSelect={(p) => setCorPrimariaApp(p?.colors?.primary || "#FF6B00")} />
 
             {/* Ajuste Fino Personalizado e Salvar */}
             <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">

@@ -23,7 +23,7 @@ export function PalettePickerSection({ onPaletteSelect, className = "" }: Palett
     }
     // Identifica por cor primária atual
     const matching = MONOCHROMATIC_PALETTES.find(
-      (p) => p.colors.primary.toLowerCase() === (branding?.primary_color || "").toLowerCase()
+      (p) => p?.colors?.primary?.toLowerCase() === (branding?.primary_color || "").toLowerCase()
     );
     return matching?.id || DEFAULT_MONOCHROMATIC_PALETTE.id;
   });

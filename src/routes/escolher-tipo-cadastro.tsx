@@ -8,7 +8,7 @@ import {
   ShieldCheck,
   Zap,
 } from "lucide-react";
-import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 import { NativeSurface, NativeRipple } from "@/components/native";
 
 export const Route = createFileRoute("/escolher-tipo-cadastro")({
@@ -28,8 +28,10 @@ export const Route = createFileRoute("/escolher-tipo-cadastro")({
 export function EscolherTipoCadastroPage() {
   const navigate = useNavigate();
   const { appConfig } = useTheme();
-  const { branding } = appConfig;
-  const { colors, ui, appName } = branding;
+  const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
+  const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+  const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
+  const appName = branding?.appName || DEFAULT_APP_CONFIG.branding.appName;
 
   return (
     <div

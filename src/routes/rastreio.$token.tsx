@@ -25,7 +25,7 @@ import {
   type PublicRideTrackingData,
 } from "@/lib/tracking/ride-live-tracking-service";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
-import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 import { WhiteLabelButton } from "@/components/ui/white-label";
 
 export const Route = createFileRoute("/rastreio/$token")({
@@ -46,7 +46,9 @@ export function PublicTrackingPage() {
   const { token } = Route.useParams();
   const { nomeApp, corPrimaria, corTextoPrimaria } = useBrandTheme();
   const { appConfig } = useTheme();
-  const { colors, ui } = appConfig.branding;
+  const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
+  const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+  const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
 
   const [rideData, setRideData] = useState<PublicRideTrackingData | null>(() =>
     rideLiveTrackingService.getPublicTrackingView(token)

@@ -13,8 +13,11 @@ export const LandingReasonSection: React.FC<LandingReasonSectionProps> = ({
   theme,
   onNavigate,
 }) => {
+  const primaryColor = theme?.primary || "#FF6B00";
+  const secondaryColor = theme?.secondary || "#FFB800";
+
   const handleCtaClick = () => {
-    const target = reasonSection.ctaUrl || "/app";
+    const target = reasonSection?.ctaUrl || "/app";
     if (onNavigate) {
       onNavigate(target);
     } else {
@@ -24,7 +27,7 @@ export const LandingReasonSection: React.FC<LandingReasonSectionProps> = ({
 
   const defaultCards = [
     {
-      icon: <Car className="w-6 h-6" style={{ color: theme.primary }} />,
+      icon: <Car className="w-6 h-6" style={{ color: primaryColor }} />,
       title: "Corridas particulares",
       desc: "Chame carros confortáveis e motos ágeis em poucos segundos com preço justo e sem surpresas no final.",
     },
@@ -44,8 +47,8 @@ export const LandingReasonSection: React.FC<LandingReasonSectionProps> = ({
     <section
       className="w-full px-4 sm:px-6 lg:px-8 py-10 sm:py-16 transition-colors z-20"
       style={{
-        backgroundColor: theme.bgLight || "#F8FAFC",
-        color: theme.textColorDark || "#0F172A",
+        backgroundColor: theme?.bgLight || "#F8FAFC",
+        color: theme?.textColorDark || "#0F172A",
       }}
     >
       <div className="max-w-7xl mx-auto w-full flex flex-col space-y-8 sm:space-y-12">
@@ -54,9 +57,9 @@ export const LandingReasonSection: React.FC<LandingReasonSectionProps> = ({
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-200/80 text-[11px] font-black uppercase tracking-wider text-slate-700">
             <span
               className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: theme.primary }}
+              style={{ backgroundColor: primaryColor }}
             />
-            <span>{reasonSection.titlePrefix || "Por que escolher a"}</span>
+            <span>{reasonSection?.titlePrefix || "Por que escolher a"}</span>
           </div>
 
           <h2
@@ -92,7 +95,7 @@ export const LandingReasonSection: React.FC<LandingReasonSectionProps> = ({
 
               <div
                 className="pt-6 flex items-center gap-1.5 text-xs font-bold group-hover:translate-x-1 transition-transform"
-                style={{ color: theme.primary }}
+                style={{ color: primaryColor }}
               >
                 <span>Disponível no app</span>
                 <ArrowRight className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -108,14 +111,14 @@ export const LandingReasonSection: React.FC<LandingReasonSectionProps> = ({
               Vantagens exclusivas
             </span>
             <div className="flex flex-wrap items-center gap-2.5">
-              {reasonSection.checklist.map((item, idx) => (
+              {(reasonSection?.checklist || []).map((item, idx) => (
                 <div
                   key={idx}
                   className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-50 border border-slate-200/80 text-xs sm:text-sm font-bold text-slate-800 shadow-2xs"
                 >
                   <div
                     className="w-4 h-4 rounded-full flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: theme.primary }}
+                    style={{ backgroundColor: primaryColor }}
                   >
                     <Check className="w-2.5 h-2.5 text-white stroke-[3.5]" />
                   </div>
@@ -130,11 +133,11 @@ export const LandingReasonSection: React.FC<LandingReasonSectionProps> = ({
             onClick={handleCtaClick}
             className="group relative inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-white font-bold text-xs sm:text-sm transition-all duration-200 active:scale-95 shrink-0 w-full md:w-auto cursor-pointer shadow-md hover:shadow-lg min-h-[40px]"
             style={{
-              background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
-              boxShadow: `0 4px 14px ${theme.primary}35`,
+              background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
+              boxShadow: `0 4px 14px ${primaryColor}35`,
             }}
           >
-            <span>{reasonSection.ctaText || "Começar agora"}</span>
+            <span>{reasonSection?.ctaText || "Começar agora"}</span>
             <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>

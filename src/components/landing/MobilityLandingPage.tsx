@@ -197,18 +197,36 @@ export const MobilityLandingPage: React.FC<MobilityLandingPageProps> = ({
     }
   }, [data.header?.brandName, data.header?.urbanMobilityText]);
 
-  const { theme, header, hero, actions, features, reasonSection, footer } = data;
+  const theme = data?.theme || defaultMobilityLandingData.theme;
+  const header = data?.header || defaultMobilityLandingData.header;
+  const hero = data?.hero || defaultMobilityLandingData.hero;
+  const actions = data?.actions || defaultMobilityLandingData.actions;
+  const features = data?.features || defaultMobilityLandingData.features;
+  const reasonSection = data?.reasonSection || defaultMobilityLandingData.reasonSection;
+  const footer = data?.footer || defaultMobilityLandingData.footer;
+
+  const primaryColor = theme?.primary || corPrimaria || "#FF6B00";
+  const secondaryColor = theme?.secondary || corSecundaria || "#FFB800";
+
+  const safeTheme = {
+    ...theme,
+    primary: primaryColor,
+    secondary: secondaryColor,
+    fontFamily: theme?.fontFamily || "'Plus Jakarta Sans', sans-serif",
+    buttonRadius: theme?.buttonRadius || "16px",
+    bgLight: theme?.bgLight || "#F8FAFC",
+  };
 
   return (
     <div
       className="min-h-screen w-full bg-slate-50 text-slate-900 flex flex-col items-center justify-start overflow-x-hidden transition-colors duration-300 font-sans selection:bg-amber-100 selection:text-slate-900"
       style={
         {
-          fontFamily: theme.fontFamily || "'Plus Jakarta Sans', sans-serif",
-          "--primary-color": theme.primary,
-          "--secondary-color": theme.secondary,
-          "--button-radius": theme.buttonRadius,
-          "--bg-light": theme.bgLight,
+          fontFamily: safeTheme.fontFamily,
+          "--primary-color": primaryColor,
+          "--secondary-color": secondaryColor,
+          "--button-radius": safeTheme.buttonRadius,
+          "--bg-light": safeTheme.bgLight,
         } as React.CSSProperties
       }
     >
@@ -223,46 +241,46 @@ export const MobilityLandingPage: React.FC<MobilityLandingPageProps> = ({
           <div
             className="absolute top-0 right-1/4 w-[500px] h-[500px] rounded-full blur-3xl opacity-[0.08] pointer-events-none transition-colors duration-500"
             style={{
-              background: `radial-gradient(circle, ${theme.primary} 0%, transparent 70%)`,
+              background: `radial-gradient(circle, ${primaryColor} 0%, transparent 70%)`,
             }}
           />
           <div
             className="absolute top-36 -left-20 w-[450px] h-[450px] rounded-full blur-3xl opacity-[0.06] pointer-events-none transition-colors duration-500"
             style={{
-              background: `radial-gradient(circle, ${theme.secondary || theme.primary} 0%, transparent 70%)`,
+              background: `radial-gradient(circle, ${secondaryColor} 0%, transparent 70%)`,
             }}
           />
 
           <div className="w-full flex flex-col">
             {/* 1. Cabeçalho da Marca (Logo + Nome + Slogan + Entrar) */}
-            <LandingHeader header={header} theme={theme} onNavigate={onNavigate} />
+            <LandingHeader header={header} theme={safeTheme} onNavigate={onNavigate} />
 
             {/* 2. Seção Hero com o App Live Preview integrado (Mapa Claro, Rota, Veículo e Ações) */}
             <LandingHero
               hero={hero}
               actions={actions}
-              theme={theme}
+              theme={safeTheme}
               mapCard={reasonSection?.mapCard}
               onNavigate={onNavigate}
             />
 
             {/* 3. Grid de Funcionalidades e Selos de Confiança (Cards Claros e Elegantes) */}
-            <LandingFeatures features={features} theme={theme} />
+            <LandingFeatures features={features} theme={safeTheme} />
           </div>
         </div>
 
         {/* 4. Divisor Suave e Orgânico */}
-        <LandingWavyDivider theme={theme} />
+        <LandingWavyDivider theme={safeTheme} />
 
         {/* 5. Seção Clara de Benefícios e Motivos (PILARES + CHECKLIST + CTA) */}
         <LandingReasonSection
           reasonSection={reasonSection}
-          theme={theme}
+          theme={safeTheme}
           onNavigate={onNavigate}
         />
 
         {/* 6. Rodapé com Identificação White Label */}
-        <LandingFooter footer={footer} theme={theme} />
+        <LandingFooter footer={footer} theme={safeTheme} />
       </main>
     </div>
   );

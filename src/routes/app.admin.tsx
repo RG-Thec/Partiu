@@ -36,7 +36,7 @@ import {
   type AdminModuleId,
 } from "@/lib/admin-rbac";
 import { useNavigate } from "@tanstack/react-router";
-import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 
 export const Route = createFileRoute("/app/admin")({
   ssr: false,
@@ -124,8 +124,9 @@ const ROLES_DISPONIVEIS: { id: AdminRole; label: string; badge: string }[] = [
 function SuperAdminLayout() {
   const navigate = useNavigate();
   const { appConfig } = useTheme();
-  const { branding } = appConfig;
-  const { colors, ui } = branding;
+  const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
+  const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+  const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
 
   const [roleAtiva, setRoleAtiva] = useState<AdminRole>(() => getAdminRole());
   const [contaAtiva, setContaAtiva] = useState<AdminAccount>(() => getContaAtiva());

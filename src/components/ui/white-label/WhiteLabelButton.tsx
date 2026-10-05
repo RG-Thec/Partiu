@@ -1,6 +1,6 @@
 import React, { type ButtonHTMLAttributes, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
-import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 
 export interface WhiteLabelButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "outline" | "ghost" | "link";
@@ -29,7 +29,9 @@ export const WhiteLabelButton = React.forwardRef<HTMLButtonElement, WhiteLabelBu
     ref
   ) => {
     const { appConfig } = useTheme();
-    const { colors, ui } = appConfig.branding;
+    const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
+    const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+    const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
 
     const [isHovered, setIsHovered] = React.useState(false);
 

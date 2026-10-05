@@ -123,43 +123,57 @@ function applyCssVariablesToRoot(config: AppConfig) {
   if (typeof document === "undefined") return;
 
   const root = document.documentElement;
-  const { branding } = config;
-  const { colors, ui } = branding;
+  const branding = config?.branding || DEFAULT_APP_CONFIG.branding;
+  const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+  const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
+
+  const primary = colors?.primary || DEFAULT_APP_CONFIG.branding.colors.primary;
+  const primaryHover = colors?.primaryHover || DEFAULT_APP_CONFIG.branding.colors.primaryHover;
+  const secondary = colors?.secondary || DEFAULT_APP_CONFIG.branding.colors.secondary;
+  const background = colors?.background || DEFAULT_APP_CONFIG.branding.colors.background;
+  const surface = colors?.surface || DEFAULT_APP_CONFIG.branding.colors.surface;
+  const textPrimary = colors?.textPrimary || DEFAULT_APP_CONFIG.branding.colors.textPrimary;
+  const textSecondary = colors?.textSecondary || DEFAULT_APP_CONFIG.branding.colors.textSecondary;
+  const inputBorder = colors?.inputBorder || DEFAULT_APP_CONFIG.branding.colors.inputBorder;
+  const inputBackground = colors?.inputBackground || DEFAULT_APP_CONFIG.branding.colors.inputBackground;
+  const borderRadius = ui?.borderRadius || DEFAULT_APP_CONFIG.branding.ui.borderRadius;
+  const buttonShadow = ui?.buttonShadow || DEFAULT_APP_CONFIG.branding.ui.buttonShadow;
+  const fontFamily = ui?.fontFamily || DEFAULT_APP_CONFIG.branding.ui.fontFamily;
 
   // Variáveis Scoped White Label
-  root.style.setProperty("--wl-primary", colors.primary);
-  root.style.setProperty("--wl-primary-hover", colors.primaryHover);
-  root.style.setProperty("--wl-secondary", colors.secondary);
-  root.style.setProperty("--wl-background", colors.background);
-  root.style.setProperty("--wl-surface", colors.surface);
-  root.style.setProperty("--wl-text-primary", colors.textPrimary);
-  root.style.setProperty("--wl-text-secondary", colors.textSecondary);
-  root.style.setProperty("--wl-input-border", colors.inputBorder);
-  root.style.setProperty("--wl-input-background", colors.inputBackground);
-  root.style.setProperty("--wl-border-radius", ui.borderRadius);
-  root.style.setProperty("--wl-button-shadow", ui.buttonShadow);
-  root.style.setProperty("--wl-font-family", ui.fontFamily);
+  root.style.setProperty("--wl-primary", primary);
+  root.style.setProperty("--wl-primary-hover", primaryHover);
+  root.style.setProperty("--wl-secondary", secondary);
+  root.style.setProperty("--wl-background", background);
+  root.style.setProperty("--wl-surface", surface);
+  root.style.setProperty("--wl-text-primary", textPrimary);
+  root.style.setProperty("--wl-text-secondary", textSecondary);
+  root.style.setProperty("--wl-input-border", inputBorder);
+  root.style.setProperty("--wl-input-background", inputBackground);
+  root.style.setProperty("--wl-border-radius", borderRadius);
+  root.style.setProperty("--wl-button-shadow", buttonShadow);
+  root.style.setProperty("--wl-font-family", fontFamily);
 
   // Mapeamentos de compatibilidade com classes Tailwind / Shadcn existentes
-  root.style.setProperty("--primary", colors.primary);
+  root.style.setProperty("--primary", primary);
   root.style.setProperty("--primary-foreground", "#FFFFFF");
-  root.style.setProperty("--background", colors.background);
-  root.style.setProperty("--card", colors.surface);
-  root.style.setProperty("--surface", colors.surface);
-  root.style.setProperty("--radius", ui.borderRadius);
-  root.style.setProperty("--color-primary", colors.primary);
-  root.style.setProperty("--color-secondary", colors.secondary);
-  root.style.setProperty("--color-background", colors.background);
-  root.style.setProperty("--color-surface", colors.surface);
-  root.style.setProperty("--header-gradient-start", colors.primary);
-  root.style.setProperty("--header-gradient-end", colors.secondary);
-  root.style.setProperty("--brand-primary-vibrant", colors.primary);
-  root.style.setProperty("--brand-primary-deep", colors.primaryHover || colors.primary);
-  root.style.setProperty("--brand-primary-accent", colors.secondary);
-  root.style.setProperty("--brand-bg-neutral", colors.background);
-  root.style.setProperty("--brand-surface-card", colors.surface);
-  root.style.setProperty("--button-shadow", ui.buttonShadow);
-  root.style.setProperty("--border-radius", ui.borderRadius);
+  root.style.setProperty("--background", background);
+  root.style.setProperty("--card", surface);
+  root.style.setProperty("--surface", surface);
+  root.style.setProperty("--radius", borderRadius);
+  root.style.setProperty("--color-primary", primary);
+  root.style.setProperty("--color-secondary", secondary);
+  root.style.setProperty("--color-background", background);
+  root.style.setProperty("--color-surface", surface);
+  root.style.setProperty("--header-gradient-start", primary);
+  root.style.setProperty("--header-gradient-end", secondary);
+  root.style.setProperty("--brand-primary-vibrant", primary);
+  root.style.setProperty("--brand-primary-deep", primaryHover || primary);
+  root.style.setProperty("--brand-primary-accent", secondary);
+  root.style.setProperty("--brand-bg-neutral", background);
+  root.style.setProperty("--brand-surface-card", surface);
+  root.style.setProperty("--button-shadow", buttonShadow);
+  root.style.setProperty("--border-radius", borderRadius);
 }
 
 export function WhiteLabelThemeProvider({
@@ -210,32 +224,34 @@ export function WhiteLabelThemeProvider({
     if (globalBranding?.branding) {
       const b = globalBranding.branding;
       setAppConfigState((prev) => {
-        const primary = b.primary_color || prev.branding.colors.primary;
+        const prevColors = prev?.branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+        const prevUi = prev?.branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
+        const primary = b.primary_color || prevColors.primary || DEFAULT_APP_CONFIG.branding.colors.primary;
         const newColors: AppConfigBrandingColors = {
-          ...prev.branding.colors,
+          ...prevColors,
           primary,
-          primaryHover: b.secondary_color || prev.branding.colors.primaryHover,
-          secondary: b.secondary_color || prev.branding.colors.secondary,
-          background: b.background_color || prev.branding.colors.background,
-          surface: b.surface_color || prev.branding.colors.surface,
-          textPrimary: b.text_primary || prev.branding.colors.textPrimary,
-          textSecondary: b.text_secondary || prev.branding.colors.textSecondary,
+          primaryHover: b.secondary_color || prevColors.primaryHover,
+          secondary: b.secondary_color || prevColors.secondary,
+          background: b.background_color || prevColors.background,
+          surface: b.surface_color || prevColors.surface,
+          textPrimary: b.text_primary || prevColors.textPrimary,
+          textSecondary: b.text_secondary || prevColors.textSecondary,
         };
         const newUi: AppConfigBrandingUi = {
-          ...prev.branding.ui,
-          borderRadius: b.border_radius || prev.branding.ui.borderRadius,
+          ...prevUi,
+          borderRadius: b.border_radius || prevUi.borderRadius,
           buttonShadow: computeButtonShadow(primary),
-          fontFamily: b.font_family || prev.branding.ui.fontFamily,
+          fontFamily: b.font_family || prevUi.fontFamily,
         };
         return {
           ...prev,
           branding: {
-            ...prev.branding,
-            appName: b.app_name || prev.branding.appName,
-            logoUrl: b.logo_url || prev.branding.logoUrl,
+            appName: b.app_name || prev?.branding?.appName || DEFAULT_APP_CONFIG.branding.appName,
+            logoUrl: b.logo_url || prev?.branding?.logoUrl || "",
             colors: newColors,
             ui: newUi,
           },
+          features: prev?.features || DEFAULT_APP_CONFIG.features,
         };
       });
     }
@@ -254,19 +270,19 @@ export function WhiteLabelThemeProvider({
       ...prev,
       ...partial,
       branding: {
-        ...prev.branding,
+        ...(prev?.branding || DEFAULT_APP_CONFIG.branding),
         ...(partial.branding || {}),
         colors: {
-          ...prev.branding.colors,
+          ...(prev?.branding?.colors || DEFAULT_APP_CONFIG.branding.colors),
           ...(partial.branding?.colors || {}),
         },
         ui: {
-          ...prev.branding.ui,
+          ...(prev?.branding?.ui || DEFAULT_APP_CONFIG.branding.ui),
           ...(partial.branding?.ui || {}),
         },
       },
       features: {
-        ...prev.features,
+        ...(prev?.features || DEFAULT_APP_CONFIG.features),
         ...(partial.features || {}),
       },
     }));
@@ -274,17 +290,18 @@ export function WhiteLabelThemeProvider({
 
   const updateBrandingColors = useCallback((partialColors: Partial<AppConfigBrandingColors>) => {
     setAppConfigState((prev) => {
-      const primary = partialColors.primary || prev.branding.colors.primary;
+      const prevColors = prev?.branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+      const primary = partialColors.primary || prevColors.primary || DEFAULT_APP_CONFIG.branding.colors.primary;
       return {
         ...prev,
         branding: {
-          ...prev.branding,
+          ...(prev?.branding || DEFAULT_APP_CONFIG.branding),
           colors: {
-            ...prev.branding.colors,
+            ...prevColors,
             ...partialColors,
           },
           ui: {
-            ...prev.branding.ui,
+            ...(prev?.branding?.ui || DEFAULT_APP_CONFIG.branding.ui),
             buttonShadow: computeButtonShadow(primary),
           },
         },

@@ -90,7 +90,7 @@ import {
 } from "@/lib/partiu-engine";
 import { PartiuDriverNavigationMap } from "@/components/maps/PartiuDriverNavigationMap";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
-import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 import { driverLoyaltyEngine } from "@/lib/loyalty/driver-loyalty-engine";
 import { driverSubscriptionService } from "@/lib/ecosystem/driver-subscription-service";
 import { DriverOfferModal } from "@/components/driver/DriverOfferModal";
@@ -314,7 +314,9 @@ export function PartiuDriverCockpit() {
     nomeModuloEntrega,
   } = useBrandTheme();
   const { appConfig } = useTheme();
-  const { colors, ui } = appConfig.branding;
+  const wlBranding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
+  const colors = wlBranding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+  const ui = wlBranding?.ui || DEFAULT_APP_CONFIG.branding.ui;
 
   const navigate = useNavigate();
 

@@ -28,7 +28,7 @@ import { driverFleetService } from "@/lib/ecosystem/driver-fleet-service";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
-import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 import {
   NativeButton,
   NativeInput,
@@ -65,7 +65,9 @@ export function CadastroMotoristaPage() {
     corCabecalhoFim,
   } = useBrandTheme();
   const { appConfig } = useTheme();
-  const { colors, ui } = appConfig.branding;
+  const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
+  const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+  const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
 
   const brandGradient = useMemo(() => {
     const start = corCabecalhoInicio || corPrimaria || "#FF6B00";

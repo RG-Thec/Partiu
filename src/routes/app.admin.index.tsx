@@ -41,7 +41,7 @@ import {
   useCaixaAdmin,
 } from "@/lib/partiu-db";
 import { getAdminRole, type AdminRole } from "@/lib/admin-rbac";
-import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 
 export const Route = createFileRoute("/app/admin/")({
   head: () => ({
@@ -59,8 +59,9 @@ export const Route = createFileRoute("/app/admin/")({
 
 export function SuperAdminDashboardExecutive() {
   const { appConfig } = useTheme();
-  const { branding } = appConfig;
-  const { colors, ui } = branding;
+  const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
+  const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+  const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
 
   const [roleAtiva, setRoleAtiva] = useState<AdminRole>(() => getAdminRole());
   const { data: frotaBanco = [], refetch: recarregarFrota } = useTelemetriaFrota();

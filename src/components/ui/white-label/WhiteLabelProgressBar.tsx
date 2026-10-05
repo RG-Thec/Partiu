@@ -1,5 +1,5 @@
 import React from "react";
-import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 
 export interface WhiteLabelProgressBarProps {
   currentStep: number;
@@ -15,7 +15,9 @@ export function WhiteLabelProgressBar({
   className = "",
 }: WhiteLabelProgressBarProps) {
   const { appConfig } = useTheme();
-  const { colors, ui } = appConfig.branding;
+  const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
+  const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+  const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
 
   const percentage = Math.min(100, Math.max(0, (currentStep / totalSteps) * 100));
 

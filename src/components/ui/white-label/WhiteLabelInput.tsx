@@ -1,6 +1,6 @@
 import React, { useState, useId, type InputHTMLAttributes, type ReactNode } from "react";
 import { AlertCircle } from "lucide-react";
-import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 
 export interface WhiteLabelInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -34,7 +34,9 @@ export const WhiteLabelInput = React.forwardRef<HTMLInputElement, WhiteLabelInpu
     const id = useId();
     const inputId = props.id || id;
     const { appConfig } = useTheme();
-    const { colors, ui } = appConfig.branding;
+    const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
+    const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+    const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
 
     const [isFocused, setIsFocused] = useState(false);
 

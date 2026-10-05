@@ -21,7 +21,7 @@ import {
   Lock,
 } from "lucide-react";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
-import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 import { userService, type UserProfileData } from "@/services/UserService";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { WhiteLabelButton, WhiteLabelInput } from "@/components/ui/white-label";
@@ -68,7 +68,9 @@ export function ProfilePagePartiu() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { nomeApp, corPrimaria, corTextoPrimaria } = useBrandTheme();
   const { appConfig } = useTheme();
-  const { colors, ui } = appConfig.branding;
+  const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
+  const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+  const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
 
   const [loading, setLoading] = useState(true);
   const [salvando, setSalvando] = useState(false);

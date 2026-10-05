@@ -1,5 +1,5 @@
 import { type AppBrandingRecord } from "./branding-types";
-import { type MonochromaticPalette } from "./monochromatic-palettes";
+import { type MonochromaticPalette, DEFAULT_MONOCHROMATIC_PALETTE } from "./monochromatic-palettes";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
 /**
@@ -296,8 +296,8 @@ export class ThemeEngine {
 
     try {
       const root = document.documentElement;
-      const c = palette.colors;
-      const primaryPalette = generatePrimaryPalette(c.primary);
+      const c = palette?.colors || DEFAULT_MONOCHROMATIC_PALETTE.colors;
+      const primaryPalette = generatePrimaryPalette(c?.primary || "#FF6B00");
 
       // 1. Variáveis Canônicas Requeridas pelo SaaS
       root.style.setProperty("--color-primary", c.primary);

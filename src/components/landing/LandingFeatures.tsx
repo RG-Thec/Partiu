@@ -35,7 +35,7 @@ export const LandingFeatures: React.FC<LandingFeaturesProps> = ({
               <div
                 className="absolute top-0 inset-x-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                 style={{
-                  background: `linear-gradient(90deg, transparent, ${theme.primary}, transparent)`,
+                  background: `linear-gradient(90deg, transparent, ${theme?.primary || "#FF6B00"}, transparent)`,
                 }}
               />
 

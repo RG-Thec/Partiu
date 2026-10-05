@@ -77,22 +77,36 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     function handlePaletteUpdated(e: Event) {
       const customEvent = e as CustomEvent;
-      if (customEvent.detail?.palette) {
-        const pal = customEvent.detail.palette;
-        setBrandingState((prev) => ({
-          ...prev,
-          primary_color: pal.colors.primary,
-          secondary_color: pal.colors.secondary,
-          accent_color: pal.colors.accent,
-          background_color: pal.colors.background,
-          surface_color: pal.colors.surface,
-          text_primary: pal.colors.textPrimary,
-          text_secondary: pal.colors.textSecondary,
-          header_gradient_start: pal.colors.headerGradientStart,
-          header_gradient_end: pal.colors.headerGradientEnd,
-          footer_gradient_start: pal.colors.headerGradientStart,
-          footer_gradient_end: pal.colors.headerGradientEnd,
-        }));
+      if (customEvent.detail) {
+        const { palette, primaryColor, branding: eventBranding } = customEvent.detail;
+        if (palette?.colors?.primary) {
+          const pal = palette;
+          setBrandingState((prev) => ({
+            ...prev,
+            primary_color: pal.colors.primary,
+            secondary_color: pal.colors.secondary || prev.secondary_color,
+            accent_color: pal.colors.accent || prev.accent_color,
+            background_color: pal.colors.background || prev.background_color,
+            surface_color: pal.colors.surface || prev.surface_color,
+            text_primary: pal.colors.textPrimary || prev.text_primary,
+            text_secondary: pal.colors.textSecondary || prev.text_secondary,
+            header_gradient_start: pal.colors.headerGradientStart || prev.header_gradient_start,
+            header_gradient_end: pal.colors.headerGradientEnd || prev.header_gradient_end,
+            footer_gradient_start: pal.colors.headerGradientStart || prev.footer_gradient_start,
+            footer_gradient_end: pal.colors.headerGradientEnd || prev.footer_gradient_end,
+          }));
+        } else if (eventBranding) {
+          setBrandingState((prev) => ({
+            ...prev,
+            ...eventBranding,
+            primary_color: eventBranding.primary_color || primaryColor || prev.primary_color,
+          }));
+        } else if (primaryColor) {
+          setBrandingState((prev) => ({
+            ...prev,
+            primary_color: primaryColor,
+          }));
+        }
       }
     }
     window.addEventListener("partiu:theme-palette-updated", handlePaletteUpdated);

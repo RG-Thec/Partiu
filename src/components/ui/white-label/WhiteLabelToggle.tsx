@@ -1,6 +1,6 @@
 import React from "react";
 import { Car, Radio } from "lucide-react";
-import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 
 export type RoleType = "PASSAGEIRO" | "MOTORISTA";
 
@@ -12,7 +12,9 @@ export interface WhiteLabelToggleProps {
 
 export function WhiteLabelToggle({ activeRole, onChange, className = "" }: WhiteLabelToggleProps) {
   const { appConfig } = useTheme();
-  const { colors, ui } = appConfig.branding;
+  const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
+  const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+  const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
 
   return (
     <div

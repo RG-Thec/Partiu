@@ -18,6 +18,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
   mapCard,
   onNavigate,
 }) => {
+  const primaryColor = theme?.primary || "#FF6B00";
+  const secondaryColor = theme?.secondary || "#FFB800";
   const [activeCategory, setActiveCategory] = useState<"economico" | "comfort" | "moto" | "entrega">("economico");
   const [vehicleMode, setVehicleMode] = useState<"car" | "moto">("car");
 
@@ -80,7 +82,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
         <div
           className="absolute -top-32 -left-32 w-[500px] h-[500px] sm:w-[800px] sm:h-[800px] rounded-full blur-[140px] opacity-[0.07] transition-colors duration-700 pointer-events-none"
           style={{
-            background: `radial-gradient(circle, ${theme.primary} 0%, transparent 70%)`,
+            background: `radial-gradient(circle, ${primaryColor} 0%, transparent 70%)`,
           }}
         />
 
@@ -88,7 +90,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
         <div
           className="absolute top-1/3 -right-32 w-[400px] h-[400px] sm:w-[650px] sm:h-[650px] rounded-full blur-[160px] opacity-[0.05] transition-colors duration-700 pointer-events-none"
           style={{
-            background: `radial-gradient(circle, ${theme.secondary || theme.primary} 0%, transparent 65%)`,
+            background: `radial-gradient(circle, ${secondaryColor || primaryColor} 0%, transparent 65%)`,
           }}
         />
 
@@ -110,7 +112,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/95 border border-slate-200/90 shadow-2xs text-[11px] font-bold text-slate-700">
           <span
             className="w-2 h-2 rounded-full animate-ping"
-            style={{ backgroundColor: theme.primary }}
+            style={{ backgroundColor: primaryColor }}
           />
           <span className="tracking-wide text-slate-700">
             {hero.locationChipText || "Mobilidade urbana"}
@@ -130,7 +132,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               <span
                 className="bg-clip-text text-transparent"
                 style={{
-                  backgroundImage: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || "#FFAE00"} 100%)`,
+                  backgroundImage: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor || "#FFAE00"} 100%)`,
                 }}
               >
                 {secondLine}
@@ -147,7 +149,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           <div
             className="absolute inset-0 max-w-[260px] mx-auto rounded-full blur-2xl opacity-25 pointer-events-none"
             style={{
-              background: `radial-gradient(circle, ${theme.primary} 0%, ${theme.secondary || theme.primary} 50%, transparent 70%)`,
+              background: `radial-gradient(circle, ${primaryColor} 0%, ${secondaryColor || primaryColor} 50%, transparent 70%)`,
             }}
           />
 
@@ -198,7 +200,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               style={
                 vehicleMode === "moto"
                   ? {
-                      background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
+                      background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor || primaryColor} 100%)`,
                     }
                   : undefined
               }
@@ -232,8 +234,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             onClick={() => handleActionClick("/app")}
             className="w-full h-12 rounded-2xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md active:scale-[0.98] transition cursor-pointer"
             style={{
-              background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
-              boxShadow: `0 6px 20px ${theme.primary}35`,
+              background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor || primaryColor} 100%)`,
+              boxShadow: `0 6px 20px ${primaryColor}35`,
             }}
           >
             <span>Começar agora</span>
@@ -247,7 +249,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               className="text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer py-1"
             >
               Já tem uma conta?{" "}
-              <span className="font-extrabold underline" style={{ color: theme.primary }}>
+              <span className="font-extrabold underline" style={{ color: primaryColor }}>
                 Entrar
               </span>
             </button>
@@ -279,7 +281,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/95 hover:bg-white backdrop-blur-md border border-slate-200/90 text-[11px] font-bold tracking-wider uppercase text-slate-700 shadow-xs transition-all duration-300">
             <span
               className="w-2 h-2 rounded-full animate-ping"
-              style={{ backgroundColor: theme.primary }}
+              style={{ backgroundColor: primaryColor }}
             />
             <span className="tracking-wide text-slate-700">
               {hero.locationChipText || "Mobilidade urbana inteligente"}
@@ -299,7 +301,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 <span
                   className="block mt-1 transition-all duration-300 bg-clip-text text-transparent"
                   style={{
-                    backgroundImage: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || "#FFAE00"} 100%)`,
+                    backgroundImage: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor || "#FFAE00"} 100%)`,
                   }}
                 >
                   {secondLine}
@@ -339,7 +341,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 style={
                   vehicleMode === "moto"
                     ? {
-                        background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
+                        background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor || primaryColor} 100%)`,
                       }
                     : undefined
                 }
@@ -366,8 +368,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                   style={{
                     ...(isPassenger
                       ? {
-                          background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
-                          boxShadow: `0 6px 20px ${theme.primary}35`,
+                          background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor || primaryColor} 100%)`,
+                          boxShadow: `0 6px 20px ${primaryColor}35`,
                         }
                       : {
                           background: "#FFFFFF",
@@ -385,10 +387,10 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                       style={{
                         background: isPassenger
                           ? "rgba(255, 255, 255, 0.22)"
-                          : `${theme.primary}15`,
+                          : `${primaryColor}15`,
                         border: isPassenger
                           ? "1px solid rgba(255, 255, 255, 0.35)"
-                          : `1px solid ${theme.primary}30`,
+                          : `1px solid ${primaryColor}30`,
                       }}
                     >
                       {isPassenger ? (
@@ -396,7 +398,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                       ) : (
                         <Car
                           className="w-4.5 h-4.5 stroke-[2.2]"
-                          style={{ color: theme.primary }}
+                          style={{ color: primaryColor }}
                         />
                       )}
                     </div>
@@ -470,7 +472,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           <div
             className="absolute -inset-4 sm:-inset-8 rounded-full blur-3xl opacity-25 pointer-events-none"
             style={{
-              background: `radial-gradient(circle, ${theme.primary} 0%, ${theme.secondary || theme.primary}30 50%, transparent 75%)`,
+              background: `radial-gradient(circle, ${primaryColor} 0%, ${secondaryColor || primaryColor}30 50%, transparent 75%)`,
             }}
           />
 
@@ -528,31 +530,31 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 {/* Traçado Dinâmico da Rota com a Cor Primária do White Label */}
                 <path
                   d="M 60 180 Q 120 140 150 155 T 235 85"
-                  stroke={theme.primary}
+                  stroke={primaryColor}
                   strokeWidth="6"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   fill="none"
                   className="animate-route-flow"
                   style={{
-                    filter: `drop-shadow(0 2px 8px ${theme.primary}40)`,
+                    filter: `drop-shadow(0 2px 8px ${primaryColor}40)`,
                   }}
                 />
 
                 {/* Marcadores Centrais dos Pontos da Rota */}
-                <circle cx="60" cy="180" r="5" fill={theme.primary} />
-                <circle cx="235" cy="85" r="5" fill={theme.secondary || "#FFAE00"} />
+                <circle cx="60" cy="180" r="5" fill={primaryColor} />
+                <circle cx="235" cy="85" r="5" fill={secondaryColor || "#FFAE00"} />
               </svg>
 
               {/* Pin de Origem (com radar em ondas concêntricas) */}
               <div className="absolute left-[60px] top-[180px] -translate-x-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center">
                 <div
                   className="absolute inset-0 rounded-full animate-ping opacity-60 pointer-events-none"
-                  style={{ backgroundColor: theme.primary }}
+                  style={{ backgroundColor: primaryColor }}
                 />
                 <div
                   className="w-4 h-4 rounded-full border-2 border-white shadow-md relative z-10"
-                  style={{ backgroundColor: theme.primary }}
+                  style={{ backgroundColor: primaryColor }}
                 />
               </div>
 
@@ -561,13 +563,13 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 <div
                   className="absolute inset-0 rounded-full animate-ping opacity-60 pointer-events-none"
                   style={{
-                    backgroundColor: theme.secondary || "#FFAE00",
+                    backgroundColor: secondaryColor || "#FFAE00",
                     animationDelay: "0.8s",
                   }}
                 />
                 <div
                   className="w-4 h-4 rounded-full border-2 border-white shadow-md relative z-10"
-                  style={{ backgroundColor: theme.secondary || "#FFAE00" }}
+                  style={{ backgroundColor: secondaryColor || "#FFAE00" }}
                 />
               </div>
 
@@ -576,8 +578,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 <div
                   className="px-3 py-1.5 rounded-xl text-white text-[11px] font-bold leading-tight shadow-md flex items-center gap-2 backdrop-blur-md"
                   style={{
-                    background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
-                    boxShadow: `0 3px 12px ${theme.primary}40`,
+                    background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor || primaryColor} 100%)`,
+                    boxShadow: `0 3px 12px ${primaryColor}40`,
                   }}
                 >
                   <Clock className="w-3.5 h-3.5 text-white shrink-0" />
@@ -602,13 +604,13 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 <div className="relative flex items-center justify-center">
                   <div
                     className="absolute -inset-2.5 rounded-full animate-pulse opacity-40 pointer-events-none"
-                    style={{ backgroundColor: theme.primary }}
+                    style={{ backgroundColor: primaryColor }}
                   />
                   <div
                     className="relative flex items-center justify-center w-10 h-10 rounded-full shadow-lg border-2 border-white transition-all duration-300"
                     style={{
-                      backgroundColor: theme.primary,
-                      boxShadow: `0 4px 14px ${theme.primary}50`,
+                      backgroundColor: primaryColor,
+                      boxShadow: `0 4px 14px ${primaryColor}50`,
                     }}
                   >
                     <div className="relative w-5 h-5 flex items-center justify-center">
@@ -661,8 +663,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                       style={
                         isSelected
                           ? {
-                              background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
-                              boxShadow: `0 4px 12px ${theme.primary}35`,
+                              background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor || primaryColor} 100%)`,
+                              boxShadow: `0 4px 12px ${primaryColor}35`,
                               color: "#FFFFFF",
                             }
                           : undefined
@@ -735,7 +737,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
 
                 <div className="flex items-center gap-2">
                   <div className="text-right">
-                    <div className="text-xs sm:text-sm font-black text-slate-900 leading-none" style={{ color: theme.primary }}>
+                    <div className="text-xs sm:text-sm font-black text-slate-900 leading-none" style={{ color: primaryColor }}>
                       {activeCategory === "economico"
                         ? "R$ 14,90"
                         : activeCategory === "comfort"
@@ -752,8 +754,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                     onClick={() => handleActionClick("/cadastro-passageiro")}
                     className="h-8 px-3 rounded-full text-white font-bold text-xs flex items-center gap-1 transition-all duration-200 active:scale-95 shadow-xs hover:shadow-sm cursor-pointer"
                     style={{
-                      background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
-                      boxShadow: `0 2px 8px ${theme.primary}30`,
+                      background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor || primaryColor} 100%)`,
+                      boxShadow: `0 2px 8px ${primaryColor}30`,
                     }}
                   >
                     <span>Pedir</span>

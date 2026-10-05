@@ -13,9 +13,12 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   theme,
   onNavigate,
 }) => {
+  const primaryColor = theme?.primary || "#FF6B00";
+  const secondaryColor = theme?.secondary || "#FFB800";
+
   // Separa o nome da marca para destacar a segunda palavra com a cor primária, como em "SUA MARCA"
-  const nameParts = header.brandName.split(" ");
-  const firstWord = nameParts[0] || header.brandName;
+  const nameParts = (header?.brandName || "PARTIU").split(" ");
+  const firstWord = nameParts[0] || header?.brandName || "PARTIU";
   const secondWord = nameParts.slice(1).join(" ");
 
   return (
@@ -27,8 +30,8 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           <div
             className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl flex items-center justify-center shadow-xs relative shrink-0 transition-all duration-300 group-hover/brand:scale-105 active:scale-95 cursor-pointer"
             style={{
-              background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
-              boxShadow: `0 2px 10px ${theme.primary}30`,
+              background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
+              boxShadow: `0 2px 10px ${primaryColor}30`,
             }}
           >
             <img
@@ -51,7 +54,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
               {secondWord ? (
                 <span
                   style={{
-                    color: theme.primary,
+                    color: primaryColor,
                   }}
                 >
                   {secondWord}
@@ -59,12 +62,12 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
               ) : (
                 <span
                   className="w-1.5 h-1.5 rounded-full inline-block ml-0.5"
-                  style={{ backgroundColor: theme.primary }}
+                  style={{ backgroundColor: primaryColor }}
                 />
               )}
             </div>
             <span className="text-[9.5px] font-medium tracking-wide text-slate-500 mt-0.5 leading-none">
-              {header.urbanMobilityText}
+              {header?.urbanMobilityText || "Mobilidade Urbana"}
             </span>
           </div>
         </div>
@@ -93,8 +96,8 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             onClick={() => onNavigate?.("/auth")}
             className="group/btn relative inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-white text-[11px] font-semibold transition-all duration-200 active:scale-95 cursor-pointer shadow-xs hover:shadow-sm overflow-hidden h-7"
             style={{
-              background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.secondary || theme.primary} 100%)`,
-              boxShadow: `0 2px 10px ${theme.primary}30`,
+              background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
+              boxShadow: `0 2px 10px ${primaryColor}30`,
             }}
           >
             <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
