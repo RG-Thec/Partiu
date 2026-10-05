@@ -124,6 +124,57 @@
   --text-3xl--line-height: 2.25rem; /* 36px */
   --text-4xl: 2.25rem; /* 36px */
   --text-4xl--line-height: 2.5rem; /* 40px */
+  --text-5xl: 3rem; /* 48px */
+  --text-5xl--line-height: 3.5rem; /* 56px */
+  --text-6xl: 3.75rem; /* 60px */
+  --text-6xl--line-height: 4.25rem; /* 68px */
+}
+
+/* ========================================================================= */
+/* ESCALA EXECUTIVA DE TIPOGRAFIA PARA O PAINEL ADMIN (DESKTOP +50% & MOBILE)*/
+/* ========================================================================= */
+.admin-scope {
+  --text-xs: 0.9375rem; /* 15px - rótulos e badges super legíveis */
+  --text-xs--line-height: 1.375rem;
+  --text-sm: 1.125rem; /* 18px - textos auxiliares e descrições (+50%) */
+  --text-sm--line-height: 1.625rem;
+  --text-base: 1.25rem; /* 20px - corpo de texto e inputs (+50%) */
+  --text-base--line-height: 1.875rem;
+  --text-lg: 1.5rem; /* 24px - subtítulos e destaques (+50%) */
+  --text-lg--line-height: 2.125rem;
+  --text-xl: 1.75rem; /* 28px - cabeçalhos de cartão (+50%) */
+  --text-xl--line-height: 2.375rem;
+  --text-2xl: 2.125rem; /* 34px - seções principais (+50%) */
+  --text-2xl--line-height: 2.625rem;
+  --text-3xl: 2.625rem; /* 42px - títulos executivos (+50%) */
+  --text-3xl--line-height: 3.125rem;
+  --text-4xl: 3.25rem; /* 52px */
+  --text-4xl--line-height: 3.75rem;
+  --text-5xl: 4rem; /* 64px */
+  --text-5xl--line-height: 4.5rem;
+  --text-6xl: 4.75rem; /* 76px */
+  --text-6xl--line-height: 5.25rem;
+}
+
+@media (max-width: 768px) {
+  .admin-scope {
+    --text-xs: 0.8125rem; /* 13px */
+    --text-xs--line-height: 1.25rem;
+    --text-sm: 0.9375rem; /* 15px */
+    --text-sm--line-height: 1.375rem;
+    --text-base: 1.0625rem; /* 17px */
+    --text-base--line-height: 1.5rem;
+    --text-lg: 1.25rem; /* 20px */
+    --text-lg--line-height: 1.75rem;
+    --text-xl: 1.4375rem; /* 23px */
+    --text-xl--line-height: 2rem;
+    --text-2xl: 1.75rem; /* 28px */
+    --text-2xl--line-height: 2.25rem;
+    --text-3xl: 2.125rem; /* 34px */
+    --text-3xl--line-height: 2.5rem;
+    --text-4xl: 2.5rem; /* 40px */
+    --text-4xl--line-height: 3rem;
+  }
 }
 
 :root {

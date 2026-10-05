@@ -380,17 +380,17 @@ export function ConfiguracoesAdminPage() {
   return (
     <div className="w-full space-y-6 sm:space-y-8 pb-20">
       {/* 1. Header Executivo Configurações */}
-      <div className="rounded-3xl bg-slate-950 p-6 sm:p-8 xl:p-10 text-white shadow-xl border border-slate-800 relative overflow-hidden">
+      <div className="rounded-3xl bg-slate-950 p-6 sm:p-10 xl:p-12 text-white shadow-xl border border-slate-800 relative overflow-hidden">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#0088FF]/15 px-3.5 py-1.5 text-xs sm:text-sm font-black uppercase tracking-wider text-[#0088FF] border border-[#0088FF]/30 mb-3">
-              <Sliders className="h-4 w-4 text-[#0088FF]" />
+            <div className="inline-flex items-center gap-2.5 rounded-full bg-[#0088FF]/15 px-4 py-2 text-xs sm:text-sm lg:text-base font-black uppercase tracking-wider text-[#0088FF] border border-[#0088FF]/30 mb-3.5">
+              <Sliders className="h-5 w-5 text-[#0088FF]" />
               <span>Progressive Disclosure &amp; Multi-Cidade</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl xl:text-5xl font-black tracking-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight leading-tight">
               Configurações &amp; <span className="text-[#0088FF]">White Label Expresso</span>
             </h1>
-            <p className="text-sm sm:text-base xl:text-lg text-slate-300 max-w-3xl font-medium mt-2">
+            <p className="text-base sm:text-lg xl:text-xl text-slate-300 max-w-4xl font-medium mt-3 leading-relaxed">
               Configurações essenciais sempre acessíveis, dados técnicos protegidos por desafio de segurança e assistente de ativação de cidade em 4 passos.
             </p>
           </div>
@@ -398,17 +398,17 @@ export function ConfiguracoesAdminPage() {
       </div>
 
       {/* 2. Barra de Abas (Modo Essencial | White Label Expresso | Modo Avançado Protegido) */}
-      <div className="flex flex-wrap items-center gap-2 p-1.5 sm:p-2 bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm max-w-fit">
+      <div className="flex flex-wrap items-center gap-2.5 p-2 sm:p-2.5 bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm max-w-full overflow-x-auto no-scrollbar">
         <button
           type="button"
           onClick={() => setAbaAtiva("essencial")}
-          className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
-            abaAtiva === "essencial" ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          className={`flex items-center gap-2.5 px-5 sm:px-7 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm lg:text-base font-black transition-all cursor-pointer ${
+            abaAtiva === "essencial" ? "bg-slate-950 text-white shadow-md" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-[#0088FF]" />
+          <CheckCircle2 className="h-5 w-5 text-[#0088FF]" />
           <span>Modo Essencial</span>
-          <span className="ml-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs text-emerald-900 font-bold">
+          <span className="ml-1 rounded-full bg-emerald-100 px-3 py-1 text-xs sm:text-sm text-emerald-900 font-bold">
             Sempre Visível
           </span>
         </button>
@@ -416,13 +416,13 @@ export function ConfiguracoesAdminPage() {
         <button
           type="button"
           onClick={() => setAbaAtiva("whitelabel")}
-          className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
-            abaAtiva === "whitelabel" ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          className={`flex items-center gap-2.5 px-5 sm:px-7 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm lg:text-base font-black transition-all cursor-pointer ${
+            abaAtiva === "whitelabel" ? "bg-slate-950 text-white shadow-md" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-[#0088FF]" />
+          <Sparkles className="h-5 w-5 text-[#0088FF]" />
           <span>White Label Expresso</span>
-          <span className="ml-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs text-blue-900 font-bold">
+          <span className="ml-1 rounded-full bg-blue-50 px-3 py-1 text-xs sm:text-sm text-blue-900 font-bold">
             4 Passos (&lt;15 min)
           </span>
         </button>
@@ -430,17 +430,17 @@ export function ConfiguracoesAdminPage() {
         <button
           type="button"
           onClick={() => setAbaAtiva("avancado")}
-          className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
-            abaAtiva === "avancado" ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          className={`flex items-center gap-2.5 px-5 sm:px-7 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm lg:text-base font-black transition-all cursor-pointer ${
+            abaAtiva === "avancado" ? "bg-slate-950 text-white shadow-md" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
           {modoAvancadoDesbloqueado ? (
-            <Unlock className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
+            <Unlock className="h-5 w-5 text-emerald-400" />
           ) : (
-            <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-rose-500" />
+            <Lock className="h-5 w-5 text-rose-500" />
           )}
           <span>Modo Avançado</span>
-          <span className={`ml-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${
+          <span className={`ml-1 rounded-full px-3 py-1 text-xs sm:text-sm font-bold ${
             modoAvancadoDesbloqueado ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"
           }`}>
             {modoAvancadoDesbloqueado ? "Desbloqueado" : "Protegido"}
@@ -450,45 +450,45 @@ export function ConfiguracoesAdminPage() {
 
       {/* 3. ABA 1: MODO ESSENCIAL (SEMPRE VISÍVEL) */}
       {abaAtiva === "essencial" && (
-        <form onSubmit={handleSalvarEssencial} className="space-y-6">
+        <form onSubmit={handleSalvarEssencial} className="space-y-6 sm:space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900">Configurações Operacionais Essenciais</h2>
-              <p className="text-sm sm:text-base text-slate-600 font-medium mt-1">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900">Configurações Operacionais Essenciais</h2>
+              <p className="text-base sm:text-lg text-slate-600 font-medium mt-1">
                 Parâmetros vitais de operação diária sem exposição a dados técnicos complexos.
               </p>
             </div>
             <button
               type="submit"
-              className="flex h-12 items-center justify-center gap-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white px-6 text-sm sm:text-base font-black shadow-md transition-all cursor-pointer active:scale-95 shrink-0"
+              className="flex h-14 sm:h-16 items-center justify-center gap-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white px-8 sm:px-10 text-base sm:text-lg font-black shadow-lg transition-all cursor-pointer active:scale-95 shrink-0"
             >
-              <Save className="h-5 w-5 text-[#0088FF]" />
+              <Save className="h-5.5 w-5.5 text-[#0088FF]" />
               <span>Salvar Modificações</span>
             </button>
           </div>
 
           {sucessoEssencial && (
-            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-sm font-bold flex items-center gap-2.5 animate-in fade-in">
-              <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+            <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-base font-bold flex items-center gap-3 animate-in fade-in">
+              <CheckCircle2 className="h-6 w-6 text-emerald-600 shrink-0" />
               <span>Configurações essenciais salvas com sucesso no banco de dados!</span>
             </div>
           )}
 
           {/* Card de Cor Primária & Identidade Visual Global */}
-          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/90 shadow-sm space-y-6 sm:space-y-8">
+          <div className="bg-white p-6 sm:p-10 rounded-3xl border border-slate-200/90 shadow-sm space-y-6 sm:space-y-8">
             {/* Seletor de Paletas Monocromáticas de 1-Clique */}
             <PalettePickerSection onPaletteSelect={(p) => setCorPrimariaApp(p?.colors?.primary || "#FF6B00")} />
 
             {/* Ajuste Fino Personalizado e Salvar */}
-            <div className="pt-6 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="pt-6 sm:pt-8 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <div className="flex items-center gap-2.5">
-                  <Palette className="h-6 w-6 text-primary" />
-                  <h3 className="text-lg sm:text-xl font-black text-slate-900">
+                <div className="flex items-center gap-3">
+                  <Palette className="h-7 w-7 text-primary" />
+                  <h3 className="text-xl sm:text-2xl font-black text-slate-900">
                     Ajuste Fino de Cor Personalizada (Hexadecimal)
                   </h3>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1">
+                <p className="text-sm sm:text-base text-slate-600 font-medium mt-1">
                   Caso deseje um tom exclusivo fora das paletas prontas, digite o código hex abaixo.
                 </p>
               </div>
@@ -496,31 +496,31 @@ export function ConfiguracoesAdminPage() {
                 type="button"
                 onClick={handleSalvarCorPrimaria}
                 disabled={salvandoCor}
-                className="flex h-12 items-center justify-center gap-2.5 rounded-2xl bg-primary hover:opacity-90 text-primary-foreground px-6 text-xs sm:text-sm font-black shadow-md transition-all cursor-pointer disabled:opacity-50 active:scale-95 shrink-0"
+                className="flex h-13 sm:h-14 items-center justify-center gap-2.5 rounded-2xl bg-primary hover:opacity-90 text-primary-foreground px-7 text-sm sm:text-base font-black shadow-md transition-all cursor-pointer disabled:opacity-50 active:scale-95 shrink-0"
               >
                 {salvandoCor ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <RefreshCw className="h-5 w-5 animate-spin" />
                 ) : (
-                  <Save className="h-4 w-4" />
+                  <Save className="h-5 w-5" />
                 )}
                 <span>{salvandoCor ? "Aplicando..." : "Salvar Cor Hexadecimal"}</span>
               </button>
             </div>
 
             {sucessoCor && (
-              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-sm font-bold flex items-center gap-2.5 animate-in fade-in">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+              <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-base font-bold flex items-center gap-3 animate-in fade-in">
+                <CheckCircle2 className="h-6 w-6 text-emerald-600 shrink-0" />
                 <span>Cor primária atualizada e sincronizada com sucesso em todo o sistema!</span>
               </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
               {/* Seletor de Cor Hex & Input */}
-              <div className="space-y-3.5">
-                <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+              <div className="space-y-4">
+                <label className="block text-sm sm:text-base font-black uppercase tracking-wider text-slate-700">
                   Selecione ou Digite a Cor Hexadecimal
                 </label>
-                <div className="flex items-center gap-3.5">
+                <div className="flex items-center gap-4">
                   <div className="relative shrink-0">
                     <input
                       type="color"
@@ -529,7 +529,7 @@ export function ConfiguracoesAdminPage() {
                         setCorPrimariaApp(e.target.value);
                         themeEngine.applyTheme({ ...branding, primary_color: e.target.value });
                       }}
-                      className="h-14 w-16 rounded-2xl border-2 border-slate-300 p-1 cursor-pointer bg-white shadow-xs"
+                      className="h-16 sm:h-18 w-20 sm:w-24 rounded-2xl border-2 border-slate-300 p-1.5 cursor-pointer bg-white shadow-xs"
                       title="Escolher cor primária"
                     />
                   </div>
@@ -545,14 +545,14 @@ export function ConfiguracoesAdminPage() {
                       }
                     }}
                     placeholder="#FF6B00"
-                    className="flex-1 h-14 px-5 rounded-2xl border border-slate-300 text-base sm:text-lg font-mono font-black uppercase text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
+                    className="flex-1 h-16 sm:h-18 px-6 rounded-2xl border border-slate-300 text-lg sm:text-2xl font-mono font-black uppercase text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
 
                 {/* Cores Rápidas Predefinidas */}
-                <div className="space-y-2 pt-1">
-                  <span className="text-xs sm:text-sm font-bold text-slate-600">Paletas Populares de Mobilidade:</span>
-                  <div className="flex flex-wrap gap-2">
+                <div className="space-y-2.5 pt-1">
+                  <span className="text-sm sm:text-base font-bold text-slate-700">Paletas Populares de Mobilidade:</span>
+                  <div className="flex flex-wrap gap-2.5">
                     {[
                       { nome: "Laranja Solar (Padrão PARTIU)", hex: "#FF6B00" },
                       { nome: "Amarelo Ouro", hex: "#FFB800" },
@@ -568,14 +568,14 @@ export function ConfiguracoesAdminPage() {
                           setCorPrimariaApp(preset.hex);
                           themeEngine.applyTheme({ ...branding, primary_color: preset.hex });
                         }}
-                        className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                        className={`inline-flex items-center gap-2.5 px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl border text-xs sm:text-sm lg:text-base font-bold transition-all cursor-pointer ${
                           corPrimariaApp.toLowerCase() === preset.hex.toLowerCase()
-                            ? "border-slate-900 bg-slate-900 text-white shadow-xs"
+                            ? "border-slate-900 bg-slate-900 text-white shadow-md"
                             : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
                         }`}
                       >
                         <span
-                          className="h-3.5 w-3.5 rounded-full shrink-0 border border-black/10"
+                          className="h-4 w-4 rounded-full shrink-0 border border-black/10"
                           style={{ backgroundColor: preset.hex }}
                         />
                         <span>{preset.nome}</span>
@@ -586,35 +586,35 @@ export function ConfiguracoesAdminPage() {
               </div>
 
               {/* Preview em Tempo Real */}
-              <div className="p-5 sm:p-6 rounded-3xl border border-slate-200/90 bg-slate-50/80 space-y-4">
+              <div className="p-6 sm:p-8 rounded-3xl border border-slate-200/90 bg-slate-50/80 space-y-5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-600">
+                  <span className="text-sm sm:text-base font-black uppercase tracking-wider text-slate-700">
                     Prévia em Tempo Real
                   </span>
                   <span
-                    className="px-3 py-1 rounded-full text-xs font-black"
+                    className="px-4 py-1.5 rounded-full text-xs sm:text-sm font-black"
                     style={{ backgroundColor: `${corPrimariaApp}20`, color: corPrimariaApp }}
                   >
                     Ativa no Sistema
                   </span>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3.5">
                   <button
                     type="button"
                     style={{ backgroundColor: corPrimariaApp }}
-                    className="px-5 py-2.5 rounded-xl text-white font-black text-xs sm:text-sm shadow-sm"
+                    className="px-6 py-3.5 rounded-2xl text-white font-black text-sm sm:text-base shadow-md cursor-pointer transition active:scale-95"
                   >
                     Solicitar Corrida
                   </button>
                   <button
                     type="button"
                     style={{ backgroundColor: corPrimariaApp }}
-                    className="px-5 py-2.5 rounded-xl text-white font-black text-xs sm:text-sm shadow-sm"
+                    className="px-6 py-3.5 rounded-2xl text-white font-black text-sm sm:text-base shadow-md cursor-pointer transition active:scale-95"
                   >
                     Aceitar Viagem
                   </button>
                   <span
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold border"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm lg:text-base font-bold border"
                     style={{
                       borderColor: corPrimariaApp,
                       color: corPrimariaApp,
@@ -624,98 +624,98 @@ export function ConfiguracoesAdminPage() {
                     Tag Selecionada
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
                   Esta cor gera automaticamente todas as tonalidades semânticas (50 a 900, fundos, contrastes e realces) em conformidade com as diretrizes do frontend &amp; UI/UX.
                 </p>
               </div>
 
               {/* Personalização do Favicon da Aba do Navegador */}
-              <div className="lg:col-span-2 p-5 sm:p-6 rounded-3xl border border-slate-200/90 bg-white shadow-xs space-y-4">
+              <div className="lg:col-span-2 p-6 sm:p-8 rounded-3xl border border-slate-200/90 bg-white shadow-xs space-y-5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <Globe className="w-5 h-5 text-[#0088FF]" />
-                    <span className="text-sm sm:text-base font-black uppercase tracking-wider text-slate-800">
+                  <div className="flex items-center gap-3">
+                    <Globe className="w-6 h-6 text-[#0088FF]" />
+                    <span className="text-base sm:text-lg font-black uppercase tracking-wider text-slate-800">
                       Ícone da Aba do Navegador (Favicon em Tempo Real)
                     </span>
                   </div>
-                  <span className="text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-700">
+                  <span className="text-xs sm:text-sm font-bold px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-700">
                     {faviconUrlApp.startsWith("data:image/svg") ? "✨ SVG Dinâmico" : "🖼️ URL Customizada"}
                   </span>
                 </div>
 
                 {/* Simulador de Aba */}
-                <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center gap-3">
-                  <div className="flex items-center gap-1.5 px-1 shrink-0">
-                    <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
+                <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center gap-3.5">
+                  <div className="flex items-center gap-2 px-1 shrink-0">
+                    <span className="w-3 h-3 rounded-full bg-red-500/80" />
+                    <span className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                    <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
                   </div>
-                  <div className="flex items-center gap-2.5 bg-slate-800/90 border border-slate-700 px-3.5 py-1.5 rounded-xl max-w-md truncate text-xs sm:text-sm text-white font-medium">
-                    <div className="w-5 h-5 rounded-lg shrink-0 overflow-hidden flex items-center justify-center bg-slate-950">
+                  <div className="flex items-center gap-3 bg-slate-800/90 border border-slate-700 px-4 py-2 rounded-xl max-w-lg truncate text-sm sm:text-base text-white font-medium">
+                    <div className="w-6 h-6 rounded-lg shrink-0 overflow-hidden flex items-center justify-center bg-slate-950">
                       <img
                         src={faviconUrlApp || branding?.favicon_url || "/favicon.svg"}
                         alt="Favicon da aba"
-                        className="w-4 h-4 object-contain"
+                        className="w-5 h-5 object-contain"
                       />
                     </div>
                     <span className="truncate">{branding?.app_name || "PARTIU"} — Mobilidade Urbana</span>
-                    <span className="text-slate-400 text-sm ml-auto">×</span>
+                    <span className="text-slate-400 text-base ml-auto">×</span>
                   </div>
                 </div>
 
                 {/* Campo URL Direta e Ações */}
-                <div className="space-y-3">
-                  <label className="text-xs sm:text-sm font-bold text-slate-700 block">
+                <div className="space-y-4">
+                  <label className="text-sm sm:text-base font-bold text-slate-700 block">
                     URL ou SVG Data URI do Favicon:
                   </label>
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <input
                       type="text"
                       value={faviconUrlApp}
                       onChange={(e) => setFaviconUrlApp(e.target.value)}
                       placeholder="https://... ou /favicon.svg ou data:image/svg+xml,..."
-                      className="w-full flex-1 h-12 px-4 rounded-xl border border-slate-300 text-xs sm:text-sm font-mono font-medium"
+                      className="w-full flex-1 h-14 sm:h-16 px-5 rounded-2xl border border-slate-300 text-sm sm:text-base font-mono font-medium text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
                     />
                     <button
                       type="button"
                       onClick={() => handleSalvarFavicon(faviconUrlApp)}
                       disabled={salvandoFavicon}
-                      className="h-12 px-6 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-black hover:bg-slate-800 transition cursor-pointer active:scale-95 shrink-0"
+                      className="h-14 sm:h-16 px-7 rounded-2xl bg-slate-900 text-white text-sm sm:text-base font-black hover:bg-slate-800 transition cursor-pointer active:scale-95 shrink-0 shadow-md"
                     >
                       {salvandoFavicon ? "Aplicando..." : "Salvar Favicon"}
                     </button>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                  <div className="flex flex-wrap items-center gap-3 pt-1">
                     <button
                       type="button"
                       onClick={handleGerarFaviconDaPaletaAtual}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-50 text-primary-700 hover:bg-primary-100 border border-primary-200 text-xs sm:text-sm font-bold transition cursor-pointer active:scale-95"
+                      className="inline-flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-primary-50 text-primary-700 hover:bg-primary-100 border border-primary-200 text-xs sm:text-sm lg:text-base font-bold transition cursor-pointer active:scale-95"
                     >
-                      <Sparkles className="w-4 h-4" />
+                      <Sparkles className="w-5 h-5" />
                       <span>Gerar da Cor ({corPrimariaApp})</span>
                     </button>
                     <button
                       type="button"
                       onClick={handleTestarFaviconAba}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-bold transition cursor-pointer active:scale-95"
+                      className="inline-flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm lg:text-base font-bold transition cursor-pointer active:scale-95"
                     >
-                      <Globe className="w-4 h-4 text-blue-500" />
+                      <Globe className="w-5 h-5 text-blue-500" />
                       <span>Testar na Aba Agora</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleSalvarFavicon("/favicon.svg")}
-                      className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-slate-500 hover:text-slate-800 text-xs sm:text-sm font-medium transition cursor-pointer"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-slate-500 hover:text-slate-800 text-xs sm:text-sm lg:text-base font-medium transition cursor-pointer"
                     >
-                      <RotateCcw className="w-3.5 h-3.5" />
+                      <RotateCcw className="w-4 h-4" />
                       <span>Padrão (/favicon.svg)</span>
                     </button>
                   </div>
 
                   {sucessoFavicon && (
-                    <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-bold flex items-center gap-2 animate-in fade-in">
-                      <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 shrink-0" />
+                    <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm sm:text-base font-bold flex items-center gap-2.5 animate-in fade-in">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                       <span>Ícone da aba do navegador atualizado com sucesso!</span>
                     </div>
                   )}
@@ -724,24 +724,24 @@ export function ConfiguracoesAdminPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Cidade de Operação */}
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-2.5">
-              <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+            <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/90 shadow-sm space-y-3">
+              <label className="block text-sm sm:text-base font-black uppercase tracking-wider text-slate-700">
                 Cidade de Operação Ativa
               </label>
               <input
                 type="text"
                 value={cidadeOperacao}
                 onChange={(e) => setCidadeOperacao(e.target.value)}
-                className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
+                className="w-full h-14 sm:h-16 px-5 rounded-2xl border border-slate-300 text-base sm:text-lg font-bold text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
               />
               <p className="text-xs sm:text-sm text-slate-500 font-medium">Região de cobertura padrão das corridas.</p>
             </div>
 
             {/* Comissão / Taxa da Franquia */}
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-2.5">
-              <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+            <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/90 shadow-sm space-y-3">
+              <label className="block text-sm sm:text-base font-black uppercase tracking-wider text-slate-700">
                 Taxa de Serviço / Comissão (%)
               </label>
               <div className="relative">
@@ -750,37 +750,37 @@ export function ConfiguracoesAdminPage() {
                   step="0.5"
                   value={comissaoFranquia}
                   onChange={(e) => setComissaoFranquia(e.target.value)}
-                  className="w-full h-12 sm:h-14 px-4 pr-10 rounded-2xl border border-slate-300 text-sm sm:text-base font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
+                  className="w-full h-14 sm:h-16 px-5 pr-12 rounded-2xl border border-slate-300 text-base sm:text-lg font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-bold text-slate-400">%</span>
+                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-base sm:text-lg font-bold text-slate-400">%</span>
               </div>
               <p className="text-xs sm:text-sm text-slate-500 font-medium">Comissão retida pela plataforma por corrida.</p>
             </div>
 
             {/* WhatsApp Central */}
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-2.5">
-              <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+            <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/90 shadow-sm space-y-3">
+              <label className="block text-sm sm:text-base font-black uppercase tracking-wider text-slate-700">
                 WhatsApp Central de Atendimento
               </label>
               <input
                 type="text"
                 value={whatsappSuporte}
                 onChange={(e) => setWhatsappSuporte(e.target.value)}
-                className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
+                className="w-full h-14 sm:h-16 px-5 rounded-2xl border border-slate-300 text-base sm:text-lg font-bold text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
               />
               <p className="text-xs sm:text-sm text-slate-500 font-medium">Canal direto de suporte ao passageiro.</p>
             </div>
 
             {/* Chave PIX */}
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-2.5 lg:col-span-3">
-              <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
+            <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/90 shadow-sm space-y-3 lg:col-span-3">
+              <label className="block text-sm sm:text-base font-black uppercase tracking-wider text-slate-700">
                 Chave PIX Oficial de Recebimento da Matriz / Franquia
               </label>
               <input
                 type="text"
                 value={chavePixPadrao}
                 onChange={(e) => setChavePixPadrao(e.target.value)}
-                className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
+                className="w-full h-14 sm:h-16 px-5 rounded-2xl border border-slate-300 text-base sm:text-lg font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
               />
               <p className="text-xs sm:text-sm text-slate-500 font-medium">Chave utilizada para emissão de cobranças PIX Copia e Cola nos aplicativos.</p>
             </div>
@@ -790,30 +790,30 @@ export function ConfiguracoesAdminPage() {
 
       {/* 4. ABA 2: WHITE LABEL EXPRESSO (ASSISTENTE DE 4 PASSOS) */}
       {abaAtiva === "whitelabel" && (
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+        <div className="space-y-6 sm:space-y-8">
+          <div className="bg-white p-6 sm:p-10 rounded-3xl border border-slate-200 shadow-xs space-y-6 sm:space-y-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
               <div>
-                <h2 className="text-base font-black text-slate-900">Assistente de Onboarding White Label (4 Passos)</h2>
-                <p className="text-xs text-slate-500">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900">Assistente de Onboarding White Label (4 Passos)</h2>
+                <p className="text-sm sm:text-base text-slate-600 font-medium mt-1">
                   Substitui mais de 60 campos técnicos por um fluxo de ativação rápida em menos de 15 minutos.
                 </p>
               </div>
 
               {/* Indicador dos 4 Passos */}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 {[1, 2, 3, 4].map((step) => (
                   <div
                     key={step}
-                    className={`h-8 w-8 rounded-xl flex items-center justify-center text-xs font-black transition-all ${
+                    className={`h-10 w-10 sm:h-12 sm:w-12 rounded-2xl flex items-center justify-center text-sm sm:text-base font-black transition-all ${
                       passoWizard === step
-                        ? "bg-slate-950 text-white shadow-xs"
+                        ? "bg-slate-950 text-white shadow-md scale-105"
                         : passoWizard > step
                         ? "bg-emerald-500 text-white"
                         : "bg-slate-100 text-slate-400"
                     }`}
                   >
-                    {passoWizard > step ? <Check className="h-4 w-4" /> : step}
+                    {passoWizard > step ? <Check className="h-5 w-5" /> : step}
                   </div>
                 ))}
               </div>
