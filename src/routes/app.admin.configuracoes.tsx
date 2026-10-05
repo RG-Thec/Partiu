@@ -450,45 +450,45 @@ export function ConfiguracoesAdminPage() {
 
       {/* 3. ABA 1: MODO ESSENCIAL (SEMPRE VISÍVEL) */}
       {abaAtiva === "essencial" && (
-        <form onSubmit={handleSalvarEssencial} className="space-y-4">
-          <div className="flex items-center justify-between">
+        <form onSubmit={handleSalvarEssencial} className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-base font-black text-slate-900">Configurações Operacionais Essenciais</h2>
-              <p className="text-xs text-slate-500">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900">Configurações Operacionais Essenciais</h2>
+              <p className="text-sm sm:text-base text-slate-600 font-medium mt-1">
                 Parâmetros vitais de operação diária sem exposição a dados técnicos complexos.
               </p>
             </div>
             <button
               type="submit"
-              className="flex h-11 items-center gap-2 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white px-5 text-xs font-black shadow-xs transition-all cursor-pointer"
+              className="flex h-12 items-center justify-center gap-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white px-6 text-sm sm:text-base font-black shadow-md transition-all cursor-pointer active:scale-95 shrink-0"
             >
-              <Save className="h-4 w-4 text-[#0088FF]" />
+              <Save className="h-5 w-5 text-[#0088FF]" />
               <span>Salvar Modificações</span>
             </button>
           </div>
 
           {sucessoEssencial && (
-            <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-sm font-bold flex items-center gap-2.5 animate-in fade-in">
+              <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
               <span>Configurações essenciais salvas com sucesso no banco de dados!</span>
             </div>
           )}
 
           {/* Card de Cor Primária & Identidade Visual Global */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-6">
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/90 shadow-sm space-y-6 sm:space-y-8">
             {/* Seletor de Paletas Monocromáticas de 1-Clique */}
             <PalettePickerSection onPaletteSelect={(p) => setCorPrimariaApp(p?.colors?.primary || "#FF6B00")} />
 
             {/* Ajuste Fino Personalizado e Salvar */}
-            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="pt-6 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <div className="flex items-center gap-2">
-                  <Palette className="h-5 w-5 text-primary" />
-                  <h3 className="text-sm font-black text-slate-900">
+                <div className="flex items-center gap-2.5">
+                  <Palette className="h-6 w-6 text-primary" />
+                  <h3 className="text-lg sm:text-xl font-black text-slate-900">
                     Ajuste Fino de Cor Personalizada (Hexadecimal)
                   </h3>
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1">
                   Caso deseje um tom exclusivo fora das paletas prontas, digite o código hex abaixo.
                 </p>
               </div>
@@ -496,7 +496,7 @@ export function ConfiguracoesAdminPage() {
                 type="button"
                 onClick={handleSalvarCorPrimaria}
                 disabled={salvandoCor}
-                className="flex h-11 items-center justify-center gap-2 rounded-2xl bg-primary hover:opacity-90 text-primary-foreground px-6 text-xs font-black shadow-md transition-all cursor-pointer disabled:opacity-50"
+                className="flex h-12 items-center justify-center gap-2.5 rounded-2xl bg-primary hover:opacity-90 text-primary-foreground px-6 text-xs sm:text-sm font-black shadow-md transition-all cursor-pointer disabled:opacity-50 active:scale-95 shrink-0"
               >
                 {salvandoCor ? (
                   <RefreshCw className="h-4 w-4 animate-spin" />
@@ -508,19 +508,19 @@ export function ConfiguracoesAdminPage() {
             </div>
 
             {sucessoCor && (
-              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center gap-2 animate-in fade-in">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-sm font-bold flex items-center gap-2.5 animate-in fade-in">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
                 <span>Cor primária atualizada e sincronizada com sucesso em todo o sistema!</span>
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
               {/* Seletor de Cor Hex & Input */}
-              <div className="space-y-3">
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-600">
+              <div className="space-y-3.5">
+                <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
                   Selecione ou Digite a Cor Hexadecimal
                 </label>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3.5">
                   <div className="relative shrink-0">
                     <input
                       type="color"
@@ -529,7 +529,7 @@ export function ConfiguracoesAdminPage() {
                         setCorPrimariaApp(e.target.value);
                         themeEngine.applyTheme({ ...branding, primary_color: e.target.value });
                       }}
-                      className="h-12 w-14 rounded-2xl border-2 border-slate-200 p-1 cursor-pointer bg-white shadow-xs"
+                      className="h-14 w-16 rounded-2xl border-2 border-slate-300 p-1 cursor-pointer bg-white shadow-xs"
                       title="Escolher cor primária"
                     />
                   </div>
@@ -545,13 +545,13 @@ export function ConfiguracoesAdminPage() {
                       }
                     }}
                     placeholder="#FF6B00"
-                    className="flex-1 h-12 px-4 rounded-2xl border border-slate-300 text-sm font-mono font-black uppercase text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
+                    className="flex-1 h-14 px-5 rounded-2xl border border-slate-300 text-base sm:text-lg font-mono font-black uppercase text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
 
                 {/* Cores Rápidas Predefinidas */}
-                <div className="space-y-1.5 pt-1">
-                  <span className="text-[11px] font-bold text-slate-500">Paletas Populares de Mobilidade:</span>
+                <div className="space-y-2 pt-1">
+                  <span className="text-xs sm:text-sm font-bold text-slate-600">Paletas Populares de Mobilidade:</span>
                   <div className="flex flex-wrap gap-2">
                     {[
                       { nome: "Laranja Solar (Padrão PARTIU)", hex: "#FF6B00" },
@@ -568,14 +568,14 @@ export function ConfiguracoesAdminPage() {
                           setCorPrimariaApp(preset.hex);
                           themeEngine.applyTheme({ ...branding, primary_color: preset.hex });
                         }}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                        className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                           corPrimariaApp.toLowerCase() === preset.hex.toLowerCase()
                             ? "border-slate-900 bg-slate-900 text-white shadow-xs"
                             : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
                         }`}
                       >
                         <span
-                          className="h-3 w-3 rounded-full shrink-0 border border-black/10"
+                          className="h-3.5 w-3.5 rounded-full shrink-0 border border-black/10"
                           style={{ backgroundColor: preset.hex }}
                         />
                         <span>{preset.nome}</span>
@@ -586,13 +586,13 @@ export function ConfiguracoesAdminPage() {
               </div>
 
               {/* Preview em Tempo Real */}
-              <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50/70 space-y-3">
+              <div className="p-5 sm:p-6 rounded-3xl border border-slate-200/90 bg-slate-50/80 space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-600">
                     Prévia em Tempo Real
                   </span>
                   <span
-                    className="px-2.5 py-0.5 rounded-full text-[10px] font-black"
+                    className="px-3 py-1 rounded-full text-xs font-black"
                     style={{ backgroundColor: `${corPrimariaApp}20`, color: corPrimariaApp }}
                   >
                     Ativa no Sistema
@@ -602,19 +602,19 @@ export function ConfiguracoesAdminPage() {
                   <button
                     type="button"
                     style={{ backgroundColor: corPrimariaApp }}
-                    className="px-4 py-2 rounded-xl text-white font-black text-xs shadow-xs"
+                    className="px-5 py-2.5 rounded-xl text-white font-black text-xs sm:text-sm shadow-sm"
                   >
                     Solicitar Corrida
                   </button>
                   <button
                     type="button"
                     style={{ backgroundColor: corPrimariaApp }}
-                    className="px-4 py-2 rounded-xl text-white font-black text-xs shadow-xs"
+                    className="px-5 py-2.5 rounded-xl text-white font-black text-xs sm:text-sm shadow-sm"
                   >
                     Aceitar Viagem
                   </button>
                   <span
-                    className="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-bold border"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold border"
                     style={{
                       borderColor: corPrimariaApp,
                       color: corPrimariaApp,
@@ -624,98 +624,98 @@ export function ConfiguracoesAdminPage() {
                     Tag Selecionada
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
                   Esta cor gera automaticamente todas as tonalidades semânticas (50 a 900, fundos, contrastes e realces) em conformidade com as diretrizes do frontend &amp; UI/UX.
                 </p>
               </div>
 
               {/* Personalização do Favicon da Aba do Navegador */}
-              <div className="p-4 rounded-2xl border border-slate-200 bg-white shadow-xs space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-[#0088FF]" />
-                    <span className="text-xs font-black uppercase tracking-wider text-slate-700">
+              <div className="lg:col-span-2 p-5 sm:p-6 rounded-3xl border border-slate-200/90 bg-white shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <Globe className="w-5 h-5 text-[#0088FF]" />
+                    <span className="text-sm sm:text-base font-black uppercase tracking-wider text-slate-800">
                       Ícone da Aba do Navegador (Favicon em Tempo Real)
                     </span>
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                  <span className="text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-700">
                     {faviconUrlApp.startsWith("data:image/svg") ? "✨ SVG Dinâmico" : "🖼️ URL Customizada"}
                   </span>
                 </div>
 
                 {/* Simulador de Aba */}
-                <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-2">
+                <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center gap-3">
                   <div className="flex items-center gap-1.5 px-1 shrink-0">
-                    <span className="w-2 h-2 rounded-full bg-red-500/80" />
-                    <span className="w-2 h-2 rounded-full bg-yellow-500/80" />
-                    <span className="w-2 h-2 rounded-full bg-emerald-500/80" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
                   </div>
-                  <div className="flex items-center gap-2 bg-slate-800/90 border border-slate-700 px-3 py-1 rounded-md max-w-sm truncate text-xs text-white">
-                    <div className="w-4 h-4 rounded-xs shrink-0 overflow-hidden flex items-center justify-center bg-slate-950">
+                  <div className="flex items-center gap-2.5 bg-slate-800/90 border border-slate-700 px-3.5 py-1.5 rounded-xl max-w-md truncate text-xs sm:text-sm text-white font-medium">
+                    <div className="w-5 h-5 rounded-lg shrink-0 overflow-hidden flex items-center justify-center bg-slate-950">
                       <img
                         src={faviconUrlApp || branding?.favicon_url || "/favicon.svg"}
                         alt="Favicon da aba"
-                        className="w-3.5 h-3.5 object-contain"
+                        className="w-4 h-4 object-contain"
                       />
                     </div>
-                    <span className="truncate font-medium">{branding?.app_name || "PARTIU"} — Mobilidade Urbana</span>
-                    <span className="text-slate-500 text-xs ml-auto">×</span>
+                    <span className="truncate">{branding?.app_name || "PARTIU"} — Mobilidade Urbana</span>
+                    <span className="text-slate-400 text-sm ml-auto">×</span>
                   </div>
                 </div>
 
                 {/* Campo URL Direta e Ações */}
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-slate-600 block">
+                <div className="space-y-3">
+                  <label className="text-xs sm:text-sm font-bold text-slate-700 block">
                     URL ou SVG Data URI do Favicon:
                   </label>
-                  <div className="flex flex-col sm:flex-row items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
                     <input
                       type="text"
                       value={faviconUrlApp}
                       onChange={(e) => setFaviconUrlApp(e.target.value)}
                       placeholder="https://... ou /favicon.svg ou data:image/svg+xml,..."
-                      className="w-full h-10 px-3 rounded-xl border border-slate-300 text-xs font-mono font-medium"
+                      className="w-full flex-1 h-12 px-4 rounded-xl border border-slate-300 text-xs sm:text-sm font-mono font-medium"
                     />
                     <button
                       type="button"
                       onClick={() => handleSalvarFavicon(faviconUrlApp)}
                       disabled={salvandoFavicon}
-                      className="w-full sm:w-auto shrink-0 h-10 px-4 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition cursor-pointer"
+                      className="h-12 px-6 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-black hover:bg-slate-800 transition cursor-pointer active:scale-95 shrink-0"
                     >
                       {salvandoFavicon ? "Aplicando..." : "Salvar Favicon"}
                     </button>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <div className="flex flex-wrap items-center gap-2.5 pt-1">
                     <button
                       type="button"
                       onClick={handleGerarFaviconDaPaletaAtual}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-50 text-primary-700 hover:bg-primary-100 border border-primary-200 text-xs font-bold transition cursor-pointer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-50 text-primary-700 hover:bg-primary-100 border border-primary-200 text-xs sm:text-sm font-bold transition cursor-pointer active:scale-95"
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
+                      <Sparkles className="w-4 h-4" />
                       <span>Gerar da Cor ({corPrimariaApp})</span>
                     </button>
                     <button
                       type="button"
                       onClick={handleTestarFaviconAba}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-bold transition cursor-pointer active:scale-95"
                     >
-                      <Globe className="w-3.5 h-3.5 text-blue-500" />
+                      <Globe className="w-4 h-4 text-blue-500" />
                       <span>Testar na Aba Agora</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleSalvarFavicon("/favicon.svg")}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-slate-500 hover:text-slate-800 text-xs font-medium transition cursor-pointer"
+                      className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-slate-500 hover:text-slate-800 text-xs sm:text-sm font-medium transition cursor-pointer"
                     >
-                      <RotateCcw className="w-3 h-3" />
+                      <RotateCcw className="w-3.5 h-3.5" />
                       <span>Padrão (/favicon.svg)</span>
                     </button>
                   </div>
 
                   {sucessoFavicon && (
-                    <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-1.5 animate-in fade-in">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-bold flex items-center gap-2 animate-in fade-in">
+                      <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 shrink-0" />
                       <span>Ícone da aba do navegador atualizado com sucesso!</span>
                     </div>
                   )}
@@ -724,24 +724,24 @@ export function ConfiguracoesAdminPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
             {/* Cidade de Operação */}
-            <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-2">
-              <label className="block text-xs font-black uppercase tracking-wider text-slate-600">
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-2.5">
+              <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
                 Cidade de Operação Ativa
               </label>
               <input
                 type="text"
                 value={cidadeOperacao}
                 onChange={(e) => setCidadeOperacao(e.target.value)}
-                className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold"
+                className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
               />
-              <p className="text-[11px] text-slate-400">Região de cobertura padrão das corridas.</p>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium">Região de cobertura padrão das corridas.</p>
             </div>
 
             {/* Comissão / Taxa da Franquia */}
-            <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-2">
-              <label className="block text-xs font-black uppercase tracking-wider text-slate-600">
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-2.5">
+              <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
                 Taxa de Serviço / Comissão (%)
               </label>
               <div className="relative">
@@ -750,39 +750,39 @@ export function ConfiguracoesAdminPage() {
                   step="0.5"
                   value={comissaoFranquia}
                   onChange={(e) => setComissaoFranquia(e.target.value)}
-                  className="w-full h-11 px-3 pr-8 rounded-xl border border-slate-300 text-xs font-black"
+                  className="w-full h-12 sm:h-14 px-4 pr-10 rounded-2xl border border-slate-300 text-sm sm:text-base font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-bold text-slate-400">%</span>
               </div>
-              <p className="text-[11px] text-slate-400">Comissão retida pela plataforma por corrida.</p>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium">Comissão retida pela plataforma por corrida.</p>
             </div>
 
             {/* WhatsApp Central */}
-            <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-2">
-              <label className="block text-xs font-black uppercase tracking-wider text-slate-600">
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-2.5">
+              <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
                 WhatsApp Central de Atendimento
               </label>
               <input
                 type="text"
                 value={whatsappSuporte}
                 onChange={(e) => setWhatsappSuporte(e.target.value)}
-                className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold"
+                className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
               />
-              <p className="text-[11px] text-slate-400">Canal direto de suporte ao passageiro.</p>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium">Canal direto de suporte ao passageiro.</p>
             </div>
 
             {/* Chave PIX */}
-            <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-2 lg:col-span-3">
-              <label className="block text-xs font-black uppercase tracking-wider text-slate-600">
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-2.5 lg:col-span-3">
+              <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
                 Chave PIX Oficial de Recebimento da Matriz / Franquia
               </label>
               <input
                 type="text"
                 value={chavePixPadrao}
                 onChange={(e) => setChavePixPadrao(e.target.value)}
-                className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-mono font-bold"
+                className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
               />
-              <p className="text-[11px] text-slate-400">Chave utilizada para emissão de cobranças PIX Copia e Cola nos aplicativos.</p>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium">Chave utilizada para emissão de cobranças PIX Copia e Cola nos aplicativos.</p>
             </div>
           </div>
         </form>
@@ -821,42 +821,42 @@ export function ConfiguracoesAdminPage() {
 
             {/* CONTEÚDO DO PASSO ATIVO */}
             {passoWizard === 1 && (
-              <div className="space-y-4 max-w-xl animate-in fade-in">
+              <div className="space-y-5 max-w-xl animate-in fade-in">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase text-primary-700">Passo 1 de 4</span>
-                  <h3 className="text-sm font-black text-slate-900">Identificação da Cidade &amp; Aplicativo</h3>
-                  <p className="text-xs text-slate-500">Defina o município de expansão e o nome comercial do app.</p>
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-primary-700">Passo 1 de 4</span>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900">Identificação da Cidade &amp; Aplicativo</h3>
+                  <p className="text-xs sm:text-sm text-slate-600 font-medium">Defina o município de expansão e o nome comercial do app.</p>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-3.5">
                   <div className="col-span-2">
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Cidade:</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Cidade:</label>
                     <input
                       type="text"
                       value={wlCidade}
                       onChange={(e) => setWlCidade(e.target.value)}
-                      className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold"
+                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">UF:</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">UF:</label>
                     <input
                       type="text"
                       maxLength={2}
                       value={wlUf}
                       onChange={(e) => setWlUf(e.target.value.toUpperCase())}
-                      className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold uppercase text-center"
+                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold uppercase text-center text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Nome Comercial do App:</label>
+                  <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Nome Comercial do App:</label>
                   <input
                     type="text"
                     value={wlNomeApp}
                     onChange={(e) => setWlNomeApp(e.target.value)}
-                    className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold"
+                    className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
 
@@ -864,48 +864,48 @@ export function ConfiguracoesAdminPage() {
                   <button
                     type="button"
                     onClick={() => setPassoWizard(2)}
-                    className="flex h-11 items-center gap-2 rounded-2xl bg-slate-900 text-white px-5 text-xs font-black hover:bg-slate-800"
+                    className="flex h-12 items-center gap-2 rounded-2xl bg-slate-900 text-white px-6 text-xs sm:text-sm font-black hover:bg-slate-800 transition active:scale-95 cursor-pointer shadow-md"
                   >
                     <span>Avançar para Identidade Visual</span>
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-4.5 w-4.5" />
                   </button>
                 </div>
               </div>
             )}
 
             {passoWizard === 2 && (
-              <div className="space-y-4 max-w-xl animate-in fade-in">
+              <div className="space-y-5 max-w-xl animate-in fade-in">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase text-primary-700">Passo 2 de 4</span>
-                  <h3 className="text-sm font-black text-slate-900">Identidade Visual &amp; Preset de Estilo</h3>
-                  <p className="text-xs text-slate-500">Cores da marca e o acabamento estético do aplicativo local.</p>
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-primary-700">Passo 2 de 4</span>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900">Identidade Visual &amp; Preset de Estilo</h3>
+                  <p className="text-xs sm:text-sm text-slate-600 font-medium">Cores da marca e o acabamento estético do aplicativo local.</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Cor Primária da Marca:</label>
-                    <div className="flex items-center gap-2">
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Cor Primária da Marca:</label>
+                    <div className="flex items-center gap-2.5">
                       <input
                         type="color"
                         value={wlCorPrimaria}
                         onChange={(e) => setWlCorPrimaria(e.target.value)}
-                        className="h-11 w-12 rounded-xl border border-slate-300 p-1 cursor-pointer bg-white"
+                        className="h-12 sm:h-14 w-16 rounded-2xl border-2 border-slate-300 p-1 cursor-pointer bg-white shadow-xs shrink-0"
                       />
                       <input
                         type="text"
                         value={wlCorPrimaria}
                         onChange={(e) => setWlCorPrimaria(e.target.value)}
-                        className="flex-1 h-11 px-3 rounded-xl border border-slate-300 text-xs font-mono font-bold uppercase"
+                        className="flex-1 h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-mono font-bold uppercase text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Preset Visual:</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Preset Visual:</label>
                     <select
                       value={wlPreset}
                       onChange={(e: any) => setWlPreset(e.target.value)}
-                      className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold bg-white"
+                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold bg-white text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
                     >
                       <option value="Moderno">Moderno (Bordas Suaves)</option>
                       <option value="Compacto">Compacto (Alta Densidade)</option>
@@ -915,12 +915,12 @@ export function ConfiguracoesAdminPage() {
                 </div>
 
                 {/* Preview Rápido */}
-                <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50 space-y-2">
-                  <span className="text-[10px] font-black uppercase text-slate-500 block">Prévia do Botão Principal:</span>
+                <div className="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50 space-y-2.5">
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-600 block">Prévia do Botão Principal:</span>
                   <button
                     type="button"
                     style={{ backgroundColor: wlCorPrimaria }}
-                    className="w-full h-11 rounded-xl text-slate-950 font-black text-xs shadow-xs"
+                    className="w-full h-12 sm:h-14 rounded-2xl text-slate-950 font-black text-sm sm:text-base shadow-sm"
                   >
                     Pedir Corrida em {wlCidade}
                   </button>
@@ -930,50 +930,50 @@ export function ConfiguracoesAdminPage() {
                   <button
                     type="button"
                     onClick={() => setPassoWizard(1)}
-                    className="h-11 px-4 rounded-2xl bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200"
+                    className="h-12 px-6 rounded-2xl bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm hover:bg-slate-200 transition cursor-pointer"
                   >
                     Voltar
                   </button>
                   <button
                     type="button"
                     onClick={() => setPassoWizard(3)}
-                    className="flex h-11 items-center gap-2 rounded-2xl bg-slate-900 text-white px-5 text-xs font-black hover:bg-slate-800"
+                    className="flex h-12 items-center gap-2 rounded-2xl bg-slate-900 text-white px-6 text-xs sm:text-sm font-black hover:bg-slate-800 transition active:scale-95 cursor-pointer shadow-md"
                   >
                     <span>Avançar para Tarifas</span>
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-4.5 w-4.5" />
                   </button>
                 </div>
               </div>
             )}
 
             {passoWizard === 3 && (
-              <div className="space-y-4 max-w-xl animate-in fade-in">
+              <div className="space-y-5 max-w-xl animate-in fade-in">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase text-primary-700">Passo 3 de 4</span>
-                  <h3 className="text-sm font-black text-slate-900">Tarifas da Cidade &amp; Comissão</h3>
-                  <p className="text-xs text-slate-500">Regras de precificação e split financeiro da operação.</p>
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-primary-700">Passo 3 de 4</span>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900">Tarifas da Cidade &amp; Comissão</h3>
+                  <p className="text-xs sm:text-sm text-slate-600 font-medium">Regras de precificação e split financeiro da operação.</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Tarifa Base (R$):</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Tarifa Base (R$):</label>
                     <input
                       type="number"
                       step="0.5"
                       value={wlTarifaBase}
                       onChange={(e) => setWlTarifaBase(e.target.value)}
-                      className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold"
+                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Comissão da Franquia (%):</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Comissão da Franquia (%):</label>
                     <input
                       type="number"
                       step="0.5"
                       value={wlComissao}
                       onChange={(e) => setWlComissao(e.target.value)}
-                      className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold"
+                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
                     />
                   </div>
                 </div>
@@ -982,57 +982,57 @@ export function ConfiguracoesAdminPage() {
                   <button
                     type="button"
                     onClick={() => setPassoWizard(2)}
-                    className="h-11 px-4 rounded-2xl bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200"
+                    className="h-12 px-6 rounded-2xl bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm hover:bg-slate-200 transition cursor-pointer"
                   >
                     Voltar
                   </button>
                   <button
                     type="button"
                     onClick={() => setPassoWizard(4)}
-                    className="flex h-11 items-center gap-2 rounded-2xl bg-slate-900 text-white px-5 text-xs font-black hover:bg-slate-800"
+                    className="flex h-12 items-center gap-2 rounded-2xl bg-slate-900 text-white px-6 text-xs sm:text-sm font-black hover:bg-slate-800 transition active:scale-95 cursor-pointer shadow-md"
                   >
                     <span>Avançar para Ativação</span>
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-4.5 w-4.5" />
                   </button>
                 </div>
               </div>
             )}
 
             {passoWizard === 4 && (
-              <div className="space-y-4 max-w-xl animate-in fade-in">
+              <div className="space-y-5 max-w-xl animate-in fade-in">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-black uppercase text-primary-700">Passo 4 de 4</span>
-                  <h3 className="text-sm font-black text-slate-900">Canais Operacionais &amp; Ativação</h3>
-                  <p className="text-xs text-slate-500">Chave PIX para recebimentos e WhatsApp oficial da praça.</p>
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-primary-700">Passo 4 de 4</span>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900">Canais Operacionais &amp; Ativação</h3>
+                  <p className="text-xs sm:text-sm text-slate-600 font-medium">Chave PIX para recebimentos e WhatsApp oficial da praça.</p>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Chave PIX da Cidade:</label>
+                  <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Chave PIX da Cidade:</label>
                   <input
                     type="text"
                     value={wlPix}
                     onChange={(e) => setWlPix(e.target.value)}
-                    className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-mono font-bold"
+                    className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-mono font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">WhatsApp de Suporte da Cidade:</label>
+                  <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">WhatsApp de Suporte da Cidade:</label>
                   <input
                     type="text"
                     value={wlWhatsapp}
                     onChange={(e) => setWlWhatsapp(e.target.value)}
-                    className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold"
+                    className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
 
                 {cidadeAtivadaSucesso ? (
-                  <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-2">
-                    <div className="flex items-center gap-2 font-black text-sm">
-                      <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                  <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-3">
+                    <div className="flex items-center gap-2 font-black text-base sm:text-lg">
+                      <CheckCircle2 className="h-6 w-6 text-emerald-600 shrink-0" />
                       <span>Cidade {wlCidade} ({wlUf}) Ativada com Sucesso!</span>
                     </div>
-                    <p className="text-xs text-emerald-800">
+                    <p className="text-xs sm:text-sm text-emerald-800 font-medium">
                       O tenant foi provisionado no banco de dados e está pronto para receber cadastros de passageiros e motoristas.
                     </p>
                     <button
@@ -1041,7 +1041,7 @@ export function ConfiguracoesAdminPage() {
                         setCidadeAtivadaSucesso(false);
                         setPassoWizard(1);
                       }}
-                      className="px-4 py-2 rounded-xl bg-emerald-700 text-white text-xs font-bold hover:bg-emerald-800"
+                      className="px-5 py-2.5 rounded-xl bg-emerald-700 text-white text-xs sm:text-sm font-bold hover:bg-emerald-800 transition cursor-pointer"
                     >
                       Cadastrar Outra Cidade
                     </button>
@@ -1051,16 +1051,16 @@ export function ConfiguracoesAdminPage() {
                     <button
                       type="button"
                       onClick={() => setPassoWizard(3)}
-                      className="h-11 px-4 rounded-2xl bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200"
+                      className="h-12 px-6 rounded-2xl bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm hover:bg-slate-200 transition cursor-pointer"
                     >
                       Voltar
                     </button>
                     <button
                       type="button"
                       onClick={handleConcluirWhiteLabel}
-                      className="flex h-12 items-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-6 text-xs font-black shadow-md cursor-pointer"
+                      className="flex h-12 sm:h-14 items-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-7 text-xs sm:text-sm font-black shadow-md cursor-pointer transition active:scale-95"
                     >
-                      <Zap className="h-4 w-4 text-[#0088FF]" />
+                      <Zap className="h-4.5 w-4.5 text-[#0088FF]" />
                       <span>🚀 Ativar Cidade Agora (&lt; 15 min)</span>
                     </button>
                   </div>
@@ -1070,22 +1070,22 @@ export function ConfiguracoesAdminPage() {
           </div>
 
           {/* Lista de Cidades Ativas */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-            <h3 className="text-sm font-black text-slate-900">Cidades Ativas na Rede PARTIU ({cidadesAtivas.length})</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+            <h3 className="text-base sm:text-lg font-black text-slate-900">Cidades Ativas na Rede PARTIU ({cidadesAtivas.length})</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {cidadesAtivas.map((c) => (
-                <div key={c.id} className="p-4 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="h-3 w-3 rounded-full" style={{ backgroundColor: c.corPrimaria }} />
-                      <p className="font-bold text-xs text-slate-900">{c.nome} - {c.uf}</p>
-                      <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-black">
+                <div key={c.id} className="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2.5">
+                      <span className="h-3.5 w-3.5 rounded-full shrink-0" style={{ backgroundColor: c.corPrimaria }} />
+                      <p className="font-bold text-sm sm:text-base text-slate-900">{c.nome} - {c.uf}</p>
+                      <span className="px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-xs font-black">
                         {c.status}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-500">App: {c.nomeApp} | Preset: {c.preset}</p>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium">App: {c.nomeApp} | Preset: {c.preset}</p>
                   </div>
-                  <span className="text-xs font-black text-slate-900">Comissão: {c.comissaoPercent}%</span>
+                  <span className="text-xs sm:text-sm font-black text-slate-900">Comissão: {c.comissaoPercent}%</span>
                 </div>
               ))}
             </div>
@@ -1095,15 +1095,15 @@ export function ConfiguracoesAdminPage() {
 
       {/* 5. ABA 3: MODO AVANÇADO (PROTEGIDO POR CONFIRMAÇÃO) */}
       {abaAtiva === "avancado" && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {!modoAvancadoDesbloqueado ? (
-            <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-xs text-center space-y-4 max-w-xl mx-auto">
-              <div className="h-16 w-16 rounded-3xl bg-red-50 text-red-600 flex items-center justify-center mx-auto">
-                <Lock className="h-8 w-8" />
+            <div className="bg-white p-8 sm:p-12 rounded-3xl border border-slate-200/90 shadow-sm text-center space-y-6 max-w-2xl mx-auto">
+              <div className="h-20 w-20 rounded-3xl bg-red-50 text-red-600 flex items-center justify-center mx-auto shadow-inner">
+                <Lock className="h-10 w-10" />
               </div>
-              <div className="space-y-1">
-                <h2 className="text-lg font-black text-slate-900">Área Técnica Protegida (Modo Avançado)</h2>
-                <p className="text-xs text-slate-500 leading-relaxed max-w-md mx-auto">
+              <div className="space-y-2">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900">Área Técnica Protegida (Modo Avançado)</h2>
+                <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-lg mx-auto font-medium">
                   Esta seção contém credenciais críticas de infraestrutura (API Keys, Webhooks, DNS e Variáveis de Sistema). O acesso requer confirmação explícita para evitar alterações acidentais.
                 </p>
               </div>
@@ -1111,43 +1111,43 @@ export function ConfiguracoesAdminPage() {
               <button
                 type="button"
                 onClick={() => setModalDesbloquearAberto(true)}
-                className="h-12 px-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs shadow-md transition-all inline-flex items-center gap-2 cursor-pointer"
+                className="h-14 px-8 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm sm:text-base shadow-lg transition-all inline-flex items-center gap-3 cursor-pointer active:scale-95"
               >
-                <Unlock className="h-4 w-4 text-[#0088FF]" />
+                <Unlock className="h-5 w-5 text-[#0088FF]" />
                 <span>Desbloquear Configurações Técnicas</span>
               </button>
             </div>
           ) : (
-            <div className="space-y-4 animate-in fade-in">
-              <div className="flex items-center justify-between bg-primary-50 p-4 rounded-2xl border border-primary-500">
-                <div className="flex items-center gap-2 text-xs font-bold text-amber-950">
-                  <ShieldCheck className="h-4 w-4 text-primary-700" />
+            <div className="space-y-6 animate-in fade-in">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-amber-50 p-4 sm:p-5 rounded-2xl border border-amber-300">
+                <div className="flex items-center gap-2.5 text-sm sm:text-base font-bold text-amber-950">
+                  <ShieldCheck className="h-5 w-5 text-amber-700 shrink-0" />
                   <span>Modo Avançado Desbloqueado com Sucesso. Atenção ao alterar chaves de produção.</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setModoAvancadoDesbloqueado(false)}
-                  className="px-3 py-1 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800"
+                  className="h-10 px-4 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-black hover:bg-slate-800 transition active:scale-95 cursor-pointer shrink-0"
                 >
                   Bloquear Novamente
                 </button>
               </div>
 
               {/* Card Destaque: Gateway Mercado Pago Oficial */}
-              <div className="bg-gradient-to-br from-sky-900/10 via-white to-white p-6 rounded-3xl border-2 border-sky-500/30 shadow-md space-y-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-sky-100 pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-sky-500 flex items-center justify-center text-white shadow-sm">
-                      <CreditCard className="w-5 h-5" />
+              <div className="bg-gradient-to-br from-sky-900/10 via-white to-white p-6 sm:p-8 rounded-3xl border-2 border-sky-500/30 shadow-md space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-sky-100 pb-5">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-sky-500 flex items-center justify-center text-white shadow-sm shrink-0">
+                      <CreditCard className="w-6 w-6" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-base font-black text-slate-900">Mercado Pago Oficial (PIX D+0)</h3>
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <h3 className="text-lg sm:text-xl font-black text-slate-900">Mercado Pago Oficial (PIX D+0)</h3>
+                        <span className="px-3 py-1 rounded-full text-xs font-black tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">
                           Recomendado • Produção
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1">
                         Receba pagamentos das diárias e assinaturas de motoristas com liquidação instantânea via PIX.
                       </p>
                     </div>
@@ -1157,20 +1157,20 @@ export function ConfiguracoesAdminPage() {
                     <button
                       type="button"
                       onClick={() => setMostrarChaves(!mostrarChaves)}
-                      className="text-xs font-bold text-slate-600 flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 shadow-xs cursor-pointer"
+                      className="h-10 px-4 text-xs sm:text-sm font-black text-slate-700 flex items-center gap-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 shadow-xs cursor-pointer transition active:scale-95"
                     >
-                      {mostrarChaves ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      {mostrarChaves ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       <span>{mostrarChaves ? "Ocultar Chaves" : "Revelar Chaves"}</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Seleção do Gateway Ativo */}
-                <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
-                  <label className="block text-xs font-black text-slate-800">
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-3">
+                  <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800">
                     Provedor de Pagamento PIX Ativo no Ecossistema:
                   </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
                       { id: "MERCADO_PAGO", label: "Mercado Pago", desc: "Oficial (PIX D+0)" },
                       { id: "ASAAS", label: "Asaas", desc: "Subcontas & Split" },
@@ -1181,23 +1181,23 @@ export function ConfiguracoesAdminPage() {
                         key={gw.id}
                         type="button"
                         onClick={() => setActiveGateway(gw.id as any)}
-                        className={`p-3 rounded-xl border text-left transition flex flex-col justify-between cursor-pointer ${
+                        className={`p-4 rounded-2xl border text-left transition flex flex-col justify-between cursor-pointer ${
                           activeGateway === gw.id
                             ? "border-sky-500 bg-sky-50/50 text-sky-950 font-bold ring-2 ring-sky-500/20"
                             : "border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium"
                         }`}
                       >
-                        <span className="text-xs font-black">{gw.label}</span>
-                        <span className="text-[10px] text-slate-500 mt-0.5">{gw.desc}</span>
+                        <span className="text-sm font-black">{gw.label}</span>
+                        <span className="text-xs text-slate-500 mt-1 font-medium">{gw.desc}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 {/* Formulário de Credenciais Mercado Pago */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="md:col-span-2">
-                    <label className="block font-bold text-slate-800 mb-1">
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 mb-1.5">
                       Mercado Pago Access Token (Produção ou Sandbox):
                     </label>
                     <input
@@ -1205,15 +1205,15 @@ export function ConfiguracoesAdminPage() {
                       value={mercadopagoAccessToken}
                       onChange={(e) => setMercadopagoAccessToken(e.target.value)}
                       placeholder="APP_USR-0000000000000000-000000-00000000000000000000000000000000-000000000"
-                      className="w-full h-11 px-3.5 rounded-xl border border-slate-300 font-mono text-xs bg-slate-50 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 outline-none transition"
+                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 font-mono text-xs sm:text-sm bg-slate-50 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 outline-none transition font-bold"
                     />
-                    <p className="text-[11px] text-slate-500 mt-1">
-                      Obtenha em: <a href="https://www.mercadopago.com.br/developers/panel" target="_blank" rel="noreferrer" className="text-sky-600 underline font-semibold">Mercado Pago Developers</a> &gt; Suas integrações &gt; Credenciais de produção.
+                    <p className="text-xs text-slate-500 mt-1.5 font-medium">
+                      Obtenha em: <a href="https://www.mercadopago.com.br/developers/panel" target="_blank" rel="noreferrer" className="text-sky-600 underline font-bold">Mercado Pago Developers</a> &gt; Suas integrações &gt; Credenciais de produção.
                     </p>
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-800 mb-1">
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 mb-1.5">
                       Mercado Pago Public Key:
                     </label>
                     <input
@@ -1221,12 +1221,12 @@ export function ConfiguracoesAdminPage() {
                       value={mercadopagoPublicKey}
                       onChange={(e) => setMercadopagoPublicKey(e.target.value)}
                       placeholder="APP_USR-00000000-0000-0000-0000-000000000000"
-                      className="w-full h-11 px-3.5 rounded-xl border border-slate-300 font-mono text-xs bg-slate-50 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 outline-none transition"
+                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 font-mono text-xs sm:text-sm bg-slate-50 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 outline-none transition font-bold"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-800 mb-1">
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 mb-1.5">
                       Webhook Secret (Chave Secreta de Assinatura):
                     </label>
                     <input
@@ -1234,17 +1234,17 @@ export function ConfiguracoesAdminPage() {
                       value={mercadopagoWebhookSecret}
                       onChange={(e) => setMercadopagoWebhookSecret(e.target.value)}
                       placeholder="Ex: whsec_... ou chave de assinatura do webhook"
-                      className="w-full h-11 px-3.5 rounded-xl border border-slate-300 font-mono text-xs bg-slate-50 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 outline-none transition"
+                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 font-mono text-xs sm:text-sm bg-slate-50 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 outline-none transition font-bold"
                     />
                   </div>
                 </div>
 
                 {/* Modo Sandbox & URL de Webhook para Cadastro */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-2">
-                  <div className="p-3.5 rounded-2xl bg-white border border-slate-200 flex items-center justify-between">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div className="p-4 rounded-2xl bg-white border border-slate-200 flex items-center justify-between">
                     <div>
-                      <span className="block font-bold text-slate-800">Modo Sandbox (Testes)</span>
-                      <span className="text-[11px] text-slate-500">
+                      <span className="block text-sm sm:text-base font-bold text-slate-800">Modo Sandbox (Testes)</span>
+                      <span className="text-xs sm:text-sm text-slate-500 font-medium">
                         {mercadopagoSandbox ? "Usando ambiente de testes do Mercado Pago" : "Operando em ambiente real de Produção"}
                       </span>
                     </div>
@@ -1259,8 +1259,8 @@ export function ConfiguracoesAdminPage() {
                     </label>
                   </div>
 
-                  <div className="p-3.5 rounded-2xl bg-white border border-slate-200 flex flex-col justify-between">
-                    <span className="block font-bold text-slate-800 mb-1">URL de Webhook no Mercado Pago (Edge Function):</span>
+                  <div className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col justify-between">
+                    <span className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 mb-1.5">URL de Webhook no Mercado Pago (Edge Function):</span>
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
@@ -1270,7 +1270,7 @@ export function ConfiguracoesAdminPage() {
                             ? `${import.meta.env.VITE_SUPABASE_URL.replace(/\/$/, "")}/functions/v1/payment-webhook`
                             : "https://<SEU_PROJETO>.supabase.co/functions/v1/payment-webhook"
                         }
-                        className="w-full h-8 px-2.5 rounded-lg border border-slate-200 font-mono text-[10px] bg-slate-100 text-slate-600 select-all"
+                        className="w-full h-10 sm:h-11 px-3 rounded-xl border border-slate-200 font-mono text-xs bg-slate-100 text-slate-700 select-all font-bold"
                       />
                       <button
                         type="button"
@@ -1282,9 +1282,9 @@ export function ConfiguracoesAdminPage() {
                           setCopiadoWebhookUrl(true);
                           setTimeout(() => setCopiadoWebhookUrl(false), 2000);
                         }}
-                        className="h-8 px-3 rounded-lg bg-sky-500 hover:bg-sky-600 text-white font-bold text-[11px] flex items-center gap-1 shrink-0 transition cursor-pointer"
+                        className="h-10 sm:h-11 px-4 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-black text-xs sm:text-sm flex items-center gap-1.5 shrink-0 transition cursor-pointer active:scale-95 shadow-xs"
                       >
-                        {copiadoWebhookUrl ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copiadoWebhookUrl ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                         <span>{copiadoWebhookUrl ? "Copiado!" : "Copiar"}</span>
                       </button>
                     </div>
@@ -1293,66 +1293,66 @@ export function ConfiguracoesAdminPage() {
               </div>
 
               {/* Card Secundário: Demais Credenciais de Infraestrutura */}
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b pb-3">
-                  <h3 className="text-sm font-black text-slate-900">Demais Credenciais &amp; Parâmetros de Cluster</h3>
+              <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs space-y-5">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+                  <h3 className="text-base sm:text-lg font-black text-slate-900">Demais Credenciais &amp; Parâmetros de Cluster</h3>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Google Maps Platform API Key:</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Google Maps Platform API Key:</label>
                     <input
                       type={mostrarChaves ? "text" : "password"}
                       value={googleMapsKey}
                       onChange={(e) => setGoogleMapsKey(e.target.value)}
-                      className="w-full h-10 px-3 rounded-xl border border-slate-300 font-mono"
+                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 font-mono text-xs sm:text-sm font-bold text-slate-900"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Asaas API Token (Fallback):</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Asaas API Token (Fallback):</label>
                     <input
                       type={mostrarChaves ? "text" : "password"}
                       value={asaasApiKey}
                       onChange={(e) => setAsaasApiKey(e.target.value)}
-                      className="w-full h-10 px-3 rounded-xl border border-slate-300 font-mono"
+                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 font-mono text-xs sm:text-sm font-bold text-slate-900"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Stripe Secret Key (Opcional):</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Stripe Secret Key (Opcional):</label>
                     <input
                       type={mostrarChaves ? "text" : "password"}
                       value={stripeSecretKey}
                       onChange={(e) => setStripeSecretKey(e.target.value)}
-                      className="w-full h-10 px-3 rounded-xl border border-slate-300 font-mono"
+                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 font-mono text-xs sm:text-sm font-bold text-slate-900"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Global Webhook Secret (HMAC):</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Global Webhook Secret (HMAC):</label>
                     <input
                       type={mostrarChaves ? "text" : "password"}
                       value={webhookSecret}
                       onChange={(e) => setWebhookSecret(e.target.value)}
-                      className="w-full h-10 px-3 rounded-xl border border-slate-300 font-mono"
+                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 font-mono text-xs sm:text-sm font-bold text-slate-900"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-3 border-t">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-4 border-t border-slate-200">
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">DNS / Endpoint Base:</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">DNS / Endpoint Base:</label>
                     <input
                       type="text"
                       value={dnsUrl}
                       onChange={(e) => setDnsUrl(e.target.value)}
-                      className="w-full h-10 px-3 rounded-xl border border-slate-300 font-mono"
+                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 font-mono text-sm sm:text-base font-bold text-slate-900"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
                       Tempo de Busca / Timeout de Despacho (Segundos):
                     </label>
                     <input
@@ -1361,32 +1361,32 @@ export function ConfiguracoesAdminPage() {
                       max="1200"
                       value={timeoutDespachoSec}
                       onChange={(e) => setTimeoutDespachoSec(e.target.value)}
-                      className="w-full h-10 px-3 rounded-xl border border-slate-300 font-bold"
+                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold text-slate-900"
                     />
-                    <p className="text-[11px] text-slate-500 mt-1">
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1.5">
                       Padrão atual: 600s (10 minutos). Se nenhum motorista aceitar, o passageiro poderá continuar buscando ou cancelar.
                     </p>
                   </div>
                 </div>
 
                 {sucessoAvancado && (
-                  <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center gap-2 animate-in fade-in">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-sm font-bold flex items-center gap-2.5 animate-in fade-in">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
                     <span>Configurações do Mercado Pago e parâmetros técnicos salvos com sucesso no cluster!</span>
                   </div>
                 )}
 
-                <div className="pt-3 flex justify-end">
+                <div className="pt-4 flex justify-end">
                   <button
                     type="button"
                     disabled={salvandoTecnico}
                     onClick={() => handleSalvarTecnico()}
-                    className="h-11 px-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md flex items-center gap-2 cursor-pointer transition disabled:opacity-50"
+                    className="h-12 sm:h-14 px-7 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs sm:text-sm shadow-md flex items-center gap-2.5 cursor-pointer transition disabled:opacity-50 active:scale-95"
                   >
                     {salvandoTecnico ? (
-                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      <RefreshCw className="h-4.5 w-4.5 animate-spin" />
                     ) : (
-                      <Save className="h-4 w-4" />
+                      <Save className="h-4.5 w-4.5" />
                     )}
                     <span>{salvandoTecnico ? "Salvando no Cluster..." : "Salvar Configurações Técnicas & Mercado Pago"}</span>
                   </button>
@@ -1400,24 +1400,24 @@ export function ConfiguracoesAdminPage() {
       {/* MODAL DESBLOQUEAR MODO AVANÇADO */}
       {modalDesbloquearAberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-white p-6 rounded-3xl shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <div className="flex items-center gap-2 text-rose-600">
-                <ShieldAlert className="h-5 w-5" />
-                <h3 className="text-base font-black text-slate-900">Confirmação de Segurança</h3>
+          <div className="w-full max-w-lg bg-white p-6 sm:p-8 rounded-3xl shadow-2xl border border-slate-200 space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+              <div className="flex items-center gap-2.5 text-rose-600">
+                <ShieldAlert className="h-6 w-6" />
+                <h3 className="text-lg sm:text-xl font-black text-slate-900">Confirmação de Segurança</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setModalDesbloquearAberto(false)}
-                className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-slate-100 text-slate-500"
+                className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-slate-100 text-slate-500 cursor-pointer"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <form onSubmit={handleDesbloquearAvancado} className="space-y-3 text-xs">
-              <p className="text-slate-600">
-                Para liberar as configurações avançadas e chaves de API, digite a palavra <strong>DESBLOQUEAR</strong> abaixo:
+            <form onSubmit={handleDesbloquearAvancado} className="space-y-4">
+              <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed">
+                Para liberar as configurações avançadas e chaves de API, digite a palavra <strong className="text-slate-950 font-black">DESBLOQUEAR</strong> abaixo:
               </p>
 
               <input
@@ -1426,24 +1426,24 @@ export function ConfiguracoesAdminPage() {
                 placeholder="Digite DESBLOQUEAR"
                 value={confirmacaoTexto}
                 onChange={(e) => setConfirmacaoTexto(e.target.value)}
-                className="w-full h-11 px-3 rounded-xl border border-slate-300 font-bold uppercase text-center focus:ring-2 focus:ring-rose-500"
+                className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 font-black uppercase text-center text-base sm:text-lg tracking-widest focus:ring-2 focus:ring-rose-500 focus:outline-hidden"
               />
 
               {erroDesbloqueio && (
-                <p className="text-red-600 font-bold text-xs">{erroDesbloqueio}</p>
+                <p className="text-red-600 font-bold text-xs sm:text-sm">{erroDesbloqueio}</p>
               )}
 
-              <div className="grid grid-cols-2 gap-2 pt-2">
+              <div className="grid grid-cols-2 gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setModalDesbloquearAberto(false)}
-                  className="h-11 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200"
+                  className="h-12 sm:h-14 rounded-2xl bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm hover:bg-slate-200 transition cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="h-11 rounded-xl bg-rose-600 text-white font-bold hover:bg-rose-700 shadow-xs"
+                  className="h-12 sm:h-14 rounded-2xl bg-rose-600 text-white font-black text-xs sm:text-sm hover:bg-rose-700 shadow-md transition cursor-pointer active:scale-95"
                 >
                   Confirmar Acesso
                 </button>

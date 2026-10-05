@@ -112,22 +112,22 @@ export function PalettePickerSection({ onPaletteSelect, className = "" }: Palett
   }
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`space-y-6 ${className}`}>
       {/* Cabeçalho explicativo */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold">
-              <Palette className="w-4 h-4" />
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold shadow-xs">
+              <Palette className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2.5">
                 Paletas Monocromáticas Prontas
-                <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                <span className="text-xs uppercase font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
                   White Label 1-Clique
                 </span>
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs sm:text-sm text-slate-600 font-medium mt-0.5">
                 Selecione uma paleta harmônica com contraste profissional (WCAG AAA). O sistema atualiza todos os botões, cabeçalhos e telas na mesma hora.
               </p>
             </div>
@@ -135,15 +135,15 @@ export function PalettePickerSection({ onPaletteSelect, className = "" }: Palett
         </div>
 
         {sucessoMsg && (
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 animate-in fade-in">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-800 bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-200 animate-in fade-in shrink-0">
+            <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 shrink-0" />
             <span>{sucessoMsg}</span>
           </div>
         )}
       </div>
 
       {/* Grid com as 5 Paletas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
         {MONOCHROMATIC_PALETTES.map((paleta) => {
           const isAtiva = activePaletteId === paleta.id;
           const isCarregando = aplicandoId === paleta.id;
@@ -154,7 +154,7 @@ export function PalettePickerSection({ onPaletteSelect, className = "" }: Palett
               type="button"
               onClick={() => handleSelectPalette(paleta)}
               disabled={isCarregando}
-              className={`text-left p-4 rounded-2xl border-2 transition-all duration-200 relative overflow-hidden flex flex-col justify-between group cursor-pointer ${
+              className={`text-left p-5 sm:p-6 rounded-3xl border-2 transition-all duration-200 relative overflow-hidden flex flex-col justify-between group cursor-pointer ${
                 isAtiva
                   ? "border-slate-900 bg-white shadow-lg ring-2 ring-slate-900/10 scale-[1.01]"
                   : "border-slate-200 hover:border-slate-300 bg-white hover:shadow-md active:scale-[0.99]"
@@ -162,27 +162,27 @@ export function PalettePickerSection({ onPaletteSelect, className = "" }: Palett
             >
               {/* Barra de Gradiente Superior do Card */}
               <div
-                className="absolute top-0 inset-x-0 h-1.5"
+                className="absolute top-0 inset-x-0 h-2"
                 style={{
                   background: `linear-gradient(90deg, ${paleta.colors.headerGradientStart} 0%, ${paleta.colors.secondary} 100%)`,
                 }}
               />
 
               {/* Topo do Card: Categoria & Badge de Ativa */}
-              <div className="flex items-center justify-between gap-2 pt-1 mb-2.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <div className="flex items-center justify-between gap-2 pt-1 mb-3">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-500">
                   {paleta.category}
                 </span>
 
                 <div className="flex items-center gap-1.5">
                   {paleta.isDefault && (
-                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
+                    <span className="text-[11px] font-black uppercase px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900">
                       PADRÃO OFICIAL
                     </span>
                   )}
                   {isAtiva && (
-                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-900 text-white flex items-center gap-1">
-                      <Check className="w-2.5 h-2.5" />
+                    <span className="text-[11px] font-black uppercase px-2.5 py-0.5 rounded-full bg-slate-900 text-white flex items-center gap-1">
+                      <Check className="w-3 h-3" />
                       ATIVA
                     </span>
                   )}
@@ -190,45 +190,45 @@ export function PalettePickerSection({ onPaletteSelect, className = "" }: Palett
               </div>
 
               {/* Nome e Descrição */}
-              <div className="mb-3">
-                <h4 className="text-sm font-bold text-slate-900 group-hover:text-slate-950 flex items-center gap-1.5">
+              <div className="mb-4">
+                <h4 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-slate-950 flex items-center gap-2">
                   {paleta.name}
                 </h4>
-                <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-snug">
+                <p className="text-xs sm:text-sm text-slate-600 line-clamp-2 mt-1 leading-relaxed font-medium">
                   {paleta.description}
                 </p>
               </div>
 
               {/* Amostras Visuais das Cores */}
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                <div className="flex items-center gap-1.5">
+              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                <div className="flex items-center gap-2">
                   <div
-                    className="w-6 h-6 rounded-full shadow-xs border border-white/80 ring-1 ring-black/5"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-xs border border-white/80 ring-1 ring-black/10"
                     style={{ backgroundColor: paleta.colors.primary }}
                     title={`Primária: ${paleta.colors.primary}`}
                   />
                   <div
-                    className="w-6 h-6 rounded-full shadow-xs border border-white/80 ring-1 ring-black/5"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-xs border border-white/80 ring-1 ring-black/10"
                     style={{ backgroundColor: paleta.colors.secondary }}
                     title={`Secundária: ${paleta.colors.secondary}`}
                   />
                   <div
-                    className="w-6 h-6 rounded-full shadow-xs border border-slate-200 ring-1 ring-black/5"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-xs border border-slate-200 ring-1 ring-black/10"
                     style={{ backgroundColor: paleta.colors.soft }}
                     title={`Fundo Suave: ${paleta.colors.soft}`}
                   />
                   <div
-                    className="w-6 h-6 rounded-full shadow-xs border border-slate-300 ring-1 ring-black/5"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-xs border border-slate-300 ring-1 ring-black/10"
                     style={{ backgroundColor: paleta.colors.deep }}
                     title={`Tom Estrutural: ${paleta.colors.deep}`}
                   />
                 </div>
 
                 <div
-                  className="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors"
+                  className="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black transition-colors"
                   style={{
                     backgroundColor: isAtiva ? paleta.colors.primary : "#F1F5F9",
-                    color: isAtiva ? paleta.colors.textOnPrimary : "#475569",
+                    color: isAtiva ? paleta.colors.textOnPrimary : "#334155",
                   }}
                 >
                   {isCarregando ? "Aplicando..." : isAtiva ? "Em Uso" : "Selecionar"}

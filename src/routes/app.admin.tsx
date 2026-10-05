@@ -243,11 +243,11 @@ function SuperAdminLayout() {
                   <Zap className="h-5.5 w-5.5 fill-white stroke-[2.5]" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-lg font-black tracking-tight leading-none text-white truncate">
+                  <p className="text-lg lg:text-xl font-black tracking-tight leading-none text-white truncate">
                     {branding.appName.toUpperCase()} <span style={{ color: colors.primary }}>OPERATIONS</span>
                   </p>
                   <span
-                    className="text-xs font-black tracking-wider uppercase mt-1.5 block truncate"
+                    className="text-xs sm:text-sm font-black tracking-wider uppercase mt-1.5 block truncate"
                     style={{ color: colors.primary }}
                   >
                     {roleMeta.titulo}
@@ -283,9 +283,9 @@ function SuperAdminLayout() {
 
           {/* Seletor de Perfil RBAC (5 Perfis Nacionais) */}
           {!recolhido && (
-            <div className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800/90 space-y-1.5">
+            <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800/90 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+                <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-400">
                   Perfil Operacional (RBAC)
                 </span>
                 <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -293,7 +293,7 @@ function SuperAdminLayout() {
               <select
                 value={roleAtiva}
                 onChange={(e) => handleTrocarRole(e.target.value as AdminRole)}
-                className="w-full bg-slate-950 border border-slate-800 text-xs font-bold text-white rounded-xl px-3 py-2 focus:ring-1 focus:ring-amber-400 focus:outline-hidden"
+                className="w-full bg-slate-950 border border-slate-800 text-xs sm:text-sm font-bold text-white rounded-xl px-3 py-2.5 h-11 focus:ring-1 focus:ring-amber-400 focus:outline-hidden"
               >
                 {ROLES_DISPONIVEIS.map((r) => (
                   <option key={r.id} value={r.id} className="bg-slate-950 text-white font-bold">
@@ -307,7 +307,7 @@ function SuperAdminLayout() {
           {/* 6 MÓDULOS OFICIAIS DE NAVEGAÇÃO */}
           <nav className="flex-1 overflow-y-auto space-y-2 custom-admin-scrollbar pr-0.5">
             {!recolhido && (
-              <p className="px-2 pt-1 text-xs font-black uppercase tracking-wider text-slate-500">
+              <p className="px-2 pt-1 text-xs sm:text-sm font-black uppercase tracking-wider text-slate-400">
                 Menu de Operações ({menuFiltrado.length})
               </p>
             )}
@@ -332,7 +332,7 @@ function SuperAdminLayout() {
                         }
                       : { borderRadius: ui.borderRadius }
                   }
-                  className={`group flex items-center justify-between px-3.5 py-3 text-sm font-bold transition-all relative ${
+                  className={`group flex items-center justify-between px-3.5 py-3.5 text-base font-bold transition-all relative ${
                     isAtivo
                       ? "font-black"
                       : "text-slate-300 hover:bg-slate-900 hover:text-white"
@@ -341,15 +341,15 @@ function SuperAdminLayout() {
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
                     <Icon
-                      className={`h-5 w-5 shrink-0 transition-transform group-hover:scale-110 ${
+                      className={`h-5.5 w-5.5 shrink-0 transition-transform group-hover:scale-110 ${
                         isAtivo ? "text-white stroke-[2.5]" : "text-slate-400"
                       }`}
                     />
                     {!recolhido && (
                       <div className="truncate">
-                        <p className="truncate text-sm font-black leading-none">{item.label}</p>
-                        <span className={`text-xs block font-medium truncate mt-1 ${
-                          isAtivo ? "text-white/90" : "text-slate-400"
+                        <p className="truncate text-base sm:text-lg font-black leading-none">{item.label}</p>
+                        <span className={`text-xs sm:text-sm block font-medium truncate mt-1.5 ${
+                          isAtivo ? "text-white/90 font-semibold" : "text-slate-400"
                         }`}>
                           {item.descricao}
                         </span>
@@ -359,7 +359,7 @@ function SuperAdminLayout() {
 
                   {!recolhido && item.badge && (
                     <span
-                      className={`ml-1.5 px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider shrink-0 ${
+                      className={`ml-1.5 px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider shrink-0 ${
                         isAtivo
                           ? "bg-slate-950 text-white"
                           : "bg-slate-800 text-slate-300"
@@ -379,8 +379,8 @@ function SuperAdminLayout() {
           {!recolhido ? (
             <div className="flex items-center justify-between bg-slate-900/80 p-3 rounded-2xl border border-slate-800/80">
               <div className="min-w-0 pr-2">
-                <p className="text-sm font-black text-white truncate">{contaAtiva.nome}</p>
-                <p className="text-xs text-slate-400 truncate mt-0.5">{contaAtiva.email}</p>
+                <p className="text-sm sm:text-base font-black text-white truncate">{contaAtiva.nome}</p>
+                <p className="text-xs sm:text-sm text-slate-400 truncate mt-0.5 font-medium">{contaAtiva.email}</p>
               </div>
               <button
                 type="button"
@@ -418,14 +418,14 @@ function SuperAdminLayout() {
             </button>
 
             <div className="hidden sm:flex items-center gap-2.5 text-sm font-semibold text-slate-500">
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-slate-900 font-bold text-sm sm:text-base">Central Nacional Ativa:</span>
-              <span className="bg-slate-100 text-slate-800 px-2.5 py-1 rounded-lg font-mono text-xs sm:text-sm font-bold">1.000 Cidades</span>
+              <span className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-slate-900 font-black text-base sm:text-lg">Central Nacional Ativa:</span>
+              <span className="bg-slate-100 text-slate-900 px-3 py-1 rounded-xl font-mono text-sm sm:text-base font-black border border-slate-200">1.000 Cidades</span>
             </div>
 
             <div className="flex sm:hidden items-center gap-2 min-w-0">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shrink-0" />
-              <span className="text-sm font-bold text-slate-900 truncate">PARTIU Ops</span>
+              <span className="text-base font-black text-slate-900 truncate">PARTIU Ops</span>
             </div>
           </div>
 
@@ -433,9 +433,9 @@ function SuperAdminLayout() {
             {/* Atalho Rápido para Operação ao Vivo */}
             <Link
               to="/app/admin/operacao"
-              className="flex items-center gap-2 px-3.5 py-2 h-10 rounded-xl bg-emerald-50 text-emerald-900 text-xs sm:text-sm font-bold border border-emerald-200/80 hover:bg-emerald-100 active:scale-95 transition-all shadow-2xs"
+              className="flex items-center gap-2 px-4 sm:px-5 py-2 h-11 sm:h-12 rounded-2xl bg-emerald-50 text-emerald-900 text-xs sm:text-sm font-black border border-emerald-300/80 hover:bg-emerald-100 active:scale-95 transition-all shadow-xs"
             >
-              <Radio className="h-4 w-4 animate-pulse text-emerald-600 shrink-0" />
+              <Radio className="h-4.5 w-4.5 animate-pulse text-emerald-600 shrink-0" />
               <span className="hidden sm:inline">Operação Realtime</span>
               <span className="sm:hidden text-xs">Ao Vivo</span>
             </Link>
@@ -444,9 +444,9 @@ function SuperAdminLayout() {
             <button
               type="button"
               onClick={abrirModalConta}
-              className="flex h-10 items-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 px-3.5 text-xs sm:text-sm font-bold text-slate-800 transition-all border border-slate-200 cursor-pointer shadow-2xs"
+              className="flex h-11 sm:h-12 items-center gap-2 rounded-2xl bg-slate-100 hover:bg-slate-200 active:scale-95 px-4 sm:px-5 text-xs sm:text-sm font-black text-slate-800 transition-all border border-slate-200 cursor-pointer shadow-xs"
             >
-              <Key className="h-4 w-4 text-primary-700 shrink-0" />
+              <Key className="h-4.5 w-4.5 text-primary-700 shrink-0" />
               <span className="hidden lg:inline">{contaAtiva.email}</span>
               <span className="lg:hidden text-xs">Conta</span>
             </button>
@@ -455,10 +455,10 @@ function SuperAdminLayout() {
             <button
               type="button"
               onClick={handleLogout}
-              className="flex h-10 px-3.5 items-center gap-1.5 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-bold hover:bg-red-900 active:scale-95 transition-all cursor-pointer shadow-2xs"
+              className="flex h-11 sm:h-12 px-4 sm:px-5 items-center gap-2 rounded-2xl bg-slate-900 text-white text-xs sm:text-sm font-black hover:bg-red-900 active:scale-95 transition-all cursor-pointer shadow-xs"
               title="Sair da Conta"
             >
-              <LogOut className="h-4 w-4 shrink-0" />
+              <LogOut className="h-4.5 w-4.5 shrink-0" />
               <span className="hidden sm:inline">Sair</span>
             </button>
           </div>
@@ -478,21 +478,21 @@ function SuperAdminLayout() {
           />
           <div className="relative w-[85vw] max-w-xs bg-slate-950 text-white flex flex-col justify-between p-4 sm:p-5 h-full overflow-y-auto shadow-2xl z-10 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
             <div className="space-y-4 sm:space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
+                <div className="flex items-center gap-2.5 min-w-0">
                   <div
-                    className="flex h-9 w-9 items-center justify-center text-white font-black shrink-0"
+                    className="flex h-10 w-10 items-center justify-center text-white font-black shrink-0"
                     style={{
                       backgroundColor: colors.primary,
                       borderRadius: ui.borderRadius,
                     }}
                   >
-                    <Zap className="h-4.5 w-4.5 fill-white" />
+                    <Zap className="h-5 w-5 fill-white" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-black text-white leading-tight truncate">{branding.appName} Admin</p>
+                    <p className="text-base font-black text-white leading-tight truncate">{branding.appName} Admin</p>
                     <span
-                      className="text-[9px] font-bold uppercase truncate block"
+                      className="text-xs font-bold uppercase truncate block mt-0.5"
                       style={{ color: colors.primary }}
                     >
                       {roleMeta.titulo}
@@ -503,20 +503,20 @@ function SuperAdminLayout() {
                 <button
                   type="button"
                   onClick={() => setMenuAbertoMobile(false)}
-                  className="h-8 w-8 rounded-xl bg-slate-900 text-slate-400 hover:text-white flex items-center justify-center active:scale-95 shrink-0"
+                  className="h-9 w-9 rounded-xl bg-slate-900 text-slate-400 hover:text-white flex items-center justify-center active:scale-95 shrink-0 cursor-pointer"
                   aria-label="Fechar Menu"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4.5 w-4.5" />
                 </button>
               </div>
 
               {/* Seletor Mobile de Role */}
-              <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase text-slate-400 block">Perfil de Acesso:</span>
+              <div className="space-y-1.5">
+                <span className="text-xs sm:text-sm font-black uppercase text-slate-400 block">Perfil de Acesso:</span>
                 <select
                   value={roleAtiva}
                   onChange={(e) => handleTrocarRole(e.target.value as AdminRole)}
-                  className="w-full bg-slate-900 border border-slate-800 text-xs font-bold text-white rounded-xl p-2"
+                  className="w-full bg-slate-900 border border-slate-800 text-sm font-bold text-white rounded-xl h-11 px-3"
                 >
                   {ROLES_DISPONIVEIS.map((r) => (
                     <option key={r.id} value={r.id}>
@@ -526,7 +526,7 @@ function SuperAdminLayout() {
                 </select>
               </div>
 
-              <nav className="space-y-1 pt-2">
+              <nav className="space-y-1.5 pt-2">
                 {menuFiltrado.map((item) => {
                   const Icon = item.icon;
                   const isAtivo = item.exact
@@ -547,18 +547,18 @@ function SuperAdminLayout() {
                             }
                           : { borderRadius: ui.borderRadius }
                       }
-                      className={`flex items-center justify-between px-3.5 py-3 text-xs font-bold transition-all ${
+                      className={`flex items-center justify-between px-4 py-3.5 text-sm sm:text-base font-bold transition-all min-h-[48px] ${
                         isAtivo
                           ? "font-black"
                           : "text-slate-300 hover:bg-slate-900 hover:text-white"
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <Icon className={`h-4 w-4 ${isAtivo ? "text-white" : "text-slate-400"}`} />
+                      <div className="flex items-center gap-3.5">
+                        <Icon className={`h-5 w-5 ${isAtivo ? "text-white" : "text-slate-400"}`} />
                         <span>{item.label}</span>
                       </div>
                       {item.badge && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-900 text-primary-500 font-bold">
+                        <span className="text-xs px-2.5 py-0.5 rounded-md bg-slate-900 text-primary-500 font-black">
                           {item.badge}
                         </span>
                       )}
@@ -568,13 +568,13 @@ function SuperAdminLayout() {
               </nav>
             </div>
 
-            <div className="border-t border-slate-800 pt-3">
+            <div className="border-t border-slate-800 pt-3.5">
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-900 text-red-400 text-xs font-bold hover:bg-red-950"
+                className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl bg-slate-900 text-red-400 text-sm font-black hover:bg-red-950 min-h-[48px] cursor-pointer transition active:scale-95"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-4.5 w-4.5" />
                 <span>Sair da Conta</span>
               </button>
             </div>
@@ -586,27 +586,27 @@ function SuperAdminLayout() {
       {modalContaAberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
           <div
-            className="w-full max-w-md bg-white p-6 shadow-2xl border border-slate-200 space-y-4"
+            className="w-full max-w-lg bg-white p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-5"
             style={{ borderRadius: ui.borderRadius }}
           >
-            <div className="flex items-center justify-between border-b pb-3">
-              <div className="flex items-center gap-2">
-                <Key className="h-5 w-5" style={{ color: colors.primary }} />
-                <h3 className="text-base font-black text-slate-900">Credenciais Administrativas</h3>
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+              <div className="flex items-center gap-2.5">
+                <Key className="h-6 w-6" style={{ color: colors.primary }} />
+                <h3 className="text-lg sm:text-xl font-black text-slate-900">Credenciais Administrativas</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setModalContaAberto(false)}
-                className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-slate-100 text-slate-500 cursor-pointer"
+                className="h-9 w-9 rounded-full flex items-center justify-center hover:bg-slate-100 text-slate-500 cursor-pointer"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSalvarConta} className="space-y-3 text-xs">
+            <form onSubmit={handleSalvarConta} className="space-y-4">
               {mensagemConta && (
                 <div
-                  className={`p-3 rounded-xl ${
+                  className={`p-4 rounded-2xl text-sm font-bold ${
                     mensagemConta.tipo === "sucesso"
                       ? "bg-emerald-50 text-emerald-900 border border-emerald-200"
                       : "bg-red-50 text-red-900 border border-red-200"
@@ -617,7 +617,7 @@ function SuperAdminLayout() {
               )}
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Nome:</label>
+                <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Nome:</label>
                 <input
                   type="text"
                   value={novoNome}
@@ -627,12 +627,12 @@ function SuperAdminLayout() {
                     borderColor: colors.inputBorder,
                     borderRadius: ui.borderRadius,
                   }}
-                  className="w-full h-10 px-3 border font-medium focus:outline-hidden focus:ring-2 focus:ring-primary"
+                  className="w-full h-12 sm:h-14 px-4 border text-sm sm:text-base font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">E-mail de Acesso:</label>
+                <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">E-mail de Acesso:</label>
                 <input
                   type="email"
                   value={novoEmail}
@@ -642,12 +642,12 @@ function SuperAdminLayout() {
                     borderColor: colors.inputBorder,
                     borderRadius: ui.borderRadius,
                   }}
-                  className="w-full h-10 px-3 border font-medium focus:outline-hidden focus:ring-2 focus:ring-primary"
+                  className="w-full h-12 sm:h-14 px-4 border text-sm sm:text-base font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Nova Senha (Opcional):</label>
+                <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Nova Senha (Opcional):</label>
                 <input
                   type="password"
                   placeholder="Deixe em branco para manter a atual"
@@ -658,16 +658,16 @@ function SuperAdminLayout() {
                     borderColor: colors.inputBorder,
                     borderRadius: ui.borderRadius,
                   }}
-                  className="w-full h-10 px-3 border font-medium focus:outline-hidden focus:ring-2 focus:ring-primary"
+                  className="w-full h-12 sm:h-14 px-4 border text-sm sm:text-base font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2 pt-2">
+              <div className="grid grid-cols-2 gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setModalContaAberto(false)}
                   style={{ borderRadius: ui.borderRadius }}
-                  className="h-11 bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-all cursor-pointer"
+                  className="h-12 sm:h-14 bg-slate-100 text-slate-700 font-black text-xs sm:text-sm hover:bg-slate-200 transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -678,7 +678,7 @@ function SuperAdminLayout() {
                     borderRadius: ui.borderRadius,
                     boxShadow: ui.buttonShadow,
                   }}
-                  className="h-11 text-white font-bold hover:brightness-105 active:scale-95 transition-all shadow-xs cursor-pointer"
+                  className="h-12 sm:h-14 text-white font-black text-xs sm:text-sm hover:brightness-105 active:scale-95 transition-all shadow-md cursor-pointer"
                 >
                   Salvar Dados
                 </button>
