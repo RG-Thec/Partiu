@@ -29,22 +29,22 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
   const secondWord = nameParts.slice(1).join(" ");
 
   return (
-    <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 pb-1 select-none z-30">
-      <div className="w-full flex items-center justify-between px-3.5 sm:px-5 py-2 rounded-full bg-white/90 backdrop-blur-xl border border-slate-200/80 shadow-[0_4px_24px_rgba(0,0,0,0.04)] transition-all duration-300">
+    <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2.5 pb-1 select-none z-30">
+      <div className="w-full flex items-center justify-between px-3 sm:px-4 py-1.5 rounded-full bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_2px_16px_rgba(0,0,0,0.03)] transition-all duration-300">
         {/* Lado Esquerdo: Ícone da Marca com Gradiente + Nome e Subtítulo */}
-        <div className="flex items-center gap-2.5 group/brand cursor-default">
+        <div className="flex items-center gap-2 group/brand cursor-default">
           {/* Badge da logo com brilho e gradiente moderno */}
           <div
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl flex items-center justify-center shadow-xs relative shrink-0 transition-all duration-300 group-hover/brand:scale-105 active:scale-95 cursor-pointer"
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center shadow-xs relative shrink-0 transition-all duration-300 group-hover/brand:scale-105 active:scale-95 cursor-pointer"
             style={{
               background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
-              boxShadow: `0 2px 10px ${primaryColor}30`,
+              boxShadow: `0 2px 8px ${primaryColor}25`,
             }}
           >
             <img
               src={header.logoUrl || "/assets/partiu-symbol-transparent.png"}
               alt={header.brandName}
-              className="w-5 h-5 object-contain filter drop-shadow transition-transform duration-300 group-hover/brand:scale-105"
+              className="w-4 h-4 sm:w-4.5 sm:h-4.5 object-contain filter drop-shadow transition-transform duration-300 group-hover/brand:scale-105"
               onError={(e) => {
                 const target = e.currentTarget as HTMLImageElement;
                 if (!target.src.includes("partiu-symbol-transparent.png")) {
@@ -56,7 +56,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
 
           {/* Textos da Marca: Primeira palavra + Segunda palavra (cor primária) + Slogan */}
           <div className="flex flex-col">
-            <div className="text-xs sm:text-sm font-extrabold tracking-tight leading-none uppercase flex items-center gap-1 transition-transform duration-300 group-hover/brand:translate-x-0.5">
+            <div className="text-xs sm:text-[13px] font-extrabold tracking-tight leading-none uppercase flex items-center gap-1 transition-transform duration-300 group-hover/brand:translate-x-0.5">
               <span className="text-slate-900">{firstWord}</span>
               {secondWord ? (
                 <span
@@ -73,7 +73,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
                 />
               )}
             </div>
-            <span className="text-[9.5px] font-medium tracking-wide text-slate-500 mt-0.5 leading-none">
+            <span className="text-[9px] font-medium tracking-wide text-slate-500 mt-0.5 leading-none">
               {header?.urbanMobilityText || "Mobilidade Urbana"}
             </span>
           </div>
@@ -85,15 +85,15 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
           </span>
-          <span className="text-[10.5px] tracking-wide text-emerald-700 font-medium">Operação em tempo real</span>
+          <span className="text-[10px] tracking-wide text-emerald-700 font-medium">Operação em tempo real</span>
         </div>
 
         {/* Lado Direito: Navegação Rápida e Botão de Acesso Discreto e Proporcional */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={() => onNavigate?.("/cadastro-motorista")}
-            className="hidden sm:inline-flex items-center text-[11px] font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer px-2.5 py-1 rounded-full hover:bg-slate-100/80 h-7"
+            className="hidden sm:inline-flex items-center text-[10.5px] font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer px-2.5 py-1 rounded-full hover:bg-slate-100/80 h-6.5"
           >
             Seja um motorista
           </button>
@@ -113,15 +113,15 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
                 onNavigate?.("/auth");
               }
             }}
-            className="group/btn relative inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-white text-[11px] font-semibold transition-all duration-200 active:scale-95 cursor-pointer shadow-xs hover:shadow-sm overflow-hidden h-7"
+            className="group/btn relative inline-flex items-center gap-1 px-2.5 sm:px-3 h-6.5 sm:h-7 rounded-full text-white text-[10.5px] sm:text-[11px] font-bold transition-all duration-200 active:scale-95 cursor-pointer shadow-2xs hover:shadow-xs overflow-hidden"
             style={{
-              background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
-              boxShadow: `0 2px 10px ${primaryColor}30`,
+              background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor || primaryColor} 100%)`,
+              boxShadow: `0 1px 6px ${primaryColor}30`,
             }}
           >
             <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
             <span>{activeUser ? "Acessar App" : "Entrar"}</span>
-            <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform" />
+            <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 group-hover/btn:translate-x-0.5 transition-transform" />
           </button>
         </div>
       </div>
