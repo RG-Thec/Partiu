@@ -355,7 +355,7 @@ export function CadastroMotoristaPage() {
           <span>Voltar</span>
         </Link>
         <span
-          className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 px-3 py-1 rounded-full border"
+          className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 px-3 py-1.5 rounded-full border shadow-2xs whitespace-nowrap"
           style={{
             borderColor: `${colors.primary}33`,
             backgroundColor: `${colors.primary}12`,
@@ -363,15 +363,16 @@ export function CadastroMotoristaPage() {
           }}
         >
           <Car className="h-3.5 w-3.5" />
-          Motorista Parceiro {nomeApp}
+          Motorista
         </span>
         <Link
           to="/auth"
           search={{ role: "MOTORISTA" }}
-          className="text-xs font-bold hover:underline transition"
+          className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 transition active:scale-95 shadow-2xs whitespace-nowrap"
           style={{ color: colors.primary }}
+          aria-label="Entrar como motorista"
         >
-          Já sou parceiro
+          <span>Entrar</span>
         </Link>
       </div>
 
@@ -431,6 +432,20 @@ export function CadastroMotoristaPage() {
                   </p>
                 </div>
 
+                {/* Foto de Perfil Obrigatória via Câmera do Celular */}
+                <CameraPhotoCapture
+                  label="Sua foto de identificação"
+                  sublabel="Tire uma selfie ao vivo pela câmera"
+                  value={fotoPerfilUrl}
+                  onChange={(capturedUrl) => {
+                    setFotoPerfilUrl(capturedUrl);
+                    if (erroValidacao?.includes("selfie") || erroValidacao?.includes("foto")) {
+                      setErroValidacao(null);
+                    }
+                  }}
+                  required
+                />
+
                 <NativeInput
                   label="Nome Completo"
                   required
@@ -440,7 +455,7 @@ export function CadastroMotoristaPage() {
                   leftIcon={<User className="w-4 h-4 text-slate-400" />}
                 />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-2 gap-2">
                   <NativeInput
                     label="CPF"
                     required
@@ -495,8 +510,12 @@ export function CadastroMotoristaPage() {
                     rightIcon={<ArrowRight className="h-4 w-4" />}
                     onClick={() => {
                       setErroValidacao(null);
-                      if (!nome || !whatsapp || !email) {
-                        setErroValidacao("Por favor, preencha Nome, WhatsApp e E-mail.");
+                      if (!fotoPerfilUrl) {
+                        setErroValidacao("A selfie oficial pela câmera do celular é obrigatória.");
+                        return;
+                      }
+                      if (!nome || !cpf || !whatsapp || !email) {
+                        setErroValidacao("Por favor, preencha todos os campos obrigatórios.");
                         return;
                       }
                       if (senha && senha.length < 6) {
@@ -844,7 +863,7 @@ export function CadastroMotoristaPage() {
                   {/* Selfie Oficial do Motorista com a Câmera */}
                   <CameraPhotoCapture
                     label="Selfie oficial do condutor"
-                    sublabel="Tire uma foto nítida do seu rosto pela câmera do celular para auditoria de segurança"
+                    sublabel="Foto capturada para identificação e auditoria de segurança"
                     value={fotoPerfilUrl}
                     onChange={(capturedUrl) => {
                       setFotoPerfilUrl(capturedUrl);
