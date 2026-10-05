@@ -500,7 +500,7 @@ export function ProfilePagePartiu() {
             <div className="flex items-center justify-between pb-3 border-b border-border mb-3">
               <div>
                 <h3 className="text-sm font-bold text-foreground">Sua Foto de Perfil</h3>
-                <p className="text-[11px] text-muted-foreground">Tire na hora pela câmera ou envie da galeria</p>
+                <p className="text-[11px] text-muted-foreground">Tire sua foto ao vivo pela câmera do celular</p>
               </div>
               <button
                 type="button"

@@ -375,7 +375,7 @@ export function CadastroMotoristaPage() {
         </Link>
       </div>
 
-      <main className="flex-1 max-w-xl w-full mx-auto p-3.5 sm:p-5 flex flex-col justify-start pb-[max(2rem,calc(env(safe-area-inset-bottom,0px)+1.5rem))]">
+      <main className="flex-1 max-w-xl w-full mx-auto p-3.5 sm:p-5 flex flex-col justify-start pb-28 sm:pb-6">
         {!sucesso ? (
           <NativeSurface
             elevation={1}

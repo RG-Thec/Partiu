@@ -472,7 +472,7 @@ export function PartiuAppAuthGate({
       {/* ===================================================================== */}
       {/* 2. ÁREA CENTRAL DO NOVO FLUXO UNIFICADO (MAGIC FLOW)                  */}
       {/* ===================================================================== */}
-      <main className="flex-1 w-full max-w-md mx-auto px-3.5 sm:px-6 py-2 sm:py-4 flex flex-col justify-start pb-[max(2rem,calc(env(safe-area-inset-bottom,0px)+1.5rem))]">
+      <main className="flex-1 w-full max-w-md mx-auto px-3.5 sm:px-6 py-2 sm:py-4 flex flex-col justify-start pb-28 sm:pb-6">
         
         {/* Toggle Sutil no Topo com Animação Fluida (Passageiro vs Motorista) */}
         <div className="mb-4 sm:mb-6">
@@ -810,8 +810,8 @@ export function PartiuAppAuthGate({
                     leftIcon={<User className="w-4 h-4 text-slate-400" />}
                   />
 
-                  {/* CPF e Celular em Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* CPF e Celular em Grid de 2 Colunas */}
+                  <div className="grid grid-cols-2 gap-2">
                     {features.requireCpfOnSignup && (
                       <NativeInput
                         label="CPF"
