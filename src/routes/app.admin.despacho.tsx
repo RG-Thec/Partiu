@@ -32,6 +32,7 @@ import {
 import { getCorridaAtiva, obterPainelSaudeCidade, type CorridaPartiu, type CityHealthDashboardData } from "@/lib/partiu-engine";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { AdminManualDispatchModal } from "@/components/admin/AdminManualDispatchModal";
+import { useAdminCity } from "@/contexts/AdminCityContext";
 
 export const Route = createFileRoute("/app/admin/despacho")({
   head: () => ({
@@ -112,6 +113,7 @@ const DESPACHOS_MOCK: ItemDespachoMock[] = [
 ];
 
 export function DespachoCentralCorridas() {
+  const { pracaAtiva, isNacional } = useAdminCity();
   const [itens, setItens] = useState<ItemDespachoMock[]>([]);
   const [filtro, setFiltro] = useState<"TODAS" | "CORRIDAS" | "ENTREGAS">("TODAS");
   const [busca, setBusca] = useState("");
@@ -282,7 +284,7 @@ export function DespachoCentralCorridas() {
             </span>
             <h2 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
               <Activity className="w-5 h-5 text-[#EAB308]" />
-              Painel de Saúde da Cidade &amp; Marketplace
+              Painel de Saúde da Cidade {!isNacional ? `(${pracaAtiva.labelCompleto})` : "& Marketplace (Nacional)"}
             </h2>
           </div>
           <div className="flex items-center gap-2 text-xs font-bold text-slate-600 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
@@ -566,6 +568,7 @@ export function DespachoCentralCorridas() {
       <AdminManualDispatchModal
         isOpen={modalNovoChamado}
         onClose={() => setModalNovoChamado(false)}
+        cidadePadrao={isNacional ? undefined : pracaAtiva.labelCompleto}
         onDispatchCreated={(novo) => {
           setItens((prev) => [novo, ...prev]);
         }}

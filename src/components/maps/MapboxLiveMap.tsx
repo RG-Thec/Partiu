@@ -61,6 +61,8 @@ export interface MapboxLiveMapProps {
   onSelecionarVan?: ((vanId: string) => void) | undefined;
   onSelecionarPonto?: ((pontoId: string) => void) | undefined;
   mostrarCardInferior?: boolean | undefined;
+  centroCoords?: [number, number] | undefined;
+  zoom?: number | undefined;
 }
 
 export function MapboxLiveMap({
@@ -73,6 +75,8 @@ export function MapboxLiveMap({
   onSelecionarVan,
   onSelecionarPonto,
   mostrarCardInferior = true,
+  centroCoords,
+  zoom,
 }: MapboxLiveMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -144,8 +148,8 @@ export function MapboxLiveMap({
       mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
         style: hasValidToken ? mapStyles[estiloMapa] : fallbackStyle,
-        center: [-35.85, -9.75],
-        zoom: 9.6,
+        center: centroCoords || [-35.85, -9.75],
+        zoom: zoom ?? 9.6,
         pitch: is3D ? 48 : 0,
         bearing: is3D ? -15 : 0,
         attributionControl: false,
@@ -317,6 +321,20 @@ export function MapboxLiveMap({
       });
     }
   }, [vanSelecionadaId, vansParaExibir]);
+
+  useEffect(() => {
+    if (!map.current || !centroCoords) return;
+    try {
+      map.current.flyTo({
+        center: centroCoords,
+        zoom: zoom ?? 12,
+        speed: 1.4,
+        essential: true,
+      });
+    } catch (err) {
+      console.warn("[Mapbox] Falha ao reposicionar mapa para a praça:", err);
+    }
+  }, [centroCoords, zoom]);
 
   return (
     <div

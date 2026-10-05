@@ -52,6 +52,8 @@ export interface UniversalMapViewProps {
   mostrarCardInferior?: boolean | undefined;
   mostrarTrafego?: boolean | undefined;
   mostrarSatelite?: boolean | undefined;
+  centroCoords?: [number, number] | undefined;
+  zoom?: number | undefined;
 }
 
 function MapboxRadarSkeleton({
@@ -95,6 +97,8 @@ export function UniversalMapView({
   onSelecionarVeiculo,
   onSelecionarPonto,
   mostrarCardInferior = true,
+  centroCoords,
+  zoom,
 }: UniversalMapViewProps) {
   const fallback = <MapboxRadarSkeleton altura={altura} className={className} />;
 
@@ -111,6 +115,8 @@ export function UniversalMapView({
           onSelecionarVan={onSelecionarVeiculo}
           onSelecionarPonto={onSelecionarPonto}
           mostrarCardInferior={mostrarCardInferior}
+          centroCoords={centroCoords}
+          zoom={zoom}
         />
       </Suspense>
     </MapErrorBoundary>

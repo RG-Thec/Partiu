@@ -17,6 +17,12 @@ import {
   type AdminRole,
   type AdminModuleId,
 } from "../src/lib/admin-rbac.ts";
+import {
+  carregarPracasDisponiveis,
+  getPracaAtiva,
+  setPracaAtiva,
+  PRACA_GLOBAL_TODAS,
+} from "../src/lib/admin-city-service.ts";
 
 describe("35. PARTIU NATIONAL ADMIN V4 — Navigation Architecture & RBAC (Strictly 6 Modules)", () => {
   const modulosOficiais: AdminModuleId[] = [
@@ -301,5 +307,34 @@ describe("SUITE 39: PARTIU NATIONAL ADMIN V4 — Express White Label Onboarding 
         whatsapp: "82999",
       })
     ).toThrow("Passo 1 incompleto");
+  });
+});
+
+describe("39. PARTIU GLOBAL CITY SELECTOR & REGIONAL SCOPE (Etapa 2)", () => {
+  test("1. Carregamento de Praças: Deve incluir a visão consolidada 'todas' e praças padrão", () => {
+    const pracas = carregarPracasDisponiveis();
+    expect(pracas.length).toBeGreaterThanOrEqual(3);
+    const global = pracas.find((p) => p.id === "todas");
+    expect(global).toBeDefined();
+    expect(global?.nome).toBe("Todas as Praças");
+    expect(global?.uf).toBe("BR");
+  });
+
+  test("2. Praça Padrão Ativa: Deve iniciar em 'todas' (visão nacional consolidada)", () => {
+    const ativa = getPracaAtiva();
+    expect(ativa).toBeDefined();
+    expect(ativa.id).toBe("todas");
+  });
+
+  test("3. Alternância Reativa de Praça: Deve permitir selecionar praça regional", () => {
+    const selecionada = setPracaAtiva("arp");
+    expect(selecionada.id).toBe("arp");
+    expect(selecionada.nome).toBe("Arapiraca");
+    expect(selecionada.uf).toBe("AL");
+    expect(selecionada.lat).toBeCloseTo(-9.7517, 2);
+
+    // Retorna para todas
+    const restaurada = setPracaAtiva("todas");
+    expect(restaurada.id).toBe("todas");
   });
 });

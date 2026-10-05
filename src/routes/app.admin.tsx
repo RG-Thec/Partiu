@@ -50,6 +50,8 @@ import {
 } from "@/lib/admin-rbac";
 import { useNavigate } from "@tanstack/react-router";
 import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
+import { AdminCityProvider } from "@/contexts/AdminCityContext";
+import { AdminCitySelector } from "@/components/admin/AdminCitySelector";
 
 export const Route = createFileRoute("/app/admin")({
   ssr: false,
@@ -303,10 +305,11 @@ function SuperAdminLayout() {
   }
 
   return (
-    <div
-      className="admin-scope min-h-screen w-full flex flex-col md:flex-row text-slate-900 font-sans"
-      style={{ backgroundColor: colors.background }}
-    >
+    <AdminCityProvider>
+      <div
+        className="admin-scope min-h-screen w-full flex flex-col md:flex-row text-slate-900 font-sans"
+        style={{ backgroundColor: colors.background }}
+      >
       {/* 1. Sidebar Fixa no Desktop (6 Módulos Oficiais) */}
       <aside
         className={`hidden md:flex flex-col justify-between bg-slate-950 text-white border-r border-slate-800 shrink-0 sticky top-0 h-screen transition-all duration-300 z-40 ${
@@ -547,16 +550,8 @@ function SuperAdminLayout() {
               <Menu className="h-6 w-6" />
             </button>
 
-            <div className="hidden sm:flex items-center gap-3 text-base font-semibold text-slate-500">
-              <span className="h-3.5 w-3.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-slate-900 font-black text-lg sm:text-xl lg:text-2xl">Central Nacional Ativa:</span>
-              <span className="bg-slate-100 text-slate-900 px-4 py-1.5 rounded-xl font-mono text-base sm:text-lg font-black border border-slate-200">1.000 Cidades</span>
-            </div>
-
-            <div className="flex sm:hidden items-center gap-2.5 min-w-0">
-              <span className="h-3 w-3 rounded-full bg-emerald-500 shrink-0" />
-              <span className="text-lg font-black text-slate-900 truncate">PARTIU Ops</span>
-            </div>
+            {/* Seletor Global Interativo de Cidade / Praça de Operação */}
+            <AdminCitySelector />
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 shrink-0 py-1">
@@ -691,6 +686,12 @@ function SuperAdminLayout() {
                 >
                   <X className="h-5 w-5" />
                 </button>
+              </div>
+
+              {/* Seletor Mobile de Praça de Operação */}
+              <div className="space-y-2">
+                <span className="text-xs sm:text-sm font-black uppercase text-slate-400 block">Praça Operacional:</span>
+                <AdminCitySelector />
               </div>
 
               {/* Seletor Mobile de Role */}
@@ -911,5 +912,6 @@ function SuperAdminLayout() {
         </div>
       )}
     </div>
+    </AdminCityProvider>
   );
 }

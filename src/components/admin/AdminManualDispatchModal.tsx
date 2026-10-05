@@ -20,12 +20,14 @@ interface AdminManualDispatchModalProps {
   isOpen: boolean;
   onClose: () => void;
   onDispatchCreated?: (item: any) => void;
+  cidadePadrao?: string;
 }
 
 export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> = ({
   isOpen,
   onClose,
   onDispatchCreated,
+  cidadePadrao,
 }) => {
   const { corPrimaria, corSecundaria, corTextoPrimaria } = useBrandTheme();
   const brandGradient = `linear-gradient(135deg, ${corPrimaria}, ${corSecundaria})`;
@@ -140,6 +142,7 @@ export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> =
       placa: tipoDespacho === "DIRETO" && motoristaSelecionado ? motoristaSelecionado.placa : "---",
       valor: parseFloat(valorSugerido) || 16.5,
       pin,
+      cidade: cidadePadrao || "Maceió - AL",
       status: tipoDespacho === "DIRETO" ? "A_CAMINHO" : "PROCURANDO",
       tempoDecorrido: "Agora",
     };
@@ -208,7 +211,7 @@ export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> =
                 Novo Chamado Manual (Central &amp; WhatsApp)
               </h2>
               <span className="text-[11px] text-slate-500 font-medium">
-                Atendimento telefônico • Despacho imediato de frota
+                Atendimento telefônico • {cidadePadrao ? `Praça: ${cidadePadrao}` : "Despacho imediato de frota"}
               </span>
             </div>
           </div>

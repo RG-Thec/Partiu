@@ -45,6 +45,7 @@ import {
 } from "@/lib/partiu-db";
 import { UniversalMapView } from "@/components/maps/UniversalMapView";
 import { exportarParaCSV } from "@/lib/export-csv";
+import { useAdminCity } from "@/contexts/AdminCityContext";
 
 export const Route = createFileRoute("/app/admin/operacao")({
   head: () => ({
@@ -132,6 +133,7 @@ export function CentralOperacaoAdminPage() {
   const { data: ridesBanco = [], isLoading: carregandoRides, refetch: recarregarRides } = usePartiuRides(100);
   const { data: motoristasBanco = [], refetch: recarregarMotoristas } = useMotoristas();
   const atualizarStatusSOS = useAtualizarStatusSOS();
+  const { pracaAtiva, isNacional, selecionarPraca } = useAdminCity();
 
   // Estados de filtros
   const [busca, setBusca] = useState("");
@@ -297,6 +299,10 @@ export function CentralOperacaoAdminPage() {
   // Filtragem de Corridas
   const corridasFiltradas = useMemo(() => {
     return corridas.filter((c) => {
+      if (!isNacional) {
+        const nomeCidade = pracaAtiva.nome.toLowerCase();
+        if (!c.cidade.toLowerCase().includes(nomeCidade)) return false;
+      }
       if (filtroCorrida === "EM_ANDAMENTO" && c.status !== "EM_ANDAMENTO" && c.status !== "SOLICITADA") return false;
       if (filtroCorrida === "FINALIZADAS" && c.status !== "FINALIZADA") return false;
       if (filtroCorrida === "CANCELADAS" && c.status !== "CANCELADA") return false;
@@ -312,11 +318,15 @@ export function CentralOperacaoAdminPage() {
       }
       return true;
     });
-  }, [corridas, filtroCorrida, busca]);
+  }, [corridas, filtroCorrida, busca, isNacional, pracaAtiva.nome]);
 
   // Filtragem de Entregas
   const entregasFiltradas = useMemo(() => {
     return entregas.filter((e) => {
+      if (!isNacional) {
+        const nomeCidade = pracaAtiva.nome.toLowerCase();
+        if (!e.cidade.toLowerCase().includes(nomeCidade)) return false;
+      }
       if (filtroEntrega === "EM_ANDAMENTO" && e.status !== "EM_TRANSITO" && e.status !== "COLETANDO") return false;
       if (filtroEntrega === "CONCLUIDAS" && e.status !== "CONCLUIDA") return false;
       if (filtroEntrega === "CANCELADAS" && e.status !== "CANCELADA") return false;
@@ -331,11 +341,15 @@ export function CentralOperacaoAdminPage() {
       }
       return true;
     });
-  }, [entregas, filtroEntrega, busca]);
+  }, [entregas, filtroEntrega, busca, isNacional, pracaAtiva.nome]);
 
   // Filtragem de Tickets
   const ticketsFiltrados = useMemo(() => {
     return ticketsSuporte.filter((t) => {
+      if (!isNacional) {
+        const nomeCidade = pracaAtiva.nome.toLowerCase();
+        if (!t.cidade.toLowerCase().includes(nomeCidade) && t.cidade !== "Rede PARTIU") return false;
+      }
       if (filtroSuporte !== "TODOS" && t.prioridade !== filtroSuporte) return false;
       if (busca) {
         const q = busca.toLowerCase();
@@ -348,7 +362,7 @@ export function CentralOperacaoAdminPage() {
       }
       return true;
     });
-  }, [ticketsSuporte, filtroSuporte, busca]);
+  }, [ticketsSuporte, filtroSuporte, busca, isNacional, pracaAtiva.nome]);
 
   const sosCount = ticketsSuporte.filter((t) => t.prioridade === "SOS_CRITICAL" && t.status !== "RESOLVIDO").length;
 
@@ -394,6 +408,32 @@ export function CentralOperacaoAdminPage() {
           </div>
         </div>
       </div>
+
+      {/* Banner de Filtragem por Praça Ativa */}
+      {!isNacional && (
+        <div className="rounded-3xl bg-blue-50/90 border border-blue-200 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-blue-900 shadow-sm animate-in fade-in-50 duration-200">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <MapPin className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm sm:text-base font-black">
+                Fila Operacional filtrada pela praça: {pracaAtiva.labelCompleto}
+              </p>
+              <p className="text-xs sm:text-sm text-blue-700/90 font-medium mt-0.5">
+                Exibindo corridas, entregas e chamados SOS no raio de {pracaAtiva.raioKm} km.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => selecionarPraca("todas")}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-blue-100/70 border border-blue-300 text-xs sm:text-sm font-black text-blue-950 transition-all cursor-pointer shrink-0 shadow-xs active:scale-95"
+          >
+            Ver Todas as Praças
+          </button>
+        </div>
+      )}
 
       {/* 2. Barra de Abas Principais (Corridas | Entregas | Suporte & SOS) */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white p-2.5 sm:p-3 rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">

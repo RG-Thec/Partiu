@@ -42,6 +42,7 @@ import {
 } from "@/lib/partiu-db";
 import { getAdminRole, type AdminRole } from "@/lib/admin-rbac";
 import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
+import { useAdminCity } from "@/contexts/AdminCityContext";
 
 export const Route = createFileRoute("/app/admin/")({
   head: () => ({
@@ -64,6 +65,7 @@ export function SuperAdminDashboardExecutive() {
   const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
 
   const [roleAtiva, setRoleAtiva] = useState<AdminRole>(() => getAdminRole());
+  const { pracaAtiva, isNacional, selecionarPraca } = useAdminCity();
   const { data: frotaBanco = [], refetch: recarregarFrota } = useTelemetriaFrota();
   usePartiuRidesRealtime();
   const { data: ridesBanco = [], refetch: recarregarRides } = usePartiuRides(100);
@@ -202,6 +204,38 @@ export function SuperAdminDashboardExecutive() {
           </div>
         </div>
       </div>
+
+      {/* Banner de Escopo Regional Ativo */}
+      {!isNacional && (
+        <div className="rounded-3xl bg-blue-50/90 border border-blue-200 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-blue-900 shadow-sm animate-in fade-in-50 duration-200">
+          <div className="flex items-center gap-3.5">
+            <div className="h-10 w-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <MapPin className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
+                <p className="text-sm sm:text-base font-black">
+                  Praça Ativa: {pracaAtiva.labelCompleto}
+                </p>
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                  {pracaAtiva.status}
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-blue-700/90 font-medium mt-0.5">
+                Raio de Despacho: {pracaAtiva.raioKm} km • Coordenadas de Referência: {pracaAtiva.lat.toFixed(4)}, {pracaAtiva.lng.toFixed(4)}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => selecionarPraca("todas")}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-blue-100/70 border border-blue-300 text-xs sm:text-sm font-black text-blue-950 transition-all cursor-pointer shrink-0 shadow-xs active:scale-95"
+          >
+            <span>Ver Rede Nacional Completa</span>
+          </button>
+        </div>
+      )}
 
       {/* 1. OS 6 CARDS EXECUTIVOS OBRIGATÓRIOS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-5">
@@ -428,6 +462,8 @@ export function SuperAdminDashboardExecutive() {
             mostrarControles={true}
             mostrarTrafego={true}
             mostrarCardInferior={true}
+            centroCoords={isNacional ? undefined : [pracaAtiva.lng, pracaAtiva.lat]}
+            zoom={isNacional ? 9.6 : 12.5}
           />
         </div>
       </div>
