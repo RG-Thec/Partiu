@@ -5,6 +5,7 @@ import { PushNotificationPrompt } from "@/components/notifications/PushNotificat
 import { BroadcastNotificationListener } from "@/components/notifications/BroadcastNotificationListener";
 import { registrarServiceWorker } from "@/lib/push-notifications";
 import { supabase } from "@/integrations/supabase/client";
+import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 
 export const Route = createFileRoute("/app")({
   ssr: false,
@@ -21,19 +22,24 @@ export const Route = createFileRoute("/app")({
       const { data: sessionData } = await supabase.auth.getSession();
       const session = sessionData?.session;
       const expired = !session || (session.expires_at ?? 0) * 1000 <= Date.now();
+      const storedUser = typeof window !== "undefined" ? supabaseAuthService.getStoredSession() : null;
 
-      // Apenas rotas estritamente restritas exigem login
-      const rotasPrivadas = ["/app/bilhetes", "/app/perfil"];
-      const precisaAuth = rotasPrivadas.some((r) => pathname.startsWith(r));
+      // Todas as rotas do aplicativo (/app) exigem login ativo (Passageiro ou Motorista)
+      const isAuthenticated = (session && !expired) || !!storedUser;
 
-      if (precisaAuth && expired) {
+      if (!isAuthenticated) {
+        const isMotorista = pathname.startsWith("/app/motorista");
         throw redirect({
           to: "/auth",
-          search: { redirect: pathname, ...(session ? { expirada: "1" as const } : {}) },
+          search: {
+            redirect: pathname,
+            role: isMotorista ? ("MOTORISTA" as const) : ("PASSAGEIRO" as const),
+            ...(session && expired ? { expirada: "1" as const } : {}),
+          },
         });
       }
 
-      return { user: session?.user ?? null };
+      return { user: session?.user ?? (storedUser as any) ?? null };
     } catch (err: any) {
       if (err && typeof err === "object" && ("options" in err || "status" in err)) {
         throw err;

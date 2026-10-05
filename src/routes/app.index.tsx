@@ -96,7 +96,15 @@ function PartiuPassengerHomeContent() {
   const [drawerAberto, setDrawerAberto] = useState(false);
   const [modalPushAberto, setModalPushAberto] = useState(false);
   const [pushStatus, setPushStatus] = useState<NotificationPermission>("default");
+
+  // Identificação do passageiro para autenticação e notificações em tempo real
+  const activeUser = typeof window !== "undefined"
+    ? (supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null)
+    : null;
+  const passengerId = activeUser?.id || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_id") || "passageiro_default" : "passageiro_default");
+
   const [userName, setUserName] = useState(() => {
+    if (activeUser?.name) return activeUser.name;
     if (typeof window === "undefined") return "Passageiro";
     return (
       localStorage.getItem("partiu_user_nome") ||
@@ -106,6 +114,7 @@ function PartiuPassengerHomeContent() {
   });
   const [userAvatar, setUserAvatar] = useState<string | null>(() => {
     return (
+      activeUser?.avatarUrl ||
       (typeof window !== "undefined" ? localStorage.getItem("partiu_user_avatar") : null) ||
       null
     );
@@ -117,11 +126,6 @@ function PartiuPassengerHomeContent() {
     void mapHandleRef.current?.recenter();
   }, [forcarCentralizarUsuario]);
 
-  // Identificação do passageiro para notificações em tempo real
-  const activeUser = typeof window !== "undefined"
-    ? (supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null)
-    : null;
-  const passengerId = activeUser?.id || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_id") || "passageiro_default" : "passageiro_default");
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Escuta em tempo real a tabela notifications para o passageiro

@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import type { HeaderConfig, ThemeConfig } from "@/types/mobilityLanding";
 import { ArrowRight } from "lucide-react";
+import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 
 interface LandingHeaderProps {
   header: HeaderConfig;
@@ -15,6 +16,12 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
 }) => {
   const primaryColor = theme?.primary || "#FF6B00";
   const secondaryColor = theme?.secondary || "#FFB800";
+
+  const activeUser = useMemo(() => {
+    return typeof window !== "undefined"
+      ? (supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null)
+      : null;
+  }, []);
 
   // Separa o nome da marca para destacar a segunda palavra com a cor primária, como em "SUA MARCA"
   const nameParts = (header?.brandName || "PARTIU").split(" ");
@@ -93,7 +100,19 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
 
           <button
             type="button"
-            onClick={() => onNavigate?.("/auth")}
+            onClick={() => {
+              if (activeUser) {
+                const dest =
+                  activeUser.role === "MOTORISTA"
+                    ? "/app/motorista"
+                    : activeUser.role === "ADMIN"
+                    ? "/app/admin"
+                    : "/app";
+                onNavigate?.(dest);
+              } else {
+                onNavigate?.("/auth");
+              }
+            }}
             className="group/btn relative inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-white text-[11px] font-semibold transition-all duration-200 active:scale-95 cursor-pointer shadow-xs hover:shadow-sm overflow-hidden h-7"
             style={{
               background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
@@ -101,7 +120,7 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             }}
           >
             <div className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none" />
-            <span>Entrar</span>
+            <span>{activeUser ? "Acessar App" : "Entrar"}</span>
             <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform" />
           </button>
         </div>

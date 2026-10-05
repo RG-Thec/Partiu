@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ArrowRight, MapPin, User, Car, Star, ShieldCheck, Clock, Zap, CheckCircle2, Bike, Package } from "lucide-react";
 import type { HeroConfig, ActionItem, ThemeConfig, MapCardConfig } from "@/types/mobilityLanding";
 import { VehiclePerspectiveGraphic } from "@/components/passenger/VehiclePerspectiveGraphic";
+import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 
 interface LandingHeroProps {
   hero: HeroConfig;
@@ -22,6 +23,13 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
   const secondaryColor = theme?.secondary || "#FFB800";
   const [activeCategory, setActiveCategory] = useState<"economico" | "comfort" | "moto" | "entrega">("economico");
   const [vehicleMode, setVehicleMode] = useState<"car" | "moto">("car");
+
+  // Sessão ativa do usuário para redirecionamento inteligente
+  const [currentUser] = useState<any>(() => {
+    return typeof window !== "undefined"
+      ? (supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null)
+      : null;
+  });
 
   // Alternância automática fluida entre Carro e Moto para evidenciar ambas opções do app
   useEffect(() => {
@@ -48,6 +56,16 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
     let resolvedUrl = targetUrl;
     if (targetUrl === "/passageiro") resolvedUrl = "/cadastro-passageiro";
     if (targetUrl === "/motorista") resolvedUrl = "/cadastro-motorista";
+
+    if (targetUrl === "/app") {
+      if (currentUser) {
+        resolvedUrl = currentUser.role === "MOTORISTA" ? "/app/motorista" : currentUser.role === "ADMIN" ? "/app/admin" : "/app";
+      } else {
+        // Usuário não autenticado: barreira profissional obrigatória de cadastro
+        resolvedUrl = "/cadastro-passageiro";
+      }
+    }
+
     if (onNavigate) {
       onNavigate(resolvedUrl);
     } else {
@@ -238,7 +256,13 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               boxShadow: `0 6px 20px ${primaryColor}35`,
             }}
           >
-            <span>Começar agora</span>
+            <span>
+              {currentUser
+                ? currentUser.role === "MOTORISTA"
+                  ? "Acessar cockpit do motorista"
+                  : "Pedir corrida agora"
+                : "Começar agora"}
+            </span>
             <ArrowRight className="w-4 h-4 stroke-[2.2]" />
           </button>
 

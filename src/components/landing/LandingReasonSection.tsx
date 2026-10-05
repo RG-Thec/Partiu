@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { ArrowRight, Check, Car, Briefcase, Package } from "lucide-react";
 import type { ReasonSectionConfig, ThemeConfig } from "@/types/mobilityLanding";
+import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 
 interface LandingReasonSectionProps {
   reasonSection: ReasonSectionConfig;
@@ -16,8 +17,21 @@ export const LandingReasonSection: React.FC<LandingReasonSectionProps> = ({
   const primaryColor = theme?.primary || "#FF6B00";
   const secondaryColor = theme?.secondary || "#FFB800";
 
+  const activeUser = useMemo(() => {
+    return typeof window !== "undefined"
+      ? (supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null)
+      : null;
+  }, []);
+
   const handleCtaClick = () => {
-    const target = reasonSection?.ctaUrl || "/app";
+    let target = reasonSection?.ctaUrl || "/app";
+    if (target === "/app") {
+      if (activeUser) {
+        target = activeUser.role === "MOTORISTA" ? "/app/motorista" : activeUser.role === "ADMIN" ? "/app/admin" : "/app";
+      } else {
+        target = "/cadastro-passageiro";
+      }
+    }
     if (onNavigate) {
       onNavigate(target);
     } else {
@@ -137,7 +151,7 @@ export const LandingReasonSection: React.FC<LandingReasonSectionProps> = ({
               boxShadow: `0 4px 14px ${primaryColor}35`,
             }}
           >
-            <span>{reasonSection?.ctaText || "Começar agora"}</span>
+            <span>{reasonSection?.ctaText || (activeUser ? "Pedir corrida agora" : "Começar agora")}</span>
             <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
