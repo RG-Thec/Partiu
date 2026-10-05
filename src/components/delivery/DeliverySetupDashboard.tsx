@@ -10,6 +10,7 @@ import {
   Banknote,
   QrCode,
   Check,
+  User,
 } from "lucide-react";
 import { useDelivery } from "@/contexts/DeliveryContext";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
@@ -74,19 +75,16 @@ export function DeliverySetupDashboard({
       >
         <div className="flex items-center gap-2.5">
           {/* Avatar Redondo */}
-          <div className="w-8.5 h-8.5 rounded-full overflow-hidden border border-white/80 shadow-2xs bg-slate-200 shrink-0">
-            <img
-              src={
-                userAvatarUrl ||
-                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"
-              }
-              alt={primeiroNome}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src =
-                  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
-              }}
-            />
+          <div className="w-8.5 h-8.5 rounded-full overflow-hidden border border-white/80 shadow-2xs bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0">
+            {userAvatarUrl ? (
+              <img
+                src={userAvatarUrl}
+                alt={primeiroNome}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User className="w-4.5 h-4.5 text-white/90" />
+            )}
           </div>
 
           <span className="text-sm sm:text-base font-extrabold tracking-tight leading-tight">

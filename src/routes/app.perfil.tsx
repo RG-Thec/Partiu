@@ -1,8 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState, useEffect, useRef, type ChangeEvent, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import {
   Camera,
-  Upload,
   User,
   CheckCircle2,
   Phone,
@@ -25,6 +24,7 @@ import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext"
 import { userService, type UserProfileData } from "@/services/UserService";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { WhiteLabelButton, WhiteLabelInput } from "@/components/ui/white-label";
+import { CameraPhotoCapture } from "@/components/common/CameraPhotoCapture";
 
 export const Route = createFileRoute("/app/perfil")({
   head: () => ({
@@ -40,32 +40,8 @@ export const Route = createFileRoute("/app/perfil")({
   component: ProfilePagePartiu,
 });
 
-const AVATARES_PRESET = [
-  {
-    id: "av-1",
-    label: "Passageiro Padrão",
-    url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "av-2",
-    label: "Passageira",
-    url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "av-3",
-    label: "Jovem Urbano",
-    url: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "av-4",
-    label: "Executivo",
-    url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=80",
-  },
-];
-
 export function ProfilePagePartiu() {
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { nomeApp, corPrimaria, corTextoPrimaria } = useBrandTheme();
   const { appConfig } = useTheme();
   const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
@@ -143,44 +119,56 @@ export function ProfilePagePartiu() {
     }
   }
 
-  async function handleUploadFoto(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      alert("Por favor, selecione um arquivo de imagem válido (JPG, PNG ou WEBP).");
+  async function handleSalvarFoto(photoDataUrl: string, file?: File) {
+    if (!photoDataUrl) {
+      setFotoUrl("");
+      await userService.updateUserProfile({
+        name: nome,
+        phone: telefone,
+        avatarUrl: "",
+      });
+      setModalFotoAberto(false);
+      setMensagemSucesso("Foto removida com sucesso!");
+      setTimeout(() => setMensagemSucesso(null), 3000);
       return;
     }
 
     setUploadingFoto(true);
     try {
-      const res = await userService.uploadAvatar(file);
-      if (res.success && res.url) {
-        setFotoUrl(res.url);
-        setModalFotoAberto(false);
-        setMensagemSucesso("Foto de perfil atualizada no Supabase Storage!");
-        setTimeout(() => setMensagemSucesso(null), 3000);
+      if (file) {
+        const res = await userService.uploadAvatar(file);
+        if (res.success && res.url) {
+          setFotoUrl(res.url);
+          await userService.updateUserProfile({
+            name: nome,
+            phone: telefone,
+            avatarUrl: res.url,
+          });
+          setModalFotoAberto(false);
+          setMensagemSucesso("Foto de perfil atualizada com sucesso!");
+          setTimeout(() => setMensagemSucesso(null), 3000);
+        } else {
+          alert(res.error || "Falha ao enviar imagem.");
+        }
       } else {
-        alert(res.error || "Falha ao enviar imagem.");
+        setFotoUrl(photoDataUrl);
+        await userService.updateUserProfile({
+          name: nome,
+          phone: telefone,
+          avatarUrl: photoDataUrl,
+        });
+        setModalFotoAberto(false);
+        setMensagemSucesso("Foto de perfil atualizada com sucesso!");
+        setTimeout(() => setMensagemSucesso(null), 3000);
       }
     } catch (err) {
       console.error(err);
+      alert("Erro ao salvar foto de perfil.");
     } finally {
       setUploadingFoto(false);
     }
   }
 
-  async function handleSelecionarAvatarPreset(url: string) {
-    setFotoUrl(url);
-    await userService.updateUserProfile({
-      name: nome,
-      phone: telefone,
-      avatarUrl: url,
-    });
-    setModalFotoAberto(false);
-    setMensagemSucesso("Foto de perfil alterada!");
-    setTimeout(() => setMensagemSucesso(null), 2500);
-  }
 
   function handleToggleAc(val: boolean) {
     setArCondicionado(val);
@@ -507,10 +495,13 @@ export function ProfilePagePartiu() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div
             style={{ borderRadius: `calc(${ui.borderRadius} * 1.5)` }}
-            className="bg-card p-6 max-w-sm w-full shadow-2xl border border-border animate-in fade-in zoom-in-95"
+            className="bg-card p-5 max-w-sm w-full shadow-2xl border border-border animate-in fade-in zoom-in-95"
           >
-            <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
-              <h3 className="text-sm font-bold text-foreground">Alterar foto de perfil</h3>
+            <div className="flex items-center justify-between pb-3 border-b border-border mb-3">
+              <div>
+                <h3 className="text-sm font-bold text-foreground">Sua Foto de Perfil</h3>
+                <p className="text-[11px] text-muted-foreground">Tire na hora pela câmera ou envie da galeria</p>
+              </div>
               <button
                 type="button"
                 onClick={() => setModalFotoAberto(false)}
@@ -520,54 +511,14 @@ export function ProfilePagePartiu() {
               </button>
             </div>
 
-            <div className="space-y-4">
-              {/* Botão de Upload Arquivo */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleUploadFoto}
-                className="hidden"
-              />
-              <WhiteLabelButton
-                type="button"
-                variant="primary"
-                fullWidth
-                disabled={uploadingFoto}
-                isLoading={uploadingFoto}
-                onClick={() => fileInputRef.current?.click()}
-                leftIcon={<Upload className="h-4 w-4" />}
-              >
-                {uploadingFoto ? "Enviando imagem..." : "Escolher foto"}
-              </WhiteLabelButton>
-
-              <div className="relative flex py-1 items-center">
-                <div className="flex-grow border-t border-border"></div>
-                <span className="flex-shrink mx-3 text-[10px] font-bold text-muted-foreground uppercase">
-                  Ou escolha um avatar
-                </span>
-                <div className="flex-grow border-t border-border"></div>
-              </div>
-
-              <div className="grid grid-cols-4 gap-2.5">
-                {AVATARES_PRESET.map((av) => (
-                  <button
-                    key={av.id}
-                    type="button"
-                    onClick={() => handleSelecionarAvatarPreset(av.url)}
-                    style={{ borderRadius: ui.borderRadius }}
-                    className="p-1 border border-border hover:border-primary hover:scale-105 active:scale-95 transition-all cursor-pointer bg-muted/30"
-                  >
-                    <img
-                      src={av.url}
-                      alt={av.label}
-                      style={{ borderRadius: `calc(${ui.borderRadius} * 0.7)` }}
-                      className="w-full h-14 object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            </div>
+            <CameraPhotoCapture
+              label=""
+              sublabel=""
+              value={fotoUrl}
+              required={false}
+              disabled={uploadingFoto}
+              onChange={handleSalvarFoto}
+            />
           </div>
         </div>
       )}

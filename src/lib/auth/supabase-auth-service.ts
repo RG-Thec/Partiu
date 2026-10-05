@@ -70,7 +70,7 @@ const DEMO_PROFILES: Record<UserRole, AuthUserProfile> = {
     role: "PASSAGEIRO",
     rating: 4.95,
     totalTrips: 42,
-    avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+    avatarUrl: "",
     createdAt: 1772928000000,
   },
   MOTORISTA: {
@@ -85,7 +85,7 @@ const DEMO_PROFILES: Record<UserRole, AuthUserProfile> = {
     vehiclePlate: "RIO2A00",
     vehicleModel: "Toyota Corolla (Prata)",
     driverApprovalStatus: "aprovado",
-    avatarUrl: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150&auto=format&fit=crop&q=80",
+    avatarUrl: "",
     createdAt: 1772928000000,
   },
   ADMIN: {
@@ -766,8 +766,9 @@ export class SupabaseAuthService {
     phone: string;
     cpf: string;
     password: string;
+    avatarUrl?: string;
   }): Promise<AuthResult> {
-    const { name, email, phone, cpf, password } = params;
+    const { name, email, phone, cpf, password, avatarUrl } = params;
     const cleanName = name.trim();
     const cleanEmail = email.trim().toLowerCase();
 
@@ -798,6 +799,7 @@ export class SupabaseAuthService {
               phone: normPhone.formatado,
               cpf,
               role: "PASSAGEIRO",
+              avatar_url: avatarUrl || undefined,
             },
           },
         });
@@ -818,6 +820,7 @@ export class SupabaseAuthService {
               cpf,
               role: "passenger",
               approval_status: "aprovado",
+              avatar_url: avatarUrl || null,
             });
           } catch (pErr) {
             silentCatchWarn("signUpPassenger:profiles", pErr);
@@ -830,6 +833,7 @@ export class SupabaseAuthService {
               cpf,
               telefone: normPhone.formatado,
               email: cleanEmail,
+              foto_url: avatarUrl || null,
               rating: 5.0,
               is_ativo: true,
             });
@@ -861,10 +865,17 @@ export class SupabaseAuthService {
       phone: normPhone.formatado,
       cpf,
       role: "PASSAGEIRO",
+      avatarUrl: avatarUrl || "",
       rating: 5.0,
       totalTrips: 0,
       createdAt: Date.now(),
     };
+
+    if (avatarUrl) {
+      try {
+        localStorage.setItem("partiu_user_avatar", avatarUrl);
+      } catch {}
+    }
 
     this.saveStoredSession(newUser);
 
@@ -951,6 +962,7 @@ export class SupabaseAuthService {
               cpf,
               role: "driver",
               approval_status: "pendente",
+              avatar_url: params.fotoPerfilUrl || null,
               metadata: {
                 vehicle_model: params.vehicleModel,
                 vehicle_plate: params.vehiclePlate?.toUpperCase(),
@@ -1018,6 +1030,7 @@ export class SupabaseAuthService {
       phone: normPhone.formatado,
       cpf,
       role: "MOTORISTA",
+      avatarUrl: params.fotoPerfilUrl || "",
       rating: 5.0,
       totalTrips: 0,
       vehiclePlate: params.vehiclePlate?.toUpperCase(),
@@ -1025,6 +1038,12 @@ export class SupabaseAuthService {
       driverApprovalStatus: "pendente",
       createdAt: Date.now(),
     };
+
+    if (params.fotoPerfilUrl) {
+      try {
+        localStorage.setItem("partiu_user_avatar", params.fotoPerfilUrl);
+      } catch {}
+    }
 
     this.saveStoredSession(newDriver);
 

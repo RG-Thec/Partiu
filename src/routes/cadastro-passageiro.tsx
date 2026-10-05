@@ -28,6 +28,7 @@ import {
 import {
   WhiteLabelProgressBar,
 } from "@/components/ui/white-label";
+import { CameraPhotoCapture } from "@/components/common/CameraPhotoCapture";
 
 export const Route = createFileRoute("/cadastro-passageiro")({
   head: () => ({
@@ -74,6 +75,7 @@ export function CadastroPassageiroPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [telefone, setTelefone] = useState("");
   const [cpf, setCpf] = useState("");
+  const [fotoUrl, setFotoUrl] = useState("");
   const [receberWhatsApp, setReceberWhatsApp] = useState(false);
 
   // Estados de feedback operacional
@@ -117,6 +119,10 @@ export function CadastroPassageiroPage() {
       setErroCadastro("A senha de acesso deve ter pelo menos 6 caracteres.");
       return;
     }
+    if (!fotoUrl) {
+      setErroCadastro("Por favor, tire sua foto pela câmera do celular para identificação oficial.");
+      return;
+    }
 
     if (!permissaoConcedida) {
       solicitarLocalizacao();
@@ -130,6 +136,7 @@ export function CadastroPassageiroPage() {
         phone: telefone,
         cpf,
         password: senha,
+        avatarUrl: fotoUrl,
       });
 
       if (!res.success) {
@@ -234,6 +241,18 @@ export function CadastroPassageiroPage() {
                   <span>{erroCadastro}</span>
                 </div>
               )}
+
+              {/* Foto de Perfil Obrigatória via Câmera do Celular */}
+              <CameraPhotoCapture
+                label="Sua foto de identificação"
+                sublabel="Tire uma foto nítida do seu rosto pela câmera do celular para segurança nas viagens"
+                value={fotoUrl}
+                onChange={(capturedUrl) => {
+                  setFotoUrl(capturedUrl);
+                  if (erroCadastro?.includes("foto")) setErroCadastro(null);
+                }}
+                required
+              />
 
               <NativeInput
                 label="Nome completo"

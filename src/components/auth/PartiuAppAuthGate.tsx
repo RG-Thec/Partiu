@@ -40,6 +40,7 @@ import {
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
+import { CameraPhotoCapture } from "@/components/common/CameraPhotoCapture";
 
 export interface PartiuAppAuthGateProps {
   redirectDestination?: string | undefined;
@@ -116,6 +117,7 @@ export function PartiuAppAuthGate({
   const [cpf, setCpf] = useState("");
   const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
+  const [fotoPerfilUrl, setFotoPerfilUrl] = useState("");
 
   // OTP Celular
   const [otpCode, setOtpCode] = useState("");
@@ -365,6 +367,10 @@ export function PartiuAppAuthGate({
       setErrorMessage("A senha deve ter no mínimo 6 caracteres.");
       return;
     }
+    if (!fotoPerfilUrl) {
+      setErrorMessage("Por favor, tire sua foto pela câmera do celular para identificação oficial.");
+      return;
+    }
 
     setLoading(true);
     const res = await supabaseAuthService.signUpPassenger({
@@ -373,6 +379,7 @@ export function PartiuAppAuthGate({
       phone: telefone,
       cpf,
       password: senha,
+      avatarUrl: fotoPerfilUrl,
     });
     setLoading(false);
 
@@ -783,6 +790,15 @@ export function PartiuAppAuthGate({
                       Preencha seus dados para pedir corridas com rapidez e segurança.
                     </p>
                   </div>
+
+                  {/* Foto Oficial de Identificação (Obrigatória via Câmera/Galeria) */}
+                  <CameraPhotoCapture
+                    label="Foto Oficial de Identificação"
+                    sublabel="Tire uma selfie nítida pela câmera para identificação oficial"
+                    value={fotoPerfilUrl}
+                    onChange={(url) => setFotoPerfilUrl(url)}
+                    required
+                  />
 
                   {/* Nome Completo */}
                   <NativeInput

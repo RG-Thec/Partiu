@@ -37,6 +37,7 @@ import {
 import {
   WhiteLabelProgressBar,
 } from "@/components/ui/white-label";
+import { CameraPhotoCapture } from "@/components/common/CameraPhotoCapture";
 import { Mail } from "lucide-react";
 
 
@@ -842,44 +843,19 @@ export function CadastroMotoristaPage() {
                     </label>
                   </div>
 
-                  {/* Selfie do Motorista */}
-                  <div
-                    style={{
-                      borderRadius: ui.borderRadius,
-                      backgroundColor: colors.inputBackground,
-                      borderColor: colors.inputBorder,
+                  {/* Selfie Oficial do Motorista com a Câmera */}
+                  <CameraPhotoCapture
+                    label="Selfie oficial do condutor"
+                    sublabel="Tire uma foto nítida do seu rosto pela câmera do celular para auditoria de segurança"
+                    value={fotoPerfilUrl}
+                    onChange={(capturedUrl) => {
+                      setFotoPerfilUrl(capturedUrl);
+                      if (erroValidacao?.includes("selfie") || erroValidacao?.includes("foto")) {
+                        setErroValidacao(null);
+                      }
                     }}
-                    className="p-2.5 border space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <Camera className="h-3.5 w-3.5" style={{ color: colors.primary }} />
-                        <span className="text-xs font-semibold text-foreground">Selfie do Condutor</span>
-                      </div>
-                      {fotoPerfilUrl && (
-                        <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-500/15 px-1.5 py-0.5 rounded-md border border-emerald-500/20">
-                          <Check className="h-3 w-3" /> Anexada
-                        </span>
-                      )}
-                    </div>
-                    <label
-                      style={{ borderRadius: ui.borderRadius }}
-                      className="flex items-center justify-center gap-1.5 w-full h-9 bg-card border border-dashed border-input hover:border-primary text-xs font-semibold text-foreground cursor-pointer transition-colors"
-                    >
-                      {uploadingDoc === "foto" ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" style={{ color: colors.primary }} />
-                      ) : (
-                        <Camera className="h-3.5 w-3.5 text-muted-foreground" />
-                      )}
-                      <span>{fotoPerfilUrl ? "Tirar outra selfie" : "Tirar selfie"}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleUploadArquivo(e, "foto")}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
+                    required
+                  />
                 </div>
 
                 {/* BARRA DE AÇÃO ANCORADA: SEMPRE VISÍVEL NO CELULAR, NUNCA CORTADA */}
@@ -909,6 +885,10 @@ export function CadastroMotoristaPage() {
                         setErroValidacao(null);
                         if (!cnh) {
                           setErroValidacao("Por favor, preencha o número da CNH.");
+                          return;
+                        }
+                        if (!fotoPerfilUrl) {
+                          setErroValidacao("A selfie oficial pela câmera do celular é obrigatória.");
                           return;
                         }
                         setEtapa(4);

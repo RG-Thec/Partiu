@@ -49,21 +49,20 @@ function PartiuEncomendasContent() {
   } = useDelivery();
   const { corPrimaria, corTextoPrimaria } = useBrandTheme();
 
-  const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150";
   const [drawerAberto, setDrawerAberto] = useState(false);
   const [modalNotificacoesAberto, setModalNotificacoesAberto] = useState(false);
   const [pushStatus, setPushStatus] = useState<NotificationPermission>("default");
   const [userName, setUserName] = useState<string>(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("partiu_user_nome") || "Maria Clara";
+      return localStorage.getItem("partiu_user_nome") || "Passageiro";
     }
-    return "Maria Clara";
+    return "Passageiro";
   });
   const [userAvatarUrl, setUserAvatarUrl] = useState<string>(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("partiu_user_avatar") || DEFAULT_AVATAR;
+      return localStorage.getItem("partiu_user_avatar") || "";
     }
-    return DEFAULT_AVATAR;
+    return "";
   });
 
   useEffect(() => {
