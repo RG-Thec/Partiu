@@ -40,6 +40,13 @@ export const Route = createFileRoute("/app/perfil")({
   component: ProfilePagePartiu,
 });
 
+function formatarTelefone(v: string) {
+  const digits = v.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return digits.length ? `(${digits}` : "";
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
 export function ProfilePagePartiu() {
   const navigate = useNavigate();
   const { nomeApp, corPrimaria, corTextoPrimaria } = useBrandTheme();
@@ -55,12 +62,55 @@ export function ProfilePagePartiu() {
   const [mensagemErro, setMensagemErro] = useState<string | null>(null);
   const [abaAtiva, setAbaAtiva] = useState<"dados" | "preferencias">("dados");
 
-  // Campos do Formulário
-  const [nome, setNome] = useState("");
-  const [email, setEmail] = useState("");
-  const [telefone, setTelefone] = useState("");
-  const [cpf, setCpf] = useState("");
-  const [fotoUrl, setFotoUrl] = useState("");
+  // Campos do Formulário (Inicialização síncrona instantânea)
+  const [nome, setNome] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const local = localStorage.getItem("partiu_user_nome");
+    if (local && local !== "Passageiro") return local;
+    const sessName = supabaseAuthService.getStoredSession()?.name;
+    if (sessName && sessName !== "Passageiro") return sessName;
+    return local || sessName || "";
+  });
+
+  const [email, setEmail] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return (
+      localStorage.getItem("partiu_user_email") ||
+      supabaseAuthService.getStoredSession()?.email ||
+      ""
+    );
+  });
+
+  const [telefone, setTelefone] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return (
+      localStorage.getItem("partiu_user_phone") ||
+      localStorage.getItem("partiu_user_telefone") ||
+      supabaseAuthService.getStoredSession()?.phone ||
+      ""
+    );
+  });
+
+  const [cpf, setCpf] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return (
+      localStorage.getItem("partiu_user_cpf") ||
+      supabaseAuthService.getStoredSession()?.cpf ||
+      ""
+    );
+  });
+
+  const [fotoUrl, setFotoUrl] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return (
+      localStorage.getItem("partiu_user_avatar") ||
+      localStorage.getItem("partiu_user_foto") ||
+      localStorage.getItem("partiu_user_selfie") ||
+      supabaseAuthService.getStoredSession()?.avatarUrl ||
+      ""
+    );
+  });
+
   const [rating, setRating] = useState(4.9);
   const [totalViagens, setTotalViagens] = useState(0);
 
@@ -74,6 +124,8 @@ export function ProfilePagePartiu() {
     async function carregarPerfil() {
       try {
         const perfil = await userService.getCurrentUserProfile();
+        const sess = supabaseAuthService.getStoredSession();
+
         const cachedNome = typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : "";
         const cachedEmail = typeof window !== "undefined" ? localStorage.getItem("partiu_user_email") : "";
         const cachedTelefone = typeof window !== "undefined"
@@ -86,22 +138,38 @@ export function ProfilePagePartiu() {
             localStorage.getItem("partiu_user_selfie")
           : "";
 
-        setNome(perfil.name || cachedNome || "Passageiro");
-        setEmail(perfil.email || cachedEmail || "");
-        setTelefone(perfil.phone || cachedTelefone || "");
-        setCpf(perfil.cpf || cachedCpf || "");
-        setFotoUrl(perfil.avatarUrl || cachedAvatar || "");
-        setRating(perfil.rating);
-        setTotalViagens(perfil.totalTrips);
-        setArCondicionado(perfil.preferences.prefAc);
-        setViagemSilenciosa(perfil.preferences.prefQuietTrip);
+        const resolvedNome =
+          (perfil.name && perfil.name !== "Passageiro" ? perfil.name : null) ||
+          (cachedNome && cachedNome !== "Passageiro" ? cachedNome : null) ||
+          (sess?.name && sess.name !== "Passageiro" ? sess.name : null) ||
+          perfil.name ||
+          cachedNome ||
+          sess?.name ||
+          "";
+
+        const resolvedEmail = perfil.email || cachedEmail || sess?.email || "";
+        const resolvedTelefone = perfil.phone || cachedTelefone || sess?.phone || "";
+        const resolvedCpf = perfil.cpf || cachedCpf || sess?.cpf || "";
+        const resolvedAvatar = perfil.avatarUrl || cachedAvatar || sess?.avatarUrl || "";
+
+        if (resolvedNome) setNome(resolvedNome);
+        if (resolvedEmail) setEmail(resolvedEmail);
+        if (resolvedTelefone) setTelefone(resolvedTelefone);
+        if (resolvedCpf) setCpf(resolvedCpf);
+        if (resolvedAvatar) setFotoUrl(resolvedAvatar);
+        if (perfil.rating) setRating(perfil.rating);
+        if (perfil.totalTrips !== undefined) setTotalViagens(perfil.totalTrips);
+        if (perfil.preferences) {
+          setArCondicionado(perfil.preferences.prefAc ?? true);
+          setViagemSilenciosa(perfil.preferences.prefQuietTrip ?? false);
+        }
       } catch (err) {
         console.error("Erro ao carregar perfil:", err);
       } finally {
         setLoading(false);
       }
     }
-    carregarPerfil();
+    void carregarPerfil();
   }, []);
 
   // Listener para atualização reativa do perfil em tempo real
@@ -237,6 +305,28 @@ export function ProfilePagePartiu() {
     }
   }
 
+  const effectiveAvatar =
+    fotoUrl ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("partiu_user_avatar") ||
+        localStorage.getItem("partiu_user_foto") ||
+        localStorage.getItem("partiu_user_selfie") ||
+        supabaseAuthService.getStoredSession()?.avatarUrl
+      : null);
+
+  const effectiveName =
+    (nome && nome !== "Passageiro" ? nome : null) ||
+    (typeof window !== "undefined"
+      ? (localStorage.getItem("partiu_user_nome") && localStorage.getItem("partiu_user_nome") !== "Passageiro"
+          ? localStorage.getItem("partiu_user_nome")
+          : null) ||
+        (supabaseAuthService.getStoredSession()?.name && supabaseAuthService.getStoredSession()?.name !== "Passageiro"
+          ? supabaseAuthService.getStoredSession()?.name
+          : null)
+      : null) ||
+    nome ||
+    "Passageiro";
+
   return (
     <div className="flex flex-col min-h-[100dvh] bg-background text-foreground pb-16">
       {/* 1. CABEÇALHO */}
@@ -298,20 +388,13 @@ export function ProfilePagePartiu() {
               className="w-24 h-24 rounded-full p-1 shadow-md bg-card border-2"
               style={{ borderColor: colors.primary }}
             >
-              {fotoUrl ? (
+              {effectiveAvatar ? (
                 <img
-                  src={fotoUrl}
-                  alt={nome || "Passageiro"}
+                  src={effectiveAvatar}
+                  alt={effectiveName}
                   className="w-full h-full object-cover rounded-full bg-muted"
                   onError={() => {
-                    const fallback = typeof window !== "undefined"
-                      ? localStorage.getItem("partiu_user_avatar") ||
-                        localStorage.getItem("partiu_user_foto") ||
-                        localStorage.getItem("partiu_user_selfie")
-                      : null;
-                    if (fallback && fallback !== fotoUrl) {
-                      setFotoUrl(fallback);
-                    }
+                    setFotoUrl("");
                   }}
                 />
               ) : (
@@ -332,8 +415,8 @@ export function ProfilePagePartiu() {
             </button>
           </div>
 
-          <h2 className="text-lg font-bold text-foreground">{nome || "Passageiro"}</h2>
-          <p className="text-xs text-muted-foreground">{email || "passageiro@partiu.app"}</p>
+          <h2 className="text-lg font-bold text-foreground">{effectiveName}</h2>
+          <p className="text-xs text-muted-foreground">{email || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_email") : "") || "passageiro@partiu.app"}</p>
 
           <div className="flex items-center gap-3 mt-4 pt-4 border-t border-border w-full justify-center">
             <div
@@ -414,16 +497,17 @@ export function ProfilePagePartiu() {
               required
               leftIcon={<Phone className="h-4 w-4" />}
               value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
+              onChange={(e) => setTelefone(formatarTelefone(e.target.value))}
               placeholder="(22) 99999-9999"
             />
 
             <WhiteLabelInput
               label="CPF"
+              disabled
               leftIcon={<CreditCard className="h-4 w-4" />}
               value={cpf}
-              onChange={(e) => setCpf(e.target.value)}
               placeholder="000.000.000-00"
+              helperText="O CPF é documento de segurança e não pode ser alterado após o cadastro."
             />
 
             <WhiteLabelInput

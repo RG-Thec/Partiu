@@ -79,7 +79,7 @@ export const WhiteLabelInput = React.forwardRef<HTMLInputElement, WhiteLabelInpu
         <div
           style={inputWrapperStyle}
           className={`relative min-h-[50px] sm:min-h-[52px] h-13 flex items-center px-4 transition-all ${
-            disabled ? "opacity-60 cursor-not-allowed bg-slate-100" : ""
+            disabled ? "opacity-60 cursor-not-allowed bg-slate-100 dark:bg-slate-800/60" : ""
           }`}
         >
           {leftIcon && (

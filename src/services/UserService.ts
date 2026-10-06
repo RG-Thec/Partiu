@@ -69,7 +69,16 @@ export class UserService {
    * Recupera o perfil completo do usuário atual mesclando sessão, banco e cache local
    */
   public async getCurrentUserProfile(): Promise<UserProfileData> {
-    const session = supabaseAuthService.getStoredSession();
+    let session = supabaseAuthService.getStoredSession();
+    if (!session && isSupabaseConfigured()) {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (data?.session?.user) {
+          session = await supabaseAuthService.checkAndHydrateSession();
+        }
+      } catch {}
+    }
+
     const localName = typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : null;
     const localAvatar = typeof window !== "undefined"
       ? localStorage.getItem("partiu_user_avatar") ||
@@ -85,7 +94,7 @@ export class UserService {
     let base: UserProfileData = {
       ...DEFAULT_PROFILE,
       id: session?.id || DEFAULT_PROFILE.id,
-      name: localName || session?.name || DEFAULT_PROFILE.name,
+      name: (localName && localName !== "Passageiro" ? localName : null) || session?.name || localName || DEFAULT_PROFILE.name,
       email: localEmail || session?.email || DEFAULT_PROFILE.email,
       phone: localPhone || session?.phone || DEFAULT_PROFILE.phone,
       cpf: localCpf || session?.cpf || DEFAULT_PROFILE.cpf,
@@ -100,24 +109,41 @@ export class UserService {
     }
 
     try {
-      // 1. Tenta buscar na tabela partiu_passageiros
       const targetUserId = session?.id;
       if (targetUserId) {
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetUserId);
 
-        let query = (supabase as any).from("partiu_passageiros").select("*");
-        if (isUuid) {
-          query = query.or(`user_id.eq.${targetUserId},id.eq.${targetUserId}`);
-        } else {
-          query = query.eq("user_id", targetUserId);
-        }
+        const fetchRemote = async (): Promise<{ paxData: any; profData: any }> => {
+          let query = (supabase as any).from("partiu_passageiros").select("*");
+          if (isUuid) {
+            query = query.or(`user_id.eq.${targetUserId},id.eq.${targetUserId}`);
+          } else {
+            query = query.eq("user_id", targetUserId);
+          }
+          const { data: paxData } = await query.maybeSingle();
+          if (paxData) return { paxData, profData: null };
 
-        const { data: paxData } = await query.maybeSingle();
+          if (isUuid) {
+            const { data: profData } = await (supabase as any)
+              .from("profiles")
+              .select("*")
+              .eq("id", targetUserId)
+              .maybeSingle();
+            return { paxData: null, profData };
+          }
+          return { paxData: null, profData: null };
+        };
+
+        const timeoutPromise = new Promise<{ paxData: any; profData: any }>((resolve) =>
+          setTimeout(() => resolve({ paxData: null, profData: null }), 2000)
+        );
+
+        const { paxData, profData } = await Promise.race([fetchRemote(), timeoutPromise]);
 
         if (paxData) {
           base = {
             ...base,
-            name: paxData.nome || base.name,
+            name: (paxData.nome && paxData.nome !== "Passageiro" ? paxData.nome : null) || base.name,
             phone: paxData.telefone || base.phone,
             cpf: paxData.cpf || base.cpf,
             email: paxData.email || base.email,
@@ -133,31 +159,60 @@ export class UserService {
             },
           };
           if (base.avatarUrl && typeof window !== "undefined") {
-            try { localStorage.setItem("partiu_user_avatar", base.avatarUrl); } catch {}
+            try {
+              localStorage.setItem("partiu_user_avatar", base.avatarUrl);
+              localStorage.setItem("partiu_user_foto", base.avatarUrl);
+              localStorage.setItem("partiu_user_selfie", base.avatarUrl);
+            } catch {}
+          }
+          if (base.name && base.name !== "Passageiro" && typeof window !== "undefined") {
+            try { localStorage.setItem("partiu_user_nome", base.name); } catch {}
+          }
+          if (base.phone && typeof window !== "undefined") {
+            try {
+              localStorage.setItem("partiu_user_phone", base.phone);
+              localStorage.setItem("partiu_user_telefone", base.phone);
+            } catch {}
+          }
+          if (base.cpf && typeof window !== "undefined") {
+            try { localStorage.setItem("partiu_user_cpf", base.cpf); } catch {}
+          }
+          if (base.email && typeof window !== "undefined") {
+            try { localStorage.setItem("partiu_user_email", base.email); } catch {}
           }
           this.saveStoredPreferences(base.preferences);
           return base;
         }
 
-        // 2. Fallback na tabela profiles
-        if (isUuid) {
-          const { data: profData } = await (supabase as any)
-            .from("profiles")
-            .select("*")
-            .eq("id", targetUserId)
-            .maybeSingle();
-
-          if (profData) {
-            base = {
-              ...base,
-              name: profData.full_name || base.name,
-              phone: profData.phone || base.phone,
-              cpf: profData.cpf || base.cpf,
-              avatarUrl: profData.avatar_url || base.avatarUrl,
-            };
-            if (base.avatarUrl && typeof window !== "undefined") {
-              try { localStorage.setItem("partiu_user_avatar", base.avatarUrl); } catch {}
-            }
+        if (profData) {
+          base = {
+            ...base,
+            name: (profData.full_name && profData.full_name !== "Passageiro" ? profData.full_name : null) || base.name,
+            phone: profData.phone || base.phone,
+            cpf: profData.cpf || base.cpf,
+            avatarUrl: profData.avatar_url || base.avatarUrl,
+          };
+          if (base.avatarUrl && typeof window !== "undefined") {
+            try {
+              localStorage.setItem("partiu_user_avatar", base.avatarUrl);
+              localStorage.setItem("partiu_user_foto", base.avatarUrl);
+              localStorage.setItem("partiu_user_selfie", base.avatarUrl);
+            } catch {}
+          }
+          if (base.name && base.name !== "Passageiro" && typeof window !== "undefined") {
+            try { localStorage.setItem("partiu_user_nome", base.name); } catch {}
+          }
+          if (base.phone && typeof window !== "undefined") {
+            try {
+              localStorage.setItem("partiu_user_phone", base.phone);
+              localStorage.setItem("partiu_user_telefone", base.phone);
+            } catch {}
+          }
+          if (base.cpf && typeof window !== "undefined") {
+            try { localStorage.setItem("partiu_user_cpf", base.cpf); } catch {}
+          }
+          if (base.email && typeof window !== "undefined") {
+            try { localStorage.setItem("partiu_user_email", base.email); } catch {}
           }
         }
       }
@@ -198,16 +253,27 @@ export class UserService {
       );
     }
 
-    if (session) {
-      const updatedSession: AuthUserProfile = {
-        ...session,
-        name: data.name || session.name,
-        phone: data.phone || session.phone,
-        cpf: data.cpf || session.cpf,
-        avatarUrl: data.avatarUrl || session.avatarUrl,
-      };
-      supabaseAuthService.saveStoredSession(updatedSession);
-    }
+    const updatedSession: AuthUserProfile = session
+      ? {
+          ...session,
+          name: data.name || session.name,
+          phone: data.phone || session.phone,
+          cpf: data.cpf || session.cpf,
+          avatarUrl: data.avatarUrl || session.avatarUrl,
+        }
+      : {
+          id: userId || `usr-pax-${Date.now().toString(36)}`,
+          name: data.name || "Passageiro",
+          email: typeof window !== "undefined" ? localStorage.getItem("partiu_user_email") || "" : "",
+          phone: data.phone || "",
+          cpf: data.cpf || "",
+          role: "PASSAGEIRO",
+          avatarUrl: data.avatarUrl || "",
+          rating: 5.0,
+          totalTrips: 0,
+          createdAt: Date.now(),
+        };
+    supabaseAuthService.saveStoredSession(updatedSession);
 
     // 2. Atualiza Supabase
     if (isSupabaseConfigured() && userId) {

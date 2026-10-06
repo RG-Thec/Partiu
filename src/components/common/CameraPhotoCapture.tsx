@@ -118,7 +118,16 @@ export const CameraPhotoCapture: React.FC<CameraPhotoCaptureProps> = ({
   const [processando, setProcessando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
-  const temFoto = Boolean(value && value.trim().length > 0);
+  const effectivePhoto =
+    value && value.trim().length > 0
+      ? value
+      : typeof window !== "undefined"
+      ? localStorage.getItem("partiu_user_avatar") ||
+        localStorage.getItem("partiu_user_foto") ||
+        localStorage.getItem("partiu_user_selfie") ||
+        ""
+      : "";
+  const temFoto = Boolean(effectivePhoto && effectivePhoto.trim().length > 0);
 
   // Encerra os tracks da câmera
   const pararStreamCamera = () => {
@@ -256,6 +265,18 @@ export const CameraPhotoCapture: React.FC<CameraPhotoCaptureProps> = ({
 
       canvas.toBlob(
         (blob) => {
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem("partiu_user_avatar", dataUrl);
+              localStorage.setItem("partiu_user_foto", dataUrl);
+              localStorage.setItem("partiu_user_selfie", dataUrl);
+              window.dispatchEvent(
+                new CustomEvent("partiu:user-profile-updated", {
+                  detail: { avatarUrl: dataUrl },
+                })
+              );
+            } catch {}
+          }
           if (blob) {
             const file = new File([blob], `selfie_${Date.now()}.jpg`, {
               type: "image/jpeg",
@@ -293,6 +314,18 @@ export const CameraPhotoCapture: React.FC<CameraPhotoCaptureProps> = ({
 
     try {
       const { dataUrl, file: optimizedFile } = await otimizarImagem(file);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("partiu_user_avatar", dataUrl);
+          localStorage.setItem("partiu_user_foto", dataUrl);
+          localStorage.setItem("partiu_user_selfie", dataUrl);
+          window.dispatchEvent(
+            new CustomEvent("partiu:user-profile-updated", {
+              detail: { avatarUrl: dataUrl },
+            })
+          );
+        } catch {}
+      }
       onChange(dataUrl, optimizedFile);
       handleFecharModalCamera();
     } catch (err: any) {
@@ -304,6 +337,18 @@ export const CameraPhotoCapture: React.FC<CameraPhotoCaptureProps> = ({
   };
 
   const handleRemover = () => {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("partiu_user_avatar");
+        localStorage.removeItem("partiu_user_foto");
+        localStorage.removeItem("partiu_user_selfie");
+        window.dispatchEvent(
+          new CustomEvent("partiu:user-profile-updated", {
+            detail: { avatarUrl: "" },
+          })
+        );
+      } catch {}
+    }
     onChange("");
     setErro(null);
   };
@@ -346,7 +391,7 @@ export const CameraPhotoCapture: React.FC<CameraPhotoCaptureProps> = ({
             >
               {temFoto ? (
                 <img
-                  src={value}
+                  src={effectivePhoto}
                   alt="Foto capturada"
                   className="w-full h-full object-cover rounded-full"
                 />
