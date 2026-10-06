@@ -172,7 +172,7 @@ export function useGeolocation() {
 
   useEffect(() => {
     try {
-      const salvo = localStorage.getItem("partiu_gps_permitido") || localStorage.getItem("univans_gps_permitido");
+      const salvo = localStorage.getItem("partiu_gps_permitido");
       if (salvo === "true") {
         setPermissaoConcedida(true);
         solicitarLocalizacao();

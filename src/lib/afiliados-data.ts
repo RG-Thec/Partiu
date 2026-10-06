@@ -190,7 +190,7 @@ const LOCAL_STORAGE_KEY_PRODUTOS = "partiu_afiliados_produtos";
 
 export function getAfiliadosConfig(): ConfigAfiliados {
   if (typeof window === "undefined") return configAfiliadosInicial;
-  const saved = localStorage.getItem(LOCAL_STORAGE_KEY_CONFIG) || localStorage.getItem("univans_afiliados_config");
+  const saved = localStorage.getItem(LOCAL_STORAGE_KEY_CONFIG);
   if (saved) {
     try {
       return JSON.parse(saved);
@@ -209,7 +209,7 @@ export function saveAfiliadosConfig(config: ConfigAfiliados) {
 
 export function getProdutosAfiliados(): ProdutoAfiliado[] {
   if (typeof window === "undefined") return produtosAfiliadosIniciais;
-  const saved = localStorage.getItem(LOCAL_STORAGE_KEY_PRODUTOS) || localStorage.getItem("univans_afiliados_produtos");
+  const saved = localStorage.getItem(LOCAL_STORAGE_KEY_PRODUTOS);
   if (saved) {
     try {
       return JSON.parse(saved);

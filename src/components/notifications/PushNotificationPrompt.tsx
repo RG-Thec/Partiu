@@ -41,7 +41,7 @@ export function PushNotificationPrompt() {
     setPermissao(status);
 
     // Mostra o prompt se o usuário ainda não decidiu ou se quiser permitir teste
-    const descartado = sessionStorage.getItem("partiu_push_prompt_dismissed") || sessionStorage.getItem("univans_push_prompt_dismissed");
+    const descartado = sessionStorage.getItem("partiu_push_prompt_dismissed");
     let timer: ReturnType<typeof setTimeout> | undefined;
     if (status !== "granted" && !descartado) {
       timer = setTimeout(() => setVisivel(true), 2500);

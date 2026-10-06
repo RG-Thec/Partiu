@@ -5,7 +5,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export type CoordenadaTelemetria = {
-  vanId: string;
+  veiculoId: string;
   latitude: number;
   longitude: number;
   velocidadeKmH: number;
@@ -59,13 +59,13 @@ export function tocarBipEmbarque(tipo: "sucesso" | "alerta" | "erro" = "sucesso"
 }
 
 /**
- * Inscreve no canal de telemetria da van para receber posições em tempo real
+ * Inscreve no canal de telemetria do veículo para receber posições em tempo real
  */
-export function escutarTelemetriaVan(
-  vanId: string,
+export function escutarTelemetriaVeiculo(
+  veiculoId: string,
   onPosicao: (pos: CoordenadaTelemetria) => void,
 ) {
-  const canal = supabase.channel(`van_telemetria_${vanId}`, {
+  const canal = supabase.channel(`veiculo_telemetria_${veiculoId}`, {
     config: { broadcast: { self: true } },
   });
 
@@ -81,3 +81,6 @@ export function escutarTelemetriaVan(
     supabase.removeChannel(canal);
   };
 }
+
+// Alias de retrocompatibilidade
+export const escutarTelemetriaVan = escutarTelemetriaVeiculo;

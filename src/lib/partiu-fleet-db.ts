@@ -591,7 +591,7 @@ export function useMotoristas(): UseQueryResult<
             });
           });
         }
-      } catch (err) { silentCatchWarn("univans-db", err); }
+      } catch (err) { silentCatchWarn("partiu-db", err); }
 
       // 2. Condutores legados profiles/user_roles
       try {
@@ -614,7 +614,7 @@ export function useMotoristas(): UseQueryResult<
             });
           }
         }
-      } catch (err) { silentCatchWarn("univans-db", err); }
+      } catch (err) { silentCatchWarn("partiu-db", err); }
 
       // 3. Fallback do store local se vazio
       if (todos.length === 0 && typeof window !== "undefined") {
@@ -635,7 +635,7 @@ export function useMotoristas(): UseQueryResult<
               });
             });
           }
-        } catch (err) { silentCatchWarn("univans-db", err); }
+        } catch (err) { silentCatchWarn("partiu-db", err); }
       }
 
       return todos;
@@ -678,7 +678,7 @@ export function usePartiuMotoristasPendentes(): UseQueryResult<PartiuMotoristaPe
         if (!error && data && data.length > 0) {
           return data as PartiuMotoristaPendente[];
         }
-      } catch (err) { silentCatchWarn("univans-db", err); }
+      } catch (err) { silentCatchWarn("partiu-db", err); }
 
       // Fallback local se o banco estiver vazio ou offline
       if (typeof window !== "undefined") {
@@ -731,7 +731,7 @@ export function usePartiuTodasSolicitacoesMotoristas(): UseQueryResult<PartiuMot
         if (!error && data && data.length > 0) {
           return data as PartiuMotoristaPendente[];
         }
-      } catch (err) { silentCatchWarn("univans-db", err); }
+      } catch (err) { silentCatchWarn("partiu-db", err); }
 
       // Fallback local se offline
       if (typeof window !== "undefined") {
@@ -792,7 +792,7 @@ export function useAprovarPartiuMotorista() {
           .from("profiles")
           .update({ approval_status: "aprovado" })
           .eq("id", targetUserId);
-      } catch (err) { silentCatchWarn("univans-db", err); }
+      } catch (err) { silentCatchWarn("partiu-db", err); }
 
       if (typeof window !== "undefined") {
         try {
@@ -808,7 +808,7 @@ export function useAprovarPartiuMotorista() {
               localStorage.setItem("partiu_motoristas_store", JSON.stringify(list));
             }
           }
-        } catch (err) { silentCatchWarn("univans-db", err); }
+        } catch (err) { silentCatchWarn("partiu-db", err); }
       }
     },
     onSuccess: () => {
@@ -834,7 +834,7 @@ export function useAtualizarCategoriaMotorista() {
           .from("partiu_motoristas")
           .update({ categoria_veiculo: categoria })
           .eq("id", id);
-      } catch (err) { silentCatchWarn("univans-db", err); }
+      } catch (err) { silentCatchWarn("partiu-db", err); }
 
       if (typeof window !== "undefined") {
         try {
@@ -847,7 +847,7 @@ export function useAtualizarCategoriaMotorista() {
               localStorage.setItem("partiu_motoristas_store", JSON.stringify(list));
             }
           }
-        } catch (err) { silentCatchWarn("univans-db", err); }
+        } catch (err) { silentCatchWarn("partiu-db", err); }
       }
     },
     onSuccess: () => {
@@ -875,7 +875,7 @@ export function useRejeitarPartiuMotorista() {
           .from("profiles")
           .update({ approval_status: "rejeitado", rejection_reason: motivo })
           .eq("id", targetUserId);
-      } catch (err) { silentCatchWarn("univans-db", err); }
+      } catch (err) { silentCatchWarn("partiu-db", err); }
 
       if (typeof window !== "undefined") {
         try {
@@ -889,7 +889,7 @@ export function useRejeitarPartiuMotorista() {
               localStorage.setItem("partiu_motoristas_store", JSON.stringify(list));
             }
           }
-        } catch (err) { silentCatchWarn("univans-db", err); }
+        } catch (err) { silentCatchWarn("partiu-db", err); }
       }
     },
     onSuccess: () => {

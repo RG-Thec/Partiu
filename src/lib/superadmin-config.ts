@@ -645,9 +645,7 @@ export function getIdentidadeVisual(): ConfigIdentidadeVisual {
 
 export function getSuperAdminConfig(): ConfigSuperAdmin {
   if (typeof window === "undefined") return configSuperAdminInicial;
-  const saved =
-    localStorage.getItem(STORAGE_KEY_ADMIN_CONFIG) ||
-    localStorage.getItem("univans_superadmin_config_v4");
+  const saved = localStorage.getItem(STORAGE_KEY_ADMIN_CONFIG);
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
@@ -735,9 +733,7 @@ export function saveSuperAdminConfig(config: ConfigSuperAdmin) {
 
 export function getTelemetriaVeiculos(): TelemetriaVeiculo[] {
   if (typeof window === "undefined") return telemetriaVeiculosIniciais;
-  const saved =
-    localStorage.getItem(STORAGE_KEY_TELEMETRIA) ||
-    localStorage.getItem("univans_telemetria_veiculos_v4");
+  const saved = localStorage.getItem(STORAGE_KEY_TELEMETRIA);
   if (saved) {
     try {
       return JSON.parse(saved);

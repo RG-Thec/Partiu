@@ -32,7 +32,6 @@ export interface DurableOfflineEvent<T = unknown> {
 }
 
 const STORAGE_DURABLE_QUEUE_KEY = "partiu_durable_offline_event_queue_v3_4";
-const LEGACY_STORAGE_DURABLE_QUEUE_KEY = "univans_durable_offline_event_queue_v3_4";
 const MAX_DURABLE_EVENTS = 1000;
 const MAX_STORAGE_EVENTS = 100; // Limite seguro para localStorage móvel sem travar a UI thread
 const MEMORY_DURABLE_QUEUE: DurableOfflineEvent[] = [];
@@ -41,7 +40,7 @@ let debounceStorageTimer: any = null;
 export function getDurableEventQueue(): DurableOfflineEvent[] {
   if (typeof window !== "undefined") {
     try {
-      const raw = localStorage.getItem(STORAGE_DURABLE_QUEUE_KEY) || localStorage.getItem(LEGACY_STORAGE_DURABLE_QUEUE_KEY);
+      const raw = localStorage.getItem(STORAGE_DURABLE_QUEUE_KEY);
       return raw ? JSON.parse(raw) : MEMORY_DURABLE_QUEUE;
     } catch {
       return MEMORY_DURABLE_QUEUE;

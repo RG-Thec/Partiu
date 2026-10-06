@@ -204,7 +204,6 @@ export async function sincronizarPassagensNuvem(
     // Salvar cache local atualizado
     if (typeof window !== "undefined") {
       localStorage.setItem("partiu_bilhetes_passageiro", JSON.stringify(unificados));
-      localStorage.setItem("univans_bilhetes_passageiro", JSON.stringify(unificados));
     }
 
     return { bilhetes: unificados, sincronizadoNuvem: true };

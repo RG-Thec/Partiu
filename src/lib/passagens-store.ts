@@ -69,61 +69,54 @@ export interface PagamentoPendente {
 }
 
 const STORAGE_BILHETES = "partiu_bilhetes_passageiro";
-const LEGACY_STORAGE_BILHETES = "univans_bilhetes_passageiro";
-
 const STORAGE_PENDENCIAS = "partiu_pendencias_passageiro";
-const LEGACY_STORAGE_PENDENCIAS = "univans_pendencias_passageiro";
-
 const STORAGE_HISTORICO_TOTEM = "partiu_historico_embarques_totem";
-const LEGACY_STORAGE_HISTORICO_TOTEM = "univans_historico_embarques_totem";
-
 const STORAGE_BENEFICIARIO = "partiu_beneficiario_gratuidade";
-const LEGACY_STORAGE_BENEFICIARIO = "univans_beneficiario_gratuidade";
 
 const BILHETE_PADRAO: BilhetePassagem = {
   id: "PARTIU-884192",
   linhaId: "1",
-  origem: "Maceió (Centro)",
-  destino: "Arapiraca (Rodoviária)",
+  origem: "Centro",
+  destino: "Bairro Norte",
   dataViagem: "Hoje",
   horarioSaida: "14:30",
   horarioChegadaPrevisto: "16:45",
   quantidadePassagens: 1,
-  passageiroNome: "Maria Clara Albuquerque",
-  passageiroWhatsApp: "(82) 99841-2940",
-  passageiroCpf: "***.841.294-**",
+  passageiroNome: "Passageiro PARTIU",
+  passageiroWhatsApp: "(00) 00000-0000",
+  passageiroCpf: "***.000.000-**",
   valorTotal: 35.0,
   formaPagamento: "PIX",
   status: "confirmado",
-  pontoEmbarque: "Maceió • Trevo do Tabuleiro",
-  pontoEmbarqueReferencia: "Av. Fernandes Lima (Antigo Makro)",
+  pontoEmbarque: "Ponto de Embarque Central",
+  pontoEmbarqueReferencia: "Área Central",
   vanModelo: "Toyota Corolla (Partiu Pop)",
   vanPlaca: "RJP-2F14",
   motoristaNome: "Carlos Eduardo Santos",
   motoristaFoto:
     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
   starlinkWifi: "PARTIU_Wifi_01",
-  codigoQr: "PARTIU-884192-MACEIO-ARAPIRACA-1PASS",
+  codigoQr: "PARTIU-884192-URBANO-1PASS",
   criadoEm: new Date().toISOString(),
 };
 
 const PENDENCIA_INICIAL: PagamentoPendente = {
   id: "PIX-98412",
-  linhaId: "rota-igreja-nova-maceio",
-  origem: "Igreja Nova (Terminal Central)",
-  destino: "Maceió (Rodoviária do Feitosa)",
-  pontoEmbarque: "Terminal Central de Igreja Nova",
-  pontoEmbarqueReferencia: "Praça Agapito Soares",
+  linhaId: "rota-urbana-central",
+  origem: "Terminal Central",
+  destino: "Zona Sul",
+  pontoEmbarque: "Terminal Central",
+  pontoEmbarqueReferencia: "Área Central",
   dataViagem: "Hoje, " + new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long" }),
   horarioSaida: "18:30",
   tempoEstimado: "2h 48m",
   quantidadePassagens: 2,
   valorTotal: 76.0,
   chavePix:
-    "00020126580014br.gov.bcb.pix0136partiu-pix-checkout-8841925204000053039865802BR5920PARTIU MOBILIDADE BR6009MACEIO62070503***6304E8A2",
-  passageiroNome: "Maria Clara Albuquerque",
-  passageiroWhatsApp: "(82) 99841-2940",
-  passageiroCpf: "084.129.414-88",
+    "00020126580014br.gov.bcb.pix0136partiu-pix-checkout-8841925204000053039865802BR5920PARTIU MOBILIDADE BR6006BRASIL62070503***6304E8A2",
+  passageiroNome: "Passageiro PARTIU",
+  passageiroWhatsApp: "(00) 00000-0000",
+  passageiroCpf: "000.000.000-00",
   vanModelo: "Toyota Corolla (Partiu Pop)",
   vanPlaca: "RJP-2F14",
   motoristaNome: "Carlos Eduardo Santos",
@@ -137,7 +130,7 @@ const PENDENCIA_INICIAL: PagamentoPendente = {
 export function getBilhetesPassagens(): BilhetePassagem[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(STORAGE_BILHETES) || localStorage.getItem(LEGACY_STORAGE_BILHETES);
+    const raw = localStorage.getItem(STORAGE_BILHETES);
     if (!raw) {
       return [];
     }
@@ -155,7 +148,7 @@ export function getBilhetesPassagens(): BilhetePassagem[] {
 export function temPassagemAtivaParaRadar(): boolean {
   if (typeof window === "undefined") return false;
   try {
-    const tipoUser = localStorage.getItem("partiu_user_tipo") || localStorage.getItem("univans_user_tipo");
+    const tipoUser = localStorage.getItem("partiu_user_tipo");
     if (tipoUser === "motorista" || tipoUser === "admin" || tipoUser === "superadmin") {
       return true;
     }
@@ -206,7 +199,7 @@ export function salvarNovoBilhete(
 export function getBeneficiarioGratuidade(): BeneficiarioGratuidadeGov | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(STORAGE_BENEFICIARIO) || localStorage.getItem(LEGACY_STORAGE_BENEFICIARIO);
+    const raw = localStorage.getItem(STORAGE_BENEFICIARIO);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -294,11 +287,8 @@ export function limparTodosBilhetes(): BilhetePassagem[] {
   if (typeof window === "undefined") return [];
   try {
     localStorage.removeItem(STORAGE_BILHETES);
-    localStorage.removeItem(LEGACY_STORAGE_BILHETES);
     localStorage.removeItem(STORAGE_PENDENCIAS);
-    localStorage.removeItem(LEGACY_STORAGE_PENDENCIAS);
     localStorage.removeItem(STORAGE_HISTORICO_TOTEM);
-    localStorage.removeItem(LEGACY_STORAGE_HISTORICO_TOTEM);
     return [];
   } catch {
     return [];
@@ -383,11 +373,10 @@ export function validarEmbarquePeloQRDaVan(
       qrPayloadVan,
     };
     window.dispatchEvent(new CustomEvent("partiu:embarque-confirmado", { detail: eventDetail }));
-    window.dispatchEvent(new CustomEvent("univans:embarque-confirmado", { detail: eventDetail }));
 
     // Também salvar no histórico para persistência
     const historicoEmbarques = JSON.parse(
-      localStorage.getItem(STORAGE_HISTORICO_TOTEM) || localStorage.getItem(LEGACY_STORAGE_HISTORICO_TOTEM) || "[]",
+      localStorage.getItem(STORAGE_HISTORICO_TOTEM) || "[]",
     );
     historicoEmbarques.unshift({
       id: "emb-" + Date.now(),
@@ -420,7 +409,7 @@ export function getPendenciasAtivas(): PagamentoPendente[] {
   if (typeof window === "undefined") return [PENDENCIA_INICIAL];
 
   try {
-    const raw = localStorage.getItem(STORAGE_PENDENCIAS) || localStorage.getItem(LEGACY_STORAGE_PENDENCIAS);
+    const raw = localStorage.getItem(STORAGE_PENDENCIAS);
     let lista: PagamentoPendente[] = [];
 
     if (!raw) {

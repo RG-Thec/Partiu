@@ -97,7 +97,7 @@ import {
 } from "../src/lib/broadcast-notifications.ts";
 
 console.log("================================================================================");
-console.log("🚀 UNIVANS TOS — V4.0 ENTERPRISE PRODUCTION HARDENING CERTIFICATION SUITE");
+console.log("🚀 PARTIU MOBILIDADE — V4.0 ENTERPRISE PRODUCTION HARDENING CERTIFICATION SUITE");
 console.log("================================================================================");
 
 // SUITE 1: DOMAIN STATE MACHINES

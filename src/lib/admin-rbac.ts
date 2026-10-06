@@ -446,8 +446,7 @@ export function logoutAdmin(): void {
 export function getAdminRole(): AdminRole {
   if (typeof window === "undefined") return "ADMIN";
   try {
-    const role = (localStorage.getItem(STORAGE_KEY_ROLE) ||
-      localStorage.getItem("univans_admin_active_role")) as AdminRole | null;
+    const role = localStorage.getItem(STORAGE_KEY_ROLE) as AdminRole | null;
     return role || "ADMIN";
   } catch {
     return "ADMIN";
@@ -459,7 +458,6 @@ export function setAdminRole(role: AdminRole): void {
   try {
     localStorage.setItem(STORAGE_KEY_ROLE, role);
     window.dispatchEvent(new CustomEvent("partiu:role-changed", { detail: { role } }));
-    window.dispatchEvent(new CustomEvent("univans:role-changed", { detail: { role } }));
   } catch (err) { silentCatchWarn("admin-rbac", err); }
 }
 

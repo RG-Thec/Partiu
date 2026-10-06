@@ -57,7 +57,7 @@ import {
   type ProtectionFundConfig,
   type PlatformRevenueMetrics,
 } from "@/lib/revenue";
-import { RealQrCodePix } from "@/components/passagens/RealQrCodePix";
+import { RealQrCodePix } from "@/components/common/RealQrCodePix";
 import { appSettingsService, type AppSettings } from "@/lib/ecosystem/app-settings-service";
 import {
   driverSubscriptionService,

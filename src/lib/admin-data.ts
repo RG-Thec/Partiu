@@ -477,7 +477,7 @@ export const encomendasMock: EncomendaVan[] = [
 export function getEncomendasStore(): EncomendaVan[] {
   if (typeof window === "undefined") return encomendasMock;
   try {
-    const raw = localStorage.getItem("partiu_encomendas_store") || localStorage.getItem("univans_encomendas_store");
+    const raw = localStorage.getItem("partiu_encomendas_store");
     if (!raw) {
       localStorage.setItem("partiu_encomendas_store", JSON.stringify(encomendasMock));
       return encomendasMock;

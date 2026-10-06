@@ -48,7 +48,7 @@ export const Route = createFileRoute("/app/")({
       {
         name: "description",
         content:
-          "Solicite carros e motos para transporte urbano com tarifa transparente e agilidade em Itaperuna, RJ.",
+          "Solicite carros e motos para transporte urbano com tarifa transparente e agilidade em sua cidade.",
       },
     ],
   }),
@@ -106,11 +106,7 @@ function PartiuPassengerHomeContent() {
   const [userName, setUserName] = useState(() => {
     if (activeUser?.name) return activeUser.name;
     if (typeof window === "undefined") return "Passageiro";
-    return (
-      localStorage.getItem("partiu_user_nome") ||
-      localStorage.getItem("univans_user_nome") ||
-      "Passageiro"
-    );
+    return localStorage.getItem("partiu_user_nome") || "Passageiro";
   });
   const [userAvatar, setUserAvatar] = useState<string | null>(() => {
     return (
@@ -224,9 +220,7 @@ function PartiuPassengerHomeContent() {
 
   useEffect(() => {
     setPushStatus(getStatusPermissaoPush());
-    const salvo =
-      localStorage.getItem("partiu_user_nome") ||
-      localStorage.getItem("univans_user_nome");
+    const salvo = localStorage.getItem("partiu_user_nome");
     if (salvo) setUserName(salvo);
     const salvoAvatar = localStorage.getItem("partiu_user_avatar");
     if (salvoAvatar) setUserAvatar(salvoAvatar);
@@ -250,7 +244,7 @@ function PartiuPassengerHomeContent() {
 
     const sincronizarStorage = () => {
       try {
-        const salvoNome = localStorage.getItem("partiu_user_nome") || localStorage.getItem("univans_user_nome");
+        const salvoNome = localStorage.getItem("partiu_user_nome");
         if (salvoNome) setUserName(salvoNome);
         const salvoAv = localStorage.getItem("partiu_user_avatar");
         if (salvoAv) setUserAvatar(salvoAv);

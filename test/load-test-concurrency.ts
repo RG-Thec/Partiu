@@ -1,6 +1,6 @@
 /**
  * ==============================================================================
- * 🚀 UNIVANS TOS — STRESS & LOAD CONCURRENCY BENCHMARK SUITE
+ * 🚀 PARTIU MOBILIDADE — STRESS & LOAD CONCURRENCY BENCHMARK SUITE
  * Teste de Carga de Concorrência Real com Métricas de Latência (p50, p95, p99)
  * ==============================================================================
  */

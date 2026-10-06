@@ -118,7 +118,7 @@ export function listarNotificacoesBroadcast(): NotificacaoBroadcast[] {
     return memoriaNotificacoes;
   }
   try {
-    const raw = localStorage.getItem(STORAGE_KEY_NOTIFICACOES) || localStorage.getItem("univans_broadcast_notificacoes");
+    const raw = localStorage.getItem(STORAGE_KEY_NOTIFICACOES);
     if (!raw) {
       localStorage.setItem(STORAGE_KEY_NOTIFICACOES, JSON.stringify(mocksIniciais));
       return mocksIniciais;
@@ -152,11 +152,6 @@ export function salvarNotificacaoBroadcast(
 
       window.dispatchEvent(
         new CustomEvent("partiu:nova_notificacao_broadcast", {
-          detail: nova,
-        }),
-      );
-      window.dispatchEvent(
-        new CustomEvent("univans:nova_notificacao_broadcast", {
           detail: nova,
         }),
       );
@@ -201,13 +196,12 @@ export function marcarNotificacaoComoLida(id: string): void {
   memoriaLidas.add(id);
   if (typeof window === "undefined") return;
   try {
-    const lidasRaw = localStorage.getItem(STORAGE_KEY_LIDAS) || localStorage.getItem("univans_notificacoes_lidas");
+    const lidasRaw = localStorage.getItem(STORAGE_KEY_LIDAS);
     const lidas: string[] = lidasRaw ? JSON.parse(lidasRaw) : [];
     if (!lidas.includes(id)) {
       lidas.push(id);
       localStorage.setItem(STORAGE_KEY_LIDAS, JSON.stringify(lidas));
       window.dispatchEvent(new CustomEvent("partiu:notificacao_lida", { detail: { id } }));
-      window.dispatchEvent(new CustomEvent("univans:notificacao_lida", { detail: { id } }));
     }
   } catch (err) {
     console.error("[Broadcast Engine] Erro ao marcar como lida:", err);
@@ -222,7 +216,7 @@ export function isNotificacaoLida(id: string): boolean {
     return memoriaLidas.has(id);
   }
   try {
-    const lidasRaw = localStorage.getItem(STORAGE_KEY_LIDAS) || localStorage.getItem("univans_notificacoes_lidas");
+    const lidasRaw = localStorage.getItem(STORAGE_KEY_LIDAS);
     const lidas: string[] = lidasRaw ? JSON.parse(lidasRaw) : [];
     return lidas.includes(id);
   } catch {

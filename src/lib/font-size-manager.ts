@@ -2,8 +2,7 @@ export type FontSizeOption = "normal" | "grande" | "extra-grande";
 
 export function getSavedFontSize(): FontSizeOption {
   if (typeof window === "undefined") return "normal";
-  const saved = (localStorage.getItem("partiu_font_size") ||
-    localStorage.getItem("univans_font_size")) as FontSizeOption;
+  const saved = localStorage.getItem("partiu_font_size") as FontSizeOption;
   if (saved === "normal" || saved === "grande" || saved === "extra-grande") {
     return saved;
   }

@@ -82,10 +82,8 @@ export function BroadcastNotificationListener() {
     }
 
     window.addEventListener("partiu:nova_notificacao_broadcast", handleNovaNotificacao);
-    window.addEventListener("univans:nova_notificacao_broadcast", handleNovaNotificacao);
     return () => {
       window.removeEventListener("partiu:nova_notificacao_broadcast", handleNovaNotificacao);
-      window.removeEventListener("univans:nova_notificacao_broadcast", handleNovaNotificacao);
     };
   }, [detectarCategoriaAtual]);
 

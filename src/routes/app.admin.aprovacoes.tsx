@@ -28,7 +28,7 @@ import {
   usePartiuTodasSolicitacoesMotoristas,
   useAprovarPartiuMotorista,
   useRejeitarPartiuMotorista,
-} from "@/lib/univans-db";
+} from "@/lib/partiu-db";
 import { driverFleetService } from "@/lib/ecosystem/driver-fleet-service";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { exportarParaCSV } from "@/lib/export-csv";

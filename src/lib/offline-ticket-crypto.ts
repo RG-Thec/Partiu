@@ -52,9 +52,7 @@ export interface ResultadoValidacaoOffline {
 }
 
 const STORAGE_SYNC_KEY = "partiu_offline_validations_queue_v3_2";
-const LEGACY_STORAGE_SYNC_KEY = "univans_offline_validations_queue_v3_2";
 const STORAGE_USED_TICKETS_KEY = "partiu_used_tickets_local_cache_v3_2";
-const LEGACY_STORAGE_USED_TICKETS_KEY = "univans_used_tickets_local_cache_v3_2";
 const MEMORY_USED_TICKETS: RegistroValidacaoCompleto[] = [];
 const MEMORY_SYNC_QUEUE: RegistroValidacaoCompleto[] = [];
 
@@ -156,7 +154,7 @@ export function gerarPayloadQRCodePassagem(
 export function getValidacoesLocais(): RegistroValidacaoCompleto[] {
   if (typeof window !== "undefined") {
     try {
-      const raw = localStorage.getItem(STORAGE_USED_TICKETS_KEY) || localStorage.getItem(LEGACY_STORAGE_USED_TICKETS_KEY);
+      const raw = localStorage.getItem(STORAGE_USED_TICKETS_KEY);
       return raw ? JSON.parse(raw) : MEMORY_USED_TICKETS;
     } catch {
       return MEMORY_USED_TICKETS;
@@ -327,7 +325,7 @@ export function validarQRCodeOffline(
 export function getQuantidadeValidacoesPendentes(): number {
   if (typeof window !== "undefined") {
     try {
-      const raw = localStorage.getItem(STORAGE_SYNC_KEY) || localStorage.getItem(LEGACY_STORAGE_SYNC_KEY);
+      const raw = localStorage.getItem(STORAGE_SYNC_KEY);
       return raw ? JSON.parse(raw).length : MEMORY_SYNC_QUEUE.length;
     } catch {
       return MEMORY_SYNC_QUEUE.length;

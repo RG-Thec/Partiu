@@ -11,8 +11,8 @@ import { useEffect } from "react";
 import { useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 
-// Re-exporta compatibilidade legada
-export * from "./univans-db";
+// Re-exporta compatibilidade operacional
+export * from "./partiu-fleet-db";
 
 export interface PartiuRideRecord {
   id: string;

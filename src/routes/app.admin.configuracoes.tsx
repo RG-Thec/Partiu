@@ -225,14 +225,14 @@ export function ConfiguracoesAdminPage() {
   const ehSuperAdmin = isSuperAdmin(role);
 
   // 1. MODO ESSENCIAL (SEMPRE VISÍVEL)
-  const [cidadeOperacao, setCidadeOperacao] = useState("Maceió - AL");
+  const [cidadeOperacao, setCidadeOperacao] = useState("Matriz Central");
   const [tarifaBaseEssencial, setTarifaBaseEssencial] = useState("5.50");
   const [valorKmEssencial, setValorKmEssencial] = useState("2.10");
   const [valorMinutoEssencial, setValorMinutoEssencial] = useState("0.35");
   const [tarifaMinimaEssencial, setTarifaMinimaEssencial] = useState("8.00");
-  const [comissaoFranquia, setComissaoFranquia] = useState("12.5");
-  const [whatsappSuporte, setWhatsappSuporte] = useState("(82) 99888-7766");
-  const [chavePixPadrao, setChavePixPadrao] = useState("financeiro@partiumobilidade.com.br");
+  const [comissaoFranquia, setComissaoFranquia] = useState("10.0");
+  const [whatsappSuporte, setWhatsappSuporte] = useState("");
+  const [chavePixPadrao, setChavePixPadrao] = useState("financeiro@partiu.app");
   const [sucessoEssencial, setSucessoEssencial] = useState(false);
 
   // Parâmetros de Despacho & Tarifação da Plataforma (Paridade com Painel Demo)
@@ -330,16 +330,16 @@ export function ConfiguracoesAdminPage() {
 
   // 3. WHITE LABEL EXPRESSO (ASSISTENTE DE 4 PASSOS)
   const [passoWizard, setPassoWizard] = useState<1 | 2 | 3 | 4>(1);
-  const [wlCidade, setWlCidade] = useState("Arapiraca");
-  const [wlUf, setWlUf] = useState("AL");
-  const [wlNomeApp, setWlNomeApp] = useState("Partiu Arapiraca");
+  const [wlCidade, setWlCidade] = useState("");
+  const [wlUf, setWlUf] = useState("");
+  const [wlNomeApp, setWlNomeApp] = useState("PARTIU");
   const [wlLogoUrl, setWlLogoUrl] = useState("");
-  const [wlCorPrimaria, setWlCorPrimaria] = useState("#0088FF");
+  const [wlCorPrimaria, setWlCorPrimaria] = useState("#FF6B00");
   const [wlPreset, setWlPreset] = useState<"Moderno" | "Compacto" | "Arredondado">("Moderno");
   const [wlTarifaBase, setWlTarifaBase] = useState("5.00");
   const [wlComissao, setWlComissao] = useState("10.0");
-  const [wlPix, setWlPix] = useState("financeiro.arapiraca@partiu.app");
-  const [wlWhatsapp, setWlWhatsapp] = useState("(82) 99111-2233");
+  const [wlPix, setWlPix] = useState("");
+  const [wlWhatsapp, setWlWhatsapp] = useState("");
   const [cidadeAtivadaSucesso, setCidadeAtivadaSucesso] = useState(false);
 
   // Lista de Cidades White Label Ativas com persistência local
@@ -352,29 +352,16 @@ export function ConfiguracoesAdminPage() {
     }
     return [
       {
-        id: "ten_mcz",
-        nome: "Maceió",
-        uf: "AL",
-        nomeApp: "Partiu Maceió",
-        corPrimaria: "#0088FF",
+        id: "ten_matriz",
+        nome: "Operação Principal",
+        uf: "BR",
+        nomeApp: "PARTIU",
+        corPrimaria: "#FF6B00",
         preset: "Moderno",
         tarifaBase: 5.5,
-        comissaoPercent: 12.5,
-        chavePix: "financeiro@partiumobilidade.com.br",
-        whatsapp: "(82) 99888-7766",
-        status: "ATIVA",
-      },
-      {
-        id: "ten_arp",
-        nome: "Arapiraca",
-        uf: "AL",
-        nomeApp: "Partiu Arapiraca",
-        corPrimaria: "#F59E0B",
-        preset: "Arredondado",
-        tarifaBase: 5.0,
         comissaoPercent: 10.0,
-        chavePix: "financeiro.arapiraca@partiu.app",
-        whatsapp: "(82) 99111-2233",
+        chavePix: "financeiro@partiu.app",
+        whatsapp: "",
         status: "ATIVA",
       },
     ];

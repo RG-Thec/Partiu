@@ -74,13 +74,13 @@ function PartiuEncomendasContent() {
         if (perfil?.avatarUrl) setUserAvatarUrl(perfil.avatarUrl);
       })
       .catch(() => {
-        const salvo = localStorage.getItem("partiu_user_nome") || localStorage.getItem("univans_user_nome");
+        const salvo = localStorage.getItem("partiu_user_nome");
         if (salvo) setUserName(salvo);
       });
 
     const sincronizarStorage = () => {
       try {
-        const salvoNome = localStorage.getItem("partiu_user_nome") || localStorage.getItem("univans_user_nome");
+        const salvoNome = localStorage.getItem("partiu_user_nome");
         if (salvoNome) setUserName(salvoNome);
         const salvoAv = localStorage.getItem("partiu_user_avatar");
         if (salvoAv) setUserAvatarUrl(salvoAv);

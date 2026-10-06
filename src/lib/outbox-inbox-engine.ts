@@ -41,14 +41,12 @@ export interface InboxRecord<T = unknown> {
 }
 
 const STORAGE_OUTBOX_KEY = "partiu_outbox_events_store_v3_3";
-const LEGACY_STORAGE_OUTBOX_KEY = "univans_outbox_events_store_v3_3";
 const STORAGE_INBOX_KEY = "partiu_inbox_events_store_v3_3";
-const LEGACY_STORAGE_INBOX_KEY = "univans_inbox_events_store_v3_3";
 
 export function getOutboxStore(): OutboxRecord[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(STORAGE_OUTBOX_KEY) || localStorage.getItem(LEGACY_STORAGE_OUTBOX_KEY);
+    const raw = localStorage.getItem(STORAGE_OUTBOX_KEY);
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
@@ -67,7 +65,7 @@ export function saveOutboxStore(records: OutboxRecord[]) {
 export function getInboxStore(): InboxRecord[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(STORAGE_INBOX_KEY) || localStorage.getItem(LEGACY_STORAGE_INBOX_KEY);
+    const raw = localStorage.getItem(STORAGE_INBOX_KEY);
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
