@@ -49,6 +49,7 @@ import { isSuperAdmin, getAdminRole } from "@/lib/admin-rbac";
 import { useBranding } from "@/hooks/useBranding";
 import { themeEngine, generatePrimaryPalette, updateBrowserFavicon, generateSvgFavicon } from "@/lib/branding/ThemeEngine";
 import { PalettePickerSection } from "@/components/admin/PalettePickerSection";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/app/admin/configuracoes")({
   head: () => ({
@@ -379,6 +380,41 @@ export function ConfiguracoesAdminPage() {
     ];
   });
 
+  // Sincroniza cidades/tenants reais do Supabase na inicialização
+  useEffect(() => {
+    if (isSupabaseConfigured()) {
+      void (async () => {
+        try {
+          const { data } = await (supabase as any)
+            .from("white_label_tenants")
+            .select("*");
+          if (data && data.length > 0) {
+            const mapped: CidadeTenant[] = data.map((t: any) => ({
+              id: t.id,
+              nome: t.city_name || t.tenant_name || "Cidade",
+              uf: t.state_uf || "BR",
+              nomeApp: t.trade_name || t.tenant_name || "Partiu",
+              corPrimaria: t.primary_color || "#0088FF",
+              preset: "Moderno",
+              tarifaBase: Number(t.base_fare || 5.0),
+              comissaoPercent: Number(t.platform_fee_percent || 10.0),
+              chavePix: t.pix_key || "",
+              whatsapp: t.support_whatsapp || "",
+              status: t.is_active ? "ATIVA" : "EM_CONFIGURACAO",
+            }));
+            setCidadesAtivas((prev) => {
+              const ids = new Set(mapped.map((m) => m.id));
+              const remaining = prev.filter((p) => !ids.has(p.id));
+              return [...mapped, ...remaining];
+            });
+          }
+        } catch (e) {
+          console.warn("[ConfiguracoesAdminPage] Falha ao sincronizar tenants do Supabase:", e);
+        }
+      })();
+    }
+  }, []);
+
   async function handleSalvarEssencial(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -451,6 +487,38 @@ export function ConfiguracoesAdminPage() {
       }
       return updated;
     });
+
+    if (isSupabaseConfigured()) {
+      void (async () => {
+        try {
+          await (supabase as any).from("white_label_tenants").upsert({
+            id: novaCidade.id,
+            tenant_name: novaCidade.nome,
+            trade_name: novaCidade.nomeApp,
+            primary_color: novaCidade.corPrimaria,
+            pix_key: novaCidade.chavePix,
+            support_whatsapp: novaCidade.whatsapp,
+            is_active: true,
+            status: "active",
+            city_name: novaCidade.nome,
+            state_uf: novaCidade.uf,
+            base_fare: novaCidade.tarifaBase,
+            platform_fee_percent: novaCidade.comissaoPercent,
+            updated_at: new Date().toISOString(),
+          });
+          await (supabase as any).from("app_branding").upsert({
+            tenant_id: novaCidade.id,
+            app_name: novaCidade.nomeApp,
+            primary_color: novaCidade.corPrimaria,
+            support_whatsapp: novaCidade.whatsapp,
+            updated_at: new Date().toISOString(),
+          });
+        } catch (e) {
+          console.warn("[handleConcluirWhiteLabel] Falha ao persistir tenant no Supabase:", e);
+        }
+      })();
+    }
+
     setCidadeAtivadaSucesso(true);
   }
 

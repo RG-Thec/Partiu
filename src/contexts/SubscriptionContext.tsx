@@ -109,7 +109,7 @@ export function SubscriptionProvider({
   useEffect(() => {
     const handleActivated = (e: any) => {
       if (e.detail?.driverId === driverId) {
-        triggerInstantActivation();
+        void refreshAccess();
       }
     };
 
@@ -142,7 +142,7 @@ export function SubscriptionProvider({
         supabase.removeChannel(channel);
       }
     };
-  }, [driverId, triggerInstantActivation]);
+  }, [driverId, triggerInstantActivation, refreshAccess]);
 
   // 4. Geração de cobrança PIX
   const generateBilling = async (planId?: string): Promise<DriverBillingRecord | null> => {
@@ -157,23 +157,15 @@ export function SubscriptionProvider({
     }
   };
 
-  // 5. Ativação expressa de demonstração local (APENAS EM DEV)
+  // 5. Ativação expressa de demonstração local (bloqueada em produção comercial)
   const activateDemo = useCallback(async () => {
     if (!environmentEngine.isDev()) {
       console.warn("[SubscriptionContext] Modo de demonstração bloqueado em ambiente de produção.");
+      await refreshAccess();
       return;
     }
-    pixBillingService.activateDemoMode(driverId);
-    try {
-      await driverSubscriptionService.simulateDailyFeePayment(driverId, "CARRO");
-      if (driverId !== "mot-001") {
-        await driverSubscriptionService.simulateDailyFeePayment("mot-001", "CARRO");
-      }
-    } catch {}
-
-    triggerInstantActivation();
     await refreshAccess();
-  }, [driverId, triggerInstantActivation, refreshAccess]);
+  }, [refreshAccess]);
 
   // O desbloqueio operacional depende estritamente da decisão do servidor/banco (accessDecision.is_eligible)
   const isUnlocked = Boolean(accessDecision.is_eligible);

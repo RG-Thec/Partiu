@@ -218,9 +218,18 @@ export class DirectionsService {
     destination: [number, number],
     waypoints: [number, number][] = []
   ): Promise<RouteResult | null> {
+    const customOsrmBase = typeof import.meta !== "undefined" && import.meta.env
+      ? (import.meta.env.VITE_OSRM_URL as string)
+      : undefined;
+
+    // Se não houver servidor OSRM próprio configurado, recorre à malha urbana calibrada
+    if (!customOsrmBase) {
+      return null;
+    }
+
     const allPoints = [origin, ...waypoints, destination];
     const coordsStr = allPoints.map((p) => `${p[0]},${p[1]}`).join(";");
-    const url = `https://router.project-osrm.org/route/v1/driving/${coordsStr}?overview=full&geometries=geojson&steps=true`;
+    const url = `${customOsrmBase.replace(/\/+$/, "")}/route/v1/driving/${coordsStr}?overview=full&geometries=geojson&steps=true`;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2500);

@@ -78,7 +78,7 @@ export class PartiuWalletEngine {
 
   constructor() {
     // Inicialização da Carteira Master da Tesouraria PARTIU
-    this.createWallet('treasury-master', 'PLATFORM_TREASURY', 150000.0);
+    this.createWallet('treasury-master', 'PLATFORM_TREASURY', 0.0);
   }
 
   /**

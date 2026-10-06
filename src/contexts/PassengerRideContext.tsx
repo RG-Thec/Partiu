@@ -1098,7 +1098,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
   }, [destino]);
 
   // 6. Confirmar Pino e Iniciar Radar de Busca (Transição CONFIRMING_PICKUP -> SEARCHING_R1)
-  const confirmPickupAndFindDriver = useCallback(() => {
+  const confirmPickupAndFindDriver = useCallback(async () => {
     // Bloqueia a criação do pedido se o usuário tiver negado a permissão do GPS
     if (gpsPermissionStatus === "denied") {
       setIsGpsPermissionModalOpen(true);
@@ -1121,24 +1121,28 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    setState("SEARCHING_R1");
-
     const valorCobrado = activeQuote.priceBrl;
 
-    // Blindagem Antifraude com auditoria in-process e servidor
-    antifraudService
-      .verifyAndAuthorizeRide({
+    // Blindagem Antifraude com auditoria in-process mandatória
+    try {
+      const audit = await antifraudService.verifyAndAuthorizeRide({
         pickupCoordinates: origemCoords,
         destinationCoordinates: destinoCoords,
         category: categoriaVeiculo,
         clientClaimedFare: valorCobrado,
-      })
-      .then((audit) => {
-        if (!audit.isApproved) {
-          console.warn("[Antifraud Shield] Auditoria de corrida:", audit.rejectionReason);
-        }
-      })
-      .catch(() => {});
+      });
+
+      if (!audit.isApproved) {
+        console.warn("[Antifraud Shield] Bloqueio de corrida por divergência de tarifa:", audit.rejectionReason);
+        alert("Atenção: A tarifa informada divergiu dos parâmetros auditados. Por favor, revise sua rota.");
+        setState("REVIEWING_ROUTE");
+        return;
+      }
+    } catch (err) {
+      silentCatchWarn("PassengerRideContext:antifraud", err);
+    }
+
+    setState("SEARCHING_R1");
 
     const modalidadeEnvio =
       categoriaVeiculo === "MOTO" ? "MOTO" : categoriaVeiculo === "CARRO" ? "POP" : categoriaVeiculo;
@@ -1161,11 +1165,47 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
     const telPassageiro = isOutraPessoa && telefoneOutroPassageiro.trim() ? telefoneOutroPassageiro.trim() : telUsuarioLogado;
     const nomePassageiro = isOutraPessoa ? nomeOutroPassageiro.trim() : nomeUsuarioLogado;
 
+    let valorFinal = valorCobrado;
+    let serverRideId: string | undefined = undefined;
+
+    // Validação e criação canônica server-side via Edge Function verify-and-create-ride
+    if (isSupabaseConfigured()) {
+      try {
+        const verifyRes = await supabase.functions.invoke("verify-and-create-ride", {
+          body: {
+            pickupCoordinates: origemCoords,
+            destinationCoordinates: destinoCoords,
+            category: categoriaVeiculo,
+            passengerName: nomePassageiro,
+            passengerPhone: telPassageiro,
+            pickupAddress: origem,
+            destinationAddress: destino,
+            paymentMethod: formaPagamento === "pix" ? "pix" : "dinheiro",
+            clientClaimedFare: valorCobrado,
+          },
+        });
+
+        if (verifyRes.data?.error === "FRAUD_DISCREPANCY_DETECTED") {
+          console.warn("[PassengerRideContext] Rejeição do servidor por fraude de preço:", verifyRes.data);
+          alert(`Inconsistência de tarifa detectada pelo servidor. Valor correto: R$ ${Number(verifyRes.data.serverFare || 0).toFixed(2)}`);
+          setState("REVIEWING_ROUTE");
+          return;
+        }
+
+        if (verifyRes.data?.success && verifyRes.data?.verifiedFare) {
+          valorFinal = Number(verifyRes.data.verifiedFare);
+          serverRideId = verifyRes.data.rideId || verifyRes.data.ride?.id;
+        }
+      } catch (err) {
+        silentCatchWarn("PassengerRideContext:verify-and-create-ride", err);
+      }
+    }
+
     const novaCorrida = criarNovaCorrida({
       origem,
       destino,
       modalidade: modalidadeEnvio as any,
-      valor: valorCobrado,
+      valor: valorFinal,
       distanciaKm,
       duracaoMin: activeQuote.tripDurationMinutes || duracaoMin,
       formaPagamento: formaPagamento === "pix" ? "pix" : "dinheiro",
@@ -1187,6 +1227,10 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       })),
     });
 
+    if (serverRideId) {
+      novaCorrida.id = serverRideId;
+    }
+
     setActiveRide(novaCorrida);
 
     // Inicia Despacho em Ondas Progressivas PostGIS V4 com Coordenadas Reais do Hardware GPS (Janela de até 10 Minutos)
@@ -1195,7 +1239,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       category: modalidadeEnvio,
       pickupCoords: origemCoords,
       destinationCoords: destinoCoords,
-      fareBrl: valorCobrado,
+      fareBrl: valorFinal,
       searchTimeoutSeconds: 600, // 10 minutos oficiais
     });
 
@@ -1209,7 +1253,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
           pickup_lng: origemCoords[0],
           dropoff_lat: destinoCoords[1],
           dropoff_lng: destinoCoords[0],
-          fare_brl: valorCobrado,
+          fare_brl: valorFinal,
         },
       }).catch((err) => {
         console.warn("[PassengerRideContext] Falha ao invocar edge function dispatch-ride:", err);

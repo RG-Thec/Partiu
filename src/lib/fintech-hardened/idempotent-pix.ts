@@ -60,7 +60,7 @@ export class IdempotentPixEngine {
       } catch (err) { silentCatchWarn("idempotent-pix", err); }
     }
 
-    return receivedSignature.length > 20;
+    return false;
   }
 
   /**
