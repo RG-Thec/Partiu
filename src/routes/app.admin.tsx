@@ -105,7 +105,8 @@ const MENU_PRINCIPAL: ItemMenuAdmin[] = [
     moduleId: "operacao",
     descricao: "Corridas, Entregas & Fila SOS",
     subItens: [
-      { to: "/app/admin/operacao", label: "Fila de Corridas & SOS", icon: Radio },
+      { to: "/app/admin/operacao", label: "Fila de Corridas", icon: Radio },
+      { to: "/app/admin/sos", label: "Central de Pânico & SOS", icon: ShieldAlert, badge: "SOS 24h", badgeVariant: "critical" },
       { to: "/app/admin/despacho", label: "Despacho, Matching & Surge", icon: PhoneCall, badge: "Central" },
       { to: "/app/admin/locais", label: "Cidades & Praças de Operação", icon: MapPin, badge: "Praças" },
       { to: "/app/admin/veiculo", label: "Categorias, Marcas & Modelos", icon: Car, badge: "Frota" },
@@ -136,7 +137,7 @@ const MENU_PRINCIPAL: ItemMenuAdmin[] = [
     descricao: "Consolidado, Diárias SaaS & Tarifas",
     subItens: [
       { to: "/app/admin/financeiro", label: "Extrato D+0 & Repasses", icon: DollarSign },
-      { to: "/app/admin/monetizacao", label: "Diárias SaaS & Planos", icon: CreditCard, badge: "Planos" },
+      { to: "/app/admin/monetizacao", label: "Carteira, Gateways & SaaS", icon: CreditCard, badge: "Pix" },
       { to: "/app/admin/caixa", label: "Fechamento de Caixa", icon: Layers },
     ],
   },
@@ -150,6 +151,7 @@ const MENU_PRINCIPAL: ItemMenuAdmin[] = [
     descricao: "Banners Mobile, Cupons & Growth",
     subItens: [
       { to: "/app/admin/marketing", label: "Banners Mobile & Cupons", icon: Megaphone },
+      { to: "/app/admin/afiliados", label: "Clube de Vantagens & B2B", icon: Layers, badge: "B2B" },
       { to: "/app/admin/growth", label: "Indique & Ganhe (Fidelidade)", icon: TrendingUp, badge: "Viral" },
     ],
   },

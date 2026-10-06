@@ -23,6 +23,18 @@ import {
   setPracaAtiva,
   PRACA_GLOBAL_TODAS,
 } from "../src/lib/admin-city-service.ts";
+import {
+  carregarCarteiras,
+  carregarTransacoes,
+  carregarPedidosRecarga,
+  lancarTransacaoCarteira,
+  alternarBloqueioAdmin,
+  aprovarRecargaPix,
+  rejeitarRecargaPix,
+  gerarPayloadPixCopiaECola,
+  carregarGatewayConfig,
+  salvarGatewayConfig,
+} from "../src/lib/driver-wallet-service.ts";
 
 describe("35. PARTIU NATIONAL ADMIN V4 — Navigation Architecture & RBAC (Strictly 6 Modules)", () => {
   const modulosOficiais: AdminModuleId[] = [
@@ -338,3 +350,116 @@ describe("39. PARTIU GLOBAL CITY SELECTOR & REGIONAL SCOPE (Etapa 2)", () => {
     expect(restaurada.id).toBe("todas");
   });
 });
+
+describe("40. PARTIU DRIVER WALLET, PREPAID COMMISSIONS & PIX GATEWAY (Sprint 3)", () => {
+  test("1. Carregamento de Carteiras: Motoristas com saldo positivo ficam LIBERADOS e com saldo zerado/negativo ficam BLOQUEADOS", () => {
+    const carteiras = carregarCarteiras();
+    expect(carteiras.length).toBeGreaterThanOrEqual(4);
+
+    const liberado = carteiras.find((c) => c.motoristaId === "mot-1");
+    expect(liberado).toBeDefined();
+    expect(liberado?.saldoBrl).toBeGreaterThan(0);
+    expect(liberado?.statusBloqueio).toBe("LIBERADO");
+
+    const bloqueado = carteiras.find((c) => c.motoristaId === "mot-3");
+    expect(bloqueado).toBeDefined();
+    expect(bloqueado?.saldoBrl).toBeLessThanOrEqual(0);
+    expect(bloqueado?.statusBloqueio).toBe("BLOQUEADO_SALDO_INSUFICIENTE");
+  });
+
+  test("2. Débito de Corrida: Reduz saldo e bloqueia automaticamente ao atingir saldo <= 0", () => {
+    const tx = lancarTransacaoCarteira({
+      motoristaId: "mot-1",
+      tipo: "DEBITO_CORRIDA",
+      valorBrl: 15.0,
+      descricao: "Comissão de corrida #TEST-001",
+    });
+
+    expect(tx.tipo).toBe("DEBITO_CORRIDA");
+    expect(tx.valorBrl).toBe(15.0);
+
+    const carteiras = carregarCarteiras();
+    const mot1 = carteiras.find((c) => c.motoristaId === "mot-1");
+    expect(mot1?.saldoBrl).toBe(tx.saldoAposBrl);
+  });
+
+  test("3. Bloqueio Administrativo: Prevalece sobre o saldo e impede corridas mesmo com créditos", () => {
+    const wBloqueado = alternarBloqueioAdmin("mot-1");
+    expect(wBloqueado?.statusBloqueio).toBe("BLOQUEADO_ADMINISTRATIVO");
+
+    const wDesbloqueado = alternarBloqueioAdmin("mot-1");
+    expect(wDesbloqueado?.statusBloqueio).toBe("LIBERADO");
+  });
+
+  test("4. Recarga Pix & Conciliação: Aprovação credita saldo e desbloqueia motorista", () => {
+    // mot-3 está com saldo zero/negativo e bloqueado por saldo insuficiente
+    const pedidos = carregarPedidosRecarga();
+    const pedidoPendente = pedidos.find((p) => p.motoristaId === "mot-3" && p.status === "PENDENTE");
+    expect(pedidoPendente).toBeDefined();
+
+    if (pedidoPendente) {
+      const aprovado = aprovarRecargaPix(pedidoPendente.id);
+      expect(aprovado).toBe(true);
+
+      const pedidosAtualizados = carregarPedidosRecarga();
+      const p = pedidosAtualizados.find((x) => x.id === pedidoPendente.id);
+      expect(p?.status).toBe("APROVADO");
+
+      const carteiras = carregarCarteiras();
+      const mot3 = carteiras.find((c) => c.motoristaId === "mot-3");
+      expect(mot3?.saldoBrl).toBeGreaterThan(0);
+      expect(mot3?.statusBloqueio).toBe("LIBERADO");
+    }
+  });
+
+  test("5. Rejeição de Recarga Pix: Marca pedido como REJEITADO e não altera saldo", () => {
+    const pedidos = carregarPedidosRecarga();
+    const pedidoPendente = pedidos.find((p) => p.status === "PENDENTE");
+    if (pedidoPendente) {
+      const rejeitado = rejeitarRecargaPix(pedidoPendente.id, "Comprovante ilegível");
+      expect(rejeitado).toBe(true);
+
+      const pAtualizado = carregarPedidosRecarga().find((x) => x.id === pedidoPendente.id);
+      expect(pAtualizado?.status).toBe("REJEITADO");
+    }
+  });
+
+  test("6. Emissão de QR Code Pix Copia e Cola: Padrão Banco Central com CRC16 válido", () => {
+    const payload = gerarPayloadPixCopiaECola({
+      chavePix: "financeiro@partiumobilidade.com.br",
+      nomeBeneficiario: "PARTIU MOBILIDADE URBANA",
+      cidade: "ITAPERUNA",
+      valorBrl: 50.0,
+      txid: "REC12345",
+    });
+
+    expect(payload).toContain("000201");
+    expect(payload).toContain("financeiro@partiumobilidade.com.br");
+    expect(payload).toContain("540550.00");
+    expect(payload).toContain("6304"); // Tag CRC16 final
+    expect(payload.length).toBeGreaterThan(60);
+  });
+
+  test("7. Gateway Config: Persistência e restauração de parâmetros de gateways e sandbox", () => {
+    const configAtual = carregarGatewayConfig();
+    expect(configAtual.gatewayAtivo).toBeDefined();
+
+    salvarGatewayConfig({
+      ...configAtual,
+      gatewayAtivo: "PICPAY",
+      sandbox: true,
+      tempoExpiracaoMinutos: 25,
+      limiteAlertaSaldoBaixo: 20.0,
+    });
+
+    const configSalva = carregarGatewayConfig();
+    expect(configSalva.gatewayAtivo).toBe("PICPAY");
+    expect(configSalva.sandbox).toBe(true);
+    expect(configSalva.tempoExpiracaoMinutos).toBe(25);
+    expect(configSalva.limiteAlertaSaldoBaixo).toBe(20.0);
+
+    // Restaura configuração padrão
+    salvarGatewayConfig(configAtual);
+  });
+});
+

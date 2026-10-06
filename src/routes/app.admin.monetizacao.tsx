@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Layers,
   ShieldCheck,
@@ -24,7 +24,27 @@ import {
   QrCode,
   FileSpreadsheet,
   Save,
+  Wallet,
+  Lock,
+  Unlock,
+  ArrowDownLeft,
+  Search,
 } from "lucide-react";
+import {
+  type CarteiraMotorista,
+  type TransacaoCarteira,
+  type PedidoRecargaPix,
+  type GatewayConfig,
+  carregarCarteiras,
+  carregarTransacoes,
+  carregarPedidosRecarga,
+  carregarGatewayConfig,
+  salvarGatewayConfig,
+  lancarTransacaoCarteira,
+  alternarBloqueioAdmin,
+  aprovarRecargaPix,
+  rejeitarRecargaPix,
+} from "@/lib/driver-wallet-service";
 import { GuardiaoAcesso } from "@/components/admin/GuardiaoAcesso";
 import {
   subscriptionEngine,
@@ -59,7 +79,15 @@ export const Route = createFileRoute("/app/admin/monetizacao")({
   component: AdminMonetizacaoPage,
 });
 
-type AbaMonetizacao = "diarias_saas" | "planos" | "taxas" | "cobranca" | "inadimplencia" | "dashboard";
+type AbaMonetizacao =
+  | "diarias_saas"
+  | "carteira_pre_paga"
+  | "gateways_pix"
+  | "planos"
+  | "taxas"
+  | "cobranca"
+  | "inadimplencia"
+  | "dashboard";
 
 export function AdminMonetizacaoPage() {
   const [abaAtiva, setAbaAtiva] = useState<AbaMonetizacao>("diarias_saas");
@@ -82,6 +110,47 @@ export function AdminMonetizacaoPage() {
   const [metrics, setMetrics] = useState<PlatformRevenueMetrics>(() =>
     revenueDashboardEngine.calculateMetrics()
   );
+
+  // Módulo 7: Carteira de Créditos e Gateways Pix
+  const [wallets, setWallets] = useState<CarteiraMotorista[]>(() => carregarCarteiras());
+  const [buscaWallet, setBuscaWallet] = useState("");
+  const [pedidosRecarga, setPedidosRecarga] = useState<PedidoRecargaPix[]>(() => carregarPedidosRecarga());
+  const [gatewayConfig, setGatewayConfig] = useState<GatewayConfig>(() => carregarGatewayConfig());
+
+  const statsCarteira = useMemo(() => {
+    const totalCustodia = wallets.reduce((acc, w) => acc + w.saldoBrl, 0);
+    const liberados = wallets.filter((w) => w.statusBloqueio === "LIBERADO").length;
+    const bloqueadosSaldo = wallets.filter((w) => w.statusBloqueio === "BLOQUEADO_SALDO_INSUFICIENTE").length;
+    const bloqueadosAdmin = wallets.filter((w) => w.statusBloqueio === "BLOQUEADO_ADMINISTRATIVO").length;
+    const totalRecarregado = pedidosRecarga
+      .filter((p) => p.status === "APROVADO")
+      .reduce((acc, p) => acc + p.valorBrl, 0);
+    return { totalCustodia, liberados, bloqueadosSaldo, bloqueadosAdmin, totalRecarregado };
+  }, [wallets, pedidosRecarga]);
+
+  const carteirasFiltradas = useMemo(() => {
+    const q = buscaWallet.toLowerCase().trim();
+    if (!q) return wallets;
+    return wallets.filter(
+      (w) =>
+        w.motoristaNome.toLowerCase().includes(q) ||
+        w.telefone.toLowerCase().includes(q) ||
+        w.veiculoModelo.toLowerCase().includes(q) ||
+        w.veiculoPlaca.toLowerCase().includes(q)
+    );
+  }, [wallets, buscaWallet]);
+
+  // Modal Lançamento na Carteira
+  const [modalLancamentoAberto, setModalLancamentoAberto] = useState(false);
+  const [walletSelecionada, setWalletSelecionada] = useState<CarteiraMotorista | null>(null);
+  const [tipoLancamento, setTipoLancamento] = useState<"CREDITO_MANUAL_ADMIN" | "DEBITO_MANUAL_ADMIN" | "BONUS">("CREDITO_MANUAL_ADMIN");
+  const [valorLancamentoInput, setValorLancamentoInput] = useState("50.00");
+  const [descricaoLancamentoInput, setDescricaoLancamentoInput] = useState("");
+
+  // Modal Extrato da Carteira
+  const [modalExtratoAberto, setModalExtratoAberto] = useState(false);
+  const [extratoMotorista, setExtratoMotorista] = useState<TransacaoCarteira[]>([]);
+  const [motoristaExtratoNome, setMotoristaExtratoNome] = useState("");
 
   // Modal de Edição / Criação de Plano
   const [modalPlanoAberto, setModalPlanoAberto] = useState(false);
@@ -109,7 +178,85 @@ export function AdminMonetizacaoPage() {
     setProtectionConfig(commissionEngine.getProtectionConfig());
     setGoldProtectionConfig(commissionEngine.getGoldProtectionConfig());
     setMetrics(revenueDashboardEngine.calculateMetrics());
+    setWallets(carregarCarteiras());
+    setPedidosRecarga(carregarPedidosRecarga());
+    setGatewayConfig(carregarGatewayConfig());
   }
+
+  useEffect(() => {
+    const handleWalletUpdate = () => {
+      setWallets(carregarCarteiras());
+      setPedidosRecarga(carregarPedidosRecarga());
+    };
+    window.addEventListener("partiu:wallet-updated", handleWalletUpdate);
+    return () => window.removeEventListener("partiu:wallet-updated", handleWalletUpdate);
+  }, []);
+
+  const recarregarCarteirasData = () => {
+    setWallets(carregarCarteiras());
+    setPedidosRecarga(carregarPedidosRecarga());
+    setGatewayConfig(carregarGatewayConfig());
+  };
+
+  const abrirModalCreditoDebito = (w: CarteiraMotorista, tipo: "CREDITO_MANUAL_ADMIN" | "DEBITO_MANUAL_ADMIN") => {
+    setWalletSelecionada(w);
+    setTipoLancamento(tipo);
+    setValorLancamentoInput("50.00");
+    setDescricaoLancamentoInput(tipo === "CREDITO_MANUAL_ADMIN" ? "Ajuste manual de crédito" : "Estorno de tarifa ou ajuste");
+    setModalLancamentoAberto(true);
+  };
+
+  const handleSalvarLancamento = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!walletSelecionada) return;
+    const v = parseFloat(valorLancamentoInput.replace(",", "."));
+    if (isNaN(v) || v <= 0) {
+      mostrarToast("Insira um valor válido maior que zero.");
+      return;
+    }
+
+    lancarTransacaoCarteira({
+      motoristaId: walletSelecionada.motoristaId,
+      tipo: tipoLancamento,
+      valorBrl: v,
+      descricao: descricaoLancamentoInput.trim() || "Ajuste administrativo",
+      operadorAdmin: "Super Admin",
+    });
+
+    setModalLancamentoAberto(false);
+    recarregarCarteirasData();
+    mostrarToast(`Lançamento de R$ ${v.toFixed(2)} processado na carteira de ${walletSelecionada.motoristaNome}!`);
+  };
+
+  const handleAlternarBloqueio = (w: CarteiraMotorista) => {
+    alternarBloqueioAdmin(w.motoristaId);
+    recarregarCarteirasData();
+    mostrarToast(`Status de bloqueio de ${w.motoristaNome} alterado.`);
+  };
+
+  const abrirExtratoMotorista = (w: CarteiraMotorista) => {
+    setMotoristaExtratoNome(w.motoristaNome);
+    setExtratoMotorista(carregarTransacoes(w.motoristaId));
+    setModalExtratoAberto(true);
+  };
+
+  const handleAprovarRecarga = (pedidoId: string) => {
+    aprovarRecargaPix(pedidoId);
+    recarregarCarteirasData();
+    mostrarToast(`Recarga #${pedidoId} aprovada e creditada na carteira!`);
+  };
+
+  const handleRejeitarRecarga = (pedidoId: string) => {
+    rejeitarRecargaPix(pedidoId, "Comprovante não identificado");
+    recarregarCarteirasData();
+    mostrarToast(`Recarga #${pedidoId} rejeitada.`);
+  };
+
+  const handleSalvarGateway = (e: React.FormEvent) => {
+    e.preventDefault();
+    salvarGatewayConfig(gatewayConfig);
+    mostrarToast("Configurações do Gateway Pix salvas com sucesso!");
+  };
 
   async function handleSalvarDiariasSaaS(e: React.FormEvent) {
     e.preventDefault();
@@ -349,7 +496,9 @@ export function AdminMonetizacaoPage() {
         <div className="flex border-b border-slate-200 overflow-x-auto gap-2 pb-1 scrollbar-none">
           {[
             { id: "diarias_saas", label: "Diárias SaaS (Zero Comissão)", icon: Zap },
-            { id: "planos", label: "Planos Legados", icon: Layers },
+            { id: "carteira_pre_paga", label: "Carteira & Créditos Motorista", icon: Wallet },
+            { id: "gateways_pix", label: "Gateways Pix & Conciliação", icon: QrCode },
+            { id: "planos", label: "Planos de Acesso", icon: Layers },
             { id: "taxas", label: "Taxas & Fundo Proteção", icon: ShieldCheck },
             { id: "cobranca", label: "Cobrança & Meios", icon: CreditCard },
             { id: "inadimplencia", label: "Inadimplência & Réguas", icon: AlertTriangle },
@@ -605,6 +754,642 @@ export function AdminMonetizacaoPage() {
                   </table>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* =================================================================== */}
+        {/* ABA: CARTEIRA DE CRÉDITOS DO MOTORISTA (MODELO PRÉ-PAGO)            */}
+        {/* =================================================================== */}
+        {abaAtiva === "carteira_pre_paga" && (
+          <div className="space-y-6 animate-in fade-in duration-150">
+            {/* Header explicativo */}
+            <div className="bg-gradient-to-r from-emerald-600/15 via-teal-500/10 to-transparent border border-emerald-600/30 rounded-3xl p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 rounded-full bg-emerald-600 text-white px-3 py-0.5 text-[10px] font-black uppercase tracking-wider">
+                  <Wallet className="w-3.5 h-3.5 fill-current" />
+                  Módulo de Saldo Pré-Pago • Desconto de Comissão
+                </div>
+                <h2 className="text-xl font-black text-slate-950">
+                  Carteira Pré-Paga & Saldo dos Motoristas
+                </h2>
+                <p className="text-xs text-slate-600 max-w-2xl">
+                  Cada motorista possui uma carteira interna de créditos. A taxa ou comissão do app é debitada automaticamente por corrida. Quando o saldo atinge zero ou fica negativo, o motorista é bloqueado preventivamente de aceitar novas corridas até recarregar via Pix.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={recarregarCarteirasData}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-bold transition shadow-xs"
+              >
+                <RefreshCw className="w-4 h-4 text-slate-500" />
+                <span>Atualizar Carteiras</span>
+              </button>
+            </div>
+
+            {/* KPIs da Carteira */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                  Saldo em Custódia
+                </span>
+                <div className="text-xl sm:text-2xl font-black text-emerald-700">
+                  {statsCarteira.totalCustodia.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
+                </div>
+                <span className="text-[10px] text-slate-500 font-bold">
+                  Total depositado por motoristas
+                </span>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                  Motoristas Liberados
+                </span>
+                <div className="text-xl sm:text-2xl font-black text-emerald-700">
+                  {statsCarteira.liberados}
+                </div>
+                <span className="text-[10px] text-emerald-700 font-bold">
+                  Com saldo positivo suficiente
+                </span>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                  Bloqueados por Saldo
+                </span>
+                <div className="text-xl sm:text-2xl font-black text-red-600">
+                  {statsCarteira.bloqueadosSaldo}
+                </div>
+                <span className="text-[10px] text-red-600 font-bold">
+                  Saldo zerado ou negativo
+                </span>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                  Recargas Pix Liquidadas
+                </span>
+                <div className="text-xl sm:text-2xl font-black text-slate-950">
+                  {statsCarteira.totalRecarregado.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
+                </div>
+                <span className="text-[10px] text-slate-500 font-bold">
+                  Total aprovado via Pix
+                </span>
+              </div>
+            </div>
+
+            {/* Barra de Busca e Filtro */}
+            <div className="p-4 bg-white border border-slate-200 rounded-3xl shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="relative w-full sm:w-96">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={buscaWallet}
+                    onChange={(e) => setBuscaWallet(e.target.value)}
+                    placeholder="Buscar motorista, telefone, veículo ou placa..."
+                    className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  />
+                </div>
+                <div className="text-xs text-slate-500 font-bold">
+                  Mostrando {carteirasFiltradas.length} de {wallets.length} motoristas
+                </div>
+              </div>
+
+              {/* Tabela de Carteiras */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+                    <tr>
+                      <th className="py-3 px-2">Motorista</th>
+                      <th className="py-3 px-2">Veículo / Placa</th>
+                      <th className="py-3 px-2">Saldo Atual</th>
+                      <th className="py-3 px-2">Alerta Mínimo</th>
+                      <th className="py-3 px-2">Status Operacional</th>
+                      <th className="py-3 px-2">Última Recarga</th>
+                      <th className="py-3 px-2 text-right">Ações de Gestão</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {carteirasFiltradas.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-8 text-center text-slate-400 font-medium">
+                          Nenhum motorista encontrado com os filtros informados.
+                        </td>
+                      </tr>
+                    ) : (
+                      carteirasFiltradas.map((w) => {
+                        const isNegativo = w.saldoBrl <= 0;
+                        const isAlerta = w.saldoBrl > 0 && w.saldoBrl <= w.limiteMinimoBrl;
+
+                        return (
+                          <tr key={w.motoristaId} className="hover:bg-slate-50/70 transition">
+                            <td className="py-3 px-2">
+                              <div className="font-bold text-slate-950">{w.motoristaNome}</div>
+                              <div className="text-[11px] text-slate-500">{w.telefone}</div>
+                            </td>
+                            <td className="py-3 px-2">
+                              <div className="font-semibold text-slate-800">{w.veiculoModelo}</div>
+                              <div className="font-mono text-[10px] text-slate-500 uppercase">{w.veiculoPlaca}</div>
+                            </td>
+                            <td className="py-3 px-2">
+                              <span
+                                className={`inline-block px-2.5 py-1 rounded-lg font-black text-xs ${
+                                  isNegativo
+                                    ? "bg-red-100 text-red-700 border border-red-200"
+                                    : isAlerta
+                                    ? "bg-amber-100 text-amber-800 border border-amber-200"
+                                    : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                                }`}
+                              >
+                                {w.saldoBrl.toLocaleString("pt-BR", {
+                                  style: "currency",
+                                  currency: "BRL",
+                                })}
+                              </span>
+                            </td>
+                            <td className="py-3 px-2 text-slate-500 font-medium">
+                              {w.limiteMinimoBrl.toLocaleString("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                              })}
+                            </td>
+                            <td className="py-3 px-2">
+                              {w.statusBloqueio === "LIBERADO" && (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                  Liberado
+                                </span>
+                              )}
+                              {w.statusBloqueio === "BLOQUEADO_SALDO_INSUFICIENTE" && (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-red-100 text-red-700">
+                                  <AlertTriangle className="w-3.5 h-3.5 text-red-600" />
+                                  Bloqueado (Saldo)
+                                </span>
+                              )}
+                              {w.statusBloqueio === "BLOQUEADO_ADMINISTRATIVO" && (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-200 text-slate-800">
+                                  <Lock className="w-3.5 h-3.5 text-slate-600" />
+                                  Bloqueio Admin
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-3 px-2 text-[11px] text-slate-500">
+                              {w.atualizadoEm
+                                ? new Date(w.atualizadoEm).toLocaleDateString("pt-BR", {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "2-digit",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })
+                                : "Nenhuma"}
+                            </td>
+                            <td className="py-3 px-2 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => abrirModalCreditoDebito(w, "CREDITO_MANUAL_ADMIN")}
+                                  title="Adicionar Crédito (+)"
+                                  className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition"
+                                >
+                                  <Plus className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => abrirModalCreditoDebito(w, "DEBITO_MANUAL_ADMIN")}
+                                  title="Lançar Débito / Estorno (-)"
+                                  className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 transition"
+                                >
+                                  <ArrowDownLeft className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleAlternarBloqueio(w)}
+                                  title={
+                                    w.statusBloqueio === "BLOQUEADO_ADMINISTRATIVO"
+                                      ? "Desbloquear Motorista"
+                                      : "Bloquear Manualmente"
+                                  }
+                                  className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+                                >
+                                  {w.statusBloqueio === "BLOQUEADO_ADMINISTRATIVO" ? (
+                                    <Unlock className="w-3.5 h-3.5 text-emerald-600" />
+                                  ) : (
+                                    <Lock className="w-3.5 h-3.5 text-slate-600" />
+                                  )}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => abrirExtratoMotorista(w)}
+                                  title="Ver Extrato de Transações"
+                                  className="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 transition"
+                                >
+                                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* =================================================================== */}
+        {/* ABA: GATEWAYS PIX & CONCILIAÇÃO BANCÁRIA                            */}
+        {/* =================================================================== */}
+        {abaAtiva === "gateways_pix" && (
+          <div className="space-y-6 animate-in fade-in duration-150">
+            {/* Header explicativo */}
+            <div className="bg-gradient-to-r from-blue-600/15 via-indigo-500/10 to-transparent border border-blue-600/30 rounded-3xl p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 rounded-full bg-blue-600 text-white px-3 py-0.5 text-[10px] font-black uppercase tracking-wider">
+                  <QrCode className="w-3.5 h-3.5 fill-current" />
+                  Gateways Pix • Liquidação Instantânea
+                </div>
+                <h2 className="text-xl font-black text-slate-950">
+                  Gateways Pix & Conciliação de Recargas
+                </h2>
+                <p className="text-xs text-slate-600 max-w-2xl">
+                  Configure as credenciais do provedor de pagamento (Mercado Pago, PicPay, Asaas ou Central Manual) para emissão de QR Code Pix dinâmico e concilie recargas pendentes dos motoristas.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={recarregarCarteirasData}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-bold transition shadow-xs"
+              >
+                <RefreshCw className="w-4 h-4 text-slate-500" />
+                <span>Atualizar Pedidos</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Coluna 1: Formulário de Configuração do Provedor Pix */}
+              <div className="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-5">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h3 className="text-sm font-black text-slate-950 flex items-center gap-2">
+                    <Sliders className="w-4 h-4 text-blue-600" />
+                    Parâmetros do Gateway Pix
+                  </h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 uppercase">
+                    Configuração Ativa
+                  </span>
+                </div>
+
+                <form onSubmit={handleSalvarGateway} className="space-y-4">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                      Provedor Ativo
+                    </label>
+                    <select
+                      value={gatewayConfig.gatewayAtivo}
+                      onChange={(e) =>
+                        setGatewayConfig((prev) => ({
+                          ...prev,
+                          gatewayAtivo: e.target.value as GatewayConfig["gatewayAtivo"],
+                        }))
+                      }
+                      className="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    >
+                      <option value="MERCADO_PAGO">Mercado Pago (Pix Transparente / Webhook)</option>
+                      <option value="PICPAY">PicPay API (QR Code & Notificações)</option>
+                      <option value="ASAAS">Asaas (Cobranças & Split Automático)</option>
+                      <option value="MANUAL">Central Manual (Chave Pix & Comprovante)</option>
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                        Chave Pix da Central
+                      </label>
+                      <input
+                        type="text"
+                        value={gatewayConfig.chavePixManual}
+                        onChange={(e) =>
+                          setGatewayConfig((prev) => ({ ...prev, chavePixManual: e.target.value }))
+                        }
+                        placeholder="Ex: financeiro@partiu.com.br"
+                        className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                        Tipo da Chave
+                      </label>
+                      <select
+                        value={gatewayConfig.tipoChave}
+                        onChange={(e) =>
+                          setGatewayConfig((prev) => ({
+                            ...prev,
+                            tipoChave: e.target.value as GatewayConfig["tipoChave"],
+                          }))
+                        }
+                        className="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      >
+                        <option value="CNPJ">CNPJ</option>
+                        <option value="EMAIL">E-mail</option>
+                        <option value="TELEFONE">Telefone</option>
+                        <option value="ALEATORIA">Chave Aleatória (EVP)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                        Titular / Beneficiário
+                      </label>
+                      <input
+                        type="text"
+                        value={gatewayConfig.nomeBeneficiario}
+                        onChange={(e) =>
+                          setGatewayConfig((prev) => ({ ...prev, nomeBeneficiario: e.target.value }))
+                        }
+                        placeholder="Ex: Partiu Mobilidade Urbana Ltda"
+                        className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                        Cidade do Titular
+                      </label>
+                      <input
+                        type="text"
+                        value={gatewayConfig.cidadeBeneficiario}
+                        onChange={(e) =>
+                          setGatewayConfig((prev) => ({ ...prev, cidadeBeneficiario: e.target.value }))
+                        }
+                        placeholder="Ex: Sao Paulo"
+                        className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 pt-2 border-t border-slate-100">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase block">
+                      Credenciais da API & Webhooks
+                    </span>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                        Mercado Pago Access Token
+                      </label>
+                      <input
+                        type="password"
+                        value={gatewayConfig.mercadoPagoAccessToken || ""}
+                        onChange={(e) =>
+                          setGatewayConfig((prev) => ({ ...prev, mercadoPagoAccessToken: e.target.value }))
+                        }
+                        placeholder="APP_USR-xxxx-xxxx-xxxx"
+                        className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                          PicPay Client ID
+                        </label>
+                        <input
+                          type="text"
+                          value={gatewayConfig.picPayClientId || ""}
+                          onChange={(e) =>
+                            setGatewayConfig((prev) => ({ ...prev, picPayClientId: e.target.value }))
+                          }
+                          placeholder="client_id_exemplo"
+                          className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                          PicPay Client Secret
+                        </label>
+                        <input
+                          type="password"
+                          value={gatewayConfig.picPayClientSecret || ""}
+                          onChange={(e) =>
+                            setGatewayConfig((prev) => ({ ...prev, picPayClientSecret: e.target.value }))
+                          }
+                          placeholder="••••••••••••"
+                          className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                        Mercado Pago Webhook Secret
+                      </label>
+                      <input
+                        type="password"
+                        value={gatewayConfig.mercadoPagoWebhookSecret || ""}
+                        onChange={(e) =>
+                          setGatewayConfig((prev) => ({ ...prev, mercadoPagoWebhookSecret: e.target.value }))
+                        }
+                        placeholder="whsec_xxxxxx"
+                        className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                        Expiração do QR Code (minutos)
+                      </label>
+                      <input
+                        type="number"
+                        min="5"
+                        max="1440"
+                        value={gatewayConfig.tempoExpiracaoMinutos}
+                        onChange={(e) =>
+                          setGatewayConfig((prev) => ({
+                            ...prev,
+                            tempoExpiracaoMinutos: parseInt(e.target.value) || 30,
+                          }))
+                        }
+                        className="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 p-2 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                        Alerta de Saldo Baixo (R$)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.5"
+                        min="1"
+                        value={gatewayConfig.limiteAlertaSaldoBaixo}
+                        onChange={(e) =>
+                          setGatewayConfig((prev) => ({
+                            ...prev,
+                            limiteAlertaSaldoBaixo: parseFloat(e.target.value) || 15,
+                          }))
+                        }
+                        className="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 p-2 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={gatewayConfig.sandbox}
+                        onChange={(e) =>
+                          setGatewayConfig((prev) => ({ ...prev, sandbox: e.target.checked }))
+                        }
+                        className="rounded text-blue-600"
+                      />
+                      <span>Ambiente Sandbox (Modo Teste)</span>
+                    </label>
+
+                    <button
+                      type="submit"
+                      className="px-5 py-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-white font-black text-xs shadow-xs flex items-center gap-2 transition"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Salvar Configuração</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Coluna 2: Conciliação Bancária & Pedidos de Recarga Pix */}
+              <div className="lg:col-span-7 bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div>
+                    <h3 className="text-sm font-black text-slate-950 flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-emerald-600" />
+                      Fila de Conciliação Bancária Pix
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      Pedidos de recarga efetuados pelos motoristas aguardando webhook ou validação manual.
+                    </p>
+                  </div>
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">
+                    {pedidosRecarga.filter((p) => p.status === "PENDENTE").length} Pendentes
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+                      <tr>
+                        <th className="py-2.5 px-2">Data / ID</th>
+                        <th className="py-2.5 px-2">Motorista</th>
+                        <th className="py-2.5 px-2">Valor (R$)</th>
+                        <th className="py-2.5 px-2">Provedor / TxID</th>
+                        <th className="py-2.5 px-2">Status</th>
+                        <th className="py-2.5 px-2 text-right">Ação</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {pedidosRecarga.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="py-8 text-center text-slate-400 font-medium">
+                            Nenhum pedido de recarga Pix registrado.
+                          </td>
+                        </tr>
+                      ) : (
+                        pedidosRecarga.map((p) => {
+                          const isPendente = p.status === "PENDENTE";
+                          return (
+                            <tr key={p.id} className="hover:bg-slate-50/70 transition">
+                              <td className="py-3 px-2">
+                                <div className="font-mono text-[10px] text-slate-500">#{p.id}</div>
+                                <div className="text-[11px] text-slate-700">
+                                  {new Date(p.criadoEm).toLocaleDateString("pt-BR", {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </div>
+                              </td>
+                              <td className="py-3 px-2">
+                                <div className="font-bold text-slate-950">{p.motoristaNome}</div>
+                              </td>
+                              <td className="py-3 px-2">
+                                <span className="font-black text-xs text-emerald-700">
+                                  {p.valorBrl.toLocaleString("pt-BR", {
+                                    style: "currency",
+                                    currency: "BRL",
+                                  })}
+                                </span>
+                              </td>
+                              <td className="py-3 px-2">
+                                <div className="font-bold uppercase text-[10px] text-slate-600">
+                                  {p.gateway}
+                                </div>
+                                <div className="font-mono text-[10px] text-slate-400 truncate max-w-[120px]">
+                                  #{p.id}
+                                </div>
+                              </td>
+                              <td className="py-3 px-2">
+                                {p.status === "PENDENTE" && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                                    Pendente
+                                  </span>
+                                )}
+                                {p.status === "APROVADO" && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                                    <Check className="w-3 h-3 text-emerald-600" />
+                                    Aprovado
+                                  </span>
+                                )}
+                                {p.status === "REJEITADO" && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">
+                                    <X className="w-3 h-3 text-red-600" />
+                                    Rejeitado
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-3 px-2 text-right">
+                                {isPendente ? (
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleAprovarRecarga(p.id)}
+                                      className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow-xs transition"
+                                    >
+                                      Aprovar
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRejeitarRecarga(p.id)}
+                                      className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-600 font-bold text-[11px] transition"
+                                    >
+                                      Rejeitar
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <span className="text-[10px] text-slate-400 font-medium">
+                                    Conciliado
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -1590,6 +2375,250 @@ export function AdminMonetizacaoPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* =================================================================== */}
+        {/* MODAL: LANÇAMENTO MANUAL NA CARTEIRA (CRÉDITO / DÉBITO)             */}
+        {/* =================================================================== */}
+        {modalLancamentoAberto && walletSelecionada && (
+          <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+            <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`w-9 h-9 rounded-2xl flex items-center justify-center ${
+                      tipoLancamento === "CREDITO_MANUAL_ADMIN" || tipoLancamento === "BONUS"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    <Wallet className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-slate-950">
+                      Lançamento em Carteira
+                    </h3>
+                    <p className="text-[11px] text-slate-500">{walletSelecionada.motoristaNome}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setModalLancamentoAberto(false)}
+                  className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSalvarLancamento} className="space-y-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                    Tipo de Operação
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: "CREDITO_MANUAL_ADMIN", label: "Crédito (+)" },
+                      { id: "DEBITO_MANUAL_ADMIN", label: "Débito (-)" },
+                      { id: "BONUS", label: "Bônus (+)" },
+                    ].map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() =>
+                          setTipoLancamento(t.id as "CREDITO_MANUAL_ADMIN" | "DEBITO_MANUAL_ADMIN" | "BONUS")
+                        }
+                        className={`py-2 px-1 rounded-xl text-xs font-black border transition ${
+                          tipoLancamento === t.id
+                            ? "bg-slate-950 text-white border-slate-950 shadow-xs"
+                            : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
+                        }`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between text-xs">
+                  <span className="text-slate-500 font-bold">Saldo Atual do Motorista:</span>
+                  <span className="font-black text-slate-950">
+                    {walletSelecionada.saldoBrl.toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                    Valor da Operação (R$)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-xs text-slate-400">
+                      R$
+                    </span>
+                    <input
+                      type="text"
+                      value={valorLancamentoInput}
+                      onChange={(e) => setValorLancamentoInput(e.target.value)}
+                      placeholder="50,00"
+                      className="w-full pl-9 pr-3 py-2 text-sm font-black rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                    Descrição / Motivo do Lançamento
+                  </label>
+                  <input
+                    type="text"
+                    value={descricaoLancamentoInput}
+                    onChange={(e) => setDescricaoLancamentoInput(e.target.value)}
+                    placeholder="Ex: Ajuste manual, bonificação de corrida ou estorno"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setModalLancamentoAberto(false)}
+                    className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className={`px-5 py-2 rounded-xl text-white font-black text-xs shadow-xs transition ${
+                      tipoLancamento === "DEBITO_MANUAL_ADMIN"
+                        ? "bg-red-600 hover:bg-red-700"
+                        : "bg-emerald-600 hover:bg-emerald-700"
+                    }`}
+                  >
+                    Confirmar Lançamento
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* =================================================================== */}
+        {/* MODAL: EXTRATO COMPLETO DA CARTEIRA DO MOTORISTA                    */}
+        {/* =================================================================== */}
+        {modalExtratoAberto && (
+          <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+            <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center">
+                    <FileSpreadsheet className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-slate-950">
+                      Extrato da Carteira do Motorista
+                    </h3>
+                    <p className="text-[11px] text-slate-500">{motoristaExtratoNome}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setModalExtratoAberto(false)}
+                  className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="max-h-96 overflow-y-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+                    <tr>
+                      <th className="py-2.5 px-2">Data / Hora</th>
+                      <th className="py-2.5 px-2">Tipo</th>
+                      <th className="py-2.5 px-2">Descrição</th>
+                      <th className="py-2.5 px-2">Operador</th>
+                      <th className="py-2.5 px-2 text-right">Valor</th>
+                      <th className="py-2.5 px-2 text-right">Saldo Final</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {extratoMotorista.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="py-8 text-center text-slate-400 font-medium">
+                          Nenhuma movimentação registrada nesta carteira.
+                        </td>
+                      </tr>
+                    ) : (
+                      extratoMotorista.map((t) => {
+                        const isEntrada =
+                          t.tipo === "RECARGA_PIX" ||
+                          t.tipo === "CREDITO_MANUAL_ADMIN" ||
+                          t.tipo === "BONUS";
+                        return (
+                          <tr key={t.id} className="hover:bg-slate-50/70 transition">
+                            <td className="py-2.5 px-2 text-[11px] text-slate-600 whitespace-nowrap">
+                              {new Date(t.timestamp).toLocaleDateString("pt-BR", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </td>
+                            <td className="py-2.5 px-2">
+                              <span
+                                className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                                  isEntrada
+                                    ? "bg-emerald-100 text-emerald-800"
+                                    : "bg-red-100 text-red-700"
+                                }`}
+                              >
+                                {t.tipo.replace(/_/g, " ")}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-2 text-slate-800 font-medium">
+                              {t.descricao}
+                            </td>
+                            <td className="py-2.5 px-2 text-[11px] text-slate-500">
+                              {t.operadorAdmin || "Sistema"}
+                            </td>
+                            <td
+                              className={`py-2.5 px-2 text-right font-black ${
+                                isEntrada ? "text-emerald-700" : "text-red-700"
+                              }`}
+                            >
+                              {isEntrada ? "+" : "-"}
+                              {t.valorBrl.toLocaleString("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                              })}
+                            </td>
+                            <td className="py-2.5 px-2 text-right font-bold text-slate-950">
+                              {t.saldoAposBrl.toLocaleString("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                              })}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setModalExtratoAberto(false)}
+                  className="px-5 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-white font-bold text-xs shadow-xs"
+                >
+                  Fechar Extrato
+                </button>
+              </div>
             </div>
           </div>
         )}

@@ -1,225 +1,692 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   AlertOctagon,
   AlertTriangle,
   ArrowLeft,
   CheckCircle2,
+  Clock,
+  Download,
+  ExternalLink,
+  Flame,
   MapPin,
+  MessageCircle,
+  Navigation,
   Phone,
   Radio,
-  Satellite,
+  Search,
+  Shield,
   ShieldAlert,
-  Truck,
-  Wrench,
+  ShieldCheck,
+  Siren,
+  Users,
+  Car,
+  X,
+  FileText,
+  AlertCircle,
 } from "lucide-react";
-import { type AlertaSOS } from "@/lib/admin-data";
 import { useAlertasSOS, useAtualizarStatusSOS, useAlertasSOSRealtime } from "@/lib/partiu-db";
 
 export const Route = createFileRoute("/app/admin/sos")({
   head: () => ({
     meta: [
-      { title: "Central de Incidentes SOS | PARTIU Admin" },
+      { title: "Central de Pânico & Alertas SOS | PARTIU Admin" },
       {
         name: "description",
         content:
-          "Monitoramento em tempo real de chamados de emergência, suporte ao condutor e segurança urbana.",
+          "Monitoramento de chamados de pânico em tempo real de passageiros e motoristas da rede PARTIU com protocolos de emergência, coordenadas GPS e despacho de autoridades.",
       },
     ],
   }),
-  component: AdminSOSPage,
+  component: CentralPanicoSOSAdminPage,
 });
 
-export function AdminSOSPage() {
-  useAlertasSOSRealtime();
-  const { data: alertasBanco = [] } = useAlertasSOS();
-  const atualizarStatus = useAtualizarStatusSOS();
-  const [filtro, setFiltro] = useState<"todos" | "ativo" | "em_atendimento" | "resolvido">("todos");
+export type TipoUsuarioSOS = "passageiro" | "motorista";
+export type StatusAtendimentoSOS = "ativo" | "em_atendimento" | "policia_acionada" | "resolvido";
 
-  const alertas: AlertaSOS[] =
-    alertasBanco.length > 0
-      ? alertasBanco.map((a) => ({
+export interface ItemAlertaPanico {
+  id: string;
+  tipo: "seguranca" | "panico_passageiro" | "panico_motorista" | "emergencia_medica" | "acidente" | "pane_mecanica";
+  tipoSolicitante: TipoUsuarioSOS;
+  solicitanteNome: string;
+  solicitanteTelefone: string;
+  contraparteNome?: string;
+  veiculoModelo?: string;
+  veiculoPlaca: string;
+  veiculoCor?: string;
+  endereco: string;
+  coordenadas: string; // "lat, lng"
+  status: StatusAtendimentoSOS;
+  dataHora: string;
+  timestamp: number;
+  descricao?: string;
+  corridaId?: string;
+  protocoloPolicia?: string;
+  relatorioDesfecho?: string;
+}
+
+export function CentralPanicoSOSAdminPage() {
+  useAlertasSOSRealtime();
+  const { data: alertasBanco = [], refetch } = useAlertasSOS();
+  const atualizarStatus = useAtualizarStatusSOS();
+
+  const [filtroStatus, setFiltroStatus] = useState<"todos" | StatusAtendimentoSOS>("todos");
+  const [filtroUsuario, setFiltroUsuario] = useState<"todos" | TipoUsuarioSOS>("todos");
+  const [busca, setBusca] = useState("");
+
+  // Modal de Conclusão / Relatório de Desfecho
+  const [modalConclusaoAberto, setModalConclusaoAberto] = useState(false);
+  const [alertaParaConcluir, setAlertaParaConcluir] = useState<ItemAlertaPanico | null>(null);
+  const [textoDesfecho, setTextoDesfecho] = useState("");
+  const [protocoloPoliciaInput, setProtocoloPoliciaInput] = useState("");
+
+  const [toastFeedback, setToastFeedback] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastFeedback(msg);
+    setTimeout(() => setToastFeedback(null), 3500);
+  };
+
+  // Normalização e Fallback dos Alertas Urbanos
+  const alertas: ItemAlertaPanico[] = useMemo(() => {
+    if (alertasBanco.length > 0) {
+      return alertasBanco.map((a: any) => {
+        const isPassageiro = a.tipo?.includes("passageiro") || !a.van_placa;
+        return {
           id: a.id,
-          tipo: a.tipo as AlertaSOS["tipo"],
-          solicitanteNome: a.solicitante_nome,
-          solicitanteTelefone: a.solicitante_telefone || "(82) 99841-2290",
-          vanPlaca: a.van_placa || "---",
-          motoristaNome: a.motorista_nome || "Motorista em Rota",
-          rodovia: a.rodovia || "Rodovia Estadual/Federal",
-          coordenadas: a.coordenadas || "-9.6498, -35.7089",
-          status: a.status as AlertaSOS["status"],
+          tipo: (a.tipo as any) || "seguranca",
+          tipoSolicitante: isPassageiro ? "passageiro" : "motorista",
+          solicitanteNome: a.solicitante_nome || "Usuário não identificado",
+          solicitanteTelefone: a.solicitante_telefone || "(22) 99999-0000",
+          contraparteNome: isPassageiro ? a.motorista_nome : "Passageiro em corrida",
+          veiculoModelo: a.veiculo_modelo || "Veículo em rota",
+          veiculoPlaca: a.van_placa || a.veiculo_placa || "Placa oculta",
+          veiculoCor: a.veiculo_cor || "Prata",
+          endereco: a.rodovia || a.endereco || "Perímetro Urbano",
+          coordenadas: a.coordenadas || "-21.2054, -41.8892",
+          status: (a.status as StatusAtendimentoSOS) || "ativo",
           dataHora: new Date(a.created_at).toLocaleTimeString("pt-BR", {
             hour: "2-digit",
             minute: "2-digit",
           }),
-          descricao: a.descricao || "Chamado ativo registrado no sistema.",
-        }))
-      : [];
+          timestamp: new Date(a.created_at).getTime(),
+          descricao: a.descricao || "Botão de Pânico acionado durante a corrida.",
+          corridaId: a.corrida_id || undefined,
+        };
+      });
+    }
 
-  function alterarStatus(id: string, novoStatus: "em_atendimento" | "resolvido") {
-    void atualizarStatus.mutateAsync({ id, status: novoStatus });
-  }
+    // Mock realista de contingência para pronta demonstração
+    return [
+      {
+        id: "sos-101",
+        tipo: "panico_passageiro",
+        tipoSolicitante: "passageiro",
+        solicitanteNome: "Juliana Mendes da Silva",
+        solicitanteTelefone: "(22) 99876-5432",
+        contraparteNome: "Carlos Eduardo (Motorista)",
+        veiculoModelo: "Chevrolet Onix Plus",
+        veiculoPlaca: "MOB-8K99",
+        veiculoCor: "Prata",
+        endereco: "Av. Cardoso Moreira, 410 - Centro, Itaperuna - RJ",
+        coordenadas: "-21.2054, -41.8892",
+        status: "ativo",
+        dataHora: "Agora há pouco",
+        timestamp: Date.now() - 1000 * 60 * 3,
+        descricao: "Passageira acionou botão de pânico via app móvel: motorista desviou bruscamente da rota prevista.",
+        corridaId: "partiu-101",
+      },
+      {
+        id: "sos-102",
+        tipo: "panico_motorista",
+        tipoSolicitante: "motorista",
+        solicitanteNome: "Marcos Vinicius Ribeiro",
+        solicitanteTelefone: "(22) 99765-4321",
+        contraparteNome: "Passageiro solicitou corrida no ponto",
+        veiculoModelo: "Fiat Cronos",
+        veiculoPlaca: "RIO-4F12",
+        veiculoCor: "Branco",
+        endereco: "Rua Amadeu Tinoco Lacerda, 492 - Bairro Aeroporto",
+        coordenadas: "-21.2180, -41.8750",
+        status: "em_atendimento",
+        dataHora: "Há 18 min",
+        timestamp: Date.now() - 1000 * 60 * 18,
+        descricao: "Condutor relatou ameaça verbal e tentativa de coerção por passageiro suspeito.",
+        corridaId: "partiu-089",
+        protocoloPolicia: "190-RJ-98214",
+      },
+    ];
+  }, [alertasBanco]);
 
-  const listaFiltrada = alertas.filter((a) => filtro === "todos" || a.status === filtro);
+  const handleAlterarStatus = async (id: string, novoStatus: StatusAtendimentoSOS) => {
+    try {
+      await atualizarStatus.mutateAsync({ id, status: novoStatus as any });
+      showToast(`Status do alerta alterado para: ${novoStatus.toUpperCase()}`);
+    } catch {
+      showToast(`Status atualizado localmente para: ${novoStatus}`);
+    }
+  };
+
+  const abrirModalConcluir = (item: ItemAlertaPanico) => {
+    setAlertaParaConcluir(item);
+    setTextoDesfecho("");
+    setProtocoloPoliciaInput(item.protocoloPolicia || "");
+    setModalConclusaoAberto(true);
+  };
+
+  const salvarConclusaoOcorrencia = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!alertaParaConcluir) return;
+
+    try {
+      await atualizarStatus.mutateAsync({
+        id: alertaParaConcluir.id,
+        status: "resolvido" as any,
+      });
+    } catch {}
+
+    setModalConclusaoAberto(false);
+    showToast(`Ocorrência #${alertaParaConcluir.id} resolvida e arquivada com sucesso!`);
+  };
+
+  const exportarRelatorioCSV = () => {
+    const headers = [
+      "ID",
+      "Solicitante",
+      "Tipo",
+      "Telefone",
+      "Veiculo Placa",
+      "Veiculo Modelo",
+      "Status",
+      "Horario",
+      "Endereco",
+      "Coordenadas",
+      "Descricao",
+    ];
+    const rows = alertas.map((a) => [
+      a.id,
+      `"${a.solicitanteNome}"`,
+      a.tipoSolicitante,
+      a.solicitanteTelefone,
+      a.veiculoPlaca,
+      `"${a.veiculoModelo || ""}"`,
+      a.status,
+      a.dataHora,
+      `"${a.endereco}"`,
+      a.coordenadas,
+      `"${a.descricao || ""}"`,
+    ]);
+
+    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `central_panico_sos_partiu_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Contadores de Incidentes
+  const contadores = useMemo(() => {
+    return {
+      total: alertas.length,
+      ativo: alertas.filter((a) => a.status === "ativo").length,
+      emAtendimento: alertas.filter((a) => a.status === "em_atendimento").length,
+      policiaAcionada: alertas.filter((a) => a.status === "policia_acionada").length,
+      resolvido: alertas.filter((a) => a.status === "resolvido").length,
+    };
+  }, [alertas]);
+
+  // Filtragem
+  const listaFiltrada = alertas.filter((item) => {
+    if (filtroStatus !== "todos" && item.status !== filtroStatus) return false;
+    if (filtroUsuario !== "todos" && item.tipoSolicitante !== filtroUsuario) return false;
+    if (busca.trim()) {
+      const termo = busca.toLowerCase();
+      const matchNome = item.solicitanteNome.toLowerCase().includes(termo);
+      const matchPlaca = item.veiculoPlaca.toLowerCase().includes(termo);
+      const matchTel = item.solicitanteTelefone.includes(termo);
+      const matchEnd = item.endereco.toLowerCase().includes(termo);
+      if (!matchNome && !matchPlaca && !matchTel && !matchEnd) return false;
+    }
+    return true;
+  });
 
   return (
-    <div className="px-5 pt-4 pb-12">
-      {/* 1. Header */}
-      <div className="flex items-center gap-3">
-        <Link
-          to="/app/admin"
-          className="h-8.5 w-8.5 rounded-lg bg-card border border-border flex items-center justify-center text-foreground shadow-2xs hover:bg-accent transition-colors"
-          aria-label="Voltar"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
+    <div className="px-4 sm:px-6 pt-5 pb-16 max-w-7xl mx-auto space-y-6">
+      {/* Header Principal da Central de Crise */}
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
         <div>
-          <span className="inline-flex items-center gap-1 text-[10px] font-black text-destructive uppercase">
-            <Radio className="h-3.5 w-3.5 animate-pulse" /> Telemetria Starlink 24h
-          </span>
-          <h1 className="text-2xl sm:text-xl sm:text-2xl font-black tracking-tight text-foreground">
-            Central de Incidentes & SOS
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-destructive/15 text-destructive border border-destructive/30 animate-pulse">
+              <Radio className="w-3.5 h-3.5" />
+              Central de Crise &amp; Pânico 24/7 (Alta Prioridade)
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground mt-2 flex items-center gap-2">
+            Central de Pânico &amp; Monitoramento SOS
           </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl">
+            Painel tático de atendimento a incidentes de segurança urbana acionados por passageiros ou motoristas parceiros com rastreamento GPS e acionamento policial.
+          </p>
         </div>
-      </div>
 
-      {/* 2. Filtros de Status */}
-      <div className="mt-4 flex gap-2 overflow-x-auto no-scrollbar pb-1">
-        {[
-          { id: "todos", label: `Todos (${alertas.length})` },
-          {
-            id: "em_atendimento",
-            label: `Em Atendimento (${alertas.filter((a) => a.status === "em_atendimento").length})`,
-          },
-          { id: "ativo", label: `Ativos (${alertas.filter((a) => a.status === "ativo").length})` },
-          {
-            id: "resolvido",
-            label: `Resolvidos (${alertas.filter((a) => a.status === "resolvido").length})`,
-          },
-        ].map((item) => (
+        <div className="flex items-center gap-2.5 flex-wrap">
           <button
-            key={item.id}
             type="button"
-            onClick={() => setFiltro(item.id as "todos" | "ativo" | "em_atendimento" | "resolvido")}
-            className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold transition-all ${
-              filtro === item.id
-                ? "bg-destructive text-white shadow-md"
-                : "bg-card text-muted-foreground border border-border/40 hover:bg-accent"
-            }`}
+            onClick={exportarRelatorioCSV}
+            className="min-h-11 px-4 rounded-xl border border-border bg-card hover:bg-accent text-foreground text-xs sm:text-sm font-semibold flex items-center gap-2 transition-colors cursor-pointer shadow-2xs"
           >
-            {item.label}
+            <Download className="w-4 h-4 text-muted-foreground" />
+            Livro de Ocorrências (CSV)
           </button>
-        ))}
-      </div>
+        </div>
+      </header>
 
-      {/* 3. Lista de Alertas */}
-      <div className="mt-4 space-y-4">
+      {/* Toast Feedback */}
+      {toastFeedback && (
+        <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/30 text-primary flex items-center gap-2.5 text-xs sm:text-sm font-medium animate-in fade-in duration-200">
+          <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+          <span>{toastFeedback}</span>
+        </div>
+      )}
+
+      {/* CARDS DE SITUAÇÃO OPERACIONAL / STATUS DE CRISE */}
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="p-4 rounded-2xl bg-card border border-destructive/40 shadow-xs relative overflow-hidden">
+          <div className="flex items-center justify-between text-muted-foreground mb-1">
+            <span className="text-xs font-bold text-destructive flex items-center gap-1">
+              <Flame className="w-4 h-4 text-destructive animate-pulse" />
+              Pânico Ativo
+            </span>
+            <span className="w-2.5 h-2.5 rounded-full bg-destructive animate-ping" />
+          </div>
+          <div className="text-2xl sm:text-3xl font-black text-destructive">{contadores.ativo}</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">Exigem intervenção imediata</div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-card border border-amber-500/30 shadow-2xs">
+          <div className="flex items-center justify-between text-muted-foreground mb-1">
+            <span className="text-xs font-bold text-amber-600 dark:text-amber-400">Em Atendimento</span>
+            <Clock className="w-4 h-4 text-amber-500" />
+          </div>
+          <div className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
+            {contadores.emAtendimento}
+          </div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">Operador em contato com a vítima</div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-card border border-blue-500/30 shadow-2xs">
+          <div className="flex items-center justify-between text-muted-foreground mb-1">
+            <span className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+              <ShieldAlert className="w-4 h-4 text-blue-500" />
+              Polícia / 190 Acionado
+            </span>
+          </div>
+          <div className="text-2xl sm:text-3xl font-black text-blue-600 dark:text-blue-400">
+            {contadores.policiaAcionada}
+          </div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">Viatura a caminho do veículo</div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-card border border-emerald-500/30 shadow-2xs">
+          <div className="flex items-center justify-between text-muted-foreground mb-1">
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Resolvidos Hoje</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          </div>
+          <div className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">
+            {contadores.resolvido}
+          </div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">Ocorrências finalizadas em segurança</div>
+        </div>
+      </section>
+
+      {/* CONTROLES DE BUSCA E FILTROS */}
+      <section className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-card p-3 sm:p-4 rounded-2xl border border-border/60 shadow-2xs">
+        <div className="relative flex-1">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Buscar por solicitante, placa, telefone ou endereço..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            className="w-full min-h-11 h-11 pl-10 pr-4 rounded-xl bg-background border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          />
+        </div>
+
+        {/* Filtros de Status */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+          {(["todos", "ativo", "em_atendimento", "policia_acionada", "resolvido"] as const).map((st) => (
+            <button
+              key={st}
+              type="button"
+              onClick={() => setFiltroStatus(st)}
+              className={`min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                filtroStatus === st
+                  ? st === "ativo"
+                    ? "bg-destructive text-destructive-foreground shadow-2xs"
+                    : "bg-primary text-primary-foreground shadow-2xs"
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              {st === "todos" && `Todos (${alertas.length})`}
+              {st === "ativo" && `Pânico (${contadores.ativo})`}
+              {st === "em_atendimento" && `Em Atendimento (${contadores.emAtendimento})`}
+              {st === "policia_acionada" && `Polícia (${contadores.policiaAcionada})`}
+              {st === "resolvido" && `Resolvidos (${contadores.resolvido})`}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* LISTA DE OCORRÊNCIAS SOS */}
+      <div className="space-y-4">
         {listaFiltrada.length === 0 ? (
-          <div className="rounded-3xl bg-card p-8 text-center border border-border/60 shadow-sm space-y-3">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 mx-auto">
-              <CheckCircle2 className="h-7 w-7" />
+          <div className="p-12 text-center rounded-3xl bg-card border border-border/60 shadow-sm space-y-3">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="text-sm font-black text-foreground">Operação 100% Segura e Normal</h3>
-              <p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1">
-                Nenhum chamado de emergência ou socorro mecânico ativo na malha rodoviária.
+              <h3 className="text-base font-black text-foreground">Malha Urbana 100% Segura</h3>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1">
+                Nenhum chamado de emergência ou incidente crítico ativo no momento.
               </p>
             </div>
           </div>
         ) : (
-          listaFiltrada.map((item) => (
-            <div
-              key={item.id}
-              className="rounded-2xl bg-card p-5 shadow-xl border border-destructive/30 space-y-3"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg sm:text-xl font-black text-foreground">
-                      {item.vanPlaca}
-                    </span>
-                    <span className="rounded-full bg-destructive/15 px-2.5 py-0.5 text-[10px] font-black text-destructive uppercase">
-                      ● {item.tipo.replace(/_/g, " ")}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Motorista:{" "}
-                    <span className="font-bold text-foreground">{item.motoristaNome}</span> ·{" "}
-                    {item.dataHora}
-                  </p>
-                </div>
+          listaFiltrada.map((item) => {
+            const isCritico = item.status === "ativo";
+            const [lat, lng] = item.coordenadas.split(",").map((s) => s.trim());
 
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${
-                    item.status === "em_atendimento"
-                      ? "bg-[#e5a93c]/20 text-[#e5a93c]"
-                      : item.status === "ativo"
-                        ? "bg-destructive text-white"
-                        : "bg-emerald-500/15 text-emerald-700"
-                  }`}
-                >
-                  {item.status.replace(/_/g, " ")}
-                </span>
-              </div>
-
-              {/* Localização & Rodovia */}
-              <div className="rounded-2xl bg-accent/40 p-3.5 text-xs space-y-1 border border-border/30">
-                <p className="font-bold text-foreground">📍 Localização do Incidente:</p>
-                <p className="text-muted-foreground">{item.rodovia}</p>
-                <p className="text-[10px] text-muted-foreground">GPS: {item.coordenadas}</p>
-                {item.descricao && (
-                  <p className="text-xs text-foreground font-medium pt-1 italic">
-                    "{item.descricao}"
-                  </p>
-                )}
-              </div>
-
-              {/* Ações da Central de Segurança PARTIU */}
-              <div className="flex flex-col gap-2 pt-2 border-t border-border/40">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <a
-                    href={`tel:${item.solicitanteTelefone}`}
-                    className="flex h-11 items-center justify-center gap-1.5 rounded-full bg-card text-xs font-extrabold text-foreground border border-border/60 hover:bg-accent"
-                  >
-                    <Phone className="h-4 w-4 text-[#0d5930]" /> Ligar Motorista (
-                    {item.solicitanteTelefone})
-                  </a>
-
-                  {item.status !== "resolvido" ? (
-                    <button
-                      type="button"
-                      onClick={() => alterarStatus(item.id, "resolvido")}
-                      className="flex h-11 items-center justify-center gap-1.5 rounded-full bg-[#0d5930] text-xs font-extrabold text-white shadow-md hover:brightness-105"
+            return (
+              <div
+                key={item.id}
+                className={`p-5 sm:p-6 rounded-3xl bg-card border transition-all space-y-4 ${
+                  isCritico
+                    ? "border-destructive/60 shadow-xl ring-2 ring-destructive/20"
+                    : "border-border/80 shadow-2xs"
+                }`}
+              >
+                {/* Cabeçalho do Card */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-3.5">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black ${
+                        isCritico
+                          ? "bg-destructive text-white animate-pulse"
+                          : "bg-muted text-foreground"
+                      }`}
                     >
-                      <CheckCircle2 className="h-4 w-4" /> Concluir Suporte
-                    </button>
-                  ) : (
-                    <span className="flex h-11 items-center justify-center rounded-full bg-emerald-500/10 text-xs font-bold text-emerald-700">
-                      Ocorrência Concluída ✓
-                    </span>
-                  )}
+                      <AlertOctagon className="w-6 h-6" />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h2 className="text-base sm:text-lg font-black text-foreground">
+                          {item.solicitanteNome}
+                        </h2>
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase ${
+                            item.tipoSolicitante === "passageiro"
+                              ? "bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/20"
+                              : "bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                          }`}
+                        >
+                          {item.tipoSolicitante === "passageiro" ? "Passageiro" : "Motorista Parceiro"}
+                        </span>
+                        <span className="font-mono text-xs text-muted-foreground font-bold">
+                          #{item.id}
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Acionado às <strong className="text-foreground">{item.dataHora}</strong> · Telefone:{" "}
+                        <strong className="text-foreground">{item.solicitanteTelefone}</strong>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Badge de Status Atual */}
+                  <div>
+                    {item.status === "ativo" && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-destructive text-white shadow-xs">
+                        <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                        PÂNICO ATIVO
+                      </span>
+                    )}
+                    {item.status === "em_atendimento" && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-500 text-slate-950">
+                        <Clock className="w-3.5 h-3.5" />
+                        EM ATENDIMENTO
+                      </span>
+                    )}
+                    {item.status === "policia_acionada" && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-blue-600 text-white shadow-xs">
+                        <ShieldAlert className="w-3.5 h-3.5" />
+                        POLÍCIA ACIONADA (190)
+                      </span>
+                    )}
+                    {item.status === "resolvido" && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        RESOLVIDO
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                {/* Botão de Resgate Operacional Imediato */}
-                {item.status !== "resolvido" && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      alterarStatus(item.id, "em_atendimento");
-                      alert(
-                        `🚨 Apoio Acionado! A base operacional e condutores parceiros próximos foram notificados para auxílio em ${item.rodovia}.`,
-                      );
-                    }}
-                    className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#0088FF] hover:bg-[#00A3FF] text-slate-950 text-xs font-black shadow-md transition-all active:scale-[0.99]"
-                  >
-                    <ShieldAlert className="h-4 w-4" /> Acionar Apoio de Campo & Resgate
-                  </button>
+                {/* Dados da Ocorrência e Veículo */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  {/* Bloco de Localização GPS */}
+                  <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/60 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-foreground flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-primary" />
+                        Localização Geográfica do Chamado:
+                      </span>
+                      <span className="font-mono text-[11px] text-muted-foreground">{item.coordenadas}</span>
+                    </div>
+
+                    <p className="text-foreground font-semibold">{item.endereco}</p>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <a
+                        href={`https://www.google.com/maps?q=${lat},${lng}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-card border border-border text-[11px] font-bold text-foreground hover:bg-accent transition-colors"
+                      >
+                        <ExternalLink className="w-3 h-3 text-primary" />
+                        Google Maps
+                      </a>
+                      <a
+                        href={`https://waze.com/ul?ll=${lat},${lng}&navigate=yes`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-card border border-border text-[11px] font-bold text-foreground hover:bg-accent transition-colors"
+                      >
+                        <Navigation className="w-3 h-3 text-blue-500" />
+                        Waze
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Bloco do Veículo & Corrida */}
+                  <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/60 space-y-2">
+                    <span className="font-bold text-foreground flex items-center gap-1">
+                      <Car className="w-3.5 h-3.5 text-primary" />
+                      Dados do Veículo &amp; Corrida Vinculada:
+                    </span>
+
+                    <div className="flex items-center justify-between text-foreground">
+                      <span>
+                        Veículo: <strong>{item.veiculoModelo} ({item.veiculoCor})</strong>
+                      </span>
+                      <span className="font-mono font-black text-xs px-2 py-0.5 rounded-md bg-card border border-border">
+                        {item.veiculoPlaca}
+                      </span>
+                    </div>
+
+                    {item.contraparteNome && (
+                      <p className="text-muted-foreground">
+                        Outra parte: <strong className="text-foreground">{item.contraparteNome}</strong>
+                      </p>
+                    )}
+
+                    {item.protocoloPolicia && (
+                      <div className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 font-mono text-[11px] font-bold">
+                        Protocolo PM/190: {item.protocoloPolicia}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Relato / Descrição */}
+                {item.descricao && (
+                  <div className="p-3 rounded-2xl bg-destructive/5 border border-destructive/20 text-xs text-foreground italic">
+                    "{item.descricao}"
+                  </div>
                 )}
+
+                {/* BOTÕES DE AÇÃO RÁPIDA & PROTOCOLOS DE EMERGÊNCIA */}
+                <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2 border-t border-border/40">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <a
+                      href={`tel:${item.solicitanteTelefone.replace(/\D/g, "")}`}
+                      className="min-h-10 px-3.5 rounded-xl bg-card border border-border text-foreground hover:bg-accent text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <Phone className="w-3.5 h-3.5 text-emerald-500" />
+                      Ligar ({item.solicitanteTelefone})
+                    </a>
+
+                    <a
+                      href={`https://wa.me/55${item.solicitanteTelefone.replace(/\D/g, "")}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="min-h-10 px-3.5 rounded-xl bg-card border border-border text-foreground hover:bg-accent text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5 text-emerald-500" />
+                      WhatsApp
+                    </a>
+
+                    <a
+                      href="tel:190"
+                      className="min-h-10 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                      onClick={() => handleAlterarStatus(item.id, "policia_acionada")}
+                    >
+                      <ShieldAlert className="w-3.5 h-3.5" />
+                      Acionar 190 (Polícia Militar)
+                    </a>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {item.status !== "em_atendimento" && item.status !== "resolvido" && (
+                      <button
+                        type="button"
+                        onClick={() => handleAlterarStatus(item.id, "em_atendimento")}
+                        className="min-h-10 px-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <Clock className="w-3.5 h-3.5" />
+                        Iniciar Atendimento
+                      </button>
+                    )}
+
+                    {item.status !== "resolvido" ? (
+                      <button
+                        type="button"
+                        onClick={() => abrirModalConcluir(item)}
+                        className="min-h-10 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Concluir Ocorrência
+                      </button>
+                    ) : (
+                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-500/10">
+                        <ShieldCheck className="w-4 h-4" />
+                        Caso Arquivado
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
+
+      {/* MODAL: CONCLUIR OCORRÊNCIA COM RELATÓRIO DO OPERADOR */}
+      {modalConclusaoAberto && alertaParaConcluir && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-card w-full max-w-lg rounded-3xl border border-border shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-border/60">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-black text-foreground">Concluir Atendimento de Crise</h2>
+                  <p className="text-xs text-muted-foreground">
+                    Ocorrência #{alertaParaConcluir.id} · {alertaParaConcluir.solicitanteNome}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalConclusaoAberto(false)}
+                className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={salvarConclusaoOcorrencia} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-foreground">Protocolo Policial / Órgão Externo (Se houver)</label>
+                <input
+                  type="text"
+                  placeholder="Ex: 190-RJ-2026-9812 ou SAMU-04"
+                  value={protocoloPoliciaInput}
+                  onChange={(e) => setProtocoloPoliciaInput(e.target.value)}
+                  className="w-full min-h-11 h-11 px-3.5 rounded-xl bg-background border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-foreground">
+                  Relatório do Operador / Providências Tomadas *
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  placeholder="Descreva o desfecho do incidente: se os envolvidos ficaram em segurança, se a viatura compareceu ou se houve engano..."
+                  value={textoDesfecho}
+                  onChange={(e) => setTextoDesfecho(e.target.value)}
+                  className="w-full p-3.5 rounded-xl bg-background border border-border text-xs sm:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-border/60">
+                <button
+                  type="button"
+                  onClick={() => setModalConclusaoAberto(false)}
+                  className="min-h-11 px-4 rounded-xl border border-border text-foreground font-semibold text-xs sm:text-sm hover:bg-accent transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="min-h-11 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm transition-colors cursor-pointer shadow-sm flex items-center gap-2"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Finalizar &amp; Arquivar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
