@@ -915,8 +915,15 @@ export class GeocodingService {
     const q = normalizarTexto(termo);
     const centroRef: [number, number] = coordsOrigem || MapboxConfig.DEFAULT_CENTER;
 
-    // 1. Caso sem digitação (campo em branco): Retorna os locais estratégicos mais próximos do passageiro!
+    // Catálogo curado local só é avaliado se o usuário estiver em um raio de até 35 km do polo
+    const distanciaPoloCurado = calcularDistanciaHaversineMetros(centroRef, [-41.888, -21.205]);
+    const estaNoPoloCurado = distanciaPoloCurado <= 35000;
+
+    // 1. Caso sem digitação (campo em branco): Retorna os locais estratégicos mais próximos do passageiro se estiver no polo
     if (!q) {
+      if (!estaNoPoloCurado) {
+        return [];
+      }
       const comDistancias = LUGARES_CURADOS_ITAPERUNA.map((lugar) => {
         const distanciaMetros = calcularDistanciaHaversineMetros(centroRef, lugar.coords);
         return {
@@ -933,56 +940,58 @@ export class GeocodingService {
 
     const tokens = q.split(/\s+/).filter(Boolean);
 
-    // 2. Pontuação e filtragem do catálogo local com Bônus de Proximidade (Geobias)
+    // 2. Pontuação e filtragem do catálogo local com Bônus de Proximidade (apenas se no polo de referência)
     const candidatosLocais: (GeocodedPlace & { score: number })[] = [];
 
-    for (const lugar of LUGARES_CURADOS_ITAPERUNA) {
-      const labelNorm = normalizarTexto(lugar.label);
-      const subNorm = normalizarTexto(lugar.sublabel);
-      const endNorm = normalizarTexto(lugar.endereco);
-      const bairroNorm = normalizarTexto(lugar.bairro || "");
+    if (estaNoPoloCurado) {
+      for (const lugar of LUGARES_CURADOS_ITAPERUNA) {
+        const labelNorm = normalizarTexto(lugar.label);
+        const subNorm = normalizarTexto(lugar.sublabel);
+        const endNorm = normalizarTexto(lugar.endereco);
+        const bairroNorm = normalizarTexto(lugar.bairro || "");
 
-      // Verifica se todos os tokens digitados estão presentes no local
-      const matchTodosTokens = tokens.every(
-        (t) =>
-          labelNorm.includes(t) ||
-          subNorm.includes(t) ||
-          endNorm.includes(t) ||
-          bairroNorm.includes(t)
-      );
+        // Verifica se todos os tokens digitados estão presentes no local
+        const matchTodosTokens = tokens.every(
+          (t) =>
+            labelNorm.includes(t) ||
+            subNorm.includes(t) ||
+            endNorm.includes(t) ||
+            bairroNorm.includes(t)
+        );
 
-      if (matchTodosTokens) {
-        let score = 0;
+        if (matchTodosTokens) {
+          let score = 0;
 
-        // Match no início do nome tem prioridade máxima
-        if (labelNorm.startsWith(q)) {
-          score += 250;
-        } else if (labelNorm.includes(q)) {
-          score += 180;
-        } else if (bairroNorm.includes(q)) {
-          score += 140;
-        } else {
-          score += 90;
+          // Match no início do nome tem prioridade máxima
+          if (labelNorm.startsWith(q)) {
+            score += 250;
+          } else if (labelNorm.includes(q)) {
+            score += 180;
+          } else if (bairroNorm.includes(q)) {
+            score += 140;
+          } else {
+            score += 90;
+          }
+
+          // Bônus Geográfico de Proximidade (Google Geobias)
+          const distanciaMetros = calcularDistanciaHaversineMetros(centroRef, lugar.coords);
+          if (distanciaMetros <= 500) {
+            score += 160; // Vizinho imediato (mesma rua ou quarteirão)
+          } else if (distanciaMetros <= 1500) {
+            score += 100; // Mesmo bairro ou adjacência direta
+          } else if (distanciaMetros <= 3000) {
+            score += 50;  // Mesma região da cidade
+          } else if (distanciaMetros > 5000) {
+            score -= 30;  // Distante
+          }
+
+          candidatosLocais.push({
+            ...lugar,
+            distanciaMetros,
+            distanciaFormatada: formatarDistanciaLegivel(distanciaMetros),
+            score,
+          });
         }
-
-        // Bônus Geográfico de Proximidade (Google Geobias)
-        const distanciaMetros = calcularDistanciaHaversineMetros(centroRef, lugar.coords);
-        if (distanciaMetros <= 500) {
-          score += 160; // Vizinho imediato (mesma rua ou quarteirão)
-        } else if (distanciaMetros <= 1500) {
-          score += 100; // Mesmo bairro ou adjacência direta
-        } else if (distanciaMetros <= 3000) {
-          score += 50;  // Mesma região da cidade
-        } else if (distanciaMetros > 5000) {
-          score -= 30;  // Distante
-        }
-
-        candidatosLocais.push({
-          ...lugar,
-          distanciaMetros,
-          distanciaFormatada: formatarDistanciaLegivel(distanciaMetros),
-          score,
-        });
       }
     }
 
@@ -1016,12 +1025,14 @@ export class GeocodingService {
                 const props = f.properties || {};
                 const nome = props.name || props.street || termo;
                 const bairroRemoto = props.district || props.suburb || "";
-                const cidadeRemota = props.city || "Itaperuna";
-                const estadoRemoto = props.state || "RJ";
+                const cidadeRemota = props.city || props.town || props.village || props.municipality || "";
+                const estadoRemoto = props.state || "";
 
-                const sublabel = bairroRemoto
-                  ? `${bairroRemoto} — ${cidadeRemota}, ${estadoRemoto}`
-                  : `${cidadeRemota}, ${estadoRemoto}`;
+                const sublabel = bairroRemoto && cidadeRemota
+                  ? `${bairroRemoto} — ${cidadeRemota}${estadoRemoto ? `, ${estadoRemoto}` : ""}`
+                  : cidadeRemota
+                  ? `${cidadeRemota}${estadoRemoto ? `, ${estadoRemoto}` : ""}`
+                  : bairroRemoto || "Endereço Encontrado";
 
                 const dist = calcularDistanciaHaversineMetros(centroRef, coords);
 
@@ -1152,12 +1163,14 @@ export class GeocodingService {
             remotePlaces = data.features.map((feat: any) => {
               const context = feat.context || [];
               const neighborhood = context.find((c: any) => c.id.startsWith("neighborhood"))?.text;
-              const city = context.find((c: any) => c.id.startsWith("place"))?.text || "Itaperuna";
-              const state = context.find((c: any) => c.id.startsWith("region"))?.text || "RJ";
+              const city = context.find((c: any) => c.id.startsWith("place"))?.text || "";
+              const state = context.find((c: any) => c.id.startsWith("region"))?.text || "";
 
-              const sublabel = neighborhood
-                ? `${neighborhood}, ${city} - ${state}`
-                : `${city} - ${state}`;
+              const sublabel = neighborhood && city
+                ? `${neighborhood}, ${city}${state ? ` - ${state}` : ""}`
+                : city
+                ? `${city}${state ? ` - ${state}` : ""}`
+                : neighborhood || "Localidade Encontrada";
 
               let tipo: GeocodedPlace["tipo"] = "rua";
               if (feat.place_type?.includes("poi")) tipo = "ponto_interesse";

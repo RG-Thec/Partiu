@@ -617,6 +617,61 @@ export const WHITELABEL_PRESETS: WhiteLabelThemePreset[] = [
   },
 ];
 
+const SEED_TENANTS: WhiteLabelTenantRecord[] = [
+  {
+    tenantId: "tenant-itaperuna",
+    nomeOperacao: "PARTIU Itaperuna (Sede Noroeste)",
+    cidadeId: "itaperuna-rj",
+    cidadeNome: "Itaperuna",
+    uf: "RJ",
+    responsavelNome: "Operador Regional",
+    responsavelEmail: "itaperuna@partiumobilidade.com.br",
+    responsavelTelefone: "(22) 99876-5432",
+    cnpjFranqueado: "34.567.890/0001-12",
+    ativo: true,
+    criadoEm: 1772928000000,
+    configuracaoCompleta: DEFAULT_WHITELABEL_CONFIG,
+  },
+  {
+    tenantId: "tenant-campos",
+    nomeOperacao: "GO Mobilidade Campos",
+    cidadeId: "campos-rj",
+    cidadeNome: "Campos dos Goytacazes",
+    uf: "RJ",
+    responsavelNome: "Campos Serviços Urbanos Ltda",
+    responsavelEmail: "campos@gomobilidade.com.br",
+    responsavelTelefone: "(22) 99765-4321",
+    cnpjFranqueado: "45.678.901/0001-23",
+    ativo: true,
+    criadoEm: 1772928000000,
+    configuracaoCompleta: {
+      ...DEFAULT_WHITELABEL_CONFIG,
+      tenantId: "tenant-campos",
+      brandCenter: {
+        ...DEFAULT_WHITELABEL_CONFIG.brandCenter,
+        nomePlataforma: "GO MOBILIDADE",
+        slogan: "Sua viagem rápida em Campos",
+      },
+      designSystem: {
+        ...DEFAULT_WHITELABEL_CONFIG.designSystem,
+        paletaPrimaria: {
+          ...DEFAULT_WHITELABEL_CONFIG.designSystem.paletaPrimaria,
+          corPrincipal: "#2563EB",
+          corPrincipalHover: "#1D4ED8",
+          corSecundaria: "#F59E0B",
+          corTextoPrincipal: "#FFFFFF",
+        },
+      },
+      geo: {
+        ...DEFAULT_WHITELABEL_CONFIG.geo,
+        cidadeSede: "Campos dos Goytacazes",
+        coordenadasCentroLat: -21.7545,
+        coordenadasCentroLng: -41.3244,
+      },
+    },
+  },
+];
+
 // ------------------------------------------------------------------------------
 // SINGLETON: WHITE LABEL ENTERPRISE ENGINE
 // ------------------------------------------------------------------------------
@@ -650,20 +705,7 @@ export class WhiteLabelEngine {
 
   private initStorage(): void {
     if (typeof window === "undefined") {
-      this.tenantsMap.set("tenant-itaperuna", {
-        tenantId: "tenant-itaperuna",
-        nomeOperacao: "PARTIU Itaperuna (Sede Noroeste)",
-        cidadeId: "itaperuna-rj",
-        cidadeNome: "Itaperuna",
-        uf: "RJ",
-        responsavelNome: "Operador Regional",
-        responsavelEmail: "itaperuna@partiumobilidade.com.br",
-        responsavelTelefone: "(22) 99876-5432",
-        cnpjFranqueado: "34.567.890/0001-12",
-        ativo: true,
-        criadoEm: 1772928000000,
-        configuracaoCompleta: DEFAULT_WHITELABEL_CONFIG,
-      });
+      SEED_TENANTS.forEach((t) => this.tenantsMap.set(t.tenantId, t));
       return;
     }
 
@@ -681,62 +723,7 @@ export class WhiteLabelEngine {
 
       // Garante pelo menos Itaperuna e Campos cadastrados
       if (this.tenantsMap.size === 0) {
-        const tenantItaperuna: WhiteLabelTenantRecord = {
-          tenantId: "tenant-itaperuna",
-          nomeOperacao: "PARTIU Itaperuna (Sede Noroeste)",
-          cidadeId: "itaperuna-rj",
-          cidadeNome: "Itaperuna",
-          uf: "RJ",
-          responsavelNome: "Operador Regional",
-          responsavelEmail: "itaperuna@partiumobilidade.com.br",
-          responsavelTelefone: "(22) 99876-5432",
-          cnpjFranqueado: "34.567.890/0001-12",
-          ativo: true,
-          criadoEm: 1772928000000,
-          configuracaoCompleta: DEFAULT_WHITELABEL_CONFIG,
-        };
-
-        const tenantCampos: WhiteLabelTenantRecord = {
-          tenantId: "tenant-campos",
-          nomeOperacao: "GO Mobilidade Campos",
-          cidadeId: "campos-rj",
-          cidadeNome: "Campos dos Goytacazes",
-          uf: "RJ",
-          responsavelNome: "Campos Serviços Urbanos Ltda",
-          responsavelEmail: "campos@gomobilidade.com.br",
-          responsavelTelefone: "(22) 99765-4321",
-          cnpjFranqueado: "45.678.901/0001-23",
-          ativo: true,
-          criadoEm: 1772928000000,
-          configuracaoCompleta: {
-            ...DEFAULT_WHITELABEL_CONFIG,
-            tenantId: "tenant-campos",
-            brandCenter: {
-              ...DEFAULT_WHITELABEL_CONFIG.brandCenter,
-              nomePlataforma: "GO MOBILIDADE",
-              slogan: "Sua viagem rápida em Campos",
-            },
-            designSystem: {
-              ...DEFAULT_WHITELABEL_CONFIG.designSystem,
-              paletaPrimaria: {
-                ...DEFAULT_WHITELABEL_CONFIG.designSystem.paletaPrimaria,
-                corPrincipal: "#2563EB",
-                corPrincipalHover: "#1D4ED8",
-                corSecundaria: "#F59E0B",
-                corTextoPrincipal: "#FFFFFF",
-              },
-            },
-            geo: {
-              ...DEFAULT_WHITELABEL_CONFIG.geo,
-              cidadeSede: "Campos dos Goytacazes",
-              coordenadasCentroLat: -21.7545,
-              coordenadasCentroLng: -41.3244,
-            },
-          },
-        };
-
-        this.tenantsMap.set(tenantItaperuna.tenantId, tenantItaperuna);
-        this.tenantsMap.set(tenantCampos.tenantId, tenantCampos);
+        SEED_TENANTS.forEach((t) => this.tenantsMap.set(t.tenantId, t));
         this.saveTenantsRegistry();
       }
     } catch (err) { silentCatchWarn("white-label-engine", err); }
@@ -827,6 +814,63 @@ export class WhiteLabelEngine {
     this.applyTheme(updated);
     this.broadcastUpdate();
     return updated;
+  }
+
+  /**
+   * Resolução contextual da Praça / Tenant mais próximo via Geofencing Haversine
+   */
+  public findTenantByCoordinates(
+    lat: number,
+    lng: number
+  ): {
+    tenant: WhiteLabelTenantRecord;
+    isWithinServiceArea: boolean;
+    distanceKm: number;
+  } | null {
+    if (isNaN(lat) || isNaN(lng)) return null;
+
+    const tenants = this.getAllTenants();
+    if (tenants.length === 0) return null;
+
+    let closestTenant: WhiteLabelTenantRecord | null = null;
+    let minDistanceKm = Infinity;
+
+    for (const t of tenants) {
+      const centerLat = t.configuracaoCompleta?.geo?.coordenadasCentroLat;
+      const centerLng = t.configuracaoCompleta?.geo?.coordenadasCentroLng;
+      if (typeof centerLat === "number" && typeof centerLng === "number") {
+        // Haversine em km
+        const dLat = ((lat - centerLat) * Math.PI) / 180;
+        const dLng = ((lng - centerLng) * Math.PI) / 180;
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos((centerLat * Math.PI) / 180) *
+            Math.cos((lat * Math.PI) / 180) *
+            Math.sin(dLng / 2) *
+            Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distKm = 6371 * c;
+
+        if (distKm < minDistanceKm) {
+          minDistanceKm = distKm;
+          closestTenant = t;
+        }
+      }
+    }
+
+    if (!closestTenant) {
+      closestTenant = this.getActiveTenant();
+      minDistanceKm = 0;
+    }
+
+    const radiusKm = closestTenant.configuracaoCompleta?.geo?.raioOperacaoPadraoKm || 25;
+    const isWithinServiceArea = minDistanceKm <= radiusKm;
+
+    return {
+      tenant: closestTenant,
+      isWithinServiceArea,
+      distanceKm: Math.round(minDistanceKm * 10) / 10,
+    };
   }
 
   // ============================================================================

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { silentCatchWarn } from "@/lib/structured-logger";
-
+import { reverseGeocodingService } from "@/services/ReverseGeocodingService";
 
 export interface CoordenadasGPS {
   latitude: number;
@@ -120,9 +120,25 @@ export function useGeolocation() {
           localStorage.setItem("partiu_gps_permitido", "true");
         } catch (err) { silentCatchWarn("use-geolocation", err); }
 
-        const ponto = encontrarPontoMaisProximo(latitude, longitude);
-        setLocalDetectado(ponto);
-        setCarregando(false);
+        // Resolução dinâmica universal de endereço e cidade em qualquer lugar do mundo
+        reverseGeocodingService
+          .reverseGeocode([longitude, latitude])
+          .then((addr) => {
+            setLocalDetectado({
+              cidade: addr.city || "Sua Cidade",
+              pontoEmbarque: addr.street || "Sua Localização",
+              referencia: addr.neighborhood || "Ponto no Mapa",
+              distanciaKm: 0,
+              coords: [latitude, longitude],
+            });
+          })
+          .catch(() => {
+            const ponto = encontrarPontoMaisProximo(latitude, longitude);
+            setLocalDetectado(ponto);
+          })
+          .finally(() => {
+            setCarregando(false);
+          });
       },
       (err) => {
         console.warn("[use-geolocation] GPS físico indisponível ou negado:", err.message);

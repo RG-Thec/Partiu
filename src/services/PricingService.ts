@@ -21,6 +21,7 @@
  */
 
 import { appSettingsService, type AppSettings } from "@/lib/ecosystem/app-settings-service";
+import { whiteLabelEngine } from "@/lib/white-label";
 import { surgeEngine, type SurgeContext } from "./SurgeEngine";
 import type { RouteMetrics } from "./RoutingService";
 
@@ -191,6 +192,11 @@ export interface ItemizedQuote {
   tripDistanceKm: number;
   pickupFormatted: string; // Ex: "Chega em 3 min"
   tripFormatted: string;   // Ex: "Viagem de 9 min"
+
+  // Metadados de Praça / Geofencing
+  tenantId?: string;
+  cidadeSede?: string;
+  isWithinServiceArea?: boolean;
 }
 
 export class PricingService {
@@ -206,9 +212,27 @@ export class PricingService {
   }
 
   /**
-   * Puxa as configurações atuais da fonte única da verdade (appSettingsService / Supabase)
+   * Puxa as configurações atuais contextualmente informadas pelas coordenadas de origem (Geofencing)
+   * ou fallback para a fonte única da verdade (appSettingsService / Supabase)
    */
-  public getPricingSettings(): PricingSettings {
+  public getPricingSettings(pickupCoords?: [number, number]): PricingSettings & {
+    tenantId?: string;
+    cidadeSede?: string;
+    isWithinServiceArea?: boolean;
+  } {
+    let contextualTenant: { tenantId?: string; cidadeSede?: string; isWithinServiceArea?: boolean } = {};
+
+    if (pickupCoords && !isNaN(pickupCoords[0]) && !isNaN(pickupCoords[1])) {
+      const match = whiteLabelEngine.findTenantByCoordinates(pickupCoords[1], pickupCoords[0]);
+      if (match) {
+        contextualTenant = {
+          tenantId: match.tenant.tenantId,
+          cidadeSede: match.tenant.cidadeNome,
+          isWithinServiceArea: match.isWithinServiceArea,
+        };
+      }
+    }
+
     const s: AppSettings = appSettingsService.getSettings();
 
     const baseFare = Number((s as any).base_fare ?? s.base_fare_ride ?? 6.0);
@@ -230,6 +254,7 @@ export class PricingService {
       turismoMultiplier: 1.6,
       vanMultiplier: 1.9,
       nightMultiplier: 1.15,
+      ...contextualTenant,
     };
   }
 
@@ -240,9 +265,10 @@ export class PricingService {
   public calculateMultiCategoryQuotes(
     routeMetrics: RouteMetrics,
     surgeContext: Partial<SurgeContext> = {},
-    stopsCount: number = 0
+    stopsCount: number = 0,
+    pickupCoords?: [number, number]
   ): Record<SupportedVehicleCategory, ItemizedQuote> {
-    const settings = this.getPricingSettings();
+    const settings = this.getPricingSettings(pickupCoords);
     const surgeResult = surgeEngine.calculateSurge(surgeContext);
     const surgeMultiplier = surgeResult.multiplier;
 
@@ -316,6 +342,9 @@ export class PricingService {
         tripDistanceKm: distanceKm,
         pickupFormatted: `Chega em ${pickupMin} min`,
         tripFormatted: `Viagem de ${tripMin} min`,
+        tenantId: settings.tenantId,
+        cidadeSede: settings.cidadeSede,
+        isWithinServiceArea: settings.isWithinServiceArea,
       };
     }
 

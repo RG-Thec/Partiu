@@ -647,8 +647,8 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       endAddress: destino,
       provider: "calibrated_urban_network",
     };
-    return pricingService.calculateMultiCategoryQuotes(dummyMetrics, {}, paradas.length);
-  }, [routeMetrics, distanciaKm, duracaoMin, origem, destino, paradas.length]);
+    return pricingService.calculateMultiCategoryQuotes(dummyMetrics, {}, paradas.length, origemCoords);
+  }, [routeMetrics, distanciaKm, duracaoMin, origem, destino, paradas.length, origemCoords]);
 
   const activeQuote = useMemo(() => {
     let key: SupportedVehicleCategory = "PARTIU_CARRO";
