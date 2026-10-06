@@ -344,7 +344,7 @@ export interface GeoConfiguration {
 }
 
 // ------------------------------------------------------------------------------
-// MÓDULO 10: APP CONFIGURATION CENTER (NATIVO & POLÍTICAS)
+// MÓDULO 10: APP CONFIGURATION CENTER (NATIVO, JURÍDICO & POLÍTICAS)
 // ------------------------------------------------------------------------------
 export interface AppConfigurationCenterConfig {
   nomeAppExibicao: string;
@@ -356,6 +356,25 @@ export interface AppConfigurationCenterConfig {
   termosUsoUrl: string;
   politicaPrivacidadeLgpdUrl: string;
   suporteUrl: string;
+
+  // Dados Jurídicos e Contratuais (Legal & Corporate)
+  cnpj?: string | undefined;
+  razaoSocial?: string | undefined;
+  nomeFantasia?: string | undefined;
+  inscricaoEstadual?: string | undefined;
+  enderecoSede?: string | undefined;
+  dpoNome?: string | undefined;
+  dpoEmail?: string | undefined;
+  termosUsoTexto?: string | undefined;
+  politicaPrivacidadeTexto?: string | undefined;
+  termoMotoristaUrl?: string | undefined;
+
+  // Assets Móveis Nativos (Mobile Asset Studio)
+  iconeAppUrl?: string | undefined;
+  iconeNotificacaoPushUrl?: string | undefined;
+  splashAndroidUrl?: string | undefined;
+  splashIosUrl?: string | undefined;
+  splashBackgroundColor?: string | undefined;
 }
 
 // ------------------------------------------------------------------------------

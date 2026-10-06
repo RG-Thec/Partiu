@@ -242,7 +242,7 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
   }, [branding, updateBranding]);
 
   // Upload de Mídia para Supabase Storage (branding-assets)
-  const uploadAsset = useCallback(async (file: File, type: "logo" | "splash" | "favicon"): Promise<string | null> => {
+  const uploadAsset = useCallback(async (file: File, type: "logo" | "splash" | "favicon" | "app_icon" | "push_icon"): Promise<string | null> => {
     if (!file) return null;
 
     // Validação rígida: tamanho máximo 5MB
@@ -283,6 +283,8 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
         if (type === "logo") patch.logo_url = url;
         if (type === "splash") patch.splash_logo_url = url;
         if (type === "favicon") patch.favicon_url = url;
+        if (type === "app_icon") patch.app_icon_url = url;
+        if (type === "push_icon") patch.push_icon_url = url;
         await updateBranding(patch);
         return url;
       }

@@ -49,6 +49,13 @@ import {
   Link2,
   Unlink,
   Sliders,
+  FileText,
+  Scale,
+  Bell,
+  Rocket,
+  Image,
+  Eye,
+  RefreshCw,
 } from "lucide-react";
 import {
   type BusinessVerticalId,
@@ -181,7 +188,7 @@ function WhiteLabelStudioContent() {
     setTimeout(() => setFaviconTestFeedback(false), 3000);
   }
 
-  async function handleFileUpload(file: File, type: "logo" | "splash" | "favicon") {
+  async function handleFileUpload(file: File, type: "logo" | "splash" | "favicon" | "app_icon" | "push_icon") {
     try {
       setUploadingField(type);
       setUploadError(null);
@@ -200,6 +207,11 @@ function WhiteLabelStudioContent() {
               ...brand,
               splash: { ...brand.splash, splashAndroidUrl: url, splashIosUrl: url },
             },
+            nativeApp: {
+              ...appConfig,
+              splashAndroidUrl: url,
+              splashIosUrl: url,
+            },
           });
         } else if (type === "favicon") {
           updateConfig({
@@ -214,6 +226,20 @@ function WhiteLabelStudioContent() {
             },
           });
           updateBrowserFavicon(url);
+        } else if (type === "app_icon") {
+          updateConfig({
+            nativeApp: {
+              ...appConfig,
+              iconeAppUrl: url,
+            },
+          });
+        } else if (type === "push_icon") {
+          updateConfig({
+            nativeApp: {
+              ...appConfig,
+              iconeNotificacaoPushUrl: url,
+            },
+          });
         }
         triggerSaveFeedback();
       }
@@ -224,8 +250,12 @@ function WhiteLabelStudioContent() {
     }
   }
 
+  // Sub-aba do Módulo Geo, App & Compliance
+  const [geoAppSubTab, setGeoAppSubTab] = useState<"stores" | "legal" | "assets">("stores");
+
   // Live Preview Device Simulator State
   const [previewDevice, setPreviewDevice] = useState<"MOBILE" | "TABLET" | "DESKTOP">("MOBILE");
+  const [previewMode, setPreviewMode] = useState<"HOME" | "SPLASH" | "PUSH">("HOME");
   const [previewAberto, setPreviewAberto] = useState(true);
 
   // Helper de persistência manual / auto
@@ -2098,110 +2128,929 @@ function WhiteLabelStudioContent() {
           )}
 
           {/* ================================================================= */}
-          {/* TAB 8: GEO & APP */}
+          {/* TAB 8/9: GEO, APP STORES, LEGAL LGPD & MOBILE ASSETS */}
           {/* ================================================================= */}
           {activeTab === "geo_app" && (
             <div className="bg-white border border-slate-200/90 rounded-3xl p-6 space-y-6 shadow-xs text-slate-900 animate-in fade-in">
-              <div className="border-b border-slate-100 pb-4">
-                <h2 className="text-lg font-bold text-[#003366] flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-primary-600" />
-                  Módulo 8: Geo Configuration &amp; App Center
-                </h2>
-                <p className="text-xs text-slate-400 mt-1">
-                  Cidade sede, moeda, fuso horário, pacotes nativos Android/iOS e links legais de LGPD.
-                </p>
-              </div>
-
-              {/* Geo Config */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Header do Módulo & Seletor de Sub-Abas */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
                 <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">
-                    Cidade Sede
-                  </label>
-                  <input
-                    type="text"
-                    value={geo?.cidadeSede || ""}
-                    onChange={(e) => {
-                      updateConfig({
-                        geo: { ...geo, cidadeSede: e.target.value },
-                      });
-                      triggerSaveFeedback();
-                    }}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white"
-                  />
+                  <h2 className="text-lg font-bold text-[#003366] flex items-center gap-2">
+                    <Globe className="w-5 h-5 text-[#0088FF]" />
+                    Módulo 9: App Center, Compliance LGPD &amp; Mobile Assets
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Geolocalização regional, publicação nas lojas, contratos de compliance e studio de assets nativos.
+                  </p>
                 </div>
 
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">
-                    Estado (UF)
-                  </label>
-                  <input
-                    type="text"
-                    value={geo?.estadoUf || ""}
-                    onChange={(e) => {
-                      updateConfig({
-                        geo: { ...geo, estadoUf: e.target.value },
-                      });
-                      triggerSaveFeedback();
-                    }}
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white"
-                  />
-                </div>
+                {/* Sub-Abas */}
+                <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setGeoAppSubTab("stores")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                      geoAppSubTab === "stores"
+                        ? "bg-[#003366] text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                    }`}
+                  >
+                    <Smartphone className="w-3.5 h-3.5" />
+                    <span>Lojas &amp; Geo</span>
+                  </button>
 
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">
-                    Moeda Simbolo &amp; Código
-                  </label>
-                  <input
-                    type="text"
-                    value={`${geo?.moedaSimbolo || "R$"} (${geo?.moedaCodigo || "BRL"})`}
-                    disabled
-                    className="w-full bg-slate-900/50 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-400"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setGeoAppSubTab("legal")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                      geoAppSubTab === "legal"
+                        ? "bg-[#003366] text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                    }`}
+                  >
+                    <Scale className="w-3.5 h-3.5" />
+                    <span>Jurídico &amp; LGPD</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setGeoAppSubTab("assets")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                      geoAppSubTab === "assets"
+                        ? "bg-[#003366] text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                    }`}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Mobile Assets Studio</span>
+                  </button>
                 </div>
               </div>
 
-              {/* App Nativo */}
-              <div className="space-y-3 pt-2">
-                <h3 className="text-xs font-black uppercase tracking-wider text-primary-600">
-                  Identificadores de Publicação (Lojas)
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* ------------------------------------------------------------- */}
+              {/* SUB-ABA 1: LOJAS & GEO */}
+              {/* ------------------------------------------------------------- */}
+              {geoAppSubTab === "stores" && (
+                <div className="space-y-6 animate-in fade-in">
                   <div>
-                    <label className="text-xs font-medium text-slate-300 block mb-1">
-                      Package Android (Google Play)
-                    </label>
-                    <input
-                      type="text"
-                      value={appConfig?.pacoteAndroid || ""}
-                      onChange={(e) => {
-                        updateConfig({
-                          nativeApp: { ...appConfig, pacoteAndroid: e.target.value },
-                        });
-                        triggerSaveFeedback();
-                      }}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white font-mono"
-                    />
+                    <h3 className="text-xs font-black uppercase tracking-wider text-[#003366] mb-3 flex items-center gap-1.5">
+                      <Globe className="w-4 h-4 text-[#0088FF]" />
+                      Geolocalização Operacional &amp; Moeda
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Cidade Sede
+                        </label>
+                        <input
+                          type="text"
+                          value={geo?.cidadeSede || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              geo: { ...geo, cidadeSede: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="Ex: Itaperuna"
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Estado (UF)
+                        </label>
+                        <input
+                          type="text"
+                          value={geo?.estadoUf || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              geo: { ...geo, estadoUf: e.target.value.toUpperCase() },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="Ex: RJ"
+                          maxLength={2}
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition uppercase"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Fuso Horário
+                        </label>
+                        <input
+                          type="text"
+                          value={geo?.fusoHorario || "America/Sao_Paulo"}
+                          onChange={(e) => {
+                            updateConfig({
+                              geo: { ...geo, fusoHorario: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Moeda Oficial
+                        </label>
+                        <input
+                          type="text"
+                          value={`${geo?.moedaSimbolo || "R$"} (${geo?.moedaCodigo || "BRL"})`}
+                          disabled
+                          className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-500 cursor-not-allowed"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Raio Padrão de Operação (Km)
+                        </label>
+                        <input
+                          type="number"
+                          value={geo?.raioOperacaoPadraoKm || 15}
+                          onChange={(e) => {
+                            updateConfig({
+                              geo: { ...geo, raioOperacaoPadraoKm: Number(e.target.value) || 15 },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          min={1}
+                          max={200}
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Nome de Exibição do App
+                        </label>
+                        <input
+                          type="text"
+                          value={appConfig?.nomeAppExibicao || branding?.app_name || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, nomeAppExibicao: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="Ex: PARTIU Mobilidade"
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="text-xs font-medium text-slate-300 block mb-1">
-                      Bundle Identifier (Apple iOS)
-                    </label>
-                    <input
-                      type="text"
-                      value={appConfig?.bundleIos || ""}
-                      onChange={(e) => {
-                        updateConfig({
-                          nativeApp: { ...appConfig, bundleIos: e.target.value },
-                        });
-                        triggerSaveFeedback();
-                      }}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white font-mono"
-                    />
+                  <div className="border-t border-slate-100 pt-5">
+                    <h3 className="text-xs font-black uppercase tracking-wider text-[#003366] mb-3 flex items-center gap-1.5">
+                      <Smartphone className="w-4 h-4 text-[#0088FF]" />
+                      Identificadores de Publicação &amp; App Stores
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Package Android (Google Play)
+                        </label>
+                        <input
+                          type="text"
+                          value={appConfig?.pacoteAndroid || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, pacoteAndroid: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="com.partiumobilidade.app"
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 font-mono outline-none transition"
+                        />
+                        <span className="text-[10px] text-slate-400 mt-1 block">
+                          Identificador exclusivo do app no Google Play Console.
+                        </span>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Bundle Identifier (Apple iOS)
+                        </label>
+                        <input
+                          type="text"
+                          value={appConfig?.bundleIos || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, bundleIos: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="com.partiumobilidade.ios"
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 font-mono outline-none transition"
+                        />
+                        <span className="text-[10px] text-slate-400 mt-1 block">
+                          ID de aplicativo registrado no Apple Developer Account.
+                        </span>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Link Google Play Store
+                        </label>
+                        <input
+                          type="url"
+                          value={appConfig?.linkGooglePlayStore || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, linkGooglePlayStore: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="https://play.google.com/store/apps/details?id=..."
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Link Apple App Store
+                        </label>
+                        <input
+                          type="url"
+                          value={appConfig?.linkAppStoreIos || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, linkAppStoreIos: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="https://apps.apple.com/app/id..."
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Versão Mínima do Aplicativo
+                        </label>
+                        <input
+                          type="text"
+                          value={appConfig?.versaoApp || "3.4.0"}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, versaoApp: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="3.4.0"
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                        />
+                        <span className="text-[10px] text-slate-400 mt-1 block">
+                          Dispara aviso de atualização forçada para versões inferiores.
+                        </span>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Link Central de Ajuda &amp; Suporte
+                        </label>
+                        <input
+                          type="url"
+                          value={appConfig?.suporteUrl || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, suporteUrl: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="https://ajuda.partiumobilidade.com.br"
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* ------------------------------------------------------------- */}
+              {/* SUB-ABA 2: DADOS JURÍDICOS & LGPD */}
+              {/* ------------------------------------------------------------- */}
+              {geoAppSubTab === "legal" && (
+                <div className="space-y-6 animate-in fade-in">
+                  <div>
+                    <h3 className="text-xs font-black uppercase tracking-wider text-[#003366] mb-3 flex items-center gap-1.5">
+                      <Building2 className="w-4 h-4 text-[#0088FF]" />
+                      Dados Corporativos &amp; Fiscais da Operação
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Razão Social
+                        </label>
+                        <input
+                          type="text"
+                          value={appConfig?.razaoSocial || branding?.company_name || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, razaoSocial: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="Ex: Partiu Tecnologia e Mobilidade Ltda"
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Nome Fantasia
+                        </label>
+                        <input
+                          type="text"
+                          value={appConfig?.nomeFantasia || branding?.app_name || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, nomeFantasia: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="Ex: PARTIU Mobilidade Urbana"
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          CNPJ
+                        </label>
+                        <input
+                          type="text"
+                          value={appConfig?.cnpj || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, cnpj: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="00.000.000/0001-00"
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 font-mono outline-none transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Inscrição Estadual / Municipal
+                        </label>
+                        <input
+                          type="text"
+                          value={appConfig?.inscricaoEstadual || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, inscricaoEstadual: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="Isento ou Nº de Inscrição"
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Endereço Completo da Sede
+                        </label>
+                        <input
+                          type="text"
+                          value={appConfig?.enderecoSede || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, enderecoSede: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="Rua / Av., Número, Bairro, CEP, Cidade - UF"
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-100 pt-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-xs font-black uppercase tracking-wider text-[#003366] flex items-center gap-1.5">
+                        <ShieldCheck className="w-4 h-4 text-[#0088FF]" />
+                        Governança LGPD (Lei Geral de Proteção de Dados - Lei 13.709/2018)
+                      </h3>
+                      <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Check className="w-3 h-3" /> Art. 41 LGPD
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-blue-50/60 border border-blue-200/80 rounded-2xl mb-4 text-xs text-slate-700 leading-relaxed">
+                      <strong>Requisito Legal:</strong> O Encarregado pelo Tratamento de Dados Pessoais (DPO) deve ser identificado no aplicativo com canal direto para solicitações dos titulares (acesso, correção, revogação e exclusão de dados).
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Nome do Encarregado de Dados (DPO)
+                        </label>
+                        <input
+                          type="text"
+                          value={appConfig?.dpoNome || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, dpoNome: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="Ex: Jurídico &amp; Privacidade Partiu"
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          E-mail do DPO / Canal de Privacidade
+                        </label>
+                        <input
+                          type="email"
+                          value={appConfig?.dpoEmail || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, dpoEmail: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="privacidade@partiumobilidade.com.br"
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-100 pt-5">
+                    <h3 className="text-xs font-black uppercase tracking-wider text-[#003366] mb-3 flex items-center gap-1.5">
+                      <FileText className="w-4 h-4 text-[#0088FF]" />
+                      Contratos, Políticas &amp; Termos de Adesão
+                    </h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          URL dos Termos de Uso (Passageiro)
+                        </label>
+                        <input
+                          type="url"
+                          value={appConfig?.termosUsoUrl || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, termosUsoUrl: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="https://partiu.com.br/termos"
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          URL da Política de Privacidade LGPD
+                        </label>
+                        <input
+                          type="url"
+                          value={appConfig?.politicaPrivacidadeLgpdUrl || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, politicaPrivacidadeLgpdUrl: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="https://partiu.com.br/privacidade"
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          URL Termo de Adesão do Motorista
+                        </label>
+                        <input
+                          type="url"
+                          value={appConfig?.termoMotoristaUrl || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, termoMotoristaUrl: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="https://partiu.com.br/adesao-motorista"
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Minuta Integral: Termos de Uso (Renderizado no App)
+                        </label>
+                        <textarea
+                          rows={4}
+                          value={appConfig?.termosUsoTexto || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, termosUsoTexto: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="Cole aqui o texto dos termos de uso da sua franquia para exibição offline ou in-app..."
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl p-3 text-xs text-slate-800 outline-none transition font-sans"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 block mb-1">
+                          Minuta Integral: Política de Privacidade &amp; Tratamento de Dados
+                        </label>
+                        <textarea
+                          rows={4}
+                          value={appConfig?.politicaPrivacidadeTexto || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, politicaPrivacidadeTexto: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="Cole aqui a política de privacidade completa para visualização in-app pelo passageiro e motorista..."
+                          className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl p-3 text-xs text-slate-800 outline-none transition font-sans"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ------------------------------------------------------------- */}
+              {/* SUB-ABA 3: MOBILE ASSET STUDIO */}
+              {/* ------------------------------------------------------------- */}
+              {geoAppSubTab === "assets" && (
+                <div className="space-y-6 animate-in fade-in">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* 1. APP LAUNCHER ICON */}
+                    <div className="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-[#0088FF] block">
+                            Asset Nativo 1
+                          </span>
+                          <h4 className="text-sm font-bold text-slate-800">
+                            App Launcher Icon (Ícone do App)
+                          </h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            512 × 512 px PNG sem canal alfa (Google Play &amp; App Store).
+                          </p>
+                        </div>
+
+                        {/* Preview do Ícone */}
+                        <div className="w-16 h-16 rounded-2xl bg-white p-1.5 shadow-md border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden">
+                          {appConfig?.iconeAppUrl || branding?.logo_url ? (
+                            <img
+                              src={appConfig?.iconeAppUrl || branding?.logo_url || ""}
+                              alt="Ícone do App"
+                              className="w-full h-full object-contain rounded-xl"
+                            />
+                          ) : (
+                            <Smartphone className="w-6 h-6 text-slate-400" />
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-700 block">
+                          URL da Imagem do Ícone
+                        </label>
+                        <input
+                          type="text"
+                          value={appConfig?.iconeAppUrl || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, iconeAppUrl: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="https://..."
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 outline-none"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-1">
+                        <label className="flex items-center gap-2 bg-[#0088FF] hover:bg-blue-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition shadow-2xs">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{uploadingField === "app_icon" ? "Enviando..." : "Upload Ícone (512x512)"}</span>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            className="hidden"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) void handleFileUpload(f, "app_icon");
+                            }}
+                          />
+                        </label>
+
+                        {branding?.logo_url && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateConfig({
+                                nativeApp: { ...appConfig, iconeAppUrl: branding.logo_url || "" },
+                              });
+                              triggerSaveFeedback();
+                            }}
+                            className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium cursor-pointer transition"
+                          >
+                            <Copy className="w-3.5 h-3.5 text-slate-500" />
+                            <span>Usar Logo da Marca</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 2. SPLASH SCREEN NATIVA */}
+                    <div className="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-[#0088FF] block">
+                            Asset Nativo 2
+                          </span>
+                          <h4 className="text-sm font-bold text-slate-800">
+                            Splash Screen (Tela de Abertura)
+                          </h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            1080 × 1920 px PNG vertical (Proporção 9:16).
+                          </p>
+                        </div>
+
+                        {/* Preview Vertical da Splash */}
+                        <div
+                          style={{
+                            backgroundColor: appConfig?.splashBackgroundColor || "#003366",
+                          }}
+                          className="w-12 h-20 rounded-xl p-1 shadow-md border border-slate-300 flex items-center justify-center shrink-0 overflow-hidden"
+                        >
+                          {appConfig?.splashAndroidUrl || brand?.splash?.splashAndroidUrl || branding?.splash_logo_url ? (
+                            <img
+                              src={appConfig?.splashAndroidUrl || brand?.splash?.splashAndroidUrl || branding?.splash_logo_url || ""}
+                              alt="Splash Preview"
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <span className="text-[8px] font-black text-white/80">SPLASH</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Seletor de Cor de Fundo da Splash */}
+                      <div>
+                        <label className="text-xs font-semibold text-slate-700 block mb-1">
+                          Cor de Fundo da Splash Screen
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={appConfig?.splashBackgroundColor || "#003366"}
+                            onChange={(e) => {
+                              updateConfig({
+                                nativeApp: { ...appConfig, splashBackgroundColor: e.target.value },
+                              });
+                              triggerSaveFeedback();
+                            }}
+                            className="w-8 h-8 rounded-lg cursor-pointer border border-slate-300 p-0.5 bg-white"
+                          />
+                          <input
+                            type="text"
+                            value={appConfig?.splashBackgroundColor || "#003366"}
+                            onChange={(e) => {
+                              updateConfig({
+                                nativeApp: { ...appConfig, splashBackgroundColor: e.target.value },
+                              });
+                              triggerSaveFeedback();
+                            }}
+                            className="w-24 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 font-mono outline-none"
+                          />
+
+                          {/* Quick Swatches */}
+                          <div className="flex items-center gap-1.5 ml-auto">
+                            {["#003366", "#0088FF", "#0F172A", "#000000", "#FFFFFF"].map((cor) => (
+                              <button
+                                key={cor}
+                                type="button"
+                                onClick={() => {
+                                  updateConfig({
+                                    nativeApp: { ...appConfig, splashBackgroundColor: cor },
+                                  });
+                                  triggerSaveFeedback();
+                                }}
+                                style={{ backgroundColor: cor }}
+                                className="w-5 h-5 rounded-full border border-slate-300 hover:scale-110 transition cursor-pointer shadow-2xs"
+                                title={cor}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-700 block">
+                          URL da Imagem de Splash
+                        </label>
+                        <input
+                          type="text"
+                          value={appConfig?.splashAndroidUrl || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: {
+                                ...appConfig,
+                                splashAndroidUrl: e.target.value,
+                                splashIosUrl: e.target.value,
+                              },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="https://..."
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 outline-none"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-1">
+                        <label className="flex items-center gap-2 bg-[#0088FF] hover:bg-blue-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition shadow-2xs">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{uploadingField === "splash" ? "Enviando..." : "Upload Splash (1080x1920)"}</span>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            className="hidden"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) void handleFileUpload(f, "splash");
+                            }}
+                          />
+                        </label>
+
+                        <button
+                          type="button"
+                          onClick={() => setPreviewMode("SPLASH")}
+                          className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium cursor-pointer transition"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-[#0088FF]" />
+                          <span>Ver no Simulador</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 3. ÍCONE DE PUSH NOTIFICATION MONOCROMÁTICO */}
+                    <div className="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-[#0088FF] block">
+                            Asset Nativo 3
+                          </span>
+                          <h4 className="text-sm font-bold text-slate-800">
+                            Push Notification Icon (Status Bar)
+                          </h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            96 × 96 px PNG Monocromático (Silhueta Branca com Canal Alfa Transparente).
+                          </p>
+                        </div>
+
+                        {/* Preview do Ícone de Push em Fundo Escuro */}
+                        <div className="w-14 h-14 rounded-2xl bg-slate-900 p-2 shadow-md border border-slate-700 flex items-center justify-center shrink-0">
+                          {appConfig?.iconeNotificacaoPushUrl ? (
+                            <img
+                              src={appConfig.iconeNotificacaoPushUrl}
+                              alt="Ícone Push"
+                              className="w-8 h-8 object-contain filter invert contrast-200"
+                            />
+                          ) : (
+                            <Bell className="w-6 h-6 text-white" />
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-amber-50/80 border border-amber-200/90 rounded-xl text-[11px] text-amber-900 leading-relaxed">
+                        ⚠️ <strong>Diretriz Técnica Android:</strong> Ícones coloridos são renderizados como quadrados brancos no Android 5.0+. Use uma silhueta branca sobre fundo totalmente transparente.
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-700 block">
+                          URL do Ícone de Push
+                        </label>
+                        <input
+                          type="text"
+                          value={appConfig?.iconeNotificacaoPushUrl || ""}
+                          onChange={(e) => {
+                            updateConfig({
+                              nativeApp: { ...appConfig, iconeNotificacaoPushUrl: e.target.value },
+                            });
+                            triggerSaveFeedback();
+                          }}
+                          placeholder="https://..."
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 outline-none"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-1">
+                        <label className="flex items-center gap-2 bg-[#0088FF] hover:bg-blue-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition shadow-2xs">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{uploadingField === "push_icon" ? "Enviando..." : "Upload Push Icon (96x96)"}</span>
+                          <input
+                            type="file"
+                            accept="image/png"
+                            className="hidden"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) void handleFileUpload(f, "push_icon");
+                            }}
+                          />
+                        </label>
+
+                        <button
+                          type="button"
+                          onClick={() => setPreviewMode("PUSH")}
+                          className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium cursor-pointer transition"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-[#0088FF]" />
+                          <span>Simular no Lockscreen</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 4. FAVICONS & METADADOS WEB/PWA */}
+                    <div className="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-[#0088FF] block">
+                            Asset Web / PWA
+                          </span>
+                          <h4 className="text-sm font-bold text-slate-800">
+                            Favicons Web &amp; PWA Manifest
+                          </h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            Ícone da aba do navegador e atalho na tela inicial do Chrome/Safari.
+                          </p>
+                        </div>
+
+                        {/* Preview Favicon */}
+                        <div className="w-12 h-12 rounded-xl bg-white p-2 shadow-md border border-slate-200 flex items-center justify-center shrink-0">
+                          <img
+                            src={brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || "/favicon.svg"}
+                            alt="Favicon"
+                            className="w-7 h-7 object-contain"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-700 block">
+                          Favicon Atual
+                        </label>
+                        <input
+                          type="text"
+                          value={brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || "/favicon.svg"}
+                          disabled
+                          className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-500 cursor-not-allowed font-mono truncate"
+                        />
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={handleGerarFaviconDaPaleta}
+                          className="flex items-center gap-1.5 bg-[#0088FF] hover:bg-blue-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition shadow-2xs"
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Gerar da Paleta</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleTestarFaviconAba}
+                          className="flex items-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium cursor-pointer transition"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+                          <span>Testar nesta Aba</span>
+                        </button>
+                      </div>
+
+                      {faviconTestFeedback && (
+                        <p className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
+                          <Check className="w-3.5 h-3.5" /> Favicon injetado dinamicamente na aba do navegador!
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -2213,52 +3062,98 @@ function WhiteLabelStudioContent() {
           <aside className="w-full lg:w-5/12 xl:w-1/3 sticky top-20 z-30">
             <div className="bg-white border border-slate-200/90 rounded-3xl p-4 shadow-sm space-y-4">
               {/* Controles do Simulador */}
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div className="flex items-center gap-2">
-                  <SmartphoneNfc className="w-4 h-4 text-[#0088FF]" />
-                  <span className="text-xs font-bold text-slate-800">Live Device Preview</span>
+              <div className="flex flex-col gap-2.5 border-b border-slate-100 pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <SmartphoneNfc className="w-4 h-4 text-[#0088FF]" />
+                    <span className="text-xs font-bold text-slate-800">Live Device Preview</span>
+                  </div>
+
+                  <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewDevice("MOBILE")}
+                      className={`p-1.5 rounded-lg transition cursor-pointer ${
+                        previewDevice === "MOBILE"
+                          ? "bg-[#0088FF] text-white shadow-xs"
+                          : "text-slate-500 hover:text-slate-800"
+                      }`}
+                      title="Simular Mobile (360px)"
+                    >
+                      <Smartphone className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPreviewDevice("TABLET")}
+                      className={`p-1.5 rounded-lg transition cursor-pointer ${
+                        previewDevice === "TABLET"
+                          ? "bg-[#0088FF] text-white shadow-xs"
+                          : "text-slate-500 hover:text-slate-800"
+                      }`}
+                      title="Simular Tablet (440px)"
+                    >
+                      <Tablet className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPreviewDevice("DESKTOP")}
+                      className={`p-1.5 rounded-lg transition cursor-pointer ${
+                        previewDevice === "DESKTOP"
+                          ? "bg-[#0088FF] text-white shadow-xs"
+                          : "text-slate-500 hover:text-slate-800"
+                      }`}
+                      title="Simular Desktop"
+                    >
+                      <Monitor className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
-                  <button
-                    type="button"
-                    onClick={() => setPreviewDevice("MOBILE")}
-                    className={`p-1.5 rounded-lg transition cursor-pointer ${
-                      previewDevice === "MOBILE"
-                        ? "bg-[#0088FF] text-white shadow-xs"
-                        : "text-slate-500 hover:text-slate-800"
-                    }`}
-                    title="Simular Mobile (390px)"
-                  >
-                    <Smartphone className="w-3.5 h-3.5" />
-                  </button>
+                {/* Seletor de Modo de Exibição */}
+                {activeTab !== "landing" && (
+                  <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewMode("HOME")}
+                      className={`py-1 rounded-lg text-[10px] font-bold transition cursor-pointer flex items-center justify-center gap-1 ${
+                        previewMode === "HOME"
+                          ? "bg-[#003366] text-white shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <Smartphone className="w-3 h-3" />
+                      <span>App Home</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setPreviewDevice("TABLET")}
-                    className={`p-1.5 rounded-lg transition cursor-pointer ${
-                      previewDevice === "TABLET"
-                        ? "bg-[#0088FF] text-white shadow-xs"
-                        : "text-slate-500 hover:text-slate-800"
-                    }`}
-                    title="Simular Tablet (768px)"
-                  >
-                    <Tablet className="w-3.5 h-3.5" />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewMode("SPLASH")}
+                      className={`py-1 rounded-lg text-[10px] font-bold transition cursor-pointer flex items-center justify-center gap-1 ${
+                        previewMode === "SPLASH"
+                          ? "bg-[#003366] text-white shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <Rocket className="w-3 h-3" />
+                      <span>Splash</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setPreviewDevice("DESKTOP")}
-                    className={`p-1.5 rounded-lg transition cursor-pointer ${
-                      previewDevice === "DESKTOP"
-                        ? "bg-[#0088FF] text-white shadow-xs"
-                        : "text-slate-500 hover:text-slate-800"
-                    }`}
-                    title="Simular Desktop"
-                  >
-                    <Monitor className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewMode("PUSH")}
+                      className={`py-1 rounded-lg text-[10px] font-bold transition cursor-pointer flex items-center justify-center gap-1 ${
+                        previewMode === "PUSH"
+                          ? "bg-[#003366] text-white shadow-xs"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <Bell className="w-3 h-3" />
+                      <span>Push</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* MOLDURA DO DISPOSITIVO */}
@@ -2289,14 +3184,135 @@ function WhiteLabelStudioContent() {
                         />
                       </div>
                     </div>
+                  ) : previewMode === "SPLASH" ? (
+                    <div
+                      style={{
+                        backgroundColor: appConfig?.splashBackgroundColor || "#003366",
+                      }}
+                      className="flex-1 flex flex-col items-center justify-between p-6 text-white min-h-[580px] transition-colors duration-300"
+                    >
+                      {/* Status bar */}
+                      <div className="w-full flex items-center justify-between text-[11px] font-bold opacity-80 shrink-0">
+                        <span>9:41</span>
+                        <div className="w-16 h-3 bg-white/20 rounded-full mx-auto" />
+                        <span>5G 100%</span>
+                      </div>
+
+                      {/* Conteúdo Central */}
+                      <div className="flex flex-col items-center text-center space-y-4 my-auto">
+                        <div className="w-24 h-24 rounded-3xl bg-white/10 backdrop-blur-md p-3 ring-2 ring-white/30 shadow-2xl flex items-center justify-center">
+                          {appConfig?.splashAndroidUrl || brand?.splash?.splashAndroidUrl || branding?.splash_logo_url || branding?.logo_url ? (
+                            <img
+                              src={appConfig?.splashAndroidUrl || brand?.splash?.splashAndroidUrl || branding?.splash_logo_url || branding?.logo_url || ""}
+                              alt=""
+                              className="w-full h-full object-contain"
+                            />
+                          ) : (
+                            <Sparkles className="w-10 h-10 text-white" />
+                          )}
+                        </div>
+
+                        <div>
+                          <h3 className="text-2xl font-black tracking-tight text-white drop-shadow-sm">
+                            {appConfig?.nomeAppExibicao || branding?.app_name || brand?.nomePlataforma || "PARTIU"}
+                          </h3>
+                          <p className="text-xs text-white/80 font-medium max-w-[200px] mt-1">
+                            {brand?.slogan || "Mobilidade Inteligente Sob Demanda"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Rodapé Splash */}
+                      <div className="flex flex-col items-center space-y-2 shrink-0">
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span className="text-[10px] font-medium text-white/70">
+                          Carregando serviços e praça...
+                        </span>
+                        <span className="text-[9px] font-mono text-white/50">
+                          v{appConfig?.versaoApp || "3.4.0"} • {geo?.cidadeSede || "Itaperuna, RJ"}
+                        </span>
+                      </div>
+                    </div>
+                  ) : previewMode === "PUSH" ? (
+                    <div className="flex-1 flex flex-col justify-between p-6 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-950 text-white min-h-[580px] relative overflow-hidden">
+                      {/* Wallpaper radial glow */}
+                      <div className="absolute top-0 left-0 right-0 h-64 bg-[radial-gradient(circle_at_50%_20%,rgba(0,136,255,0.25),transparent_70%)] pointer-events-none" />
+
+                      {/* Status bar */}
+                      <div className="w-full flex items-center justify-between text-[11px] font-bold opacity-80 shrink-0 z-10">
+                        <span>9:41</span>
+                        <div className="w-16 h-3 bg-white/20 rounded-full mx-auto" />
+                        <span>5G 100%</span>
+                      </div>
+
+                      {/* Relógio do Lockscreen */}
+                      <div className="flex flex-col items-center text-center mt-6 z-10">
+                        <span className="text-5xl font-light tracking-tight text-white/95">09:41</span>
+                        <span className="text-xs font-medium text-white/70 mt-1">
+                          Quarta-feira, 15 de Outubro
+                        </span>
+                      </div>
+
+                      {/* Card de Notificação Push */}
+                      <div className="my-auto z-10">
+                        <div className="bg-white/15 backdrop-blur-xl border border-white/25 rounded-2xl p-3.5 shadow-2xl text-left space-y-2 animate-in slide-in-from-top-4 duration-300">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-5 h-5 rounded-md bg-[#0088FF] flex items-center justify-center p-0.5 overflow-hidden shadow-xs">
+                                {appConfig?.iconeNotificacaoPushUrl || appConfig?.iconeAppUrl || branding?.logo_url ? (
+                                  <img
+                                    src={appConfig?.iconeNotificacaoPushUrl || appConfig?.iconeAppUrl || branding?.logo_url || ""}
+                                    alt=""
+                                    className="w-full h-full object-contain"
+                                  />
+                                ) : (
+                                  <Bell className="w-3 h-3 text-white" />
+                                )}
+                              </div>
+                              <span className="text-[11px] font-black uppercase tracking-wider text-white">
+                                {appConfig?.nomeAppExibicao || branding?.app_name || "PARTIU"}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-white/60">agora</span>
+                          </div>
+
+                          <div>
+                            <h5 className="text-xs font-bold text-white">Motorista a caminho! 🚗</h5>
+                            <p className="text-[11px] text-white/80 leading-snug mt-0.5">
+                              Carlos (Toyota Corolla • ABC-1234) está a 3 minutos do seu local de embarque.
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-2 pt-1 border-t border-white/15">
+                            <span className="text-[10px] font-bold bg-white/20 px-2 py-0.5 rounded-lg text-white">
+                              Abrir App
+                            </span>
+                            <span className="text-[10px] font-medium text-white/70">
+                              Toque para ver a rota no mapa
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Atalhos inferiores do Lockscreen */}
+                      <div className="w-full flex items-center justify-between px-4 shrink-0 z-10">
+                        <div className="w-10 h-10 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center text-white/80">
+                          <Sparkles className="w-4 h-4" />
+                        </div>
+                        <div className="w-24 h-1 bg-white/40 rounded-full" />
+                        <div className="w-10 h-10 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center text-white/80">
+                          <Smartphone className="w-4 h-4" />
+                        </div>
+                      </div>
+                    </div>
                   ) : (
                     <>
                       {/* Status bar simulada */}
                       <div className="bg-slate-950 text-white px-5 py-2 text-[11px] font-bold flex items-center justify-between">
-                    <span>9:41</span>
-                    <div className="w-16 h-3.5 bg-slate-800 rounded-full mx-auto" />
-                    <span>5G 100%</span>
-                  </div>
+                        <span>9:41</span>
+                        <div className="w-16 h-3.5 bg-slate-800 rounded-full mx-auto" />
+                        <span>5G 100%</span>
+                      </div>
 
                   {/* Header do App Simulado com Curvatura em Arco Padrão 99 */}
                   <div className="relative w-full h-[74px] overflow-visible bg-slate-100">
