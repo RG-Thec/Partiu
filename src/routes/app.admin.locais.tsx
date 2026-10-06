@@ -565,7 +565,7 @@ export function AdminLocaisPage() {
                   <input
                     type="text"
                     required
-                    placeholder="Ex: Itaperuna, Arapiraca"
+                    placeholder="Ex: São Paulo, Rio de Janeiro"
                     value={formNome}
                     onChange={(e) => setFormNome(e.target.value)}
                     className="w-full min-h-11 h-11 px-3.5 rounded-xl bg-background border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"

@@ -124,7 +124,7 @@ const PARCEIROS_INICIAIS: ParceiroVantagem[] = [
     nomeParceiro: "Rede Postos Ipiranga & Shell Parceiros",
     categoria: "combustivel",
     desconto: "R$ 0,25/litro de desconto na Gasolina e GNV",
-    cidade: "Maceió e Região Metropolitana",
+    cidade: "Todas as Praças Ativas",
     descricao: "Apresente o QR Code do app motorista diretamente no caixa do posto conveniado.",
     contatoOuLink: "Convenio #99281",
     ativo: true,
@@ -134,9 +134,9 @@ const PARCEIROS_INICIAIS: ParceiroVantagem[] = [
     nomeParceiro: "Centro Automotivo & Pneus AutoFix",
     categoria: "manutencao",
     desconto: "20% OFF em Troca de Óleo, Filtros e Pastilhas",
-    cidade: "Maceió / Arapiraca",
+    cidade: "Rede Nacional Credenciada",
     descricao: "Mão de obra grátis na troca de óleo com óleo e filtros comprados na loja.",
-    contatoOuLink: "Whats: (82) 99888-1122",
+    contatoOuLink: "Whats: (11) 99888-1122",
     ativo: true,
   },
   {
@@ -144,9 +144,9 @@ const PARCEIROS_INICIAIS: ParceiroVantagem[] = [
     nomeParceiro: "EcoLava Express - Estética Automotiva",
     categoria: "lavajato",
     desconto: "Lavagem Completa por apenas R$ 25,00",
-    cidade: "Maceió - Mangabeiras",
+    cidade: "Praças Operacionais",
     descricao: "Lavagem a seco rápida e higienização interna para motoristas parceiros PARTIU.",
-    contatoOuLink: "Av. Fernandes Lima, 450",
+    contatoOuLink: "Av. Central, 450",
     ativo: true,
   },
   {
@@ -154,7 +154,7 @@ const PARCEIROS_INICIAIS: ParceiroVantagem[] = [
     nomeParceiro: "Clube MedSaúde & Seguro Acidentes",
     categoria: "saude_seguro",
     desconto: "Consultas médicas a R$ 35 + Seguro APP Gratuito",
-    cidade: "Todo Estado de Alagoas",
+    cidade: "Rede Nacional",
     descricao: "Atendimento ambulatorial, telemedicina 24h e cobertura de acidentes pessoais para motoristas e entregadores.",
     contatoOuLink: "0800 700 8090",
     ativo: true,
@@ -690,7 +690,7 @@ export function AdminCuponsEVantagensPage() {
                   <label className="text-[11px] font-black text-slate-700 uppercase">Cidade / Região</label>
                   <input
                     type="text"
-                    placeholder="Ex: Maceió, Arapiraca"
+                    placeholder="Ex: Todas as Praças, São Paulo"
                     value={novoParceiroCidade}
                     onChange={(e) => setNovoParceiroCidade(e.target.value)}
                     className="w-full mt-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-900"

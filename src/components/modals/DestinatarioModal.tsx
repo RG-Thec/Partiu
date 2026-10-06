@@ -131,15 +131,6 @@ export function DestinatarioModal({
                 placeholder="Selecionar endereço de entrega"
                 className="w-full text-sm font-medium text-slate-900 placeholder:text-slate-400 py-2.5 border-b border-slate-200 focus:border-[#FDD835] focus:outline-none transition"
               />
-              <button
-                type="button"
-                onClick={() => {
-                  if (!endereco) setEndereco("Rua Amadeu Tinoco Lacerda, 492");
-                }}
-                className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-sm font-bold"
-              >
-                ›
-              </button>
             </div>
           </div>
 
@@ -173,8 +164,8 @@ export function DestinatarioModal({
               <button
                 type="button"
                 onClick={() => {
-                  const salvo = localStorage.getItem("partiu_user_nome") || "Maria Clara";
-                  setNome(salvo);
+                  const salvo = localStorage.getItem("partiu_user_nome") || "";
+                  if (salvo) setNome(salvo);
                 }}
                 className="absolute right-0 text-slate-600 hover:text-slate-900 cursor-pointer"
                 title="Preencher com meu nome"

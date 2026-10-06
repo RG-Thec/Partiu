@@ -169,7 +169,7 @@ export class EfiBankProvider implements PaymentGatewayProvider {
   public async createPix(order: PixOrderInput): Promise<PixOrderOutput> {
     const txId = `partiu_efi_${Date.now()}_${crypto.randomUUID().replace(/-/g, "").slice(0, 10)}`;
     const expiresAt = new Date(Date.now() + (order.expiresInMinutes || 30) * 60 * 1000).toISOString();
-    const copiaECola = buildStandardEmvPix("financeiro@partiu.com.br", "PARTIU MOBILIDADE", "MACEIO", order.amount, txId);
+    const copiaECola = buildStandardEmvPix("financeiro@partiumobilidade.com.br", "PARTIU MOBILIDADE", "BRASIL", order.amount, txId);
     const qrCodeUrl = await generateLocalQrCodeUrl(copiaECola);
 
     return {
@@ -249,7 +249,7 @@ export class MercadoPagoProvider implements PaymentGatewayProvider {
     // 2. Fallback resiliente local com as informações de PIX do Painel Admin
     const pixKey = settings.pix_key || "financeiro@partiumobilidade.com.br";
     const receiverName = settings.pix_receiver_name || "PARTIU MOBILIDADE URBANA";
-    const receiverCity = settings.pix_receiver_city || "ITAPERUNA";
+    const receiverCity = settings.pix_receiver_city || "BRASIL";
     const copiaECola = buildStandardEmvPix(pixKey, receiverName, receiverCity, order.amount, txId);
     const qrCodeUrl = await generateLocalQrCodeUrl(copiaECola);
 

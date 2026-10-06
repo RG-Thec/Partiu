@@ -52,7 +52,7 @@ export const CANCELLATION_REASONS_PASSENGER: CancellationReason[] = [
   {
     code: "ANOTHER_RIDE",
     label: "Encontrei outro meio de transporte",
-    description: "Embarquei em outra van, ônibus ou carona.",
+    description: "Optei por outro meio de transporte ou carona.",
     appliesFeeWhenLate: true,
   },
   {

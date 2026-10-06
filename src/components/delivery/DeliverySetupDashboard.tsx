@@ -192,7 +192,7 @@ export function DeliverySetupDashboard({
 
                   <div className="min-w-0 flex-1 text-left">
                     <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">
-                      {origem.endereco || "Rua Amadeu Tinoco Lacerda, 492 - Centro"}
+                      {origem.endereco || "Definir endereço de coleta"}
                     </p>
                     <p className="text-xs text-slate-400 font-medium truncate mt-0.5">
                       {origem.contatoNome} • {origem.contatoTelefone}
@@ -304,7 +304,7 @@ export function DeliverySetupDashboard({
 
                   <div className="min-w-0 flex-1 text-left">
                     <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">
-                      {destino.endereco || "Rua Amadeu Tinoco Lacerda, 492 - Centro"}
+                      {destino.endereco || "Definir endereço de entrega"}
                     </p>
                     <p className="text-xs text-slate-400 font-medium truncate mt-0.5">
                       {destino.contatoNome} • {destino.contatoTelefone}

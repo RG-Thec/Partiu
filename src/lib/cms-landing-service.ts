@@ -76,7 +76,7 @@ export const DEFAULT_DEPOIMENTOS: DepoimentoLanding[] = [
     nome: "Beatriz Nogueira",
     papel: "Empresa Conveniada",
     fotoUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
-    cidade: "Arapiraca - AL",
+    cidade: "Belo Horizonte - MG",
     avaliacao: 5,
     comentario: "Centralizamos todo o deslocamento dos nossos colaboradores e entregas rápidas no Partiu Empresas. Painel simples e controle total de despesas.",
   },

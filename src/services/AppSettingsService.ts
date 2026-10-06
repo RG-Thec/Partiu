@@ -37,7 +37,7 @@ const STORAGE_SETTINGS_KEY = "partiu_global_app_settings_v1";
 
 const DEFAULT_SETTINGS: GlobalAppSettings = {
   id: "global",
-  whatsappSupport: "(22) 99605-1620",
+  whatsappSupport: "(11) 99605-1620",
   phoneEmergency: "190",
   supportHours: "24h • Todos os dias",
   appVersion: "1.0.0",
@@ -49,7 +49,7 @@ const DEFAULT_SETTINGS: GlobalAppSettings = {
   isDeliveryActive: true,
   pixKey: "financeiro@partiumobilidade.com.br",
   pixReceiverName: "PARTIU MOBILIDADE URBANA LTDA",
-  pixReceiverCity: "ITAPERUNA",
+  pixReceiverCity: "BRASIL",
   referralBonusBrl: 5.0,
   referralDiscountBrl: 5.0,
   referralActive: true,
@@ -109,7 +109,7 @@ export class AppSettingsService {
 
       const settings: GlobalAppSettings = {
         id: data.id || "global",
-        whatsappSupport: data.whatsapp_support || "(22) 99605-1620",
+        whatsappSupport: data.whatsapp_support || "(11) 99605-1620",
         phoneEmergency: data.phone_emergency || "190",
         supportHours: data.support_hours || "24h • Todos os dias",
         appVersion: data.app_version || "1.0.0",

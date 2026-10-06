@@ -11,56 +11,16 @@ import {
   ArrowRight,
   Search,
 } from "lucide-react";
-import { useDelivery } from "@/contexts/DeliveryContext";
+import { useDelivery, type EnderecoRecenteItem } from "@/contexts/DeliveryContext";
 import { type DeliveryAddressInfo } from "@/lib/delivery/delivery-dual-pin-machine";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 
-interface EnderecoRecenteItem {
-  id: string;
-  endereco: string;
-  complemento: string;
-  nome: string;
-  telefone: string;
-}
-
-const ENDERECOS_RECENTES: EnderecoRecenteItem[] = [
-  {
-    id: "rec-1",
-    endereco: "Rua Dez de Maio, 188 - Centro",
-    complemento: "Em cima da Loja Camila Amorim",
-    nome: "Miriam Barbosa",
-    telefone: "(22) 98861-5039",
-  },
-  {
-    id: "rec-2",
-    endereco: "Rua Amadeu Tinoco Lacerda, 492 - Aeroporto",
-    complemento: "Casa térrea com portão branco",
-    nome: "Rosilda Gomes",
-    telefone: "(22) 99807-1960",
-  },
-  {
-    id: "rec-3",
-    endereco: "Rua José Raimundo de Oliveira, 287 - Cidade Nova",
-    complemento: "Em frente ao Açaí da Praça",
-    nome: "Érica Carvalho",
-    telefone: "(22) 99745-1234",
-  },
-  {
-    id: "rec-4",
-    endereco: "Av. Cardoso Moreira, 310 - Centro",
-    complemento: "Edifício Comercial Sala 402",
-    nome: "Carlos Lima",
-    telefone: "(22) 99233-8899",
-  },
-];
-
 const SUGESTOES_AUTOCOMPLETE = [
-  "Rua Dez de Maio, 188 - Centro, Itaperuna - RJ",
-  "Av. Cardoso Moreira, 550 - Centro, Itaperuna - RJ",
-  "Rua Buarque de Nazareth, 120 - Centro, Itaperuna - RJ",
-  "Rua Assis Ribeiro, 45 - Fiteiro, Itaperuna - RJ",
-  "Rua Amadeu Tinoco Lacerda, 492 - Aeroporto, Itaperuna - RJ",
-  "Rua José Raimundo de Oliveira, 287 - Cidade Nova, Itaperuna - RJ",
+  "Centro Comercial Principal",
+  "Avenida Central, 100",
+  "Shopping Center",
+  "Terminal Rodoviário Central",
+  "Aeroporto Municipal",
 ];
 
 export function DeliveryAddressBottomSheet() {
@@ -71,6 +31,7 @@ export function DeliveryAddressBottomSheet() {
     salvarEnderecoModal,
     origem,
     destino,
+    enderecosRecentes,
   } = useDelivery();
 
   const { corPrimaria, corTextoPrimaria } = useBrandTheme();
@@ -124,7 +85,7 @@ export function DeliveryAddressBottomSheet() {
 
   function handleSelecionarRecente(item: EnderecoRecenteItem) {
     setEndereco(item.endereco);
-    setComplemento(item.complemento);
+    setComplemento(item.complemento || "");
     setNome(item.nome);
     setTelefone(item.telefone);
     setRecenteAtivoId(item.id);
@@ -205,86 +166,88 @@ export function DeliveryAddressBottomSheet() {
         {/* Formulário com Scroll */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 text-left">
           
-          {/* SEÇÃO MODERNA: ENDEREÇOS RECENTES (1 TOQUE) — SEM PERDA DE INFORMAÇÕES */}
-          <div className="space-y-2.5 pt-1">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-lg bg-primary-50 text-amber-800 flex items-center justify-center">
-                  <Sparkles className="w-3 h-3 text-primary-700" />
+          {/* SEÇÃO MODERNA: ENDEREÇOS RECENTES (1 TOQUE) */}
+          {enderecosRecentes.length > 0 && (
+            <div className="space-y-2.5 pt-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-lg bg-primary-50 text-amber-800 flex items-center justify-center">
+                    <Sparkles className="w-3 h-3 text-primary-700" />
+                  </div>
+                  <span className="text-xs font-black text-slate-900 tracking-tight">
+                    Endereços Recentes (1 Toque)
+                  </span>
                 </div>
-                <span className="text-xs font-black text-slate-900 tracking-tight">
-                  Endereços Recentes (1 Toque)
+                <span className="text-[10px] font-extrabold bg-primary-50 text-amber-900 border border-amber-200/80 px-2 py-0.5 rounded-full">
+                  {enderecosRecentes.length} contatos salvos
                 </span>
               </div>
-              <span className="text-[10px] font-extrabold bg-primary-50 text-amber-900 border border-amber-200/80 px-2 py-0.5 rounded-full">
-                {ENDERECOS_RECENTES.length} contatos salvos
-              </span>
-            </div>
 
-            {/* LISTA COMPLETA VERTICAL (VER TODOS POR PADRÃO, SEM CORTE DE INFORMAÇÕES) */}
-            <div className="space-y-2 pt-1">
-              {ENDERECOS_RECENTES.map((rec) => {
-                const isSelecionado =
-                  recenteAtivoId === rec.id || (endereco === rec.endereco && nome === rec.nome);
+              {/* LISTA COMPLETA VERTICAL */}
+              <div className="space-y-2 pt-1">
+                {enderecosRecentes.map((rec) => {
+                  const isSelecionado =
+                    recenteAtivoId === rec.id || (endereco === rec.endereco && nome === rec.nome);
 
-                return (
-                  <div
-                    key={rec.id}
-                    onClick={() => handleSelecionarRecente(rec)}
-                    className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 active:scale-[0.99] ${
-                      isSelecionado
-                        ? "border-primary-600 bg-primary-50/70 shadow-sm ring-2 ring-primary-600/20"
-                        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/70 shadow-xs"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary-600 to-amber-300 text-slate-950 font-black text-xs flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-                        {getIniciais(rec.nome)}
-                      </div>
-
-                      <div className="min-w-0 flex-1 space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-black text-slate-900 leading-tight">
-                            {rec.nome}
-                          </span>
-                          <span className="text-[10px] font-mono text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded">
-                            {rec.telefone}
-                          </span>
+                  return (
+                    <div
+                      key={rec.id}
+                      onClick={() => handleSelecionarRecente(rec)}
+                      className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 active:scale-[0.99] ${
+                        isSelecionado
+                          ? "border-primary-600 bg-primary-50/70 shadow-sm ring-2 ring-primary-600/20"
+                          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/70 shadow-xs"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary-600 to-amber-300 text-slate-950 font-black text-xs flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                          {getIniciais(rec.nome)}
                         </div>
 
-                        <p className="text-xs font-semibold text-slate-800 leading-snug">
-                          {rec.endereco}
-                        </p>
-
-                        {rec.complemento && (
-                          <div className="inline-flex items-center gap-1.5 text-[10px] text-slate-600 bg-slate-100/90 border border-slate-200/70 px-2 py-0.5 rounded-md font-medium">
-                            <Building className="w-3 h-3 text-slate-400 shrink-0" />
-                            <span>{rec.complemento}</span>
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-black text-slate-900 leading-tight">
+                              {rec.nome}
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded">
+                              {rec.telefone}
+                            </span>
                           </div>
+
+                          <p className="text-xs font-semibold text-slate-800 leading-snug">
+                            {rec.endereco}
+                          </p>
+
+                          {rec.complemento && (
+                            <div className="inline-flex items-center gap-1.5 text-[10px] text-slate-600 bg-slate-100/90 border border-slate-200/70 px-2 py-0.5 rounded-md font-medium">
+                              <Building className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span>{rec.complemento}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 flex items-center">
+                        {isSelecionado ? (
+                          <span className="text-[9px] font-black uppercase text-emerald-800 bg-emerald-100/90 px-2 py-1 rounded-full flex items-center gap-1 shrink-0">
+                            <Check className="w-2.5 h-2.5 text-emerald-700 stroke-[3]" />
+                            Preenchido
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            className="px-2.5 py-1.5 rounded-xl bg-primary-50 hover:bg-amber-200 text-amber-900 font-bold text-[10px] transition cursor-pointer"
+                          >
+                            1 Toque
+                          </button>
                         )}
                       </div>
                     </div>
-
-                    <div className="shrink-0 flex items-center">
-                      {isSelecionado ? (
-                        <span className="text-[9px] font-black uppercase text-emerald-800 bg-emerald-100/90 px-2 py-1 rounded-full flex items-center gap-1 shrink-0">
-                          <Check className="w-2.5 h-2.5 text-emerald-700 stroke-[3]" />
-                          Preenchido
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          className="px-2.5 py-1.5 rounded-xl bg-primary-50 hover:bg-amber-200 text-amber-900 font-bold text-[10px] transition cursor-pointer"
-                        >
-                          1 Toque
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* CAMPO 1: ENDEREÇO COM AUTOCOMPLETAR */}
           <div className="space-y-1 relative">

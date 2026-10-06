@@ -96,9 +96,9 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
   // Localização do próprio usuário (detectada via GPS real e perfil)
   const [localizacaoUsuario, setLocalizacaoUsuario] = useState<DeliveryAddressInfo>(() => {
     if (typeof window === "undefined") return ENDERECO_EM_BRANCO;
-    const nome = localStorage.getItem("partiu_user_nome") || "Maria Clara";
+    const nome = localStorage.getItem("partiu_user_nome") || "";
     const tel = localStorage.getItem("partiu_user_telefone") || "";
-    const saved = localStorage.getItem("partiu_saved_origin_address") || "Rua Amadeu Tinoco Lacerda, 492 - Centro, Itaperuna - RJ";
+    const saved = localStorage.getItem("partiu_saved_origin_address") || "";
     return {
       endereco: saved,
       complemento: "",
@@ -134,7 +134,7 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
     async function detectarLocalizacao() {
       try {
         const perfil = await UserService.getInstance().getCurrentUserProfile();
-        const nomePax = perfil?.name || localStorage.getItem("partiu_user_nome") || "Maria Clara";
+        const nomePax = perfil?.name || localStorage.getItem("partiu_user_nome") || "";
         const telPax = perfil?.phone?.replace(/\D/g, "") || localStorage.getItem("partiu_user_telefone") || "";
 
         if (typeof navigator !== "undefined" && navigator.geolocation) {

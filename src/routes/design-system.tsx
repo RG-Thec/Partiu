@@ -215,7 +215,7 @@ function DesignSystemPage() {
           <Secao titulo="KPIs da frota" descricao="Números com alto contraste e leitura imediata.">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
-                { rotulo: "Vans ativas", valor: "12" },
+                { rotulo: "Veículos ativos", valor: "12" },
                 { rotulo: "Em rota", valor: "8" },
                 { rotulo: "Manutenção", valor: "2" },
                 { rotulo: "Alertas", valor: "3" },
@@ -258,7 +258,7 @@ function DesignSystemPage() {
             <div className="space-y-3">
               <div className="rounded-xl border border-warning/30 bg-warning-soft px-4 py-3">
                 <p className="text-sm font-semibold text-foreground">Manutenção agendada</p>
-                <p className="text-sm text-text-secondary">Van 04 precisa de revisão.</p>
+                <p className="text-sm text-text-secondary">Veículo 04 precisa de revisão.</p>
               </div>
               <div className="rounded-xl border border-danger/30 bg-danger-soft px-4 py-3">
                 <p className="text-sm font-semibold text-foreground">Tráfego intenso</p>
@@ -336,7 +336,7 @@ function DesignSystemPage() {
           <Secao titulo="Cartões e listas">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-                <p className="text-sm font-semibold text-foreground">Van 12 — Linha Centro</p>
+                <p className="text-sm font-semibold text-foreground">Veículo 12 — Em Trânsito</p>
                 <p className="text-sm text-muted-foreground">Chega em 4 minutos</p>
                 <span className="mt-3 inline-flex rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
                   A caminho

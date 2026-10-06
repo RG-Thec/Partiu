@@ -594,9 +594,9 @@ export function MarketingAdminPage() {
                       className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold bg-white"
                     >
                       <option value="Todas as Cidades">Todas as Cidades</option>
-                      <option value="Maceió - AL">Maceió - AL</option>
-                      <option value="Arapiraca - AL">Arapiraca - AL</option>
-                      <option value="Palmeira dos Índios - AL">Palmeira dos Índios - AL</option>
+                      <option value="Operação Principal">Operação Principal</option>
+                      <option value="Região Metropolitana">Região Metropolitana</option>
+                      <option value="Interior e Polos Regionais">Interior e Polos Regionais</option>
                     </select>
                   </div>
                 </div>

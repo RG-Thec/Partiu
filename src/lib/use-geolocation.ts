@@ -16,79 +16,39 @@ export interface LocalizacaoDetectada {
   coords: [number, number];
 }
 
-// Base de coordenadas conhecidas das cidades e trevos de Alagoas
-export const PONTOS_GEOGRAFICOS_ALAGOAS: LocalizacaoDetectada[] = [
+// Base de coordenadas de referência urbana nacional
+export const PONTOS_GEOGRAFICOS_REFERENCIA: LocalizacaoDetectada[] = [
   {
-    cidade: "Maceió",
-    pontoEmbarque: "Maceió (Trevo do Tabuleiro)",
-    referencia: "Avenida Fernandes Lima / Makro",
+    cidade: "São Paulo",
+    pontoEmbarque: "São Paulo (Centro)",
+    referencia: "Marco Zero • Centro",
     distanciaKm: 0,
-    coords: [-9.5786, -35.7562],
+    coords: [-23.5505, -46.6333],
   },
   {
-    cidade: "Maceió",
-    pontoEmbarque: "Maceió (Terminal Rodoviário / Feitosa)",
-    referencia: "Terminal João Paulo II",
+    cidade: "Rio de Janeiro",
+    pontoEmbarque: "Rio de Janeiro (Centro)",
+    referencia: "Centro Metropolitano",
     distanciaKm: 0,
-    coords: [-9.6459, -35.7255],
+    coords: [-22.9068, -43.1729],
   },
   {
-    cidade: "Igreja Nova",
-    pontoEmbarque: "Igreja Nova (Terminal Central)",
-    referencia: "Praça Agapito Soares",
+    cidade: "Belo Horizonte",
+    pontoEmbarque: "Belo Horizonte (Centro)",
+    referencia: "Praça Sete",
     distanciaKm: 0,
-    coords: [-10.1279, -36.6565],
+    coords: [-19.9167, -43.9345],
   },
   {
-    cidade: "Arapiraca",
-    pontoEmbarque: "Arapiraca (Terminal Urbano)",
-    referencia: "Centro de Arapiraca",
+    cidade: "Brasília",
+    pontoEmbarque: "Brasília (Plano Piloto)",
+    referencia: "Eixo Monumental",
     distanciaKm: 0,
-    coords: [-9.7547, -36.6614],
-  },
-  {
-    cidade: "Coruripe",
-    pontoEmbarque: "Coruripe (Praça Central)",
-    referencia: "AL-349 • Centro",
-    distanciaKm: 0,
-    coords: [-10.1256, -36.1756],
-  },
-  {
-    cidade: "Penedo",
-    pontoEmbarque: "Penedo (Orla Histórica)",
-    referencia: "Terminal das Balsas / São Francisco",
-    distanciaKm: 0,
-    coords: [-10.2906, -36.5811],
-  },
-  {
-    cidade: "Barra de São Miguel",
-    pontoEmbarque: "Barra de São Miguel (Trevo)",
-    referencia: "AL-101 Sul / Posto Shell",
-    distanciaKm: 0,
-    coords: [-9.8294, -35.9069],
-  },
-  {
-    cidade: "Marechal Deodoro",
-    pontoEmbarque: "Marechal Deodoro (Trevo do Francês)",
-    referencia: "Posto Shell da Praia do Francês",
-    distanciaKm: 0,
-    coords: [-9.7125, -35.8972],
-  },
-  {
-    cidade: "São Miguel dos Campos",
-    pontoEmbarque: "São Miguel dos Campos (Trevo BR-101)",
-    referencia: "Posto Pichilau",
-    distanciaKm: 0,
-    coords: [-9.7811, -36.0911],
-  },
-  {
-    cidade: "Tapera / São José da Tapera",
-    pontoEmbarque: "São José da Tapera (Centro)",
-    referencia: "Praça Central",
-    distanciaKm: 0,
-    coords: [-9.5583, -37.3811],
+    coords: [-15.7975, -47.8919],
   },
 ];
+
+export const PONTOS_GEOGRAFICOS_ALAGOAS = PONTOS_GEOGRAFICOS_REFERENCIA;
 
 export function calcularDistanciaKm(
   lat1: number,
@@ -113,7 +73,7 @@ export function encontrarPontoMaisProximo(lat: number, lng: number): Localizacao
   let maisProximo: LocalizacaoDetectada | null = null;
   let menorDistancia = Infinity;
 
-  for (const ponto of PONTOS_GEOGRAFICOS_ALAGOAS) {
+  for (const ponto of PONTOS_GEOGRAFICOS_REFERENCIA) {
     const dist = calcularDistanciaKm(lat, lng, ponto.coords[0], ponto.coords[1]);
     if (dist < menorDistancia) {
       menorDistancia = dist;
@@ -121,9 +81,14 @@ export function encontrarPontoMaisProximo(lat: number, lng: number): Localizacao
     }
   }
 
-  // Só associa a ponto de referência pré-definido se o usuário estiver de fato no raio de 30 km
-  if (menorDistancia > 30) {
-    return null;
+  if (menorDistancia > 50) {
+    return {
+      cidade: "Perímetro Urbano",
+      pontoEmbarque: "Localização GPS",
+      referencia: "Ponto em Trânsito",
+      distanciaKm: menorDistancia,
+      coords: [lat, lng],
+    };
   }
 
   return maisProximo;

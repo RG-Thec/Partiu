@@ -99,8 +99,8 @@ export const ITAPERUNA_CENTER: [number, number] = [-41.8880, -21.2050];
 
 // Endereço e Coordenadas de Origem Padrão (Itaperuna, RJ)
 export const DEFAULT_ORIGIN = {
-  endereco: "Rua Amadeu Tinoco Lacerda, 492 - Centro",
-  cidade: "Itaperuna, RJ",
+  endereco: "Sua localização atual",
+  cidade: "Partiu Mobilidade",
   coords: ITAPERUNA_CENTER,
 };
 
