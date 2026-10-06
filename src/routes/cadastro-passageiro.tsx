@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -90,6 +90,18 @@ export function CadastroPassageiroPage() {
     permissaoConcedida,
   } = useGeolocation();
 
+  useEffect(() => {
+    try {
+      const savedAvatar =
+        localStorage.getItem("partiu_user_avatar") ||
+        localStorage.getItem("partiu_user_foto") ||
+        localStorage.getItem("partiu_user_selfie");
+      if (savedAvatar) {
+        setFotoUrl(savedAvatar);
+      }
+    } catch {}
+  }, []);
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setErroCadastro(null);
@@ -130,6 +142,30 @@ export function CadastroPassageiroPage() {
 
     setCarregando(true);
     try {
+      // 1. Persistência imediata de perfil e selfie para garantir integridade local
+      try {
+        if (fotoUrl) {
+          localStorage.setItem("partiu_user_avatar", fotoUrl);
+          localStorage.setItem("partiu_user_foto", fotoUrl);
+          localStorage.setItem("partiu_user_selfie", fotoUrl);
+        }
+        localStorage.setItem("partiu_user_nome", cleanNome);
+        localStorage.setItem("partiu_user_phone", telefone);
+        localStorage.setItem("partiu_user_telefone", telefone);
+        localStorage.setItem("partiu_user_cpf", cpf);
+        localStorage.setItem("partiu_user_email", cleanEmail);
+        if (permissaoConcedida) {
+          localStorage.setItem("partiu_gps_permitido", "true");
+        }
+        window.dispatchEvent(
+          new CustomEvent("partiu:user-profile-updated", {
+            detail: { name: cleanNome, avatarUrl: fotoUrl, phone: telefone },
+          })
+        );
+      } catch {
+        // storage resiliente
+      }
+
       const res = await supabaseAuthService.signUpPassenger({
         name: cleanNome,
         email: cleanEmail,
@@ -143,17 +179,6 @@ export function CadastroPassageiroPage() {
         setErroCadastro(res.error || "Não foi possível concluir o cadastro no momento. Tente novamente.");
         setCarregando(false);
         return;
-      }
-
-      // Registro de preferências locais de cache para navegação instantânea
-      try {
-        localStorage.setItem("partiu_user_nome", cleanNome);
-        localStorage.setItem("partiu_user_telefone", telefone);
-        if (permissaoConcedida) {
-          localStorage.setItem("partiu_gps_permitido", "true");
-        }
-      } catch {
-        // storage resiliente
       }
 
       setSucesso(true);
@@ -249,6 +274,13 @@ export function CadastroPassageiroPage() {
                 value={fotoUrl}
                 onChange={(capturedUrl) => {
                   setFotoUrl(capturedUrl);
+                  if (capturedUrl) {
+                    try {
+                      localStorage.setItem("partiu_user_avatar", capturedUrl);
+                      localStorage.setItem("partiu_user_foto", capturedUrl);
+                      localStorage.setItem("partiu_user_selfie", capturedUrl);
+                    } catch {}
+                  }
                   if (erroCadastro?.includes("foto")) setErroCadastro(null);
                 }}
                 required

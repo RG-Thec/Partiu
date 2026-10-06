@@ -71,16 +71,24 @@ export class UserService {
   public async getCurrentUserProfile(): Promise<UserProfileData> {
     const session = supabaseAuthService.getStoredSession();
     const localName = typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : null;
-    const localAvatar = typeof window !== "undefined" ? localStorage.getItem("partiu_user_avatar") : null;
-    const localPhone = typeof window !== "undefined" ? localStorage.getItem("partiu_user_phone") : null;
+    const localAvatar = typeof window !== "undefined"
+      ? localStorage.getItem("partiu_user_avatar") ||
+        localStorage.getItem("partiu_user_foto") ||
+        localStorage.getItem("partiu_user_selfie")
+      : null;
+    const localPhone = typeof window !== "undefined"
+      ? localStorage.getItem("partiu_user_phone") || localStorage.getItem("partiu_user_telefone")
+      : null;
+    const localCpf = typeof window !== "undefined" ? localStorage.getItem("partiu_user_cpf") : null;
+    const localEmail = typeof window !== "undefined" ? localStorage.getItem("partiu_user_email") : null;
 
     let base: UserProfileData = {
       ...DEFAULT_PROFILE,
       id: session?.id || DEFAULT_PROFILE.id,
       name: localName || session?.name || DEFAULT_PROFILE.name,
-      email: session?.email || DEFAULT_PROFILE.email,
+      email: localEmail || session?.email || DEFAULT_PROFILE.email,
       phone: localPhone || session?.phone || DEFAULT_PROFILE.phone,
-      cpf: session?.cpf || DEFAULT_PROFILE.cpf,
+      cpf: localCpf || session?.cpf || DEFAULT_PROFILE.cpf,
       avatarUrl: localAvatar || session?.avatarUrl || DEFAULT_PROFILE.avatarUrl,
       rating: session?.rating || DEFAULT_PROFILE.rating,
       totalTrips: session?.totalTrips || DEFAULT_PROFILE.totalTrips,
@@ -95,11 +103,16 @@ export class UserService {
       // 1. Tenta buscar na tabela partiu_passageiros
       const targetUserId = session?.id;
       if (targetUserId) {
-        const { data: paxData } = await (supabase as any)
-          .from("partiu_passageiros")
-          .select("*")
-          .or(`user_id.eq.${targetUserId},id.eq.${targetUserId}`)
-          .maybeSingle();
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetUserId);
+
+        let query = (supabase as any).from("partiu_passageiros").select("*");
+        if (isUuid) {
+          query = query.or(`user_id.eq.${targetUserId},id.eq.${targetUserId}`);
+        } else {
+          query = query.eq("user_id", targetUserId);
+        }
+
+        const { data: paxData } = await query.maybeSingle();
 
         if (paxData) {
           base = {
@@ -119,25 +132,33 @@ export class UserService {
               prefRequirePin: paxData.pref_require_pin ?? base.preferences.prefRequirePin,
             },
           };
+          if (base.avatarUrl && typeof window !== "undefined") {
+            try { localStorage.setItem("partiu_user_avatar", base.avatarUrl); } catch {}
+          }
           this.saveStoredPreferences(base.preferences);
           return base;
         }
 
         // 2. Fallback na tabela profiles
-        const { data: profData } = await (supabase as any)
-          .from("profiles")
-          .select("*")
-          .eq("id", targetUserId)
-          .maybeSingle();
+        if (isUuid) {
+          const { data: profData } = await (supabase as any)
+            .from("profiles")
+            .select("*")
+            .eq("id", targetUserId)
+            .maybeSingle();
 
-        if (profData) {
-          base = {
-            ...base,
-            name: profData.full_name || base.name,
-            phone: profData.phone || base.phone,
-            cpf: profData.cpf || base.cpf,
-            avatarUrl: profData.avatar_url || base.avatarUrl,
-          };
+          if (profData) {
+            base = {
+              ...base,
+              name: profData.full_name || base.name,
+              phone: profData.phone || base.phone,
+              cpf: profData.cpf || base.cpf,
+              avatarUrl: profData.avatar_url || base.avatarUrl,
+            };
+            if (base.avatarUrl && typeof window !== "undefined") {
+              try { localStorage.setItem("partiu_user_avatar", base.avatarUrl); } catch {}
+            }
+          }
         }
       }
     } catch (err) { silentCatchWarn("UserService", err); }
@@ -160,11 +181,19 @@ export class UserService {
     // 1. Atualiza cache local instantâneo
     if (typeof window !== "undefined") {
       if (data.name) localStorage.setItem("partiu_user_nome", data.name);
-      if (data.phone) localStorage.setItem("partiu_user_phone", data.phone);
-      if (data.avatarUrl) localStorage.setItem("partiu_user_avatar", data.avatarUrl);
+      if (data.phone) {
+        localStorage.setItem("partiu_user_phone", data.phone);
+        localStorage.setItem("partiu_user_telefone", data.phone);
+      }
+      if (data.cpf) localStorage.setItem("partiu_user_cpf", data.cpf);
+      if (data.avatarUrl) {
+        localStorage.setItem("partiu_user_avatar", data.avatarUrl);
+        localStorage.setItem("partiu_user_foto", data.avatarUrl);
+        localStorage.setItem("partiu_user_selfie", data.avatarUrl);
+      }
       window.dispatchEvent(
         new CustomEvent("partiu:user-profile-updated", {
-          detail: { name: data.name, avatarUrl: data.avatarUrl, phone: data.phone },
+          detail: { name: data.name, avatarUrl: data.avatarUrl, phone: data.phone, cpf: data.cpf },
         })
       );
     }
@@ -183,7 +212,9 @@ export class UserService {
     // 2. Atualiza Supabase
     if (isSupabaseConfigured() && userId) {
       try {
-        await (supabase as any)
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+
+        let paxQuery = (supabase as any)
           .from("partiu_passageiros")
           .update({
             nome: data.name,
@@ -191,19 +222,28 @@ export class UserService {
             cpf: data.cpf || undefined,
             foto_url: data.avatarUrl || undefined,
             updated_at: new Date().toISOString(),
-          })
-          .or(`user_id.eq.${userId},id.eq.${userId}`);
+          });
 
-        await (supabase as any)
-          .from("profiles")
-          .update({
-            full_name: data.name,
-            phone: data.phone,
-            cpf: data.cpf || undefined,
-            avatar_url: data.avatarUrl || undefined,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", userId);
+        if (isUuid) {
+          paxQuery = paxQuery.or(`user_id.eq.${userId},id.eq.${userId}`);
+        } else {
+          paxQuery = paxQuery.eq("user_id", userId);
+        }
+
+        await paxQuery;
+
+        if (isUuid) {
+          await (supabase as any)
+            .from("profiles")
+            .update({
+              full_name: data.name,
+              phone: data.phone,
+              cpf: data.cpf || undefined,
+              avatar_url: data.avatarUrl || undefined,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", userId);
+        }
       } catch (err: any) {
         console.warn("Aviso ao persistir perfil no Supabase:", err?.message);
       }
@@ -250,11 +290,18 @@ export class UserService {
     // Fallback base64 local
     return new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = async () => {
         const base64 = reader.result as string;
         if (typeof window !== "undefined") {
           localStorage.setItem("partiu_user_avatar", base64);
+          localStorage.setItem("partiu_user_foto", base64);
+          localStorage.setItem("partiu_user_selfie", base64);
         }
+        await this.updateUserProfile({
+          name: typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") || "Passageiro" : "Passageiro",
+          phone: typeof window !== "undefined" ? localStorage.getItem("partiu_user_phone") || "" : "",
+          avatarUrl: base64,
+        });
         resolve({ success: true, url: base64 });
       };
       reader.onerror = () => resolve({ success: false, error: "Erro ao ler arquivo local" });
@@ -281,7 +328,8 @@ export class UserService {
       if (!userId) return;
 
       try {
-        await (supabase as any)
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+        let updateQuery = (supabase as any)
           .from("partiu_passageiros")
           .update({
             pref_push_notifications: updated.prefPushNotifications,
@@ -290,8 +338,15 @@ export class UserService {
             pref_quiet_trip: updated.prefQuietTrip,
             pref_require_pin: updated.prefRequirePin,
             updated_at: new Date().toISOString(),
-          })
-          .or(`user_id.eq.${userId},id.eq.${userId}`);
+          });
+
+        if (isUuid) {
+          updateQuery = updateQuery.or(`user_id.eq.${userId},id.eq.${userId}`);
+        } else {
+          updateQuery = updateQuery.eq("user_id", userId);
+        }
+
+        await updateQuery;
       } catch (err) { silentCatchWarn("UserService", err); }
     }, 800);
   }

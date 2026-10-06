@@ -255,16 +255,53 @@ export class SupabaseAuthService {
             }
           }
 
+          let avatarUrl = profileData?.avatar_url || user.user_metadata?.["avatar_url"];
+          let paxNome = profileData?.full_name;
+          let paxPhone = profileData?.phone;
+          let paxCpf = profileData?.cpf;
+
+          if (role === "PASSAGEIRO") {
+            try {
+              const { data: paxData } = await (supabase as any)
+                .from("partiu_passageiros")
+                .select("foto_url, nome, telefone, cpf")
+                .eq("user_id", user.id)
+                .maybeSingle();
+              if (paxData) {
+                if (paxData.foto_url && !avatarUrl) avatarUrl = paxData.foto_url;
+                if (paxData.nome && !paxNome) paxNome = paxData.nome;
+                if (paxData.telefone && !paxPhone) paxPhone = paxData.telefone;
+                if (paxData.cpf && !paxCpf) paxCpf = paxData.cpf;
+              }
+            } catch (err) {
+              silentCatchWarn("checkAndHydrateSession:partiu_passageiros", err);
+            }
+          }
+
+          const existingStored = this.getStoredSession();
+          if (!avatarUrl && existingStored?.avatarUrl) {
+            avatarUrl = existingStored.avatarUrl;
+          }
+          if (!avatarUrl && typeof window !== "undefined") {
+            avatarUrl = localStorage.getItem("partiu_user_avatar") || undefined;
+          }
+
+          if (avatarUrl && typeof window !== "undefined") {
+            try {
+              localStorage.setItem("partiu_user_avatar", avatarUrl);
+            } catch {}
+          }
+
           const hydrated: AuthUserProfile = {
             id: user.id,
-            name: profileData?.full_name || user.user_metadata?.["name"] || user.email?.split("@")[0] || "Usuário",
+            name: paxNome || profileData?.full_name || user.user_metadata?.["name"] || existingStored?.name || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : null) || user.email?.split("@")[0] || "Passageiro",
             email: user.email || profileData?.email || "",
-            phone: profileData?.phone || user.user_metadata?.["phone"],
-            cpf: profileData?.cpf || user.user_metadata?.["cpf"],
+            phone: paxPhone || profileData?.phone || user.user_metadata?.["phone"] || existingStored?.phone || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_phone") || localStorage.getItem("partiu_user_telefone") : null),
+            cpf: paxCpf || profileData?.cpf || user.user_metadata?.["cpf"] || existingStored?.cpf || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_cpf") : null),
             role,
             rating: profileData?.rating ? Number(profileData.rating) : 5.0,
             totalTrips: profileData?.total_trips || 0,
-            avatarUrl: profileData?.avatar_url || user.user_metadata?.["avatar_url"],
+            avatarUrl: avatarUrl || existingStored?.avatarUrl || "",
             driverApprovalStatus: driverApprovalStatus as any,
             vehiclePlate,
             vehicleModel,
@@ -433,16 +470,51 @@ export class SupabaseAuthService {
             } catch {}
           }
 
+          let avatarUrl = profileData?.avatar_url || data.user.user_metadata?.["avatar_url"];
+          let paxNome = profileData?.full_name;
+          let paxPhone = profileData?.phone;
+          let paxCpf = profileData?.cpf;
+
+          if (finalRole === "PASSAGEIRO") {
+            try {
+              const { data: paxData } = await (supabase as any)
+                .from("partiu_passageiros")
+                .select("foto_url, nome, telefone, cpf")
+                .eq("user_id", data.user.id)
+                .maybeSingle();
+              if (paxData) {
+                if (paxData.foto_url && !avatarUrl) avatarUrl = paxData.foto_url;
+                if (paxData.nome && !paxNome) paxNome = paxData.nome;
+                if (paxData.telefone && !paxPhone) paxPhone = paxData.telefone;
+                if (paxData.cpf && !paxCpf) paxCpf = paxData.cpf;
+              }
+            } catch {}
+          }
+
+          const existingStored = this.getStoredSession();
+          if (!avatarUrl && existingStored?.avatarUrl) {
+            avatarUrl = existingStored.avatarUrl;
+          }
+          if (!avatarUrl && typeof window !== "undefined") {
+            avatarUrl = localStorage.getItem("partiu_user_avatar") || undefined;
+          }
+
+          if (avatarUrl && typeof window !== "undefined") {
+            try {
+              localStorage.setItem("partiu_user_avatar", avatarUrl);
+            } catch {}
+          }
+
           const authUser: AuthUserProfile = {
             id: data.user.id,
-            name: profileData?.full_name || data.user.user_metadata?.["name"] || cleanEmail.split("@")[0],
+            name: paxNome || profileData?.full_name || data.user.user_metadata?.["name"] || existingStored?.name || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : null) || cleanEmail.split("@")[0],
             email: cleanEmail,
-            phone: profileData?.phone || data.user.user_metadata?.["phone"],
-            cpf: profileData?.cpf || data.user.user_metadata?.["cpf"],
+            phone: paxPhone || profileData?.phone || data.user.user_metadata?.["phone"] || existingStored?.phone || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_phone") || localStorage.getItem("partiu_user_telefone") : null),
+            cpf: paxCpf || profileData?.cpf || data.user.user_metadata?.["cpf"] || existingStored?.cpf || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_cpf") : null),
             role: finalRole,
             rating: profileData?.rating ? Number(profileData.rating) : 5.0,
             totalTrips: profileData?.total_trips || 0,
-            avatarUrl: profileData?.avatar_url || data.user.user_metadata?.["avatar_url"],
+            avatarUrl: avatarUrl || existingStored?.avatarUrl || "",
             driverApprovalStatus: driverApprovalStatus as any,
             vehiclePlate,
             vehicleModel,
@@ -799,7 +871,7 @@ export class SupabaseAuthService {
               phone: normPhone.formatado,
               cpf,
               role: "PASSAGEIRO",
-              avatar_url: avatarUrl || undefined,
+              avatar_url: avatarUrl && !avatarUrl.startsWith("data:") ? avatarUrl : undefined,
             },
           },
         });
@@ -871,9 +943,19 @@ export class SupabaseAuthService {
       createdAt: Date.now(),
     };
 
-    if (avatarUrl) {
+    if (typeof window !== "undefined") {
       try {
-        localStorage.setItem("partiu_user_avatar", avatarUrl);
+        if (avatarUrl) {
+          localStorage.setItem("partiu_user_avatar", avatarUrl);
+          localStorage.setItem("partiu_user_foto", avatarUrl);
+          localStorage.setItem("partiu_user_selfie", avatarUrl);
+        }
+        localStorage.setItem("partiu_user_nome", cleanName);
+        localStorage.setItem("partiu_user_phone", normPhone.formatado);
+        localStorage.setItem("partiu_user_telefone", normPhone.formatado);
+        if (cpf) localStorage.setItem("partiu_user_cpf", cpf);
+        localStorage.setItem("partiu_user_email", cleanEmail);
+        window.dispatchEvent(new CustomEvent("partiu:user-profile-updated", { detail: newUser }));
       } catch {}
     }
 

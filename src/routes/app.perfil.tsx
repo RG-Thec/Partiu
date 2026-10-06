@@ -74,11 +74,23 @@ export function ProfilePagePartiu() {
     async function carregarPerfil() {
       try {
         const perfil = await userService.getCurrentUserProfile();
-        setNome(perfil.name);
-        setEmail(perfil.email);
-        setTelefone(perfil.phone);
-        setCpf(perfil.cpf);
-        setFotoUrl(perfil.avatarUrl);
+        const cachedNome = typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : "";
+        const cachedEmail = typeof window !== "undefined" ? localStorage.getItem("partiu_user_email") : "";
+        const cachedTelefone = typeof window !== "undefined"
+          ? localStorage.getItem("partiu_user_phone") || localStorage.getItem("partiu_user_telefone")
+          : "";
+        const cachedCpf = typeof window !== "undefined" ? localStorage.getItem("partiu_user_cpf") : "";
+        const cachedAvatar = typeof window !== "undefined"
+          ? localStorage.getItem("partiu_user_avatar") ||
+            localStorage.getItem("partiu_user_foto") ||
+            localStorage.getItem("partiu_user_selfie")
+          : "";
+
+        setNome(perfil.name || cachedNome || "Passageiro");
+        setEmail(perfil.email || cachedEmail || "");
+        setTelefone(perfil.phone || cachedTelefone || "");
+        setCpf(perfil.cpf || cachedCpf || "");
+        setFotoUrl(perfil.avatarUrl || cachedAvatar || "");
         setRating(perfil.rating);
         setTotalViagens(perfil.totalTrips);
         setArCondicionado(perfil.preferences.prefAc);
@@ -90,6 +102,19 @@ export function ProfilePagePartiu() {
       }
     }
     carregarPerfil();
+  }, []);
+
+  // Listener para atualização reativa do perfil em tempo real
+  useEffect(() => {
+    const handleProfileUpdated = (e: any) => {
+      const detail = e?.detail;
+      if (detail?.avatarUrl) setFotoUrl(detail.avatarUrl);
+      if (detail?.name) setNome(detail.name);
+      if (detail?.phone) setTelefone(detail.phone);
+      if (detail?.cpf) setCpf(detail.cpf);
+    };
+    window.addEventListener("partiu:user-profile-updated", handleProfileUpdated);
+    return () => window.removeEventListener("partiu:user-profile-updated", handleProfileUpdated);
   }, []);
 
   async function handleSalvarPerfil(e: FormEvent) {
@@ -122,9 +147,15 @@ export function ProfilePagePartiu() {
   async function handleSalvarFoto(photoDataUrl: string, file?: File) {
     if (!photoDataUrl) {
       setFotoUrl("");
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("partiu_user_avatar");
+        localStorage.removeItem("partiu_user_foto");
+        localStorage.removeItem("partiu_user_selfie");
+      }
       await userService.updateUserProfile({
         name: nome,
         phone: telefone,
+        cpf,
         avatarUrl: "",
       });
       setModalFotoAberto(false);
@@ -134,6 +165,13 @@ export function ProfilePagePartiu() {
     }
 
     setUploadingFoto(true);
+    setFotoUrl(photoDataUrl);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("partiu_user_avatar", photoDataUrl);
+      localStorage.setItem("partiu_user_foto", photoDataUrl);
+      localStorage.setItem("partiu_user_selfie", photoDataUrl);
+    }
+
     try {
       if (file) {
         const res = await userService.uploadAvatar(file);
@@ -142,28 +180,39 @@ export function ProfilePagePartiu() {
           await userService.updateUserProfile({
             name: nome,
             phone: telefone,
+            cpf,
             avatarUrl: res.url,
           });
-          setModalFotoAberto(false);
-          setMensagemSucesso("Foto de perfil atualizada com sucesso!");
-          setTimeout(() => setMensagemSucesso(null), 3000);
         } else {
-          alert(res.error || "Falha ao enviar imagem.");
+          await userService.updateUserProfile({
+            name: nome,
+            phone: telefone,
+            cpf,
+            avatarUrl: photoDataUrl,
+          });
         }
       } else {
-        setFotoUrl(photoDataUrl);
         await userService.updateUserProfile({
           name: nome,
           phone: telefone,
+          cpf,
           avatarUrl: photoDataUrl,
         });
-        setModalFotoAberto(false);
-        setMensagemSucesso("Foto de perfil atualizada com sucesso!");
-        setTimeout(() => setMensagemSucesso(null), 3000);
       }
+      setModalFotoAberto(false);
+      setMensagemSucesso("Foto de perfil atualizada com sucesso!");
+      setTimeout(() => setMensagemSucesso(null), 3000);
     } catch (err) {
       console.error(err);
-      alert("Erro ao salvar foto de perfil.");
+      await userService.updateUserProfile({
+        name: nome,
+        phone: telefone,
+        cpf,
+        avatarUrl: photoDataUrl,
+      });
+      setModalFotoAberto(false);
+      setMensagemSucesso("Foto de perfil atualizada!");
+      setTimeout(() => setMensagemSucesso(null), 3000);
     } finally {
       setUploadingFoto(false);
     }
@@ -252,8 +301,18 @@ export function ProfilePagePartiu() {
               {fotoUrl ? (
                 <img
                   src={fotoUrl}
-                  alt={nome}
+                  alt={nome || "Passageiro"}
                   className="w-full h-full object-cover rounded-full bg-muted"
+                  onError={() => {
+                    const fallback = typeof window !== "undefined"
+                      ? localStorage.getItem("partiu_user_avatar") ||
+                        localStorage.getItem("partiu_user_foto") ||
+                        localStorage.getItem("partiu_user_selfie")
+                      : null;
+                    if (fallback && fallback !== fotoUrl) {
+                      setFotoUrl(fallback);
+                    }
+                  }}
                 />
               ) : (
                 <div className="w-full h-full rounded-full bg-muted flex items-center justify-center text-muted-foreground">
@@ -512,8 +571,8 @@ export function ProfilePagePartiu() {
             </div>
 
             <CameraPhotoCapture
-              label=""
-              sublabel=""
+              label="Sua selfie atual"
+              sublabel="Tire uma nova selfie ao vivo ou confirme a atual"
               value={fotoUrl}
               required={false}
               disabled={uploadingFoto}

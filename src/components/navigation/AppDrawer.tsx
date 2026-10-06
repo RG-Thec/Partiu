@@ -158,6 +158,32 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
     }
   }, [open]);
 
+  // Listener reativo para atualizações instantâneas de perfil/avatar
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      void userService.getCurrentUserProfile().then((perfil) => {
+        setUserProfile(perfil);
+        if (perfil.name) setDriverName(perfil.name);
+        if (perfil.phone) setDriverPhone(perfil.phone);
+      });
+    };
+    window.addEventListener("partiu:user-profile-updated", handleProfileUpdate);
+    return () => window.removeEventListener("partiu:user-profile-updated", handleProfileUpdate);
+  }, []);
+
+  const effectiveAvatar =
+    userProfile?.avatarUrl ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("partiu_user_avatar") ||
+        localStorage.getItem("partiu_user_foto") ||
+        localStorage.getItem("partiu_user_selfie")
+      : null);
+
+  const effectiveName =
+    userProfile?.name ||
+    (typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : null) ||
+    "Passageiro";
+
   // Tecla Escape para fechar
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -369,15 +395,18 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
                 }}
                 className="w-12 h-12 flex items-center justify-center font-bold text-white shadow-md relative overflow-hidden shrink-0 border border-white/20"
               >
-                {userProfile?.avatarUrl ? (
+                {effectiveAvatar ? (
                   <img
-                    src={userProfile.avatarUrl}
-                    alt={userProfile.name}
+                    src={effectiveAvatar}
+                    alt={effectiveName}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = "none";
+                    }}
                   />
                 ) : (
                   <span className="text-base font-black">
-                    {userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : "U"}
+                    {effectiveName ? effectiveName.charAt(0).toUpperCase() : "P"}
                   </span>
                 )}
               </div>
@@ -385,7 +414,7 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
               <div>
                 <div className="flex items-center gap-1.5">
                   <h2 className="text-sm font-black text-foreground leading-tight">
-                    {userProfile?.name || "Passageiro"}
+                    {effectiveName}
                   </h2>
                   <span
                     className="inline-flex items-center gap-0.5 text-[10px] font-black px-1.5 py-0.5 rounded-full border shadow-2xs"

@@ -373,6 +373,27 @@ export function PartiuAppAuthGate({
     }
 
     setLoading(true);
+    // Persistência imediata no cliente para garantir que a foto da selfie e os dados nunca se percam
+    try {
+      if (fotoPerfilUrl) {
+        localStorage.setItem("partiu_user_avatar", fotoPerfilUrl);
+        localStorage.setItem("partiu_user_foto", fotoPerfilUrl);
+        localStorage.setItem("partiu_user_selfie", fotoPerfilUrl);
+      }
+      localStorage.setItem("partiu_user_nome", nome);
+      localStorage.setItem("partiu_user_phone", telefone);
+      localStorage.setItem("partiu_user_telefone", telefone);
+      localStorage.setItem("partiu_user_cpf", cpf);
+      localStorage.setItem("partiu_user_email", email);
+      window.dispatchEvent(
+        new CustomEvent("partiu:user-profile-updated", {
+          detail: { name, avatarUrl: fotoPerfilUrl, phone: telefone },
+        })
+      );
+    } catch {
+      // storage resiliente
+    }
+
     const res = await supabaseAuthService.signUpPassenger({
       name: nome,
       email,
