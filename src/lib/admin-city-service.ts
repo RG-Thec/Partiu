@@ -155,3 +155,169 @@ export function setPracaAtiva(pracaId: string): AdminPracaOperacao {
 
   return novaPraca;
 }
+
+/**
+ * Salva uma nova praça de operação no ecossistema
+ */
+export function salvarNovaPraca(dados: {
+  nome: string;
+  uf: string;
+  lat: number;
+  lng: number;
+  raioKm: number;
+  status?: "ATIVA" | "EM_CONFIGURACAO" | "PAUSADA";
+}): AdminPracaOperacao {
+  const ufLimpa = dados.uf.trim().toUpperCase().slice(0, 2);
+  const slug = dados.nome
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "_")
+    .slice(0, 20);
+  
+  const id = `praca_${slug}_${ufLimpa.toLowerCase()}_${Date.now().toString(36)}`;
+  const novaPraca: AdminPracaOperacao = {
+    id,
+    nome: dados.nome.trim(),
+    uf: ufLimpa,
+    labelCompleto: `${dados.nome.trim()} - ${ufLimpa}`,
+    status: dados.status || "ATIVA",
+    lat: Number(dados.lat),
+    lng: Number(dados.lng),
+    raioKm: Math.max(1, Number(dados.raioKm) || 20),
+    totalMotoristasAtivos: 0,
+    totalCorridasHoje: 0,
+  };
+
+  if (typeof window !== "undefined") {
+    try {
+      const rawCustom = localStorage.getItem(STORAGE_KEY_PRACAS_CUSTOM);
+      const existentes: AdminPracaOperacao[] = rawCustom ? JSON.parse(rawCustom) : [];
+      existentes.push(novaPraca);
+      localStorage.setItem(STORAGE_KEY_PRACAS_CUSTOM, JSON.stringify(existentes));
+
+      window.dispatchEvent(new CustomEvent("partiu:pracas-list-updated"));
+    } catch (e) {
+      console.warn("[AdminCityService] Erro ao salvar nova praça:", e);
+    }
+  }
+
+  return novaPraca;
+}
+
+/**
+ * Atualiza os dados de uma praça existente
+ */
+export function atualizarPraca(pracaAtualizada: AdminPracaOperacao): AdminPracaOperacao {
+  if (pracaAtualizada.id === "todas") return PRACA_GLOBAL_TODAS;
+
+  if (typeof window !== "undefined") {
+    try {
+      const rawCustom = localStorage.getItem(STORAGE_KEY_PRACAS_CUSTOM);
+      let existentes: AdminPracaOperacao[] = rawCustom ? JSON.parse(rawCustom) : [];
+      
+      const idx = existentes.findIndex((p) => p.id === pracaAtualizada.id);
+      if (idx >= 0) {
+        existentes[idx] = {
+          ...existentes[idx],
+          ...pracaAtualizada,
+          labelCompleto: `${pracaAtualizada.nome} - ${pracaAtualizada.uf}`,
+        };
+      } else {
+        // Se for uma praça padrão sendo customizada
+        existentes.push({
+          ...pracaAtualizada,
+          labelCompleto: `${pracaAtualizada.nome} - ${pracaAtualizada.uf}`,
+        });
+      }
+
+      localStorage.setItem(STORAGE_KEY_PRACAS_CUSTOM, JSON.stringify(existentes));
+
+      // Se a praça atualizada for a praça ativa, atualiza o contexto global
+      if (getPracaAtivaId() === pracaAtualizada.id) {
+        window.dispatchEvent(
+          new CustomEvent("partiu:praca-changed", { detail: pracaAtualizada })
+        );
+      }
+
+      window.dispatchEvent(new CustomEvent("partiu:pracas-list-updated"));
+    } catch (e) {
+      console.warn("[AdminCityService] Erro ao atualizar praça:", e);
+    }
+  }
+
+  return pracaAtualizada;
+}
+
+/**
+ * Remove uma praça ou restaura ao estado inativo
+ */
+export function removerPraca(id: string): boolean {
+  if (id === "todas") return false;
+
+  if (typeof window !== "undefined") {
+    try {
+      const rawCustom = localStorage.getItem(STORAGE_KEY_PRACAS_CUSTOM);
+      if (rawCustom) {
+        const existentes: AdminPracaOperacao[] = JSON.parse(rawCustom);
+        const filtradas = existentes.filter((p) => p.id !== id);
+        localStorage.setItem(STORAGE_KEY_PRACAS_CUSTOM, JSON.stringify(filtradas));
+      }
+
+      // Se a praça removida era a ativa, volta para "todas"
+      if (getPracaAtivaId() === id) {
+        setPracaAtiva("todas");
+      }
+
+      window.dispatchEvent(new CustomEvent("partiu:pracas-list-updated"));
+      return true;
+    } catch (e) {
+      console.warn("[AdminCityService] Erro ao remover praça:", e);
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Alterna rapidamente o status da praça entre ATIVA e PAUSADA
+ */
+export function alternarStatusPraca(id: string): AdminPracaOperacao | null {
+  if (id === "todas") return null;
+
+  const pracas = carregarPracasDisponiveis();
+  const alvo = pracas.find((p) => p.id === id);
+  if (!alvo) return null;
+
+  const novoStatus = alvo.status === "ATIVA" ? "PAUSADA" : "ATIVA";
+  const atualizada: AdminPracaOperacao = { ...alvo, status: novoStatus };
+  return atualizarPraca(atualizada);
+}
+
+/**
+ * Exporta a lista de praças em formato CSV para auditoria e relatórios
+ */
+export function exportarPracasCSV(): void {
+  const pracas = carregarPracasDisponiveis().filter((p) => p.id !== "todas");
+  const headers = ["ID", "Nome da Cidade", "UF", "Status", "Latitude", "Longitude", "Raio de Atendimento (km)"];
+  const rows = pracas.map((p) => [
+    p.id,
+    `"${p.nome}"`,
+    p.uf,
+    p.status,
+    p.lat.toFixed(6),
+    p.lng.toFixed(6),
+    p.raioKm,
+  ]);
+
+  const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `pracas_operacao_partiu_${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+

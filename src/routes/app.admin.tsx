@@ -13,6 +13,7 @@ import {
   Layers,
   LayoutDashboard,
   LogOut,
+  MapPin,
   Megaphone,
   Menu,
   Palette,
@@ -105,8 +106,10 @@ const MENU_PRINCIPAL: ItemMenuAdmin[] = [
     descricao: "Corridas, Entregas & Fila SOS",
     subItens: [
       { to: "/app/admin/operacao", label: "Fila de Corridas & SOS", icon: Radio },
-      { to: "/app/admin/despacho", label: "Despacho Manual & Flash", icon: PhoneCall, badge: "Central" },
-      { to: "/app/admin/frota", label: "Radar de Frotas", icon: Car },
+      { to: "/app/admin/despacho", label: "Despacho, Matching & Surge", icon: PhoneCall, badge: "Central" },
+      { to: "/app/admin/locais", label: "Cidades & Praças de Operação", icon: MapPin, badge: "Praças" },
+      { to: "/app/admin/veiculo", label: "Categorias, Marcas & Modelos", icon: Car, badge: "Frota" },
+      { to: "/app/admin/frota", label: "Vistoria & Aprovação de Veículos", icon: UserCheck },
     ],
   },
   {
