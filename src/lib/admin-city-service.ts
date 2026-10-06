@@ -22,33 +22,13 @@ export const PRACA_GLOBAL_TODAS: AdminPracaOperacao = {
   uf: "BR",
   labelCompleto: "Todas as Praças (Rede Nacional)",
   status: "ATIVA",
-  lat: -9.6658,
-  lng: -35.7351,
-  raioKm: 150,
+  lat: -15.7939,
+  lng: -47.8828,
+  raioKm: 1500,
 };
 
 export const PRACAS_PADRAO_INICIAIS: AdminPracaOperacao[] = [
   PRACA_GLOBAL_TODAS,
-  {
-    id: "mcz",
-    nome: "Maceió",
-    uf: "AL",
-    labelCompleto: "Maceió - AL",
-    status: "ATIVA",
-    lat: -9.6658,
-    lng: -35.7351,
-    raioKm: 25,
-  },
-  {
-    id: "arp",
-    nome: "Arapiraca",
-    uf: "AL",
-    labelCompleto: "Arapiraca - AL",
-    status: "ATIVA",
-    lat: -9.7517,
-    lng: -36.6601,
-    raioKm: 20,
-  },
   {
     id: "itp",
     nome: "Itaperuna",
@@ -99,8 +79,8 @@ export function carregarPracasDisponiveis(): AdminPracaOperacao[] {
                 uf: item.uf || "BR",
                 labelCompleto: `${item.nome || "Nova Cidade"} - ${item.uf || "BR"}`,
                 status: item.status === "EM_CONFIGURACAO" ? "EM_CONFIGURACAO" : "ATIVA",
-                lat: typeof item.lat === "number" ? item.lat : -9.6658,
-                lng: typeof item.lng === "number" ? item.lng : -35.7351,
+                lat: typeof item.lat === "number" ? item.lat : -15.7939,
+                lng: typeof item.lng === "number" ? item.lng : -47.8828,
                 raioKm: typeof item.raioKm === "number" ? item.raioKm : 20,
               });
             }

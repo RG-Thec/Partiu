@@ -53,8 +53,6 @@ const ESTADOS_BRASIL = [
 ];
 
 const COORDENADAS_PREDEFINIDAS: Record<string, { lat: number; lng: number }> = {
-  "Maceió": { lat: -9.6658, lng: -35.7351 },
-  "Arapiraca": { lat: -9.7517, lng: -36.6601 },
   "Itaperuna": { lat: -21.2054, lng: -41.8892 },
   "Campos dos Goytacazes": { lat: -21.7545, lng: -41.3244 },
   "São Paulo": { lat: -23.5505, lng: -46.6333 },
@@ -325,7 +323,7 @@ export function AdminLocaisPage() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Buscar por cidade ou UF (ex: Itaperuna, RJ, Maceió)..."
+            placeholder="Buscar por cidade ou UF (ex: Itaperuna, RJ, SP)..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             className="w-full min-h-12 h-12 pl-10 pr-4 rounded-xl bg-background border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"

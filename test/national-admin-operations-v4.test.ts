@@ -313,20 +313,20 @@ describe("SUITE 39: PARTIU NATIONAL ADMIN V4 — Express White Label Onboarding 
 
   test("Onboarding Expresso Completo: Provisiona cidade com todas as regras comerciais e canais", () => {
     const tenant = provisionarCidadeTenant({
-      cidade: "Arapiraca",
-      uf: "AL",
-      nomeApp: "Partiu Arapiraca",
+      cidade: "Resende",
+      uf: "RJ",
+      nomeApp: "Partiu Resende",
       corPrimaria: "#FFDE00",
       preset: "Moderno",
       tarifaBase: 5.0,
       comissao: 10.0,
       pix: "financeiro@partiumobilidade.com.br",
-      whatsapp: "(82) 99888-7766",
+      whatsapp: "(24) 99888-7766",
     });
 
-    expect(tenant.tenantId).toBe("tenant_arapiraca");
-    expect(tenant.cidade).toBe("Arapiraca");
-    expect(tenant.uf).toBe("AL");
+    expect(tenant.tenantId).toBe("tenant_resende");
+    expect(tenant.cidade).toBe("Resende");
+    expect(tenant.uf).toBe("RJ");
     expect(tenant.status).toBe("ATIVO");
     expect(tenant.pricing.comissaoPercent).toBe(10.0);
   });
@@ -335,14 +335,14 @@ describe("SUITE 39: PARTIU NATIONAL ADMIN V4 — Express White Label Onboarding 
     expect(() =>
       provisionarCidadeTenant({
         cidade: "",
-        uf: "AL",
+        uf: "RJ",
         nomeApp: "",
         corPrimaria: "#FFDE00",
         preset: "Moderno",
         tarifaBase: 5.0,
         comissao: 10.0,
         pix: "pix@app.com",
-        whatsapp: "82999",
+        whatsapp: "24999",
       })
     ).toThrow("Passo 1 incompleto");
   });
@@ -365,11 +365,11 @@ describe("39. PARTIU GLOBAL CITY SELECTOR & REGIONAL SCOPE (Etapa 2)", () => {
   });
 
   test("3. Alternância Reativa de Praça: Deve permitir selecionar praça regional", () => {
-    const selecionada = setPracaAtiva("arp");
-    expect(selecionada.id).toBe("arp");
-    expect(selecionada.nome).toBe("Arapiraca");
-    expect(selecionada.uf).toBe("AL");
-    expect(selecionada.lat).toBeCloseTo(-9.7517, 2);
+    const selecionada = setPracaAtiva("itp");
+    expect(selecionada.id).toBe("itp");
+    expect(selecionada.nome).toBe("Itaperuna");
+    expect(selecionada.uf).toBe("RJ");
+    expect(selecionada.lat).toBeCloseTo(-21.2054, 2);
 
     // Retorna para todas
     const restaurada = setPracaAtiva("todas");

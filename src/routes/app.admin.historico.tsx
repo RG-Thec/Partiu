@@ -41,61 +41,6 @@ interface CorridaHistorico {
   status: "Concluída" | "Cancelada";
 }
 
-const HISTORICO_MOCK: CorridaHistorico[] = [
-  {
-    id: "cor-101",
-    modalidade: "Partiu Pop",
-    passageiro: "Camila Ribeiro",
-    motorista: "Carlos Eduardo Silva",
-    veiculo: "Chevrolet Onix (BRA-2E19)",
-    origem: "Av. Fernandes Lima, 1200",
-    destino: "Shopping Pátio Maceió",
-    data: "Hoje, 16:42",
-    duracao: "18 min",
-    valor: 19.5,
-    status: "Concluída",
-  },
-  {
-    id: "cor-102",
-    modalidade: "Partiu Moto",
-    passageiro: "Rodrigo Mendonça",
-    motorista: "Marcos Paulo Santos",
-    veiculo: "Honda CG 160 (MOC-9J21)",
-    origem: "Rua do Comércio, 340",
-    destino: "Praia de Pajuçara",
-    data: "Hoje, 15:10",
-    duracao: "11 min",
-    valor: 9.8,
-    status: "Concluída",
-  },
-  {
-    id: "cor-103",
-    modalidade: "Entregas Flash",
-    passageiro: "Drogaria São Paulo (Envio)",
-    motorista: "Lucas Ferreira",
-    veiculo: "Yamaha Factor 150 (AL-4491)",
-    origem: "Av. Menino Marcelo, 500",
-    destino: "Condomínio Aldebaran, Lt 14",
-    data: "Hoje, 14:05",
-    duracao: "22 min",
-    valor: 16.0,
-    status: "Concluída",
-  },
-  {
-    id: "cor-104",
-    modalidade: "Partiu Pop",
-    passageiro: "Juliana Duarte",
-    motorista: "Alexandre Barros",
-    veiculo: "Fiat Argo (MOB-7A33)",
-    origem: "Aeroporto Zumbi dos Palmares",
-    destino: "Ponta Verde",
-    data: "Hoje, 12:30",
-    duracao: "34 min",
-    valor: 42.0,
-    status: "Concluída",
-  },
-];
-
 import { useEffect } from "react";
 import { getHistoricoViagens } from "@/lib/partiu-engine";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
@@ -104,7 +49,7 @@ const filtros = ["Todas", "Partiu Pop", "Partiu Moto", "Entregas Flash"] as cons
 
 export function HistoricoRotas() {
   const [filtroAtivo, setFiltroAtivo] = useState<(typeof filtros)[number]>("Todas");
-  const [historico, setHistorico] = useState<CorridaHistorico[]>(HISTORICO_MOCK);
+  const [historico, setHistorico] = useState<CorridaHistorico[]>([]);
 
   useEffect(() => {
     async function carregarHistoricoReal() {
@@ -126,22 +71,18 @@ export function HistoricoRotas() {
                 : c.modalidade === "MOTO"
                   ? "Partiu Moto"
                   : "Partiu Pop",
-              passageiro: c.passageiro_nome,
+              passageiro: c.passageiro_nome || "Passageiro",
               motorista: c.partiu_motoristas?.nome || "Motorista Parceiro",
               veiculo: `${c.partiu_motoristas?.veiculo_marca_modelo || "Veículo"} (${c.partiu_motoristas?.veiculo_placa || "---"})`,
-              origem: c.origem_endereco,
-              destino: c.destino_endereco,
+              origem: c.origem_endereco || "Origem em rota",
+              destino: c.destino_endereco || "Destino em rota",
               data: new Date(c.created_at).toLocaleDateString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
               duracao: `${c.duracao_min || 15} min`,
               valor: (c.valor_bruto_cents || 1600) / 100,
               status: c.status === "CANCELADA" ? "Cancelada" : "Concluída",
             }));
 
-            setHistorico((prev) => {
-              const idsReais = new Set(convertidos.map((r) => r.id));
-              const outros = prev.filter((h) => !idsReais.has(h.id));
-              return [...convertidos, ...outros];
-            });
+            setHistorico(convertidos);
             return;
           }
         } catch (err) {
@@ -159,22 +100,18 @@ export function HistoricoRotas() {
             : c.modalidade === "MOTO"
               ? "Partiu Moto"
               : "Partiu Pop",
-          passageiro: c.passageiroNome,
+          passageiro: c.passageiroNome || "Passageiro",
           motorista: c.motorista?.nome || "Motorista Parceiro",
           veiculo: `${c.motorista?.veiculo || "Veículo"} (${c.motorista?.placa || "---"})`,
-          origem: c.origem,
-          destino: c.destino,
+          origem: c.origem || "Origem em rota",
+          destino: c.destino || "Destino em rota",
           data: new Date(c.criadoEm).toLocaleDateString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
           duracao: `${c.duracaoMin} min`,
           valor: c.valor,
           status: c.status === "CANCELADA" ? "Cancelada" : "Concluída",
         }));
 
-        setHistorico((prev) => {
-          const ids = new Set(convertidosLocal.map((r) => r.id));
-          const outros = prev.filter((h) => !ids.has(h.id));
-          return [...convertidosLocal, ...outros];
-        });
+        setHistorico(convertidosLocal);
       }
     }
 
@@ -231,7 +168,18 @@ export function HistoricoRotas() {
 
       {/* 3. Cards de Histórico */}
       <div className="mt-5 space-y-3">
-        {lista.map((corrida) => (
+        {lista.length === 0 ? (
+          <div className="rounded-2xl bg-white p-12 text-center border border-slate-200 space-y-3">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+              <Clock className="h-7 w-7" />
+            </div>
+            <h3 className="text-sm font-black text-slate-800">Nenhuma corrida registrada no histórico</h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              As corridas e entregas concluídas ou canceladas no ecossistema PARTIU aparecerão listadas aqui em tempo real.
+            </p>
+          </div>
+        ) : (
+          lista.map((corrida) => (
           <div
             key={corrida.id}
             className="rounded-2xl bg-white p-4 sm:p-5 shadow-xs border border-slate-200 hover:border-slate-300 transition-all space-y-3"
@@ -295,7 +243,8 @@ export function HistoricoRotas() {
               <span className="font-mono text-[11px] text-slate-400">ID: {corrida.id}</span>
             </div>
           </div>
-        ))}
+        ))
+      )}
       </div>
     </div>
   );

@@ -48,8 +48,6 @@ export const PONTOS_GEOGRAFICOS_REFERENCIA: LocalizacaoDetectada[] = [
   },
 ];
 
-export const PONTOS_GEOGRAFICOS_ALAGOAS = PONTOS_GEOGRAFICOS_REFERENCIA;
-
 export function calcularDistanciaKm(
   lat1: number,
   lon1: number,

@@ -100,7 +100,7 @@ export function AdminAprovacoesPage() {
           cpf: p.cpf,
           whatsapp: p.telefone,
           email: p.email || "Não informado",
-          cidade: "Maceió / AL",
+          cidade: (p as any).cidade || (p as any).city || "Praça Regional",
           modalidade: catValida === "MOTO" ? "moto_flash" : "pop_carro",
           cnhNumero: p.cnh_numero,
           cnhCategoria: (catValida === "MOTO" ? "A (EAR)" : "B (EAR)") as any,

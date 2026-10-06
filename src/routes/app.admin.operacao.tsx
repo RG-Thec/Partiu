@@ -181,14 +181,20 @@ export function CentralOperacaoAdminPage() {
           })
         : "Agora";
 
+      const cidadeCorrida =
+        (r as any).city ||
+        (r as any).cidade ||
+        (r.tenant_id ? r.tenant_id.replace(/^tenant-|^ten_/, "").toUpperCase() : "") ||
+        (pracaAtiva && pracaAtiva.id !== "todas" ? pracaAtiva.labelCompleto : "Praça Regional");
+
       return {
         id: r.id,
         passageiroNome: r.passenger_name || "Passageiro PARTIU",
-        passageiroTelefone: r.passenger_phone || "(82) 99888-0000",
+        passageiroTelefone: r.passenger_phone || "Não informado",
         motoristaNome: r.driver_name || "Aguardando Condutor",
-        motoristaTelefone: "(82) 99111-2222",
+        motoristaTelefone: (r as any).driver_phone || "Não informado",
         modal: (r.category?.includes("MOTO") ? "MOTO" : "CARRO") as "CARRO" | "MOTO",
-        cidade: "Maceió - AL",
+        cidade: cidadeCorrida,
         origem: r.pickup_address || "Origem solicitada",
         destino: r.destination_address || "Destino informado",
         status: st,
@@ -199,7 +205,7 @@ export function CentralOperacaoAdminPage() {
         criadaEmFormatada: formatada,
       };
     });
-  }, [ridesBanco]);
+  }, [ridesBanco, pracaAtiva]);
 
   // Lista de entregas com duplo PIN extraídas de public.rides (is_delivery = true)
   const entregas: EntregaOperacional[] = useMemo(() => {
@@ -214,15 +220,21 @@ export function CentralOperacaoAdminPage() {
         st = "CANCELADA";
       }
 
+      const cidadeEntrega =
+        (d as any).city ||
+        (d as any).cidade ||
+        (d.tenant_id ? d.tenant_id.replace(/^tenant-|^ten_/, "").toUpperCase() : "") ||
+        (pracaAtiva && pracaAtiva.id !== "todas" ? pracaAtiva.labelCompleto : "Praça Regional");
+
       return {
         id: d.id,
         remetenteNome: d.passenger_name || "Remetente",
-        remetenteTelefone: d.passenger_phone || "(82) 99888-0000",
+        remetenteTelefone: d.passenger_phone || "Não informado",
         destinatarioNome: "Destinatário Cadastrado",
-        destinatarioTelefone: "(82) 99111-0000",
+        destinatarioTelefone: "Não informado",
         entregadorNome: d.driver_name || "Aguardando Entregador",
         modal: (d.category?.includes("CARRO") ? "CARRO" : "MOTO") as "CARRO" | "MOTO",
-        cidade: "Maceió - AL",
+        cidade: cidadeEntrega,
         origem: d.pickup_address || "Ponto de Coleta",
         destino: d.destination_address || "Ponto de Entrega",
         status: st,
@@ -232,7 +244,7 @@ export function CentralOperacaoAdminPage() {
         solicitadaEm: d.created_at ? new Date(d.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "Agora",
       };
     });
-  }, [ridesBanco]);
+  }, [ridesBanco, pracaAtiva]);
 
   // Fila única de Suporte, Ocorrências e SOS (Ordenação automática por criticidade)
   const ticketsSuporte: TicketSuporteOperacional[] = useMemo(() => {
@@ -246,7 +258,7 @@ export function CentralOperacaoAdminPage() {
         tipo: "SOS",
         prioridade: "SOS_CRITICAL",
         usuarioNome: a.solicitante_nome || "Passageiro em Risco",
-        usuarioTelefone: a.solicitante_telefone || "(82) 99999-9999",
+        usuarioTelefone: a.solicitante_telefone || "Não informado",
         motoristaNome: a.motorista_nome || "Veículo em Trânsito",
         cidade: "Rede PARTIU",
         status: a.status === "resolvido" ? "RESOLVIDO" : a.status === "em_atendimento" ? "EM_ATENDIMENTO" : "ABERTO",

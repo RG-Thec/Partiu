@@ -86,54 +86,6 @@ interface ItemDespachoMock {
   tempoDecorrido: string;
 }
 
-const DESPACHOS_MOCK: ItemDespachoMock[] = [
-  {
-    id: "partiu-101",
-    tipo: "CORRIDA_POP",
-    passageiro: "Rodrigo Almeida",
-    telefone: "(11) 99960-5162",
-    origem: "Av. Central, 45",
-    destino: "Av. Principal, 492",
-    motorista: "Carlos Eduardo Silva",
-    veiculo: "Chevrolet Onix Plus",
-    placa: "MOB-8K99",
-    valor: 16.08,
-    pin: "4829",
-    status: "EM_VIAGEM",
-    tempoDecorrido: "6 min",
-  },
-  {
-    id: "partiu-102",
-    tipo: "ENTREGA_FLASH",
-    passageiro: "Loja Express Central",
-    telefone: "(11) 99888-1122",
-    origem: "Av. Comercial, 280",
-    destino: "Centro Médico",
-    motorista: "Lucas Motoboy Flash",
-    veiculo: "Honda CG 160 Titan",
-    placa: "MOT-7799",
-    valor: 9.9,
-    pin: "8312",
-    status: "A_CAMINHO",
-    tempoDecorrido: "3 min",
-  },
-  {
-    id: "partiu-103",
-    tipo: "CORRIDA_MULHER",
-    passageiro: "Camila Vasconcelos",
-    telefone: "(11) 99777-3344",
-    origem: "Shopping Central",
-    destino: "Bairro Jardim",
-    motorista: "Mariana Santos",
-    veiculo: "Hyundai HB20 Sedan",
-    placa: "PAR-5P20",
-    valor: 14.5,
-    pin: "9102",
-    status: "PROCURANDO",
-    tempoDecorrido: "1 min",
-  },
-];
-
 export function DespachoCentralCorridas() {
   const { pracaAtiva, isNacional } = useAdminCity();
   const [abaAtiva, setAbaAtiva] = useState<"FILA_DESPACHO" | "REGRAS_SURGE">("FILA_DESPACHO");

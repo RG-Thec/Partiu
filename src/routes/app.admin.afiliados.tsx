@@ -198,7 +198,7 @@ export function AdminCuponsEVantagensPage() {
   const [novoParceiroNome, setNovoParceiroNome] = useState("");
   const [novoParceiroCat, setNovoParceiroCat] = useState<"combustivel" | "manutencao" | "lavajato" | "saude_seguro">("combustivel");
   const [novoParceiroDesconto, setNovoParceiroDesconto] = useState("");
-  const [novoParceiroCidade, setNovoParceiroCidade] = useState("Maceió e Região");
+  const [novoParceiroCidade, setNovoParceiroCidade] = useState("Todas as Regiões");
   const [novoParceiroDesc, setNovoParceiroDesc] = useState("");
   const [novoParceiroContato, setNovoParceiroContato] = useState("");
 

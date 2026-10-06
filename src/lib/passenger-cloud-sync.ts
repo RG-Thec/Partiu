@@ -64,8 +64,8 @@ export function converterPassagemBancoParaBilhete(
   return {
     id: row.codigo_bilhete || `CVAN-${row.id.slice(0, 6)}`,
     linhaId: row.viagem_id,
-    origem: extras?.origem || "Origem Alagoas",
-    destino: extras?.destino || "Destino Alagoas",
+    origem: extras?.origem || "Origem da Viagem",
+    destino: extras?.destino || "Destino da Viagem",
     dataViagem: extras?.dataViagem || new Date(row.created_at).toLocaleDateString("pt-BR"),
     horarioSaida:
       extras?.horarioSaida ||
@@ -144,8 +144,8 @@ export function mesclarBilhetesNuvemELocal(
       mapa.set(b.id, {
         ...existente,
         ...b,
-        origem: existente.origem !== "Origem Alagoas" ? existente.origem : b.origem,
-        destino: existente.destino !== "Destino Alagoas" ? existente.destino : b.destino,
+        origem: existente.origem !== "Origem da Viagem" ? existente.origem : b.origem,
+        destino: existente.destino !== "Destino da Viagem" ? existente.destino : b.destino,
         vanModelo: existente.vanModelo || b.vanModelo,
         vanPlaca: existente.vanPlaca || b.vanPlaca,
       });

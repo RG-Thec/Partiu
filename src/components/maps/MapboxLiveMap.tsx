@@ -29,16 +29,6 @@ const MAPBOX_TOKEN =
       process.env?.["MAPBOX_TOKEN"])) ||
   "";
 
-const ROTA_COORDS: [number, number][] = [
-  [-36.6565, -10.1279], // Igreja Nova
-  [-36.58, -10.29], // Trevo Penedo
-  [-36.1756, -10.1256], // Coruripe
-  [-35.908, -9.831], // Barra de São Miguel
-  [-35.84, -9.7], // Praia do Francês
-  [-35.75, -9.6], // Tabuleiro do Martins
-  [-35.7255, -9.6459], // Maceió Centro
-];
-
 interface VanLive {
   id: string;
   placa: string;
@@ -63,6 +53,7 @@ export interface MapboxLiveMapProps {
   mostrarCardInferior?: boolean | undefined;
   centroCoords?: [number, number] | undefined;
   zoom?: number | undefined;
+  rotaCoords?: [number, number][] | undefined;
 }
 
 export function MapboxLiveMap({
@@ -77,6 +68,7 @@ export function MapboxLiveMap({
   mostrarCardInferior = true,
   centroCoords,
   zoom,
+  rotaCoords,
 }: MapboxLiveMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -148,7 +140,7 @@ export function MapboxLiveMap({
       mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
         style: hasValidToken ? mapStyles[estiloMapa] : fallbackStyle,
-        center: centroCoords || [-35.85, -9.75],
+        center: centroCoords || MapboxConfig.DEFAULT_CENTER,
         zoom: zoom ?? 9.6,
         pitch: is3D ? 48 : 0,
         bearing: is3D ? -15 : 0,
@@ -163,41 +155,43 @@ export function MapboxLiveMap({
     }
 
     mapInstance.on("load", () => {
-      mapInstance.addSource("rota-coop", {
-        type: "geojson",
-        data: {
-          type: "Feature",
-          properties: {},
-          geometry: {
-            type: "LineString",
-            coordinates: ROTA_COORDS,
+      if (rotaCoords && rotaCoords.length > 0) {
+        mapInstance.addSource("rota-coop", {
+          type: "geojson",
+          data: {
+            type: "Feature",
+            properties: {},
+            geometry: {
+              type: "LineString",
+              coordinates: rotaCoords,
+            },
           },
-        },
-      });
+        });
 
-      mapInstance.addLayer({
-        id: "rota-glow-outer",
-        type: "line",
-        source: "rota-coop",
-        layout: { "line-join": "round", "line-cap": "round" },
-        paint: {
-          "line-color": "#10b981",
-          "line-width": 12,
-          "line-opacity": 0.25,
-          "line-blur": 6,
-        },
-      });
+        mapInstance.addLayer({
+          id: "rota-glow-outer",
+          type: "line",
+          source: "rota-coop",
+          layout: { "line-join": "round", "line-cap": "round" },
+          paint: {
+            "line-color": "#10b981",
+            "line-width": 12,
+            "line-opacity": 0.25,
+            "line-blur": 6,
+          },
+        });
 
-      mapInstance.addLayer({
-        id: "rota-core",
-        type: "line",
-        source: "rota-coop",
-        layout: { "line-join": "round", "line-cap": "round" },
-        paint: {
-          "line-color": "#0d5930",
-          "line-width": 3.5,
-        },
-      });
+        mapInstance.addLayer({
+          id: "rota-core",
+          type: "line",
+          source: "rota-coop",
+          layout: { "line-join": "round", "line-cap": "round" },
+          paint: {
+            "line-color": "#0d5930",
+            "line-width": 3.5,
+          },
+        });
+      }
 
       const pontos = getPontosEmbarqueConfig().filter((p) => p.ativo);
       pontos.forEach((ponto: PontoEmbarqueConfig) => {
@@ -358,7 +352,7 @@ export function MapboxLiveMap({
             <div className="space-y-0.5">
               <h3 className="text-sm font-black text-white">Telemetria da Frota em Tempo Real</h3>
               <p className="text-[11px] text-slate-400 leading-relaxed">
-                Vans monitoradas no corredor Alagoas ➔ Pernambuco via coordenadas GPS.
+                Veículos monitorados em tempo real na malha operacional via telemetria GPS.
               </p>
             </div>
 
@@ -477,8 +471,8 @@ export function MapboxLiveMap({
               }
             }}
             className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-slate-950/85 backdrop-blur-md text-emerald-400 shadow-lg border border-white/10 hover:scale-105 active:scale-95 transition-all"
-            title="Centralizar na Van"
-            aria-label="Centralizar na Van"
+            title="Centralizar no Veículo"
+            aria-label="Centralizar no Veículo"
           >
             <Locate className="h-4.5 w-4.5" />
           </button>

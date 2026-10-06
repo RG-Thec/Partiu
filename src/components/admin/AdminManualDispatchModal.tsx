@@ -142,7 +142,7 @@ export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> =
       placa: tipoDespacho === "DIRETO" && motoristaSelecionado ? motoristaSelecionado.placa : "---",
       valor: parseFloat(valorSugerido) || 16.5,
       pin,
-      cidade: cidadePadrao || "Maceió - AL",
+      cidade: cidadePadrao || "Praça Operacional",
       status: tipoDespacho === "DIRETO" ? "A_CAMINHO" : "PROCURANDO",
       tempoDecorrido: "Agora",
     };

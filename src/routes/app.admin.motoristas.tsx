@@ -165,8 +165,8 @@ export function QuadroMotoristasAdminPage() {
       lista.push({
         id: mb.id,
         nome: mb.full_name || "Motorista Parceiro",
-        telefone: mb.phone || "(82) 99800-1122",
-        cidade: "Maceió - AL",
+        telefone: mb.phone || "Não informado",
+        cidade: (mb as any).cidade || (mb as any).city || "Praça Regional",
         cnh: (mb as any).cnh_number ? `CNH: ${(mb as any).cnh_number}` : `CNH Cat. ${modalFinal === "MOTO" ? "A (EAR)" : "B (EAR)"}`,
         cnhValidade: "Em dia",
         modal: modalFinal,
@@ -192,8 +192,8 @@ export function QuadroMotoristasAdminPage() {
       lista.push({
         id: p.id,
         nome: p.nome || "Candidato a Condutor",
-        telefone: p.telefone || "(82) 99000-0000",
-        cidade: "Maceió - AL",
+        telefone: p.telefone || "Não informado",
+        cidade: (p as any).cidade || (p as any).city || "Praça Regional",
         cnh: "CNH: " + (p.cnh_numero || "Validação OCR"),
         cnhValidade: "Em análise",
         modal: modalFinal,

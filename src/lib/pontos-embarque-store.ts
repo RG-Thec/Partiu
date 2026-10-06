@@ -7,15 +7,15 @@ export type TipoPontoEmbarque =
 
 export interface PontoEmbarqueConfig {
   id: string;
-  nome: string; // Ex: "Maceió (Trevo do Tabuleiro • Makro)"
-  cidade: string; // "Maceió"
-  linhaAssociada: string; // "Igreja Nova ➔ Maceió" ou "Todas"
+  nome: string; // Ex: "Hub Central • Praça Principal"
+  cidade: string; // "Centro Operacional"
+  linhaAssociada: string; // "Todas" ou identificador da rota
   tipo: TipoPontoEmbarque;
-  tipoRotulo: string; // "Posto com Apoio & Lanchonete"
-  referencia: string; // "Avenida Fernandes Lima, em frente à passarela / Makro"
+  tipoRotulo: string; // "Ponto de Embarque Rápido"
+  referencia: string; // "Marco Central • Calçadão"
   enderecoCompleto: string;
   comodidades: string[]; // ["🛡️ Segurança 24h", "🚻 Banheiro", "☕ Lanchonete", "🛋️ Abrigo Coberto", "🛰️ Wi-Fi"]
-  minutosAposSaida: number; // Minutos desde a partida da van
+  minutosAposSaida: number; // Minutos desde a partida estimada
   distanciaKmEstimada: number;
   fotoUrl: string;
   lat?: number | undefined;
