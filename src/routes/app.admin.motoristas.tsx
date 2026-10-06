@@ -32,6 +32,9 @@ import {
   Palette,
   Sliders,
   Clock,
+  FileSpreadsheet,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react";
 import {
   useMotoristas,
@@ -41,6 +44,8 @@ import {
   useRejeitarPartiuMotorista,
   useAtualizarCategoriaMotorista,
 } from "@/lib/partiu-db";
+import { useRideRatings, type RideRating } from "@/services/RideRatingService";
+import { exportarParaCSV } from "@/lib/export-csv";
 
 export const Route = createFileRoute("/app/admin/motoristas")({
   head: () => ({
@@ -101,6 +106,50 @@ export function QuadroMotoristasAdminPage() {
   const [processandoOcr, setProcessandoOcr] = useState(false);
   const [taxaComissao, setTaxaComissao] = useState(18);
   const [temaSelecionado, setTemaSelecionado] = useState("Azul Tech (Padrão)");
+
+  // Abas principais: Frota Urbana vs Moderação de Avaliações (Rating 1-5★)
+  const [abaPrincipal, setAbaPrincipal] = useState<"frota" | "avaliacoes">("frota");
+  const { data: avaliacoesBanco = [], refetch: recarregarAvaliacoes } = useRideRatings(100);
+  const [filtroEstrelas, setFiltroEstrelas] = useState<"TODAS" | "CRITICAS" | "EXCELENTES" | "MEDIAS">("TODAS");
+  const [filtroDirecao, setFiltroDirecao] = useState<"TODAS" | "PASSENGER_TO_DRIVER" | "DRIVER_TO_PASSENGER">("TODAS");
+  const [buscaAvaliacao, setBuscaAvaliacao] = useState("");
+
+  // KPIs de Moderação de Avaliações
+  const kpisAvaliacoes = useMemo(() => {
+    const total = avaliacoesBanco.length;
+    if (total === 0) {
+      return { total: 0, media: "5.0", criticas: 0, excelentes: 0, taxaPositiva: "100%" };
+    }
+    const soma = avaliacoesBanco.reduce((acc, a) => acc + a.score, 0);
+    const media = (soma / total).toFixed(2);
+    const criticas = avaliacoesBanco.filter((a) => a.score <= 2).length;
+    const excelentes = avaliacoesBanco.filter((a) => a.score >= 4).length;
+    const taxaPositiva = ((excelentes / total) * 100).toFixed(0) + "%";
+    return { total, media, criticas, excelentes, taxaPositiva };
+  }, [avaliacoesBanco]);
+
+  // Lista filtrada de avaliações
+  const avaliacoesFiltradas = useMemo(() => {
+    return avaliacoesBanco.filter((a) => {
+      if (filtroEstrelas === "CRITICAS" && a.score > 2) return false;
+      if (filtroEstrelas === "EXCELENTES" && a.score < 4) return false;
+      if (filtroEstrelas === "MEDIAS" && a.score !== 3) return false;
+
+      if (filtroDirecao !== "TODAS" && a.role !== filtroDirecao) return false;
+
+      if (buscaAvaliacao) {
+        const q = buscaAvaliacao.toLowerCase();
+        return (
+          a.rideId.toLowerCase().includes(q) ||
+          a.fromUserId.toLowerCase().includes(q) ||
+          a.toUserId.toLowerCase().includes(q) ||
+          (a.comment && a.comment.toLowerCase().includes(q)) ||
+          a.tags.some((t) => t.toLowerCase().includes(q))
+        );
+      }
+      return true;
+    });
+  }, [avaliacoesBanco, filtroEstrelas, filtroDirecao, buscaAvaliacao]);
 
   // Montar frota consolidando banco com suporte a CARRO, MOTO, PLUS e MULHER
   const motoristas: MotoristaFrota[] = useMemo(() => {
@@ -270,7 +319,50 @@ export function QuadroMotoristasAdminPage() {
         </div>
       </div>
 
-      {/* 2. DASHBOARD DA FROTA — 4 CARDS MÉTRICOS (PADRÃO 8.PNG) */}
+      {/* 2. Seletor de Sub-Abas do Módulo: Frota Urbana vs. Moderação de Avaliações */}
+      <div className="flex items-center gap-2 p-1.5 bg-slate-100 rounded-2xl w-fit border border-slate-200/80">
+        <button
+          type="button"
+          onClick={() => setAbaPrincipal("frota")}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
+            abaPrincipal === "frota"
+              ? "bg-slate-950 text-white shadow-sm"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          <Car className="h-4 w-4 text-[#0088FF]" />
+          <span>Frota Urbana &amp; Condutores</span>
+          <span className="ml-1 rounded-full bg-slate-800 px-2 py-0.5 text-xs text-amber-400 font-bold">
+            {motoristas.length}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setAbaPrincipal("avaliacoes")}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
+            abaPrincipal === "avaliacoes"
+              ? "bg-slate-950 text-white shadow-sm"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
+          <span>Moderação de Avaliações (Rating 1-5★)</span>
+          {kpisAvaliacoes.criticas > 0 ? (
+            <span className="ml-1 rounded-full bg-red-600 px-2 py-0.5 text-xs font-black text-white animate-pulse">
+              {kpisAvaliacoes.criticas} críticas
+            </span>
+          ) : (
+            <span className="ml-1 rounded-full bg-slate-200 px-2 py-0.5 text-xs font-bold text-slate-700">
+              {avaliacoesBanco.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {abaPrincipal === "frota" ? (
+        <>
+          {/* 3. DASHBOARD DA FROTA — 4 CARDS MÉTRICOS (PADRÃO 8.PNG) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* Total de Motoristas */}
         <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow">
@@ -677,6 +769,260 @@ export function QuadroMotoristasAdminPage() {
           </div>
         </div>
       </div>
+        </>
+      ) : (
+        /* VISÃO DE MODERAÇÃO DE AVALIAÇÕES (RATING 1-5★ BIDIRECIONAL) */
+        <div className="space-y-6 sm:space-y-8 animate-in fade-in-50 duration-200">
+          {/* Top Cards de Reputação e Qualidade */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Média Geral da Rede</span>
+                <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center">
+                  <Star className="w-5 h-5 fill-amber-400" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-black text-slate-900">{kpisAvaliacoes.media}</span>
+                <span className="text-xs font-bold text-amber-600">de 5.0 estrelas</span>
+              </div>
+            </div>
+
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Total de Avaliações</span>
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0088FF] flex items-center justify-center">
+                  <MessageSquare className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-black text-slate-900">{kpisAvaliacoes.total}</span>
+                <span className="text-xs font-bold text-slate-500">registradas</span>
+              </div>
+            </div>
+
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Críticas (1-2★)</span>
+                <div className="w-10 h-10 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center">
+                  <ShieldAlert className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-black text-red-600">{kpisAvaliacoes.criticas}</span>
+                <span className="text-xs font-bold text-red-600">requer atenção</span>
+              </div>
+            </div>
+
+            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Excelentes (4-5★)</span>
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <ThumbsUp className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-black text-emerald-700">{kpisAvaliacoes.excelentes}</span>
+                <span className="text-xs font-bold text-emerald-600">{kpisAvaliacoes.taxaPositiva} satisfação</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Barra de Filtros, Direção e Exportação */}
+          <div className="bg-white p-3 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 no-scrollbar">
+              {(
+                [
+                  { key: "TODAS", label: "Todas" },
+                  { key: "CRITICAS", label: "🚨 Críticas (1-2★)" },
+                  { key: "EXCELENTES", label: "⭐ Excelentes (4-5★)" },
+                  { key: "MEDIAS", label: "Médias (3★)" },
+                ] as const
+              ).map(({ key, label }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setFiltroEstrelas(key)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                    filtroEstrelas === key
+                      ? "bg-slate-900 text-white shadow-xs"
+                      : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+
+              <select
+                value={filtroDirecao}
+                onChange={(e) => setFiltroDirecao(e.target.value as any)}
+                className="h-8 px-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-hidden"
+              >
+                <option value="TODAS">Todas as Direções</option>
+                <option value="PASSENGER_TO_DRIVER">Passageiro → Motorista</option>
+                <option value="DRIVER_TO_PASSENGER">Motorista → Passageiro</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 md:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar corrida, tags ou texto..."
+                  value={buscaAvaliacao}
+                  onChange={(e) => setBuscaAvaliacao(e.target.value)}
+                  className="w-full h-8 pl-8 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  exportarParaCSV(
+                    `avaliacoes_partiu_${new Date().toISOString().slice(0, 10)}`,
+                    ["ID", "Corrida ID", "Avaliador", "Avaliado", "Direção", "Nota", "Tags", "Comentário", "Data e Hora"],
+                    avaliacoesFiltradas.map((a) => [
+                      a.id,
+                      a.rideId,
+                      a.fromUserId,
+                      a.toUserId,
+                      a.role,
+                      a.score,
+                      a.tags.join("; "),
+                      a.comment || "",
+                      new Date(a.createdAt).toLocaleString("pt-BR"),
+                    ])
+                  );
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 transition cursor-pointer shrink-0"
+              >
+                <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />
+                <span>Exportar CSV</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Lista de Avaliações Moderadas */}
+          <div className="space-y-3">
+            {avaliacoesFiltradas.length === 0 ? (
+              <div className="bg-white p-10 rounded-3xl border border-slate-200 text-center text-slate-400 text-sm">
+                Nenhuma avaliação encontrada para os filtros selecionados.
+              </div>
+            ) : (
+              avaliacoesFiltradas.map((a) => {
+                const isCritica = a.score <= 2;
+                const isPassageiroParaMotorista = a.role === "PASSENGER_TO_DRIVER";
+                return (
+                  <div
+                    key={a.id}
+                    className={`p-5 rounded-3xl border bg-white shadow-xs transition-all space-y-3 ${
+                      isCritica ? "border-red-200 bg-red-50/20" : "border-slate-200/90"
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                      <div className="flex items-center gap-3">
+                        {/* Estrelas */}
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`h-4 w-4 ${
+                                star <= a.score
+                                  ? "text-amber-400 fill-amber-400"
+                                  : "text-slate-200 fill-slate-200"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="font-black text-sm text-slate-900">{a.score}.0</span>
+
+                        {/* Badge de Direção */}
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black uppercase ${
+                            isPassageiroParaMotorista
+                              ? "bg-blue-50 text-blue-700 border border-blue-200"
+                              : "bg-purple-50 text-purple-700 border border-purple-200"
+                          }`}
+                        >
+                          {isPassageiroParaMotorista ? <Car className="h-3 w-3" /> : <Users className="h-3 w-3" />}
+                          {isPassageiroParaMotorista ? "Passageiro → Motorista" : "Motorista → Passageiro"}
+                        </span>
+
+                        {isCritica && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black uppercase bg-red-100 text-red-700 border border-red-300">
+                            <ShieldAlert className="h-3 w-3" />
+                            Crítica
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
+                        <Link
+                          to="/app/admin/operacao"
+                          className="font-mono text-[#0088FF] hover:underline font-bold"
+                          title="Auditar corrida na central de operação"
+                        >
+                          Corrida #{a.rideId}
+                        </Link>
+                        <span>•</span>
+                        <span>{new Date(a.createdAt).toLocaleString("pt-BR")}</span>
+                      </div>
+                    </div>
+
+                    {/* Autor e Destinatário */}
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+                      <span className="font-bold text-slate-900">De: {a.fromUserId}</span>
+                      <span>→</span>
+                      <span className="font-bold text-slate-900">Para: {a.toUserId}</span>
+                    </div>
+
+                    {/* Chips de Tags Qualitativas */}
+                    {a.tags && a.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {a.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className={`px-2.5 py-1 rounded-xl text-xs font-bold ${
+                              isCritica
+                                ? "bg-red-50 text-red-800 border border-red-200"
+                                : "bg-slate-100 text-slate-700 border border-slate-200/80"
+                            }`}
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Comentário do Usuário */}
+                    {a.comment && (
+                      <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs sm:text-sm text-slate-800 italic">
+                        "{a.comment}"
+                      </div>
+                    )}
+
+                    {/* Ações Rápidas do Atendimento */}
+                    <div className="flex items-center justify-between gap-2 pt-1">
+                      <div className="text-[11px] text-slate-400">
+                        Auditoria de qualidade em conformidade com diretrizes do app
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          to="/app/admin/operacao"
+                          className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-2xs"
+                        >
+                          Ver na Operação
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
 
       {/* MODAL REJEITAR CONDUTOR */}
       {modalRejeitarAberto && motoristaSelecionado && (

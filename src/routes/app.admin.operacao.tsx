@@ -5,6 +5,7 @@ import {
   AlertOctagon,
   AlertTriangle,
   ArrowRight,
+  Calendar,
   Car,
   CheckCircle2,
   Clock,
@@ -20,6 +21,7 @@ import {
   PhoneCall,
   Radio,
   RefreshCw,
+  RotateCcw,
   Search,
   DollarSign,
   FileSpreadsheet,
@@ -28,6 +30,7 @@ import {
   Receipt,
   ShieldAlert,
   ShieldCheck,
+  SlidersHorizontal,
   Truck,
   User,
   X,
@@ -62,7 +65,7 @@ export const Route = createFileRoute("/app/admin/operacao")({
 });
 
 type AbaOperacao = "corridas" | "entregas" | "suporte";
-type FiltroStatusCorrida = "TODAS" | "EM_ANDAMENTO" | "FINALIZADAS" | "CANCELADAS";
+type FiltroStatusCorrida = "TODAS" | "SOLICITADAS" | "EM_ANDAMENTO" | "FINALIZADAS" | "CANCELADAS";
 type FiltroStatusEntrega = "TODAS" | "EM_ANDAMENTO" | "CONCLUIDAS" | "CANCELADAS";
 type FiltroPrioridadeSuporte = "TODOS" | "SOS_CRITICAL" | "ALTA" | "MEDIA" | "BAIXA";
 
@@ -80,6 +83,8 @@ interface CorridaOperacional {
   valor: number;
   duracaoEstimadaMin: number;
   iniciadaEm: string;
+  criadaEmData: string;
+  criadaEmFormatada: string;
 }
 
 interface EntregaOperacional {
@@ -140,6 +145,11 @@ export function CentralOperacaoAdminPage() {
   const [filtroCorrida, setFiltroCorrida] = useState<FiltroStatusCorrida>("TODAS");
   const [filtroEntrega, setFiltroEntrega] = useState<FiltroStatusEntrega>("TODAS");
   const [filtroSuporte, setFiltroSuporte] = useState<FiltroPrioridadeSuporte>("TODOS");
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim] = useState("");
+  const [buscaMotorista, setBuscaMotorista] = useState("");
+  const [buscaPassageiro, setBuscaPassageiro] = useState("");
+  const [mostrarFiltrosAvancados, setMostrarFiltrosAvancados] = useState(false);
 
   // Item selecionado para detalhe / ação rápida em modal
   const [corridaDetalhe, setCorridaDetalhe] = useState<CorridaOperacional | null>(null);
@@ -160,6 +170,17 @@ export function CentralOperacaoAdminPage() {
         st = "CANCELADA";
       }
 
+      const isoDate = r.created_at || new Date().toISOString();
+      const formatada = r.created_at
+        ? new Date(r.created_at).toLocaleString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "Agora";
+
       return {
         id: r.id,
         passageiroNome: r.passenger_name || "Passageiro PARTIU",
@@ -174,6 +195,8 @@ export function CentralOperacaoAdminPage() {
         valor: Number(r.fare_brl || 0),
         duracaoEstimadaMin: r.duration_minutes || 10,
         iniciadaEm: r.created_at ? new Date(r.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "Agora",
+        criadaEmData: isoDate,
+        criadaEmFormatada: formatada,
       };
     });
   }, [ridesBanco]);
@@ -296,6 +319,27 @@ export function CentralOperacaoAdminPage() {
     });
   }, [alertasBanco]);
 
+  // Contadores de estado em tempo real para os filtros de corrida
+  const contadoresStatus = useMemo(() => {
+    return {
+      todas: corridas.length,
+      solicitadas: corridas.filter((c) => c.status === "SOLICITADA").length,
+      emAndamento: corridas.filter((c) => c.status === "EM_ANDAMENTO").length,
+      finalizadas: corridas.filter((c) => c.status === "FINALIZADA").length,
+      canceladas: corridas.filter((c) => c.status === "CANCELADA").length,
+    };
+  }, [corridas]);
+
+  // Quantidade de filtros avançados ativos
+  const totalFiltrosAvancadosAtivos = useMemo(() => {
+    let count = 0;
+    if (dataInicio) count++;
+    if (dataFim) count++;
+    if (buscaMotorista) count++;
+    if (buscaPassageiro) count++;
+    return count;
+  }, [dataInicio, dataFim, buscaMotorista, buscaPassageiro]);
+
   // Filtragem de Corridas
   const corridasFiltradas = useMemo(() => {
     return corridas.filter((c) => {
@@ -303,9 +347,19 @@ export function CentralOperacaoAdminPage() {
         const nomeCidade = pracaAtiva.nome.toLowerCase();
         if (!c.cidade.toLowerCase().includes(nomeCidade)) return false;
       }
-      if (filtroCorrida === "EM_ANDAMENTO" && c.status !== "EM_ANDAMENTO" && c.status !== "SOLICITADA") return false;
+      if (filtroCorrida === "SOLICITADAS" && c.status !== "SOLICITADA") return false;
+      if (filtroCorrida === "EM_ANDAMENTO" && c.status !== "EM_ANDAMENTO") return false;
       if (filtroCorrida === "FINALIZADAS" && c.status !== "FINALIZADA") return false;
       if (filtroCorrida === "CANCELADAS" && c.status !== "CANCELADA") return false;
+
+      // Range de datas (YYYY-MM-DD)
+      if (dataInicio && c.criadaEmData.slice(0, 10) < dataInicio) return false;
+      if (dataFim && c.criadaEmData.slice(0, 10) > dataFim) return false;
+
+      // Busca cruzada dedicada
+      if (buscaMotorista && !c.motoristaNome.toLowerCase().includes(buscaMotorista.toLowerCase())) return false;
+      if (buscaPassageiro && !c.passageiroNome.toLowerCase().includes(buscaPassageiro.toLowerCase())) return false;
+
       if (busca) {
         const q = busca.toLowerCase();
         return (
@@ -313,12 +367,13 @@ export function CentralOperacaoAdminPage() {
           c.motoristaNome.toLowerCase().includes(q) ||
           c.cidade.toLowerCase().includes(q) ||
           c.origem.toLowerCase().includes(q) ||
-          c.destino.toLowerCase().includes(q)
+          c.destino.toLowerCase().includes(q) ||
+          c.id.toLowerCase().includes(q)
         );
       }
       return true;
     });
-  }, [corridas, filtroCorrida, busca, isNacional, pracaAtiva.nome]);
+  }, [corridas, filtroCorrida, busca, isNacional, pracaAtiva.nome, dataInicio, dataFim, buscaMotorista, buscaPassageiro]);
 
   // Filtragem de Entregas
   const entregasFiltradas = useMemo(() => {
@@ -519,58 +574,186 @@ export function CentralOperacaoAdminPage() {
       {/* 3. ABA 1: LISTAGEM DE CORRIDAS (CARDS NO MOBILE / TABELA NO DESKTOP) */}
       {abaAtiva === "corridas" && (
         <div className="space-y-4">
-          {/* Barra de Filtros e Exportação CSV (Inspirado no Painel de Referência) */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar">
-              <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider shrink-0">Filtrar:</span>
-              {(["TODAS", "EM_ANDAMENTO", "FINALIZADAS", "CANCELADAS"] as FiltroStatusCorrida[]).map((f) => (
+          {/* Barra de Filtros Rápidos, Filtros Avançados e Exportação CSV */}
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                <span className="text-xs font-black text-slate-500 uppercase tracking-wider shrink-0 mr-1">Status:</span>
+                {(
+                  [
+                    { key: "TODAS", label: "Todas", count: contadoresStatus.todas, color: "bg-slate-900" },
+                    { key: "SOLICITADAS", label: "🟡 Solicitadas", count: contadoresStatus.solicitadas, color: "bg-amber-600" },
+                    { key: "EM_ANDAMENTO", label: "🟢 Em Andamento", count: contadoresStatus.emAndamento, color: "bg-emerald-600" },
+                    { key: "FINALIZADAS", label: "🏁 Finalizadas", count: contadoresStatus.finalizadas, color: "bg-blue-600" },
+                    { key: "CANCELADAS", label: "❌ Canceladas", count: contadoresStatus.canceladas, color: "bg-red-600" },
+                  ] as const
+                ).map(({ key, label, count, color }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setFiltroCorrida(key)}
+                    className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer shrink-0 ${
+                      filtroCorrida === key
+                        ? `${color} text-white shadow-sm`
+                        : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span>{label}</span>
+                    <span
+                      className={`px-1.5 py-0.5 rounded-md text-[11px] font-black ${
+                        filtroCorrida === key ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
                 <button
-                  key={f}
                   type="button"
-                  onClick={() => setFiltroCorrida(f)}
-                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer shrink-0 ${
-                    filtroCorrida === f
-                      ? "bg-slate-900 text-white shadow-sm"
-                      : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                  onClick={() => setMostrarFiltrosAvancados((prev) => !prev)}
+                  className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer ${
+                    mostrarFiltrosAvancados || totalFiltrosAvancadosAtivos > 0
+                      ? "bg-slate-900 text-white border-slate-900 shadow-xs"
+                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
                   }`}
+                  title="Filtros por período e busca avançada"
                 >
-                  {f === "TODAS" && "Todas"}
-                  {f === "EM_ANDAMENTO" && "🟢 Em Andamento"}
-                  {f === "FINALIZADAS" && "🏁 Finalizadas"}
-                  {f === "CANCELADAS" && "❌ Canceladas"}
+                  <SlidersHorizontal className="h-4 w-4" />
+                  <span>Filtros &amp; Datas</span>
+                  {totalFiltrosAvancadosAtivos > 0 && (
+                    <span className="rounded-full bg-amber-400 text-slate-950 px-1.5 py-0.2 text-[10px] font-black">
+                      {totalFiltrosAvancadosAtivos}
+                    </span>
+                  )}
                 </button>
-              ))}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    exportarParaCSV(
+                      `corridas_operacao_${new Date().toISOString().slice(0, 10)}`,
+                      [
+                        "ID da Corrida",
+                        "Data e Hora",
+                        "Passageiro",
+                        "Telefone Passageiro",
+                        "Motorista",
+                        "Telefone Motorista",
+                        "Modal",
+                        "Cidade",
+                        "Ponto de Origem",
+                        "Ponto de Destino",
+                        "Status",
+                        "Valor R$",
+                        "Duração Estimada (min)",
+                      ],
+                      corridasFiltradas.map((c) => [
+                        c.id,
+                        c.criadaEmFormatada,
+                        c.passageiroNome,
+                        c.passageiroTelefone,
+                        c.motoristaNome,
+                        c.motoristaTelefone,
+                        c.modal,
+                        c.cidade,
+                        c.origem,
+                        c.destino,
+                        c.status,
+                        c.valor.toFixed(2),
+                        c.duracaoEstimadaMin,
+                      ])
+                    );
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs sm:text-sm font-bold border border-emerald-300 transition-all cursor-pointer shadow-xs shrink-0"
+                  title="Baixar planilha de corridas"
+                >
+                  <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                  <span>Exportar CSV</span>
+                </button>
+              </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                exportarParaCSV(
-                  "corridas_operacao",
-                  ["ID", "Passageiro", "Telefone Passageiro", "Motorista", "Telefone Motorista", "Modal", "Cidade", "Origem", "Destino", "Status", "Valor R$", "Duração Min", "Horário"],
-                  corridasFiltradas.map((c) => [
-                    c.id,
-                    c.passageiroNome,
-                    c.passageiroTelefone,
-                    c.motoristaNome,
-                    c.motoristaTelefone,
-                    c.modal,
-                    c.cidade,
-                    c.origem,
-                    c.destino,
-                    c.status,
-                    c.valor.toFixed(2),
-                    c.duracaoEstimadaMin,
-                    c.iniciadaEm,
-                  ])
-                );
-              }}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs sm:text-sm font-bold border border-emerald-300 transition-all cursor-pointer shadow-xs shrink-0"
-              title="Baixar planilha de corridas"
-            >
-              <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
-              <span>Exportar CSV</span>
-            </button>
+            {/* Gaveta de Filtros Avançados: Datas e Busca Cruzada */}
+            {mostrarFiltrosAvancados && (
+              <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end animate-in fade-in-50 duration-200">
+                <div>
+                  <label className="block text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1">
+                    Data Inicial
+                  </label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                    <input
+                      type="date"
+                      value={dataInicio}
+                      onChange={(e) => setDataInicio(e.target.value)}
+                      className="w-full h-10 pl-9 pr-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-amber-400"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1">
+                    Data Final
+                  </label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                    <input
+                      type="date"
+                      value={dataFim}
+                      onChange={(e) => setDataFim(e.target.value)}
+                      className="w-full h-10 pl-9 pr-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-amber-400"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1">
+                    Filtrar Motorista
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Nome do motorista..."
+                    value={buscaMotorista}
+                    onChange={(e) => setBuscaMotorista(e.target.value)}
+                    className="w-full h-10 px-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-amber-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1">
+                    Filtrar Passageiro
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Nome do passageiro..."
+                    value={buscaPassageiro}
+                    onChange={(e) => setBuscaPassageiro(e.target.value)}
+                    className="w-full h-10 px-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-amber-400"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDataInicio("");
+                      setDataFim("");
+                      setBuscaMotorista("");
+                      setBuscaPassageiro("");
+                      setBusca("");
+                      setFiltroCorrida("TODAS");
+                    }}
+                    className="w-full h-10 inline-flex items-center justify-center gap-1.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    <span>Limpar Filtros</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Versão Mobile (Cards Empilhados) */}

@@ -36,6 +36,9 @@ export type PassageiroAdmin = {
   cpf: string | null;
   phone: string | null;
   created_at: string;
+  status?: "ativo" | "bloqueado" | "inativo";
+  total_corridas?: number;
+  ltv_brl?: number;
 };
 
 export const listarPassageiros = createServerFn({ method: "GET" })
@@ -46,7 +49,7 @@ export const listarPassageiros = createServerFn({ method: "GET" })
 
     const { data: perfis, error } = await supabaseAdmin
       .from("profiles")
-      .select("id, full_name, cpf, phone, created_at")
+      .select("id, full_name, cpf, phone, created_at, is_active, approval_status")
       .order("created_at", { ascending: false })
       .limit(200);
     if (error) throw new Error(error.message);
@@ -54,13 +57,14 @@ export const listarPassageiros = createServerFn({ method: "GET" })
     const { data: usuarios } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });
     const emails = new Map((usuarios?.users ?? []).map((u) => [u.id, u.email ?? null]));
 
-    return (perfis ?? []).map((p) => ({
+    return (perfis ?? []).map((p: any) => ({
       id: p.id,
       email: emails.get(p.id) ?? null,
       full_name: p.full_name,
       cpf: p.cpf,
       phone: p.phone,
       created_at: p.created_at,
+      status: p.is_active === false || p.approval_status === "suspenso" ? "bloqueado" : "ativo",
     }));
   });
 
@@ -107,4 +111,33 @@ export const atualizarPassageiro = createServerFn({ method: "POST" })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+const esquemaStatus = z.object({
+  id: z.string().uuid(),
+  status: z.enum(["ativo", "bloqueado", "inativo"]),
+  motivo: z.string().optional(),
+});
+
+export const alternarStatusPassageiro = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => esquemaStatus.parse(d))
+  .handler(async ({ context, data }) => {
+    await garantirAdmin(context.supabase as never, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const isActive = data.status === "ativo";
+    const approvalStatus = isActive ? "aprovado" : "suspenso";
+
+    const { error } = await supabaseAdmin
+      .from("profiles")
+      .update({
+        is_active: isActive,
+        approval_status: approvalStatus,
+        rejection_reason: data.motivo || null,
+      } as any)
+      .eq("id", data.id);
+
+    if (error) throw new Error(error.message);
+    return { ok: true, id: data.id, status: data.status };
   });
