@@ -6,6 +6,7 @@ import {
   Car,
   ChevronDown,
   ChevronRight,
+  Compass,
   CreditCard,
   Crown,
   DollarSign,
@@ -23,6 +24,7 @@ import {
   Printer,
   Radio,
   ShieldAlert,
+  ShieldCheck,
   Sliders,
   Sparkles,
   TrendingUp,
@@ -111,6 +113,7 @@ const MENU_PRINCIPAL: ItemMenuAdmin[] = [
       { to: "/app/admin/locais", label: "Cidades & Praças de Operação", icon: MapPin, badge: "Praças" },
       { to: "/app/admin/veiculo", label: "Categorias, Marcas & Modelos", icon: Car, badge: "Frota" },
       { to: "/app/admin/frota", label: "Vistoria & Aprovação de Veículos", icon: UserCheck },
+      { to: "/app/admin/api-finops", label: "FinOps de APIs & Cache", icon: Compass, badge: "Cache" },
     ],
   },
   {
@@ -166,6 +169,7 @@ const MENU_PRINCIPAL: ItemMenuAdmin[] = [
     subItens: [
       { to: "/app/admin/configuracoes", label: "Modo Essencial & Gateways", icon: Sliders },
       { to: "/app/admin/whitelabel", label: "White Label Studio OS", icon: Palette, badge: "Studio" },
+      { to: "/app/admin/governanca", label: "Governança & Manutenção", icon: ShieldCheck, badge: "LGPD" },
     ],
   },
 ];

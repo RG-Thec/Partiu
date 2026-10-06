@@ -22,24 +22,34 @@ import {
   Upload,
   X,
   Zap,
+  Globe,
+  Building2,
+  Save,
+  Star,
 } from "lucide-react";
 import { useBanners } from "@/lib/partiu-db";
+import {
+  type CmsLandingExtendedData,
+  carregarCmsLandingData,
+  salvarCmsLandingData,
+  restaurarCmsLandingPadrao,
+} from "@/lib/cms-landing-service";
 
 export const Route = createFileRoute("/app/admin/marketing")({
   head: () => ({
     meta: [
-      { title: "Marketing, Banners Mobile & Cupons | PARTIU Admin" },
+      { title: "Marketing, Banners Mobile, Cupons & CMS | PARTIU Admin" },
       {
         name: "description",
         content:
-          "Gestão de banners com validação rigorosa de aspect ratio e peso mobile, cupons de desconto e disparos de notificações push.",
+          "Gestão de banners com validação rigorosa de aspect ratio e peso mobile, cupons de desconto, disparos de notificações push e CMS da Landing Page.",
       },
     ],
   }),
   component: MarketingAdminPage,
 });
 
-type AbaMarketing = "banners" | "cupons" | "push";
+type AbaMarketing = "banners" | "cupons" | "push" | "cms_landing";
 
 interface BannerItem {
   id: string;
@@ -160,6 +170,29 @@ export function MarketingAdminPage() {
   const [pushPublico, setPushPublico] = useState<"TODOS" | "PASSAGEIROS" | "MOTORISTAS">("PASSAGEIROS");
   const [pushCidade, setPushCidade] = useState("Todas as Cidades");
   const [pushAgendamento, setPushAgendamento] = useState("IMEDIATO");
+
+  // Estados do Módulo 9: CMS da Landing Page
+  const [cmsData, setCmsData] = useState<CmsLandingExtendedData>(() => carregarCmsLandingData());
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  function mostrarToast(msg: string) {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  }
+
+  function handleSalvarCms(e: React.FormEvent) {
+    e.preventDefault();
+    salvarCmsLandingData(cmsData);
+    mostrarToast("Conteúdo da Landing Page atualizado com sucesso!");
+  }
+
+  function handleRestaurarCms() {
+    if (window.confirm("Deseja restaurar os textos e seções padrão de fábrica da Landing Page?")) {
+      const reset = restaurarCmsLandingPadrao();
+      setCmsData(reset);
+      mostrarToast("Landing Page restaurada para o padrão oficial!");
+    }
+  }
 
   /**
    * VALIDAÇÃO OBRIGATÓRIA DE BANNERS ANTES DO UPLOAD
@@ -327,6 +360,22 @@ export function MarketingAdminPage() {
           <span>Campanhas Push (FCM)</span>
           <span className="ml-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
             Planejador
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setAbaAtiva("cms_landing")}
+          className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
+            abaAtiva === "cms_landing"
+              ? "bg-slate-950 text-white shadow-sm"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          }`}
+        >
+          <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-[#0088FF]" />
+          <span>CMS Landing Page</span>
+          <span className="ml-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-800">
+            Público
           </span>
         </button>
       </div>
@@ -597,8 +646,459 @@ export function MarketingAdminPage() {
 
               <div className="mx-auto h-1 w-24 rounded-full bg-slate-700 mt-20 mb-2" />
             </div>
-            <span className="text-xs text-slate-400 mt-2 font-medium">Prévia ao vivo da notificação no celular</span>
           </div>
+        </div>
+      )}
+
+      {/* 5. ABA 4: CMS DA LANDING PAGE INSTITUCIONAL */}
+      {abaAtiva === "cms_landing" && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          {/* Header com Ações da Landing */}
+          <div className="bg-gradient-to-r from-blue-600/15 via-indigo-500/10 to-transparent border border-blue-600/30 rounded-3xl p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-2 rounded-full bg-blue-600 text-white px-3 py-0.5 text-[10px] font-black uppercase tracking-wider">
+                <Globe className="w-3.5 h-3.5 fill-current" />
+                Módulo 9 • CMS Público da Landing Page
+              </div>
+              <h2 className="text-xl font-black text-slate-950">
+                Gestão de Conteúdo da Landing Page Institucional
+              </h2>
+              <p className="text-xs text-slate-600 max-w-2xl">
+                Personalize em tempo real a página pública inicial (Hero, benefícios, apelo para motoristas e passageiros, soluções corporativas B2B e depoimentos). As alterações refletem imediatamente na raiz do site.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <a
+                href="/"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-bold transition shadow-xs"
+              >
+                <ExternalLink className="w-4 h-4 text-slate-500" />
+                <span>Ver Landing Page</span>
+              </a>
+              <button
+                type="button"
+                onClick={handleRestaurarCms}
+                className="px-3.5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition"
+              >
+                Restaurar Padrão
+              </button>
+            </div>
+          </div>
+
+          <form onSubmit={handleSalvarCms} className="space-y-6">
+            {/* SEÇÃO 1: HERO (TOPO) */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="text-sm font-black text-slate-950 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary-600" />
+                  1. Seção Hero (Chamada Principal)
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 uppercase">
+                  Primeira Dobra
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                      Kicker / Tag de Localização (Chip Superior)
+                    </label>
+                    <input
+                      type="text"
+                      value={cmsData.hero?.locationChipText || ""}
+                      onChange={(e) =>
+                        setCmsData((prev) => ({
+                          ...prev,
+                          hero: { ...prev.hero, locationChipText: e.target.value },
+                        }))
+                      }
+                      placeholder="Ex: Disponível na sua região"
+                      className="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                      Título de Impacto (Headline)
+                    </label>
+                    <input
+                      type="text"
+                      value={cmsData.hero?.headline || ""}
+                      onChange={(e) =>
+                        setCmsData((prev) => ({
+                          ...prev,
+                          hero: { ...prev.hero, headline: e.target.value },
+                        }))
+                      }
+                      placeholder="Ex: Vá de Partiu com rapidez e preço justo"
+                      className="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                      Subtítulo / Descrição da Proposta de Valor
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={cmsData.hero?.description || ""}
+                      onChange={(e) =>
+                        setCmsData((prev) => ({
+                          ...prev,
+                          hero: { ...prev.hero, description: e.target.value },
+                        }))
+                      }
+                      placeholder="Ex: Conectamos você ao seu destino com segurança, conforto e rapidez. Carros e motos em poucos minutos."
+                      className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                      URL da Imagem do Veículo / Mockup
+                    </label>
+                    <input
+                      type="text"
+                      value={cmsData.hero?.carImageUrl || ""}
+                      onChange={(e) =>
+                        setCmsData((prev) => ({
+                          ...prev,
+                          hero: { ...prev.hero, carImageUrl: e.target.value },
+                        }))
+                      }
+                      placeholder="https://... ou caminho relativo"
+                      className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                      Imagem de Fundo Opcional (Skyline / Cidade)
+                    </label>
+                    <input
+                      type="text"
+                      value={cmsData.hero?.cityBackgroundImageUrl || ""}
+                      onChange={(e) =>
+                        setCmsData((prev) => ({
+                          ...prev,
+                          hero: { ...prev.hero, cityBackgroundImageUrl: e.target.value },
+                        }))
+                      }
+                      placeholder="https://images.unsplash.com/..."
+                      className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 font-mono"
+                    />
+                  </div>
+
+                  <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-[11px] text-slate-500 space-y-1">
+                    <span className="font-bold text-slate-700 block">Dica de Responsividade:</span>
+                    <p>A imagem do veículo se ajusta automaticamente entre desktop e telas compactas. Recomendamos imagens em formato PNG com transparência ou WebP leve.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SEÇÃO 2: EMPRESAS & B2B */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="text-sm font-black text-slate-950 flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-blue-600" />
+                  2. Ecossistema B2B & Convênios Empresariais
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 uppercase">
+                  Portal Corporativo
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                      Título da Seção Corporativa
+                    </label>
+                    <input
+                      type="text"
+                      value={cmsData.b2bSection?.titulo || ""}
+                      onChange={(e) =>
+                        setCmsData((prev) => ({
+                          ...prev,
+                          b2bSection: {
+                            ...(prev.b2bSection || {
+                              subtitulo: "",
+                              descricao: "",
+                              ctaTexto: "",
+                              ctaUrl: "",
+                              beneficios: [],
+                            }),
+                            titulo: e.target.value,
+                          },
+                        }))
+                      }
+                      className="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                      Subtítulo / Proposta B2B
+                    </label>
+                    <input
+                      type="text"
+                      value={cmsData.b2bSection?.subtitulo || ""}
+                      onChange={(e) =>
+                        setCmsData((prev) => ({
+                          ...prev,
+                          b2bSection: {
+                            ...(prev.b2bSection || {
+                              titulo: "",
+                              descricao: "",
+                              ctaTexto: "",
+                              ctaUrl: "",
+                              beneficios: [],
+                            }),
+                            subtitulo: e.target.value,
+                          },
+                        }))
+                      }
+                      className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                      Descrição do Serviço Empresarial
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={cmsData.b2bSection?.descricao || ""}
+                      onChange={(e) =>
+                        setCmsData((prev) => ({
+                          ...prev,
+                          b2bSection: {
+                            ...(prev.b2bSection || {
+                              titulo: "",
+                              subtitulo: "",
+                              ctaTexto: "",
+                              ctaUrl: "",
+                              beneficios: [],
+                            }),
+                            descricao: e.target.value,
+                          },
+                        }))
+                      }
+                      className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                        Texto do Botão B2B
+                      </label>
+                      <input
+                        type="text"
+                        value={cmsData.b2bSection?.ctaTexto || ""}
+                        onChange={(e) =>
+                          setCmsData((prev) => ({
+                            ...prev,
+                            b2bSection: {
+                              ...(prev.b2bSection || {
+                                titulo: "",
+                                subtitulo: "",
+                                descricao: "",
+                                ctaUrl: "",
+                                beneficios: [],
+                              }),
+                              ctaTexto: e.target.value,
+                            },
+                          }))
+                        }
+                        className="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                        Link de Destino B2B
+                      </label>
+                      <input
+                        type="text"
+                        value={cmsData.b2bSection?.ctaUrl || ""}
+                        onChange={(e) =>
+                          setCmsData((prev) => ({
+                            ...prev,
+                            b2bSection: {
+                              ...(prev.b2bSection || {
+                                titulo: "",
+                                subtitulo: "",
+                                descricao: "",
+                                ctaTexto: "",
+                                beneficios: [],
+                              }),
+                              ctaUrl: e.target.value,
+                            },
+                          }))
+                        }
+                        className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                      Benefícios Exibidos no Card (Um por linha)
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={(cmsData.b2bSection?.beneficios || []).join("\n")}
+                      onChange={(e) =>
+                        setCmsData((prev) => ({
+                          ...prev,
+                          b2bSection: {
+                            ...(prev.b2bSection || {
+                              titulo: "",
+                              subtitulo: "",
+                              descricao: "",
+                              ctaTexto: "",
+                              ctaUrl: "",
+                            }),
+                            beneficios: e.target.value.split("\n").filter((l) => l.trim().length > 0),
+                          },
+                        }))
+                      }
+                      className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SEÇÃO 3: PROVA SOCIAL & DEPOIMENTOS */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="text-sm font-black text-slate-950 flex items-center gap-2">
+                  <Star className="w-4 h-4 text-amber-500" />
+                  3. Prova Social & Números de Destaque
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 uppercase">
+                  Credibilidade
+                </span>
+              </div>
+
+              {/* 4 KPIs de Destaque */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {(cmsData.socialProof?.metricas || []).map((m, idx) => (
+                  <div key={m.id || idx} className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                    <input
+                      type="text"
+                      value={m.valor}
+                      onChange={(e) => {
+                        const next = [...(cmsData.socialProof?.metricas || [])];
+                        next[idx] = { ...next[idx], valor: e.target.value };
+                        setCmsData((prev) => ({
+                          ...prev,
+                          socialProof: { ...(prev.socialProof || { depoimentos: [] }), metricas: next },
+                        }));
+                      }}
+                      className="w-full text-lg font-black text-slate-950 bg-white border border-slate-200 rounded-lg px-2 py-1"
+                    />
+                    <input
+                      type="text"
+                      value={m.rotulo}
+                      onChange={(e) => {
+                        const next = [...(cmsData.socialProof?.metricas || [])];
+                        next[idx] = { ...next[idx], rotulo: e.target.value };
+                        setCmsData((prev) => ({
+                          ...prev,
+                          socialProof: { ...(prev.socialProof || { depoimentos: [] }), metricas: next },
+                        }));
+                      }}
+                      className="w-full text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-lg px-2 py-0.5"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Depoimentos */}
+              <div className="pt-2 border-t border-slate-100 space-y-3">
+                <span className="text-[11px] font-bold text-slate-500 uppercase block">
+                  Depoimentos em Destaque (Passageiros, Motoristas e Empresas)
+                </span>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {(cmsData.socialProof?.depoimentos || []).map((d, dIdx) => (
+                    <div key={d.id || dIdx} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={d.fotoUrl}
+                          alt={d.nome}
+                          className="w-9 h-9 rounded-full object-cover border border-slate-200"
+                        />
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            value={d.nome}
+                            onChange={(e) => {
+                              const next = [...(cmsData.socialProof?.depoimentos || [])];
+                              next[dIdx] = { ...next[dIdx], nome: e.target.value };
+                              setCmsData((prev) => ({
+                                ...prev,
+                                socialProof: { ...(prev.socialProof || { metricas: [] }), depoimentos: next },
+                              }));
+                            }}
+                            className="w-full text-xs font-bold text-slate-950 bg-white border border-slate-200 rounded px-1.5 py-0.5"
+                          />
+                          <input
+                            type="text"
+                            value={d.cidade}
+                            onChange={(e) => {
+                              const next = [...(cmsData.socialProof?.depoimentos || [])];
+                              next[dIdx] = { ...next[dIdx], cidade: e.target.value };
+                              setCmsData((prev) => ({
+                                ...prev,
+                                socialProof: { ...(prev.socialProof || { metricas: [] }), depoimentos: next },
+                              }));
+                            }}
+                            className="w-full text-[10px] text-slate-500 bg-white border border-slate-200 rounded px-1.5 py-0.5 mt-0.5"
+                          />
+                        </div>
+                      </div>
+
+                      <textarea
+                        rows={3}
+                        value={d.comentario}
+                        onChange={(e) => {
+                          const next = [...(cmsData.socialProof?.depoimentos || [])];
+                          next[dIdx] = { ...next[dIdx], comentario: e.target.value };
+                          setCmsData((prev) => ({
+                            ...prev,
+                            socialProof: { ...(prev.socialProof || { metricas: [] }), depoimentos: next },
+                          }));
+                        }}
+                        className="w-full text-xs text-slate-700 bg-white border border-slate-200 rounded-lg p-2"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* BOTÃO DE SALVAR CMS */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="submit"
+                className="px-6 py-3 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white font-black text-xs shadow-md flex items-center gap-2 cursor-pointer transition"
+              >
+                <Save className="w-4 h-4 text-emerald-400" />
+                <span>Salvar e Publicar na Landing Page</span>
+              </button>
+            </div>
+          </form>
         </div>
       )}
 

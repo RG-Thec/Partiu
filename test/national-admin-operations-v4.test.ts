@@ -35,6 +35,32 @@ import {
   carregarGatewayConfig,
   salvarGatewayConfig,
 } from "../src/lib/driver-wallet-service.ts";
+import {
+  carregarCmsLandingData,
+  salvarCmsLandingData,
+  restaurarCmsLandingPadrao,
+  DEFAULT_B2B_SECTION,
+  DEFAULT_METRICAS_SOCIAIS,
+} from "../src/lib/cms-landing-service.ts";
+import {
+  carregarLogsFinOps,
+  carregarConfigFinOps,
+  salvarConfigFinOps,
+  registrarChamadaApi,
+  calcularMetricasFinOps,
+  limparCacheMapas,
+  DEFAULT_CONFIG_MAPAS,
+} from "../src/lib/maps-finops-service.ts";
+import {
+  listarSoftDeletes,
+  executarSoftDelete,
+  restaurarRegistroSoftDelete,
+  estimarRegistrosPurga,
+  executarPurgaColdStorage,
+  listarPurgas,
+  gerarDumpPreventivo,
+  listarBackups,
+} from "../src/lib/data-governance-service.ts";
 
 describe("35. PARTIU NATIONAL ADMIN V4 — Navigation Architecture & RBAC (Strictly 6 Modules)", () => {
   const modulosOficiais: AdminModuleId[] = [
@@ -460,6 +486,150 @@ describe("40. PARTIU DRIVER WALLET, PREPAID COMMISSIONS & PIX GATEWAY (Sprint 3)
 
     // Restaura configuração padrão
     salvarGatewayConfig(configAtual);
+  });
+});
+
+describe("41. PARTIU LANDING CMS, MAPS FINOPS & DATA GOVERNANCE (Sprint 4)", () => {
+  // --- MÓDULO 9: CMS LANDING PAGE ---
+  test("1. CMS Landing: Carregamento inicial inclui Hero, B2B e Prova Social com depoimentos", () => {
+    const cmsData = carregarCmsLandingData();
+    expect(cmsData).toBeDefined();
+    expect(cmsData.hero).toBeDefined();
+    expect(cmsData.b2bSection).toBeDefined();
+    expect(cmsData.b2bSection?.titulo).toContain("PARTIU Empresas");
+    expect(cmsData.socialProof?.metricas.length).toBeGreaterThan(0);
+    expect(cmsData.socialProof?.depoimentos.length).toBeGreaterThan(0);
+  });
+
+  test("2. CMS Landing: Atualização dinâmica de seções (Hero e B2B) e restauração canônica", () => {
+    const original = carregarCmsLandingData();
+    
+    // Atualiza com novo título
+    salvarCmsLandingData({
+      hero: {
+        ...original.hero,
+        title: "Mobilidade e Entregas Sem Taxas Abusivas no Seu Município",
+      },
+      b2bSection: {
+        ...DEFAULT_B2B_SECTION,
+        titulo: "PARTIU Empresas & Convênios Regionais 2026",
+      },
+    });
+
+    const atualizado = carregarCmsLandingData();
+    expect(atualizado.hero.title).toBe("Mobilidade e Entregas Sem Taxas Abusivas no Seu Município");
+    expect(atualizado.b2bSection?.titulo).toBe("PARTIU Empresas & Convênios Regionais 2026");
+
+    // Restaura padrão
+    const restaurado = restaurarCmsLandingPadrao();
+    expect(restaurado).toBeDefined();
+    expect(restaurado.b2bSection).toBeDefined();
+  });
+
+  // --- MÓDULO 10: FINOPS DE APIS & MAPS CACHE ---
+  test("3. Maps FinOps: Parâmetros de cache, TTL e cotação Dólar/Real", () => {
+    const config = carregarConfigFinOps();
+    expect(config.ttlMinutos).toBeGreaterThanOrEqual(5);
+    expect(config.cotacaoDolarBrl).toBeGreaterThan(0);
+
+    salvarConfigFinOps({ ttlMinutos: 45, deadbandMetros: 60 });
+    const novaConfig = carregarConfigFinOps();
+    expect(novaConfig.ttlMinutos).toBe(45);
+    expect(novaConfig.deadbandMetros).toBe(60);
+
+    // Restaura
+    salvarConfigFinOps(DEFAULT_CONFIG_MAPAS);
+  });
+
+  test("4. Maps FinOps: Registro de requisições, métricas de economia e retenção de cache", () => {
+    // Registra um HIT (cache economizou requisição)
+    const logHit = registrarChamadaApi({
+      categoria: "CORRIDA",
+      provedor: "CACHE_LOCAL",
+      endpoint: "Directions",
+      parametros: "Origem A -> Destino B (Hash Hit)",
+      status: "HIT",
+      latenciaMs: 12,
+    });
+    expect(logHit.custoEstimadoUsd).toBe(0);
+    expect(logHit.economiaEstimadaUsd).toBeGreaterThan(0);
+
+    // Registra um MISS (requisição bateu no Google Maps)
+    const logMiss = registrarChamadaApi({
+      categoria: "GOOGLE MAPS",
+      provedor: "GOOGLE_MAPS",
+      endpoint: "Places Autocomplete",
+      parametros: "Busca de endereço inédito",
+      status: "MISS",
+      latenciaMs: 210,
+    });
+    expect(logMiss.custoEstimadoUsd).toBeGreaterThan(0);
+    expect(logMiss.economiaEstimadaUsd).toBe(0);
+
+    // Calcula consolidação FinOps
+    const metricas = calcularMetricasFinOps();
+    expect(metricas.totalRequisicoes).toBeGreaterThan(0);
+    expect(metricas.taxaRetencaoPercent).toBeGreaterThan(0);
+    expect(metricas.totalEconomizadoBrl).toBeGreaterThanOrEqual(0);
+    expect(metricas.tempoMedioRespostaMs).toBeGreaterThan(0);
+  });
+
+  // --- MÓDULO 11: GOVERNANÇA, LGPD & COLD STORAGE ---
+  test("5. Soft Delete (LGPD Art. 18): Exclusão lógica com mascaramento de CPF/telefone e restauração", () => {
+    const novoSoftDelete = executarSoftDelete({
+      tipo: "MOTORISTA",
+      entidadeId: "mot-test-99",
+      nome: "Carlos Eduardo de Souza",
+      cpfOriginal: "123.456.789-00",
+      telefoneOriginal: "(22) 99887-6655",
+      motivo: "Direito ao esquecimento do titular (LGPD)",
+      operador: "DPO Compliance",
+    });
+
+    expect(novoSoftDelete.id).toBeDefined();
+    expect(novoSoftDelete.status).toBe("EXCLUIDO_LOGICO");
+    expect(novoSoftDelete.documentoMascarado).toContain("***.456.789-**");
+    expect(novoSoftDelete.telefoneMascarado).toContain("(22) *****-6655");
+
+    const lista = listarSoftDeletes();
+    const encontrado = lista.find((x) => x.id === novoSoftDelete.id);
+    expect(encontrado).toBeDefined();
+
+    // Restauração auditada
+    const restaurado = restaurarRegistroSoftDelete(novoSoftDelete.id, "Diretor de Operações");
+    expect(restaurado).toBe(true);
+
+    const atualizado = listarSoftDeletes().find((x) => x.id === novoSoftDelete.id);
+    expect(atualizado?.status).toBe("RESTAURADO");
+    expect(atualizado?.restauradoPor).toBe("Diretor de Operações");
+  });
+
+  test("6. Cold Storage & Purga: Estimativa proporcional por janela de corte e execução registrada", () => {
+    const est30 = estimarRegistrosPurga("TELEMETRIA_GPS", 30);
+    const est365 = estimarRegistrosPurga("TELEMETRIA_GPS", 365);
+
+    expect(est30.registrosEstimados).toBeGreaterThan(est365.registrosEstimados);
+    expect(est30.espacoEstimadoMb).toBeGreaterThan(0);
+
+    // Execução da purga
+    const purga = executarPurgaColdStorage("TELEMETRIA_GPS", 90, "Operador Teste FinOps");
+    expect(purga.id).toBeDefined();
+    expect(purga.registrosAfetados).toBeGreaterThan(0);
+    expect(purga.espacoLiberadoMb).toBeGreaterThan(0);
+
+    const purgas = listarPurgas();
+    expect(purgas.some((p) => p.id === purga.id)).toBe(true);
+  });
+
+  test("7. Dump Preventivo: Geração com checksum SHA-256 e inventário de tabelas", () => {
+    const dump = gerarDumpPreventivo("Super Admin Automático");
+    expect(dump.id).toContain("dump-");
+    expect(dump.checksumSha256.length).toBe(64);
+    expect(dump.totalTabelas).toBe(34);
+    expect(dump.status).toBe("CONCLUIDO");
+
+    const backups = listarBackups();
+    expect(backups.some((b) => b.id === dump.id)).toBe(true);
   });
 });
 

@@ -30,6 +30,7 @@ import { Route as AppViagemRouteImport } from './routes/app.viagem'
 import { Route as RastreioTokenRouteImport } from './routes/rastreio.$token'
 import { Route as AppAdminIndexRouteImport } from './routes/app.admin.index'
 import { Route as AppAdminAfiliadosRouteImport } from './routes/app.admin.afiliados'
+import { Route as AppAdminApiFinopsRouteImport } from './routes/app.admin.api-finops'
 import { Route as AppAdminAprovacoesRouteImport } from './routes/app.admin.aprovacoes'
 import { Route as AppAdminBannersRouteImport } from './routes/app.admin.banners'
 import { Route as AppAdminCaixaRouteImport } from './routes/app.admin.caixa'
@@ -38,6 +39,7 @@ import { Route as AppAdminDespachoRouteImport } from './routes/app.admin.despach
 import { Route as AppAdminDiagnosticoRouteImport } from './routes/app.admin.diagnostico'
 import { Route as AppAdminFinanceiroRouteImport } from './routes/app.admin.financeiro'
 import { Route as AppAdminFrotaRouteImport } from './routes/app.admin.frota'
+import { Route as AppAdminGovernancaRouteImport } from './routes/app.admin.governanca'
 import { Route as AppAdminGrowthRouteImport } from './routes/app.admin.growth'
 import { Route as AppAdminHistoricoRouteImport } from './routes/app.admin.historico'
 import { Route as AppAdminLinhasRouteImport } from './routes/app.admin.linhas'
@@ -161,6 +163,11 @@ const AppAdminAfiliadosRoute = AppAdminAfiliadosRouteImport.update({
   path: '/afiliados',
   getParentRoute: () => AppAdminRoute,
 } as any)
+const AppAdminApiFinopsRoute = AppAdminApiFinopsRouteImport.update({
+  id: '/api-finops',
+  path: '/api-finops',
+  getParentRoute: () => AppAdminRoute,
+} as any)
 const AppAdminAprovacoesRoute = AppAdminAprovacoesRouteImport.update({
   id: '/aprovacoes',
   path: '/aprovacoes',
@@ -199,6 +206,11 @@ const AppAdminFinanceiroRoute = AppAdminFinanceiroRouteImport.update({
 const AppAdminFrotaRoute = AppAdminFrotaRouteImport.update({
   id: '/frota',
   path: '/frota',
+  getParentRoute: () => AppAdminRoute,
+} as any)
+const AppAdminGovernancaRoute = AppAdminGovernancaRouteImport.update({
+  id: '/governanca',
+  path: '/governanca',
   getParentRoute: () => AppAdminRoute,
 } as any)
 const AppAdminGrowthRoute = AppAdminGrowthRouteImport.update({
@@ -308,6 +320,7 @@ export interface FileRoutesByFullPath {
   '/rastreio/$token': typeof RastreioTokenRoute
   '/app/': typeof AppIndexRoute
   '/app/admin/afiliados': typeof AppAdminAfiliadosRoute
+  '/app/admin/api-finops': typeof AppAdminApiFinopsRoute
   '/app/admin/aprovacoes': typeof AppAdminAprovacoesRoute
   '/app/admin/banners': typeof AppAdminBannersRoute
   '/app/admin/caixa': typeof AppAdminCaixaRoute
@@ -316,6 +329,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/diagnostico': typeof AppAdminDiagnosticoRoute
   '/app/admin/financeiro': typeof AppAdminFinanceiroRoute
   '/app/admin/frota': typeof AppAdminFrotaRoute
+  '/app/admin/governanca': typeof AppAdminGovernancaRoute
   '/app/admin/growth': typeof AppAdminGrowthRoute
   '/app/admin/historico': typeof AppAdminHistoricoRoute
   '/app/admin/linhas': typeof AppAdminLinhasRoute
@@ -354,6 +368,7 @@ export interface FileRoutesByTo {
   '/rastreio/$token': typeof RastreioTokenRoute
   '/app': typeof AppIndexRoute
   '/app/admin/afiliados': typeof AppAdminAfiliadosRoute
+  '/app/admin/api-finops': typeof AppAdminApiFinopsRoute
   '/app/admin/aprovacoes': typeof AppAdminAprovacoesRoute
   '/app/admin/banners': typeof AppAdminBannersRoute
   '/app/admin/caixa': typeof AppAdminCaixaRoute
@@ -362,6 +377,7 @@ export interface FileRoutesByTo {
   '/app/admin/diagnostico': typeof AppAdminDiagnosticoRoute
   '/app/admin/financeiro': typeof AppAdminFinanceiroRoute
   '/app/admin/frota': typeof AppAdminFrotaRoute
+  '/app/admin/governanca': typeof AppAdminGovernancaRoute
   '/app/admin/growth': typeof AppAdminGrowthRoute
   '/app/admin/historico': typeof AppAdminHistoricoRoute
   '/app/admin/linhas': typeof AppAdminLinhasRoute
@@ -403,6 +419,7 @@ export interface FileRoutesById {
   '/rastreio/$token': typeof RastreioTokenRoute
   '/app/': typeof AppIndexRoute
   '/app/admin/afiliados': typeof AppAdminAfiliadosRoute
+  '/app/admin/api-finops': typeof AppAdminApiFinopsRoute
   '/app/admin/aprovacoes': typeof AppAdminAprovacoesRoute
   '/app/admin/banners': typeof AppAdminBannersRoute
   '/app/admin/caixa': typeof AppAdminCaixaRoute
@@ -411,6 +428,7 @@ export interface FileRoutesById {
   '/app/admin/diagnostico': typeof AppAdminDiagnosticoRoute
   '/app/admin/financeiro': typeof AppAdminFinanceiroRoute
   '/app/admin/frota': typeof AppAdminFrotaRoute
+  '/app/admin/governanca': typeof AppAdminGovernancaRoute
   '/app/admin/growth': typeof AppAdminGrowthRoute
   '/app/admin/historico': typeof AppAdminHistoricoRoute
   '/app/admin/linhas': typeof AppAdminLinhasRoute
@@ -453,6 +471,7 @@ export interface FileRouteTypes {
     | '/rastreio/$token'
     | '/app/'
     | '/app/admin/afiliados'
+    | '/app/admin/api-finops'
     | '/app/admin/aprovacoes'
     | '/app/admin/banners'
     | '/app/admin/caixa'
@@ -461,6 +480,7 @@ export interface FileRouteTypes {
     | '/app/admin/diagnostico'
     | '/app/admin/financeiro'
     | '/app/admin/frota'
+    | '/app/admin/governanca'
     | '/app/admin/growth'
     | '/app/admin/historico'
     | '/app/admin/linhas'
@@ -499,6 +519,7 @@ export interface FileRouteTypes {
     | '/rastreio/$token'
     | '/app'
     | '/app/admin/afiliados'
+    | '/app/admin/api-finops'
     | '/app/admin/aprovacoes'
     | '/app/admin/banners'
     | '/app/admin/caixa'
@@ -507,6 +528,7 @@ export interface FileRouteTypes {
     | '/app/admin/diagnostico'
     | '/app/admin/financeiro'
     | '/app/admin/frota'
+    | '/app/admin/governanca'
     | '/app/admin/growth'
     | '/app/admin/historico'
     | '/app/admin/linhas'
@@ -547,6 +569,7 @@ export interface FileRouteTypes {
     | '/rastreio/$token'
     | '/app/'
     | '/app/admin/afiliados'
+    | '/app/admin/api-finops'
     | '/app/admin/aprovacoes'
     | '/app/admin/banners'
     | '/app/admin/caixa'
@@ -555,6 +578,7 @@ export interface FileRouteTypes {
     | '/app/admin/diagnostico'
     | '/app/admin/financeiro'
     | '/app/admin/frota'
+    | '/app/admin/governanca'
     | '/app/admin/growth'
     | '/app/admin/historico'
     | '/app/admin/linhas'
@@ -737,6 +761,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminAfiliadosRouteImport
       parentRoute: typeof AppAdminRoute
     }
+    '/app/admin/api-finops': {
+      id: '/app/admin/api-finops'
+      path: '/api-finops'
+      fullPath: '/app/admin/api-finops'
+      preLoaderRoute: typeof AppAdminApiFinopsRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
     '/app/admin/aprovacoes': {
       id: '/app/admin/aprovacoes'
       path: '/aprovacoes'
@@ -791,6 +822,13 @@ declare module '@tanstack/react-router' {
       path: '/frota'
       fullPath: '/app/admin/frota'
       preLoaderRoute: typeof AppAdminFrotaRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
+    '/app/admin/governanca': {
+      id: '/app/admin/governanca'
+      path: '/governanca'
+      fullPath: '/app/admin/governanca'
+      preLoaderRoute: typeof AppAdminGovernancaRouteImport
       parentRoute: typeof AppAdminRoute
     }
     '/app/admin/growth': {
@@ -917,6 +955,7 @@ declare module '@tanstack/react-router' {
 
 interface AppAdminRouteChildren {
   AppAdminAfiliadosRoute: typeof AppAdminAfiliadosRoute
+  AppAdminApiFinopsRoute: typeof AppAdminApiFinopsRoute
   AppAdminAprovacoesRoute: typeof AppAdminAprovacoesRoute
   AppAdminBannersRoute: typeof AppAdminBannersRoute
   AppAdminCaixaRoute: typeof AppAdminCaixaRoute
@@ -925,6 +964,7 @@ interface AppAdminRouteChildren {
   AppAdminDiagnosticoRoute: typeof AppAdminDiagnosticoRoute
   AppAdminFinanceiroRoute: typeof AppAdminFinanceiroRoute
   AppAdminFrotaRoute: typeof AppAdminFrotaRoute
+  AppAdminGovernancaRoute: typeof AppAdminGovernancaRoute
   AppAdminGrowthRoute: typeof AppAdminGrowthRoute
   AppAdminHistoricoRoute: typeof AppAdminHistoricoRoute
   AppAdminLinhasRoute: typeof AppAdminLinhasRoute
@@ -947,6 +987,7 @@ interface AppAdminRouteChildren {
 
 const AppAdminRouteChildren: AppAdminRouteChildren = {
   AppAdminAfiliadosRoute: AppAdminAfiliadosRoute,
+  AppAdminApiFinopsRoute: AppAdminApiFinopsRoute,
   AppAdminAprovacoesRoute: AppAdminAprovacoesRoute,
   AppAdminBannersRoute: AppAdminBannersRoute,
   AppAdminCaixaRoute: AppAdminCaixaRoute,
@@ -955,6 +996,7 @@ const AppAdminRouteChildren: AppAdminRouteChildren = {
   AppAdminDiagnosticoRoute: AppAdminDiagnosticoRoute,
   AppAdminFinanceiroRoute: AppAdminFinanceiroRoute,
   AppAdminFrotaRoute: AppAdminFrotaRoute,
+  AppAdminGovernancaRoute: AppAdminGovernancaRoute,
   AppAdminGrowthRoute: AppAdminGrowthRoute,
   AppAdminHistoricoRoute: AppAdminHistoricoRoute,
   AppAdminLinhasRoute: AppAdminLinhasRoute,
@@ -1020,13 +1062,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
