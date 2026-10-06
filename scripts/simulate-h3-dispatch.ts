@@ -47,8 +47,8 @@ function parseArgs(): SimArgs {
   return {
     drivers: parseInt(map.get("drivers") || "500", 10),
     requests: parseInt(map.get("requests") || "50", 10),
-    centerLat: parseFloat(map.get("centerLat") || "-9.6498"), // Maceió, AL
-    centerLng: parseFloat(map.get("centerLng") || "-35.7089"),
+    centerLat: parseFloat(map.get("centerLat") || "-23.5505"), // Polo Central Metropolitano
+    centerLng: parseFloat(map.get("centerLng") || "-46.6333"),
     radiusM: parseInt(map.get("radiusM") || "8000", 10), // 8km
     acceptProb: parseFloat(map.get("acceptProb") || "0.65"),
     waveSize: parseInt(map.get("waveSize") || "5", 10),
