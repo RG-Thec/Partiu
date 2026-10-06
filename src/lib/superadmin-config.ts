@@ -294,7 +294,7 @@ export const telemetriaVeiculosIniciais: TelemetriaVeiculo[] = [
     id: "veic-01",
     placa: "MOB-8K99",
     modelo: "Chevrolet Onix Plus 2024 (Prata)",
-    motorista: "Carlos Eduardo Silva",
+    motorista: "Motorista Parceiro",
     telefoneMotorista: "(11) 99876-5432",
     fotoMotorista:
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",

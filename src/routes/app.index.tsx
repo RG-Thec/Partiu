@@ -104,9 +104,11 @@ function PartiuPassengerHomeContent() {
   const passengerId = activeUser?.id || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_id") || "passageiro_default" : "passageiro_default");
 
   const [userName, setUserName] = useState(() => {
-    if (activeUser?.name) return activeUser.name;
+    if (activeUser?.name && activeUser.name !== "Passageiro") return activeUser.name;
     if (typeof window === "undefined") return "Passageiro";
-    return localStorage.getItem("partiu_user_nome") || "Passageiro";
+    const local = localStorage.getItem("partiu_user_nome");
+    if (local && local !== "Passageiro") return local;
+    return activeUser?.name || local || "Passageiro";
   });
   const [userAvatar, setUserAvatar] = useState<string | null>(() => {
     return (

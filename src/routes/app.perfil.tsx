@@ -62,21 +62,21 @@ export function ProfilePagePartiu() {
   const [mensagemErro, setMensagemErro] = useState<string | null>(null);
   const [abaAtiva, setAbaAtiva] = useState<"dados" | "preferencias">("dados");
 
-  // Campos do Formulário (Inicialização síncrona instantânea)
+  // Campos do Formulário (Inicialização síncrona instantânea priorizando a sessão real)
   const [nome, setNome] = useState(() => {
     if (typeof window === "undefined") return "";
-    const local = localStorage.getItem("partiu_user_nome");
-    if (local && local !== "Passageiro") return local;
     const sessName = supabaseAuthService.getStoredSession()?.name;
     if (sessName && sessName !== "Passageiro") return sessName;
-    return local || sessName || "";
+    const local = localStorage.getItem("partiu_user_nome");
+    if (local && local !== "Passageiro") return local;
+    return sessName || local || "";
   });
 
   const [email, setEmail] = useState(() => {
     if (typeof window === "undefined") return "";
     return (
-      localStorage.getItem("partiu_user_email") ||
       supabaseAuthService.getStoredSession()?.email ||
+      localStorage.getItem("partiu_user_email") ||
       ""
     );
   });
@@ -84,9 +84,9 @@ export function ProfilePagePartiu() {
   const [telefone, setTelefone] = useState(() => {
     if (typeof window === "undefined") return "";
     return (
+      supabaseAuthService.getStoredSession()?.phone ||
       localStorage.getItem("partiu_user_phone") ||
       localStorage.getItem("partiu_user_telefone") ||
-      supabaseAuthService.getStoredSession()?.phone ||
       ""
     );
   });
@@ -94,8 +94,8 @@ export function ProfilePagePartiu() {
   const [cpf, setCpf] = useState(() => {
     if (typeof window === "undefined") return "";
     return (
-      localStorage.getItem("partiu_user_cpf") ||
       supabaseAuthService.getStoredSession()?.cpf ||
+      localStorage.getItem("partiu_user_cpf") ||
       ""
     );
   });
@@ -103,10 +103,10 @@ export function ProfilePagePartiu() {
   const [fotoUrl, setFotoUrl] = useState(() => {
     if (typeof window === "undefined") return "";
     return (
+      supabaseAuthService.getStoredSession()?.avatarUrl ||
       localStorage.getItem("partiu_user_avatar") ||
       localStorage.getItem("partiu_user_foto") ||
       localStorage.getItem("partiu_user_selfie") ||
-      supabaseAuthService.getStoredSession()?.avatarUrl ||
       ""
     );
   });
@@ -140,17 +140,17 @@ export function ProfilePagePartiu() {
 
         const resolvedNome =
           (perfil.name && perfil.name !== "Passageiro" ? perfil.name : null) ||
-          (cachedNome && cachedNome !== "Passageiro" ? cachedNome : null) ||
           (sess?.name && sess.name !== "Passageiro" ? sess.name : null) ||
+          (cachedNome && cachedNome !== "Passageiro" ? cachedNome : null) ||
           perfil.name ||
-          cachedNome ||
           sess?.name ||
+          cachedNome ||
           "";
 
-        const resolvedEmail = perfil.email || cachedEmail || sess?.email || "";
-        const resolvedTelefone = perfil.phone || cachedTelefone || sess?.phone || "";
-        const resolvedCpf = perfil.cpf || cachedCpf || sess?.cpf || "";
-        const resolvedAvatar = perfil.avatarUrl || cachedAvatar || sess?.avatarUrl || "";
+        const resolvedEmail = perfil.email || sess?.email || cachedEmail || "";
+        const resolvedTelefone = perfil.phone || sess?.phone || cachedTelefone || "";
+        const resolvedCpf = perfil.cpf || sess?.cpf || cachedCpf || "";
+        const resolvedAvatar = perfil.avatarUrl || sess?.avatarUrl || cachedAvatar || "";
 
         if (resolvedNome) setNome(resolvedNome);
         if (resolvedEmail) setEmail(resolvedEmail);

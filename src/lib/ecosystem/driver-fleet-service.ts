@@ -41,7 +41,7 @@ export interface DriverFleetRecord {
 export const SEED_DRIVERS: DriverFleetRecord[] = [
   {
     id: "drv-carlos-onix",
-    name: "Carlos Eduardo Silva",
+    name: "Motorista Parceiro",
     phone: "(22) 99876-5432",
     cnh: "04987654321",
     vehicle_type: "CARRO",

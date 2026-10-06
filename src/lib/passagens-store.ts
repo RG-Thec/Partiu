@@ -92,7 +92,7 @@ const BILHETE_PADRAO: BilhetePassagem = {
   pontoEmbarqueReferencia: "Área Central",
   vanModelo: "Toyota Corolla (Partiu Pop)",
   vanPlaca: "RJP-2F14",
-  motoristaNome: "Carlos Eduardo Santos",
+  motoristaNome: "Motorista Parceiro",
   motoristaFoto:
     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
   starlinkWifi: "PARTIU_Wifi_01",
@@ -119,7 +119,7 @@ const PENDENCIA_INICIAL: PagamentoPendente = {
   passageiroCpf: "000.000.000-00",
   vanModelo: "Toyota Corolla (Partiu Pop)",
   vanPlaca: "RJP-2F14",
-  motoristaNome: "Carlos Eduardo Santos",
+  motoristaNome: "Motorista Parceiro",
   motoristaFoto:
     "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
   starlinkWifi: "PARTIU_Wifi_01",

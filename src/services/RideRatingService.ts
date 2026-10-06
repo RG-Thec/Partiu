@@ -214,7 +214,7 @@ export class RideRatingService {
         id: "rate-001",
         rideId: "ride_8921",
         fromUserId: "Juliana Peixoto",
-        toUserId: "Carlos Eduardo",
+        toUserId: "Motorista Parceiro",
         role: "PASSENGER_TO_DRIVER",
         score: 1,
         tags: ["Direção brusca", "Não ligou o ar"],
@@ -237,7 +237,7 @@ export class RideRatingService {
       {
         id: "rate-003",
         rideId: "ride_8919",
-        fromUserId: "Carlos Eduardo",
+        fromUserId: "Motorista Parceiro",
         toUserId: "Helena Castro",
         role: "DRIVER_TO_PASSENGER",
         score: 2,

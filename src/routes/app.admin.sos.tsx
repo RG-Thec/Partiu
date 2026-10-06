@@ -124,7 +124,7 @@ export function CentralPanicoSOSAdminPage() {
         tipoSolicitante: "passageiro",
         solicitanteNome: "Juliana Mendes da Silva",
         solicitanteTelefone: "(11) 99876-5432",
-        contraparteNome: "Carlos Eduardo (Motorista)",
+        contraparteNome: "Motorista Parceiro",
         veiculoModelo: "Chevrolet Onix Plus",
         veiculoPlaca: "MOB-8K99",
         veiculoCor: "Prata",

@@ -179,9 +179,13 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
         localStorage.getItem("partiu_user_selfie")
       : null);
 
+  const sessionName = typeof window !== "undefined" ? supabaseAuthService.getStoredSession()?.name : null;
   const effectiveName =
-    userProfile?.name ||
+    (userProfile?.name && userProfile.name !== "Passageiro" ? userProfile.name : null) ||
+    (sessionName && sessionName !== "Passageiro" ? sessionName : null) ||
     (typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : null) ||
+    userProfile?.name ||
+    sessionName ||
     "Passageiro";
 
   // Tecla Escape para fechar

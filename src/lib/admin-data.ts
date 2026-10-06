@@ -66,7 +66,7 @@ export const vansAtivas: VanAtiva[] = [
   {
     id: "va1",
     placa: "MOB-8K99",
-    motorista: "Carlos Eduardo Silva",
+    motorista: "Motorista Parceiro",
     fotoMotorista:
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
     rota: "Centro ➔ Shopping (Partiu Pop)",
@@ -241,7 +241,7 @@ export const rotasHistorico: RotaHistorico[] = [
 export const motoristas: Motorista[] = [
   {
     id: "m1",
-    nome: "Carlos Eduardo Santos",
+    nome: "Motorista Parceiro",
     iniciais: "CS",
     fotoUrl:
       "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
@@ -448,7 +448,7 @@ export const encomendasMock: EncomendaVan[] = [
     valorFrete: 35.0,
     status: "em_transito",
     dataEnvio: "Hoje, 08:30",
-    motoristaNome: "Carlos Eduardo Silva",
+    motoristaNome: "Motorista Parceiro",
     vanPlaca: "MOB-8K99",
   },
   {
@@ -503,7 +503,7 @@ export function salvarNovaEncomendaStore(nova: EncomendaVan): EncomendaVan[] {
 export function validarPinEntregaEncomenda(
   encomendaId: string,
   pinDigitado: string,
-  motoristaNome = "Carlos Eduardo Santos",
+  motoristaNome = "Motorista Parceiro",
 ): { sucesso: boolean; mensagem: string; encomenda?: EncomendaVan } {
   if (typeof window === "undefined") {
     return { sucesso: false, mensagem: "Ambiente inválido" };
@@ -598,10 +598,10 @@ export const alertasSOSMock: AlertaSOS[] = [
   {
     id: "sos-1",
     tipo: "pane_mecanica",
-    solicitanteNome: "Carlos Eduardo Santos (Motorista)",
+    solicitanteNome: "Motorista Parceiro",
     solicitanteTelefone: "+5511998412940",
     vanPlaca: "MOB-8K99",
-    motoristaNome: "Carlos Eduardo Santos",
+    motoristaNome: "Motorista Parceiro",
     rodovia: "Av. Principal · Centro Urbano",
     coordenadas: "-21.2054, -41.8892",
     status: "em_atendimento",
@@ -676,7 +676,7 @@ export const linhasEHorarios: HorarioSaidaVan[] = [
     previsaoChegada: "07:05",
     duracaoEstimada: "35m",
     preco: 8.5,
-    motoristaNome: "Carlos Eduardo Santos",
+    motoristaNome: "Motorista Parceiro",
     motoristaFoto:
       "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
     motoristaTelefone: "+5511998412940",

@@ -158,7 +158,7 @@ export function AdminMonetizacaoPage() {
 
   // Modal de Cobrança PIX Avulsa
   const [modalPixAvulsoAberto, setModalPixAvulsoAberto] = useState(false);
-  const [pixMotoristaNome, setPixMotoristaNome] = useState("Carlos Eduardo (Onix Prata)");
+  const [pixMotoristaNome, setPixMotoristaNome] = useState("Motorista Parceiro (Veículo Padrão)");
   const [pixValorBrl, setPixValorBrl] = useState("49.90");
   const [pixGeradoPayload, setPixGeradoPayload] = useState<string | null>(null);
 

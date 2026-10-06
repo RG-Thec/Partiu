@@ -302,7 +302,7 @@ let corridaMemoria: CorridaPartiu | null = null;
  */
 export const MOTORISTA_PADRAO: MotoristaInfo = {
   id: "mot-1",
-  nome: "Carlos Eduardo Silva",
+  nome: "Motorista Parceiro",
   foto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
   avaliacao: 4.97,
   totalViagens: 3840,

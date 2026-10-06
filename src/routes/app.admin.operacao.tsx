@@ -277,7 +277,7 @@ export function CentralOperacaoAdminPage() {
         prioridade: "ALTA",
         usuarioNome: "Juliana Peixoto",
         usuarioTelefone: "(11) 99333-1122",
-        motoristaNome: "Carlos Eduardo",
+        motoristaNome: "Motorista Parceiro",
         cidade: "Operação Central",
         status: "ABERTO",
         descricao: "Passageiro esqueceu mochila com notebook no banco traseiro do veículo.",

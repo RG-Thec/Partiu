@@ -63,27 +63,27 @@ const STORAGE_SESSION_KEY = "partiu_active_user_session_v1";
 const DEMO_PROFILES: Record<UserRole, AuthUserProfile> = {
   PASSAGEIRO: {
     id: "usr-pax-demo-01",
-    name: "Carlos Eduardo Silva",
+    name: "Passageiro Demo",
     email: "passageiro@partiu.com.br",
-    phone: "(82) 99841-2940",
-    cpf: "084.192.524-88",
+    phone: "(11) 99999-0001",
+    cpf: "000.000.000-01",
     role: "PASSAGEIRO",
-    rating: 4.95,
-    totalTrips: 42,
+    rating: 5.0,
+    totalTrips: 0,
     avatarUrl: "",
     createdAt: 1772928000000,
   },
   MOTORISTA: {
     id: "usr-drv-demo-01",
-    name: "Marcos Oliveira",
+    name: "Motorista Parceiro",
     email: "motorista@partiu.com.br",
-    phone: "(22) 99811-2233",
-    cpf: "112.456.789-00",
+    phone: "(11) 99999-0002",
+    cpf: "000.000.000-02",
     role: "MOTORISTA",
-    rating: 4.98,
-    totalTrips: 340,
-    vehiclePlate: "RIO2A00",
-    vehicleModel: "Toyota Corolla (Prata)",
+    rating: 5.0,
+    totalTrips: 0,
+    vehiclePlate: "MOB2A00",
+    vehicleModel: "Veículo Padrão (Prata)",
     driverApprovalStatus: "aprovado",
     avatarUrl: "",
     createdAt: 1772928000000,
@@ -279,29 +279,56 @@ export class SupabaseAuthService {
           }
 
           const existingStored = this.getStoredSession();
-          if (!avatarUrl && existingStored?.avatarUrl) {
+          const isSameUser = Boolean(
+            existingStored &&
+              (existingStored.id === user.id ||
+                (existingStored.email &&
+                  user.email &&
+                  existingStored.email.toLowerCase() === user.email.toLowerCase()))
+          );
+
+          if (!avatarUrl && isSameUser && existingStored?.avatarUrl) {
             avatarUrl = existingStored.avatarUrl;
           }
-          if (!avatarUrl && typeof window !== "undefined") {
+          if (!avatarUrl && isSameUser && typeof window !== "undefined") {
             avatarUrl = localStorage.getItem("partiu_user_avatar") || undefined;
           }
 
-          if (avatarUrl && typeof window !== "undefined") {
-            try {
-              localStorage.setItem("partiu_user_avatar", avatarUrl);
-            } catch {}
-          }
+          const resolvedName =
+            (paxNome && paxNome !== "Passageiro" ? paxNome : null) ||
+            (profileData?.full_name && profileData.full_name !== "Passageiro" ? profileData.full_name : null) ||
+            user.user_metadata?.["name"] ||
+            user.user_metadata?.["full_name"] ||
+            (isSameUser && existingStored?.name && existingStored.name !== "Passageiro" ? existingStored.name : null) ||
+            user.email?.split("@")[0] ||
+            "Passageiro";
+
+          const resolvedPhone =
+            paxPhone ||
+            profileData?.phone ||
+            user.user_metadata?.["phone"] ||
+            (isSameUser ? existingStored?.phone : null) ||
+            "";
+
+          const resolvedCpf =
+            paxCpf ||
+            profileData?.cpf ||
+            user.user_metadata?.["cpf"] ||
+            (isSameUser ? existingStored?.cpf : null) ||
+            "";
+
+          const resolvedAvatar = avatarUrl || (isSameUser ? existingStored?.avatarUrl : "") || "";
 
           const hydrated: AuthUserProfile = {
             id: user.id,
-            name: paxNome || profileData?.full_name || user.user_metadata?.["name"] || existingStored?.name || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : null) || user.email?.split("@")[0] || "Passageiro",
+            name: resolvedName,
             email: user.email || profileData?.email || "",
-            phone: paxPhone || profileData?.phone || user.user_metadata?.["phone"] || existingStored?.phone || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_phone") || localStorage.getItem("partiu_user_telefone") : null),
-            cpf: paxCpf || profileData?.cpf || user.user_metadata?.["cpf"] || existingStored?.cpf || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_cpf") : null),
+            phone: resolvedPhone,
+            cpf: resolvedCpf,
             role,
             rating: profileData?.rating ? Number(profileData.rating) : 5.0,
             totalTrips: profileData?.total_trips || 0,
-            avatarUrl: avatarUrl || existingStored?.avatarUrl || "",
+            avatarUrl: resolvedAvatar,
             driverApprovalStatus: driverApprovalStatus as any,
             vehiclePlate,
             vehicleModel,
@@ -309,6 +336,29 @@ export class SupabaseAuthService {
           };
 
           this.saveStoredSession(hydrated);
+
+          // Sincroniza cache local estritamente com os dados do usuário autenticado
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem("partiu_user_id", user.id);
+              localStorage.setItem("partiu_user_nome", resolvedName);
+              if (user.email) localStorage.setItem("partiu_user_email", user.email);
+              if (resolvedPhone) {
+                localStorage.setItem("partiu_user_phone", resolvedPhone);
+                localStorage.setItem("partiu_user_telefone", resolvedPhone);
+              }
+              if (resolvedCpf) localStorage.setItem("partiu_user_cpf", resolvedCpf);
+              if (resolvedAvatar) {
+                localStorage.setItem("partiu_user_avatar", resolvedAvatar);
+                localStorage.setItem("partiu_user_foto", resolvedAvatar);
+                localStorage.setItem("partiu_user_selfie", resolvedAvatar);
+              }
+              window.dispatchEvent(
+                new CustomEvent("partiu:user-profile-updated", { detail: hydrated })
+              );
+            } catch {}
+          }
+
           return hydrated;
         }
       } catch (err) {
@@ -492,29 +542,53 @@ export class SupabaseAuthService {
           }
 
           const existingStored = this.getStoredSession();
-          if (!avatarUrl && existingStored?.avatarUrl) {
+          const isSameUser = Boolean(
+            existingStored &&
+              (existingStored.id === data.user.id ||
+                (existingStored.email && existingStored.email.toLowerCase() === cleanEmail))
+          );
+
+          if (!avatarUrl && isSameUser && existingStored?.avatarUrl) {
             avatarUrl = existingStored.avatarUrl;
           }
-          if (!avatarUrl && typeof window !== "undefined") {
+          if (!avatarUrl && isSameUser && typeof window !== "undefined") {
             avatarUrl = localStorage.getItem("partiu_user_avatar") || undefined;
           }
 
-          if (avatarUrl && typeof window !== "undefined") {
-            try {
-              localStorage.setItem("partiu_user_avatar", avatarUrl);
-            } catch {}
-          }
+          const resolvedName =
+            (paxNome && paxNome !== "Passageiro" ? paxNome : null) ||
+            (profileData?.full_name && profileData.full_name !== "Passageiro" ? profileData.full_name : null) ||
+            data.user.user_metadata?.["name"] ||
+            data.user.user_metadata?.["full_name"] ||
+            (isSameUser && existingStored?.name && existingStored.name !== "Passageiro" ? existingStored.name : null) ||
+            cleanEmail.split("@")[0];
+
+          const resolvedPhone =
+            paxPhone ||
+            profileData?.phone ||
+            data.user.user_metadata?.["phone"] ||
+            (isSameUser ? existingStored?.phone : null) ||
+            "";
+
+          const resolvedCpf =
+            paxCpf ||
+            profileData?.cpf ||
+            data.user.user_metadata?.["cpf"] ||
+            (isSameUser ? existingStored?.cpf : null) ||
+            "";
+
+          const resolvedAvatar = avatarUrl || (isSameUser ? existingStored?.avatarUrl : "") || "";
 
           const authUser: AuthUserProfile = {
             id: data.user.id,
-            name: paxNome || profileData?.full_name || data.user.user_metadata?.["name"] || existingStored?.name || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : null) || cleanEmail.split("@")[0],
+            name: resolvedName,
             email: cleanEmail,
-            phone: paxPhone || profileData?.phone || data.user.user_metadata?.["phone"] || existingStored?.phone || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_phone") || localStorage.getItem("partiu_user_telefone") : null),
-            cpf: paxCpf || profileData?.cpf || data.user.user_metadata?.["cpf"] || existingStored?.cpf || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_cpf") : null),
+            phone: resolvedPhone,
+            cpf: resolvedCpf,
             role: finalRole,
             rating: profileData?.rating ? Number(profileData.rating) : 5.0,
             totalTrips: profileData?.total_trips || 0,
-            avatarUrl: avatarUrl || existingStored?.avatarUrl || "",
+            avatarUrl: resolvedAvatar,
             driverApprovalStatus: driverApprovalStatus as any,
             vehiclePlate,
             vehicleModel,
@@ -522,6 +596,40 @@ export class SupabaseAuthService {
           };
 
           this.saveStoredSession(authUser);
+
+          // Sincroniza imediatamente o localStorage para o novo usuário autenticado
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem("partiu_user_id", authUser.id);
+              localStorage.setItem("partiu_user_nome", resolvedName);
+              localStorage.setItem("partiu_user_email", cleanEmail);
+              if (resolvedPhone) {
+                localStorage.setItem("partiu_user_phone", resolvedPhone);
+                localStorage.setItem("partiu_user_telefone", resolvedPhone);
+              } else {
+                localStorage.removeItem("partiu_user_phone");
+                localStorage.removeItem("partiu_user_telefone");
+              }
+              if (resolvedCpf) {
+                localStorage.setItem("partiu_user_cpf", resolvedCpf);
+              } else {
+                localStorage.removeItem("partiu_user_cpf");
+              }
+              if (resolvedAvatar) {
+                localStorage.setItem("partiu_user_avatar", resolvedAvatar);
+                localStorage.setItem("partiu_user_foto", resolvedAvatar);
+                localStorage.setItem("partiu_user_selfie", resolvedAvatar);
+              } else {
+                localStorage.removeItem("partiu_user_avatar");
+                localStorage.removeItem("partiu_user_foto");
+                localStorage.removeItem("partiu_user_selfie");
+              }
+              window.dispatchEvent(
+                new CustomEvent("partiu:user-profile-updated", { detail: authUser })
+              );
+            } catch {}
+          }
+
           return {
             success: true,
             user: authUser,
@@ -1202,6 +1310,21 @@ export class SupabaseAuthService {
       try {
         localStorage.removeItem("partiu_demo_user");
         localStorage.removeItem("partiu_driver_demo");
+        localStorage.removeItem("partiu_user_id");
+        localStorage.removeItem("partiu_user_nome");
+        localStorage.removeItem("partiu_user_phone");
+        localStorage.removeItem("partiu_user_telefone");
+        localStorage.removeItem("partiu_user_cpf");
+        localStorage.removeItem("partiu_user_email");
+        localStorage.removeItem("partiu_user_avatar");
+        localStorage.removeItem("partiu_user_foto");
+        localStorage.removeItem("partiu_user_selfie");
+        localStorage.removeItem("partiu_user_preferences_v1");
+        localStorage.removeItem("partiu_user_tipo");
+        localStorage.removeItem("partiu_enderecos_salvos_v1");
+        window.dispatchEvent(
+          new CustomEvent("partiu:user-profile-updated", { detail: null })
+        );
       } catch {}
     }
     this.clearStoredSession();

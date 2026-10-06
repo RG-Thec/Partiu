@@ -82,7 +82,7 @@ export function converterPassagemBancoParaBilhete(
     pontoEmbarqueReferencia: extras?.pontoEmbarqueReferencia || "Ponto Urbano",
     vanModelo: extras?.vanModelo || "Toyota Corolla (Partiu Pop)",
     vanPlaca: extras?.vanPlaca || "RJP-2F14",
-    motoristaNome: extras?.motoristaNome || "Carlos Eduardo Santos",
+    motoristaNome: extras?.motoristaNome || "Motorista Parceiro",
     motoristaFoto:
       extras?.motoristaFoto ||
       "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",

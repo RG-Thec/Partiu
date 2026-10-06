@@ -75,7 +75,7 @@ export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> =
 
       if (motoristasOnline.length === 0) {
         setMotoristasOnline([
-          { id: "mot-1", nome: "Carlos Eduardo Silva", veiculo: "Chevrolet Onix", placa: "MOB-8K99" },
+          { id: "mot-1", nome: "Motorista Parceiro", veiculo: "Chevrolet Onix", placa: "MOB-8K99" },
           { id: "mot-2", nome: "Lucas Motoboy Flash", veiculo: "Honda CG 160", placa: "MOT-7799" },
           { id: "mot-3", nome: "Mariana Souza", veiculo: "Hyundai HB20", placa: "MUL-2026" },
         ]);

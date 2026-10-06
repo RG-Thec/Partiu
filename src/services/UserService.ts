@@ -91,14 +91,25 @@ export class UserService {
     const localCpf = typeof window !== "undefined" ? localStorage.getItem("partiu_user_cpf") : null;
     const localEmail = typeof window !== "undefined" ? localStorage.getItem("partiu_user_email") : null;
 
+    const sessionName = session?.name && session.name !== "Passageiro" ? session.name : null;
+    const sessionEmail = session?.email || null;
+    const sessionPhone = session?.phone || null;
+    const sessionCpf = session?.cpf || null;
+    const sessionAvatar = session?.avatarUrl || null;
+
     let base: UserProfileData = {
       ...DEFAULT_PROFILE,
       id: session?.id || DEFAULT_PROFILE.id,
-      name: (localName && localName !== "Passageiro" ? localName : null) || session?.name || localName || DEFAULT_PROFILE.name,
-      email: localEmail || session?.email || DEFAULT_PROFILE.email,
-      phone: localPhone || session?.phone || DEFAULT_PROFILE.phone,
-      cpf: localCpf || session?.cpf || DEFAULT_PROFILE.cpf,
-      avatarUrl: localAvatar || session?.avatarUrl || DEFAULT_PROFILE.avatarUrl,
+      name:
+        sessionName ||
+        (localName && localName !== "Passageiro" ? localName : null) ||
+        session?.name ||
+        localName ||
+        DEFAULT_PROFILE.name,
+      email: sessionEmail || localEmail || DEFAULT_PROFILE.email,
+      phone: sessionPhone || localPhone || DEFAULT_PROFILE.phone,
+      cpf: sessionCpf || localCpf || DEFAULT_PROFILE.cpf,
+      avatarUrl: sessionAvatar || localAvatar || DEFAULT_PROFILE.avatarUrl,
       rating: session?.rating || DEFAULT_PROFILE.rating,
       totalTrips: session?.totalTrips || DEFAULT_PROFILE.totalTrips,
       preferences: this.getStoredPreferences(),

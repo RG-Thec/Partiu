@@ -95,7 +95,7 @@ export const DEFAULT_GATEWAY_CONFIG: GatewayConfig = {
 export const WALLETS_INICIAIS: CarteiraMotorista[] = [
   {
     motoristaId: "mot-1",
-    motoristaNome: "Carlos Eduardo Silva",
+    motoristaNome: "Motorista Parceiro",
     telefone: "(22) 99960-5162",
     veiculoPlaca: "MOB-8K99",
     veiculoModelo: "Chevrolet Onix Plus",
@@ -151,7 +151,7 @@ export const PEDIDOS_RECARGA_INICIAIS: PedidoRecargaPix[] = [
   {
     id: "rec-801",
     motoristaId: "mot-1",
-    motoristaNome: "Carlos Eduardo Silva",
+    motoristaNome: "Motorista Parceiro",
     valorBrl: 50.0,
     gateway: "MERCADO_PAGO",
     status: "APROVADO",

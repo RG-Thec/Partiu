@@ -133,7 +133,7 @@ export function selecionarMotoristaEntrega(
 
   return {
     id: "drv-carro-bau-1",
-    nome: "Carlos Eduardo Silveira",
+    nome: "Motorista Parceiro",
     telefone: "(22) 99772-8811",
     avaliacao: 4.92,
     fotoUrl:

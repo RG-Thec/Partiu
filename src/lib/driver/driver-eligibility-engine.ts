@@ -73,10 +73,10 @@ export interface DriverEligibilityResult {
 export const MOTORISTA_CONTA_PADRAO: DriverProfileRecord = {
   id: "mot-001",
   userId: "usr-mot-001",
-  nome: "Carlos Eduardo Silva",
+  nome: "Motorista Parceiro",
   cpf: "123.456.789-00",
   telefone: "(22) 99876-5432",
-  email: "carlos.silva@partiu.app",
+  email: "motorista.parceiro@partiu.app",
   fotoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
   cnhNumero: "98765432100",
   cnhCategoria: "AB",
