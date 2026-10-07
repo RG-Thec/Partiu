@@ -80,12 +80,12 @@ export interface CategoriaMenuAdmin {
 
 /**
  * 🏛️ CENTRAL DE OPERAÇÕES NACIONAL PARTIU — ESTRUTURA OFICIAL ENXUTA
- * Organização Executiva sem duplicações, sem ruído cognitivo e com alta densidade de valor.
+ * Menu principal consolidado nos 5-6 módulos essenciais de alta produtividade.
  */
 const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
   {
-    id: "comando",
-    titulo: "Comando",
+    id: "operacao_saas",
+    titulo: "Navegação Principal",
     itens: [
       {
         to: "/app/admin",
@@ -95,24 +95,32 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
         moduleId: "dashboard",
       },
       {
-        to: "/app/admin/diagnostico",
-        label: "Diagnóstico GNSS",
-        icon: Activity,
+        to: "/app/admin/motoristas",
+        label: "Motoristas & Assinaturas",
+        icon: Users,
         exact: false,
-        moduleId: "dashboard",
+        moduleId: "motoristas",
       },
-    ],
-  },
-  {
-    id: "operacao",
-    titulo: "Operação & Frotas",
-    itens: [
       {
-        to: "/app/admin/operacao",
-        label: "Operação ao Vivo",
+        to: "/app/admin/despacho",
+        label: "Corridas & Radar",
         icon: Radio,
         exact: false,
         moduleId: "operacao",
+      },
+      {
+        to: "/app/admin/financeiro",
+        label: "Financeiro & SaaS",
+        icon: DollarSign,
+        exact: false,
+        moduleId: "financeiro",
+      },
+      {
+        to: "/app/admin/configuracoes",
+        label: "Configurações",
+        icon: Sliders,
+        exact: false,
+        moduleId: "configuracoes",
       },
       {
         to: "/app/admin/sos",
@@ -122,152 +130,35 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
         badgeVariant: "critical",
         moduleId: "operacao",
       },
-      {
-        to: "/app/admin/despacho",
-        label: "Despacho & Matching",
-        icon: PhoneCall,
-        exact: false,
-        moduleId: "operacao",
-      },
-      {
-        to: "/app/admin/locais",
-        label: "Cidades & Praças",
-        icon: MapPin,
-        exact: false,
-        moduleId: "operacao",
-      },
-      {
-        to: "/app/admin/veiculo",
-        label: "Categorias & Veículos",
-        icon: Car,
-        exact: false,
-        moduleId: "operacao",
-      },
-      {
-        to: "/app/admin/frota",
-        label: "Vistorias de Frota",
-        icon: UserCheck,
-        exact: false,
-        moduleId: "operacao",
-      },
-      {
-        to: "/app/admin/api-finops",
-        label: "FinOps de APIs",
-        icon: Compass,
-        exact: false,
-        moduleId: "operacao",
-      },
     ],
   },
-  {
-    id: "cadastros",
-    titulo: "Usuários & Cadastros",
-    itens: [
-      {
-        to: "/app/admin/motoristas",
-        label: "Motoristas",
-        icon: Users,
-        exact: false,
-        moduleId: "motoristas",
-      },
-      {
-        to: "/app/admin/aprovacoes",
-        label: "Fila de Aprovações",
-        icon: UserCheck,
-        exact: false,
-        badgeVariant: "warning",
-        moduleId: "motoristas",
-      },
-      {
-        to: "/app/admin/passageiros",
-        label: "Passageiros",
-        icon: User,
-        exact: false,
-        moduleId: "motoristas",
-      },
-    ],
-  },
-  {
-    id: "financas",
-    titulo: "Finanças & SaaS",
-    itens: [
-      {
-        to: "/app/admin/financeiro",
-        label: "Cockpit Financeiro",
-        icon: DollarSign,
-        exact: false,
-        moduleId: "financeiro",
-      },
-      {
-        to: "/app/admin/monetizacao",
-        label: "Planos SaaS & Diárias",
-        icon: CreditCard,
-        exact: false,
-        moduleId: "financeiro",
-      },
-      {
-        to: "/app/admin/caixa",
-        label: "Fechamento de Caixa",
-        icon: Layers,
-        exact: false,
-        moduleId: "financeiro",
-      },
-    ],
-  },
-  {
-    id: "marketing",
-    titulo: "Marketing & Growth",
-    itens: [
-      {
-        to: "/app/admin/marketing",
-        label: "Banners & Cupons",
-        icon: Megaphone,
-        exact: false,
-        moduleId: "marketing",
-      },
-      {
-        to: "/app/admin/afiliados",
-        label: "Clube & B2B",
-        icon: Layers,
-        exact: false,
-        moduleId: "marketing",
-      },
-      {
-        to: "/app/admin/growth",
-        label: "Indique & Ganhe",
-        icon: TrendingUp,
-        exact: false,
-        moduleId: "marketing",
-      },
-    ],
-  },
-  {
-    id: "sistema",
-    titulo: "Sistema & Plataforma",
-    itens: [
-      {
-        to: "/app/admin/configuracoes",
-        label: "Configurações Gerais",
-        icon: Sliders,
-        exact: false,
-        moduleId: "configuracoes",
-      },
-      {
-        to: "/app/admin/whitelabel",
-        label: "White Label Studio",
-        icon: Palette,
-        exact: false,
-        moduleId: "configuracoes",
-      },
-      {
-        to: "/app/admin/governanca",
-        label: "Governança & LGPD",
-        icon: ShieldCheck,
-        exact: false,
-        moduleId: "configuracoes",
-      },
-    ],
-  },
+];
+
+/**
+ * Catálogo completo de módulos do sistema indexados na Command Palette (Ctrl+K)
+ */
+const TODOS_MODULOS_SISTEMA = [
+  { to: "/app/admin", label: "Dashboard Geral", categoriaTitulo: "Comando", icon: LayoutDashboard },
+  { to: "/app/admin/motoristas", label: "Motoristas & Assinaturas", categoriaTitulo: "Cadastros", icon: Users },
+  { to: "/app/admin/aprovacoes", label: "Fila de Aprovações (CNH/OCR)", categoriaTitulo: "Cadastros", icon: UserCheck },
+  { to: "/app/admin/passageiros", label: "Passageiros Cadastrados", categoriaTitulo: "Cadastros", icon: User },
+  { to: "/app/admin/despacho", label: "Corridas & Despacho", categoriaTitulo: "Operação", icon: PhoneCall },
+  { to: "/app/admin/operacao", label: "Cockpit Operacional ao Vivo", categoriaTitulo: "Operação", icon: Radio },
+  { to: "/app/admin/sos", label: "Central SOS 190 (Emergências)", categoriaTitulo: "Operação", icon: ShieldAlert },
+  { to: "/app/admin/veiculo", label: "Categorias & Veículos", categoriaTitulo: "Operação", icon: Car },
+  { to: "/app/admin/frota", label: "Vistorias de Frota", categoriaTitulo: "Operação", icon: UserCheck },
+  { to: "/app/admin/locais", label: "Cidades & Praças", categoriaTitulo: "Operação", icon: MapPin },
+  { to: "/app/admin/financeiro", label: "Cockpit Financeiro", categoriaTitulo: "Finanças", icon: DollarSign },
+  { to: "/app/admin/monetizacao", label: "Planos SaaS & Diárias", categoriaTitulo: "Finanças", icon: CreditCard },
+  { to: "/app/admin/caixa", label: "Fechamento de Caixa", categoriaTitulo: "Finanças", icon: Layers },
+  { to: "/app/admin/configuracoes", label: "Configurações Globais", categoriaTitulo: "Sistema", icon: Sliders },
+  { to: "/app/admin/whitelabel", label: "White Label Studio", categoriaTitulo: "Sistema", icon: Palette },
+  { to: "/app/admin/governanca", label: "Governança & LGPD", categoriaTitulo: "Sistema", icon: ShieldCheck },
+  { to: "/app/admin/marketing", label: "Banners & Cupons", categoriaTitulo: "Marketing", icon: Megaphone },
+  { to: "/app/admin/afiliados", label: "Clube & B2B", categoriaTitulo: "Marketing", icon: Layers },
+  { to: "/app/admin/growth", label: "Indique & Ganhe", categoriaTitulo: "Marketing", icon: TrendingUp },
+  { to: "/app/admin/diagnostico", label: "Diagnóstico GNSS", categoriaTitulo: "Comando", icon: Activity },
+  { to: "/app/admin/api-finops", label: "FinOps de APIs", categoriaTitulo: "Operação", icon: Compass },
 ];
 
 const ROLES_DISPONIVEIS: { id: AdminRole; label: string; badge: string }[] = [
@@ -428,23 +319,40 @@ function SuperAdminLayout() {
       .filter((cat) => cat.itens.length > 0);
   }, [roleAtiva, chamadosSOSAtivos, motoristasPendentes]);
 
-  // Lista plana e filtrada para a Command Palette (Ctrl+K)
+  // Lista de módulos para a Command Palette (Ctrl+K)
   const itensBuscaRapida = useMemo(() => {
-    const todos = categoriasFiltradas.flatMap((cat) =>
-      cat.itens.map((it) => ({
-        ...it,
-        categoriaTitulo: cat.titulo,
-      }))
-    );
-    if (!termoBuscaRapida.trim()) return todos;
+    const permitidos = TODOS_MODULOS_SISTEMA.filter((mod) => {
+      // Se for franqueado, não exibir configurações exclusivas da Matriz/Holding
+      if (roleAtiva === "FRANQUEADO" && (mod.to.includes("configuracoes") || mod.to.includes("whitelabel") || mod.to.includes("governanca"))) {
+        return false;
+      }
+      return true;
+    });
+
+    if (!termoBuscaRapida.trim()) return permitidos.slice(0, 10);
     const q = termoBuscaRapida.toLowerCase().trim();
-    return todos.filter(
+    return permitidos.filter(
       (it) =>
         it.label.toLowerCase().includes(q) ||
         it.categoriaTitulo.toLowerCase().includes(q) ||
         it.to.toLowerCase().includes(q)
     );
-  }, [categoriasFiltradas, termoBuscaRapida]);
+  }, [roleAtiva, termoBuscaRapida]);
+
+  // Busca rápida de motoristas/veículos/placas na Command Palette (Ctrl+K)
+  const motoristasEncontrados = useMemo(() => {
+    if (!termoBuscaRapida.trim() || termoBuscaRapida.trim().length < 2) return [];
+    const q = termoBuscaRapida.toLowerCase().trim();
+    return motoristasBanco
+      .filter((m: any) => {
+        const nome = (m.full_name || m.nome || "").toLowerCase();
+        const placa = (m.vehicle_plate || m.placa || "").toLowerCase();
+        const fone = (m.phone || m.telefone || "").toLowerCase();
+        const modelo = (m.vehicle_model || m.modelo || "").toLowerCase();
+        return nome.includes(q) || placa.includes(q) || fone.includes(q) || modelo.includes(q);
+      })
+      .slice(0, 6);
+  }, [motoristasBanco, termoBuscaRapida]);
 
   if (isLoginRoute) {
     return <Outlet />;
@@ -1056,58 +964,115 @@ function SuperAdminLayout() {
               </div>
 
               {/* Lista de Resultados Filtrados */}
-              <div className="overflow-y-auto p-2 divide-y divide-slate-800/40 custom-admin-scrollbar">
-                {itensBuscaRapida.length === 0 ? (
+              <div className="overflow-y-auto p-2 divide-y divide-slate-800/40 custom-admin-scrollbar space-y-1">
+                {/* 1. Seção de Motoristas & Placas (Busca Instantânea de Condutor) */}
+                {motoristasEncontrados.length > 0 && (
+                  <div className="pb-2">
+                    <p className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                      <Users className="h-3 w-3" />
+                      Motoristas &amp; Placas ({motoristasEncontrados.length})
+                    </p>
+                    <div className="space-y-1 mt-1">
+                      {motoristasEncontrados.map((m: any) => {
+                        const nome = m.full_name || m.nome || "Motorista Parceiro";
+                        const placa = m.vehicle_plate || m.placa || "";
+                        const modelo = m.vehicle_model || m.modelo || "";
+                        const fone = m.phone || m.telefone || "";
+                        const termoBuscaDestino = placa || nome;
+                        return (
+                          <Link
+                            key={m.id}
+                            to="/app/admin/motoristas"
+                            onClick={() => {
+                              setBuscaRapidaAberta(false);
+                              setTermoBuscaRapida("");
+                              if (typeof window !== "undefined") {
+                                const url = new URL(window.location.href);
+                                url.pathname = "/app/admin/motoristas";
+                                url.searchParams.set("busca", termoBuscaDestino);
+                                window.history.pushState({}, "", url.toString());
+                                window.dispatchEvent(new Event("popstate"));
+                              }
+                            }}
+                            className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/80 hover:bg-slate-800 border border-slate-800/90 transition group cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="h-7 w-7 rounded-lg bg-amber-400/20 text-amber-400 font-black text-xs flex items-center justify-center shrink-0">
+                                <Car className="h-3.5 w-3.5" />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-xs font-bold text-white group-hover:text-amber-300 truncate">
+                                    {nome}
+                                  </p>
+                                  {placa && (
+                                    <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-amber-300 font-black border border-slate-700">
+                                      {placa}
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-[10px] text-slate-400 truncate block">
+                                  {modelo ? `${modelo} • ` : ""}{fone || "Tel não informado"}
+                                </span>
+                              </div>
+                            </div>
+                            <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-slate-900 text-slate-300 border border-slate-700 shrink-0">
+                              Acessar Perfil →
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. Seção de Módulos & Ferramentas */}
+                {itensBuscaRapida.length > 0 && (
+                  <div className="pt-1">
+                    {motoristasEncontrados.length > 0 && (
+                      <p className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-500">
+                        Módulos do Sistema
+                      </p>
+                    )}
+                    {itensBuscaRapida.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.to}
+                          to={item.to}
+                          onClick={() => {
+                            setBuscaRapidaAberta(false);
+                            setTermoBuscaRapida("");
+                          }}
+                          className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-800/80 active:bg-slate-800 transition group cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="h-7 w-7 rounded-lg bg-slate-800 text-slate-300 group-hover:bg-amber-400 group-hover:text-slate-950 transition flex items-center justify-center shrink-0">
+                              <Icon className="h-3.5 w-3.5" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-slate-200 group-hover:text-white truncate">
+                                {item.label}
+                              </p>
+                              <span className="text-[10px] text-slate-500 truncate block">
+                                {item.categoriaTitulo} • {item.to}
+                              </span>
+                            </div>
+                          </div>
+                          <span className="text-[10px] text-slate-500 group-hover:text-slate-300">Ir →</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {itensBuscaRapida.length === 0 && motoristasEncontrados.length === 0 && (
                   <div className="py-8 text-center text-slate-500 text-xs px-4">
-                    Nenhum módulo encontrado para &quot;{termoBuscaRapida}&quot;. Tente buscar por{" "}
-                    <strong className="text-slate-400">motoristas</strong>,{" "}
-                    <strong className="text-slate-400">saas</strong>,{" "}
+                    Nenhum módulo ou motorista encontrado para &quot;{termoBuscaRapida}&quot;. Digite o nome de um motorista, placa, ou termos como{" "}
+                    <strong className="text-slate-400">diárias</strong>,{" "}
                     <strong className="text-slate-400">caixa</strong> ou{" "}
                     <strong className="text-slate-400">sos</strong>.
                   </div>
-                ) : (
-                  itensBuscaRapida.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.to}
-                        to={item.to}
-                        onClick={() => {
-                          setBuscaRapidaAberta(false);
-                          setTermoBuscaRapida("");
-                        }}
-                        className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-800/80 active:bg-slate-800 transition group cursor-pointer"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="h-7 w-7 rounded-lg bg-slate-800 text-slate-300 group-hover:bg-amber-400 group-hover:text-slate-950 transition flex items-center justify-center shrink-0">
-                            <Icon className="h-3.5 w-3.5" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold text-slate-200 group-hover:text-white truncate">
-                              {item.label}
-                            </p>
-                            <span className="text-[10px] text-slate-500 truncate block">
-                              {item.categoriaTitulo} • {item.to}
-                            </span>
-                          </div>
-                        </div>
-
-                        {item.badge && (
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider shrink-0 ${
-                              item.badgeVariant === "critical"
-                                ? "bg-red-600 text-white animate-pulse"
-                                : item.badgeVariant === "warning"
-                                ? "bg-amber-400 text-slate-950 font-black"
-                                : "bg-slate-800 text-slate-300"
-                            }`}
-                          >
-                            {item.badge}
-                          </span>
-                        )}
-                      </Link>
-                    );
-                  })
                 )}
               </div>
 

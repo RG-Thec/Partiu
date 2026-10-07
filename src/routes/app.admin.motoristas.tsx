@@ -105,7 +105,23 @@ export function QuadroMotoristasAdminPage() {
   const rejeitarMotorista = useRejeitarPartiuMotorista();
   const atualizarCategoria = useAtualizarCategoriaMotorista();
 
-  const [busca, setBusca] = useState("");
+  const [busca, setBusca] = useState(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      return sp.get("busca") || "";
+    }
+    return "";
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      const b = sp.get("busca");
+      if (b !== null) {
+        setBusca(b);
+      }
+    }
+  }, []);
   const [filtroStatus, setFiltroStatus] = useState<StatusMotorista>("TODOS");
   const [filtroModal, setFiltroModal] = useState<"TODOS" | CategoriaPermitida>("TODOS");
 

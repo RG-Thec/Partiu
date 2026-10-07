@@ -10,13 +10,41 @@ import {
   Layers,
 } from "lucide-react";
 import { useAdminCity } from "@/contexts/AdminCityContext";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Link } from "@tanstack/react-router";
 
 export function AdminCitySelector() {
   const { pracaAtiva, pracas, isNacional, selecionarPraca } = useAdminCity();
+  const { isFranqueado, contaAtiva } = useAdminAuth();
   const [aberto, setAberto] = useState(false);
   const [busca, setBusca] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Se o usuário for FRANQUEADO, a interface é hardcoded para a praça dele sem dropdown/seletor
+  if (isFranqueado) {
+    const nomeExibicao = contaAtiva?.tenantNome || (pracaAtiva.id !== "todas" ? pracaAtiva.nome : "Praça Regional");
+    return (
+      <div
+        className="flex items-center gap-1.5 px-2.5 py-1 h-8 rounded-lg border border-blue-200 bg-blue-50/90 text-blue-950 select-none shadow-xs"
+        title={`Praça Regional Exclusiva: ${nomeExibicao} (Acesso Local)`}
+      >
+        <div className="flex h-5 w-5 items-center justify-center rounded-md shrink-0 bg-blue-600 text-white">
+          <MapPin className="h-3 w-3" />
+        </div>
+        <div className="min-w-0 pr-1">
+          <div className="flex items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full shrink-0 bg-blue-600" />
+            <span className="text-[9px] font-bold uppercase tracking-wider text-blue-700">
+              Praça Local
+            </span>
+          </div>
+          <p className="text-xs font-black truncate max-w-[110px] sm:max-w-[150px] leading-tight text-blue-950">
+            {nomeExibicao}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // Fechar ao clicar fora
   useEffect(() => {

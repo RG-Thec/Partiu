@@ -116,6 +116,7 @@ export interface AdminAccount {
   nome: string;
   email: string;
   tenantId?: string | undefined;
+  tenantNome?: string | undefined;
   ultimoAcesso?: string | undefined;
   cargo: string;
 }
@@ -137,6 +138,7 @@ export const CONTAS_ADMIN_PADRAO: AdminAccount[] = [
     nome: "Operador Regional (Franqueado)",
     email: "franqueado@partiu.app",
     tenantId: "praca_maceio_al",
+    tenantNome: "Maceió - AL",
     cargo: "Gestor de Franquia",
   },
 ];
@@ -482,6 +484,7 @@ export function getContaAtiva(): AdminAccount {
             id: parsed.contaId,
             role,
             tenantId: parsed.tenantId,
+            tenantNome: parsed.tenantNome || (parsed.tenantId ? parsed.tenantId.replace(/^praca_/, "").replace(/_/g, " ").toUpperCase() : undefined),
             nome: parsed.nome || parsed.email || (role === "SUPER_ADMIN" ? "Super Administrador" : "Franqueado Regional"),
             email: parsed.email || "",
             cargo: role === "SUPER_ADMIN" ? "Super Administrador Geral" : "Gestor de Franquia",
@@ -498,6 +501,8 @@ export function getContaAtiva(): AdminAccount {
     role,
     nome: role === "SUPER_ADMIN" ? "Super Administrador" : "Franqueado Regional",
     email: "admin@partiu.app",
+    tenantId: role === "FRANQUEADO" ? "praca_maceio_al" : undefined,
+    tenantNome: role === "FRANQUEADO" ? "Maceió - AL" : undefined,
     cargo: role === "SUPER_ADMIN" ? "Super Administrador Geral" : "Gestor de Franquia",
   };
 }
