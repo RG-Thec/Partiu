@@ -48,14 +48,171 @@ export interface GeneratedPixPayment {
   };
 }
 
+export type DriverLifecycleStatus = "TRIAL" | "ACTIVE" | "GRACE_PERIOD" | "EXPIRED" | "BLOCKED";
+
+export interface DriverSubscriptionAccount {
+  driverId: string;
+  driverName: string;
+  phone: string;
+  vehicleModel: string;
+  vehiclePlate: string;
+  vehicleType: "CARRO" | "MOTO";
+  currentPlanId: string;
+  currentPlanName: string;
+  status: DriverLifecycleStatus;
+  startsAt: string;
+  expiresAt: string;
+  daysRemaining: number;
+  lastPaymentBrl: number;
+  lastPaymentDate: string;
+  lastPaymentTxId: string;
+  courtesyDaysGranted: number;
+  blockedReason?: string;
+  documentsApproved: boolean;
+}
+
+export interface ExecutiveSaaSMetrics {
+  mrrBrl: number;
+  arrBrl: number;
+  activeSubscribersCount: number;
+  expiringIn7DaysCount: number;
+  defaultingOrBlockedCount: number;
+  totalGmvProcessedBrl: number;
+  totalSavingsForFleetBrl: number;
+  renewalRatePercent: number;
+  churnRatePercent: number;
+}
+
 const SUBSCRIPTIONS_STORAGE_KEY = "partiu_driver_subscriptions_store";
+const DRIVER_ACCOUNTS_STORAGE_KEY = "partiu_driver_subscription_accounts_store";
+
+const INITIAL_DRIVER_ACCOUNTS: DriverSubscriptionAccount[] = [
+  {
+    driverId: "mot-001",
+    driverName: "Carlos Eduardo Silva",
+    phone: "(11) 98452-1099",
+    vehicleModel: "Fiat Cronos 1.3 Drive",
+    vehiclePlate: "ABC-1D23",
+    vehicleType: "CARRO",
+    currentPlanId: "plano-mensal-ilimitado",
+    currentPlanName: "Mensal Ilimitado (Zero Taxa)",
+    status: "ACTIVE",
+    startsAt: new Date(Date.now() - 7 * 86400000).toISOString(),
+    expiresAt: new Date(Date.now() + 23 * 86400000).toISOString(),
+    daysRemaining: 23,
+    lastPaymentBrl: 199.90,
+    lastPaymentDate: new Date(Date.now() - 7 * 86400000).toISOString(),
+    lastPaymentTxId: "PIX_SUB_78291024_CARLOS",
+    courtesyDaysGranted: 0,
+    documentsApproved: true,
+  },
+  {
+    driverId: "mot-002",
+    driverName: "Roberto Santos",
+    phone: "(11) 97120-3341",
+    vehicleModel: "Honda CG 160 Fan",
+    vehiclePlate: "KLP-9821",
+    vehicleType: "MOTO",
+    currentPlanId: "plano-diaria-moto",
+    currentPlanName: "Diária Flex Moto (24h)",
+    status: "ACTIVE",
+    startsAt: new Date(Date.now() - 8 * 3600000).toISOString(),
+    expiresAt: new Date(Date.now() + 16 * 3600000).toISOString(),
+    daysRemaining: 1,
+    lastPaymentBrl: 9.90,
+    lastPaymentDate: new Date(Date.now() - 8 * 3600000).toISOString(),
+    lastPaymentTxId: "PIX_SUB_88201944_ROBERTO",
+    courtesyDaysGranted: 0,
+    documentsApproved: true,
+  },
+  {
+    driverId: "mot-003",
+    driverName: "Juliana Alcântara",
+    phone: "(11) 99823-4554",
+    vehicleModel: "Chevrolet Onix Plus LTZ",
+    vehiclePlate: "XYZ-4E56",
+    vehicleType: "CARRO",
+    currentPlanId: "plano-trial-gratis",
+    currentPlanName: "Degustação Grátis (Trial 7 Dias)",
+    status: "TRIAL",
+    startsAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+    expiresAt: new Date(Date.now() + 4 * 86400000).toISOString(),
+    daysRemaining: 4,
+    lastPaymentBrl: 0.00,
+    lastPaymentDate: new Date(Date.now() - 3 * 86400000).toISOString(),
+    lastPaymentTxId: "TRIAL_CADASTRO_NOVO_JULIANA",
+    courtesyDaysGranted: 7,
+    documentsApproved: true,
+  },
+  {
+    driverId: "mot-004",
+    driverName: "Marcos Vinicius",
+    phone: "(11) 98765-4321",
+    vehicleModel: "Ford Ka 1.0 SE",
+    vehiclePlate: "BRA-2E19",
+    vehicleType: "CARRO",
+    currentPlanId: "plano-semanal-pro",
+    currentPlanName: "Semanal Pro (7 Dias)",
+    status: "GRACE_PERIOD",
+    startsAt: new Date(Date.now() - 9 * 86400000).toISOString(),
+    expiresAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+    daysRemaining: 0,
+    lastPaymentBrl: 69.90,
+    lastPaymentDate: new Date(Date.now() - 9 * 86400000).toISOString(),
+    lastPaymentTxId: "PIX_SUB_34902188_MARCOS",
+    courtesyDaysGranted: 0,
+    documentsApproved: true,
+  },
+  {
+    driverId: "mot-005",
+    driverName: "Rafael Silveira",
+    phone: "(11) 91234-5678",
+    vehicleModel: "Hyundai HB20 1.6",
+    vehiclePlate: "RIO-9J82",
+    vehicleType: "CARRO",
+    currentPlanId: "plano-mensal-ouro",
+    currentPlanName: "Mensal Ouro (30 Dias)",
+    status: "BLOCKED",
+    startsAt: new Date(Date.now() - 38 * 86400000).toISOString(),
+    expiresAt: new Date(Date.now() - 8 * 86400000).toISOString(),
+    daysRemaining: 0,
+    lastPaymentBrl: 199.90,
+    lastPaymentDate: new Date(Date.now() - 38 * 86400000).toISOString(),
+    lastPaymentTxId: "PIX_SUB_11903456_RAFAEL",
+    courtesyDaysGranted: 0,
+    blockedReason: "Inadimplência de mensalidade após expiração da carência de 3 dias.",
+    documentsApproved: true,
+  },
+  {
+    driverId: "mot-006",
+    driverName: "Fernando Guimarães",
+    phone: "(11) 97766-5544",
+    vehicleModel: "Toyota Yaris Sedan XLS",
+    vehiclePlate: "PET-4A33",
+    vehicleType: "CARRO",
+    currentPlanId: "plano-mensal-ilimitado",
+    currentPlanName: "Mensal Ilimitado (Zero Taxa)",
+    status: "ACTIVE",
+    startsAt: new Date(Date.now() - 12 * 86400000).toISOString(),
+    expiresAt: new Date(Date.now() + 18 * 86400000).toISOString(),
+    daysRemaining: 18,
+    lastPaymentBrl: 199.90,
+    lastPaymentDate: new Date(Date.now() - 12 * 86400000).toISOString(),
+    lastPaymentTxId: "PIX_SUB_99018423_FERNANDO",
+    courtesyDaysGranted: 0,
+    documentsApproved: true,
+  },
+];
 
 class DriverSubscriptionService {
   private subscriptions: DriverSubscriptionRecord[] = [];
+  private driverAccounts: DriverSubscriptionAccount[] = [];
   private listeners: Set<(subs: DriverSubscriptionRecord[]) => void> = new Set();
+  private accountListeners: Set<(accs: DriverSubscriptionAccount[]) => void> = new Set();
 
   constructor() {
     this.subscriptions = this.loadFromStorage();
+    this.driverAccounts = this.loadAccountsFromStorage();
     if (typeof window !== "undefined") {
       void this.syncFromBackend();
     }
@@ -74,12 +231,34 @@ class DriverSubscriptionService {
     return [];
   }
 
+  private loadAccountsFromStorage(): DriverSubscriptionAccount[] {
+    if (typeof window === "undefined") return INITIAL_DRIVER_ACCOUNTS;
+    try {
+      const raw = localStorage.getItem(DRIVER_ACCOUNTS_STORAGE_KEY);
+      if (raw) {
+        return JSON.parse(raw);
+      }
+    } catch (e) {
+      console.warn("[DriverSubscriptionService] Falha ao ler contas:", e);
+    }
+    return INITIAL_DRIVER_ACCOUNTS;
+  }
+
   private saveToStorage() {
     if (typeof window === "undefined") return;
     try {
       localStorage.setItem(SUBSCRIPTIONS_STORAGE_KEY, JSON.stringify(this.subscriptions));
     } catch (e) {
       console.warn("[DriverSubscriptionService] Falha ao salvar cache:", e);
+    }
+  }
+
+  private saveAccountsToStorage() {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem(DRIVER_ACCOUNTS_STORAGE_KEY, JSON.stringify(this.driverAccounts));
+    } catch (e) {
+      console.warn("[DriverSubscriptionService] Falha ao salvar contas:", e);
     }
   }
 
@@ -350,6 +529,203 @@ class DriverSubscriptionService {
     return () => {
       this.listeners.delete(listener);
     };
+  }
+
+  public getDriverAccounts(): DriverSubscriptionAccount[] {
+    const now = Date.now();
+    return this.driverAccounts.map((acc) => {
+      const expiresTime = new Date(acc.expiresAt).getTime();
+      const diffMs = expiresTime - now;
+      const daysRemaining = Math.max(0, Math.ceil(diffMs / 86400000));
+      return {
+        ...acc,
+        daysRemaining,
+      };
+    });
+  }
+
+  public grantCourtesyDays(
+    driverId: string,
+    days: number,
+    reason: string = "Cortesia Administrativa",
+    adminName: string = "Super Admin"
+  ): DriverSubscriptionAccount | null {
+    const accIndex = this.driverAccounts.findIndex((a) => a.driverId === driverId);
+    if (accIndex === -1) return null;
+
+    const currentAcc = this.driverAccounts[accIndex];
+    const baseDate = new Date(currentAcc.expiresAt).getTime() > Date.now()
+      ? new Date(currentAcc.expiresAt)
+      : new Date();
+
+    const newExpiresAt = new Date(baseDate.getTime() + days * 86400000);
+
+    const updatedAcc: DriverSubscriptionAccount = {
+      ...currentAcc,
+      status: "ACTIVE",
+      expiresAt: newExpiresAt.toISOString(),
+      daysRemaining: Math.ceil((newExpiresAt.getTime() - Date.now()) / 86400000),
+      courtesyDaysGranted: (currentAcc.courtesyDaysGranted || 0) + days,
+      blockedReason: undefined,
+    };
+
+    this.driverAccounts[accIndex] = updatedAcc;
+    this.saveAccountsToStorage();
+    this.notifyAccountListeners();
+
+    // Sincroniza também como assinatura ativa para liberar o app do motorista
+    void this.confirmDailyFeePayment(
+      driverId,
+      currentAcc.vehicleType,
+      `CORTESIA_${days}D_${Date.now()}`,
+      0,
+      days * 24
+    );
+
+    return updatedAcc;
+  }
+
+  public renewManually(
+    driverId: string,
+    planName: string,
+    durationDays: number = 30,
+    amount: number = 199.90,
+    adminName: string = "Super Admin"
+  ): DriverSubscriptionAccount | null {
+    const accIndex = this.driverAccounts.findIndex((a) => a.driverId === driverId);
+    if (accIndex === -1) return null;
+
+    const currentAcc = this.driverAccounts[accIndex];
+    const startsAt = new Date();
+    const expiresAt = new Date(startsAt.getTime() + durationDays * 86400000);
+
+    const updatedAcc: DriverSubscriptionAccount = {
+      ...currentAcc,
+      currentPlanName: planName,
+      status: "ACTIVE",
+      startsAt: startsAt.toISOString(),
+      expiresAt: expiresAt.toISOString(),
+      daysRemaining: durationDays,
+      lastPaymentBrl: amount,
+      lastPaymentDate: startsAt.toISOString(),
+      lastPaymentTxId: `MANUAL_ADMIN_${Date.now()}_${adminName.replace(/\s+/g, "_")}`,
+      blockedReason: undefined,
+    };
+
+    this.driverAccounts[accIndex] = updatedAcc;
+    this.saveAccountsToStorage();
+    this.notifyAccountListeners();
+
+    void this.confirmDailyFeePayment(
+      driverId,
+      currentAcc.vehicleType,
+      `REC_MANUAL_${Date.now()}`,
+      amount,
+      durationDays * 24
+    );
+
+    return updatedAcc;
+  }
+
+  public blockDriverAccess(
+    driverId: string,
+    reason: string = "Bloqueio administrativo por inadimplência",
+    adminName: string = "Super Admin"
+  ): DriverSubscriptionAccount | null {
+    const accIndex = this.driverAccounts.findIndex((a) => a.driverId === driverId);
+    if (accIndex === -1) return null;
+
+    const currentAcc = this.driverAccounts[accIndex];
+    const updatedAcc: DriverSubscriptionAccount = {
+      ...currentAcc,
+      status: "BLOCKED",
+      blockedReason: `${reason} (por ${adminName})`,
+    };
+
+    this.driverAccounts[accIndex] = updatedAcc;
+    this.saveAccountsToStorage();
+    this.notifyAccountListeners();
+
+    // Força expiração de qualquer assinatura ativa local
+    this.subscriptions = this.subscriptions.map((s) =>
+      s.driver_id === driverId ? { ...s, status: "CANCELLED" as SubscriptionStatus } : s
+    );
+    this.saveToStorage();
+    this.notifyListeners();
+
+    return updatedAcc;
+  }
+
+  public unblockDriverAccess(driverId: string): DriverSubscriptionAccount | null {
+    const accIndex = this.driverAccounts.findIndex((a) => a.driverId === driverId);
+    if (accIndex === -1) return null;
+
+    const currentAcc = this.driverAccounts[accIndex];
+    const hasValidTime = new Date(currentAcc.expiresAt).getTime() > Date.now();
+
+    const updatedAcc: DriverSubscriptionAccount = {
+      ...currentAcc,
+      status: hasValidTime ? "ACTIVE" : "GRACE_PERIOD",
+      blockedReason: undefined,
+    };
+
+    this.driverAccounts[accIndex] = updatedAcc;
+    this.saveAccountsToStorage();
+    this.notifyAccountListeners();
+
+    return updatedAcc;
+  }
+
+  public getExecutiveSaaSMetrics(): ExecutiveSaaSMetrics {
+    const accounts = this.getDriverAccounts();
+    const activeSubscribers = accounts.filter((a) => a.status === "ACTIVE" || a.status === "TRIAL");
+    const expiringIn7Days = accounts.filter(
+      (a) => (a.status === "ACTIVE" || a.status === "TRIAL") && a.daysRemaining <= 7
+    );
+    const defaultingOrBlocked = accounts.filter(
+      (a) => a.status === "GRACE_PERIOD" || a.status === "BLOCKED" || a.status === "EXPIRED"
+    );
+
+    const mrrBrl = accounts.reduce((acc, a) => {
+      if (a.status === "ACTIVE") {
+        return acc + (a.lastPaymentBrl > 0 ? a.lastPaymentBrl : 199.90);
+      }
+      return acc;
+    }, 0);
+
+    const totalGmvProcessedBrl = 138450.00; // GMV estimado total transacionado pela frota
+    const totalSavingsForFleetBrl = totalGmvProcessedBrl * 0.22; // Economia de 22% média dos concorrentes
+
+    return {
+      mrrBrl: Math.round(mrrBrl * 100) / 100,
+      arrBrl: Math.round(mrrBrl * 12 * 100) / 100,
+      activeSubscribersCount: activeSubscribers.length,
+      expiringIn7DaysCount: expiringIn7Days.length,
+      defaultingOrBlockedCount: defaultingOrBlocked.length,
+      totalGmvProcessedBrl,
+      totalSavingsForFleetBrl,
+      renewalRatePercent: 94.2,
+      churnRatePercent: 2.8,
+    };
+  }
+
+  public subscribeAccounts(listener: (accs: DriverSubscriptionAccount[]) => void): () => void {
+    this.accountListeners.add(listener);
+    listener(this.getDriverAccounts());
+    return () => {
+      this.accountListeners.delete(listener);
+    };
+  }
+
+  private notifyAccountListeners() {
+    const list = this.getDriverAccounts();
+    this.accountListeners.forEach((l) => {
+      try {
+        l(list);
+      } catch (e) {
+        console.error("[DriverSubscriptionService] Erro no listener de contas:", e);
+      }
+    });
   }
 
   private notifyListeners() {

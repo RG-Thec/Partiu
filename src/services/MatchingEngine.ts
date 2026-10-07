@@ -25,6 +25,7 @@ import {
   type WaveDispatchConfig,
   type WaveDispatchResult,
 } from "@/lib/spatial";
+import { driverSubscriptionService } from "@/lib/ecosystem/driver-subscription-service";
 
 export interface CandidateDriverProfile {
   driverId: string;
@@ -130,10 +131,26 @@ export class MatchingEngine {
   }
 
   /**
-   * Verifica se o motorista é elegível para receber ofertas
+   * Verifica se o motorista é elegível para receber ofertas de viagens.
+   * CLÁUSULA MANDATÓRIA NORTH STAR:
+   * Documentos aprovados + Assinatura ativa/trial + Validade >= NOW().
    */
   public isDriverEligible(
-    driverOrStatus: string | { status?: string; isBlocked?: boolean; isSuspended?: boolean; cancellationRate?: number }
+    driverOrStatus:
+      | string
+      | {
+          driverId?: string;
+          status?: string;
+          isBlocked?: boolean;
+          isSuspended?: boolean;
+          cancellationRate?: number;
+          documentosAprovados?: boolean;
+          documentsApproved?: boolean;
+          statusAssinatura?: string;
+          subscriptionStatus?: string;
+          validadeAssinatura?: string;
+          subscriptionExpiresAt?: string;
+        }
   ): boolean {
     const status = typeof driverOrStatus === "string" ? driverOrStatus : (driverOrStatus.status || "ONLINE");
     const ineligibleStatuses = [
@@ -153,8 +170,45 @@ export class MatchingEngine {
 
     if (typeof driverOrStatus !== "string") {
       if (driverOrStatus.isBlocked || driverOrStatus.isSuspended) return false;
+
+      // 1. Documentação Obrigatória Aprovada
+      if (driverOrStatus.documentosAprovados === false || driverOrStatus.documentsApproved === false) {
+        return false;
+      }
+
+      // 2. Taxa de cancelamento excessiva
       const cancelRate = driverOrStatus.cancellationRate ?? 0;
       if ((cancelRate > 0.20 && cancelRate <= 1.0) || cancelRate > 20) return false;
+
+      // 3. Status de Assinatura SaaS / Taxa Zero
+      const rawSub = driverOrStatus.statusAssinatura || driverOrStatus.subscriptionStatus;
+      if (rawSub) {
+        const subStatus = rawSub.toUpperCase();
+        if (!["ACTIVE", "ATIVA", "TRIAL"].includes(subStatus)) {
+          return false;
+        }
+      }
+
+      // 4. Data de validade da assinatura (não pode ser passada)
+      const expiresAt = driverOrStatus.validadeAssinatura || driverOrStatus.subscriptionExpiresAt;
+      if (expiresAt) {
+        if (new Date(expiresAt).getTime() < Date.now()) {
+          return false;
+        }
+      }
+
+      // 5. Se o driverId for fornecido explicitamente e não tiver plano ativo no perfil:
+      if (driverOrStatus.driverId) {
+        const hasActivePlanProp =
+          (driverOrStatus as any).subscriptionPlan &&
+          ["OURO", "PRATA", "BRONZE"].includes((driverOrStatus as any).subscriptionPlan);
+
+        if (!hasActivePlanProp && driverSubscriptionService.getAllSubscriptions().some((s) => s.driver_id === driverOrStatus.driverId)) {
+          if (!driverSubscriptionService.isDriverUnlocked(driverOrStatus.driverId)) {
+            return false;
+          }
+        }
+      }
     }
     return true;
   }

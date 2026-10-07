@@ -979,7 +979,7 @@ export function PartiuDriverCockpit() {
         return;
       }
 
-      // Trava de Saldo Devedor de Comissão (Debt Cutoff)
+      // Trava de Regularidade Financeira SaaS (Taxa Zero / Mensalidade)
       const debtCheck = driverWalletEngine.checkDebtStatus(perfilMotorista.id);
       if (debtCheck.isBlocked) {
         setErroElegibilidade(debtCheck.message);
@@ -2084,7 +2084,7 @@ export function PartiuDriverCockpit() {
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              Escolha o plano que melhor se adapta à sua rotina. Quanto menor a comissão, mais dinheiro fica no seu bolso.
+              Escolha o plano que melhor se adapta à sua rotina. No {nomeApp} você tem 0% de comissão retida e 100% do valor de cada corrida fica no seu bolso.
             </p>
 
             {/* Lista dos 4 Planos Oficiais */}
@@ -2281,8 +2281,8 @@ export function PartiuDriverCockpit() {
                 <span className="font-bold text-slate-900">{driverPlan?.name || "Bronze"}</span>
               </div>
               <div className="flex justify-between items-center text-slate-800 font-medium">
-                <span>Comissão por Corrida:</span>
-                <span className="font-bold" style={{ color: corPrimaria }}>{driverPlan?.commissionPercent || 3.0}%</span>
+                <span>Taxa por Corrida:</span>
+                <span className="font-bold text-emerald-700">0,0% (Taxa Zero)</span>
               </div>
               <div className="flex justify-between items-center text-slate-800 font-medium">
                 <span>Prazo de Carência:</span>
