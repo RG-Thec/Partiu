@@ -429,14 +429,15 @@ export type AdminModuleId =
   | "marketing"
   | "aplicativo"
   | "dominios"
-  | "configuracoes";
+  | "configuracoes"
+  | "whitelabel";
 
 export function canAccessModule(modulo: AdminModuleId, roleOverride?: string): boolean {
   const role = normalizeAdminRole(roleOverride || getAdminRole());
 
   if (role === "SUPER_ADMIN") return true;
 
-  // FRANQUEADO: Tem autonomia operacional, motoristas, financeiro local, marketing e seu próprio PWA/APK
+  // FRANQUEADO: Tem autonomia operacional, motoristas, financeiro local, marketing, seu próprio PWA/APK e White-Label Studio local
   // Bloqueado estritamente em configurações globais da holding / infraestrutura de domínios
   switch (modulo) {
     case "dashboard":
@@ -445,6 +446,7 @@ export function canAccessModule(modulo: AdminModuleId, roleOverride?: string): b
     case "financeiro":
     case "marketing":
     case "aplicativo":
+    case "whitelabel":
       return true;
     case "dominios":
     case "configuracoes":

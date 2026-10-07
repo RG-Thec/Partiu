@@ -118,6 +118,13 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
         moduleId: "aplicativo",
       },
       {
+        to: "/app/admin/whitelabel",
+        label: "Identidade & White Label",
+        icon: Palette,
+        exact: false,
+        moduleId: "whitelabel",
+      },
+      {
         to: "/app/admin/dominios",
         label: "Domínios & DNS",
         icon: Globe,
@@ -344,7 +351,6 @@ function SuperAdminLayout() {
       if (
         roleAtiva === "FRANQUEADO" &&
         (mod.to.includes("configuracoes") ||
-          mod.to.includes("whitelabel") ||
           mod.to.includes("governanca") ||
           mod.to.includes("dominios"))
       ) {

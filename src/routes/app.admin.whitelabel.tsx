@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { GuardiaoAcesso } from "@/components/admin/GuardiaoAcesso";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useBranding } from "@/hooks/useBranding";
+import { getAdminRole, getContaAtiva } from "@/lib/admin-rbac";
 import { BRANDING_PRESETS, DEFAULT_BRANDING, type AppBrandingRecord } from "@/lib/branding";
 import { updateBrowserFavicon, generateSvgFavicon } from "@/lib/branding/ThemeEngine";
 import { PalettePickerSection } from "@/components/admin/PalettePickerSection";
@@ -96,13 +97,17 @@ type ActiveTab =
 
 function WhiteLabelStudioPage() {
   return (
-    <GuardiaoAcesso somenteSuperAdmin={true}>
+    <GuardiaoAcesso>
       <WhiteLabelStudioContent />
     </GuardiaoAcesso>
   );
 }
 
 function WhiteLabelStudioContent() {
+  const roleAtiva = getAdminRole();
+  const contaAtiva = getContaAtiva();
+  const isFranqueado = roleAtiva === "FRANQUEADO";
+
   const {
     config,
     brand,
@@ -138,6 +143,13 @@ function WhiteLabelStudioContent() {
     lastSyncedAt,
     resetToDefault: resetSaasBranding,
   } = useBranding();
+
+  // Franqueado: vincula automaticamente ao seu próprio tenant
+  useEffect(() => {
+    if (isFranqueado && contaAtiva.tenantId && activeTenant?.tenantId !== contaAtiva.tenantId) {
+      switchTenant(contaAtiva.tenantId);
+    }
+  }, [isFranqueado, contaAtiva.tenantId, activeTenant?.tenantId, switchTenant]);
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("brand");
   const [liveLandingData, setLiveLandingData] = useState<MobilityLandingPageData | null>(null);
@@ -201,6 +213,7 @@ function WhiteLabelStudioContent() {
               logos: { ...brand.logos, logoPrincipalUrl: url },
             },
           });
+          void updateBranding({ logo_url: url });
         } else if (type === "splash") {
           updateConfig({
             brandCenter: {
@@ -213,6 +226,7 @@ function WhiteLabelStudioContent() {
               splashIosUrl: url,
             },
           });
+          void updateBranding({ splash_logo_url: url });
         } else if (type === "favicon") {
           updateConfig({
             brandCenter: {
@@ -226,6 +240,7 @@ function WhiteLabelStudioContent() {
             },
           });
           updateBrowserFavicon(url);
+          void updateBranding({ favicon_url: url });
         } else if (type === "app_icon") {
           updateConfig({
             nativeApp: {
@@ -233,6 +248,7 @@ function WhiteLabelStudioContent() {
               iconeAppUrl: url,
             },
           });
+          void updateBranding({ app_icon_url: url });
         } else if (type === "push_icon") {
           updateConfig({
             nativeApp: {
@@ -240,6 +256,7 @@ function WhiteLabelStudioContent() {
               iconeNotificacaoPushUrl: url,
             },
           });
+          void updateBranding({ push_icon_url: url });
         }
         triggerSaveFeedback();
       }
@@ -298,31 +315,46 @@ function WhiteLabelStudioContent() {
         {/* CONTROLES DE TOPO: TENANT, PRESETS E EXPORT/IMPORT */}
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Seletor de Franquia / Tenant */}
-          <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs shadow-xs">
-            <Building2 className="w-3.5 h-3.5 text-[#0088FF]" />
-            <span className="text-slate-500">Franquia:</span>
-            <select
-              value={activeTenant?.tenantId}
-              onChange={(e) => switchTenant(e.target.value)}
-              className="bg-transparent font-semibold text-slate-800 focus:outline-hidden cursor-pointer"
-            >
-              {allTenants.map((t) => (
-                <option key={t.tenantId} value={t.tenantId} className="bg-white text-slate-800">
-                  {t.cidadeNome} ({t.uf}) — {t.nomeOperacao}
-                </option>
-              ))}
-            </select>
-          </div>
+          {isFranqueado ? (
+            <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs shadow-xs">
+              <Building2 className="w-3.5 h-3.5 text-[#0088FF]" />
+              <span className="text-slate-500">Sua Franquia:</span>
+              <span className="font-bold text-slate-800">
+                {activeTenant?.cidadeNome || contaAtiva.tenantNome || "Praça Regional"}
+              </span>
+              <span className="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-200">
+                Operação Local
+              </span>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs shadow-xs">
+                <Building2 className="w-3.5 h-3.5 text-[#0088FF]" />
+                <span className="text-slate-500">Franquia:</span>
+                <select
+                  value={activeTenant?.tenantId}
+                  onChange={(e) => switchTenant(e.target.value)}
+                  className="bg-transparent font-semibold text-slate-800 focus:outline-hidden cursor-pointer"
+                >
+                  {allTenants.map((t) => (
+                    <option key={t.tenantId} value={t.tenantId} className="bg-white text-slate-800">
+                      {t.cidadeNome} ({t.uf}) — {t.nomeOperacao}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          {/* Botão Clonar Cidade */}
-          <button
-            type="button"
-            onClick={() => setModalClonarAberto(true)}
-            className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer active:scale-95"
-          >
-            <Copy className="w-3.5 h-3.5 text-[#0088FF]" />
-            <span>Clonar Cidade</span>
-          </button>
+              {/* Botão Clonar Cidade (Super Admin) */}
+              <button
+                type="button"
+                onClick={() => setModalClonarAberto(true)}
+                className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer active:scale-95"
+              >
+                <Copy className="w-3.5 h-3.5 text-[#0088FF]" />
+                <span>Clonar Cidade</span>
+              </button>
+            </>
+          )}
 
           {/* Exportar JSON */}
           <button

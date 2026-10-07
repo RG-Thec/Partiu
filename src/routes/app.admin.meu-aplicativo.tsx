@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
 import QRCode from "qrcode";
 import {
@@ -17,10 +17,12 @@ import {
   Server,
   Layers,
   HelpCircle,
+  Palette,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getContaAtiva } from "@/lib/admin-rbac";
 import { useBranding } from "@/hooks/useBranding";
+import { PalettePickerSection } from "@/components/admin/PalettePickerSection";
 import {
   tenantDomainService,
   CANONICAL_CNAME_TARGET,
@@ -270,6 +272,110 @@ export default function MeuAplicativoPage() {
                   HTTPS Ativo
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* IDENTIDADE VISUAL, CORES & WHITE-LABEL DO APP */}
+          <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Palette className="w-5 h-5 text-primary" />
+                  <h2 className="text-lg font-bold text-white">
+                    Identidade Visual, Paleta de Cores &amp; White-Label
+                  </h2>
+                </div>
+                <p className="text-xs text-slate-400">
+                  Logotipo, ícone do app/APK, splash screen e paletas monocromáticas aplicadas em tempo real.
+                </p>
+              </div>
+
+              <Link
+                to="/app/admin/whitelabel"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:opacity-90 text-slate-950 text-xs font-black shadow transition active:scale-95 shrink-0 cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Abrir White-Label Studio Completo</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            {/* Ativos Visuais em Destaque */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Logo do App */}
+              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col items-center text-center space-y-2.5">
+                <span className="text-xs font-bold text-slate-300">Logotipo da Marca</span>
+                <div className="w-20 h-20 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center p-2 overflow-hidden shadow-inner">
+                  {branding.logo_url ? (
+                    <img src={branding.logo_url} alt="Logo" className="w-full h-full object-contain" />
+                  ) : (
+                    <span className="text-[10px] text-slate-500 font-bold">Sem Logo</span>
+                  )}
+                </div>
+                <Link
+                  to="/app/admin/whitelabel"
+                  className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Alterar no Estúdio</span>
+                  <ExternalLink className="w-3 h-3" />
+                </Link>
+              </div>
+
+              {/* Ícone do PWA / APK */}
+              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col items-center text-center space-y-2.5">
+                <span className="text-xs font-bold text-slate-300">Ícone do App (512x512)</span>
+                <div className="w-20 h-20 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center p-2 overflow-hidden shadow-inner">
+                  {branding.app_icon_url || branding.logo_url ? (
+                    <img
+                      src={branding.app_icon_url || branding.logo_url || ""}
+                      alt="Ícone do App"
+                      className="w-full h-full object-contain rounded-xl"
+                    />
+                  ) : (
+                    <Smartphone className="w-8 h-8 text-slate-500" />
+                  )}
+                </div>
+                <Link
+                  to="/app/admin/whitelabel"
+                  className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Alterar Ícone</span>
+                  <ExternalLink className="w-3 h-3" />
+                </Link>
+              </div>
+
+              {/* Favicon da Aba */}
+              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col items-center text-center space-y-2.5">
+                <span className="text-xs font-bold text-slate-300">Favicon do Navegador</span>
+                <div className="w-20 h-20 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center p-2 overflow-hidden shadow-inner">
+                  {branding.favicon_url ? (
+                    <img src={branding.favicon_url} alt="Favicon" className="w-10 h-10 object-contain" />
+                  ) : (
+                    <Globe className="w-8 h-8 text-slate-500" />
+                  )}
+                </div>
+                <Link
+                  to="/app/admin/whitelabel"
+                  className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Alterar Favicon</span>
+                  <ExternalLink className="w-3 h-3" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Seletor Rápido de Paleta de Cores 1-Clique */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-white text-slate-950 border border-slate-200 shadow-md space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                  <Palette className="w-4 h-4 text-primary" />
+                  Trocar Paleta de Cores do App em 1-Clique
+                </span>
+                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                  Sincronização Instantânea
+                </span>
+              </div>
+              <PalettePickerSection />
             </div>
           </div>
 
