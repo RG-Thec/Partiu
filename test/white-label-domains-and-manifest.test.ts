@@ -20,6 +20,7 @@ describe("🌐 WHITE-LABEL DOMAIN RESOLVER & DYNAMIC MANIFEST ENGINE", () => {
     expect(tenantDomainService.isPlatformHost("localhost")).toBe(true);
     expect(tenantDomainService.isPlatformHost("127.0.0.1")).toBe(true);
     expect(tenantDomainService.isPlatformHost("novo-partiu-mobe.lovable.app")).toBe(true);
+    expect(tenantDomainService.isPlatformHost("partiu-zeta.vercel.app")).toBe(true);
     expect(tenantDomainService.isPlatformHost("partiumobe.com.br")).toBe(true);
     expect(tenantDomainService.isPlatformHost("app.mobe-saopaulo.com.br")).toBe(false);
   });
@@ -38,6 +39,10 @@ describe("🌐 WHITE-LABEL DOMAIN RESOLVER & DYNAMIC MANIFEST ENGINE", () => {
     expect(res.status).toBe("OK");
     expect(res.isCustomDomain).toBe(false);
     expect(res.tenantId).toBe("tenant-itaperuna");
+
+    const resVercel = tenantDomainService.resolveTenantFromHost("partiu-zeta.vercel.app");
+    expect(resVercel.status).toBe("OK");
+    expect(resVercel.isCustomDomain).toBe(false);
   });
 
   test("1.5 Resolução de domínio customizado ativo (app.mobe-saopaulo.com.br)", () => {

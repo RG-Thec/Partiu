@@ -214,16 +214,27 @@ export class TenantDomainService {
    */
   public isPlatformHost(cleanedHost: string): boolean {
     if (!cleanedHost) return true;
+    const h = cleanedHost.toLowerCase();
     if (
-      cleanedHost === "localhost" ||
-      cleanedHost === "127.0.0.1" ||
-      cleanedHost.endsWith(".localhost") ||
-      cleanedHost.includes("lovable.app") ||
-      cleanedHost.includes("lovableproject.com") ||
-      cleanedHost.includes("pages.dev") ||
-      cleanedHost.includes("workers.dev") ||
-      cleanedHost === "partiumobe.com.br" ||
-      cleanedHost === "www.partiumobe.com.br"
+      h === "localhost" ||
+      h === "127.0.0.1" ||
+      h.endsWith(".localhost") ||
+      h.includes("vercel.app") ||
+      h.includes("now.sh") ||
+      h.includes("lovable.app") ||
+      h.includes("lovableproject.com") ||
+      h.includes("netlify.app") ||
+      h.includes("pages.dev") ||
+      h.includes("workers.dev") ||
+      h === "partiumobe.com.br" ||
+      h === "www.partiumobe.com.br" ||
+      h === "app.partiumobe.com.br" ||
+      h === "partiu.app" ||
+      h === "www.partiu.app" ||
+      h === "app.partiu.app" ||
+      h.includes("onrender.com") ||
+      h.includes("railway.app") ||
+      h.includes("fly.dev")
     ) {
       return true;
     }
