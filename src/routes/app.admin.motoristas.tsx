@@ -35,6 +35,7 @@ import {
   FileSpreadsheet,
   ThumbsUp,
   ThumbsDown,
+  MapPin,
 } from "lucide-react";
 import {
   useMotoristas,
@@ -46,6 +47,8 @@ import {
 } from "@/lib/partiu-db";
 import { useRideRatings, type RideRating } from "@/services/RideRatingService";
 import { exportarParaCSV } from "@/lib/export-csv";
+import { getAdminRole } from "@/lib/admin-rbac";
+import { useAdminCity } from "@/contexts/AdminCityContext";
 
 export const Route = createFileRoute("/app/admin/motoristas")({
   head: () => ({
@@ -83,6 +86,9 @@ interface MotoristaFrota {
 }
 
 export function QuadroMotoristasAdminPage() {
+  const { pracaAtiva, isNacional, selecionarPraca } = useAdminCity();
+  const [adminRole] = useState(() => getAdminRole());
+
   const { data: motoristasBanco = [], isLoading: carregandoMotoristas, refetch: recarregarMotoristas } = useMotoristas();
   const { data: veiculosBanco = [] } = useVeiculosAdmin();
   const { data: pendentesBanco = [], refetch: recarregarPendentes } = usePartiuMotoristasPendentes();
@@ -208,16 +214,23 @@ export function QuadroMotoristasAdminPage() {
     return lista;
   }, [motoristasBanco, veiculosBanco, pendentesBanco]);
 
+  // Escopo Territorial por Franquia / Praça Ativa
+  const motoristasDaPraca = useMemo(() => {
+    if (isNacional) return motoristas;
+    const nomeCidade = pracaAtiva.nome.toLowerCase();
+    return motoristas.filter((m) => m.cidade.toLowerCase().includes(nomeCidade));
+  }, [motoristas, isNacional, pracaAtiva.nome]);
+
   // CÁLCULO DOS INDICADORES DO DASHBOARD DA FROTA
-  const totalCadastrados = motoristas.length;
-  const totalOnline = motoristas.filter((m) => m.status === "ONLINE").length;
-  const totalOffline = motoristas.filter((m) => m.status === "OFFLINE").length;
-  const totalPendentes = motoristas.filter((m) => m.status === "PENDENTE").length;
-  const totalSuspensos = motoristas.filter((m) => m.status === "SUSPENSO").length;
+  const totalCadastrados = motoristasDaPraca.length;
+  const totalOnline = motoristasDaPraca.filter((m) => m.status === "ONLINE").length;
+  const totalOffline = motoristasDaPraca.filter((m) => m.status === "OFFLINE").length;
+  const totalPendentes = motoristasDaPraca.filter((m) => m.status === "PENDENTE").length;
+  const totalSuspensos = motoristasDaPraca.filter((m) => m.status === "SUSPENSO").length;
 
   // Filtragem da tabela
   const motoristasFiltrados = useMemo(() => {
-    return motoristas.filter((m) => {
+    return motoristasDaPraca.filter((m) => {
       if (filtroStatus !== "TODOS" && m.status !== filtroStatus) return false;
       if (filtroModal !== "TODOS" && m.modal !== filtroModal) return false;
       if (busca) {
@@ -233,7 +246,7 @@ export function QuadroMotoristasAdminPage() {
       }
       return true;
     });
-  }, [motoristas, filtroStatus, filtroModal, busca]);
+  }, [motoristasDaPraca, filtroStatus, filtroModal, busca]);
 
   // APROVAÇÃO RÁPIDA DE MOTORISTA COM WHATSAPP AUTOMÁTICO
   async function handleAprovar(m: MotoristaFrota) {
@@ -276,30 +289,40 @@ export function QuadroMotoristasAdminPage() {
 
   return (
     <div className="w-full space-y-5 pb-12">
-      {/* 1. Header Executivo Frota (Light Theme Padrão 8.png) */}
-      <div className="rounded-2xl bg-white p-5 sm:p-6 border border-slate-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* 1. Header Executivo Frota */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-[#0088FF] border border-blue-200/60 mb-2">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            <span>Painel Administrativo • Frota Carro e Moto</span>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+              Gestão da Frota • {adminRole === "franqueado" ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
+            </span>
           </div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-[#003366]">
-            Gestão de Motoristas
+          <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            Frota Urbana &amp; Condutores
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#0088FF] border border-blue-200/50">
+              {totalCadastrados} CONDUTORES
+            </span>
+            {totalPendentes > 0 && (
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
+                {totalPendentes} PENDENTES
+              </span>
+            )}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 max-w-2xl font-normal leading-relaxed mt-1">
-            Controle central da frota urbana, esteira inteligente de aprovação com validação documental e ativação autônoma.
+          <p className="text-xs text-slate-500 mt-0.5">
+            Supervisão de condutores parceiros, modais de despacho e conformidade documental {isNacional ? "em âmbito nacional" : `em ${pracaAtiva.nome}`}.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
             onClick={handleExecutarEsteiraOCR}
             disabled={processandoOcr}
-            className="flex h-11 sm:h-12 items-center gap-2.5 rounded-2xl bg-[#0088FF] hover:bg-[#003366] text-white px-5 sm:px-6 text-xs sm:text-sm font-black shadow-md transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+            className="flex h-10 items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-4 text-xs font-black shadow-xs transition-all cursor-pointer disabled:opacity-50"
           >
-            <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span>{processandoOcr ? "Analisando OCR..." : "Esteira OCR Automática"}</span>
+            <Sparkles className="h-3.5 w-3.5 text-[#0088FF]" />
+            <span>{processandoOcr ? "Analisando..." : "Esteira OCR"}</span>
           </button>
 
           <button
@@ -308,50 +331,73 @@ export function QuadroMotoristasAdminPage() {
               recarregarMotoristas();
               recarregarPendentes();
             }}
-            className="flex h-11 sm:h-12 items-center gap-2 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-700 px-4 sm:px-5 text-xs sm:text-sm font-bold border border-slate-200 transition-all cursor-pointer active:scale-95"
-            title="Recarregar dados"
+            className="flex h-10 items-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 px-3.5 text-xs font-black border border-slate-200/80 shadow-xs transition-all cursor-pointer"
+            title="Sincronizar condutores"
           >
-            <RefreshCw className="h-4 w-4 text-[#0088FF]" />
-            <span className="hidden sm:inline">Atualizar</span>
+            <RefreshCw className="h-3.5 w-3.5 text-[#0088FF]" />
+            <span className="hidden sm:inline">Sincronizar</span>
           </button>
         </div>
       </div>
 
+      {/* Banner de Filtragem por Praça Ativa */}
+      {!isNacional && (
+        <div className="rounded-xl bg-blue-50/90 border border-blue-200/80 px-4 py-2.5 flex items-center justify-between gap-3 text-blue-900 text-xs animate-in fade-in-50 duration-200">
+          <div className="flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-[#0088FF] shrink-0" />
+            <span className="font-bold">
+              Frota filtrada pela praça: <strong>{pracaAtiva.labelCompleto}</strong> ({pracaAtiva.raioKm} km de raio)
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => selecionarPraca("todas")}
+            className="text-[11px] font-black px-2.5 py-1 rounded-lg bg-white border border-blue-300 hover:bg-blue-100/70 text-blue-950 transition-colors cursor-pointer shrink-0"
+          >
+            Ver Todas as Praças
+          </button>
+        </div>
+      )}
+
       {/* 2. Seletor de Sub-Abas do Módulo: Frota Urbana vs. Moderação de Avaliações */}
-      <div className="flex items-center gap-2 p-1.5 bg-slate-100 rounded-2xl w-fit border border-slate-200/80">
+      <div className="flex items-center gap-1.5 p-1 bg-white rounded-2xl w-fit border border-slate-200/90 shadow-xs">
         <button
           type="button"
           onClick={() => setAbaPrincipal("frota")}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
             abaPrincipal === "frota"
-              ? "bg-slate-950 text-white shadow-sm"
-              : "text-slate-600 hover:text-slate-900"
+              ? "bg-slate-950 text-white shadow-xs"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <Car className="h-4 w-4 text-[#0088FF]" />
+          <Car className="h-3.5 w-3.5 text-[#0088FF]" />
           <span>Frota Urbana &amp; Condutores</span>
-          <span className="ml-1 rounded-full bg-slate-800 px-2 py-0.5 text-xs text-amber-400 font-bold">
-            {motoristas.length}
+          <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
+            abaPrincipal === "frota" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+          }`}>
+            {motoristasDaPraca.length}
           </span>
         </button>
 
         <button
           type="button"
           onClick={() => setAbaPrincipal("avaliacoes")}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
             abaPrincipal === "avaliacoes"
-              ? "bg-slate-950 text-white shadow-sm"
-              : "text-slate-600 hover:text-slate-900"
+              ? "bg-slate-950 text-white shadow-xs"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
-          <span>Moderação de Avaliações (Rating 1-5★)</span>
+          <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
+          <span>Moderação de Avaliações (1-5★)</span>
           {kpisAvaliacoes.criticas > 0 ? (
-            <span className="ml-1 rounded-full bg-red-600 px-2 py-0.5 text-xs font-black text-white animate-pulse">
+            <span className="rounded-full bg-rose-600 px-1.5 py-0.2 text-[10px] font-black text-white animate-pulse">
               {kpisAvaliacoes.criticas} críticas
             </span>
           ) : (
-            <span className="ml-1 rounded-full bg-slate-200 px-2 py-0.5 text-xs font-bold text-slate-700">
+            <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
+              abaPrincipal === "avaliacoes" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+            }`}>
               {avaliacoesBanco.length}
             </span>
           )}
@@ -360,142 +406,144 @@ export function QuadroMotoristasAdminPage() {
 
       {abaPrincipal === "frota" ? (
         <>
-          {/* 3. DASHBOARD DA FROTA — 4 CARDS MÉTRICOS (PADRÃO 8.PNG) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {/* Total de Motoristas */}
-        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Total de Motoristas</span>
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-blue-50 text-[#0088FF] flex items-center justify-center">
-              <Users className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline gap-2.5">
-            <span className="text-2xl sm:text-4xl font-black text-slate-900">{totalCadastrados}</span>
-            <span className="text-xs sm:text-sm font-bold text-[#22C55E]">↑ 12% vs. mês ant.</span>
-          </div>
-        </div>
-
-        {/* Aprovados */}
-        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Aprovados</span>
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-50 text-[#22C55E] flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline gap-2.5">
-            <span className="text-2xl sm:text-4xl font-black text-[#22C55E]">{totalOnline + totalOffline}</span>
-            <span className="text-xs sm:text-sm font-semibold text-slate-500">80% do total</span>
-          </div>
-        </div>
-
-        {/* Pendentes */}
-        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Pendentes</span>
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center">
-              <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline gap-2.5">
-            <span className="text-2xl sm:text-4xl font-black text-amber-500">{totalPendentes}</span>
-            <span className="text-xs sm:text-sm font-semibold text-slate-500">13% do total</span>
-          </div>
-        </div>
-
-        {/* Suspensos */}
-        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Suspensos</span>
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-rose-50 text-[#EF4444] flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline gap-2.5">
-            <span className="text-2xl sm:text-4xl font-black text-[#EF4444]">{totalSuspensos}</span>
-            <span className="text-xs sm:text-sm font-semibold text-slate-500">7% do total</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. CONTEÚDO PRINCIPAL: TABELA DE MOTORISTAS EM LARGURA TOTAL */}
-      <div className="w-full space-y-4">
-        {/* BARRA DE BUSCA & FILTROS */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs">
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-            {(["TODOS", "ONLINE", "PENDENTE", "OFFLINE", "SUSPENSO"] as StatusMotorista[]).map((st) => (
-              <button
-                key={st}
-                type="button"
-                onClick={() => setFiltroStatus(st)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
-                  filtroStatus === st
-                    ? "bg-slate-900 text-white shadow-xs"
-                    : "bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200/70"
-                }`}
-              >
-                {st === "TODOS" && "Todos"}
-                {st === "ONLINE" && "Online"}
-                {st === "PENDENTE" && "Pendentes"}
-                {st === "OFFLINE" && "Offline"}
-                {st === "SUSPENSO" && "Suspensos"}
-              </button>
-            ))}
-
-            <select
-              value={filtroModal}
-              onChange={(e) => setFiltroModal(e.target.value as any)}
-              className="h-8 px-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-hidden cursor-pointer"
-            >
-              <option value="TODOS">Todos os Modais</option>
-              <option value="CARRO">Carro (Pop)</option>
-              <option value="MOTO">Moto (Flash)</option>
-              <option value="PLUS">Plus (Sedan)</option>
-              <option value="MULHER">Mulher (Delas)</option>
-            </select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Buscar motorista, placa ou CNH..."
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                className="w-full h-8.5 pl-8.5 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-[#0088FF]"
-              />
+          {/* 3. DASHBOARD DA FROTA — 4 CARDS MÉTRICOS EXECUTIVOS */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {/* Total de Motoristas */}
+            <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Total na Praça</span>
+                <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0088FF] flex items-center justify-center">
+                  <Users className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-xl sm:text-2xl font-black text-slate-900">{totalCadastrados}</span>
+                <span className="text-[11px] font-bold text-emerald-600">Base Ativa</span>
+              </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                exportarParaCSV(
-                  `motoristas_partiu_${new Date().toISOString().slice(0, 10)}`,
-                  ["ID", "Nome", "Telefone", "Modal", "Veículo", "Placa", "Ano", "Status", "Avaliação", "Total Viagens"],
-                  motoristasFiltrados.map((m) => [
-                    m.id,
-                    m.nome,
-                    m.telefone,
-                    m.modal,
-                    m.veiculoModelo,
-                    m.veiculoPlaca,
-                    m.veiculoAno,
-                    m.status,
-                    m.rating.toFixed(1),
-                    m.totalViagens,
-                  ])
-                );
-              }}
-              className="h-8.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
-              title="Exportar CSV de Condutores"
-            >
-              <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />
-              <span className="hidden sm:inline">Exportar CSV</span>
-            </button>
+            {/* Aprovados */}
+            <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Credenciados</span>
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-xl sm:text-2xl font-black text-emerald-700">{totalOnline + totalOffline}</span>
+                <span className="text-[11px] font-medium text-slate-500">
+                  {totalCadastrados > 0 ? `${Math.round(((totalOnline + totalOffline) / totalCadastrados) * 100)}%` : "0%"} da frota
+                </span>
+              </div>
+            </div>
+
+            {/* Pendentes */}
+            <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Aguardando OCR</span>
+                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <Clock className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-xl sm:text-2xl font-black text-amber-600">{totalPendentes}</span>
+                <span className="text-[11px] font-medium text-amber-700">Em esteira</span>
+              </div>
+            </div>
+
+            {/* Suspensos */}
+            <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Bloqueios</span>
+                <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                  <AlertTriangle className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-xl sm:text-2xl font-black text-rose-600">{totalSuspensos}</span>
+                <span className="text-[11px] font-medium text-slate-500">Conformidade</span>
+              </div>
+            </div>
           </div>
-        </div>
+
+          {/* 3. CONTEÚDO PRINCIPAL: TABELA DE MOTORISTAS EM LARGURA TOTAL */}
+          <div className="w-full space-y-3">
+            {/* BARRA DE BUSCA & FILTROS */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-xs">
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                {(["TODOS", "ONLINE", "PENDENTE", "OFFLINE", "SUSPENSO"] as StatusMotorista[]).map((st) => (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => setFiltroStatus(st)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                      filtroStatus === st
+                        ? "bg-slate-900 text-white shadow-xs"
+                        : "bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200/70"
+                    }`}
+                  >
+                    {st === "TODOS" && "Todos"}
+                    {st === "ONLINE" && "Online"}
+                    {st === "PENDENTE" && "Pendentes"}
+                    {st === "OFFLINE" && "Offline"}
+                    {st === "SUSPENSO" && "Suspensos"}
+                  </button>
+                ))}
+
+                <select
+                  value={filtroModal}
+                  onChange={(e) => setFiltroModal(e.target.value as any)}
+                  className="h-8 px-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-hidden cursor-pointer"
+                >
+                  <option value="TODOS">Todos os Modais</option>
+                  <option value="CARRO">Carro (Pop)</option>
+                  <option value="MOTO">Moto (Flash)</option>
+                  <option value="PLUS">Plus (Sedan)</option>
+                  <option value="MULHER">Mulher (Delas)</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1 sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Buscar motorista, placa ou CNH..."
+                    value={busca}
+                    onChange={(e) => setBusca(e.target.value)}
+                    className="w-full h-8.5 pl-8.5 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 focus:outline-hidden focus:border-[#0088FF]"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    exportarParaCSV(
+                      `motoristas_partiu_${new Date().toISOString().slice(0, 10)}`,
+                      ["ID", "Nome", "Telefone", "Modal", "Veículo", "Placa", "Ano", "Status", "Avaliação", "Total Viagens"],
+                      motoristasFiltrados.map((m) => [
+                        m.id,
+                        m.nome,
+                        m.telefone,
+                        m.modal,
+                        m.veiculoModelo,
+                        m.veiculoPlaca,
+                        m.veiculoAno,
+                        m.status,
+                        m.rating.toFixed(1),
+                        m.totalViagens,
+                      ])
+                    );
+                  }}
+                  className="h-8.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+                  title="Exportar CSV de Condutores"
+                >
+                  <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />
+                  <span className="hidden sm:inline">Exportar CSV</span>
+                </button>
+              </div>
+            </div>
 
         {/* TABELA DE MOTORISTAS DESKTOP */}
         <div className="hidden sm:block bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs">

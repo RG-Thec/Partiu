@@ -34,6 +34,8 @@ import {
 } from "@/lib/passageiros.functions";
 import { usePartiuRides, type PartiuRideRecord } from "@/lib/partiu-db";
 import { exportarParaCSV } from "@/lib/export-csv";
+import { getAdminRole } from "@/lib/admin-rbac";
+import { useAdminCity } from "@/contexts/AdminCityContext";
 
 export const Route = createFileRoute("/app/admin/passageiros")({
   head: () => ({
@@ -60,6 +62,9 @@ const CAMPO =
   "mt-1 w-full min-h-11 h-11 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-800 focus:border-[#0088FF] focus:ring-2 focus:ring-[#0088FF]/20 outline-none transition-colors";
 
 function AdminPassageiros() {
+  const { pracaAtiva, isNacional, selecionarPraca } = useAdminCity();
+  const [adminRole] = useState(() => getAdminRole());
+
   const qc = useQueryClient();
   const listar = useServerFn(listarPassageiros);
   const cadastrar = useServerFn(cadastrarPassageiro);
@@ -140,21 +145,35 @@ function AdminPassageiros() {
     });
   }, [passageiros, todasCorridas]);
 
+  // Escopo por Franquia / Praça Ativa
+  const passageirosDaPraca = useMemo(() => {
+    if (isNacional) return passageirosComMetricas;
+    const nomeCidade = pracaAtiva.nome.toLowerCase();
+    return passageirosComMetricas.filter((p) => {
+      const temViagemNaCidade = p.viagens.some((r) =>
+        (r.pickup_address && r.pickup_address.toLowerCase().includes(nomeCidade)) ||
+        (r.destination_address && r.destination_address.toLowerCase().includes(nomeCidade))
+      );
+      const cidadeUsuario = ((p as any).cidade || (p as any).city || "").toLowerCase();
+      return temViagemNaCidade || cidadeUsuario.includes(nomeCidade);
+    });
+  }, [passageirosComMetricas, isNacional, pracaAtiva.nome]);
+
   // Indicadores Executivos Globais
   const kpis = useMemo(() => {
-    const total = passageirosComMetricas.length;
-    const ltvTotal = passageirosComMetricas.reduce((acc, p) => acc + (p.ltv_brl || 0), 0);
-    const totalViagens = passageirosComMetricas.reduce((acc, p) => acc + (p.total_corridas || 0), 0);
+    const total = passageirosDaPraca.length;
+    const ltvTotal = passageirosDaPraca.reduce((acc, p) => acc + (p.ltv_brl || 0), 0);
+    const totalViagens = passageirosDaPraca.reduce((acc, p) => acc + (p.total_corridas || 0), 0);
     const mediaViagens = total > 0 ? (totalViagens / total).toFixed(1) : "0.0";
     const hojeStr = new Date().toISOString().slice(0, 10);
-    const novosHoje = passageirosComMetricas.filter((p) => p.created_at.slice(0, 10) === hojeStr).length;
+    const novosHoje = passageirosDaPraca.filter((p) => p.created_at.slice(0, 10) === hojeStr).length;
 
     return { total, ltvTotal, mediaViagens, novosHoje };
-  }, [passageirosComMetricas]);
+  }, [passageirosDaPraca]);
 
   // Filtragem da lista
   const passageirosFiltrados = useMemo(() => {
-    return passageirosComMetricas.filter((p) => {
+    return passageirosDaPraca.filter((p) => {
       if (filtroStatus === "ATIVOS" && p.status === "bloqueado") return false;
       if (filtroStatus === "BLOQUEADOS" && p.status !== "bloqueado") return false;
 
@@ -169,7 +188,7 @@ function AdminPassageiros() {
       }
       return true;
     });
-  }, [passageirosComMetricas, filtroStatus, busca]);
+  }, [passageirosDaPraca, filtroStatus, busca]);
 
   // Viagens do passageiro em modal
   const viagensModal = useMemo(() => {
@@ -184,19 +203,24 @@ function AdminPassageiros() {
   }, [passageiroDetalhe, todasCorridas]);
 
   return (
-    <div className="space-y-4 sm:space-y-5 pb-12 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-5 pb-12 w-full">
       {/* 1. Header Executivo */}
-      <div className="rounded-2xl bg-white p-4 sm:p-5 border border-slate-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
         <div>
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-[#0088FF] border border-blue-200/60 mb-1.5">
-            <Users className="h-3.5 w-3.5" />
-            <span>Módulo de Clientes • Base de Passageiros</span>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+              Gestão de Clientes • {adminRole === "franqueado" ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
+            </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#003366]">
-            Gestão de Passageiros &amp; LTV
+          <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            Base de Passageiros &amp; LTV
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#0088FF] border border-blue-200/50">
+              {kpis.total} CLIENTES
+            </span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 max-w-2xl font-medium mt-0.5 leading-relaxed">
-            Métricas de valor acumulado por cliente (LTV), histórico de corridas realizadas, validação cadastral e governança de bloqueio cautelar.
+          <p className="text-xs text-slate-500 mt-0.5">
+            Métricas de LTV, histórico de corridas, conformidade e governança de bloqueio {isNacional ? "em âmbito nacional" : `em ${pracaAtiva.nome}`}.
           </p>
         </div>
 
@@ -204,9 +228,9 @@ function AdminPassageiros() {
           <button
             type="button"
             onClick={() => setModalNovoPassageiroAberto(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 h-8.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+            className="flex h-10 items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-4 text-xs font-black shadow-xs transition-all cursor-pointer"
           >
-            <UserPlus className="h-3.5 w-3.5" />
+            <UserPlus className="h-3.5 w-3.5 text-[#0088FF]" />
             <span>Novo Passageiro</span>
           </button>
 
@@ -229,75 +253,95 @@ function AdminPassageiros() {
                 ])
               );
             }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 h-8.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 transition-all cursor-pointer shadow-xs active:scale-95"
+            className="flex h-10 items-center gap-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 px-3.5 text-xs font-bold border border-emerald-300 shadow-xs transition-all cursor-pointer"
             title="Exportar base de passageiros em CSV"
           >
             <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />
-            <span>Exportar CSV</span>
+            <span className="hidden sm:inline">Exportar CSV</span>
           </button>
 
           <Link
             to="/app"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 h-8.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all border border-slate-200 shadow-xs cursor-pointer active:scale-95"
+            className="flex h-10 items-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 px-3.5 text-xs font-black border border-slate-200/80 shadow-xs transition-all cursor-pointer"
           >
             <Car className="h-3.5 w-3.5 text-[#0088FF]" />
-            <span>Abrir App</span>
+            <span className="hidden sm:inline">Abrir App</span>
           </Link>
         </div>
       </div>
 
+      {/* Banner de Filtragem por Praça Ativa */}
+      {!isNacional && (
+        <div className="rounded-xl bg-blue-50/90 border border-blue-200/80 px-4 py-2.5 flex items-center justify-between gap-3 text-blue-900 text-xs animate-in fade-in-50 duration-200">
+          <div className="flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-[#0088FF] shrink-0" />
+            <span className="font-bold">
+              Base de clientes filtrada pela praça: <strong>{pracaAtiva.labelCompleto}</strong>
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => selecionarPraca("todas")}
+            className="text-[11px] font-black px-2.5 py-1 rounded-lg bg-white border border-blue-300 hover:bg-blue-100/70 text-blue-950 transition-colors cursor-pointer shrink-0"
+          >
+            Ver Todas as Praças
+          </button>
+        </div>
+      )}
+
       {/* 2. Top Metrics (KPIs Executivos de LTV) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Base Total</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#0088FF] flex items-center justify-center">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Base na Praça</span>
+            <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0088FF] flex items-center justify-center">
               <Users className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="text-lg sm:text-xl font-black text-slate-900">{kpis.total}</span>
-            <span className="text-[11px] font-bold text-slate-500">passageiros</span>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-xl sm:text-2xl font-black text-slate-900">{kpis.total}</span>
+            <span className="text-[11px] font-medium text-slate-500">clientes</span>
           </div>
         </div>
 
-        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">LTV Acumulado (GMV)</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">LTV Acumulado (GMV)</span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="text-lg sm:text-xl font-black text-emerald-700">
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-xl sm:text-2xl font-black text-emerald-700">
               R$ {kpis.ltvTotal.toFixed(2).replace(".", ",")}
             </span>
+            <span className="text-[11px] font-medium text-emerald-600">faturamento</span>
           </div>
         </div>
 
-        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Média Corridas/Cliente</span>
-            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Frequência Média</span>
+            <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="text-lg sm:text-xl font-black text-slate-900">{kpis.mediaViagens}</span>
-            <span className="text-[11px] font-bold text-slate-500">viagens/usuário</span>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-xl sm:text-2xl font-black text-slate-900">{kpis.mediaViagens}</span>
+            <span className="text-[11px] font-medium text-slate-500">viagens/usuário</span>
           </div>
         </div>
 
-        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
+        <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Novos Clientes Hoje</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Novos Cadastros</span>
+            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
               <UserPlus className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="text-lg sm:text-xl font-black text-slate-900">{kpis.novosHoje}</span>
-            <span className="text-[11px] font-bold text-emerald-600">cadastros hoje</span>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-xl sm:text-2xl font-black text-slate-900">{kpis.novosHoje}</span>
+            <span className="text-[11px] font-bold text-emerald-600">hoje</span>
           </div>
         </div>
       </div>

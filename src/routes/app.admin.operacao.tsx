@@ -49,6 +49,7 @@ import {
 import { UniversalMapView } from "@/components/maps/UniversalMapView";
 import { exportarParaCSV } from "@/lib/export-csv";
 import { useAdminCity } from "@/contexts/AdminCityContext";
+import { getAdminRole } from "@/lib/admin-rbac";
 
 export const Route = createFileRoute("/app/admin/operacao")({
   head: () => ({
@@ -139,6 +140,7 @@ export function CentralOperacaoAdminPage() {
   const { data: motoristasBanco = [], refetch: recarregarMotoristas } = useMotoristas();
   const atualizarStatusSOS = useAtualizarStatusSOS();
   const { pracaAtiva, isNacional, selecionarPraca } = useAdminCity();
+  const adminRole = getAdminRole();
 
   // Estados de filtros
   const [busca, setBusca] = useState("");
@@ -436,87 +438,90 @@ export function CentralOperacaoAdminPage() {
   return (
     <div className="w-full space-y-5 pb-12">
       {/* 1. Header Executivo Operacional */}
-      <div className="rounded-2xl bg-slate-950 p-5 sm:p-6 text-white shadow-md border border-slate-800 relative overflow-hidden">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#0088FF]/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary-500 border border-yellow-500/25 mb-2">
-              <span className="h-2 w-2 rounded-full bg-primary-600 animate-ping" />
-              <span>Cockpit Central de Operação Urbana</span>
-            </div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight">
-              Gestão da Operação em <span className="text-[#0088FF]">Tempo Real</span>
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-normal leading-relaxed mt-1">
-              Supervisão de viagens de passageiros, entregas flash com duplo PIN e resolução imediata da fila de ocorrências e SOS 190.
-            </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+              Cockpit Operacional • {adminRole === "franqueado" ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
+            </span>
           </div>
+          <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            Central de Operações em Tempo Real
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#0088FF] border border-blue-200/50">
+              {corridas.length} VIAGENS
+            </span>
+            {sosCount > 0 && (
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 animate-pulse">
+                🚨 {sosCount} SOS ATIVO
+              </span>
+            )}
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Supervisão de viagens ativas, entregas flash e atendimento de ocorrências {isNacional ? "em todas as praças" : `em ${pracaAtiva.nome}`}.
+          </p>
+        </div>
 
-          <div className="flex items-center gap-3 shrink-0">
-            <Link
-              to="/app/admin/diagnostico"
-              className="flex h-12 items-center gap-2 rounded-2xl bg-blue-950/60 hover:bg-blue-900/80 px-4 text-xs sm:text-sm font-bold text-blue-300 border border-blue-800/60 transition-all cursor-pointer shadow-sm"
-              title="Diagnóstico Geoespacial & WebGL"
-            >
-              <Activity className="h-4.5 w-4.5 text-blue-400" />
-              <span className="hidden sm:inline">Diagnóstico Geo</span>
-            </Link>
-            <button
-              type="button"
-              onClick={() => {
-                recarregarRides();
-                recarregarSOS();
-                recarregarMotoristas();
-              }}
-              className="flex h-12 items-center gap-2.5 rounded-2xl bg-slate-900 px-5 text-sm font-bold text-slate-200 hover:bg-slate-800 hover:text-white border border-slate-700/80 transition-all cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <RefreshCw className="h-4.5 w-4.5 text-[#0088FF]" />
-              <span>Sincronizar</span>
-            </button>
-          </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            to="/app/admin/diagnostico"
+            className="flex h-10 items-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 px-3.5 text-xs font-black text-slate-800 transition-all cursor-pointer shadow-xs"
+            title="Diagnóstico Geoespacial & WebGL"
+          >
+            <Activity className="h-3.5 w-3.5 text-[#0088FF]" />
+            <span className="hidden sm:inline">Diagnóstico Geo</span>
+          </Link>
+          <button
+            type="button"
+            onClick={() => {
+              recarregarRides();
+              recarregarSOS();
+              recarregarMotoristas();
+            }}
+            className="flex h-10 items-center gap-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 px-4 text-xs font-black transition-all cursor-pointer shadow-xs"
+          >
+            <RefreshCw className="h-3.5 w-3.5 text-[#0088FF]" />
+            <span>Sincronizar</span>
+          </button>
         </div>
       </div>
 
       {/* Banner de Filtragem por Praça Ativa */}
       {!isNacional && (
-        <div className="rounded-3xl bg-blue-50/90 border border-blue-200 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-blue-900 shadow-sm animate-in fade-in-50 duration-200">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-              <MapPin className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm sm:text-base font-black">
-                Fila Operacional filtrada pela praça: {pracaAtiva.labelCompleto}
-              </p>
-              <p className="text-xs sm:text-sm text-blue-700/90 font-medium mt-0.5">
-                Exibindo corridas, entregas e chamados SOS no raio de {pracaAtiva.raioKm} km.
-              </p>
-            </div>
+        <div className="rounded-xl bg-blue-50/90 border border-blue-200/80 px-4 py-2.5 flex items-center justify-between gap-3 text-blue-900 text-xs animate-in fade-in-50 duration-200">
+          <div className="flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-[#0088FF] shrink-0" />
+            <span className="font-bold">
+              Fila Operacional filtrada pela praça: <strong>{pracaAtiva.labelCompleto}</strong> ({pracaAtiva.raioKm} km de raio)
+            </span>
           </div>
           <button
             type="button"
             onClick={() => selecionarPraca("todas")}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-blue-100/70 border border-blue-300 text-xs sm:text-sm font-black text-blue-950 transition-all cursor-pointer shrink-0 shadow-xs active:scale-95"
+            className="text-[11px] font-black px-2.5 py-1 rounded-lg bg-white border border-blue-300 hover:bg-blue-100/70 text-blue-950 transition-colors cursor-pointer shrink-0"
           >
             Ver Todas as Praças
           </button>
         </div>
       )}
 
-      {/* 2. Barra de Abas Principais (Corridas | Entregas | Suporte & SOS) */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white p-2.5 sm:p-3 rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div className="flex items-center gap-2 p-1 bg-slate-100/90 rounded-2xl overflow-x-auto no-scrollbar scroll-smooth">
+      {/* 2. Barra de Abas Principais e Busca */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-1.5 p-1 bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-x-auto no-scrollbar">
           <button
             type="button"
             onClick={() => setAbaAtiva("corridas")}
-            className={`flex items-center gap-2.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer shrink-0 ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
               abaAtiva === "corridas"
-                ? "bg-slate-950 text-white shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-slate-950 text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
-            <Car className="h-4.5 w-4.5 text-[#0088FF]" />
+            <Car className="h-3.5 w-3.5 text-[#0088FF]" />
             <span>Corridas</span>
-            <span className="ml-1 rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-primary-500 font-bold">
+            <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
+              abaAtiva === "corridas" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+            }`}>
               {corridas.length}
             </span>
           </button>
@@ -524,15 +529,17 @@ export function CentralOperacaoAdminPage() {
           <button
             type="button"
             onClick={() => setAbaAtiva("entregas")}
-            className={`flex items-center gap-2.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer shrink-0 ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
               abaAtiva === "entregas"
-                ? "bg-slate-950 text-white shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-slate-950 text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
-            <Package className="h-4.5 w-4.5 text-[#0088FF]" />
-            <span>Entregas (Flash)</span>
-            <span className="ml-1 rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-primary-500 font-bold">
+            <Package className="h-3.5 w-3.5 text-[#0088FF]" />
+            <span>Entregas Flash</span>
+            <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
+              abaAtiva === "entregas" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+            }`}>
               {entregas.length}
             </span>
           </button>
@@ -540,44 +547,46 @@ export function CentralOperacaoAdminPage() {
           <button
             type="button"
             onClick={() => setAbaAtiva("suporte")}
-            className={`flex items-center gap-2.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer shrink-0 ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
               abaAtiva === "suporte"
-                ? "bg-red-600 text-white shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-rose-600 text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             }`}
           >
-            <ShieldAlert className="h-4.5 w-4.5 text-white" />
+            <ShieldAlert className="h-3.5 w-3.5 text-rose-500" />
             <span>Fila SOS</span>
             {sosCount > 0 ? (
-              <span className="ml-1 rounded-full bg-white px-2.5 py-0.5 text-xs font-black text-red-600 animate-pulse">
+              <span className="rounded-full bg-white text-rose-600 px-1.5 py-0.2 text-[10px] font-black animate-pulse">
                 {sosCount} SOS
               </span>
             ) : (
-              <span className="ml-1 rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-bold text-slate-700">
+              <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
+                abaAtiva === "suporte" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+              }`}>
                 {ticketsSuporte.length}
               </span>
             )}
           </button>
         </div>
 
-        {/* Input de Busca Rápida Unificada (Passageiro, Motorista, Cidade, Endereço) */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-slate-400" />
+        {/* Input de Busca Rápida Unificada */}
+        <div className="relative flex-1 sm:max-w-xs">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
           <input
             type="text"
-            placeholder="Buscar passageiro, motorista, cidade ou endereço..."
+            placeholder="Buscar por passageiro, motorista..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full h-12 rounded-2xl bg-slate-50 pl-10 pr-9 text-xs sm:text-sm font-bold text-slate-800 border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-amber-400"
+            className="w-full rounded-xl bg-white border border-slate-200/90 pl-9 pr-8 py-2 text-xs font-bold text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#0088FF] shadow-xs"
           />
           {busca && (
             <button
               type="button"
               onClick={() => setBusca("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 rounded-full"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-full"
               title="Limpar busca"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
@@ -604,15 +613,15 @@ export function CentralOperacaoAdminPage() {
                     key={key}
                     type="button"
                     onClick={() => setFiltroCorrida(key)}
-                    className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer shrink-0 ${
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
                       filtroCorrida === key
-                        ? `${color} text-white shadow-sm`
-                        : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                        ? `${color} text-white shadow-xs`
+                        : "bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-50"
                     }`}
                   >
                     <span>{label}</span>
                     <span
-                      className={`px-1.5 py-0.5 rounded-md text-[11px] font-black ${
+                      className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
                         filtroCorrida === key ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
                       }`}
                     >
@@ -626,15 +635,15 @@ export function CentralOperacaoAdminPage() {
                 <button
                   type="button"
                   onClick={() => setMostrarFiltrosAvancados((prev) => !prev)}
-                  className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                     mostrarFiltrosAvancados || totalFiltrosAvancadosAtivos > 0
                       ? "bg-slate-900 text-white border-slate-900 shadow-xs"
-                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                      : "bg-white text-slate-700 border-slate-200/90 hover:bg-slate-50"
                   }`}
                   title="Filtros por período e busca avançada"
                 >
-                  <SlidersHorizontal className="h-4 w-4" />
-                  <span>Filtros &amp; Datas</span>
+                  <SlidersHorizontal className="h-3.5 w-3.5" />
+                  <span>Filtros</span>
                   {totalFiltrosAvancadosAtivos > 0 && (
                     <span className="rounded-full bg-amber-400 text-slate-950 px-1.5 py-0.2 text-[10px] font-black">
                       {totalFiltrosAvancadosAtivos}
@@ -679,10 +688,10 @@ export function CentralOperacaoAdminPage() {
                       ])
                     );
                   }}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs sm:text-sm font-bold border border-emerald-300 transition-all cursor-pointer shadow-xs shrink-0"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 transition-all cursor-pointer shadow-xs shrink-0"
                   title="Baixar planilha de corridas"
                 >
-                  <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                  <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />
                   <span>Exportar CSV</span>
                 </button>
               </div>
@@ -690,39 +699,39 @@ export function CentralOperacaoAdminPage() {
 
             {/* Gaveta de Filtros Avançados: Datas e Busca Cruzada */}
             {mostrarFiltrosAvancados && (
-              <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end animate-in fade-in-50 duration-200">
+              <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end animate-in fade-in-50 duration-200">
                 <div>
-                  <label className="block text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1">
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">
                     Data Inicial
                   </label>
                   <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
                     <input
                       type="date"
                       value={dataInicio}
                       onChange={(e) => setDataInicio(e.target.value)}
-                      className="w-full h-10 pl-9 pr-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-amber-400"
+                      className="w-full h-9 pl-8.5 pr-2.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 focus:outline-hidden focus:border-[#0088FF]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1">
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">
                     Data Final
                   </label>
                   <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
                     <input
                       type="date"
                       value={dataFim}
                       onChange={(e) => setDataFim(e.target.value)}
-                      className="w-full h-10 pl-9 pr-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-amber-400"
+                      className="w-full h-9 pl-8.5 pr-2.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 focus:outline-hidden focus:border-[#0088FF]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1">
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">
                     Filtrar Motorista
                   </label>
                   <input
@@ -730,12 +739,12 @@ export function CentralOperacaoAdminPage() {
                     placeholder="Nome do motorista..."
                     value={buscaMotorista}
                     onChange={(e) => setBuscaMotorista(e.target.value)}
-                    className="w-full h-10 px-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-amber-400"
+                    className="w-full h-9 px-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 focus:outline-hidden focus:border-[#0088FF]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1">
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1">
                     Filtrar Passageiro
                   </label>
                   <input
@@ -743,7 +752,7 @@ export function CentralOperacaoAdminPage() {
                     placeholder="Nome do passageiro..."
                     value={buscaPassageiro}
                     onChange={(e) => setBuscaPassageiro(e.target.value)}
-                    className="w-full h-10 px-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-amber-400"
+                    className="w-full h-9 px-3 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 focus:outline-hidden focus:border-[#0088FF]"
                   />
                 </div>
 
@@ -758,9 +767,9 @@ export function CentralOperacaoAdminPage() {
                       setBusca("");
                       setFiltroCorrida("TODAS");
                     }}
-                    className="w-full h-10 inline-flex items-center justify-center gap-1.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                    className="w-full h-9 inline-flex items-center justify-center gap-1.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all cursor-pointer shadow-2xs"
                   >
-                    <RotateCcw className="h-3.5 w-3.5" />
+                    <RotateCcw className="h-3 w-3" />
                     <span>Limpar Filtros</span>
                   </button>
                 </div>
@@ -769,70 +778,70 @@ export function CentralOperacaoAdminPage() {
           </div>
 
           {/* Versão Mobile (Cards Empilhados) */}
-          <div className="grid grid-cols-1 gap-3.5 md:hidden">
+          <div className="grid grid-cols-1 gap-2.5 md:hidden">
             {corridasFiltradas.length === 0 ? (
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 text-center text-slate-400 text-sm">
+              <div className="bg-white p-6 rounded-2xl border border-slate-200/90 text-center text-slate-400 text-xs">
                 Nenhuma corrida encontrada para os filtros selecionados.
               </div>
             ) : (
               corridasFiltradas.map((c) => (
-                <div key={c.id} className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-sm space-y-3">
-                  <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div key={c.id} className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-xs space-y-2.5">
+                  <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className={`px-2.5 py-1 rounded-lg text-xs font-black shrink-0 ${
-                        c.modal === "CARRO" ? "bg-primary-50 text-amber-800" : "bg-blue-100 text-blue-800"
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-black shrink-0 ${
+                        c.modal === "CARRO" ? "bg-amber-50 text-amber-800 border border-amber-200/60" : "bg-blue-50 text-blue-800 border border-blue-200/60"
                       }`}>
                         {c.modal}
                       </span>
-                      <p className="font-black text-slate-900 text-sm truncate">{c.cidade}</p>
+                      <p className="font-black text-slate-900 text-xs truncate">{c.cidade}</p>
                     </div>
-                    <span className="font-black text-slate-950 text-base shrink-0">
+                    <span className="font-black text-slate-950 text-sm shrink-0">
                       R$ {c.valor.toFixed(2).replace(".", ",")}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
+                  <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
-                      <span className="text-xs font-black uppercase text-slate-400 block">Passageiro:</span>
+                      <span className="text-[10px] font-black uppercase text-slate-400 block">Passageiro</span>
                       <p className="font-bold text-slate-900 truncate">{c.passageiroNome}</p>
-                      <span className="text-xs text-slate-500">{c.passageiroTelefone}</span>
+                      <span className="text-[11px] text-slate-500">{c.passageiroTelefone}</span>
                     </div>
                     <div>
-                      <span className="text-xs font-black uppercase text-slate-400 block">Motorista:</span>
+                      <span className="text-[10px] font-black uppercase text-slate-400 block">Motorista</span>
                       <p className="font-bold text-slate-900 truncate">{c.motoristaNome}</p>
-                      <span className="text-xs text-slate-500">{c.motoristaTelefone}</span>
+                      <span className="text-[11px] text-slate-500">{c.motoristaTelefone}</span>
                     </div>
                   </div>
 
-                  <div className="text-xs sm:text-sm bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                    <p className="text-slate-700 truncate font-medium">
+                  <div className="text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <p className="text-slate-700 truncate font-medium text-[11px]">
                       <span className="font-bold text-emerald-600">De:</span> {c.origem}
                     </p>
-                    <p className="text-slate-700 truncate font-medium mt-1">
-                      <span className="font-bold text-primary-700">Para:</span> {c.destino}
+                    <p className="text-slate-700 truncate font-medium text-[11px] mt-0.5">
+                      <span className="font-bold text-[#0088FF]">Para:</span> {c.destino}
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 pt-1">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase ${
+                  <div className="flex items-center justify-between gap-2 pt-0.5">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
                       c.status === "EM_ANDAMENTO"
-                        ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                        ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
                         : c.status === "FINALIZADA"
                         ? "bg-slate-100 text-slate-700"
                         : c.status === "CANCELADA"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-primary-50 text-yellow-800"
+                        ? "bg-red-50 text-red-700 border border-red-200/60"
+                        : "bg-amber-50 text-amber-800 border border-amber-200/60"
                     }`}>
-                      {c.status === "EM_ANDAMENTO" && <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />}
+                      {c.status === "EM_ANDAMENTO" && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />}
                       {c.status.replace("_", " ")}
                     </span>
 
                     <button
                       type="button"
                       onClick={() => setCorridaDetalhe(c)}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 active:scale-95 text-white font-bold text-xs sm:text-sm cursor-pointer shadow-sm"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 active:scale-95 text-white font-bold text-xs cursor-pointer shadow-xs"
                     >
-                      <Eye className="h-4 w-4 text-[#0088FF]" />
+                      <Eye className="h-3.5 w-3.5 text-[#0088FF]" />
                       <span>Detalhes</span>
                     </button>
                   </div>
@@ -841,77 +850,77 @@ export function CentralOperacaoAdminPage() {
             )}
           </div>
 
-          {/* Versão Desktop (Tabela Expansiva) */}
-          <div className="hidden md:block bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+          {/* Versão Desktop (Tabela Executiva de Alta Densidade) */}
+          <div className="hidden md:block bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50/90 text-slate-600 uppercase font-black tracking-wider text-xs border-b border-slate-200">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50/80 text-slate-500 uppercase font-black tracking-wider text-[11px] border-b border-slate-200">
                   <tr>
-                    <th className="py-4 px-6">Passageiro</th>
-                    <th className="py-4 px-6">Motorista &amp; Modal</th>
-                    <th className="py-4 px-6">Cidade / Trajeto</th>
-                    <th className="py-4 px-6">Status</th>
-                    <th className="py-4 px-6 text-right">Valor</th>
-                    <th className="py-4 px-6 text-center">Ações Rápidas</th>
+                    <th className="py-3 px-4">Passageiro</th>
+                    <th className="py-3 px-4">Motorista &amp; Modal</th>
+                    <th className="py-3 px-4">Cidade / Trajeto</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4 text-right">Valor</th>
+                    <th className="py-3 px-4 text-center">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {corridasFiltradas.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-10 text-center text-slate-400 text-base">
+                      <td colSpan={6} className="p-8 text-center text-slate-400 text-xs">
                         Nenhuma corrida encontrada para os filtros selecionados.
                       </td>
                     </tr>
                   ) : (
                     corridasFiltradas.map((c) => (
-                      <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-4.5 px-6">
-                          <p className="font-black text-slate-900 text-sm sm:text-base">{c.passageiroNome}</p>
-                          <span className="text-xs sm:text-sm text-slate-500 font-medium">{c.passageiroTelefone}</span>
+                      <tr key={c.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="py-3 px-4">
+                          <p className="font-black text-slate-900 text-xs">{c.passageiroNome}</p>
+                          <span className="text-[11px] text-slate-500 font-medium">{c.passageiroTelefone}</span>
                         </td>
-                        <td className="py-4.5 px-6">
-                          <div className="flex items-center gap-2.5">
-                            <span className={`px-2.5 py-1 rounded-lg text-xs font-black ${
-                              c.modal === "CARRO" ? "bg-primary-50 text-amber-800" : "bg-blue-100 text-blue-800"
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-black shrink-0 ${
+                              c.modal === "CARRO" ? "bg-amber-50 text-amber-800 border border-amber-200/60" : "bg-blue-50 text-blue-800 border border-blue-200/60"
                             }`}>
                               {c.modal}
                             </span>
                             <div>
-                              <p className="font-black text-slate-900 text-sm sm:text-base">{c.motoristaNome}</p>
-                              <span className="text-xs sm:text-sm text-slate-500 font-medium">{c.motoristaTelefone}</span>
+                              <p className="font-black text-slate-900 text-xs">{c.motoristaNome}</p>
+                              <span className="text-[11px] text-slate-500 font-medium">{c.motoristaTelefone}</span>
                             </div>
                           </div>
                         </td>
-                        <td className="py-4.5 px-6">
-                          <p className="font-black text-slate-900 text-sm sm:text-base">{c.cidade}</p>
-                          <p className="text-xs sm:text-sm text-slate-600 font-medium truncate max-w-sm">
+                        <td className="py-3 px-4">
+                          <p className="font-black text-slate-900 text-xs">{c.cidade}</p>
+                          <p className="text-[11px] text-slate-500 font-medium truncate max-w-xs">
                             {c.origem} → {c.destino}
                           </p>
                         </td>
-                        <td className="py-4.5 px-6">
-                          <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase ${
+                        <td className="py-3 px-4">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
                             c.status === "EM_ANDAMENTO"
-                              ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                              ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
                               : c.status === "FINALIZADA"
                               ? "bg-slate-100 text-slate-700"
                               : c.status === "CANCELADA"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-primary-50 text-yellow-800"
+                              ? "bg-red-50 text-red-700 border border-red-200/60"
+                              : "bg-amber-50 text-amber-800 border border-amber-200/60"
                           }`}>
-                            {c.status === "EM_ANDAMENTO" && <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />}
+                            {c.status === "EM_ANDAMENTO" && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />}
                             {c.status.replace("_", " ")}
                           </span>
                         </td>
-                        <td className="py-4.5 px-6 text-right font-black text-slate-950 text-base sm:text-lg">
+                        <td className="py-3 px-4 text-right font-black text-slate-950 text-xs sm:text-sm">
                           R$ {c.valor.toFixed(2).replace(".", ",")}
                         </td>
-                        <td className="py-4.5 px-6 text-center">
+                        <td className="py-3 px-4 text-center">
                           <button
                             type="button"
                             onClick={() => setCorridaDetalhe(c)}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-sm"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold text-xs transition-all cursor-pointer shadow-xs"
                           >
-                            <Eye className="h-4 w-4 text-[#0088FF]" />
+                            <Eye className="h-3.5 w-3.5 text-[#0088FF]" />
                             <span>Detalhes</span>
                           </button>
                         </td>
@@ -930,17 +939,17 @@ export function CentralOperacaoAdminPage() {
         <div className="space-y-4">
           {/* Filtros Rápidos de Entrega e Exportação CSV */}
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar">
-              <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider shrink-0">Filtrar:</span>
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+              <span className="text-xs font-black text-slate-500 uppercase tracking-wider shrink-0 mr-1">Filtrar:</span>
               {(["TODAS", "EM_ANDAMENTO", "CONCLUIDAS", "CANCELADAS"] as FiltroStatusEntrega[]).map((f) => (
                 <button
                   key={f}
                   type="button"
                   onClick={() => setFiltroEntrega(f)}
-                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer shrink-0 ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
                     filtroEntrega === f
-                      ? "bg-slate-900 text-white shadow-sm"
-                      : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                      ? "bg-slate-900 text-white shadow-xs"
+                      : "bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-50"
                   }`}
                 >
                   {f === "TODAS" && "Todas"}
@@ -976,66 +985,66 @@ export function CentralOperacaoAdminPage() {
                   ])
                 );
               }}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs sm:text-sm font-bold border border-emerald-300 transition-all cursor-pointer shadow-xs shrink-0"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 transition-all cursor-pointer shadow-xs shrink-0"
               title="Baixar planilha de entregas"
             >
-              <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+              <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />
               <span>Exportar CSV</span>
             </button>
           </div>
 
           {/* Versão Mobile (Cards Empilhados para Entregas) */}
-          <div className="grid grid-cols-1 gap-3.5 md:hidden">
+          <div className="grid grid-cols-1 gap-2.5 md:hidden">
             {entregasFiltradas.length === 0 ? (
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 text-center text-slate-400 text-sm">
+              <div className="bg-white p-6 rounded-2xl border border-slate-200/90 text-center text-slate-400 text-xs">
                 Nenhuma entrega encontrada para os filtros selecionados.
               </div>
             ) : (
               entregasFiltradas.map((e) => (
-                <div key={e.id} className="bg-white rounded-3xl border border-slate-200/90 p-5 shadow-sm space-y-3">
-                  <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div key={e.id} className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-xs space-y-2.5">
+                  <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
                     <div className="min-w-0">
-                      <span className="text-xs font-black uppercase text-amber-700 bg-primary-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                      <span className="text-[10px] font-black uppercase text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
                         {e.cidade}
                       </span>
                     </div>
-                    <span className="font-black text-slate-950 text-base shrink-0">
+                    <span className="font-black text-slate-950 text-sm shrink-0">
                       R$ {e.valor.toFixed(2).replace(".", ",")}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm">
+                  <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
-                      <span className="text-xs font-black uppercase text-slate-400 block">Remetente:</span>
+                      <span className="text-[10px] font-black uppercase text-slate-400 block">Remetente</span>
                       <p className="font-bold text-slate-900 truncate">{e.remetenteNome}</p>
-                      <span className="text-xs text-slate-500">{e.remetenteTelefone}</span>
+                      <span className="text-[11px] text-slate-500">{e.remetenteTelefone}</span>
                     </div>
                     <div>
-                      <span className="text-xs font-black uppercase text-slate-400 block">Destinatário:</span>
+                      <span className="text-[10px] font-black uppercase text-slate-400 block">Destinatário</span>
                       <p className="font-bold text-slate-900 truncate">{e.destinatarioNome}</p>
-                      <span className="text-xs text-slate-500">{e.destinatarioTelefone}</span>
+                      <span className="text-[11px] text-slate-500">{e.destinatarioTelefone}</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-100 text-xs sm:text-sm">
-                    <span className="text-xs font-black uppercase text-slate-500">Duplo PIN:</span>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-1 bg-primary-50 text-amber-900 font-mono font-black text-xs rounded-lg">
+                  <div className="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs">
+                    <span className="text-[10px] font-black uppercase text-slate-500">Duplo PIN:</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="px-2 py-0.5 bg-amber-50 border border-amber-200/60 text-amber-900 font-mono font-black text-[11px] rounded-md">
                         PIN 1: {e.pickupPin}
                       </span>
-                      <span className="px-2.5 py-1 bg-emerald-100 text-emerald-900 font-mono font-black text-xs rounded-lg">
+                      <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200/60 text-emerald-900 font-mono font-black text-[11px] rounded-md">
                         PIN 2: {e.dropoffPin}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 pt-1">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase ${
+                  <div className="flex items-center justify-between gap-2 pt-0.5">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
                       e.status === "EM_TRANSITO" || e.status === "COLETANDO"
-                        ? "bg-blue-100 text-blue-800 border border-blue-300"
+                        ? "bg-blue-50 text-blue-800 border border-blue-300"
                         : e.status === "CONCLUIDA"
-                        ? "bg-emerald-100 text-emerald-800"
-                        : "bg-red-100 text-red-700"
+                        ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
+                        : "bg-red-50 text-red-700 border border-red-200/60"
                     }`}>
                       {e.status}
                     </span>
@@ -1043,9 +1052,9 @@ export function CentralOperacaoAdminPage() {
                     <button
                       type="button"
                       onClick={() => setEntregaDetalhe(e)}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 active:scale-95 text-white font-bold text-xs sm:text-sm cursor-pointer shadow-sm"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 active:scale-95 text-white font-bold text-xs cursor-pointer shadow-xs"
                     >
-                      <Eye className="h-4 w-4 text-[#0088FF]" />
+                      <Eye className="h-3.5 w-3.5 text-[#0088FF]" />
                       <span>Ver Pacote</span>
                     </button>
                   </div>
@@ -1054,74 +1063,74 @@ export function CentralOperacaoAdminPage() {
             )}
           </div>
 
-          {/* Versão Desktop (Tabela Expansiva) */}
-          <div className="hidden md:block bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+          {/* Versão Desktop (Tabela Executiva de Alta Densidade) */}
+          <div className="hidden md:block bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50/90 text-slate-600 uppercase font-black tracking-wider text-xs border-b border-slate-200">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50/80 text-slate-500 uppercase font-black tracking-wider text-[11px] border-b border-slate-200">
                   <tr>
-                    <th className="py-4 px-6">Remetente</th>
-                    <th className="py-4 px-6">Destinatário</th>
-                    <th className="py-4 px-6">Entregador</th>
-                    <th className="py-4 px-6 text-center">Duplo PIN (Segurança)</th>
-                    <th className="py-4 px-6">Status</th>
-                    <th className="py-4 px-6 text-right">Valor</th>
-                    <th className="py-4 px-6 text-center">Ações Rápidas</th>
+                    <th className="py-3 px-4">Remetente</th>
+                    <th className="py-3 px-4">Destinatário</th>
+                    <th className="py-3 px-4">Entregador</th>
+                    <th className="py-3 px-4 text-center">Duplo PIN</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4 text-right">Valor</th>
+                    <th className="py-3 px-4 text-center">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {entregasFiltradas.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="p-10 text-center text-slate-400 text-base">
+                      <td colSpan={7} className="p-8 text-center text-slate-400 text-xs">
                         Nenhuma entrega encontrada para os filtros selecionados.
                       </td>
                     </tr>
                   ) : (
                     entregasFiltradas.map((e) => (
-                      <tr key={e.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="py-4.5 px-6">
-                          <p className="font-black text-slate-900 text-sm sm:text-base">{e.remetenteNome}</p>
-                          <span className="text-xs sm:text-sm text-slate-500 font-medium">{e.remetenteTelefone}</span>
+                      <tr key={e.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="py-3 px-4">
+                          <p className="font-black text-slate-900 text-xs">{e.remetenteNome}</p>
+                          <span className="text-[11px] text-slate-500 font-medium">{e.remetenteTelefone}</span>
                         </td>
-                        <td className="py-4.5 px-6">
-                          <p className="font-black text-slate-900 text-sm sm:text-base">{e.destinatarioNome}</p>
-                          <span className="text-xs sm:text-sm text-slate-500 font-medium">{e.destinatarioTelefone}</span>
+                        <td className="py-3 px-4">
+                          <p className="font-black text-slate-900 text-xs">{e.destinatarioNome}</p>
+                          <span className="text-[11px] text-slate-500 font-medium">{e.destinatarioTelefone}</span>
                         </td>
-                        <td className="py-4.5 px-6">
-                          <p className="font-black text-slate-900 text-sm sm:text-base">{e.entregadorNome}</p>
-                          <span className="text-xs sm:text-sm font-bold text-slate-500">{e.cidade}</span>
+                        <td className="py-3 px-4">
+                          <p className="font-black text-slate-900 text-xs">{e.entregadorNome}</p>
+                          <span className="text-[11px] font-bold text-slate-500">{e.cidade}</span>
                         </td>
-                        <td className="py-4.5 px-6 text-center">
-                          <div className="inline-flex items-center gap-2">
-                            <span className="px-3 py-1 bg-primary-50 border border-primary-500 text-amber-900 font-mono font-black text-xs sm:text-sm rounded-xl" title="PIN 1 (Coleta)">
-                              PIN 1: {e.pickupPin}
+                        <td className="py-3 px-4 text-center">
+                          <div className="inline-flex items-center gap-1.5">
+                            <span className="px-2 py-0.5 bg-amber-50 border border-amber-200/60 text-amber-900 font-mono font-black text-[10px] rounded-md" title="PIN 1 (Coleta)">
+                              P1: {e.pickupPin}
                             </span>
-                            <span className="px-3 py-1 bg-emerald-50 border border-emerald-300 text-emerald-900 font-mono font-black text-xs sm:text-sm rounded-xl" title="PIN 2 (Entrega)">
-                              PIN 2: {e.dropoffPin}
+                            <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200/60 text-emerald-900 font-mono font-black text-[10px] rounded-md" title="PIN 2 (Entrega)">
+                              P2: {e.dropoffPin}
                             </span>
                           </div>
                         </td>
-                        <td className="py-4.5 px-6">
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase ${
+                        <td className="py-3 px-4">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
                             e.status === "EM_TRANSITO" || e.status === "COLETANDO"
-                              ? "bg-blue-100 text-blue-800 border border-blue-300"
+                              ? "bg-blue-50 text-blue-800 border border-blue-300"
                               : e.status === "CONCLUIDA"
-                              ? "bg-emerald-100 text-emerald-800"
-                              : "bg-red-100 text-red-700"
+                              ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
+                              : "bg-red-50 text-red-700 border border-red-200/60"
                           }`}>
                             {e.status}
                           </span>
                         </td>
-                        <td className="py-4.5 px-6 text-right font-black text-slate-950 text-base sm:text-lg">
+                        <td className="py-3 px-4 text-right font-black text-slate-950 text-xs sm:text-sm">
                           R$ {e.valor.toFixed(2).replace(".", ",")}
                         </td>
-                        <td className="py-4.5 px-6 text-center">
+                        <td className="py-3 px-4 text-center">
                           <button
                             type="button"
                             onClick={() => setEntregaDetalhe(e)}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-sm"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-all cursor-pointer shadow-xs"
                           >
-                            <Eye className="h-4 w-4 text-[#0088FF]" />
+                            <Eye className="h-3.5 w-3.5 text-[#0088FF]" />
                             <span>Ver Pacote</span>
                           </button>
                         </td>
@@ -1139,19 +1148,19 @@ export function CentralOperacaoAdminPage() {
       {abaAtiva === "suporte" && (
         <div className="space-y-4">
           {/* Filtros de Prioridade da Fila */}
-          <div className="flex items-center gap-2.5 overflow-x-auto pb-1">
-            <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider">Criticidade:</span>
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+            <span className="text-xs font-black text-slate-500 uppercase tracking-wider shrink-0 mr-1">Criticidade:</span>
             {(["TODOS", "SOS_CRITICAL", "ALTA", "MEDIA", "BAIXA"] as FiltroPrioridadeSuporte[]).map((p) => (
               <button
                 key={p}
                 type="button"
                 onClick={() => setFiltroSuporte(p)}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
                   filtroSuporte === p
                     ? p === "SOS_CRITICAL"
-                      ? "bg-red-600 text-white shadow-sm"
-                      : "bg-slate-900 text-white shadow-sm"
-                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                      ? "bg-rose-600 text-white shadow-xs"
+                      : "bg-slate-900 text-white shadow-xs"
+                    : "bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-50"
                 }`}
               >
                 {p === "TODOS" && "Todos os Chamados"}
@@ -1164,9 +1173,9 @@ export function CentralOperacaoAdminPage() {
           </div>
 
           {/* Cards da Fila Ordenada por Criticidade */}
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-3">
             {ticketsFiltrados.length === 0 ? (
-              <div className="bg-white p-10 rounded-3xl border border-slate-200 text-center text-slate-400 text-base">
+              <div className="bg-white p-8 rounded-2xl border border-slate-200/90 text-center text-slate-400 text-xs">
                 Nenhum chamado de suporte pendente no momento. Fila 100% zerada!
               </div>
             ) : (
@@ -1176,40 +1185,40 @@ export function CentralOperacaoAdminPage() {
                 return (
                   <div
                     key={t.id}
-                    className={`p-5 sm:p-7 rounded-3xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-5 ${
+                    className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-3.5 ${
                       isSos
-                        ? "bg-red-50/95 border-red-300 shadow-md shadow-red-500/10"
+                        ? "bg-rose-50/95 border-rose-300 shadow-sm shadow-rose-500/10"
                         : t.status === "RESOLVIDO"
                         ? "bg-slate-50 border-slate-200 opacity-75"
-                        : "bg-white border-slate-200/90 shadow-sm hover:shadow-md"
+                        : "bg-white border-slate-200/90 shadow-xs hover:border-slate-300"
                     }`}
                   >
-                    <div className="space-y-2 flex-1">
-                      <div className="flex flex-wrap items-center gap-2.5">
-                        <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+                    <div className="space-y-1.5 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                           isSos
-                            ? "bg-red-600 text-white animate-pulse"
+                            ? "bg-rose-600 text-white animate-pulse"
                             : t.prioridade === "ALTA"
-                            ? "bg-primary-600 text-slate-950"
+                            ? "bg-amber-500 text-slate-950"
                             : t.prioridade === "MEDIA"
-                            ? "bg-primary-600 text-slate-950"
+                            ? "bg-amber-100 text-amber-900"
                             : "bg-slate-200 text-slate-700"
                         }`}>
                           {isSos ? "🚨 SOS 190 (EMERGÊNCIA)" : `${t.prioridade} PRIORIDADE`}
                         </span>
 
-                        <span className="font-mono text-xs sm:text-sm font-bold text-slate-500">
+                        <span className="font-mono text-xs font-bold text-slate-500">
                           {t.protocolo}
                         </span>
 
-                        <span className="text-xs sm:text-sm text-slate-400 font-medium">• Criado às {t.criadoEm}</span>
+                        <span className="text-[11px] text-slate-400 font-medium">• Criado às {t.criadoEm}</span>
                       </div>
 
-                      <p className={`text-base sm:text-lg font-black leading-snug ${isSos ? "text-red-950" : "text-slate-900"}`}>
+                      <p className={`text-sm sm:text-base font-black leading-snug ${isSos ? "text-rose-950" : "text-slate-900"}`}>
                         {t.descricao}
                       </p>
 
-                      <div className="flex flex-wrap items-center gap-5 text-xs sm:text-sm text-slate-600 pt-1">
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pt-0.5">
                         <span><strong>Passageiro:</strong> {t.usuarioNome} ({t.usuarioTelefone})</span>
                         <span><strong>Motorista:</strong> {t.motoristaNome}</span>
                         <span><strong>Cidade:</strong> {t.cidade}</span>
@@ -1217,13 +1226,13 @@ export function CentralOperacaoAdminPage() {
                     </div>
 
                     {/* Ações em Menos de 3 Cliques */}
-                    <div className="flex items-center gap-2.5 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                       {isSos && (
                         <a
                           href="tel:190"
-                          className="flex h-11 items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 text-white px-4 text-xs sm:text-sm font-black shadow-sm transition-all"
+                          className="flex h-9 items-center gap-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white px-3.5 text-xs font-black shadow-xs transition-all"
                         >
-                          <PhoneCall className="h-4.5 w-4.5" />
+                          <PhoneCall className="h-3.5 w-3.5" />
                           <span>Ligar 190</span>
                         </a>
                       )}
@@ -1232,19 +1241,19 @@ export function CentralOperacaoAdminPage() {
                         href={`https://wa.me/55${t.usuarioTelefone.replace(/\D/g, "")}?text=Olá ${encodeURIComponent(t.usuarioNome)}, sou da Central de Atendimento PARTIU referente ao protocolo ${t.protocolo}.`}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex h-11 items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 text-xs sm:text-sm font-bold shadow-sm transition-all"
+                        className="flex h-9 items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 text-xs font-bold shadow-xs transition-all"
                       >
-                        <MessageSquare className="h-4.5 w-4.5" />
+                        <MessageSquare className="h-3.5 w-3.5" />
                         <span>WhatsApp</span>
                       </a>
 
                       <button
                         type="button"
                         onClick={() => setTicketDetalhe(t)}
-                        className="flex h-11 items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-4 text-xs sm:text-sm font-bold shadow-sm transition-all cursor-pointer"
+                        className="flex h-9 items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-3.5 text-xs font-bold shadow-xs transition-all cursor-pointer"
                       >
-                        <CheckCircle2 className="h-4.5 w-4.5 text-[#0088FF]" />
-                        <span>Atender / Resolver</span>
+                        <CheckCircle2 className="h-3.5 w-3.5 text-[#0088FF]" />
+                        <span>Atender</span>
                       </button>
                     </div>
                   </div>
@@ -1255,7 +1264,7 @@ export function CentralOperacaoAdminPage() {
         </div>
       )}
 
-      {/* MODAL DETALHE DA CORRIDA (RAIO-X COMPLETO - INSPIRADO NO PAINEL DE REFERÊNCIA) */}
+      {/* MODAL DETALHE DA CORRIDA (RAIO-X COMPLETO DE ALTA DENSIDADE) */}
       {corridaDetalhe && (() => {
         const isCarro = corridaDetalhe.modal === "CARRO";
         const tarifaBase = isCarro ? 5.00 : 4.00;
@@ -1271,22 +1280,22 @@ export function CentralOperacaoAdminPage() {
         const liquidoMotorista = Math.round((precoFinal - taxaAppValor) * 100) / 100;
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 sm:p-6 backdrop-blur-xs overflow-y-auto">
-            <div className="w-full max-w-4xl rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-auto max-h-[92vh]">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
+            <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl border border-slate-200 overflow-hidden flex flex-col my-auto max-h-[90vh]">
               {/* Header do Modal */}
-              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4.5 bg-slate-50/80 shrink-0">
-                <div className="flex items-center gap-3">
-                  <div className={`h-11 w-11 rounded-2xl flex items-center justify-center font-black ${
+              <div className="flex items-center justify-between border-b border-slate-200 px-4 sm:px-5 py-3 bg-slate-50/80 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className={`h-8 w-8 rounded-xl flex items-center justify-center font-black ${
                     isCarro ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"
                   }`}>
-                    {isCarro ? <Car className="h-6 w-6 stroke-[2.5]" /> : <Zap className="h-6 w-6 stroke-[2.5]" />}
+                    {isCarro ? <Car className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
                   </div>
                   <div>
-                    <div className="flex items-center gap-2.5">
-                      <h3 className="text-lg sm:text-xl font-black text-slate-900">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm sm:text-base font-black text-slate-900">
                         Corrida #{corridaDetalhe.id}
                       </h3>
-                      <span className={`px-3 py-0.5 rounded-full text-xs font-black uppercase ${
+                      <span className={`px-2 py-0.2 rounded-full text-[10px] font-black uppercase ${
                         corridaDetalhe.status === "EM_ANDAMENTO"
                           ? "bg-emerald-100 text-emerald-800 border border-emerald-300 animate-pulse"
                           : corridaDetalhe.status === "FINALIZADA"
@@ -1298,59 +1307,59 @@ export function CentralOperacaoAdminPage() {
                         {corridaDetalhe.status.replace("_", " ")}
                       </span>
                     </div>
-                    <span className="text-xs text-slate-500 font-medium">{corridaDetalhe.cidade} • Solicitada às {corridaDetalhe.iniciadaEm}</span>
+                    <span className="text-[11px] text-slate-500 font-medium">{corridaDetalhe.cidade} • Solicitada às {corridaDetalhe.iniciadaEm}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <button
                     type="button"
                     onClick={() => window.print()}
-                    className="h-10 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                    className="h-8 px-2.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
                     title="Imprimir Comprovante"
                   >
-                    <Printer className="h-4 w-4" />
-                    <span className="hidden sm:inline">Recibo</span>
+                    <Printer className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline text-xs">Recibo</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setCorridaDetalhe(null)}
-                    className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-slate-200 text-slate-500 transition-all cursor-pointer"
+                    className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-slate-200 text-slate-500 transition-all cursor-pointer"
                   >
-                    <X className="h-5 w-5" />
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               </div>
 
               {/* Corpo em 2 Colunas */}
-              <div className="p-6 overflow-y-auto space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                   {/* Coluna Esquerda: Trajeto, Passageiro, Motorista (7 colunas) */}
-                  <div className="lg:col-span-7 space-y-4">
+                  <div className="lg:col-span-7 space-y-3">
                     {/* Trajeto Completo */}
-                    <div className="p-4.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                      <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
-                        <span className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                          <MapPin className="h-4 w-4 text-emerald-600" /> Itinerário de Corrida
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+                      <div className="flex items-center justify-between border-b border-slate-200/80 pb-1.5">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                          <MapPin className="h-3.5 w-3.5 text-emerald-600" /> Itinerário de Corrida
                         </span>
-                        <span className="text-xs font-bold text-slate-600 font-mono">
+                        <span className="text-[11px] font-bold text-slate-600 font-mono">
                           {distanciaKm} km • ~{tempoMin} min
                         </span>
                       </div>
 
-                      <div className="space-y-2.5 text-xs sm:text-sm">
-                        <div className="flex items-start gap-2.5">
-                          <span className="h-3 w-3 rounded-full bg-emerald-500 mt-1 shrink-0" />
+                      <div className="space-y-2 text-xs">
+                        <div className="flex items-start gap-2">
+                          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 mt-1 shrink-0" />
                           <div>
-                            <span className="text-[11px] font-bold text-slate-400 uppercase block">Ponto de Origem</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase block">Origem</span>
                             <p className="font-bold text-slate-900 leading-snug">{corridaDetalhe.origem}</p>
                           </div>
                         </div>
 
-                        <div className="flex items-start gap-2.5">
-                          <span className="h-3 w-3 rounded-full bg-red-500 mt-1 shrink-0" />
+                        <div className="flex items-start gap-2">
+                          <span className="h-2.5 w-2.5 rounded-full bg-red-500 mt-1 shrink-0" />
                           <div>
-                            <span className="text-[11px] font-bold text-slate-400 uppercase block">Ponto de Destino</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase block">Destino</span>
                             <p className="font-bold text-slate-900 leading-snug">{corridaDetalhe.destino}</p>
                           </div>
                         </div>
@@ -1358,63 +1367,63 @@ export function CentralOperacaoAdminPage() {
                     </div>
 
                     {/* Cards dos Envolvidos */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                       {/* Passageiro */}
-                      <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2.5 shadow-xs">
-                        <div className="flex items-center gap-3">
-                          <div className="h-11 w-11 rounded-2xl bg-primary-50 text-amber-800 flex items-center justify-center font-black shrink-0">
-                            <User className="h-5 w-5" />
+                      <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+                        <div className="flex items-center gap-2">
+                          <div className="h-8 w-8 rounded-lg bg-amber-50 text-amber-800 flex items-center justify-center font-black shrink-0">
+                            <User className="h-4 w-4" />
                           </div>
                           <div className="min-w-0">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Passageiro</span>
-                            <p className="font-black text-slate-900 text-sm truncate">{corridaDetalhe.passageiroNome}</p>
-                            <span className="text-xs text-slate-500">{corridaDetalhe.passageiroTelefone}</span>
+                            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Passageiro</span>
+                            <p className="font-black text-slate-900 text-xs truncate">{corridaDetalhe.passageiroNome}</p>
+                            <span className="text-[10px] text-slate-500">{corridaDetalhe.passageiroTelefone}</span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                        <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100">
                           <a
                             href={`tel:${corridaDetalhe.passageiroTelefone.replace(/\D/g, "")}`}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all"
+                            className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold transition-all"
                           >
-                            <Phone className="h-3.5 w-3.5" /> Ligar
+                            <Phone className="h-3 w-3" /> Ligar
                           </a>
                           <a
                             href={`https://wa.me/55${corridaDetalhe.passageiroTelefone.replace(/\D/g, "")}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-all border border-emerald-200"
+                            className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold transition-all border border-emerald-200/80"
                           >
-                            <MessageSquare className="h-3.5 w-3.5 text-emerald-600" /> WhatsApp
+                            <MessageSquare className="h-3 w-3 text-emerald-600" /> WhatsApp
                           </a>
                         </div>
                       </div>
 
                       {/* Motorista */}
-                      <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2.5 shadow-xs">
-                        <div className="flex items-center gap-3">
-                          <div className="h-11 w-11 rounded-2xl bg-blue-50 text-blue-800 flex items-center justify-center font-black shrink-0">
-                            {isCarro ? <Car className="h-5 w-5" /> : <Zap className="h-5 w-5" />}
+                      <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+                        <div className="flex items-center gap-2">
+                          <div className="h-8 w-8 rounded-lg bg-blue-50 text-blue-800 flex items-center justify-center font-black shrink-0">
+                            {isCarro ? <Car className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
                           </div>
                           <div className="min-w-0">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Motorista • {corridaDetalhe.modal}</span>
-                            <p className="font-black text-slate-900 text-sm truncate">{corridaDetalhe.motoristaNome}</p>
-                            <span className="text-xs text-slate-500">{corridaDetalhe.motoristaTelefone}</span>
+                            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Motorista • {corridaDetalhe.modal}</span>
+                            <p className="font-black text-slate-900 text-xs truncate">{corridaDetalhe.motoristaNome}</p>
+                            <span className="text-[10px] text-slate-500">{corridaDetalhe.motoristaTelefone}</span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                        <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100">
                           <a
                             href={`tel:${corridaDetalhe.motoristaTelefone.replace(/\D/g, "")}`}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all"
+                            className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold transition-all"
                           >
-                            <Phone className="h-3.5 w-3.5" /> Ligar
+                            <Phone className="h-3 w-3" /> Ligar
                           </a>
                           <a
                             href={`https://wa.me/55${corridaDetalhe.motoristaTelefone.replace(/\D/g, "")}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-all border border-emerald-200"
+                            className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold transition-all border border-emerald-200/80"
                           >
-                            <MessageSquare className="h-3.5 w-3.5 text-emerald-600" /> WhatsApp
+                            <MessageSquare className="h-3 w-3 text-emerald-600" /> WhatsApp
                           </a>
                         </div>
                       </div>
@@ -1422,61 +1431,57 @@ export function CentralOperacaoAdminPage() {
                   </div>
 
                   {/* Coluna Direita: Resumo Financeiro / Raio-X Contábil (5 colunas) */}
-                  <div className="lg:col-span-5 space-y-4">
-                    <div className="p-5 rounded-2xl bg-slate-950 text-white border border-slate-800 space-y-3.5 shadow-md">
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
-                        <span className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                          <Receipt className="h-4 w-4 text-amber-400" /> Resumo Financeiro
+                  <div className="lg:col-span-5 space-y-3">
+                    <div className="p-3.5 rounded-xl bg-slate-950 text-white border border-slate-800 space-y-2.5 shadow-xs">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1">
+                          <Receipt className="h-3.5 w-3.5 text-amber-400" /> Resumo Financeiro
                         </span>
-                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-300">
+                        <span className="text-[10px] font-bold px-2 py-0.2 rounded-md bg-slate-800 text-slate-300">
                           {isCarro ? "Carro Popular" : "Moto Flash"}
                         </span>
                       </div>
 
-                      <div className="space-y-2 text-xs sm:text-sm font-medium text-slate-300">
+                      <div className="space-y-1.5 text-xs font-medium text-slate-300">
                         <div className="flex justify-between">
                           <span className="text-slate-400">Tarifa Base:</span>
                           <span className="font-mono text-white">R$ {tarifaBase.toFixed(2).replace(".", ",")}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-400">Distância ({distanciaKm} km × R$ {taxaKm.toFixed(2)}):</span>
+                          <span className="text-slate-400">Distância ({distanciaKm} km):</span>
                           <span className="font-mono text-white">R$ {valorKm.toFixed(2).replace(".", ",")}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-400">Tempo ({tempoMin} min × R$ {taxaMin.toFixed(2)}):</span>
+                          <span className="text-slate-400">Tempo ({tempoMin} min):</span>
                           <span className="font-mono text-white">R$ {valorTempo.toFixed(2).replace(".", ",")}</span>
                         </div>
-                        <div className="flex justify-between border-t border-slate-800/80 pt-1.5">
-                          <span className="text-slate-400">Subtotal Operacional:</span>
+                        <div className="flex justify-between border-t border-slate-800/80 pt-1">
+                          <span className="text-slate-400">Subtotal:</span>
                           <span className="font-mono font-bold text-white">R$ {subtotal.toFixed(2).replace(".", ",")}</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Paradas Extras:</span>
-                          <span className="font-mono text-white">R$ 0,00</span>
-                        </div>
 
-                        <div className="border-t border-slate-800 pt-2.5 flex items-center justify-between">
-                          <span className="text-sm font-black text-white">Preço Final:</span>
-                          <span className="text-lg font-black text-amber-400 font-mono">
+                        <div className="border-t border-slate-800 pt-2 flex items-center justify-between">
+                          <span className="text-xs font-black text-white">Preço Final:</span>
+                          <span className="text-base font-black text-amber-400 font-mono">
                             R$ {precoFinal.toFixed(2).replace(".", ",")}
                           </span>
                         </div>
                       </div>
 
-                      <div className="p-3 rounded-xl bg-slate-900 border border-slate-800/80 space-y-1.5 text-xs">
+                      <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80 space-y-1 text-[11px]">
                         <div className="flex justify-between text-slate-400">
-                          <span>Taxa Plataforma (10%):</span>
+                          <span>Taxa App (10%):</span>
                           <span className="font-mono text-emerald-400 font-bold">R$ {taxaAppValor.toFixed(2).replace(".", ",")}</span>
                         </div>
                         <div className="flex justify-between text-slate-200 font-bold border-t border-slate-800 pt-1">
-                          <span>Líquido do Motorista:</span>
-                          <span className="font-mono text-white font-black text-sm">R$ {liquidoMotorista.toFixed(2).replace(".", ",")}</span>
+                          <span>Líquido Motorista:</span>
+                          <span className="font-mono text-white font-black text-xs">R$ {liquidoMotorista.toFixed(2).replace(".", ",")}</span>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
-                        <span>Forma de Pagamento:</span>
-                        <span className="font-bold text-white">PIX / Dinheiro</span>
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
+                        <span>Pagamento:</span>
+                        <span className="font-bold text-white">PIX / Dinheiro Direto</span>
                       </div>
                     </div>
                   </div>
@@ -1484,13 +1489,210 @@ export function CentralOperacaoAdminPage() {
               </div>
 
               {/* Rodapé do Modal */}
-              <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end shrink-0">
+              <div className="px-4 sm:px-5 py-2.5 bg-slate-50 border-t border-slate-200 flex justify-end shrink-0">
                 <button
                   type="button"
                   onClick={() => setCorridaDetalhe(null)}
-                  className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm cursor-pointer shadow-sm transition-all"
+                  className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer shadow-xs transition-all"
                 >
-                  Fechar Detalhes
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* MODAL DETALHE DA ENTREGA (DUPLO PIN & CONTROLE COMPLETO) */}
+      {entregaDetalhe && (() => {
+        const taxaAppValor = Math.round(entregaDetalhe.valor * 0.10 * 100) / 100;
+        const liquidoEntregador = Math.round((entregaDetalhe.valor - taxaAppValor) * 100) / 100;
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
+            <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl border border-slate-200 overflow-hidden flex flex-col my-auto max-h-[90vh]">
+              {/* Header do Modal */}
+              <div className="flex items-center justify-between border-b border-slate-200 px-4 sm:px-5 py-3 bg-slate-50/80 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-black">
+                    <Package className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm sm:text-base font-black text-slate-900">
+                        Entrega Flash #{entregaDetalhe.id}
+                      </h3>
+                      <span className={`px-2 py-0.2 rounded-full text-[10px] font-black uppercase ${
+                        entregaDetalhe.status === "EM_TRANSITO" || entregaDetalhe.status === "COLETANDO"
+                          ? "bg-blue-100 text-blue-800 border border-blue-300 animate-pulse"
+                          : entregaDetalhe.status === "CONCLUIDA"
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-red-100 text-red-700"
+                      }`}>
+                        {entregaDetalhe.status}
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-slate-500 font-medium">{entregaDetalhe.cidade} • Solicitada às {entregaDetalhe.solicitadaEm}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setEntregaDetalhe(null)}
+                    className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-slate-200 text-slate-500 transition-all cursor-pointer"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Corpo */}
+              <div className="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs">
+                {/* Validação de Segurança Duplo PIN */}
+                <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 block">
+                      Segurança de Custódia • Validação Duplo PIN
+                    </span>
+                    <p className="text-[11px] text-amber-800 mt-0.5">
+                      O entregador só libera o pacote mediante validação dos PINs de coleta e entrega.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="px-3 py-1.5 bg-white border border-amber-300 rounded-xl text-center shadow-2xs">
+                      <span className="text-[9px] font-black uppercase text-slate-400 block">PIN 1 (Coleta)</span>
+                      <span className="text-sm font-mono font-black text-amber-900">{entregaDetalhe.pickupPin}</span>
+                    </div>
+                    <div className="px-3 py-1.5 bg-emerald-50 border border-emerald-300 rounded-xl text-center shadow-2xs">
+                      <span className="text-[9px] font-black uppercase text-emerald-700 block">PIN 2 (Entrega)</span>
+                      <span className="text-sm font-mono font-black text-emerald-950">{entregaDetalhe.dropoffPin}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                  {/* Trajeto & Envolvidos */}
+                  <div className="lg:col-span-7 space-y-3">
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5 text-[#0088FF]" /> Itinerário do Pacote
+                      </span>
+                      <div className="space-y-2 text-xs">
+                        <div className="flex items-start gap-2">
+                          <span className="h-2.5 w-2.5 rounded-full bg-amber-500 mt-1 shrink-0" />
+                          <div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase block">Coleta (Origem)</span>
+                            <p className="font-bold text-slate-900 leading-snug">{entregaDetalhe.origem}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 mt-1 shrink-0" />
+                          <div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase block">Entrega (Destino)</span>
+                            <p className="font-bold text-slate-900 leading-snug">{entregaDetalhe.destino}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {/* Remetente */}
+                      <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+                        <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Remetente</span>
+                        <p className="font-black text-slate-900 text-xs truncate">{entregaDetalhe.remetenteNome}</p>
+                        <span className="text-[10px] text-slate-500 block">{entregaDetalhe.remetenteTelefone}</span>
+                        <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100">
+                          <a
+                            href={`tel:${entregaDetalhe.remetenteTelefone.replace(/\D/g, "")}`}
+                            className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold"
+                          >
+                            <Phone className="h-3 w-3" /> Ligar
+                          </a>
+                          <a
+                            href={`https://wa.me/55${entregaDetalhe.remetenteTelefone.replace(/\D/g, "")}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200/80"
+                          >
+                            <MessageSquare className="h-3 w-3 text-emerald-600" /> WhatsApp
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Destinatário */}
+                      <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+                        <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Destinatário</span>
+                        <p className="font-black text-slate-900 text-xs truncate">{entregaDetalhe.destinatarioNome}</p>
+                        <span className="text-[10px] text-slate-500 block">{entregaDetalhe.destinatarioTelefone}</span>
+                        <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100">
+                          <a
+                            href={`tel:${entregaDetalhe.destinatarioTelefone.replace(/\D/g, "")}`}
+                            className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold"
+                          >
+                            <Phone className="h-3 w-3" /> Ligar
+                          </a>
+                          <a
+                            href={`https://wa.me/55${entregaDetalhe.destinatarioTelefone.replace(/\D/g, "")}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200/80"
+                          >
+                            <MessageSquare className="h-3 w-3 text-emerald-600" /> WhatsApp
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Entregador & Financeiro */}
+                  <div className="lg:col-span-5 space-y-3">
+                    <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Entregador Responsável</span>
+                      <p className="font-black text-slate-900 text-xs">{entregaDetalhe.entregadorNome}</p>
+                      <span className="text-[10px] text-slate-500 block">Modal {entregaDetalhe.modal} • {entregaDetalhe.cidade}</span>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-slate-950 text-white border border-slate-800 space-y-2.5 shadow-xs">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1">
+                          <Receipt className="h-3.5 w-3.5 text-amber-400" /> Resumo Financeiro
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.2 rounded-md bg-slate-800 text-slate-300">
+                          Flash Express
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-slate-400">Valor Total do Frete:</span>
+                        <span className="text-base font-black text-amber-400 font-mono">
+                          R$ {entregaDetalhe.valor.toFixed(2).replace(".", ",")}
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80 space-y-1 text-[11px]">
+                        <div className="flex justify-between text-slate-400">
+                          <span>Taxa App (10%):</span>
+                          <span className="font-mono text-emerald-400 font-bold">R$ {taxaAppValor.toFixed(2).replace(".", ",")}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-200 font-bold border-t border-slate-800 pt-1">
+                          <span>Líquido Entregador:</span>
+                          <span className="font-mono text-white font-black text-xs">R$ {liquidoEntregador.toFixed(2).replace(".", ",")}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Rodapé do Modal */}
+              <div className="px-4 sm:px-5 py-2.5 bg-slate-50 border-t border-slate-200 flex justify-end shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setEntregaDetalhe(null)}
+                  className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer shadow-xs transition-all"
+                >
+                  Fechar
                 </button>
               </div>
             </div>
@@ -1500,45 +1702,45 @@ export function CentralOperacaoAdminPage() {
 
       {/* MODAL DETALHE DO TICKET DE SUPORTE */}
       {ticketDetalhe && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl border border-slate-200 space-y-3.5">
+            <div className="flex items-center justify-between border-b pb-2.5">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                <h3 className="text-base font-black text-slate-900">Atendimento {ticketDetalhe.protocolo}</h3>
+                <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                <h3 className="text-sm font-black text-slate-900">Atendimento {ticketDetalhe.protocolo}</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setTicketDetalhe(null)}
-                className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-slate-100 text-slate-500"
+                className="h-7 w-7 rounded-lg flex items-center justify-center hover:bg-slate-100 text-slate-500"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-2.5 text-xs">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                <span className="text-slate-500 block">Descrição da Ocorrência:</span>
+                <span className="text-[10px] font-black uppercase text-slate-400 block">Descrição da Ocorrência</span>
                 <p className="font-bold text-slate-900 mt-0.5">{ticketDetalhe.descricao}</p>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Nota de Resolução do Atendente:</label>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">Nota de Resolução do Atendente:</label>
                 <textarea
                   rows={3}
                   placeholder="Descreva a ação tomada para encerrar o chamado..."
                   value={resolucaoTexto}
                   onChange={(e) => setResolucaoTexto(e.target.value)}
-                  className="w-full p-3 rounded-xl border border-slate-300 text-xs font-medium focus:ring-2 focus:ring-slate-900"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-medium focus:border-slate-900 focus:outline-hidden"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 pt-2">
+            <div className="grid grid-cols-2 gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setTicketDetalhe(null)}
-                className="h-11 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200"
+                className="h-9 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200 transition-all cursor-pointer"
               >
                 Cancelar
               </button>
@@ -1551,7 +1753,7 @@ export function CentralOperacaoAdminPage() {
                   setTicketDetalhe(null);
                   setResolucaoTexto("");
                 }}
-                className="h-11 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 shadow-xs"
+                className="h-9 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 shadow-xs transition-all cursor-pointer"
               >
                 Marcar como Resolvido
               </button>

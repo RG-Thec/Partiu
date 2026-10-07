@@ -52,6 +52,8 @@ import {
   type DriverSubscriptionRecord,
 } from "@/lib/ecosystem/driver-subscription-service";
 import { useCaixaAdmin, usePartiuRides, usePartiuRidesRealtime, useMotoristas } from "@/lib/partiu-db";
+import { getAdminRole } from "@/lib/admin-rbac";
+import { useAdminCity } from "@/contexts/AdminCityContext";
 
 export const Route = createFileRoute("/app/admin/financeiro")({
   head: () => ({
@@ -83,6 +85,8 @@ export function PainelFinanceiroUnificadoPage() {
   const { data: ridesBanco = [] } = usePartiuRides(100);
   const { data: caixasBanco = [] } = useCaixaAdmin();
   const { data: motoristasBanco = [] } = useMotoristas();
+  const { pracaAtiva, isNacional } = useAdminCity();
+  const adminRole = getAdminRole();
   const config = getSuperAdminConfig();
 
   // 1. VISÃO CONSOLIDADA (CÁLCULO EM TEMPO REAL)
@@ -258,90 +262,115 @@ export function PainelFinanceiroUnificadoPage() {
   return (
     <div className="w-full space-y-6 sm:space-y-8 pb-20">
       {/* 1. Header Executivo Financeiro */}
-      <div className="rounded-2xl bg-slate-950 p-5 sm:p-6 text-white shadow-md border border-slate-800 relative overflow-hidden">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#0088FF]/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#0088FF] border border-[#0088FF]/30 mb-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Faturamento SaaS 0% Comissão • Liquidação Direta</span>
-            </div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight">
-              Governança <span className="text-[#0088FF]">Financeira &amp; Monetização SaaS</span>
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-normal leading-relaxed mt-1">
-              Unificação completa de Faturamento de Diárias SaaS, Volume Transacionado (100% direto aos condutores) e Gestão Tarifária de Carro e Moto.
-            </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+              FinOps &amp; Governança SaaS • {adminRole === "franqueado" ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
+            </span>
           </div>
+          <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            Cockpit Financeiro &amp; Monetização
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+              D+0 DIRETO
+            </span>
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#0088FF] border border-blue-200/50">
+              0% COMISSÃO
+            </span>
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Consolidação de diárias SaaS, faturamento de motoristas 100% direto e parametrização tarifária.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => alert("Relatório contábil gerado! O arquivo CSV do livro-razão está pronto para download.")}
+            className="flex h-10 items-center gap-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 px-4 text-xs font-black shadow-xs transition-all cursor-pointer"
+          >
+            <Download className="h-3.5 w-3.5 text-[#0088FF]" />
+            <span>Exportar Livro-Razão</span>
+          </button>
         </div>
       </div>
 
       {/* 2. Barra de Abas Principais (Consolidado | Diárias SaaS | Tarifas | Assinaturas) */}
-      <div className="flex items-center gap-2 p-1.5 sm:p-2 bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-sm overflow-x-auto no-scrollbar scroll-smooth">
+      <div className="flex items-center gap-1.5 p-1.5 bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-x-auto no-scrollbar">
         <button
           type="button"
           onClick={() => setAbaAtiva("consolidado")}
-          className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer shrink-0 ${
-            abaAtiva === "consolidado" ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
+            abaAtiva === "consolidado"
+              ? "bg-slate-950 text-white shadow-xs"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-[#0088FF]" />
+          <TrendingUp className="h-4 w-4 text-[#0088FF]" />
           <span>Visão Consolidada</span>
         </button>
 
         <button
           type="button"
           onClick={() => setAbaAtiva("diarias")}
-          className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer shrink-0 ${
-            abaAtiva === "diarias" ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
+            abaAtiva === "diarias"
+              ? "bg-slate-950 text-white shadow-xs"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <Layers className="h-4 w-4 sm:h-5 sm:w-5 text-[#0088FF]" />
+          <Layers className="h-4 w-4 text-[#0088FF]" />
           <span>Monetização &amp; Planos SaaS</span>
         </button>
 
         <button
           type="button"
           onClick={() => setAbaAtiva("tarifas")}
-          className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer shrink-0 ${
-            abaAtiva === "tarifas" ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
+            abaAtiva === "tarifas"
+              ? "bg-slate-950 text-white shadow-xs"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-[#0088FF]" />
+          <DollarSign className="h-4 w-4 text-[#0088FF]" />
           <span>Gestão Tarifária</span>
         </button>
 
         <button
           type="button"
           onClick={() => setAbaAtiva("assinaturas")}
-          className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer shrink-0 ${
-            abaAtiva === "assinaturas" ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
+            abaAtiva === "assinaturas"
+              ? "bg-slate-950 text-white shadow-xs"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <Receipt className="h-4 w-4 sm:h-5 sm:w-5 text-[#0088FF]" />
-          <span>Extrato de Assinaturas &amp; Diárias</span>
-          <span className="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-900 font-bold">
-            100% Repasse D+0
+          <Receipt className="h-4 w-4 text-[#0088FF]" />
+          <span>Extrato de Assinaturas</span>
+          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] text-emerald-800 font-bold">
+            D+0
           </span>
         </button>
       </div>
 
       {/* 3. ABA 1: VISÃO CONSOLIDADA (5 INDICADORES OBRIGATÓRIOS) */}
       {abaAtiva === "consolidado" && (
-        <div className="space-y-6 sm:space-y-8">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+        <div className="space-y-4 sm:space-y-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             {/* Receita do Dia */}
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
-              <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider">Receita do Dia</span>
-              <div className="pt-3 sm:pt-4">
-                <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-slate-900 tracking-tight">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Receita do Dia</span>
+              <div className="pt-2">
+                <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                   R$ {receitaHoje.toFixed(2).replace(".", ",")}
                 </p>
                 {receitaHoje > 0 ? (
-                  <span className="text-xs sm:text-sm text-emerald-600 font-bold flex items-center gap-1 mt-1">
-                    <ArrowUpRight className="h-4 w-4" /> Faturamento apurado
+                  <span className="text-[11px] text-emerald-600 font-bold flex items-center gap-1 mt-1">
+                    <ArrowUpRight className="h-3.5 w-3.5" /> Apurado hoje
                   </span>
                 ) : (
-                  <span className="text-xs sm:text-sm text-slate-400 font-bold mt-1 block truncate">
+                  <span className="text-[11px] text-slate-400 font-bold mt-1 block truncate">
                     Aguardando corridas
                   </span>
                 )}
@@ -349,77 +378,77 @@ export function PainelFinanceiroUnificadoPage() {
             </div>
 
             {/* Receita do Mês */}
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
-              <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider">Receita do Mês</span>
-              <div className="pt-3 sm:pt-4">
-                <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-slate-900 tracking-tight">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Receita do Mês</span>
+              <div className="pt-2">
+                <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                   R$ {receitaMes.toFixed(2).replace(".", ",")}
                 </p>
-                <span className="text-xs sm:text-sm text-slate-500 font-bold mt-1 block truncate">
+                <span className="text-[11px] text-slate-500 font-bold mt-1 block truncate">
                   {receitaMes > 0 ? "Volume acumulado" : "Início do período"}
                 </span>
               </div>
             </div>
 
             {/* PIX Recebidos */}
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
-              <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider">PIX Recebidos</span>
-              <div className="pt-3 sm:pt-4">
-                <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-emerald-600 tracking-tight">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">PIX Recebidos</span>
+              <div className="pt-2">
+                <p className="text-xl sm:text-2xl font-black text-emerald-600 tracking-tight">
                   R$ {pixRecebidosVolume.toFixed(2).replace(".", ",")}
                 </p>
-                <span className="text-xs sm:text-sm text-emerald-700 font-bold mt-1 block truncate">
+                <span className="text-[11px] text-emerald-700 font-bold mt-1 block truncate">
                   {pixProcessadosQtd > 0 ? "Transações confirmadas" : "Nenhum PIX hoje"}
                 </span>
               </div>
             </div>
 
             {/* PIX Processados */}
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
-              <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider">PIX Processados</span>
-              <div className="pt-3 sm:pt-4">
-                <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-slate-900 tracking-tight">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">PIX Processados</span>
+              <div className="pt-2">
+                <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                   {pixProcessadosQtd}
                 </p>
-                <span className="text-xs sm:text-sm text-slate-500 font-bold mt-1 block truncate">
-                  Liquidação imediata (&lt;2s)
+                <span className="text-[11px] text-slate-500 font-bold mt-1 block truncate">
+                  Liquidação (&lt;2s)
                 </span>
               </div>
             </div>
 
             {/* Faturamento SaaS Diárias */}
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between col-span-2 sm:col-span-1">
-              <span className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider">Faturamento SaaS Diárias</span>
-              <div className="pt-3 sm:pt-4">
-                <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-emerald-600 tracking-tight">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between col-span-2 sm:col-span-1">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Faturamento Diárias</span>
+              <div className="pt-2">
+                <p className="text-xl sm:text-2xl font-black text-emerald-600 tracking-tight">
                   R$ {faturamentoSaasHoje.toFixed(2).replace(".", ",")}
                 </p>
-                <span className="text-xs sm:text-sm text-emerald-700 font-bold mt-1 block truncate">
-                  Receita Líquida do App
+                <span className="text-[11px] text-emerald-700 font-bold mt-1 block truncate">
+                  Receita do App
                 </span>
               </div>
             </div>
           </div>
 
           {/* Destaque FinOps & Auditoria */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-slate-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-md">
-            <div className="flex items-center gap-4 sm:gap-5">
-              <div className="h-14 w-14 rounded-2xl bg-blue-500/20 text-[#0088FF] flex items-center justify-center font-black shrink-0">
-                <ShieldCheck className="h-7 w-7" />
+          <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="h-11 w-11 rounded-xl bg-blue-50 text-[#0088FF] flex items-center justify-center font-black shrink-0 border border-blue-200/50">
+                <ShieldCheck className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-lg sm:text-xl font-black">Livro-Razão (Ledger) com Validação Estrita</h3>
-                <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1 max-w-2xl">
-                  Todas as transações são auditadas com precisão em centavos inteiros (Minor Units). Zero divergência de saldo.
+                <h3 className="text-sm font-black text-slate-900">Livro-Razão (Ledger) com Validação Estrita</h3>
+                <p className="text-xs text-slate-500 font-normal mt-0.5">
+                  Todas as transações são auditadas em centavos inteiros (Minor Units). Zero divergência de saldo ou inconsistência contábil.
                 </p>
               </div>
             </div>
             <button
               type="button"
               onClick={() => alert("Relatório contábil gerado! O arquivo CSV do livro-razão está pronto para download.")}
-              className="flex h-12 items-center gap-2 rounded-2xl bg-white text-slate-950 px-6 text-xs sm:text-sm font-black hover:bg-slate-100 transition-all cursor-pointer shrink-0 active:scale-95 shadow-sm"
+              className="flex h-10 items-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 px-4 text-xs font-black transition-all cursor-pointer shrink-0"
             >
-              <Download className="h-4 w-4" />
+              <Download className="h-3.5 w-3.5" />
               <span>Exportar Livro-Razão</span>
             </button>
           </div>
@@ -1056,60 +1085,60 @@ export function PainelFinanceiroUnificadoPage() {
           </div>
 
           {/* Cards de Métricas SaaS */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow">
-              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500 block">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">
                 Diárias Hoje
               </span>
-              <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-slate-900 mt-2">
+              <p className="text-xl sm:text-2xl font-black text-slate-900 mt-1.5">
                 R$ {saasMetrics.totalRevenueToday.toFixed(2).replace(".", ",")}
               </p>
-              <span className="text-xs sm:text-sm font-bold text-emerald-600 flex items-center gap-1.5 mt-1.5">
-                <CheckCircle2 className="w-4 h-4" /> PIX D+0 Reconhecido
+              <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
+                <CheckCircle2 className="w-3.5 h-3.5" /> PIX D+0 Reconhecido
               </span>
             </div>
 
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow">
-              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500 block">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">
                 Faturamento SaaS (Mês)
               </span>
-              <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-slate-900 mt-2">
+              <p className="text-xl sm:text-2xl font-black text-slate-900 mt-1.5">
                 R$ {saasMetrics.totalRevenueMonth.toFixed(2).replace(".", ",")}
               </p>
-              <span className="text-xs sm:text-sm font-bold text-blue-600 flex items-center gap-1.5 mt-1.5">
-                <TrendingUp className="w-4 h-4" /> Receita da Plataforma
+              <span className="text-[11px] font-bold text-blue-600 flex items-center gap-1 mt-1">
+                <TrendingUp className="w-3.5 h-3.5" /> Receita da Plataforma
               </span>
             </div>
 
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow">
-              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500 block">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">
                 Condutores Desbloqueados
               </span>
-              <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-emerald-600 mt-2">
+              <p className="text-xl sm:text-2xl font-black text-emerald-600 mt-1.5">
                 {saasMetrics.activeDriversCount}
               </p>
-              <span className="text-xs sm:text-sm font-bold text-slate-500 block mt-1.5">
+              <span className="text-[11px] font-bold text-slate-500 block mt-1">
                 Diária Válida (24h)
               </span>
             </div>
 
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow">
-              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500 block">
-                Condutores Vencidos / Bloqueados
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">
+                Condutores Vencidos
               </span>
-              <p className="text-2xl sm:text-3xl xl:text-4xl font-black text-amber-600 mt-2">
+              <p className="text-xl sm:text-2xl font-black text-amber-600 mt-1.5">
                 {saasMetrics.expiredDriversCount}
               </p>
-              <span className="text-xs sm:text-sm font-bold text-slate-500 block mt-1.5">
-                Cockpit Travado (Aguardando PIX)
+              <span className="text-[11px] font-bold text-slate-500 block mt-1">
+                Aguardando PIX Diária
               </span>
             </div>
           </div>
 
           {/* Versão Mobile (Cards de Assinaturas) */}
-          <div className="grid grid-cols-1 gap-3 md:hidden">
+          <div className="grid grid-cols-1 gap-2.5 md:hidden">
             {assinaturas.length === 0 ? (
-              <div className="bg-white p-8 rounded-3xl border border-slate-200 text-center text-slate-400 text-xs">
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center text-slate-400 text-xs">
                 Nenhuma assinatura ou diária registrada até o momento.
               </div>
             ) : (
@@ -1120,44 +1149,44 @@ export function PainelFinanceiroUnificadoPage() {
                 const tempoRestante = driverSubscriptionService.getRemainingTime(sub);
 
                 return (
-                  <div key={sub.id} className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-3">
-                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-                      <div className="flex items-center gap-2 min-w-0">
+                  <div key={sub.id} className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-xs space-y-2.5">
+                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-black shrink-0 ${
-                          sub.vehicle_type === "CARRO" ? "bg-primary-50 text-amber-900" : "bg-blue-100 text-blue-900"
+                          sub.vehicle_type === "CARRO" ? "bg-blue-50 text-blue-800" : "bg-amber-50 text-amber-800"
                         }`}>
                           {sub.vehicle_type}
                         </span>
                         <p className="font-bold text-slate-900 text-xs truncate">Condutor: {sub.driver_id}</p>
                       </div>
-                      <span className="font-black text-slate-950 text-sm shrink-0">
+                      <span className="font-black text-slate-950 text-xs shrink-0">
                         R$ {sub.amount_paid.toFixed(2).replace(".", ",")}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2 rounded-xl border border-slate-100">
                       <div>
-                        <span className="text-[10px] font-black uppercase text-slate-400 block">Início da Diária:</span>
+                        <span className="text-[10px] font-black uppercase text-slate-400 block">Início:</span>
                         <p className="font-mono font-bold text-slate-800 text-[11px]">
                           {new Date(sub.starts_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                         </p>
                       </div>
                       <div>
-                        <span className="text-[10px] font-black uppercase text-slate-400 block">Validade / Expiração:</span>
+                        <span className="text-[10px] font-black uppercase text-slate-400 block">Validade:</span>
                         <p className="font-bold text-slate-700 text-[11px]">
                           {isAtiva ? `⏱️ Restam ${tempoRestante.formatted}` : "❌ Expirada"}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between gap-2 pt-1">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                    <div className="flex items-center justify-between gap-2 pt-0.5">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
                         isAtiva ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
                       }`}>
-                        {isAtiva ? "Cockpit Liberado" : "Cockpit Travado"}
+                        {isAtiva ? "● Liberado" : "● Bloqueado"}
                       </span>
 
-                      <span className="text-[10px] font-mono text-slate-400 truncate max-w-[140px]">
+                      <span className="text-[10px] font-mono text-slate-400 truncate max-w-[130px]">
                         {sub.pix_txid}
                       </span>
                     </div>
@@ -1168,23 +1197,23 @@ export function PainelFinanceiroUnificadoPage() {
           </div>
 
           {/* Versão Desktop (Tabela) */}
-          <div className="hidden md:block bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-sm">
+          <div className="hidden md:block bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="bg-slate-50/90 text-slate-500 uppercase font-black tracking-wider text-xs sm:text-sm border-b border-slate-200">
+                <thead className="bg-slate-50/90 text-slate-500 uppercase font-black tracking-wider text-[11px] border-b border-slate-200">
                   <tr>
-                    <th className="py-4.5 px-6">Condutor &amp; Modal</th>
-                    <th className="py-4.5 px-6">Início da Diária</th>
-                    <th className="py-4.5 px-6">Expiração (24 Horas)</th>
-                    <th className="py-4.5 px-6 text-right">Valor Pago (PIX)</th>
-                    <th className="py-4.5 px-6">Status do Cockpit</th>
-                    <th className="py-4.5 px-6 font-mono text-xs">PIX TxID</th>
+                    <th className="py-3 px-4">Condutor &amp; Modal</th>
+                    <th className="py-3 px-4">Início da Diária</th>
+                    <th className="py-3 px-4">Expiração (24h)</th>
+                    <th className="py-3 px-4 text-right">Valor (PIX)</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4 font-mono text-[10px]">TxID</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 text-xs">
                   {assinaturas.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-12 px-6 text-center text-slate-400 text-sm font-medium">
+                      <td colSpan={6} className="py-8 px-4 text-center text-slate-400 text-xs font-medium">
                         Nenhuma diária ou assinatura registrada até o momento.
                       </td>
                     </tr>
@@ -1197,49 +1226,49 @@ export function PainelFinanceiroUnificadoPage() {
 
                       return (
                         <tr key={sub.id} className="hover:bg-slate-50/70 transition-colors">
-                          <td className="py-4.5 px-6">
-                            <div className="flex items-center gap-3">
-                              <span className={`px-2.5 py-1 rounded-lg text-xs font-black ${
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
                                 sub.vehicle_type === "CARRO" ? "bg-blue-50 text-blue-800 border border-blue-200" : "bg-amber-50 text-amber-800 border border-amber-200"
                               }`}>
                                 {sub.vehicle_type}
                               </span>
-                              <span className="font-black text-sm sm:text-base text-slate-900">{sub.driver_id}</span>
+                              <span className="font-bold text-slate-900">{sub.driver_id}</span>
                             </div>
                           </td>
 
-                          <td className="py-4.5 px-6 font-mono font-bold text-xs sm:text-sm text-slate-700">
+                          <td className="py-3 px-4 font-mono text-slate-600 text-xs">
                             {new Date(sub.starts_at).toLocaleDateString("pt-BR")} às{" "}
                             {new Date(sub.starts_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                           </td>
 
-                          <td className="py-4.5 px-6 font-bold text-xs sm:text-sm text-slate-700">
+                          <td className="py-3 px-4 font-medium text-slate-700">
                             {isAtiva ? (
-                              <span className="text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200/80 inline-flex items-center gap-1.5 font-black">
-                                ⏱️ Restam {tempoRestante.formatted}
+                              <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/80 inline-flex items-center gap-1 font-bold text-[11px]">
+                                ⏱️ {tempoRestante.formatted}
                               </span>
                             ) : (
-                              <span className="text-rose-700 bg-rose-50 px-3 py-1 rounded-xl border border-rose-200/80 inline-flex items-center gap-1.5 font-bold">
-                                Expirada em {new Date(sub.expires_at).toLocaleDateString("pt-BR")}
+                              <span className="text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200/80 inline-flex items-center gap-1 font-bold text-[11px]">
+                                Expirada
                               </span>
                             )}
                           </td>
 
-                          <td className="py-4.5 px-6 text-right font-black text-slate-900 text-base sm:text-lg">
+                          <td className="py-3 px-4 text-right font-black text-slate-900">
                             R$ {sub.amount_paid.toFixed(2).replace(".", ",")}
                           </td>
 
-                          <td className="py-4.5 px-6">
-                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs sm:text-sm font-black uppercase ${
+                          <td className="py-3 px-4">
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${
                               isAtiva
                                 ? "bg-emerald-100 text-emerald-800"
                                 : "bg-rose-100 text-rose-800"
                             }`}>
-                              {isAtiva ? "● Liberado (24h)" : "● Bloqueado"}
+                              {isAtiva ? "● Liberado" : "● Bloqueado"}
                             </span>
                           </td>
 
-                          <td className="py-4.5 px-6 font-mono text-xs sm:text-sm text-slate-500 font-medium">
+                          <td className="py-3 px-4 font-mono text-[10px] text-slate-400">
                             {sub.pix_txid}
                           </td>
                         </tr>
