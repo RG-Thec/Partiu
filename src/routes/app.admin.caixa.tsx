@@ -12,16 +12,16 @@ import {
 export const Route = createFileRoute("/app/admin/caixa")({
   head: () => ({
     meta: [
-      { title: "Fechamento de Caixa | PARTIU Admin" },
+      { title: "Fechamento de Caixa (Zero Comissão) | PARTIU Admin" },
       {
         name: "description",
         content:
-          "Feche o caixa dos motoristas parceiros com cálculo automático conforme o plano de assinatura ativo (0% Ouro a 5% Free) e repasse via PIX D+0.",
+          "Fechamento de caixa e controle de repasse financeiro. Padrão PARTIU: 0% de comissão de corrida e 100% repasse líquido D+0 ao motorista parceiro.",
       },
       { property: "og:title", content: "Fechamento de Caixa | PARTIU Admin" },
       {
         property: "og:description",
-        content: "Split financeiro da plataforma PARTIU conectado ao banco de dados.",
+        content: "Split financeiro da plataforma PARTIU com 0% taxa e modelo SaaS de assinaturas.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -45,7 +45,7 @@ export function AdminCaixaPage() {
   const [motoristaId, setMotoristaId] = useState("");
   const [data, setData] = useState(() => new Date().toISOString().slice(0, 10));
   const [totalBruto, setTotalBruto] = useState("0");
-  const [taxa, setTaxa] = useState("8");
+  const [taxa, setTaxa] = useState("0");
   const [mensagem, setMensagem] = useState<string | null>(null);
 
   const previa = calcularSplit(Number(totalBruto) || 0, Number(taxa) || 0);
@@ -84,11 +84,16 @@ export function AdminCaixaPage() {
       <div className="px-5 pt-5 pb-12">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
+                0% Zero Comissão • Padrão PARTIU
+              </span>
+            </div>
             <h1 className="text-2xl font-black tracking-tight text-foreground">
-              Fechamento de caixa
+              Fechamento de Caixa
             </h1>
             <p className="text-sm text-muted-foreground">
-              Split da plataforma gravado direto no banco de dados.
+              Repasse financeiro D+0. No PARTIU, 100% da corrida pertence ao motorista (monetização exclusiva via SaaS/Diárias).
             </p>
           </div>
           <button
@@ -102,9 +107,9 @@ export function AdminCaixaPage() {
 
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           {[
-            ["Bruto consolidado", consolidado.bruto, Wallet],
-            ["Taxa PARTIU (Plataforma)", consolidado.cooperativa, Banknote],
-            ["Repasse motoristas", consolidado.motoristas, Banknote],
+            ["Bruto consolidado (GMV)", consolidado.bruto, Wallet],
+            ["Retenção Plataforma (0% Padrão)", consolidado.cooperativa, Banknote],
+            ["Repasse Líquido Motoristas (100%)", consolidado.motoristas, Banknote],
           ].map(([rotulo, valor, Icone]) => {
             const I = Icone as typeof Wallet;
             return (

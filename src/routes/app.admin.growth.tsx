@@ -662,15 +662,15 @@ export function GrowthAndRetentionCenter() {
 
               <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-1.5 font-medium">
                 <span className="text-[10px] font-black uppercase text-slate-400 block">
-                  Distribuição de Planos
+                  Distribuição de Planos SaaS (0% Taxa)
                 </span>
                 <div className="flex justify-between text-slate-700">
-                  <span>Livre (5%): 40%</span>
-                  <span>Bronze: 35%</span>
+                  <span>Mensal Ouro (30d): 60%</span>
+                  <span>Semanal (7d): 25%</span>
                 </div>
                 <div className="flex justify-between text-slate-700">
-                  <span>Prata: 15%</span>
-                  <span>Ouro (R$ 99): 10%</span>
+                  <span>Diária 24h: 15%</span>
+                  <span className="text-emerald-700 font-bold">0% Taxa em todos</span>
                 </div>
               </div>
             </div>
@@ -682,37 +682,37 @@ export function GrowthAndRetentionCenter() {
               <div>
                 <h3 className="text-base font-black text-slate-950">Demonstração de Resultados (DRE Mensal)</h3>
                 <p className="text-xs text-slate-500">
-                  GMV total movimentado, receitas combinadas e margem líquida sustentável.
+                  GMV total movimentado (100% dos motoristas) e receita SaaS recorrente da franquia.
                 </p>
               </div>
               <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-900 border border-emerald-200 font-black text-xs">
-                Take-rate Efetivo: {simOutput.effectiveTakeRatePercent}%
+                Zero Comissão: 0% Taxa p/ Corrida
               </span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                <span className="text-[10px] font-black uppercase text-slate-400 block">GMV Total</span>
+                <span className="text-[10px] font-black uppercase text-slate-400 block">GMV Total (Frota)</span>
                 <span className="text-xl font-black text-slate-900 block mt-1">
                   R$ {(simOutput.totalMarketplaceGMVBrl / 1000).toFixed(1)}k
                 </span>
-                <span className="text-[10px] text-slate-500">{simOutput.totalMonthlyTrips} corridas/mês</span>
+                <span className="text-[10px] text-emerald-700 font-bold">100% Repasse Líquido</span>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                <span className="text-[10px] font-black uppercase text-slate-400 block">Receita SaaS</span>
+                <span className="text-[10px] font-black uppercase text-slate-400 block">Receita SaaS Plataforma</span>
                 <span className="text-xl font-black text-slate-900 block mt-1">
-                  R$ {simOutput.saasSubscriptionRevenueBrl.toLocaleString("pt-BR")}
+                  R$ {(simOutput.saasSubscriptionRevenueBrl + simOutput.takeRateCommissionsRevenueBrl).toLocaleString("pt-BR")}
                 </span>
-                <span className="text-[10px] text-slate-500">Mensalidades pré-pagas</span>
+                <span className="text-[10px] text-slate-500">Assinaturas + Diárias</span>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                <span className="text-[10px] font-black uppercase text-slate-400 block">Comissões</span>
-                <span className="text-xl font-black text-slate-900 block mt-1">
-                  R$ {simOutput.takeRateCommissionsRevenueBrl.toLocaleString("pt-BR")}
+                <span className="text-[10px] font-black uppercase text-slate-400 block">Comissão PARTIU</span>
+                <span className="text-xl font-black text-emerald-700 block mt-1">
+                  R$ 0,00
                 </span>
-                <span className="text-[10px] text-slate-500">Corridas variáveis</span>
+                <span className="text-[10px] text-emerald-700 font-bold">Isento nas Corridas (0%)</span>
               </div>
             </div>
 

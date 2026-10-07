@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   AlertCircle,
   AlertTriangle,
@@ -36,6 +36,7 @@ import {
   ThumbsUp,
   ThumbsDown,
   MapPin,
+  Receipt,
 } from "lucide-react";
 import {
   useMotoristas,
@@ -45,6 +46,7 @@ import {
   useRejeitarPartiuMotorista,
   useAtualizarCategoriaMotorista,
 } from "@/lib/partiu-db";
+import { driverSubscriptionService, type DriverSubscriptionRecord } from "@/lib/ecosystem/driver-subscription-service";
 import { useRideRatings, type RideRating } from "@/services/RideRatingService";
 import { exportarParaCSV } from "@/lib/export-csv";
 import { getAdminRole } from "@/lib/admin-rbac";
@@ -65,7 +67,7 @@ export const Route = createFileRoute("/app/admin/motoristas")({
 });
 
 type CategoriaPermitida = "CARRO" | "MOTO" | "PLUS" | "MULHER";
-type StatusMotorista = "TODOS" | "ONLINE" | "OFFLINE" | "PENDENTE" | "SUSPENSO";
+type StatusMotorista = "TODOS" | "ONLINE" | "OFFLINE" | "PENDENTE" | "SUSPENSO" | "PLANO_ATIVO" | "PLANO_VENCIDO";
 
 interface MotoristaFrota {
   id: string;
@@ -83,6 +85,12 @@ interface MotoristaFrota {
   totalViagens: number;
   ocrScore?: number;
   fotoUrl?: string | undefined;
+  // Gestão SaaS 0% Comissão
+  planoTipo: "MENSAL" | "SEMANAL" | "DIARIA" | "TRIAL" | "NENHUM";
+  planoAtivo: boolean;
+  planoExpiraEm?: string;
+  planoTempoRestante?: string;
+  valorPlano?: number;
 }
 
 export function QuadroMotoristasAdminPage() {
@@ -155,6 +163,17 @@ export function QuadroMotoristasAdminPage() {
     });
   }, [avaliacoesBanco, filtroEstrelas, filtroDirecao, buscaAvaliacao]);
 
+  // Subscrição em tempo real às assinaturas SaaS
+  const [assinaturas, setAssinaturas] = useState<DriverSubscriptionRecord[]>(() =>
+    driverSubscriptionService.getAllSubscriptions()
+  );
+
+  useEffect(() => {
+    return driverSubscriptionService.subscribe((subs) => {
+      setAssinaturas(subs);
+    });
+  }, []);
+
   // Montar frota consolidando banco com suporte a CARRO, MOTO, PLUS e MULHER
   const motoristas: MotoristaFrota[] = useMemo(() => {
     const lista: MotoristaFrota[] = [];
@@ -165,6 +184,17 @@ export function QuadroMotoristasAdminPage() {
       const catBanco = ((mb as any).categoria || (mb as any).vehicle_type || (veiculoVinculado as any)?.tipo || "").toUpperCase();
       const modalFinal: CategoriaPermitida =
         catBanco === "MOTO" ? "MOTO" : catBanco === "PLUS" ? "PLUS" : catBanco === "MULHER" ? "MULHER" : "CARRO";
+
+      const sub = driverSubscriptionService.getActiveSubscription(mb.id);
+      const isPlanoAtivo = Boolean(sub);
+      const tempoRestante = sub ? driverSubscriptionService.getRemainingTime(sub).formatted : "";
+      let planoTipo: "MENSAL" | "SEMANAL" | "DIARIA" | "TRIAL" | "NENHUM" = "NENHUM";
+      if (sub) {
+        if (sub.cycle === "MONTHLY" || (sub.amount_paid && sub.amount_paid >= 100)) planoTipo = "MENSAL";
+        else if (sub.cycle === "WEEKLY") planoTipo = "SEMANAL";
+        else if (sub.cycle === "TRIAL" || sub.pix_txid?.startsWith("TRIAL")) planoTipo = "TRIAL";
+        else planoTipo = "DIARIA";
+      }
 
       lista.push({
         id: mb.id,
@@ -182,6 +212,11 @@ export function QuadroMotoristasAdminPage() {
         totalViagens: (mb as any).total_trips || 0,
         ocrScore: 98,
         fotoUrl: mb.avatar_url || undefined,
+        planoTipo,
+        planoAtivo: isPlanoAtivo,
+        planoExpiraEm: sub?.expires_at,
+        planoTempoRestante: tempoRestante,
+        valorPlano: sub?.amount_paid || 0,
       });
     });
 
@@ -208,11 +243,13 @@ export function QuadroMotoristasAdminPage() {
         rating: 5.0,
         totalViagens: 0,
         ocrScore: 94,
+        planoTipo: "NENHUM",
+        planoAtivo: false,
       });
     });
 
     return lista;
-  }, [motoristasBanco, veiculosBanco, pendentesBanco]);
+  }, [motoristasBanco, veiculosBanco, pendentesBanco, assinaturas]);
 
   // Escopo Territorial por Franquia / Praça Ativa
   const motoristasDaPraca = useMemo(() => {
@@ -223,15 +260,19 @@ export function QuadroMotoristasAdminPage() {
 
   // CÁLCULO DOS INDICADORES DO DASHBOARD DA FROTA
   const totalCadastrados = motoristasDaPraca.length;
+  const totalPlanosAtivos = motoristasDaPraca.filter((m) => m.planoAtivo).length;
   const totalOnline = motoristasDaPraca.filter((m) => m.status === "ONLINE").length;
   const totalOffline = motoristasDaPraca.filter((m) => m.status === "OFFLINE").length;
   const totalPendentes = motoristasDaPraca.filter((m) => m.status === "PENDENTE").length;
   const totalSuspensos = motoristasDaPraca.filter((m) => m.status === "SUSPENSO").length;
+  const totalSemPlano = motoristasDaPraca.filter((m) => !m.planoAtivo && m.status !== "PENDENTE").length;
 
   // Filtragem da tabela
   const motoristasFiltrados = useMemo(() => {
     return motoristasDaPraca.filter((m) => {
-      if (filtroStatus !== "TODOS" && m.status !== filtroStatus) return false;
+      if (filtroStatus === "PLANO_ATIVO" && !m.planoAtivo) return false;
+      if (filtroStatus === "PLANO_VENCIDO" && (m.planoAtivo || m.status === "PENDENTE")) return false;
+      if (filtroStatus !== "TODOS" && filtroStatus !== "PLANO_ATIVO" && filtroStatus !== "PLANO_VENCIDO" && m.status !== filtroStatus) return false;
       if (filtroModal !== "TODOS" && m.modal !== filtroModal) return false;
       if (busca) {
         const q = busca.toLowerCase();
@@ -422,18 +463,18 @@ export function QuadroMotoristasAdminPage() {
               </div>
             </div>
 
-            {/* Aprovados */}
+            {/* Planos SaaS Ativos (Zero Comissão) */}
             <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Credenciados</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Planos SaaS Ativos</span>
                 <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-xl sm:text-2xl font-black text-emerald-700">{totalOnline + totalOffline}</span>
-                <span className="text-[11px] font-medium text-slate-500">
-                  {totalCadastrados > 0 ? `${Math.round(((totalOnline + totalOffline) / totalCadastrados) * 100)}%` : "0%"} da frota
+                <span className="text-xl sm:text-2xl font-black text-emerald-700">{totalPlanosAtivos}</span>
+                <span className="text-[11px] font-bold text-emerald-600">
+                  0% Taxa Ativa
                 </span>
               </div>
             </div>
@@ -452,17 +493,17 @@ export function QuadroMotoristasAdminPage() {
               </div>
             </div>
 
-            {/* Suspensos */}
+            {/* Acesso Vencido / Suspensos */}
             <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Bloqueios</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Acesso Vencido</span>
                 <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
                   <AlertTriangle className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-xl sm:text-2xl font-black text-rose-600">{totalSuspensos}</span>
-                <span className="text-[11px] font-medium text-slate-500">Conformidade</span>
+                <span className="text-xl sm:text-2xl font-black text-rose-600">{totalSemPlano + totalSuspensos}</span>
+                <span className="text-[11px] font-medium text-slate-500">Requer diária/plano</span>
               </div>
             </div>
           </div>
@@ -472,7 +513,7 @@ export function QuadroMotoristasAdminPage() {
             {/* BARRA DE BUSCA & FILTROS */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-xs">
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-                {(["TODOS", "ONLINE", "PENDENTE", "OFFLINE", "SUSPENSO"] as StatusMotorista[]).map((st) => (
+                {(["TODOS", "ONLINE", "PLANO_ATIVO", "PLANO_VENCIDO", "PENDENTE", "OFFLINE", "SUSPENSO"] as StatusMotorista[]).map((st) => (
                   <button
                     key={st}
                     type="button"
@@ -485,6 +526,8 @@ export function QuadroMotoristasAdminPage() {
                   >
                     {st === "TODOS" && "Todos"}
                     {st === "ONLINE" && "Online"}
+                    {st === "PLANO_ATIVO" && "Plano Ativo (0%)"}
+                    {st === "PLANO_VENCIDO" && "Acesso Vencido"}
                     {st === "PENDENTE" && "Pendentes"}
                     {st === "OFFLINE" && "Offline"}
                     {st === "SUSPENSO" && "Suspensos"}
@@ -553,6 +596,7 @@ export function QuadroMotoristasAdminPage() {
                 <tr>
                   <th className="py-3 px-4">Motorista</th>
                   <th className="py-3 px-4">Veículo</th>
+                  <th className="py-3 px-4">Plano SaaS (0% Taxa)</th>
                   <th className="py-3 px-4">Documentos</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4 text-right">Ações</th>
@@ -561,7 +605,7 @@ export function QuadroMotoristasAdminPage() {
               <tbody className="divide-y divide-slate-100">
                 {motoristasFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-10 px-4 text-center text-slate-400 text-xs font-medium">
+                    <td colSpan={6} className="py-10 px-4 text-center text-slate-400 text-xs font-medium">
                       Nenhum motorista encontrado para os filtros selecionados.
                     </td>
                   </tr>
@@ -608,6 +652,37 @@ export function QuadroMotoristasAdminPage() {
                               {m.modal}
                             </span>
                           </div>
+                        </td>
+
+                        {/* Plano SaaS (0% Taxa) */}
+                        <td className="py-3 px-4">
+                          {m.planoAtivo ? (
+                            <div className="space-y-0.5">
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                                m.planoTipo === "MENSAL"
+                                  ? "bg-purple-50 text-purple-800 border border-purple-200"
+                                  : m.planoTipo === "TRIAL"
+                                  ? "bg-blue-50 text-blue-800 border border-blue-200"
+                                  : "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                              }`}>
+                                <Sparkles className="h-2.5 w-2.5 text-amber-500" />
+                                {m.planoTipo === "MENSAL" ? "Mensal Ouro" : m.planoTipo === "TRIAL" ? "Trial 7 Dias" : "Diária 24h"}
+                              </span>
+                              <span className="block text-[10px] text-slate-500 font-medium">
+                                {m.planoTempoRestante ? `Restam ${m.planoTempoRestante}` : "0% Comissão Ativa"}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="space-y-0.5">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200">
+                                <Clock className="h-2.5 w-2.5" />
+                                {m.status === "PENDENTE" ? "Em Análise" : "Acesso Vencido"}
+                              </span>
+                              <span className="block text-[10px] text-slate-400">
+                                {m.status === "PENDENTE" ? "Aguardando OCR" : "Bloqueado p/ Corridas"}
+                              </span>
+                            </div>
+                          )}
                         </td>
 
                         {/* Checklist de Documentos */}
@@ -722,13 +797,35 @@ export function QuadroMotoristasAdminPage() {
                       <span className="text-[10px] text-slate-400">{m.telefone}</span>
                     </div>
                   </div>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                    {m.status}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      m.planoAtivo
+                        ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                        : "bg-amber-50 text-amber-800 border border-amber-200"
+                    }`}>
+                      {m.planoAtivo ? (m.planoTipo === "MENSAL" ? "Mensal (0%)" : "Diária (0%)") : "Sem Plano"}
+                    </span>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                      {m.status}
+                    </span>
+                  </div>
                 </div>
                 <div className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-xl flex items-center justify-between">
                   <span>{m.veiculoModelo} • {m.veiculoPlaca}</span>
-                  <span className="font-bold text-blue-600">{m.modal}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-blue-600">{m.modal}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMotoristaSelecionado(m);
+                        setCategoriaEdicao(m.modal);
+                        setModalDetalhesAberto(true);
+                      }}
+                      className="text-[10px] font-bold text-[#0088FF] hover:underline cursor-pointer"
+                    >
+                      Acessar
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
@@ -1132,6 +1229,95 @@ export function QuadroMotoristasAdminPage() {
                   <span className="text-[10px] text-slate-400 block">Habilitação</span>
                   <strong>{motoristaSelecionado.cnh}</strong>
                 </div>
+              </div>
+            </div>
+
+            {/* Gestão do Plano SaaS & Desbloqueio (0% Comissão) */}
+            <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-black text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
+                  <ShieldCheck className="h-4 w-4 text-emerald-600" /> Acesso SaaS &amp; Desbloqueio (0% Comissão)
+                </span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                  motoristaSelecionado.planoAtivo
+                    ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                    : "bg-amber-100 text-amber-800 border border-amber-300"
+                }`}>
+                  {motoristaSelecionado.planoAtivo ? "Desbloqueado" : "Bloqueado"}
+                </span>
+              </div>
+              <div className="text-xs space-y-1">
+                <div className="flex justify-between items-center text-slate-700">
+                  <span className="text-slate-500 font-medium">Situação do Plano:</span>
+                  <strong className="text-slate-900">
+                    {motoristaSelecionado.planoAtivo
+                      ? `${motoristaSelecionado.planoTipo === "MENSAL" ? "Plano Mensal Ouro" : motoristaSelecionado.planoTipo === "TRIAL" ? "Trial 7 Dias" : "Diária 24h"} (${motoristaSelecionado.planoTempoRestante ? `Restam ${motoristaSelecionado.planoTempoRestante}` : "Ativo"})`
+                      : "Sem assinatura ativa (Acesso vencido)"}
+                  </strong>
+                </div>
+                <p className="text-[10.5px] text-emerald-800 leading-tight">
+                  No PARTIU, o motorista recebe <strong>100% de cada corrida (0% taxa)</strong>. A receita da franquia vem exclusivamente do SaaS de acesso.
+                </p>
+              </div>
+
+              {/* Botões Rápidos de Concessão SaaS pelo Admin */}
+              <div className="flex items-center gap-1.5 pt-1 flex-wrap">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await driverSubscriptionService.confirmDailyFeePayment(
+                      motoristaSelecionado.id,
+                      motoristaSelecionado.modal === "MOTO" ? "MOTO" : "CARRO",
+                      `CORTESIA_${Date.now()}`,
+                      0,
+                      24
+                    );
+                    alert(`Diária Cortesia de 24 horas liberada para ${motoristaSelecionado.nome}!`);
+                    motoristaSelecionado.planoAtivo = true;
+                    motoristaSelecionado.planoTipo = "DIARIA";
+                    motoristaSelecionado.planoTempoRestante = "24h 00min";
+                    setModalDetalhesAberto(false);
+                  }}
+                  className="px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs transition flex items-center gap-1 cursor-pointer shadow-xs active:scale-95"
+                >
+                  <Zap className="h-3 w-3" /> Liberar Diária (24h)
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await driverSubscriptionService.confirmDailyFeePayment(
+                      motoristaSelecionado.id,
+                      motoristaSelecionado.modal === "MOTO" ? "MOTO" : "CARRO",
+                      `PLANO_MENSAL_${Date.now()}`,
+                      149,
+                      720
+                    );
+                    alert(`Plano Mensal Ouro (30 dias) ativado com sucesso para ${motoristaSelecionado.nome}!`);
+                    motoristaSelecionado.planoAtivo = true;
+                    motoristaSelecionado.planoTipo = "MENSAL";
+                    motoristaSelecionado.planoTempoRestante = "30 dias";
+                    setModalDetalhesAberto(false);
+                  }}
+                  className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition flex items-center gap-1 cursor-pointer shadow-xs active:scale-95"
+                >
+                  <Sparkles className="h-3 w-3 text-amber-400" /> Ativar Mensal Ouro (30d)
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await driverSubscriptionService.activateTrial(
+                      motoristaSelecionado.id,
+                      motoristaSelecionado.modal === "MOTO" ? "MOTO" : "CARRO"
+                    );
+                    alert(`Período de Degustação (Trial) ativado para ${motoristaSelecionado.nome}!`);
+                    motoristaSelecionado.planoAtivo = true;
+                    motoristaSelecionado.planoTipo = "TRIAL";
+                    setModalDetalhesAberto(false);
+                  }}
+                  className="px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 font-bold text-xs transition flex items-center gap-1 cursor-pointer active:scale-95"
+                >
+                  Ativar Degustação (7d)
+                </button>
               </div>
             </div>
 

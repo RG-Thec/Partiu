@@ -36,6 +36,7 @@ import {
   useMotoristas,
   useCaixaAdmin,
 } from "@/lib/partiu-db";
+import { driverSubscriptionService } from "@/lib/ecosystem/driver-subscription-service";
 import { getAdminRole, type AdminRole } from "@/lib/admin-rbac";
 import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 import { useAdminCity } from "@/contexts/AdminCityContext";
@@ -72,9 +73,18 @@ export function SuperAdminDashboardExecutive() {
   useAlertasSOSRealtime();
   const { data: alertasSOS = [], refetch: recarregarSOS } = useAlertasSOS();
 
-  // Aba ativa do painel executivo (elimina sobrecarga cognitiva e scroll excessivo)
   const [abaAtiva, setAbaAtiva] = useState<"geral" | "radar" | "alertas">("geral");
   const [abaRanking, setAbaRanking] = useState<"motoristas" | "passageiros">("motoristas");
+
+  // Assinaturas e Planos SaaS dos Motoristas (Modelo Zero Comissão)
+  const [assinaturas, setAssinaturas] = useState(() => driverSubscriptionService.getAllSubscriptions());
+  const saasMetrics = useMemo(() => driverSubscriptionService.getSaaSMetrics(), [assinaturas]);
+
+  useEffect(() => {
+    return driverSubscriptionService.subscribe((subs) => {
+      setAssinaturas(subs);
+    });
+  }, []);
 
   useEffect(() => {
     function onRoleChange(e: any) {
@@ -111,9 +121,18 @@ export function SuperAdminDashboardExecutive() {
   const metrics = usePartiuMetrics(ridesFiltradas, chamadosSOSAtivos, motoristasOnline);
   const { receitaHoje, corridasEmAndamento, corridasFinalizadasHoje, entregasEmAndamento } = metrics;
 
-  // Take Rate e GMV
-  const takeRatePct = 15; // 15% taxa retida padrão da plataforma
-  const takeRateHojeBrl = (receitaHoje * takeRatePct) / 100;
+  // Modelo Econômico PARTIU: Zero Comissão nas Corridas + Receita SaaS por Assinatura
+  const faturamentoSaasHoje = useMemo(() => {
+    const doCaixa = caixasBanco
+      .filter((c: any) => c.tipo === "diaria" || c.tipo === "entrada" || c.tipo === "recarga")
+      .reduce((acc: number, c: any) => acc + (Number(c.valor) || 0), 0);
+    return Math.max(doCaixa, saasMetrics.totalRevenueToday);
+  }, [caixasBanco, saasMetrics.totalRevenueToday]);
+
+  const economiaGeradaMotoristas = useMemo(() => {
+    // Estimativa de economia gerada aos motoristas vs taxa de 25% de concorrentes (Uber/99)
+    return Math.round((receitaHoje * 0.25) * 100) / 100;
+  }, [receitaHoje]);
 
   // Corridas no Mês, Faturamento Mensal, Ticket Médio e Taxas de Conversão
   const { corridasMes, receitaMes, taxaSucesso, taxaCancelamento, ticketMedio } = useMemo(() => {
@@ -429,10 +448,10 @@ export function SuperAdminDashboardExecutive() {
 
       {/* 2. OS 4 CARDS ESSENCIAIS DE KPI (ALTA DENSIDADE, SEM POLUIÇÃO) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
-        {/* KPI 1: GMV Hoje */}
+        {/* KPI 1: Volume Hoje (GMV) e Faturamento SaaS */}
         <div className="rounded-xl bg-white p-3.5 border border-slate-200/90 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Receita Hoje (GMV)</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Volume Hoje (GMV)</span>
             <div className="h-7 w-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
               <DollarSign className="h-3.5 w-3.5 stroke-[2.5]" />
             </div>
@@ -441,10 +460,15 @@ export function SuperAdminDashboardExecutive() {
             <p className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
               R$ {receitaHoje.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <span className="text-[11px] text-emerald-700 font-bold flex items-center gap-1 mt-0.5">
-              <TrendingUp className="h-3 w-3 shrink-0" />
-              <span>Take Rate ({takeRatePct}%): R$ {takeRateHojeBrl.toFixed(2)}</span>
-            </span>
+            <div className="flex items-center justify-between text-[11px] font-bold mt-1 pt-1 border-t border-slate-100">
+              <span className="text-emerald-700 flex items-center gap-1">
+                <CheckCircle2 className="h-3 w-3 shrink-0" />
+                100% Repasse (0% Taxa)
+              </span>
+              <span className="text-blue-700 font-black">
+                SaaS: R$ {faturamentoSaasHoje.toFixed(2)}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -466,7 +490,7 @@ export function SuperAdminDashboardExecutive() {
           </div>
         </div>
 
-        {/* KPI 3: Motoristas Online */}
+        {/* KPI 3: Motoristas Online & Acessos SaaS */}
         <div className="rounded-xl bg-white p-3.5 border border-slate-200/90 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Motoristas Online</span>
@@ -480,7 +504,7 @@ export function SuperAdminDashboardExecutive() {
               {motoristasOnline}
             </p>
             <span className="text-[11px] text-slate-500 font-medium mt-0.5 block">
-              {assinaturasAtivasQtd} cadastrados na frota
+              {saasMetrics.activeDriversCount} planos SaaS ativos • {assinaturasAtivasQtd} na frota
             </span>
           </div>
         </div>

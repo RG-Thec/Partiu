@@ -44,7 +44,7 @@ export const DEFAULT_DISPATCH_SETTINGS: DispatchAlgorithmSettings = {
   toleranciaCancelamentoMinutos: 2,
   tarifaParadaAdicional: 2.5,
   takeRateTipo: "PERCENTUAL",
-  takeRateValor: 15.0, // 15% retido pelo app
+  takeRateValor: 0.0, // 0% retido (Zero Comissão - Modelo Padrão PARTIU SaaS)
   liveOverrideAtivo: false,
   liveOverrideMultiplicador: 1.0,
   liveOverrideExpiraEm: null,

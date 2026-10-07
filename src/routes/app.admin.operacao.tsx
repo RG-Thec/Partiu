@@ -1276,8 +1276,8 @@ export function CentralOperacaoAdminPage() {
         const valorTempo = Math.round(tempoMin * taxaMin * 100) / 100;
         const subtotal = Math.round((tarifaBase + valorKm + valorTempo) * 100) / 100;
         const precoFinal = corridaDetalhe.valor > 0 ? corridaDetalhe.valor : subtotal;
-        const taxaAppValor = Math.round(precoFinal * 0.10 * 100) / 100;
-        const liquidoMotorista = Math.round((precoFinal - taxaAppValor) * 100) / 100;
+        const taxaAppValor = 0; // ZERO TAXA / ZERO COMISSÃO (100% Repasse D+0)
+        const liquidoMotorista = precoFinal; // Repasse Integral ao Condutor
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
@@ -1468,14 +1468,24 @@ export function CentralOperacaoAdminPage() {
                         </div>
                       </div>
 
-                      <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80 space-y-1 text-[11px]">
-                        <div className="flex justify-between text-slate-400">
-                          <span>Taxa App (10%):</span>
-                          <span className="font-mono text-emerald-400 font-bold">R$ {taxaAppValor.toFixed(2).replace(".", ",")}</span>
+                      <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/30 space-y-1.5 text-[11px]">
+                        <div className="flex justify-between items-center text-emerald-400 font-bold">
+                          <span className="flex items-center gap-1">
+                            <ShieldCheck className="h-3 w-3" /> Comissão PARTIU (0%):
+                          </span>
+                          <span className="font-mono bg-emerald-900/60 text-emerald-300 px-1.5 py-0.2 rounded text-[10px]">
+                            R$ 0,00 (Isento)
+                          </span>
                         </div>
-                        <div className="flex justify-between text-slate-200 font-bold border-t border-slate-800 pt-1">
-                          <span>Líquido Motorista:</span>
-                          <span className="font-mono text-white font-black text-xs">R$ {liquidoMotorista.toFixed(2).replace(".", ",")}</span>
+                        <div className="flex justify-between items-center text-slate-100 font-black border-t border-emerald-800/40 pt-1">
+                          <span>Repasse Líquido Motorista:</span>
+                          <span className="font-mono text-emerald-300 text-xs font-black">
+                            100% (R$ {liquidoMotorista.toFixed(2).replace(".", ",")})
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-slate-400 pt-0.5 border-t border-slate-800 flex items-center justify-between">
+                          <span>Monetização Plataforma:</span>
+                          <span className="text-amber-400 font-semibold">Assinatura SaaS / Diária Ativa</span>
                         </div>
                       </div>
 
@@ -1505,8 +1515,8 @@ export function CentralOperacaoAdminPage() {
 
       {/* MODAL DETALHE DA ENTREGA (DUPLO PIN & CONTROLE COMPLETO) */}
       {entregaDetalhe && (() => {
-        const taxaAppValor = Math.round(entregaDetalhe.valor * 0.10 * 100) / 100;
-        const liquidoEntregador = Math.round((entregaDetalhe.valor - taxaAppValor) * 100) / 100;
+        const taxaAppValor = 0; // ZERO TAXA / ZERO COMISSÃO (100% Repasse D+0)
+        const liquidoEntregador = entregaDetalhe.valor; // Repasse Integral ao Entregador
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
@@ -1670,14 +1680,24 @@ export function CentralOperacaoAdminPage() {
                         </span>
                       </div>
 
-                      <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800/80 space-y-1 text-[11px]">
-                        <div className="flex justify-between text-slate-400">
-                          <span>Taxa App (10%):</span>
-                          <span className="font-mono text-emerald-400 font-bold">R$ {taxaAppValor.toFixed(2).replace(".", ",")}</span>
+                      <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/30 space-y-1.5 text-[11px]">
+                        <div className="flex justify-between items-center text-emerald-400 font-bold">
+                          <span className="flex items-center gap-1">
+                            <ShieldCheck className="h-3 w-3" /> Comissão PARTIU (0%):
+                          </span>
+                          <span className="font-mono bg-emerald-900/60 text-emerald-300 px-1.5 py-0.2 rounded text-[10px]">
+                            R$ 0,00 (Isento)
+                          </span>
                         </div>
-                        <div className="flex justify-between text-slate-200 font-bold border-t border-slate-800 pt-1">
-                          <span>Líquido Entregador:</span>
-                          <span className="font-mono text-white font-black text-xs">R$ {liquidoEntregador.toFixed(2).replace(".", ",")}</span>
+                        <div className="flex justify-between items-center text-slate-100 font-black border-t border-emerald-800/40 pt-1">
+                          <span>Repasse Líquido Entregador:</span>
+                          <span className="font-mono text-emerald-300 text-xs font-black">
+                            100% (R$ {liquidoEntregador.toFixed(2).replace(".", ",")})
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-slate-400 pt-0.5 border-t border-slate-800 flex items-center justify-between">
+                          <span>Monetização Plataforma:</span>
+                          <span className="text-amber-400 font-semibold">Assinatura SaaS / Diária Ativa</span>
                         </div>
                       </div>
                     </div>

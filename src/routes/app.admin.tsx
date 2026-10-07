@@ -192,14 +192,14 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
     itens: [
       {
         to: "/app/admin/financeiro",
-        label: "Extrato & Repasses",
+        label: "Cockpit Financeiro",
         icon: DollarSign,
         exact: false,
         moduleId: "financeiro",
       },
       {
         to: "/app/admin/monetizacao",
-        label: "Carteira & Gateways",
+        label: "Planos SaaS & Diárias",
         icon: CreditCard,
         exact: false,
         moduleId: "financeiro",

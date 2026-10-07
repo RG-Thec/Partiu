@@ -408,11 +408,11 @@ export function AdminMonetizacaoPage() {
               <span className="text-xs font-bold text-slate-500">Governança Econômica</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-950 mt-1">
-              Monetização, Comissões &amp; Planos SaaS
+              Monetização &amp; Planos SaaS (Zero Comissão)
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 mt-1">
-              Modelo econômico híbrido: assinaturas mensais, comissões variáveis por corrida,
-              fundo de proteção e esteira de cobrança em cascata.
+              Estratégia PARTIU 100% SaaS: 0% de comissão retida das corridas, com faturamento
+              exclusivo por diárias de acesso e planos mensais dos motoristas parceiros.
             </p>
           </div>
 
@@ -454,28 +454,28 @@ export function AdminMonetizacaoPage() {
 
           <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              Take-Rate Médio
+              Comissão por Corrida
             </span>
-            <div className="text-xl sm:text-2xl font-black text-amber-700">
-              {metrics.effectiveTakeRatePercent.toFixed(2)}%
+            <div className="text-xl sm:text-2xl font-black text-emerald-700">
+              0,00%
             </div>
-            <span className="text-[10px] text-slate-500 font-bold">
-              Uber: 20-30% | 99: 18-25%
+            <span className="text-[10px] text-emerald-700 font-bold">
+              100% Repasse Líquido (D+0)
             </span>
           </div>
 
           <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              Receita Líquida Total
+              Receita Líquida SaaS
             </span>
-            <div className="text-xl sm:text-2xl font-black text-emerald-700">
+            <div className="text-xl sm:text-2xl font-black text-slate-950">
               {metrics.totalNetRevenueBrl.toLocaleString("pt-BR", {
                 style: "currency",
                 currency: "BRL",
               })}
             </div>
-            <span className="text-[10px] text-emerald-800 font-bold">
-              Assinaturas + Comissões
+            <span className="text-[10px] text-slate-500 font-bold">
+              Diárias + Assinaturas Ativas
             </span>
           </div>
 
@@ -1402,11 +1402,10 @@ export function AdminMonetizacaoPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-base font-black text-slate-950">
-                  Planos Cadastrados na Plataforma
+                  Planos de Acesso SaaS da Frota
                 </h2>
                 <p className="text-xs text-slate-500">
-                  O motorista escolhe livremente o equilíbrio ideal entre mensalidade fixa e comissão
-                  por corrida.
+                  No ecossistema PARTIU, todos os planos operam com 0% de retenção por corrida e repasse 100% líquido. O condutor escolhe a periodicidade de acesso (Diária 24h, Semanal ou Mensal Ouro).
                 </p>
               </div>
             </div>

@@ -358,73 +358,67 @@ export function PainelFinanceiroUnificadoPage() {
       {abaAtiva === "consolidado" && (
         <div className="space-y-4 sm:space-y-5">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-            {/* Receita do Dia */}
+            {/* Volume de Corridas (Hoje) */}
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Receita do Dia</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Volume Hoje (GMV)</span>
               <div className="pt-2">
                 <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                   R$ {receitaHoje.toFixed(2).replace(".", ",")}
                 </p>
-                {receitaHoje > 0 ? (
-                  <span className="text-[11px] text-emerald-600 font-bold flex items-center gap-1 mt-1">
-                    <ArrowUpRight className="h-3.5 w-3.5" /> Apurado hoje
-                  </span>
-                ) : (
-                  <span className="text-[11px] text-slate-400 font-bold mt-1 block truncate">
-                    Aguardando corridas
-                  </span>
-                )}
+                <span className="text-[11px] text-emerald-600 font-bold flex items-center gap-1 mt-1">
+                  <CheckCircle2 className="h-3 w-3" /> 100% Repasse (0% Taxa)
+                </span>
               </div>
             </div>
 
-            {/* Receita do Mês */}
+            {/* Volume do Mês */}
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Receita do Mês</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Volume Mês (GMV)</span>
               <div className="pt-2">
                 <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                   R$ {receitaMes.toFixed(2).replace(".", ",")}
                 </p>
                 <span className="text-[11px] text-slate-500 font-bold mt-1 block truncate">
-                  {receitaMes > 0 ? "Volume acumulado" : "Início do período"}
+                  {receitaMes > 0 ? "Total Transacionado" : "Início do período"}
                 </span>
               </div>
             </div>
 
-            {/* PIX Recebidos */}
+            {/* Faturamento SaaS (Receita Real da Plataforma) */}
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">PIX Recebidos</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Receita SaaS Hoje</span>
               <div className="pt-2">
                 <p className="text-xl sm:text-2xl font-black text-emerald-600 tracking-tight">
-                  R$ {pixRecebidosVolume.toFixed(2).replace(".", ",")}
+                  R$ {Math.max(faturamentoSaasHoje, saasMetrics.totalRevenueToday).toFixed(2).replace(".", ",")}
                 </p>
                 <span className="text-[11px] text-emerald-700 font-bold mt-1 block truncate">
-                  {pixProcessadosQtd > 0 ? "Transações confirmadas" : "Nenhum PIX hoje"}
+                  Mensalidades &amp; Diárias
                 </span>
               </div>
             </div>
 
-            {/* PIX Processados */}
+            {/* Economia da Frota */}
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">PIX Processados</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Economia dos Condutores</span>
               <div className="pt-2">
-                <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                  {pixProcessadosQtd}
+                <p className="text-xl sm:text-2xl font-black text-[#0088FF] tracking-tight">
+                  R$ {(receitaHoje * 0.25).toFixed(2).replace(".", ",")}
                 </p>
                 <span className="text-[11px] text-slate-500 font-bold mt-1 block truncate">
-                  Liquidação (&lt;2s)
+                  Poupado vs 25% Uber/99
                 </span>
               </div>
             </div>
 
-            {/* Faturamento SaaS Diárias */}
+            {/* Condutores Desbloqueados */}
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between col-span-2 sm:col-span-1">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Faturamento Diárias</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Acessos SaaS Ativos</span>
               <div className="pt-2">
-                <p className="text-xl sm:text-2xl font-black text-emerald-600 tracking-tight">
-                  R$ {faturamentoSaasHoje.toFixed(2).replace(".", ",")}
+                <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  {saasMetrics.activeDriversCount}
                 </p>
                 <span className="text-[11px] text-emerald-700 font-bold mt-1 block truncate">
-                  Receita do App
+                  Condutores Rodando
                 </span>
               </div>
             </div>
