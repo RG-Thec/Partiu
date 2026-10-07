@@ -42,20 +42,21 @@ BEGIN
       ur.user_id,
       COALESCE(u.email, 'admin_' || ur.user_id || '@partiu.app') AS email,
       CASE 
-        WHEN LOWER(ur.role) IN ('super_admin', 'superadmin', 'owner', 'admin', 'matriz') THEN 'super_admin'
+        WHEN LOWER(ur.role::text) IN ('super_admin', 'superadmin', 'owner', 'admin', 'matriz') THEN 'super_admin'
         ELSE 'franqueado'
       END AS role,
       CASE 
-        WHEN LOWER(ur.role) IN ('super_admin', 'superadmin', 'owner', 'admin', 'matriz') THEN true
+        WHEN LOWER(ur.role::text) IN ('super_admin', 'superadmin', 'owner', 'admin', 'matriz') THEN true
         ELSE false
       END AS is_super_admin,
       CASE 
-        WHEN LOWER(ur.role) IN ('super_admin', 'superadmin', 'owner', 'admin', 'matriz') THEN NULL
-        ELSE COALESCE(ur.tenant_id, 'ten_matriz')
+        WHEN LOWER(ur.role::text) IN ('super_admin', 'superadmin', 'owner', 'admin', 'matriz') THEN NULL
+        ELSE 'ten_matriz'
       END AS tenant_id,
       true AS ativo
     FROM public.user_roles ur
     LEFT JOIN auth.users u ON u.id = ur.user_id
+    WHERE LOWER(ur.role::text) IN ('super_admin', 'superadmin', 'owner', 'admin', 'matriz', 'franqueado', 'operador', 'gerente', 'suporte')
     ON CONFLICT (email) DO UPDATE 
     SET 
       role = EXCLUDED.role,
@@ -64,6 +65,12 @@ BEGIN
       updated_at = clock_timestamp();
   END IF;
 
+  -- Garante a existência do Super Admin padrão do sistema (Holding)
+  INSERT INTO public.admin_users (email, nome, role, is_super_admin, tenant_id, ativo)
+  VALUES ('dono@partiu.app', 'Super Administrador (Holding)', 'super_admin', true, NULL, true)
+  ON CONFLICT (email) DO UPDATE
+  SET role = 'super_admin', is_super_admin = true, tenant_id = NULL;
+
   -- Normalizar quaisquer registros em admin_users para apenas 'super_admin' ou 'franqueado'
   UPDATE public.admin_users
   SET 
@@ -71,7 +78,7 @@ BEGIN
     is_super_admin = true,
     tenant_id = NULL,
     updated_at = clock_timestamp()
-  WHERE LOWER(role) IN ('super_admin', 'superadmin', 'owner', 'admin', 'matriz');
+  WHERE LOWER(role::text) IN ('super_admin', 'superadmin', 'owner', 'admin', 'matriz');
 
   UPDATE public.admin_users
   SET 
@@ -79,7 +86,7 @@ BEGIN
     is_super_admin = false,
     tenant_id = COALESCE(tenant_id, 'ten_matriz'),
     updated_at = clock_timestamp()
-  WHERE LOWER(role) NOT IN ('super_admin');
+  WHERE LOWER(role::text) NOT IN ('super_admin');
 
 END $$;
 
