@@ -99,40 +99,40 @@ export interface RideCommissionSettlement {
 }
 
 export const DEFAULT_PROTECTION_CONFIG: ProtectionFundConfig = {
-  enabled: true,
-  retentionPerTripBrl: 0.30,
-  retentionPerTripCents: 30,
-  targetCapBrl: 30.00,
-  targetCapCents: 3000,
+  enabled: false,
+  retentionPerTripBrl: 0.0,
+  retentionPerTripCents: 0,
+  targetCapBrl: 0.0,
+  targetCapCents: 0,
 };
 
 export const STANDARD_DRIVER_PLANS = {
   LIVRE: {
     planId: "plano-livre",
-    planName: "Livre (FREE)",
-    commissionPercent: 5.0,
+    planName: "Livre (Trial / Degustação)",
+    commissionPercent: 0.0,
     monthlyFeeBrl: 0.0,
     billingCycle: "MONTHLY",
   },
   BRONZE: {
     planId: "plano-bronze",
-    planName: "Bronze",
-    commissionPercent: 3.0,
-    monthlyFeeBrl: 19.90,
-    billingCycle: "MONTHLY",
+    planName: "Bronze (Diária Flex)",
+    commissionPercent: 0.0,
+    monthlyFeeBrl: 29.90,
+    billingCycle: "DAILY",
   },
   PRATA: {
     planId: "plano-prata",
-    planName: "Prata",
-    commissionPercent: 1.0,
-    monthlyFeeBrl: 49.90,
-    billingCycle: "MONTHLY",
+    planName: "Prata (Semanal Pro)",
+    commissionPercent: 0.0,
+    monthlyFeeBrl: 69.90,
+    billingCycle: "WEEKLY",
   },
   OURO: {
     planId: "plano-ouro",
-    planName: "Ouro",
+    planName: "Ouro (Mensal Ilimitado)",
     commissionPercent: 0.0,
-    monthlyFeeBrl: 99.90,
+    monthlyFeeBrl: 149.90,
     billingCycle: "MONTHLY",
   },
 } as const satisfies Record<string, DriverPlanFeeConfig>;
@@ -230,67 +230,34 @@ export class CommissionEngine {
 
     const grossFareCents = Math.round(params.grossFareBrl * 100);
 
-    // 1. Comissão da Plataforma com Proteção Especial do Plano Ouro
-    let effectiveCommissionPercent = plan.commissionPercent;
-    let platformCommissionCents = 0;
+    // REGRA DE OURO PARTIU: 0% Take Rate por corrida (100% repassado ao motorista)
+    const effectiveCommissionPercent = 0.0;
+    const platformCommissionCents = 0;
+    const platformCommissionBrl = 0.0;
 
-    if (plan.planId === "plano-ouro" || plan.commissionPercent === 0) {
-      const thresholdCents = goldConfig.thresholdMonthlyCents;
-      if (monthlyAccCents >= thresholdCents) {
-        // Condutor já ultrapassou o limite mensal (R$ 8.000): aplica comissão mínima configurada (0.5%)
-        effectiveCommissionPercent = goldConfig.postThresholdCommissionPercent;
-        platformCommissionCents = Math.round(
-          grossFareCents * (effectiveCommissionPercent / 100)
-        );
-      } else if (monthlyAccCents + grossFareCents > thresholdCents) {
-        // Transição: apenas a fatia acima do teto é tarifada com a comissão pós-limite
-        const excessCents = (monthlyAccCents + grossFareCents) - thresholdCents;
-        platformCommissionCents = Math.round(
-          excessCents * (goldConfig.postThresholdCommissionPercent / 100)
-        );
-        effectiveCommissionPercent = Number(((platformCommissionCents / grossFareCents) * 100).toFixed(2));
-      } else {
-        // 100% isento dentro do limite mensal contratado
-        effectiveCommissionPercent = 0.0;
-        platformCommissionCents = 0;
-      }
-    } else {
-      platformCommissionCents = Math.round(
-        grossFareCents * (plan.commissionPercent / 100)
-      );
-    }
+    // Fundo de proteção operacional descontinuado no modelo SaaS puro
+    const protectionFundContributionCents = 0;
+    const protectionFundContributionBrl = 0.0;
 
-    // 2. Retenção do Fundo de Proteção (se habilitado e ainda abaixo do teto)
-    let protectionFundContributionCents = 0;
-    if (protectionConfig.enabled) {
-      const remainingToCap = Math.max(0, protectionConfig.targetCapCents - currentProtection);
-      protectionFundContributionCents = Math.min(
-        protectionConfig.retentionPerTripCents,
-        remainingToCap
-      );
-    }
+    // Dedução total da plataforma é estritamente zero
+    const totalPlatformDeductionCents = 0;
+    const totalPlatformDeductionBrl = 0.0;
 
-    // 3. Dedução total da plataforma
-    const totalPlatformDeductionCents =
-      platformCommissionCents + protectionFundContributionCents;
+    // 100% do ganho bruto pertence ao condutor parceiro
+    const driverNetEarningsCents = grossFareCents;
+    const driverNetEarningsBrl = Number((grossFareCents / 100).toFixed(2));
 
-    // 4. Ganho líquido do motorista
-    const driverNetEarningsCents = grossFareCents - totalPlatformDeductionCents;
-
-    // 5. Invariante Contábil Inegociável: Bruto === Líquido + Dedução Total
+    // Invariante Contábil Inegociável: Bruto === Líquido + Dedução Total
     if (driverNetEarningsCents + totalPlatformDeductionCents !== grossFareCents) {
       throw new Error(
         `INVARIANTE_VIOLADA: Split contábil divergente (Bruto: ${grossFareCents}, Líquido: ${driverNetEarningsCents}, Dedução: ${totalPlatformDeductionCents})`
       );
     }
 
-    // 6. Benchmark de Mercado (Uber/99 a 20%)
+    // Benchmark de Mercado: Mostra exatamente o quanto o motorista economizou vs Uber/99 (20%)
     const competitorTakeRatePercent = 20.0;
     const competitorTakeRateCents = Math.round(grossFareCents * (competitorTakeRatePercent / 100));
-    const savingsVersusCompetitorCents = Math.max(
-      0,
-      competitorTakeRateCents - totalPlatformDeductionCents
-    );
+    const savingsVersusCompetitorCents = competitorTakeRateCents;
 
     return {
       rideId: params.rideId,
@@ -300,13 +267,13 @@ export class CommissionEngine {
       commissionPercent: effectiveCommissionPercent,
       grossFareBrl: grossFareCents / 100,
       grossFareCents,
-      platformCommissionBrl: platformCommissionCents / 100,
+      platformCommissionBrl,
       platformCommissionCents,
-      protectionFundContributionBrl: protectionFundContributionCents / 100,
+      protectionFundContributionBrl,
       protectionFundContributionCents,
-      totalPlatformDeductionBrl: totalPlatformDeductionCents / 100,
+      totalPlatformDeductionBrl,
       totalPlatformDeductionCents,
-      driverNetEarningsBrl: driverNetEarningsCents / 100,
+      driverNetEarningsBrl,
       driverNetEarningsCents,
       competitorBenchmarkTakeRatePercent: competitorTakeRatePercent,
       competitorTakeRateBrl: competitorTakeRateCents / 100,
@@ -317,7 +284,7 @@ export class CommissionEngine {
   }
 
   /**
-   * FASE 1: SIMULADOR INTERNO DE ECONOMIA & SUSTENTABILIDADE DE PLATAFORMA
+   * FASE 1: SIMULADOR INTERNO DE ECONOMIA & SUSTENTABILIDADE DE PLATAFORMA (MODELO SAAS PURO)
    */
   public simulatePlatformEconomics(input: EconomicSimulatorInput): EconomicSimulatorOutput {
     const {
@@ -339,29 +306,15 @@ export class CommissionEngine {
     const silverDrivers = Math.round(activeDriversCount * (distribution.silverPercent / 100));
     const goldDrivers = Math.round(activeDriversCount * (distribution.goldPercent / 100));
 
-    // Receita de Assinaturas SaaS
+    // Receita de Assinaturas SaaS (MRR)
     const saasSubscriptionRevenueBrl =
       (bronzeDrivers * STANDARD_DRIVER_PLANS.BRONZE.monthlyFeeBrl) +
       (silverDrivers * STANDARD_DRIVER_PLANS.PRATA.monthlyFeeBrl) +
       (goldDrivers * STANDARD_DRIVER_PLANS.OURO.monthlyFeeBrl);
 
-    // Viagens por plano
-    const freeTrips = freeDrivers * avgTripsPerDriverPerMonth;
-    const bronzeTrips = bronzeDrivers * avgTripsPerDriverPerMonth;
-    const silverTrips = silverDrivers * avgTripsPerDriverPerMonth;
-
-    // Comissões variáveis
-    const freeCommission = freeTrips * avgGrossFareBrl * (STANDARD_DRIVER_PLANS.LIVRE.commissionPercent / 100);
-    const bronzeCommission = bronzeTrips * avgGrossFareBrl * (STANDARD_DRIVER_PLANS.BRONZE.commissionPercent / 100);
-    const silverCommission = silverTrips * avgGrossFareBrl * (STANDARD_DRIVER_PLANS.PRATA.commissionPercent / 100);
-    
-    // Ouro: excedente pós R$ 8.000 tarifado a 0.5%
-    const avgMonthlyGrossPerDriver = avgTripsPerDriverPerMonth * avgGrossFareBrl;
-    const goldExcessPerDriver = Math.max(0, avgMonthlyGrossPerDriver - this.goldProtectionConfig.thresholdMonthlyBrl);
-    const goldCommission = goldDrivers * goldExcessPerDriver * (this.goldProtectionConfig.postThresholdCommissionPercent / 100);
-
-    const takeRateCommissionsRevenueBrl = freeCommission + bronzeCommission + silverCommission + goldCommission;
-    const grossPlatformRevenueBrl = saasSubscriptionRevenueBrl + takeRateCommissionsRevenueBrl;
+    // No modelo de mensalidade pura (0% Take Rate), a comissão variável é ZERO
+    const takeRateCommissionsRevenueBrl = 0.0;
+    const grossPlatformRevenueBrl = saasSubscriptionRevenueBrl;
 
     // Custos operacionais
     const serverHostingCost = totalMonthlyTrips * serverCostPerTripBrl;

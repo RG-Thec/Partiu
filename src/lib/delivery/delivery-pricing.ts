@@ -117,24 +117,10 @@ export function calculateDeliveryPrice(input: DeliveryPricingInput): DeliveryPri
   // Minimum floor enforcement
   const totalFare = Math.max(rates.minimumFloor, subtotal);
 
-  // Split dinâmico baseado no plano de assinatura do entregador (0% no Ouro, 1% no Prata, 3% no Bronze, 5% no Free)
-  let courierCommissionPercent = input.courierCommissionPercent;
-  if (courierCommissionPercent === undefined) {
-    if (input.courierId) {
-      try {
-        const sub = subscriptionEngine.getDriverSubscription(input.courierId);
-        const plan = subscriptionEngine.getPlanById(sub.planId);
-        courierCommissionPercent = plan ? plan.commissionPercent : STANDARD_DRIVER_PLANS.LIVRE.commissionPercent;
-      } catch {
-        courierCommissionPercent = STANDARD_DRIVER_PLANS.LIVRE.commissionPercent;
-      }
-    } else {
-      courierCommissionPercent = STANDARD_DRIVER_PLANS.LIVRE.commissionPercent; // 5.0% padrão Free
-    }
-  }
-
-  const platformFee = Number((totalFare * (courierCommissionPercent / 100)).toFixed(2));
-  const courierNetShare = Number((totalFare - platformFee).toFixed(2));
+  // REGRA DE OURO PARTIU: 0% Taxa sobre entregas (100% do frete repassado ao entregador parceiro)
+  const courierCommissionPercent = 0.0;
+  const platformFee = 0.0;
+  const courierNetShare = totalFare;
 
   return {
     baseFare,

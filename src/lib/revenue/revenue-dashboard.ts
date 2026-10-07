@@ -61,27 +61,25 @@ export class RevenueDashboardEngine {
     const activeDrivers = totalDrivers - defaultingDrivers;
 
     // Distribuição de planos na frota piloto:
-    // Livre: 15 motoristas (R$ 0)
-    // Bronze: 20 motoristas (R$ 19,90 = R$ 398,00)
-    // Prata: 10 motoristas (R$ 49,90 = R$ 499,00)
-    // Ouro: 5 motoristas (R$ 99,90 = R$ 499,50)
-    const mrrBrl = 20 * 19.90 + 10 * 49.90 + 5 * 99.90; // R$ 1.396,50
-    const arrBrl = mrrBrl * 12; // R$ 16.758,00
+    // Trial: 5 motoristas (R$ 0)
+    // Diária Flex: 20 motoristas (R$ 149,90)
+    // Semanal Pro: 15 motoristas (R$ 199,90)
+    // Mensal Ilimitado: 10 motoristas (R$ 99,90)
+    const mrrBrl = 20 * 149.90 + 15 * 199.90 + 10 * 99.90; // R$ 6.995,50
+    const arrBrl = mrrBrl * 12; // R$ 83.946,00
 
     // Volume operacional estimado na praça piloto (ex: 6.800 corridas no mês)
     const totalRidesCount = 6800;
     const averageTicketBrl = 18.50;
     const totalGmvBrl = totalRidesCount * averageTicketBrl; // R$ 125.800,00
 
-    // Média ponderada de comissão (aprox 4.2% considerando mix de planos)
-    const effectiveTakeRatePercent = 4.25;
-    const monthlyCommissionRevenueBrl = Number((totalGmvBrl * (effectiveTakeRatePercent / 100)).toFixed(2)); // R$ 5.346,50
-    const monthlyProtectionFundBrl = Number((totalRidesCount * 0.30).toFixed(2)); // R$ 2.040,00
+    // REGRA DE OURO PARTIU: 0% Take Rate sobre corridas (100% em posse dos motoristas)
+    const effectiveTakeRatePercent = 0.0;
+    const monthlyCommissionRevenueBrl = 0.0;
+    const monthlyProtectionFundBrl = 0.0;
 
     const monthlySubscriptionRevenueBrl = mrrBrl;
-    const totalNetRevenueBrl = Number(
-      (monthlyCommissionRevenueBrl + monthlySubscriptionRevenueBrl).toFixed(2)
-    );
+    const totalNetRevenueBrl = monthlySubscriptionRevenueBrl;
 
     const delinquencyRatePercent = Number(((defaultingDrivers / totalDrivers) * 100).toFixed(1));
     const churnRatePercent = 2.1; // Churn saudável de motoristas no SaaS (< 3%)
@@ -91,7 +89,7 @@ export class RevenueDashboardEngine {
     const driverLtvBrl = Number((revenuePerDriverMonth / (churnRatePercent / 100)).toFixed(2));
     const driverCacBrl = 45.00; // Custo de aquisição via indicação / marketing local
 
-    const protectionFundReserveTotalBrl = 12450.00;
+    const protectionFundReserveTotalBrl = 0.0;
 
     return {
       mrrBrl: Number(mrrBrl.toFixed(2)),

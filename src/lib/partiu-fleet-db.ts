@@ -499,11 +499,11 @@ export function useCaixaAdmin(): UseQueryResult<FechamentoCaixa[]> {
   });
 }
 
-export function calcularSplit(totalBruto: number, taxaPct: number) {
-  const valorCooperativa = Number(((totalBruto * taxaPct) / 100).toFixed(2));
+export function calcularSplit(totalBruto: number, _taxaPct: number = 0) {
+  // Padrão PARTIU: 0% de retenção por corrida (100% repasse líquido ao motorista)
   return {
-    valor_cooperativa: valorCooperativa,
-    valor_liquido_motorista: Number((totalBruto - valorCooperativa).toFixed(2)),
+    valor_cooperativa: 0,
+    valor_liquido_motorista: Number(totalBruto.toFixed(2)),
   };
 }
 

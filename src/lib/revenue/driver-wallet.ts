@@ -210,7 +210,7 @@ export class DriverWalletEngine {
       isCredit: true,
       balanceAfterBrl: wallet.availableBalanceBrl,
       balanceAfterCents: wallet.availableBalanceCents,
-      description: `Corrida #${settlement.rideId.slice(-6)} • Plano ${settlement.planName} (${settlement.commissionPercent}%) • Taxa PARTIU: -${settlement.platformCommissionBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`,
+      description: `Corrida #${settlement.rideId.slice(-6)} • Plano ${settlement.planName} • Taxa PARTIU: 0% (R$ 0,00 - 100% Repasse)`,
       timestamp: now,
     };
 

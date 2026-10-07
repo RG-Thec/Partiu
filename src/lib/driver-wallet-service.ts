@@ -1,6 +1,7 @@
 /**
- * 💳 SERVIÇO DE CARTEIRA PRÉ-PAGA DO MOTORISTA & GATEWAY PIX
- * Modelo onde a comissão do app é debitada da carteira e corridas são bloqueadas se saldo <= 0.
+ * 💳 SERVIÇO DE CARTEIRA & CONCILIAÇÃO PIX DO MOTORISTA (MODELO SAAS PARTIU)
+ * No PARTIU, opera-se com TAXA ZERO POR CORRIDA (0% take rate).
+ * A carteira gerencia recargas Pix para compra de diárias/planos SaaS e conciliação bancária.
  */
 
 export interface CarteiraMotorista {
@@ -19,10 +20,11 @@ export interface CarteiraMotorista {
 
 export type TipoTransacaoCarteira =
   | "RECARGA_PIX"
-  | "DEBITO_CORRIDA"
+  | "PAGAMENTO_PLANO_SAAS"
   | "CREDITO_MANUAL_ADMIN"
   | "DEBITO_MANUAL_ADMIN"
-  | "BONUS";
+  | "BONUS"
+  | "DEBITO_CORRIDA"; // Legado para retrocompatibilidade
 
 export interface TransacaoCarteira {
   id: string;
@@ -261,11 +263,10 @@ export function lancarTransacaoCarteira(dados: {
     ? Math.round((carteira.saldoBrl + dados.valorBrl) * 100) / 100
     : Math.round((carteira.saldoBrl - dados.valorBrl) * 100) / 100;
 
-  // Atualiza status de bloqueio caso seja decorrente do saldo
+  // No modelo SaaS do PARTIU, o saldo de carteira não bloqueia o aceite de corridas
+  // O acesso operacional é controlado exclusivamente pela vigência da assinatura/diária SaaS
   let novoStatus = carteira.statusBloqueio;
-  if (novoSaldo <= carteira.limiteMinimoBrl) {
-    novoStatus = "BLOQUEADO_SALDO_INSUFICIENTE";
-  } else if (carteira.statusBloqueio === "BLOQUEADO_SALDO_INSUFICIENTE") {
+  if (novoStatus === "BLOQUEADO_SALDO_INSUFICIENTE") {
     novoStatus = "LIBERADO";
   }
 
