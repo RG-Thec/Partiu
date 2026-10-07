@@ -1277,13 +1277,13 @@ export function ConfiguracoesAdminPage() {
               <div className="space-y-5 max-w-xl animate-in fade-in">
                 <div className="space-y-1">
                   <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-primary-700">Passo 3 de 4</span>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900">Tarifas da Cidade &amp; Comissão</h3>
-                  <p className="text-xs sm:text-sm text-slate-600 font-medium">Regras de precificação e split financeiro da operação.</p>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900">Tarifas da Cidade &amp; Repasse SaaS</h3>
+                  <p className="text-xs sm:text-sm text-slate-600 font-medium">0% de taxa por corrida • Repasse de mensalidades SaaS da praça.</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Tarifa Base (R$):</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Tarifa Base Corrida (R$):</label>
                     <input
                       type="number"
                       step="0.5"
@@ -1294,7 +1294,7 @@ export function ConfiguracoesAdminPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Comissão da Franquia (%):</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Repasse da Franquia (% SaaS):</label>
                     <input
                       type="number"
                       step="0.5"
@@ -1412,7 +1412,10 @@ export function ConfiguracoesAdminPage() {
                     </div>
                     <p className="text-xs sm:text-sm text-slate-500 font-medium">App: {c.nomeApp} | Preset: {c.preset}</p>
                   </div>
-                  <span className="text-xs sm:text-sm font-black text-slate-900">Comissão: {c.comissaoPercent}%</span>
+                  <div className="text-right">
+                    <span className="block text-xs font-black text-emerald-700 uppercase">Taxa Corrida: 0%</span>
+                    <span className="text-[11px] text-slate-500 font-bold">Repasse SaaS: {c.comissaoPercent}%</span>
+                  </div>
                 </div>
               ))}
             </div>

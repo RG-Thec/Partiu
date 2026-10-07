@@ -2055,9 +2055,9 @@ function WhiteLabelStudioContent() {
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block font-medium">Comissão Padrão</span>
-                          <span className="font-bold text-primary-600 font-mono">
-                            {v.comissaoPadraoPercentual}%
+                          <span className="text-emerald-400 block font-medium">Taxa por Corrida</span>
+                          <span className="font-bold text-emerald-300 font-mono">
+                            0% (Taxa Zero)
                           </span>
                         </div>
                       </div>
