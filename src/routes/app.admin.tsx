@@ -322,30 +322,30 @@ function SuperAdminLayout() {
       {/* 1. Sidebar Fixa no Desktop (6 Módulos Oficiais) */}
       <aside
         className={`hidden md:flex flex-col justify-between bg-slate-950 text-white border-r border-slate-800 shrink-0 sticky top-0 h-screen transition-all duration-300 z-40 ${
-          recolhido ? "w-20 p-2.5" : "w-64 lg:w-72 p-4"
+          recolhido ? "w-16 p-2" : "w-52 lg:w-56 p-3"
         }`}
       >
-        <div className="space-y-3.5 flex-1 flex flex-col min-h-0">
+        <div className="space-y-2.5 flex-1 flex flex-col min-h-0">
           {/* Topo da Sidebar: Logo & Botão de Recolher */}
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+          <div className="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
             {!recolhido ? (
-              <Link to="/app/admin" className="flex items-center gap-2.5 min-w-0">
+              <Link to="/app/admin" className="flex items-center gap-2 min-w-0">
                 <div
-                  className="flex h-10 w-10 items-center justify-center text-white shadow-xs shrink-0 font-black rounded-xl"
+                  className="flex h-8 w-8 items-center justify-center text-white shadow-xs shrink-0 font-black rounded-lg"
                   style={{
                     backgroundColor: colors.primary,
                     borderRadius: ui.borderRadius,
                     boxShadow: ui.buttonShadow,
                   }}
                 >
-                  <Zap className="h-5 w-5 fill-white stroke-[2.5]" />
+                  <Zap className="h-4 w-4 fill-white stroke-[2.5]" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-black tracking-tight leading-none text-white truncate">
-                    {branding.appName.toUpperCase()} <span style={{ color: colors.primary }}>OPERATIONS</span>
+                  <p className="text-xs font-black tracking-tight leading-none text-white truncate">
+                    {branding.appName.toUpperCase()} <span style={{ color: colors.primary }}>OPS</span>
                   </p>
                   <span
-                    className="text-[11px] font-bold tracking-wider uppercase mt-1 block truncate"
+                    className="text-[10px] font-bold tracking-wider uppercase mt-0.5 block truncate"
                     style={{ color: colors.primary }}
                   >
                     {roleMeta.titulo}
@@ -355,14 +355,14 @@ function SuperAdminLayout() {
             ) : (
               <div className="mx-auto">
                 <div
-                  className="flex h-10 w-10 items-center justify-center text-white shadow-xs rounded-xl"
+                  className="flex h-8 w-8 items-center justify-center text-white shadow-xs rounded-lg"
                   style={{
                     backgroundColor: colors.primary,
                     borderRadius: ui.borderRadius,
                     boxShadow: ui.buttonShadow,
                   }}
                 >
-                  <Zap className="h-5 w-5 fill-white stroke-[2.5]" />
+                  <Zap className="h-4 w-4 fill-white stroke-[2.5]" />
                 </div>
               </div>
             )}
@@ -370,28 +370,28 @@ function SuperAdminLayout() {
             <button
               type="button"
               onClick={() => setRecolhido(!recolhido)}
-              className={`flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-slate-800 cursor-pointer ${
-                recolhido ? "mx-auto mt-1" : ""
+              className={`flex h-7.5 w-7.5 items-center justify-center rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-slate-800 cursor-pointer ${
+                recolhido ? "mx-auto mt-0.5" : ""
               }`}
               title={recolhido ? "Expandir Menu" : "Recolher Menu"}
             >
-              {recolhido ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+              {recolhido ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
             </button>
           </div>
 
           {/* Seletor de Perfil RBAC (5 Perfis Nacionais) */}
           {!recolhido && (
-            <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800/90 space-y-1.5">
+            <div className="p-2 rounded-lg bg-slate-900/90 border border-slate-800/90 space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  Perfil Operacional (RBAC)
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Perfil (RBAC)
                 </span>
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               </div>
               <select
                 value={roleAtiva}
                 onChange={(e) => handleTrocarRole(e.target.value as AdminRole)}
-                className="w-full bg-slate-950 border border-slate-800 text-xs font-bold text-white rounded-xl px-3 py-2 h-9.5 focus:ring-2 focus:ring-amber-400 focus:outline-hidden cursor-pointer"
+                className="w-full bg-slate-950 border border-slate-800 text-[11px] font-bold text-white rounded-md px-2 py-1 h-7.5 focus:ring-1 focus:ring-amber-400 focus:outline-hidden cursor-pointer"
               >
                 {ROLES_DISPONIVEIS.map((r) => (
                   <option key={r.id} value={r.id} className="bg-slate-950 text-white font-bold text-xs py-1">
@@ -403,10 +403,10 @@ function SuperAdminLayout() {
           )}
 
           {/* 6 MÓDULOS OFICIAIS DE NAVEGAÇÃO */}
-          <nav className="flex-1 overflow-y-auto space-y-1.5 custom-admin-scrollbar pr-0.5">
+          <nav className="flex-1 overflow-y-auto space-y-1 custom-admin-scrollbar pr-0.5">
             {!recolhido && (
-              <p className="px-2 pt-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                Menu de Operações ({menuFiltrado.length})
+              <p className="px-1.5 pt-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Operações ({menuFiltrado.length})
               </p>
             )}
 
@@ -417,7 +417,7 @@ function SuperAdminLayout() {
                 : href.startsWith(item.to) || (item.subItens?.some((s) => href.startsWith(s.to)) ?? false);
 
               return (
-                <div key={item.to} className="space-y-1">
+                <div key={item.to} className="space-y-0.5">
                   <Link
                     to={item.to}
                     style={
@@ -430,23 +430,23 @@ function SuperAdminLayout() {
                           }
                         : { borderRadius: ui.borderRadius }
                     }
-                    className={`group flex items-center justify-between px-3 py-2 text-xs sm:text-sm font-bold transition-all relative min-h-[46px] rounded-xl ${
+                    className={`group flex items-center justify-between px-2.5 py-1.5 text-xs font-bold transition-all relative min-h-[38px] rounded-lg ${
                       isAtivo
                         ? "font-black"
                         : "text-slate-300 hover:bg-slate-900 hover:text-white"
-                    } ${recolhido ? "justify-center px-1.5" : ""}`}
+                    } ${recolhido ? "justify-center px-1" : ""}`}
                     title={recolhido ? item.label : undefined}
                   >
-                    <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex items-center gap-2 min-w-0">
                       <Icon
-                        className={`h-5 w-5 shrink-0 transition-transform group-hover:scale-105 ${
+                        className={`h-4 w-4 shrink-0 transition-transform group-hover:scale-105 ${
                           isAtivo ? "text-white stroke-[2.5]" : "text-slate-400"
                         }`}
                       />
                       {!recolhido && (
                         <div className="truncate">
-                          <p className="truncate text-xs sm:text-sm font-bold leading-tight">{item.label}</p>
-                          <span className={`text-[11px] block font-normal truncate mt-0.5 ${
+                          <p className="truncate text-xs font-bold leading-tight">{item.label}</p>
+                          <span className={`text-[10px] block font-normal truncate ${
                             isAtivo ? "text-white/95 font-medium" : "text-slate-400"
                           }`}>
                             {item.descricao}
@@ -456,19 +456,19 @@ function SuperAdminLayout() {
                     </div>
 
                     {recolhido && item.badgeVariant === "critical" && (
-                      <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-red-600 animate-pulse border-2 border-slate-950" />
+                      <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-600 animate-pulse border-2 border-slate-950" />
                     )}
                     {recolhido && item.badgeVariant === "warning" && (
-                      <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-amber-400 border-2 border-slate-950" />
+                      <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-amber-400 border-2 border-slate-950" />
                     )}
 
                     {!recolhido && item.badge && (
                       <span
-                        className={`ml-1.5 px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider shrink-0 ${
+                        className={`ml-1 px-1.5 py-0.2 rounded-md text-[9px] font-bold uppercase tracking-wider shrink-0 ${
                           item.badgeVariant === "critical"
-                            ? "bg-red-600 text-white animate-pulse shadow-xs"
+                            ? "bg-red-600 text-white animate-pulse"
                             : item.badgeVariant === "warning"
-                            ? "bg-amber-400 text-slate-950 font-black shadow-xs"
+                            ? "bg-amber-400 text-slate-950 font-black"
                             : isAtivo
                             ? "bg-slate-950 text-white"
                             : "bg-slate-800 text-slate-300"
@@ -481,7 +481,7 @@ function SuperAdminLayout() {
 
                   {/* Sub-itens de navegação rápida quando o módulo estiver ativo */}
                   {!recolhido && isAtivo && item.subItens && item.subItens.length > 0 && (
-                    <div className="pl-3 pr-1 py-0.5 space-y-0.5 border-l-2 border-slate-800 ml-4 my-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="pl-2.5 pr-0.5 py-0.5 space-y-0.5 border-l border-slate-800 ml-3.5 my-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
                       {item.subItens.map((sub) => {
                         const SubIcon = sub.icon || ChevronRight;
                         const isSubAtivo = href === sub.to || (sub.to !== item.to && href.startsWith(sub.to));
@@ -490,18 +490,18 @@ function SuperAdminLayout() {
                           <Link
                             key={sub.to}
                             to={sub.to}
-                            className={`flex items-center justify-between px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                            className={`flex items-center justify-between px-2 py-1 text-[11px] font-semibold rounded-md transition-all ${
                               isSubAtivo
-                                ? "bg-slate-900 text-amber-400 font-bold border border-amber-400/40 shadow-xs"
+                                ? "bg-slate-900 text-amber-400 font-bold border border-amber-400/30"
                                 : "text-slate-400 hover:text-white hover:bg-slate-900/60"
                             }`}
                           >
-                            <div className="flex items-center gap-2 truncate">
-                              <SubIcon className={`h-3.5 w-3.5 shrink-0 ${isSubAtivo ? "text-amber-400" : "text-slate-500"}`} />
+                            <div className="flex items-center gap-1.5 truncate">
+                              <SubIcon className={`h-3 w-3 shrink-0 ${isSubAtivo ? "text-amber-400" : "text-slate-500"}`} />
                               <span className="truncate">{sub.label}</span>
                             </div>
                             {sub.badge && (
-                              <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase rounded-md bg-slate-800 text-slate-300">
+                              <span className="px-1 py-0.2 text-[8px] font-bold uppercase rounded bg-slate-800 text-slate-300">
                                 {sub.badge}
                               </span>
                             )}
@@ -517,30 +517,30 @@ function SuperAdminLayout() {
         </div>
 
         {/* Rodapé da Sidebar: Sessão & Logout */}
-        <div className="border-t border-slate-800/80 pt-3 mt-1.5 space-y-1.5">
+        <div className="border-t border-slate-800/80 pt-2 mt-1 space-y-1">
           {!recolhido ? (
-            <div className="flex items-center justify-between bg-slate-900/80 p-3 rounded-xl border border-slate-800/80">
-              <div className="min-w-0 pr-2">
-                <p className="text-xs font-bold text-white truncate">{contaAtiva.nome}</p>
-                <p className="text-[11px] text-slate-400 truncate mt-0.5 font-medium">{contaAtiva.email}</p>
+            <div className="flex items-center justify-between bg-slate-900/80 p-2 rounded-lg border border-slate-800/80">
+              <div className="min-w-0 pr-1.5">
+                <p className="text-[11px] font-bold text-white truncate">{contaAtiva.nome}</p>
+                <p className="text-[10px] text-slate-400 truncate font-medium">{contaAtiva.email}</p>
               </div>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="h-8 w-8 rounded-lg bg-slate-800 hover:bg-red-950 text-slate-400 hover:text-red-300 flex items-center justify-center transition-all cursor-pointer shrink-0"
+                className="h-7 w-7 rounded-md bg-slate-800 hover:bg-red-950 text-slate-400 hover:text-red-300 flex items-center justify-center transition-all cursor-pointer shrink-0"
                 title="Sair"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-3.5 w-3.5" />
               </button>
             </div>
           ) : (
             <button
               type="button"
               onClick={handleLogout}
-              className="mx-auto h-9 w-9 rounded-xl bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-300 flex items-center justify-center transition-all cursor-pointer"
+              className="mx-auto h-8 w-8 rounded-lg bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-300 flex items-center justify-center transition-all cursor-pointer"
               title="Sair"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
@@ -548,29 +548,29 @@ function SuperAdminLayout() {
 
       {/* 2. Container Principal & Topbar */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 pt-[env(safe-area-inset-top,0px)] bg-white border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
-          <div className="flex items-center gap-2.5 sm:gap-3 py-1">
+        <header className="h-13 pt-[env(safe-area-inset-top,0px)] bg-white border-b border-slate-200/80 px-3 sm:px-5 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+          <div className="flex items-center gap-2 sm:gap-2.5 py-0.5">
             <button
               type="button"
               onClick={() => setMenuAbertoMobile(true)}
-              className="flex md:hidden h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-95 transition cursor-pointer shrink-0"
+              className="flex md:hidden h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-95 transition cursor-pointer shrink-0"
               aria-label="Abrir Menu de Navegação"
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-4 w-4" />
             </button>
 
             {/* Seletor Global Interativo de Cidade / Praça de Operação */}
             <AdminCitySelector />
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 py-1">
+          <div className="flex items-center gap-1.5 shrink-0 py-0.5">
             {/* Alerta SOS em tempo real */}
             {chamadosSOSAtivos > 0 && (
               <Link
                 to="/app/admin/operacao"
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 h-9 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold border border-red-500 animate-pulse shadow-xs transition-all shrink-0"
+                className="flex items-center gap-1 px-2 py-1 h-8 rounded-lg bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold border border-red-500 animate-pulse shadow-xs transition-all shrink-0"
               >
-                <ShieldAlert className="h-4 w-4 shrink-0" />
+                <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
                 <span>{chamadosSOSAtivos} SOS</span>
               </Link>
             )}
@@ -579,41 +579,41 @@ function SuperAdminLayout() {
             {motoristasPendentes > 0 && (
               <Link
                 to="/app/admin/aprovacoes"
-                className="hidden lg:flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 h-9 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 text-xs font-bold border border-amber-300 shadow-xs transition-all shrink-0"
+                className="hidden lg:flex items-center gap-1 px-2 py-1 h-8 rounded-lg bg-amber-400 hover:bg-amber-500 text-slate-950 text-[11px] font-bold border border-amber-300 shadow-xs transition-all shrink-0"
               >
-                <UserCheck className="h-4 w-4 shrink-0" />
-                <span>{motoristasPendentes} Pendente{motoristasPendentes > 1 ? "s" : ""}</span>
+                <UserCheck className="h-3.5 w-3.5 shrink-0" />
+                <span>{motoristasPendentes} Pend.</span>
               </Link>
             )}
 
             {/* Atalho Rápido para Despacho Telefônico & Flash */}
             <Link
               to="/app/admin/despacho"
-              className="hidden 2xl:flex items-center gap-1.5 px-3 py-1.5 h-9 rounded-xl bg-blue-50 text-blue-900 text-xs font-bold border border-blue-200/80 hover:bg-blue-100 active:scale-95 transition-all shadow-xs"
+              className="hidden 2xl:flex items-center gap-1 px-2.5 py-1 h-8 rounded-lg bg-blue-50 text-blue-900 text-[11px] font-bold border border-blue-200/80 hover:bg-blue-100 active:scale-95 transition-all shadow-xs"
               title="Central Telefônica de Despacho e Atendimento"
             >
-              <PhoneCall className="h-4 w-4 text-blue-600 shrink-0" />
-              <span>Despacho Manual</span>
+              <PhoneCall className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+              <span>Despacho</span>
             </Link>
 
             {/* Atalho Rápido para Studio White Label OS */}
             <Link
               to="/app/admin/whitelabel"
-              className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 h-9 rounded-xl bg-indigo-50 text-indigo-900 text-xs font-bold border border-indigo-200/80 hover:bg-indigo-100 active:scale-95 transition-all shadow-xs"
+              className="hidden xl:flex items-center gap-1 px-2.5 py-1 h-8 rounded-lg bg-indigo-50 text-indigo-900 text-[11px] font-bold border border-indigo-200/80 hover:bg-indigo-100 active:scale-95 transition-all shadow-xs"
               title="White Label Studio OS (Design, Brand, Multi-Negócios)"
             >
-              <Sparkles className="h-4 w-4 text-indigo-600 shrink-0" />
-              <span>Studio White Label</span>
+              <Sparkles className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+              <span>Studio</span>
             </Link>
 
             {/* Atalho Rápido para Operação ao Vivo */}
             <Link
               to="/app/admin/operacao"
-              className="flex items-center gap-1.5 px-3 py-1.5 h-9 rounded-xl bg-emerald-50 text-emerald-900 text-xs font-bold border border-emerald-300/80 hover:bg-emerald-100 active:scale-95 transition-all shadow-xs"
+              className="flex items-center gap-1 px-2.5 py-1 h-8 rounded-lg bg-emerald-50 text-emerald-900 text-[11px] font-bold border border-emerald-300/80 hover:bg-emerald-100 active:scale-95 transition-all shadow-xs"
             >
-              <Radio className="h-4 w-4 animate-pulse text-emerald-600 shrink-0" />
+              <Radio className="h-3.5 w-3.5 animate-pulse text-emerald-600 shrink-0" />
               <span className="hidden md:inline">Operação</span>
-              <span className="md:hidden text-xs">Ao Vivo</span>
+              <span className="md:hidden text-[11px]">Ao Vivo</span>
             </Link>
 
             {/* Imprimir Relatório (@media print) */}
@@ -621,9 +621,9 @@ function SuperAdminLayout() {
               type="button"
               onClick={() => window.print()}
               title="Imprimir Relatório (PDF)"
-              className="hidden sm:flex h-9 items-center gap-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 px-3 text-xs font-semibold text-slate-700 transition-all border border-slate-200 cursor-pointer shadow-xs"
+              className="hidden sm:flex h-8 items-center gap-1 rounded-lg bg-slate-100 hover:bg-slate-200 active:scale-95 px-2.5 text-[11px] font-semibold text-slate-700 transition-all border border-slate-200 cursor-pointer shadow-xs"
             >
-              <Printer className="h-4 w-4 text-slate-600 shrink-0" />
+              <Printer className="h-3.5 w-3.5 text-slate-600 shrink-0" />
               <span className="hidden xl:inline">Imprimir</span>
             </button>
 
@@ -631,27 +631,27 @@ function SuperAdminLayout() {
             <button
               type="button"
               onClick={abrirModalConta}
-              className="flex h-9 items-center gap-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 px-3 text-xs font-bold text-slate-800 transition-all border border-slate-200 cursor-pointer shadow-xs"
+              className="flex h-8 items-center gap-1 rounded-lg bg-slate-100 hover:bg-slate-200 active:scale-95 px-2.5 text-[11px] font-bold text-slate-800 transition-all border border-slate-200 cursor-pointer shadow-xs"
             >
-              <Key className="h-4 w-4 text-primary-700 shrink-0" />
+              <Key className="h-3.5 w-3.5 text-primary-700 shrink-0" />
               <span className="hidden lg:inline">{contaAtiva.email}</span>
-              <span className="lg:hidden text-xs">Conta</span>
+              <span className="lg:hidden text-[11px]">Conta</span>
             </button>
 
             {/* Sair */}
             <button
               type="button"
               onClick={handleLogout}
-              className="flex h-9 px-3 items-center gap-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-red-900 active:scale-95 transition-all cursor-pointer shadow-xs"
+              className="flex h-8 px-2.5 items-center gap-1 rounded-lg bg-slate-900 text-white text-[11px] font-bold hover:bg-red-900 active:scale-95 transition-all cursor-pointer shadow-xs"
               title="Sair da Conta"
             >
-              <LogOut className="h-4 w-4 shrink-0" />
+              <LogOut className="h-3.5 w-3.5 shrink-0" />
               <span className="hidden sm:inline">Sair</span>
             </button>
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full min-w-0 pb-safe">
+        <main className="flex-1 p-3 sm:p-4 lg:p-6 w-full min-w-0 pb-safe">
           <Outlet />
         </main>
       </div>

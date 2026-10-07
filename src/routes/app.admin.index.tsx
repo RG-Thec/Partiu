@@ -419,120 +419,120 @@ export function SuperAdminDashboardExecutive() {
       )}
 
       {/* 1. OS 6 CARDS EXECUTIVOS OBRIGATÓRIOS (METRICAS EXPANDIDAS) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-3.5">
         {/* Card 1: Receita Hoje & Take Rate */}
-        <div className="rounded-2xl bg-white p-4 sm:p-4.5 border border-slate-200 shadow-xs flex flex-col justify-between hover:shadow-sm transition-shadow">
+        <div className="rounded-xl bg-white p-3 sm:p-3.5 border border-slate-200 shadow-xs flex flex-col justify-between hover:shadow-sm transition-shadow">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Receita Hoje (GMV)</span>
-            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
-              <DollarSign className="h-4 w-4 stroke-[2.5]" />
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Receita Hoje (GMV)</span>
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+              <DollarSign className="h-3.5 w-3.5 stroke-[2.5]" />
             </div>
           </div>
-          <div className="pt-3">
-            <p className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 tracking-tight">
+          <div className="pt-2">
+            <p className="text-base sm:text-lg lg:text-xl font-black text-slate-900 tracking-tight">
               R$ {receitaHoje.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <span className="text-[11px] sm:text-xs text-emerald-700 font-bold flex items-center gap-1 mt-1">
-              <TrendingUp className="h-3.5 w-3.5 shrink-0" />
+            <span className="text-xs text-emerald-700 font-bold flex items-center gap-1 mt-0.5">
+              <TrendingUp className="h-3 w-3 shrink-0" />
               <span>Take Rate ({takeRatePct}%): R$ {takeRateHojeBrl.toFixed(2)}</span>
             </span>
           </div>
         </div>
 
         {/* Card 2: Motoristas Online vs Credenciados */}
-        <div className="rounded-2xl bg-white p-4 sm:p-4.5 border border-slate-200 shadow-xs flex flex-col justify-between hover:shadow-sm transition-shadow">
+        <div className="rounded-xl bg-white p-3 sm:p-3.5 border border-slate-200 shadow-xs flex flex-col justify-between hover:shadow-sm transition-shadow">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Motoristas Online</span>
-            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
-              <Users className="h-4 w-4 stroke-[2.5]" />
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Motoristas Online</span>
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+              <Users className="h-3.5 w-3.5 stroke-[2.5]" />
             </div>
           </div>
-          <div className="pt-3">
-            <p className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-1.5">
-              <span className={`h-2.5 w-2.5 rounded-full ${motoristasOnline > 0 ? "bg-emerald-500 animate-pulse" : "bg-slate-300"}`} />
+          <div className="pt-2">
+            <p className="text-base sm:text-lg lg:text-xl font-black text-slate-900 tracking-tight flex items-center gap-1">
+              <span className={`h-2 w-2 rounded-full ${motoristasOnline > 0 ? "bg-emerald-500 animate-pulse" : "bg-slate-300"}`} />
               {motoristasOnline}
             </p>
-            <span className="text-[11px] sm:text-xs text-slate-500 font-medium mt-1 block">
+            <span className="text-xs text-slate-500 font-medium mt-0.5 block">
               {assinaturasAtivasQtd} cadastrados na frota
             </span>
           </div>
         </div>
 
         {/* Card 3: Corridas em Andamento */}
-        <div className="rounded-2xl bg-white p-4 sm:p-4.5 border border-slate-200 shadow-xs flex flex-col justify-between hover:shadow-sm transition-shadow">
+        <div className="rounded-xl bg-white p-3 sm:p-3.5 border border-slate-200 shadow-xs flex flex-col justify-between hover:shadow-sm transition-shadow">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Em Andamento</span>
-            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">
-              <Car className="h-4 w-4 stroke-[2.5]" />
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Em Andamento</span>
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
+              <Car className="h-3.5 w-3.5 stroke-[2.5]" />
             </div>
           </div>
-          <div className="pt-3">
-            <p className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 tracking-tight">
+          <div className="pt-2">
+            <p className="text-base sm:text-lg lg:text-xl font-black text-slate-900 tracking-tight">
               {corridasEmAndamento}
             </p>
-            <span className="text-[11px] sm:text-xs text-amber-700 font-bold mt-1 block">
+            <span className="text-xs text-amber-700 font-bold mt-0.5 block">
               + {entregasEmAndamento} entregas expressas
             </span>
           </div>
         </div>
 
         {/* Card 4: Corridas Finalizadas Hoje vs Mês */}
-        <div className="rounded-2xl bg-white p-4 sm:p-4.5 border border-slate-200 shadow-xs flex flex-col justify-between hover:shadow-sm transition-shadow">
+        <div className="rounded-xl bg-white p-3 sm:p-3.5 border border-slate-200 shadow-xs flex flex-col justify-between hover:shadow-sm transition-shadow">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Finalizadas Hoje</span>
-            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center">
-              <CheckCircle2 className="h-4 w-4 stroke-[2.5]" />
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Finalizadas Hoje</span>
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center">
+              <CheckCircle2 className="h-3.5 w-3.5 stroke-[2.5]" />
             </div>
           </div>
-          <div className="pt-3">
-            <p className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 tracking-tight">
+          <div className="pt-2">
+            <p className="text-base sm:text-lg lg:text-xl font-black text-slate-900 tracking-tight">
               {corridasFinalizadasHoje}
             </p>
-            <span className="text-[11px] sm:text-xs text-indigo-600 font-bold mt-1 block">
+            <span className="text-xs text-indigo-600 font-bold mt-0.5 block">
               {corridasMes} viagens este mês
             </span>
           </div>
         </div>
 
         {/* Card 5: Ticket Médio & Taxa de Sucesso */}
-        <div className="rounded-2xl bg-white p-4 sm:p-4.5 border border-slate-200 shadow-xs flex flex-col justify-between hover:shadow-sm transition-shadow">
+        <div className="rounded-xl bg-white p-3 sm:p-3.5 border border-slate-200 shadow-xs flex flex-col justify-between hover:shadow-sm transition-shadow">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Ticket Médio</span>
-            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center">
-              <Activity className="h-4 w-4 stroke-[2.5]" />
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ticket Médio</span>
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center">
+              <Activity className="h-3.5 w-3.5 stroke-[2.5]" />
             </div>
           </div>
-          <div className="pt-3">
-            <p className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 tracking-tight">
+          <div className="pt-2">
+            <p className="text-base sm:text-lg lg:text-xl font-black text-slate-900 tracking-tight">
               R$ {ticketMedio.toFixed(2)}
             </p>
-            <span className="text-[11px] sm:text-xs text-purple-700 font-bold mt-1 block">
+            <span className="text-xs text-purple-700 font-bold mt-0.5 block">
               {taxaSucesso.toFixed(1)}% taxa de sucesso
             </span>
           </div>
         </div>
 
         {/* Card 6: Chamados SOS & Segurança */}
-        <div className={`rounded-2xl p-4 sm:p-4.5 border shadow-xs flex flex-col justify-between transition-all ${
+        <div className={`rounded-xl p-3 sm:p-3.5 border shadow-xs flex flex-col justify-between transition-all ${
           chamadosSOSAtivos > 0
             ? "bg-red-50/95 border-red-300 shadow-xs shadow-red-500/10"
             : "bg-white border-slate-200"
         }`}>
           <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">Chamados SOS</span>
-            <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-xl flex items-center justify-center ${
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Chamados SOS</span>
+            <div className={`h-7 w-7 sm:h-8 sm:w-8 rounded-lg flex items-center justify-center ${
               chamadosSOSAtivos > 0 ? "bg-red-600 text-white animate-pulse" : "bg-slate-100 text-slate-500"
             }`}>
-              <ShieldAlert className="h-4 w-4 stroke-[2.5]" />
+              <ShieldAlert className="h-3.5 w-3.5 stroke-[2.5]" />
             </div>
           </div>
-          <div className="pt-3">
-            <p className={`text-lg sm:text-xl lg:text-2xl font-black tracking-tight ${
+          <div className="pt-2">
+            <p className={`text-base sm:text-lg lg:text-xl font-black tracking-tight ${
               chamadosSOSAtivos > 0 ? "text-red-700" : "text-slate-900"
             }`}>
               {chamadosSOSAtivos}
             </p>
-            <span className={`text-[11px] sm:text-xs font-bold mt-1 block ${
+            <span className={`text-xs font-bold mt-0.5 block ${
               chamadosSOSAtivos > 0 ? "text-red-700 font-black animate-pulse" : "text-slate-400"
             }`}>
               {chamadosSOSAtivos > 0 ? "⚠️ Emergência ativa" : `${taxaCancelamento.toFixed(1)}% cancelamento`}
