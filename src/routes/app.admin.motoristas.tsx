@@ -104,8 +104,6 @@ export function QuadroMotoristasAdminPage() {
   const [motivoRejeicao, setMotivoRejeicao] = useState("Documento CNH ilegível ou vencido");
   const [modalOcrAberto, setModalOcrAberto] = useState(false);
   const [processandoOcr, setProcessandoOcr] = useState(false);
-  const [taxaComissao, setTaxaComissao] = useState(18);
-  const [temaSelecionado, setTemaSelecionado] = useState("Azul Tech (Padrão)");
 
   // Abas principais: Frota Urbana vs Moderação de Avaliações (Rating 1-5★)
   const [abaPrincipal, setAbaPrincipal] = useState<"frota" | "avaliacoes">("frota");
@@ -421,352 +419,272 @@ export function QuadroMotoristasAdminPage() {
         </div>
       </div>
 
-      {/* 3. CONTEÚDO PRINCIPAL: TABELA NA ESQUERDA (8 COLS) + PAINEL DE CONTROLE NA DIREITA (4 COLS) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* COLUNA ESQUERDA: FILTROS + TABELA (LG:COL-SPAN-8) */}
-        <div className="lg:col-span-8 space-y-4">
-          {/* BARRA DE BUSCA & FILTROS */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm">
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-              {(["TODOS", "ONLINE", "PENDENTE", "OFFLINE", "SUSPENSO"] as StatusMotorista[]).map((st) => (
-                <button
-                  key={st}
-                  type="button"
-                  onClick={() => setFiltroStatus(st)}
-                  className={`px-3.5 sm:px-4.5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer shrink-0 ${
-                    filtroStatus === st
-                      ? "bg-[#003366] text-white shadow-sm"
-                      : "bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200/70"
-                  }`}
-                >
-                  {st === "TODOS" && "Todos"}
-                  {st === "ONLINE" && "Online"}
-                  {st === "PENDENTE" && "Pendentes"}
-                  {st === "OFFLINE" && "Offline"}
-                  {st === "SUSPENSO" && "Suspensos"}
-                </button>
-              ))}
-            </div>
+      {/* 3. CONTEÚDO PRINCIPAL: TABELA DE MOTORISTAS EM LARGURA TOTAL */}
+      <div className="w-full space-y-4">
+        {/* BARRA DE BUSCA & FILTROS */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            {(["TODOS", "ONLINE", "PENDENTE", "OFFLINE", "SUSPENSO"] as StatusMotorista[]).map((st) => (
+              <button
+                key={st}
+                type="button"
+                onClick={() => setFiltroStatus(st)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                  filtroStatus === st
+                    ? "bg-slate-900 text-white shadow-xs"
+                    : "bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200/70"
+                }`}
+              >
+                {st === "TODOS" && "Todos"}
+                {st === "ONLINE" && "Online"}
+                {st === "PENDENTE" && "Pendentes"}
+                {st === "OFFLINE" && "Offline"}
+                {st === "SUSPENSO" && "Suspensos"}
+              </button>
+            ))}
 
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <select
+              value={filtroModal}
+              onChange={(e) => setFiltroModal(e.target.value as any)}
+              className="h-8 px-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-hidden cursor-pointer"
+            >
+              <option value="TODOS">Todos os Modais</option>
+              <option value="CARRO">Carro (Pop)</option>
+              <option value="MOTO">Moto (Flash)</option>
+              <option value="PLUS">Plus (Sedan)</option>
+              <option value="MULHER">Mulher (Delas)</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1 sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
               <input
                 type="text"
                 placeholder="Buscar motorista, placa ou CNH..."
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
-                className="w-full h-11 sm:h-12 pl-11 pr-4 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#0088FF]"
+                className="w-full h-8.5 pl-8.5 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-[#0088FF]"
               />
             </div>
-          </div>
 
-          {/* TABELA DE MOTORISTAS DESKTOP (PADRÃO 8.PNG COM CHECKLIST DOCUMENTAL) */}
-          <div className="hidden sm:block bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-slate-50/90 text-slate-500 uppercase font-black text-xs sm:text-sm tracking-wider border-b border-slate-200">
-                  <tr>
-                    <th className="py-4.5 px-6">Motorista</th>
-                    <th className="py-4.5 px-6">Veículo</th>
-                    <th className="py-4.5 px-6">Documentos</th>
-                    <th className="py-4.5 px-6">Status</th>
-                    <th className="py-4.5 px-6 text-right">Ações</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {motoristasFiltrados.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="py-12 px-6 text-center text-slate-400 text-sm font-medium">
-                        Nenhum motorista encontrado para os filtros selecionados.
-                      </td>
-                    </tr>
-                  ) : (
-                    motoristasFiltrados.map((m) => {
-                      const isPendente = m.status === "PENDENTE";
-
-                      return (
-                        <tr key={m.id} className="hover:bg-slate-50/70 transition-colors">
-                          <td className="py-4.5 px-6">
-                            <div className="flex items-center gap-3.5">
-                              <div className="w-11 h-11 rounded-2xl bg-blue-50 text-[#0088FF] border border-blue-200/60 flex items-center justify-center font-black text-base shrink-0 shadow-xs">
-                                {m.nome.charAt(0)}
-                              </div>
-                              <div>
-                                <p className="font-black text-sm sm:text-base text-slate-900 flex items-center gap-1.5">
-                                  {m.nome}
-                                  <span className="text-amber-500 text-xs sm:text-sm font-black flex items-center">
-                                    ★ {m.rating.toFixed(1)}
-                                  </span>
-                                </p>
-                                <span className="text-xs sm:text-sm text-slate-500 font-medium">{m.telefone}</span>
-                              </div>
-                            </div>
-                          </td>
-
-                          <td className="py-4.5 px-6">
-                            <p className="font-bold text-sm sm:text-base text-slate-900">{m.veiculoModelo}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs sm:text-sm text-slate-500 font-mono font-bold uppercase">
-                                {m.veiculoPlaca}
-                              </span>
-                              <span
-                                className={`inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-black border ${
-                                  m.modal === "CARRO"
-                                    ? "bg-blue-50 text-blue-700 border-blue-200"
-                                    : m.modal === "MOTO"
-                                    ? "bg-amber-50 text-amber-800 border-amber-200"
-                                    : m.modal === "PLUS"
-                                    ? "bg-purple-50 text-purple-700 border-purple-200"
-                                    : "bg-rose-50 text-rose-700 border-rose-200"
-                                }`}
-                              >
-                                {m.modal}
-                              </span>
-                            </div>
-                          </td>
-
-                          {/* Checklist de Documentos */}
-                          <td className="py-4.5 px-6">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-[#22C55E] text-xs font-bold border border-emerald-200/60">
-                                ✓ CNH
-                              </span>
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-[#22C55E] text-xs font-bold border border-emerald-200/60">
-                                ✓ CRLV
-                              </span>
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-[#22C55E] text-xs font-bold border border-emerald-200/60">
-                                ✓ Antecedentes
-                              </span>
-                            </div>
-                          </td>
-
-                          <td className="py-4.5 px-6">
-                            <span
-                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs sm:text-sm font-black ${
-                                m.status === "ONLINE"
-                                  ? "bg-emerald-50 text-[#22C55E] border border-emerald-200"
-                                  : m.status === "PENDENTE"
-                                  ? "bg-amber-50 text-amber-700 border border-amber-200"
-                                  : m.status === "SUSPENSO"
-                                  ? "bg-rose-50 text-[#EF4444] border border-rose-200"
-                                  : "bg-slate-100 text-slate-600 border border-slate-200"
-                              }`}
-                            >
-                              {m.status === "ONLINE" && "Aprovado"}
-                              {m.status === "OFFLINE" && "Offline"}
-                              {m.status === "PENDENTE" && "Pendente"}
-                              {m.status === "SUSPENSO" && "Suspenso"}
-                            </span>
-                          </td>
-
-                          <td className="py-4.5 px-6 text-right">
-                            {isPendente ? (
-                              <div className="inline-flex items-center gap-2 justify-end">
-                                <button
-                                  type="button"
-                                  onClick={() => handleAprovar(m)}
-                                  className="h-10 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm transition shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95"
-                                >
-                                  <CheckCircle2 className="h-4 w-4" />
-                                  <span>Aprovar ({m.modal})</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setMotoristaSelecionado(m);
-                                    setModalRejeitarAberto(true);
-                                  }}
-                                  className="h-10 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-[#EF4444] font-bold text-xs sm:text-sm border border-rose-200 transition cursor-pointer flex items-center gap-1.5 active:scale-95"
-                                >
-                                  <UserX className="h-4 w-4" />
-                                  <span>Rejeitar</span>
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="inline-flex items-center gap-2 justify-end">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const msg = encodeURIComponent(`Olá ${m.nome}, contato da Central PARTIU Operações.`);
-                                    window.open(`https://wa.me/55${m.telefone.replace(/\D/g, "")}?text=${msg}`, "_blank");
-                                  }}
-                                  className="h-10 w-10 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-500 hover:text-emerald-600 border border-slate-200 flex items-center justify-center transition cursor-pointer active:scale-95"
-                                  title="WhatsApp"
-                                >
-                                  <Phone className="h-4 w-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setMotoristaSelecionado(m);
-                                    setCategoriaEdicao(m.modal);
-                                    setModalDetalhesAberto(true);
-                                  }}
-                                  className="h-10 px-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm border border-slate-200 transition cursor-pointer active:scale-95"
-                                >
-                                  Ver Detalhes
-                                </button>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* CARDS MOBILE */}
-          <div className="grid grid-cols-1 gap-3 sm:hidden">
-            {motoristasFiltrados.length === 0 ? (
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center text-slate-400 text-xs">
-                Nenhum motorista encontrado para os filtros selecionados.
-              </div>
-            ) : (
-              motoristasFiltrados.map((m) => (
-                <div key={m.id} className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-2.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-blue-50 text-[#0088FF] flex items-center justify-center font-bold text-xs">
-                        {m.nome.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-slate-800 text-xs">{m.nome}</p>
-                        <span className="text-[10px] text-slate-400">{m.telefone}</span>
-                      </div>
-                    </div>
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                      {m.status}
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-xl">
-                    <span>{m.veiculoModelo} • {m.veiculoPlaca}</span>
-                  </div>
-                </div>
-              ))
-            )}
+            <button
+              type="button"
+              onClick={() => {
+                exportarParaCSV(
+                  `motoristas_partiu_${new Date().toISOString().slice(0, 10)}`,
+                  ["ID", "Nome", "Telefone", "Modal", "Veículo", "Placa", "Ano", "Status", "Avaliação", "Total Viagens"],
+                  motoristasFiltrados.map((m) => [
+                    m.id,
+                    m.nome,
+                    m.telefone,
+                    m.modal,
+                    m.veiculoModelo,
+                    m.veiculoPlaca,
+                    m.veiculoAno,
+                    m.status,
+                    m.rating.toFixed(1),
+                    m.totalViagens,
+                  ])
+                );
+              }}
+              className="h-8.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+              title="Exportar CSV de Condutores"
+            >
+              <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />
+              <span className="hidden sm:inline">Exportar CSV</span>
+            </button>
           </div>
         </div>
 
-        {/* COLUNA DIREITA: WIDGETS DE GESTÃO (LG:COL-SPAN-4 SPACE-Y-5) */}
-        <div className="lg:col-span-4 space-y-5">
-          {/* WIDGET 1: CONFIGURAÇÃO DE TEMA (BRANDING CONFORME 8.PNG) */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0088FF] flex items-center justify-center shadow-xs">
-                <Palette className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base sm:text-lg font-black text-slate-900">Configuração de Tema</h3>
-                <p className="text-xs sm:text-sm text-slate-500">Identidade visual do aplicativo</p>
-              </div>
+        {/* TABELA DE MOTORISTAS DESKTOP */}
+        <div className="hidden sm:block bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-slate-50/90 text-slate-500 uppercase font-black text-xs tracking-wider border-b border-slate-200">
+                <tr>
+                  <th className="py-3 px-4">Motorista</th>
+                  <th className="py-3 px-4">Veículo</th>
+                  <th className="py-3 px-4">Documentos</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {motoristasFiltrados.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-10 px-4 text-center text-slate-400 text-xs font-medium">
+                      Nenhum motorista encontrado para os filtros selecionados.
+                    </td>
+                  </tr>
+                ) : (
+                  motoristasFiltrados.map((m) => {
+                    const isPendente = m.status === "PENDENTE";
+
+                    return (
+                      <tr key={m.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0088FF] border border-blue-200/60 flex items-center justify-center font-black text-sm shrink-0 shadow-xs">
+                              {m.nome.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="font-bold text-xs sm:text-sm text-slate-900 flex items-center gap-1.5">
+                                {m.nome}
+                                <span className="text-amber-500 text-[11px] font-black flex items-center">
+                                  ★ {m.rating.toFixed(1)}
+                                </span>
+                              </p>
+                              <span className="text-[11px] text-slate-500 font-medium">{m.telefone}</span>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="py-3 px-4">
+                          <p className="font-bold text-xs sm:text-sm text-slate-900">{m.veiculoModelo}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[11px] text-slate-500 font-mono font-bold uppercase">
+                              {m.veiculoPlaca}
+                            </span>
+                            <span
+                              className={`inline-flex items-center px-1.5 py-0.2 rounded-md text-[9px] font-black border ${
+                                m.modal === "CARRO"
+                                  ? "bg-blue-50 text-blue-700 border-blue-200"
+                                  : m.modal === "MOTO"
+                                  ? "bg-amber-50 text-amber-800 border-amber-200"
+                                  : m.modal === "PLUS"
+                                  ? "bg-purple-50 text-purple-700 border-purple-200"
+                                  : "bg-rose-50 text-rose-700 border-rose-200"
+                              }`}
+                            >
+                              {m.modal}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Checklist de Documentos */}
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-[#22C55E] text-[10px] font-bold border border-emerald-200/60">
+                              ✓ CNH
+                            </span>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-[#22C55E] text-[10px] font-bold border border-emerald-200/60">
+                              ✓ CRLV
+                            </span>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-[#22C55E] text-[10px] font-bold border border-emerald-200/60">
+                              ✓ Antecedentes
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className="py-3 px-4">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                              m.status === "ONLINE"
+                                ? "bg-emerald-50 text-[#22C55E] border border-emerald-200"
+                                : m.status === "PENDENTE"
+                                ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                : m.status === "SUSPENSO"
+                                ? "bg-rose-50 text-[#EF4444] border border-rose-200"
+                                : "bg-slate-100 text-slate-600 border border-slate-200"
+                            }`}
+                          >
+                            {m.status === "ONLINE" && "Aprovado"}
+                            {m.status === "OFFLINE" && "Offline"}
+                            {m.status === "PENDENTE" && "Pendente"}
+                            {m.status === "SUSPENSO" && "Suspenso"}
+                          </span>
+                        </td>
+
+                        <td className="py-3 px-4 text-right">
+                          {isPendente ? (
+                            <div className="inline-flex items-center gap-1.5 justify-end">
+                              <button
+                                type="button"
+                                onClick={() => handleAprovar(m)}
+                                className="h-8 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
+                              >
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                <span>Aprovar</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setMotoristaSelecionado(m);
+                                  setModalRejeitarAberto(true);
+                                }}
+                                className="h-8 px-2.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-[#EF4444] font-bold text-xs border border-rose-200 transition cursor-pointer flex items-center gap-1 active:scale-95"
+                              >
+                                <UserX className="h-3.5 w-3.5" />
+                                <span>Rejeitar</span>
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="inline-flex items-center gap-1.5 justify-end">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const msg = encodeURIComponent(`Olá ${m.nome}, contato da Central PARTIU Operações.`);
+                                  window.open(`https://wa.me/55${m.telefone.replace(/\D/g, "")}?text=${msg}`, "_blank");
+                                }}
+                                className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-500 hover:text-emerald-600 border border-slate-200 flex items-center justify-center transition cursor-pointer active:scale-95"
+                                title="WhatsApp"
+                              >
+                                <Phone className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setMotoristaSelecionado(m);
+                                  setCategoriaEdicao(m.modal);
+                                  setModalDetalhesAberto(true);
+                                }}
+                                className="h-8 px-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs border border-slate-200 transition cursor-pointer active:scale-95"
+                              >
+                                Detalhes
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* CARDS MOBILE */}
+        <div className="grid grid-cols-1 gap-2.5 sm:hidden">
+          {motoristasFiltrados.length === 0 ? (
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center text-slate-400 text-xs">
+              Nenhum motorista encontrado para os filtros selecionados.
             </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs sm:text-sm font-bold text-slate-700 block mb-1.5">Tema Ativo</label>
-                <select
-                  value={temaSelecionado}
-                  onChange={(e) => setTemaSelecionado(e.target.value)}
-                  className="w-full h-11 px-3.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold bg-slate-50 text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-[#0088FF]"
-                >
-                  <option value="Azul Tech (Padrão)">Azul Tech (Padrão)</option>
-                  <option value="Verde Esmeralda">Verde Esmeralda</option>
-                  <option value="Dark Corporate">Dark Corporate</option>
-                </select>
-              </div>
-
-              {/* Swatches dos Tokens Oficiais */}
-              <div>
-                <span className="text-xs sm:text-sm font-bold text-slate-600 block mb-2">Paleta Corporativa</span>
-                <div className="grid grid-cols-3 gap-2.5 text-center">
-                  <div className="p-2.5 rounded-2xl bg-slate-50 border border-slate-200/80">
-                    <div className="w-full h-8 rounded-xl bg-[#003366] mb-1.5 shadow-xs" />
-                    <span className="text-xs font-black text-slate-800 block">Primária</span>
-                    <span className="text-[10px] font-mono text-slate-500">#003366</span>
+          ) : (
+            motoristasFiltrados.map((m) => (
+              <div key={m.id} className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-xs space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-blue-50 text-[#0088FF] flex items-center justify-center font-bold text-xs">
+                      {m.nome.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-800 text-xs">{m.nome}</p>
+                      <span className="text-[10px] text-slate-400">{m.telefone}</span>
+                    </div>
                   </div>
-                  <div className="p-2.5 rounded-2xl bg-slate-50 border border-slate-200/80">
-                    <div className="w-full h-8 rounded-xl bg-[#0088FF] mb-1.5 shadow-xs" />
-                    <span className="text-xs font-black text-slate-800 block">Secundária</span>
-                    <span className="text-[10px] font-mono text-slate-500">#0088FF</span>
-                  </div>
-                  <div className="p-2.5 rounded-2xl bg-slate-50 border border-slate-200/80">
-                    <div className="w-full h-8 rounded-xl bg-[#00C6FF] mb-1.5 shadow-xs" />
-                    <span className="text-xs font-black text-slate-800 block">Acento</span>
-                    <span className="text-[10px] font-mono text-slate-500">#00C6FF</span>
-                  </div>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                    {m.status}
+                  </span>
+                </div>
+                <div className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-xl flex items-center justify-between">
+                  <span>{m.veiculoModelo} • {m.veiculoPlaca}</span>
+                  <span className="font-bold text-blue-600">{m.modal}</span>
                 </div>
               </div>
-
-              <Link
-                to="/app/admin/whitelabel"
-                className="w-full h-11 sm:h-12 px-4 rounded-xl sm:rounded-2xl bg-blue-50 hover:bg-blue-100 text-[#0088FF] font-black text-xs sm:text-sm border border-blue-200/80 flex items-center justify-center gap-2 transition active:scale-95"
-              >
-                <span>Editar Tema no Studio White Label</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-
-          {/* WIDGET 2: TAXA DE COMISSÃO (PADRÃO 8.PNG) */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0088FF] flex items-center justify-center shadow-xs">
-                  <Sliders className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900">Taxa de Comissão</h3>
-                  <p className="text-xs sm:text-sm text-slate-500">Retenção da plataforma por corrida</p>
-                </div>
-              </div>
-              <span className="text-2xl sm:text-3xl font-black text-[#003366]">{taxaComissao}%</span>
-            </div>
-
-            <input
-              type="range"
-              min="5"
-              max="30"
-              value={taxaComissao}
-              onChange={(e) => setTaxaComissao(Number(e.target.value))}
-              className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#0088FF]"
-            />
-
-            <div className="flex items-center justify-between text-xs sm:text-sm text-slate-500 pt-2 border-t border-slate-100">
-              <span className="font-medium">Repasse ao condutor:</span>
-              <span className="font-black text-emerald-600">{100 - taxaComissao}% líquido</span>
-            </div>
-          </div>
-
-          {/* WIDGET 3: OPERAÇÃO EM TEMPO REAL (PADRÃO 8.PNG) */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0088FF] flex items-center justify-center shadow-xs">
-                <Zap className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-base sm:text-lg font-black text-slate-900">Operação em Tempo Real</h3>
-                <p className="text-xs sm:text-sm text-slate-500">Métricas instantâneas do despachador</p>
-              </div>
-            </div>
-
-            <div className="space-y-2.5 text-xs sm:text-sm pt-1">
-              <div className="flex items-center justify-between py-2 border-b border-slate-100">
-                <span className="text-slate-500 font-medium">Corridas em Andamento:</span>
-                <span className="font-black text-[#003366] text-sm sm:text-base">14 ativas</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-slate-100">
-                <span className="text-slate-500 font-medium">Condutores Conectados:</span>
-                <span className="font-black text-emerald-600 text-sm sm:text-base">{totalOnline} online</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-slate-500 font-medium">Tempo Médio de Espera:</span>
-                <span className="font-black text-slate-900 text-sm sm:text-base">3.8 min</span>
-              </div>
-            </div>
-          </div>
+            ))
+          )}
         </div>
       </div>
         </>

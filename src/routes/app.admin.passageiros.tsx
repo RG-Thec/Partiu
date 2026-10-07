@@ -78,6 +78,7 @@ function AdminPassageiros() {
   const { data: todasCorridas = [] } = usePartiuRides(200);
 
   // Estados de formulário e filtros
+  const [modalNovoPassageiroAberto, setModalNovoPassageiroAberto] = useState(false);
   const [form, setForm] = useState({ nome: "", email: "", senha: "", cpf: "", whatsapp: "" });
   const [editando, setEditando] = useState<PassageiroAdmin | null>(null);
   const [passageiroDetalhe, setPassageiroDetalhe] = useState<PassageiroAdmin | null>(null);
@@ -90,6 +91,7 @@ function AdminPassageiros() {
     onSuccess: () => {
       setForm({ nome: "", email: "", senha: "", cpf: "", whatsapp: "" });
       void qc.invalidateQueries({ queryKey: ["admin", "passageiros"] });
+      setTimeout(() => setModalNovoPassageiroAberto(false), 1200);
     },
   });
 
@@ -201,6 +203,15 @@ function AdminPassageiros() {
         <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
+            onClick={() => setModalNovoPassageiroAberto(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 h-8.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+          >
+            <UserPlus className="h-3.5 w-3.5" />
+            <span>Novo Passageiro</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => {
               exportarParaCSV(
                 `passageiros_partiu_${new Date().toISOString().slice(0, 10)}`,
@@ -227,7 +238,7 @@ function AdminPassageiros() {
 
           <Link
             to="/app"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 h-8.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 h-8.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all border border-slate-200 shadow-xs cursor-pointer active:scale-95"
           >
             <Car className="h-3.5 w-3.5 text-[#0088FF]" />
             <span>Abrir App</span>
@@ -290,51 +301,6 @@ function AdminPassageiros() {
           </div>
         </div>
       </div>
-
-      {/* 3. Formulário de Novo Passageiro */}
-      <section className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs">
-        <h2 className="flex items-center gap-2 text-sm font-black text-slate-800">
-          <UserPlus className="h-4 w-4 text-primary-600" /> Cadastrar novo passageiro
-        </h2>
-        <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
-          {(
-            [
-              ["nome", "Nome completo", "text"],
-              ["email", "E-mail de acesso", "email"],
-              ["senha", "Senha inicial", "text"],
-              ["cpf", "CPF", "text"],
-              ["whatsapp", "WhatsApp", "text"],
-            ] as const
-          ).map(([campo, rotulo, tipo]) => (
-            <label key={campo} className="block text-xs font-bold uppercase tracking-wider text-slate-600">
-              {rotulo}
-              <input
-                type={tipo}
-                value={form[campo]}
-                onChange={(e) => setForm((f) => ({ ...f, [campo]: e.target.value }))}
-                className={CAMPO}
-              />
-            </label>
-          ))}
-        </div>
-        <button
-          type="button"
-          disabled={criar.isPending}
-          onClick={() => criar.mutate(form)}
-          className="mt-4 min-h-11 inline-flex items-center gap-2 rounded-xl bg-[#0088FF] px-5 py-2.5 text-sm font-black text-slate-950 hover:bg-[#00A3FF] disabled:opacity-50 cursor-pointer transition-all shadow-xs"
-        >
-          <Plus className="h-4 w-4" />
-          {criar.isPending ? "Cadastrando..." : "Cadastrar e liberar acesso"}
-        </button>
-        {criar.isError && (
-          <p className="mt-2 text-xs font-bold text-rose-600">{(criar.error as Error).message}</p>
-        )}
-        {criar.isSuccess && (
-          <p className="mt-2 text-xs font-bold text-emerald-700">
-            Passageiro cadastrado com sucesso! Pronto para solicitar corridas no app.
-          </p>
-        )}
-      </section>
 
       {/* 4. Barra de Filtros e Busca */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-xs">
@@ -785,6 +751,120 @@ function AdminPassageiros() {
                 className="px-5 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold cursor-pointer"
               >
                 Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL NOVO PASSAGEIRO */}
+      {modalNovoPassageiroAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md animate-in fade-in duration-150">
+          <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 p-5 sm:p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-blue-50 text-[#0088FF] flex items-center justify-center font-bold">
+                  <UserPlus className="h-4.5 w-4.5" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-slate-900 leading-tight">Cadastrar Novo Passageiro</h3>
+                  <p className="text-[11px] text-slate-500 leading-tight">Cadastre e libere acesso imediato ao aplicativo</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalNovoPassageiroAberto(false)}
+                className="h-7 w-7 rounded-lg flex items-center justify-center hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 sm:col-span-2">
+                Nome completo
+                <input
+                  type="text"
+                  placeholder="Nome do cliente"
+                  value={form.nome}
+                  onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
+                  className={CAMPO}
+                />
+              </label>
+
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                E-mail de acesso
+                <input
+                  type="email"
+                  placeholder="cliente@email.com"
+                  value={form.email}
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  className={CAMPO}
+                />
+              </label>
+
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                Senha inicial
+                <input
+                  type="text"
+                  placeholder="Mínimo 6 dígitos"
+                  value={form.senha}
+                  onChange={(e) => setForm((f) => ({ ...f, senha: e.target.value }))}
+                  className={CAMPO}
+                />
+              </label>
+
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                CPF
+                <input
+                  type="text"
+                  placeholder="000.000.000-00"
+                  value={form.cpf}
+                  onChange={(e) => setForm((f) => ({ ...f, cpf: e.target.value }))}
+                  className={CAMPO}
+                />
+              </label>
+
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600">
+                WhatsApp
+                <input
+                  type="text"
+                  placeholder="(00) 00000-0000"
+                  value={form.whatsapp}
+                  onChange={(e) => setForm((f) => ({ ...f, whatsapp: e.target.value }))}
+                  className={CAMPO}
+                />
+              </label>
+            </div>
+
+            {criar.isError && (
+              <p className="text-xs font-bold text-rose-600 bg-rose-50 p-2.5 rounded-xl border border-rose-200">
+                {(criar.error as Error).message}
+              </p>
+            )}
+
+            {criar.isSuccess && (
+              <p className="text-xs font-bold text-emerald-700 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
+                Passageiro cadastrado com sucesso! Acesso liberado no app.
+              </p>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setModalNovoPassageiroAberto(false)}
+                className="h-9 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={criar.isPending}
+                onClick={() => criar.mutate(form)}
+                className="h-9 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-xs disabled:opacity-50 active:scale-95"
+              >
+                <Plus className="h-4 w-4" />
+                <span>{criar.isPending ? "Cadastrando..." : "Cadastrar Passageiro"}</span>
               </button>
             </div>
           </div>
