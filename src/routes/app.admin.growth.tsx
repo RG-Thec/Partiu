@@ -702,7 +702,7 @@ export function GrowthAndRetentionCenter() {
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
                 <span className="text-[10px] font-black uppercase text-slate-400 block">Receita SaaS Plataforma</span>
                 <span className="text-xl font-black text-slate-900 block mt-1">
-                  R$ {(simOutput.saasSubscriptionRevenueBrl + simOutput.takeRateCommissionsRevenueBrl).toLocaleString("pt-BR")}
+                  R$ {simOutput.saasSubscriptionRevenueBrl.toLocaleString("pt-BR")}
                 </span>
                 <span className="text-[10px] text-slate-500">Assinaturas + Diárias</span>
               </div>

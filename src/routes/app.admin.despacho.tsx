@@ -849,71 +849,25 @@ export function DespachoCentralCorridas() {
               </div>
 
               {/* Take Rate da Plataforma (Modelo Zero Comissão PARTIU) */}
-              <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
                     <h4 className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
                       <Percent className="w-4 h-4 text-emerald-600" />
                       Take Rate da Plataforma (Comissão sobre Corridas)
                     </h4>
-                    {dispatchSettings.takeRateValor === 0 && (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase border border-emerald-300">
-                        0% Zero Comissão (Padrão PARTIU)
-                      </span>
-                    )}
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase border border-emerald-300">
+                      0.0% Taxa Zero (Travado)
+                    </span>
                   </div>
                   <p className="text-[11px] text-emerald-800/90 mt-0.5">
-                    No modelo econômico do PARTIU, a comissão recomendada é <strong>0% (100% repassado ao motorista)</strong>. A receita da franquia e plataforma é gerada exclusivamente via mensalidades e diárias SaaS dos motoristas.
+                    No modelo econômico do PARTIU, a comissão é <strong>estritamente 0% (100% repassado ao motorista)</strong>. A receita da franquia e da plataforma é gerada exclusivamente via mensalidades e diárias SaaS dos motoristas.
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="flex items-center p-1 rounded-xl bg-white border border-emerald-300">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setDispatchSettings((prev) => ({ ...prev, takeRateTipo: "PERCENTUAL" }))
-                      }
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                        dispatchSettings.takeRateTipo === "PERCENTUAL"
-                          ? "bg-slate-900 text-white shadow-2xs"
-                          : "text-slate-600 hover:text-slate-900"
-                      }`}
-                    >
-                      Percentual (%)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setDispatchSettings((prev) => ({ ...prev, takeRateTipo: "FIXO" }))
-                      }
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                        dispatchSettings.takeRateTipo === "FIXO"
-                          ? "bg-slate-900 text-white shadow-2xs"
-                          : "text-slate-600 hover:text-slate-900"
-                      }`}
-                    >
-                      Fixo (R$)
-                    </button>
-                  </div>
-
-                  <input
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    max={dispatchSettings.takeRateTipo === "PERCENTUAL" ? 50 : 20}
-                    value={dispatchSettings.takeRateValor}
-                    onChange={(e) =>
-                      setDispatchSettings((prev) => ({
-                        ...prev,
-                        takeRateValor: Number(e.target.value),
-                      }))
-                    }
-                    className="w-20 min-h-10 h-10 px-2 rounded-xl bg-white border border-emerald-300 font-mono font-bold text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-center"
-                  />
-                  <span className="text-xs font-bold text-emerald-900">
-                    {dispatchSettings.takeRateTipo === "PERCENTUAL" ? "%" : "R$"}
-                  </span>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-emerald-300 shrink-0">
+                  <span className="text-xs font-black text-emerald-700">0.0%</span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase">Fixo / Imutável</span>
                 </div>
               </div>
 

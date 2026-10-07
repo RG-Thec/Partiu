@@ -6,7 +6,6 @@ import {
   useSalvarCaixa,
   useAlterarStatusCaixa,
   useMotoristas,
-  calcularSplit,
 } from "@/lib/partiu-db";
 
 export const Route = createFileRoute("/app/admin/caixa")({
@@ -45,26 +44,25 @@ export function AdminCaixaPage() {
   const [motoristaId, setMotoristaId] = useState("");
   const [data, setData] = useState(() => new Date().toISOString().slice(0, 10));
   const [totalBruto, setTotalBruto] = useState("0");
-  const [taxa, setTaxa] = useState("0");
   const [mensagem, setMensagem] = useState<string | null>(null);
-
-  const previa = calcularSplit(Number(totalBruto) || 0, Number(taxa) || 0);
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
     setMensagem(null);
+    const bruto = Number(totalBruto) || 0;
     try {
       await salvar.mutateAsync({
         motorista_id: motoristaId,
         data_referencia: data,
-        total_bruto: Number(totalBruto),
-        taxa_cooperativa_pct: Number(taxa),
-        ...previa,
+        total_bruto: bruto,
+        taxa_cooperativa_pct: 0,
+        valor_cooperativa: 0,
+        valor_liquido_motorista: bruto,
         status: "aberto",
       });
       setAberto(false);
       setTotalBruto("0");
-      setMensagem("Fechamento registrado.");
+      setMensagem("Fechamento registrado com 100% de repasse líquido.");
     } catch (err) {
       setMensagem(err instanceof Error ? err.message : "Falha ao registrar o caixa.");
     }
@@ -179,24 +177,19 @@ export function AdminCaixaPage() {
                   className="w-full rounded-xl border border-border bg-background px-3 py-2 text-foreground"
                 />
               </label>
-              <label className="text-sm">
-                <span className="mb-1 block font-semibold text-foreground">
-                  Taxa da plataforma (%)
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 flex flex-col justify-center">
+                <span className="block text-xs font-bold text-emerald-950 uppercase tracking-wider">
+                  Taxa da plataforma (0%)
                 </span>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
-                  value={taxa}
-                  onChange={(e) => setTaxa(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-foreground"
-                />
-              </label>
+                <span className="text-xs text-emerald-800 font-semibold mt-1">
+                  100% Repasse Líquido ao Motorista
+                </span>
+              </div>
             </div>
 
             <p className="text-sm text-muted-foreground">
-              Plataforma <strong>{brl(previa.valor_cooperativa)}</strong> · Motorista{" "}
-              <strong>{brl(previa.valor_liquido_motorista)}</strong>
+              Retenção Plataforma <strong>R$ 0,00 (0%)</strong> · Repasse Motorista{" "}
+              <strong>{brl(Number(totalBruto) || 0)} (100%)</strong>
             </p>
 
             <button
@@ -228,8 +221,7 @@ export function AdminCaixaPage() {
                   {brl(c.total_bruto)}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Taxa {c.taxa_cooperativa_pct}% · plataforma {brl(c.valor_cooperativa)} ·
-                  motorista {brl(c.valor_liquido_motorista)} · {c.status.replace(/_/g, " ")}
+                  Taxa 0% (Taxa Zero) · Repasse integral ao motorista: {brl(c.valor_liquido_motorista || c.total_bruto)} · {c.status.replace(/_/g, " ")}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">

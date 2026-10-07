@@ -425,7 +425,7 @@ export function ConfiguracoesAdminPage() {
         }
       }
       if (superAdminConfig.estrategicos) {
-        superAdminConfig.estrategicos.taxaCooperativaPercent = Number(comissaoFranquia) || 12.5;
+        superAdminConfig.estrategicos.taxaCooperativaPercent = 0.0;
       }
       if (superAdminConfig.pix) {
         superAdminConfig.pix.chavePixManual = chavePixPadrao;
@@ -968,68 +968,25 @@ export function ConfiguracoesAdminPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Modo da Taxa da Plataforma */}
-              <div className="space-y-2.5">
-                <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
-                  Modo da Taxa App
-                </label>
-                <div className="flex rounded-2xl bg-slate-100 p-1 border border-slate-200">
-                  <button
-                    type="button"
-                    onClick={() => setTaxaAppModo("percentual")}
-                    className={`flex-1 py-3 px-3 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
-                      taxaAppModo === "percentual"
-                        ? "bg-slate-950 text-white shadow-sm"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    % Percentual
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTaxaAppModo("fixo")}
-                    className={`flex-1 py-3 px-3 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
-                      taxaAppModo === "fixo"
-                        ? "bg-slate-950 text-white shadow-sm"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    R$ Fixo
-                  </button>
+              {/* Modelo de Monetização SaaS (Taxa Zero por Corrida) */}
+              <div className="md:col-span-2 p-4 sm:p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200 flex flex-col justify-between space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-emerald-950 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    Monetização por Corrida (Taxa 0%)
+                  </span>
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">
+                    0% Take Rate • Padrão PARTIU
+                  </span>
                 </div>
-                <p className="text-xs text-slate-500 font-medium">Formato da taxa retida pela plataforma.</p>
-              </div>
-
-              {/* Valor da Taxa App */}
-              <div className="space-y-2.5">
-                <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700">
-                  {taxaAppModo === "percentual" ? "Taxa Plataforma (%)" : "Taxa Fixa por Corrida (R$)"}
-                </label>
-                <div className="relative">
-                  {taxaAppModo === "fixo" && (
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-bold text-slate-400">R$</span>
-                  )}
-                  <input
-                    type="number"
-                    step={taxaAppModo === "percentual" ? "0.5" : "0.50"}
-                    value={taxaAppModo === "percentual" ? taxaAppPercentual : taxaAppFixa}
-                    onChange={(e) => {
-                      if (taxaAppModo === "percentual") {
-                        setTaxaAppPercentual(e.target.value);
-                        setComissaoFranquia(e.target.value);
-                      } else {
-                        setTaxaAppFixa(e.target.value);
-                      }
-                    }}
-                    className={`w-full h-14 sm:h-16 ${taxaAppModo === "fixo" ? "pl-12 pr-4" : "px-5 pr-12"} rounded-2xl border border-slate-300 text-base sm:text-lg font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]`}
-                  />
-                  {taxaAppModo === "percentual" && (
-                    <span className="absolute right-5 top-1/2 -translate-y-1/2 text-base sm:text-lg font-bold text-slate-400">%</span>
-                  )}
-                </div>
-                <p className="text-xs text-slate-500 font-medium">
-                  {taxaAppModo === "percentual" ? "Ex: 10% retido do subtotal" : "Ex: R$ 2,50 fixos por corrida"}
+                <p className="text-xs text-emerald-900 font-medium leading-relaxed">
+                  A plataforma opera com <strong>taxa zero por viagem</strong>. O motorista recebe 100% do valor da corrida. O faturamento da franquia e da plataforma é gerado exclusivamente por assinaturas e diárias SaaS gerenciadas no módulo de Monetização.
                 </p>
+                <div className="pt-1 flex items-center gap-2 text-[11px] font-bold text-emerald-800">
+                  <span>Repasse Líquido D+0: 100%</span>
+                  <span>•</span>
+                  <span>Retenção de Viagem: R$ 0,00</span>
+                </div>
               </div>
 
               {/* Raio Inicial */}
@@ -1112,22 +1069,19 @@ export function ConfiguracoesAdminPage() {
               <p className="text-xs sm:text-sm text-slate-500 font-medium">Região de cobertura padrão das corridas.</p>
             </div>
 
-            {/* Comissão / Taxa da Franquia */}
-            <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/90 shadow-sm space-y-3">
-              <label className="block text-sm sm:text-base font-black uppercase tracking-wider text-slate-700">
-                Taxa de Serviço / Comissão (%)
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  step="0.5"
-                  value={comissaoFranquia}
-                  onChange={(e) => setComissaoFranquia(e.target.value)}
-                  className="w-full h-14 sm:h-16 px-5 pr-12 rounded-2xl border border-slate-300 text-base sm:text-lg font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
-                />
-                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-base sm:text-lg font-bold text-slate-400">%</span>
+            {/* Modelo Econômico da Franquia */}
+            <div className="bg-emerald-50/70 p-6 sm:p-7 rounded-3xl border border-emerald-200/90 shadow-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm sm:text-base font-black uppercase tracking-wider text-emerald-950">
+                  Taxa de Serviço por Corrida
+                </label>
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">
+                  0% Taxa Zero
+                </span>
               </div>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium">Comissão retida pela plataforma por corrida.</p>
+              <p className="text-xs sm:text-sm text-emerald-900 font-medium leading-relaxed">
+                No modelo PARTIU, nenhuma comissão é retida sobre corridas. O faturamento da franquia e plataforma ocorre exclusivamente via planos de acesso do motorista (diárias, semanais e mensais).
+              </p>
             </div>
 
             {/* WhatsApp Central */}
