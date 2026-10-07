@@ -279,13 +279,15 @@ function AdminPassageiros() {
               Base de clientes filtrada pela praça: <strong>{pracaAtiva.labelCompleto}</strong>
             </span>
           </div>
-          <button
-            type="button"
-            onClick={() => selecionarPraca("todas")}
-            className="text-[11px] font-black px-2.5 py-1 rounded-lg bg-white border border-blue-300 hover:bg-blue-100/70 text-blue-950 transition-colors cursor-pointer shrink-0"
-          >
-            Ver Todas as Praças
-          </button>
+          {!isFranqueado(adminRole) && (
+            <button
+              type="button"
+              onClick={() => selecionarPraca("todas")}
+              className="text-[11px] font-black px-2.5 py-1 rounded-lg bg-white border border-blue-300 hover:bg-blue-100/70 text-blue-950 transition-colors cursor-pointer shrink-0"
+            >
+              Ver Todas as Praças
+            </button>
+          )}
         </div>
       )}
 
