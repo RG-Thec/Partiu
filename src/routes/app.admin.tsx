@@ -271,11 +271,8 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
 ];
 
 const ROLES_DISPONIVEIS: { id: AdminRole; label: string; badge: string }[] = [
-  { id: "super_admin", label: "Super Admin", badge: "bg-primary-600 text-slate-950" },
-  { id: "admin", label: "Administrador", badge: "bg-blue-600 text-white" },
-  { id: "franqueado", label: "Franqueado", badge: "bg-indigo-600 text-white" },
-  { id: "operador", label: "Operador", badge: "bg-emerald-600 text-white" },
-  { id: "suporte", label: "Suporte / SOS", badge: "bg-rose-600 text-white" },
+  { id: "SUPER_ADMIN", label: "Super Administrador (Acesso Total)", badge: "bg-primary-600 text-slate-950" },
+  { id: "FRANQUEADO", label: "Franqueado (Acesso Local)", badge: "bg-indigo-600 text-white" },
 ];
 
 function SuperAdminLayout() {

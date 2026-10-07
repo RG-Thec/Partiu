@@ -49,7 +49,7 @@ import {
 import { UniversalMapView } from "@/components/maps/UniversalMapView";
 import { exportarParaCSV } from "@/lib/export-csv";
 import { useAdminCity } from "@/contexts/AdminCityContext";
-import { getAdminRole } from "@/lib/admin-rbac";
+import { getAdminRole, isFranqueado } from "@/lib/admin-rbac";
 
 export const Route = createFileRoute("/app/admin/operacao")({
   head: () => ({
@@ -443,7 +443,7 @@ export function CentralOperacaoAdminPage() {
           <div className="flex items-center gap-2 mb-1">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              Cockpit Operacional • {adminRole === "franqueado" ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
+              Cockpit Operacional • {isFranqueado(adminRole) ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
             </span>
           </div>
           <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">

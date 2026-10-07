@@ -212,16 +212,16 @@ function AdminLoginPage() {
               <button
                 type="button"
                 onClick={() => {
-                  setEmail("admin@partiu.app");
+                  setEmail("franqueado@partiu.app");
                   setSenha("AdminPartiu2026!");
                 }}
                 className={`py-2 px-2.5 rounded-xl text-[11px] font-bold text-center transition cursor-pointer border ${
-                  email === "admin@partiu.app"
-                    ? "bg-blue-500/10 text-blue-300 border-blue-500/40"
+                  email === "franqueado@partiu.app"
+                    ? "bg-indigo-500/10 text-indigo-300 border-indigo-500/40"
                     : "bg-slate-800/60 text-slate-400 border-slate-700/50 hover:text-white"
                 }`}
               >
-                🛡️ Operador (Admin)
+                🏢 Franqueado (Acesso Local)
               </button>
             </div>
           </div>

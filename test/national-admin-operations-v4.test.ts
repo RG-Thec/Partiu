@@ -13,6 +13,7 @@ import {
   canAccessModule,
   canViewAdvancedConfig,
   isSuperAdmin,
+  isFranqueado,
   getRoleMetadata,
   type AdminRole,
   type AdminModuleId,
@@ -62,7 +63,7 @@ import {
   listarBackups,
 } from "../src/lib/data-governance-service.ts";
 
-describe("35. PARTIU NATIONAL ADMIN V4 — Navigation Architecture & RBAC (Strictly 6 Modules)", () => {
+describe("35. PARTIU NATIONAL ADMIN V4 — Navigation Architecture & RBAC (Strictly 2 Roles)", () => {
   const modulosOficiais: AdminModuleId[] = [
     "dashboard",
     "operacao",
@@ -76,45 +77,29 @@ describe("35. PARTIU NATIONAL ADMIN V4 — Navigation Architecture & RBAC (Stric
     expect(modulosOficiais.length).toBe(6);
   });
 
-  test("Perfil super_admin / OWNER: Acesso irrestrito a todos os 6 módulos e configurações avançadas", () => {
+  test("Perfil SUPER_ADMIN: Acesso irrestrito a todos os 6 módulos e configurações avançadas", () => {
     modulosOficiais.forEach((m) => {
-      expect(canAccessModule(m, "super_admin")).toBe(true);
-      expect(canAccessModule(m, "OWNER")).toBe(true);
+      expect(canAccessModule(m, "SUPER_ADMIN")).toBe(true);
     });
-    expect(canViewAdvancedConfig("super_admin")).toBe(true);
-    expect(canViewAdvancedConfig("OWNER")).toBe(true);
-    expect(isSuperAdmin("super_admin")).toBe(true);
+    expect(canViewAdvancedConfig("SUPER_ADMIN")).toBe(true);
+    expect(isSuperAdmin("SUPER_ADMIN")).toBe(true);
+    expect(isFranqueado("SUPER_ADMIN")).toBe(false);
   });
 
-  test("Perfil admin: Acesso a Dashboard, Operação, Motoristas, Financeiro, Marketing e Configurações essenciais", () => {
-    modulosOficiais.forEach((m) => {
-      expect(canAccessModule(m, "admin")).toBe(true);
-    });
-    expect(canViewAdvancedConfig("admin")).toBe(false);
-    expect(isSuperAdmin("admin")).toBe(false);
+  test("Perfil FRANQUEADO: Acesso à operação, motoristas, financeiro local e marketing, com bloqueio em configurações globais", () => {
+    expect(canAccessModule("dashboard", "FRANQUEADO")).toBe(true);
+    expect(canAccessModule("operacao", "FRANQUEADO")).toBe(true);
+    expect(canAccessModule("motoristas", "FRANQUEADO")).toBe(true);
+    expect(canAccessModule("financeiro", "FRANQUEADO")).toBe(true);
+    expect(canAccessModule("marketing", "FRANQUEADO")).toBe(true);
+    expect(canAccessModule("configuracoes", "FRANQUEADO")).toBe(false);
+    expect(canViewAdvancedConfig("FRANQUEADO")).toBe(false);
+    expect(isSuperAdmin("FRANQUEADO")).toBe(false);
+    expect(isFranqueado("FRANQUEADO")).toBe(true);
   });
 
-  test("Perfil operador: Restrito a Dashboard, Operação e Motoristas", () => {
-    expect(canAccessModule("dashboard", "operador")).toBe(true);
-    expect(canAccessModule("operacao", "operador")).toBe(true);
-    expect(canAccessModule("motoristas", "operador")).toBe(true);
-    expect(canAccessModule("financeiro", "operador")).toBe(false);
-    expect(canAccessModule("marketing", "operador")).toBe(false);
-    expect(canAccessModule("configuracoes", "operador")).toBe(false);
-    expect(canViewAdvancedConfig("operador")).toBe(false);
-  });
-
-  test("Perfil suporte: Restrito a Dashboard e Fila de Atendimento / SOS", () => {
-    expect(canAccessModule("dashboard", "suporte")).toBe(true);
-    expect(canAccessModule("operacao", "suporte")).toBe(true);
-    expect(canAccessModule("motoristas", "suporte")).toBe(false);
-    expect(canAccessModule("financeiro", "suporte")).toBe(false);
-    expect(canAccessModule("marketing", "suporte")).toBe(false);
-    expect(canAccessModule("configuracoes", "suporte")).toBe(false);
-  });
-
-  test("Metadados de Perfil: Todos os 5 perfis devem possuir metadados válidos e informativos", () => {
-    const roles: AdminRole[] = ["super_admin", "admin", "franqueado", "operador", "suporte"];
+  test("Metadados de Perfil: Todos os 2 perfis oficiais devem possuir metadados válidos e informativos", () => {
+    const roles: AdminRole[] = ["SUPER_ADMIN", "FRANQUEADO"];
     roles.forEach((r) => {
       const meta = getRoleMetadata(r);
       expect(Boolean(meta.label)).toBe(true);

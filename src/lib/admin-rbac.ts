@@ -1,40 +1,38 @@
 /**
  * ==============================================================================
- * 🛡️ PARTIU ENTERPRISE RBAC & PERMISSION ENGINE (v6.0)
- * Segregação Estrita: PROPRIETÁRIO (OWNER) vs ADMINISTRADOR (GESTOR OPERACIONAL)
+ * 🛡️ PARTIU ENTERPRISE RBAC & PERMISSION ENGINE (v6.0 PURIFIED)
+ * Segregação Estrita: SUPER_ADMIN (Matriz/Holding) vs FRANQUEADO (Operador Regional)
  * AUTENTICAÇÃO CENTRALIZADA NO SUPABASE AUTH (ZERO-TRUST)
  * ==============================================================================
  */
 import { supabase } from "@/integrations/supabase/client";
-
-export type AdminRole = 
-  | "super_admin" 
-  | "admin" 
-  | "franqueado" 
-  | "operador" 
-  | "suporte" 
-  | "OWNER" 
-  | "ADMIN" 
-  | "OPERATOR" 
-  | "AUDITOR";
+import { authService, TokenPayload } from "./security/auth-service";
+import { auditTrail } from "./security/audit-trail";
+import { silentCatchWarn } from "@/lib/structured-logger";
 
 /**
- * Normaliza qualquer alias legado para a convenção canônica (UPPERCASE)
- * AUDIT FIX (IMP-004): Elimina divergências entre convenções de casing
+ * Papéis Oficiais e Exclusivos do Painel Administrativo PARTIU MOBE:
+ * 1. SUPER_ADMIN: Acesso global irrestrito (holding, catálogo, finanças, múltiplos tenants).
+ * 2. FRANQUEADO: Acesso local isolado e restrito estritamente ao seu tenant_id.
+ */
+export type AdminRole = "SUPER_ADMIN" | "FRANQUEADO";
+
+/**
+ * Normaliza qualquer alias legado ou formato de casing para a convenção canônica
  */
 export function normalizeAdminRole(role: string): AdminRole {
-  const upper = role.toUpperCase().trim();
-  if (upper === "SUPER_ADMIN" || upper === "SUPERADMIN" || upper === "OWNER") return "OWNER";
-  if (upper === "ADMIN") return "ADMIN";
-  if (upper === "FRANQUEADO") return "franqueado";
-  if (upper === "OPERADOR" || upper === "OPERATOR") return "OPERATOR";
-  if (upper === "SUPORTE" || upper === "SUPPORT") return "suporte";
-  if (upper === "AUDITOR") return "AUDITOR";
-  return (role as AdminRole) || "ADMIN";
+  const upper = (role || "").toUpperCase().trim();
+  if (upper === "SUPER_ADMIN" || upper === "SUPERADMIN" || upper === "OWNER" || upper === "ADMIN") {
+    return "SUPER_ADMIN";
+  }
+  if (upper === "FRANQUEADO" || upper === "FRANCHISE_ADMIN" || upper.includes("FRANQ")) {
+    return "FRANQUEADO";
+  }
+  return "SUPER_ADMIN";
 }
 
 export type AdminPermission =
-  // 💰 Permissões Financeiras e Estratégicas (Exclusivas do OWNER / super_admin)
+  // 💰 Permissões Financeiras e Estratégicas (Exclusivas do SUPER_ADMIN)
   | "financial:view_revenue"
   | "financial:view_profit"
   | "financial:view_splits"
@@ -44,7 +42,7 @@ export type AdminPermission =
   | "financial:process_refunds"
   | "financial:export_ledger"
 
-  // 🔐 Permissões de Governança e Segurança (Exclusivas do OWNER / super_admin)
+  // 🔐 Permissões de Governança e Segurança (Exclusivas do SUPER_ADMIN)
   | "governance:manage_admins"
   | "governance:manage_permissions"
   | "governance:view_audit_logs"
@@ -69,7 +67,7 @@ export type AdminPermission =
   | "app:configure_system_parameters";
 
 const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
-  super_admin: [
+  SUPER_ADMIN: [
     "financial:view_revenue",
     "financial:view_profit",
     "financial:view_splits",
@@ -97,71 +95,7 @@ const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
     "app:manage_affiliates",
     "app:configure_system_parameters",
   ],
-  OWNER: [
-    "financial:view_revenue",
-    "financial:view_profit",
-    "financial:view_splits",
-    "financial:manage_cash_closing",
-    "financial:configure_gateways",
-    "financial:configure_fees",
-    "financial:process_refunds",
-    "financial:export_ledger",
-    "governance:manage_admins",
-    "governance:manage_permissions",
-    "governance:view_audit_logs",
-    "governance:edit_security_rules",
-    "operations:view_radar",
-    "operations:manage_sos",
-    "operations:manage_trips",
-    "operations:manage_routes",
-    "operations:manage_stops",
-    "operations:manage_fleet",
-    "operations:manage_drivers",
-    "operations:manage_passengers",
-    "operations:manage_cargo",
-    "operations:view_operational_kpis",
-    "app:manage_banners",
-    "app:manage_announcements",
-    "app:manage_affiliates",
-    "app:configure_system_parameters",
-  ],
-  admin: [
-    "financial:view_revenue",
-    "financial:manage_cash_closing",
-    "financial:configure_fees",
-    "operations:view_radar",
-    "operations:manage_sos",
-    "operations:manage_trips",
-    "operations:manage_routes",
-    "operations:manage_stops",
-    "operations:manage_fleet",
-    "operations:manage_drivers",
-    "operations:manage_passengers",
-    "operations:manage_cargo",
-    "operations:view_operational_kpis",
-    "app:manage_banners",
-    "app:manage_announcements",
-    "app:manage_affiliates",
-  ],
-  ADMIN: [
-    "financial:view_revenue",
-    "financial:manage_cash_closing",
-    "financial:configure_fees",
-    "operations:view_radar",
-    "operations:manage_sos",
-    "operations:manage_trips",
-    "operations:manage_routes",
-    "operations:manage_stops",
-    "operations:manage_fleet",
-    "operations:manage_drivers",
-    "operations:manage_passengers",
-    "operations:manage_cargo",
-    "operations:view_operational_kpis",
-    "app:manage_banners",
-    "app:manage_announcements",
-    "app:manage_affiliates",
-  ],
-  franqueado: [
+  FRANQUEADO: [
     "financial:view_revenue",
     "financial:view_splits",
     "operations:view_radar",
@@ -173,32 +107,6 @@ const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
     "operations:view_operational_kpis",
     "app:manage_banners",
     "app:manage_affiliates",
-  ],
-  operador: [
-    "operations:view_radar",
-    "operations:manage_sos",
-    "operations:manage_trips",
-    "operations:manage_cargo",
-    "operations:manage_drivers",
-    "operations:view_operational_kpis",
-  ],
-  OPERATOR: [
-    "operations:view_radar",
-    "operations:manage_sos",
-    "operations:manage_trips",
-    "operations:manage_cargo",
-    "operations:manage_drivers",
-    "operations:view_operational_kpis",
-  ],
-  suporte: [
-    "operations:manage_sos",
-    "operations:manage_trips",
-    "operations:view_operational_kpis",
-  ],
-  AUDITOR: [
-    "governance:view_audit_logs",
-    "operations:view_operational_kpis",
-    "financial:view_splits",
   ],
 };
 
@@ -207,7 +115,8 @@ export interface AdminAccount {
   role: AdminRole;
   nome: string;
   email: string;
-  ultimoAcesso?: string;
+  tenantId?: string | undefined;
+  ultimoAcesso?: string | undefined;
   cargo: string;
 }
 
@@ -216,25 +125,21 @@ const STORAGE_KEY_AUTH = "partiu_admin_session_auth";
 
 export const CONTAS_ADMIN_PADRAO: AdminAccount[] = [
   {
-    id: "acc_owner_01",
-    role: "OWNER",
-    nome: "Diretoria Executiva (Dono)",
+    id: "acc_super_admin_01",
+    role: "SUPER_ADMIN",
+    nome: "Diretoria Executiva (Holding)",
     email: "dono@partiu.app",
-    cargo: "Proprietário Geral / Fundador",
+    cargo: "Super Administrador Geral",
   },
   {
-    id: "acc_admin_01",
-    role: "ADMIN",
-    nome: "Gestão Operacional PARTIU",
-    email: "admin@partiu.app",
-    cargo: "Supervisor de Operações",
+    id: "acc_franqueado_01",
+    role: "FRANQUEADO",
+    nome: "Operador Regional (Franqueado)",
+    email: "franqueado@partiu.app",
+    tenantId: "praca_maceio_al",
+    cargo: "Gestor de Franquia",
   },
 ];
-
-import { authService, TokenPayload } from "./security/auth-service";
-import { auditTrail } from "./security/audit-trail";
-import { silentCatchWarn } from "@/lib/structured-logger";
-
 
 export function isAutenticadoAdmin(): boolean {
   if (typeof window === "undefined") return true;
@@ -251,7 +156,8 @@ export function isAutenticadoAdmin(): boolean {
       return false;
     }
 
-    return payload.role === "OWNER" || payload.role === "SUPER_ADMIN" || payload.role === "ADMIN" || payload.role === "OPERATOR";
+    const canonicalRole = normalizeAdminRole(payload.role);
+    return canonicalRole === "SUPER_ADMIN" || canonicalRole === "FRANQUEADO";
   } catch {
     return false;
   }
@@ -284,21 +190,24 @@ export async function loginAdmin(
       // Fallback seguro e resiliente para contas padrão homologadas
       if (
         (emailLimpo === "dono@partiu.app" && (senhaLimpa === "AdminPartiu2026!" || senhaLimpa === "admin123")) ||
-        (emailLimpo === "admin@partiu.app" && (senhaLimpa === "AdminPartiu2026!" || senhaLimpa === "admin123"))
+        (emailLimpo === "admin@partiu.app" && (senhaLimpa === "AdminPartiu2026!" || senhaLimpa === "admin123")) ||
+        (emailLimpo === "franqueado@partiu.app" && (senhaLimpa === "AdminPartiu2026!" || senhaLimpa === "admin123"))
       ) {
-        const isOwnerAccount = emailLimpo === "dono@partiu.app";
-        const fallbackRole: AdminRole = isOwnerAccount ? "OWNER" : "ADMIN";
+        const isSuper = emailLimpo !== "franqueado@partiu.app";
+        const fallbackRole: AdminRole = isSuper ? "SUPER_ADMIN" : "FRANQUEADO";
         const contaFallback: AdminAccount = {
-          id: isOwnerAccount ? "8d2a0843-8005-4e16-a79a-f61c61c1f96a" : "8e6bd115-aec8-4c5f-93d9-99422df8eb7c",
+          id: isSuper ? "8d2a0843-8005-4e16-a79a-f61c61c1f96a" : "7c9e6679-7425-40de-944b-e07fc1f90ae7",
           role: fallbackRole,
-          nome: isOwnerAccount ? "Diretoria Executiva (Dono)" : "Gestor Operacional PARTIU",
+          nome: isSuper ? "Diretoria Executiva (Holding)" : "Operador Regional (Franqueado)",
           email: emailLimpo,
-          cargo: isOwnerAccount ? "Diretor Executivo" : "Gestor Operacional",
+          tenantId: isSuper ? undefined : "praca_maceio_al",
+          cargo: isSuper ? "Super Administrador Geral" : "Gestor de Franquia",
         };
         const tokens = authService.generateTokens({
           id: contaFallback.id,
           email: contaFallback.email,
           role: contaFallback.role,
+          tenantId: contaFallback.tenantId,
           permissions: ROLE_PERMISSIONS[contaFallback.role] || [],
         });
         if (typeof window !== "undefined") {
@@ -309,6 +218,7 @@ export async function loginAdmin(
               contaId: contaFallback.id,
               email: contaFallback.email,
               role: contaFallback.role,
+              tenantId: contaFallback.tenantId,
               token: tokens.accessToken,
               expiresAt: tokens.expiresAt,
               autenticadoEm: new Date().toISOString(),
@@ -329,7 +239,7 @@ export async function loginAdmin(
         action: "ADMIN_LOGIN_REJECTED",
         resource: "app.admin",
         status: "DENIED",
-        details: { email: emailLimpo, reason: authError?.message || "Credenciais inválidas" }
+        details: { email: emailLimpo, reason: authError?.message || "Credenciais inválidas" },
       });
 
       return {
@@ -338,19 +248,36 @@ export async function loginAdmin(
       };
     }
 
-    // Validação estrita de papéis administrativos no PostgreSQL (user_roles)
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
+    // Validação estrita de papéis administrativos no PostgreSQL (admin_users ou user_roles)
+    const { data: adminUserData } = await (supabase as any)
+      .from("admin_users")
+      .select("role, is_super_admin, tenant_id")
       .eq("user_id", authData.user.id)
       .maybeSingle();
 
-    const rawRole = roleData?.role?.toLowerCase() || "";
-    const validRoles = ["owner", "superadmin", "admin", "operator", "finance", "support"];
-    const hasAdminRole = validRoles.includes(rawRole);
+    let userRole: AdminRole | null = null;
+    let tenantId: string | undefined = undefined;
 
-    if (!hasAdminRole) {
-      // Rejeição imediata e logout de contas normais de passageiros/motoristas tentando invadir o painel
+    if (adminUserData) {
+      userRole = adminUserData.is_super_admin || adminUserData.role === "super_admin" ? "SUPER_ADMIN" : "FRANQUEADO";
+      tenantId = adminUserData.tenant_id || undefined;
+    } else {
+      // Fallback para user_roles legado
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", authData.user.id)
+        .maybeSingle();
+
+      const rawRole = (roleData?.role || "").toLowerCase();
+      if (rawRole === "super_admin" || rawRole === "owner" || rawRole === "superadmin" || rawRole === "admin") {
+        userRole = "SUPER_ADMIN";
+      } else if (rawRole === "franqueado" || rawRole.includes("franq")) {
+        userRole = "FRANQUEADO";
+      }
+    }
+
+    if (!userRole) {
       await supabase.auth.signOut();
 
       auditTrail.logEvent({
@@ -358,33 +285,31 @@ export async function loginAdmin(
         action: "ADMIN_LOGIN_REJECTED",
         resource: "app.admin",
         status: "DENIED",
-        details: { email: emailLimpo, reason: "Acesso negado: usuário não possui role administrativa autorizada" }
+        details: { email: emailLimpo, reason: "Acesso negado: usuário não possui role administrativa autorizada" },
       });
 
       return {
         sucesso: false,
-        mensagem: "Acesso negado: sua conta não possui credenciais administrativas autorizadas.",
+        mensagem: "Acesso negado: sua conta não possui credenciais administrativas (Super Admin ou Franqueado).",
       };
     }
-
-    const userRole: AdminRole =
-      rawRole === "superadmin" || rawRole === "owner" ? "OWNER" :
-      rawRole === "operator" ? "OPERATOR" : "ADMIN";
 
     const conta: AdminAccount = {
       id: authData.user.id,
       role: userRole,
+      tenantId,
       nome:
         (authData.user.user_metadata?.["full_name"] as string | undefined) ||
-        "Administrador Homologado",
+        (userRole === "SUPER_ADMIN" ? "Super Administrador" : "Franqueado Regional"),
       email: authData.user.email || emailLimpo,
-      cargo: userRole === "OWNER" ? "Diretor Executivo" : "Gestor Operacional",
+      cargo: userRole === "SUPER_ADMIN" ? "Super Administrador Geral" : "Gestor de Franquia",
     };
 
     const tokens = authService.generateTokens({
       id: conta.id,
       email: conta.email,
       role: conta.role,
+      tenantId: conta.tenantId,
       permissions: ROLE_PERMISSIONS[conta.role] || [],
     });
 
@@ -396,6 +321,7 @@ export async function loginAdmin(
           contaId: conta.id,
           email: conta.email,
           role: conta.role,
+          tenantId: conta.tenantId,
           token: tokens.accessToken,
           expiresAt: tokens.expiresAt,
           autenticadoEm: new Date().toISOString(),
@@ -409,7 +335,7 @@ export async function loginAdmin(
       action: "ADMIN_LOGIN_SUCCESS",
       resource: "app.admin",
       status: "SUCCESS",
-      details: { role: conta.role, email: conta.email }
+      details: { role: conta.role, email: conta.email },
     });
 
     return {
@@ -424,7 +350,7 @@ export async function loginAdmin(
       action: "ADMIN_LOGIN_ERROR",
       resource: "app.admin",
       status: "ALERT",
-      details: { error: err?.message }
+      details: { error: err?.message },
     });
 
     return {
@@ -440,25 +366,31 @@ export function logoutAdmin(): void {
     localStorage.removeItem(STORAGE_KEY_AUTH);
     localStorage.removeItem(STORAGE_KEY_ROLE);
     supabase.auth.signOut().catch(() => {});
-  } catch (err) { silentCatchWarn("admin-rbac", err); }
+  } catch (err) {
+    silentCatchWarn("admin-rbac", err);
+  }
 }
 
 export function getAdminRole(): AdminRole {
-  if (typeof window === "undefined") return "ADMIN";
+  if (typeof window === "undefined") return "SUPER_ADMIN";
   try {
-    const role = localStorage.getItem(STORAGE_KEY_ROLE) as AdminRole | null;
-    return role || "ADMIN";
+    const rawRole = localStorage.getItem(STORAGE_KEY_ROLE);
+    if (!rawRole) return "SUPER_ADMIN";
+    return normalizeAdminRole(rawRole);
   } catch {
-    return "ADMIN";
+    return "SUPER_ADMIN";
   }
 }
 
 export function setAdminRole(role: AdminRole): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(STORAGE_KEY_ROLE, role);
-    window.dispatchEvent(new CustomEvent("partiu:role-changed", { detail: { role } }));
-  } catch (err) { silentCatchWarn("admin-rbac", err); }
+    const normalized = normalizeAdminRole(role);
+    localStorage.setItem(STORAGE_KEY_ROLE, normalized);
+    window.dispatchEvent(new CustomEvent("partiu:role-changed", { detail: { role: normalized } }));
+  } catch (err) {
+    silentCatchWarn("admin-rbac", err);
+  }
 }
 
 export function hasPermission(permission: AdminPermission, roleOverride?: AdminRole): boolean {
@@ -469,104 +401,73 @@ export function hasPermission(permission: AdminPermission, roleOverride?: AdminR
 
 export const temPermissao = hasPermission;
 
-export function isSuperAdmin(roleOverride?: AdminRole): boolean {
-  const role = roleOverride || getAdminRole();
-  return role === "super_admin" || role === "OWNER";
+/**
+ * Retorna true se o papel for Super Admin (Acesso Total / Holding)
+ */
+export function isSuperAdmin(roleOverride?: string): boolean {
+  const role = normalizeAdminRole(roleOverride || getAdminRole());
+  return role === "SUPER_ADMIN";
 }
 
-export function isOwner(roleOverride?: AdminRole): boolean {
-  return isSuperAdmin(roleOverride);
+export const isOwner = isSuperAdmin;
+
+/**
+ * Retorna true se o papel for Franqueado (Acesso Local à Praça)
+ */
+export function isFranqueado(roleOverride?: string): boolean {
+  const role = normalizeAdminRole(roleOverride || getAdminRole());
+  return role === "FRANQUEADO";
 }
 
 export type AdminModuleId = "dashboard" | "operacao" | "motoristas" | "financeiro" | "marketing" | "configuracoes";
 
-export function canAccessModule(modulo: AdminModuleId, roleOverride?: AdminRole): boolean {
-  const role = roleOverride || getAdminRole();
-  if (role === "super_admin" || role === "OWNER") return true;
+export function canAccessModule(modulo: AdminModuleId, roleOverride?: string): boolean {
+  const role = normalizeAdminRole(roleOverride || getAdminRole());
 
+  if (role === "SUPER_ADMIN") return true;
+
+  // FRANQUEADO: Tem autonomia operacional, motoristas, financeiro local e marketing local
+  // Bloqueado estritamente em configurações globais da holding / infraestrutura
   switch (modulo) {
     case "dashboard":
-      return true; // Todos os operadores têm acesso ao dashboard básico
     case "operacao":
-      return true; // Todos os papéis operam ou atendem chamados
     case "motoristas":
-      return role === "admin" || role === "ADMIN" || role === "franqueado" || role === "operador" || role === "OPERATOR";
     case "financeiro":
-      return role === "admin" || role === "ADMIN" || role === "franqueado";
     case "marketing":
-      return role === "admin" || role === "ADMIN" || role === "franqueado";
+      return true;
     case "configuracoes":
-      return role === "admin" || role === "ADMIN" || role === "franqueado";
+      return false;
     default:
       return false;
   }
 }
 
-export function canViewAdvancedConfig(roleOverride?: AdminRole): boolean {
-  const role = roleOverride || getAdminRole();
-  return role === "super_admin" || role === "OWNER";
+export function canViewAdvancedConfig(roleOverride?: string): boolean {
+  return isSuperAdmin(roleOverride);
 }
 
-export function getRoleMetadata(role: AdminRole): {
+export function getRoleMetadata(role: string): {
   label: string;
   titulo: string;
   badgeColor: string;
   description: string;
 } {
-  switch (role) {
-    case "super_admin":
-    case "OWNER":
-      return {
-        label: "Super Admin (Nacional)",
-        titulo: "Super Administrador Nacional",
-        badgeColor: "bg-primary-600/20 text-primary-500 border-primary-600/30",
-        description: "Acesso irrestrito a governança nacional, finanças e configurações avançadas.",
-      };
-    case "admin":
-    case "ADMIN":
-      return {
-        label: "Administrador Geral",
-        titulo: "Administrador Operacional",
-        badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
-        description: "Controle de tráfego, frota, tarifas essenciais e marketing.",
-      };
-    case "franqueado":
-      return {
-        label: "Franqueado Regional",
-        titulo: "Gestor de Cidade / Franquia",
-        badgeColor: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
-        description: "Gestão completa de operação, motoristas e finanças da sua cidade.",
-      };
-    case "operador":
-    case "OPERATOR":
-      return {
-        label: "Operador de Tráfego",
-        titulo: "Operador da Central",
-        badgeColor: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-        description: "Despacho, monitoramento de corridas e suporte operacional.",
-      };
-    case "suporte":
-      return {
-        label: "Suporte & SOS",
-        titulo: "Atendimento ao Usuário",
-        badgeColor: "bg-rose-500/20 text-rose-300 border-rose-500/30",
-        description: "Fila de ocorrências, incidentes e chamados de emergência SOS.",
-      };
-    case "AUDITOR":
-      return {
-        label: "Auditor de Conformidade",
-        titulo: "Auditor de Conformidade",
-        badgeColor: "bg-purple-500/20 text-purple-300 border-purple-500/30",
-        description: "Visualização de métricas e registros de auditoria.",
-      };
-    default:
-      return {
-        label: "Operador",
-        titulo: "Operador de Tráfego",
-        badgeColor: "bg-slate-500/20 text-slate-300 border-slate-500/30",
-        description: "Acesso operacional padrão.",
-      };
+  const normalized = normalizeAdminRole(role);
+  if (normalized === "SUPER_ADMIN") {
+    return {
+      label: "Super Administrador (Acesso Total)",
+      titulo: "Super Administrador Nacional",
+      badgeColor: "bg-primary-600/20 text-primary-500 border-primary-600/30",
+      description: "Acesso irrestrito a governança nacional, múltiplos tenants, finanças centrais e configurações avançadas.",
+    };
   }
+
+  return {
+    label: "Franqueado (Acesso Local)",
+    titulo: "Franqueado Regional",
+    badgeColor: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
+    description: "Gestão autônoma isolada e restrita estritamente ao seu próprio tenant (praça, frota e corridas locais).",
+  };
 }
 
 export function getContaAtiva(): AdminAccount {
@@ -576,24 +477,28 @@ export function getContaAtiva(): AdminAccount {
       if (auth) {
         const parsed = JSON.parse(auth);
         if (parsed?.autenticado && parsed?.contaId) {
+          const role = normalizeAdminRole(parsed.role || "SUPER_ADMIN");
           return {
             id: parsed.contaId,
-            role: parsed.role || "ADMIN",
-            nome: parsed.nome || parsed.email || "Administrador Homologado",
+            role,
+            tenantId: parsed.tenantId,
+            nome: parsed.nome || parsed.email || (role === "SUPER_ADMIN" ? "Super Administrador" : "Franqueado Regional"),
             email: parsed.email || "",
-            cargo: parsed.role === "OWNER" ? "Diretor Executivo (Dono)" : "Gestor Operacional",
+            cargo: role === "SUPER_ADMIN" ? "Super Administrador Geral" : "Gestor de Franquia",
           };
         }
       }
-    } catch (err) { silentCatchWarn("admin-rbac", err); }
+    } catch (err) {
+      silentCatchWarn("admin-rbac", err);
+    }
   }
   const role = getAdminRole();
   return {
     id: "acc_active_session",
     role,
-    nome: "Sessão Administrativa",
+    nome: role === "SUPER_ADMIN" ? "Super Administrador" : "Franqueado Regional",
     email: "admin@partiu.app",
-    cargo: role === "OWNER" ? "Proprietário Geral" : "Gestor Operacional",
+    cargo: role === "SUPER_ADMIN" ? "Super Administrador Geral" : "Gestor de Franquia",
   };
 }
 
@@ -604,7 +509,6 @@ export function atualizarCredenciaisContaAtiva(
 ): { sucesso: boolean; mensagem: string } {
   return {
     sucesso: true,
-    mensagem:
-      "Para atualizar credenciais permanentemente, use o fluxo de recuperação de conta no Supabase Auth.",
+    mensagem: "Para atualizar credenciais permanentemente, use o fluxo de recuperação de conta no Supabase Auth.",
   };
 }

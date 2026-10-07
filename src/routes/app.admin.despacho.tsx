@@ -43,6 +43,7 @@ import { getCorridaAtiva, obterPainelSaudeCidade, type CorridaPartiu, type CityH
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { AdminManualDispatchModal } from "@/components/admin/AdminManualDispatchModal";
 import { useAdminCity } from "@/contexts/AdminCityContext";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 import {
   type SurgeRule,
   type DispatchAlgorithmSettings,
@@ -88,6 +89,7 @@ interface ItemDespachoMock {
 
 export function DespachoCentralCorridas() {
   const { pracaAtiva, isNacional } = useAdminCity();
+  const { isFranqueado, isSuperAdmin, tenantId } = useAdminAuth();
   const [abaAtiva, setAbaAtiva] = useState<"FILA_DESPACHO" | "REGRAS_SURGE">("FILA_DESPACHO");
   
   // Fila de Despacho
@@ -144,10 +146,22 @@ export function DespachoCentralCorridas() {
     async function carregarCorridasDoBanco() {
       if (isSupabaseConfigured()) {
         try {
-          const { data, error } = await (supabase as any)
+          let query = (supabase as any)
             .from("partiu_corridas")
             .select("*, partiu_motoristas(nome, veiculo_marca_modelo, veiculo_placa)")
-            .in("status", ["PROCURANDO", "OFERTADA", "A_CAMINHO", "CHEGOU", "EM_VIAGEM"])
+            .in("status", ["PROCURANDO", "OFERTADA", "A_CAMINHO", "CHEGOU", "EM_VIAGEM"]);
+
+          // Isolamento estrito de praça / tenant para franqueado
+          if (isFranqueado) {
+            const tenantAlvo = tenantId || pracaAtiva?.id;
+            if (tenantAlvo) {
+              query = query.or(`praca_id.eq.${tenantAlvo},tenant_id.eq.${tenantAlvo}`);
+            }
+          } else if (!isNacional && pracaAtiva?.id) {
+            query = query.or(`praca_id.eq.${pracaAtiva.id},tenant_id.eq.${pracaAtiva.id}`);
+          }
+
+          const { data, error } = await query
             .order("created_at", { ascending: false })
             .limit(20);
 
@@ -316,7 +330,9 @@ export function DespachoCentralCorridas() {
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full bg-[#0088FF]/20 px-4 py-1.5 text-xs font-black uppercase text-primary-500 border border-primary-600/30">
             <Package className="h-4 w-4" />
-            <span>Torre de Despacho &amp; Radar em Tempo Real</span>
+            <span>
+              Torre de Despacho • {isFranqueado ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional Global"}
+            </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
             Central de Despacho &amp; Regras de Matching
@@ -872,13 +888,20 @@ export function DespachoCentralCorridas() {
               </div>
 
               <div className="flex items-center justify-end pt-2">
-                <button
-                  type="submit"
-                  className="min-h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs sm:text-sm transition-colors cursor-pointer shadow-sm flex items-center gap-2"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  Salvar Parâmetros de Despacho
-                </button>
+                {isSuperAdmin ? (
+                  <button
+                    type="submit"
+                    className="min-h-11 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs sm:text-sm transition-colors cursor-pointer shadow-sm flex items-center gap-2"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    Salvar Parâmetros de Despacho
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 text-xs font-semibold">
+                    <ShieldCheck className="w-4 h-4 text-primary" />
+                    <span>Configuração Global gerenciada pela Matriz (Super Admin)</span>
+                  </div>
+                )}
               </div>
             </form>
           </div>
@@ -900,14 +923,16 @@ export function DespachoCentralCorridas() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setModalNovaRegra(true)}
-                className="min-h-11 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs sm:text-sm font-bold flex items-center gap-2 transition-colors cursor-pointer shadow-sm self-start sm:self-auto"
-              >
-                <Plus className="w-4 h-4" />
-                Nova Regra Surge
-              </button>
+              {isSuperAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setModalNovaRegra(true)}
+                  className="min-h-11 px-4 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs sm:text-sm font-bold flex items-center gap-2 transition-colors cursor-pointer shadow-sm self-start sm:self-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  Nova Regra Surge
+                </button>
+              )}
             </div>
 
             {/* Tabela de Regras */}

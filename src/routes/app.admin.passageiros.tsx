@@ -34,7 +34,7 @@ import {
 } from "@/lib/passageiros.functions";
 import { usePartiuRides, type PartiuRideRecord } from "@/lib/partiu-db";
 import { exportarParaCSV } from "@/lib/export-csv";
-import { getAdminRole } from "@/lib/admin-rbac";
+import { getAdminRole, isFranqueado } from "@/lib/admin-rbac";
 import { useAdminCity } from "@/contexts/AdminCityContext";
 
 export const Route = createFileRoute("/app/admin/passageiros")({
@@ -210,7 +210,7 @@ function AdminPassageiros() {
           <div className="flex items-center gap-2 mb-1">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              Gestão de Clientes • {adminRole === "franqueado" ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
+              Gestão de Clientes • {isFranqueado(adminRole) ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
             </span>
           </div>
           <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">

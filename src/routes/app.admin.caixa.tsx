@@ -78,7 +78,7 @@ export function AdminCaixaPage() {
   );
 
   return (
-    <GuardiaoAcesso somenteOwner>
+    <GuardiaoAcesso somenteSuperAdmin>
       <div className="px-5 pt-5 pb-12">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>

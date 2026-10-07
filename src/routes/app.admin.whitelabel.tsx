@@ -96,7 +96,7 @@ type ActiveTab =
 
 function WhiteLabelStudioPage() {
   return (
-    <GuardiaoAcesso somenteOwner={true}>
+    <GuardiaoAcesso somenteSuperAdmin={true}>
       <WhiteLabelStudioContent />
     </GuardiaoAcesso>
   );
