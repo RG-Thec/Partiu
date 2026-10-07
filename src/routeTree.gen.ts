@@ -37,6 +37,7 @@ import { Route as AppAdminCaixaRouteImport } from './routes/app.admin.caixa'
 import { Route as AppAdminConfiguracoesRouteImport } from './routes/app.admin.configuracoes'
 import { Route as AppAdminDespachoRouteImport } from './routes/app.admin.despacho'
 import { Route as AppAdminDiagnosticoRouteImport } from './routes/app.admin.diagnostico'
+import { Route as AppAdminDominiosRouteImport } from './routes/app.admin.dominios'
 import { Route as AppAdminFinanceiroRouteImport } from './routes/app.admin.financeiro'
 import { Route as AppAdminFrotaRouteImport } from './routes/app.admin.frota'
 import { Route as AppAdminGovernancaRouteImport } from './routes/app.admin.governanca'
@@ -46,6 +47,7 @@ import { Route as AppAdminLinhasRouteImport } from './routes/app.admin.linhas'
 import { Route as AppAdminLocaisRouteImport } from './routes/app.admin.locais'
 import { Route as AppAdminLoginRouteImport } from './routes/app.admin.login'
 import { Route as AppAdminMarketingRouteImport } from './routes/app.admin.marketing'
+import { Route as AppAdminMeuAplicativoRouteImport } from './routes/app.admin.meu-aplicativo'
 import { Route as AppAdminMonetizacaoRouteImport } from './routes/app.admin.monetizacao'
 import { Route as AppAdminMonitoramentoRouteImport } from './routes/app.admin.monitoramento'
 import { Route as AppAdminMotoristasRouteImport } from './routes/app.admin.motoristas'
@@ -198,6 +200,11 @@ const AppAdminDiagnosticoRoute = AppAdminDiagnosticoRouteImport.update({
   path: '/diagnostico',
   getParentRoute: () => AppAdminRoute,
 } as any)
+const AppAdminDominiosRoute = AppAdminDominiosRouteImport.update({
+  id: '/dominios',
+  path: '/dominios',
+  getParentRoute: () => AppAdminRoute,
+} as any)
 const AppAdminFinanceiroRoute = AppAdminFinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
@@ -241,6 +248,11 @@ const AppAdminLoginRoute = AppAdminLoginRouteImport.update({
 const AppAdminMarketingRoute = AppAdminMarketingRouteImport.update({
   id: '/marketing',
   path: '/marketing',
+  getParentRoute: () => AppAdminRoute,
+} as any)
+const AppAdminMeuAplicativoRoute = AppAdminMeuAplicativoRouteImport.update({
+  id: '/meu-aplicativo',
+  path: '/meu-aplicativo',
   getParentRoute: () => AppAdminRoute,
 } as any)
 const AppAdminMonetizacaoRoute = AppAdminMonetizacaoRouteImport.update({
@@ -327,6 +339,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/configuracoes': typeof AppAdminConfiguracoesRoute
   '/app/admin/despacho': typeof AppAdminDespachoRoute
   '/app/admin/diagnostico': typeof AppAdminDiagnosticoRoute
+  '/app/admin/dominios': typeof AppAdminDominiosRoute
   '/app/admin/financeiro': typeof AppAdminFinanceiroRoute
   '/app/admin/frota': typeof AppAdminFrotaRoute
   '/app/admin/governanca': typeof AppAdminGovernancaRoute
@@ -336,6 +349,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/locais': typeof AppAdminLocaisRoute
   '/app/admin/login': typeof AppAdminLoginRoute
   '/app/admin/marketing': typeof AppAdminMarketingRoute
+  '/app/admin/meu-aplicativo': typeof AppAdminMeuAplicativoRoute
   '/app/admin/monetizacao': typeof AppAdminMonetizacaoRoute
   '/app/admin/monitoramento': typeof AppAdminMonitoramentoRoute
   '/app/admin/motoristas': typeof AppAdminMotoristasRoute
@@ -375,6 +389,7 @@ export interface FileRoutesByTo {
   '/app/admin/configuracoes': typeof AppAdminConfiguracoesRoute
   '/app/admin/despacho': typeof AppAdminDespachoRoute
   '/app/admin/diagnostico': typeof AppAdminDiagnosticoRoute
+  '/app/admin/dominios': typeof AppAdminDominiosRoute
   '/app/admin/financeiro': typeof AppAdminFinanceiroRoute
   '/app/admin/frota': typeof AppAdminFrotaRoute
   '/app/admin/governanca': typeof AppAdminGovernancaRoute
@@ -384,6 +399,7 @@ export interface FileRoutesByTo {
   '/app/admin/locais': typeof AppAdminLocaisRoute
   '/app/admin/login': typeof AppAdminLoginRoute
   '/app/admin/marketing': typeof AppAdminMarketingRoute
+  '/app/admin/meu-aplicativo': typeof AppAdminMeuAplicativoRoute
   '/app/admin/monetizacao': typeof AppAdminMonetizacaoRoute
   '/app/admin/monitoramento': typeof AppAdminMonitoramentoRoute
   '/app/admin/motoristas': typeof AppAdminMotoristasRoute
@@ -426,6 +442,7 @@ export interface FileRoutesById {
   '/app/admin/configuracoes': typeof AppAdminConfiguracoesRoute
   '/app/admin/despacho': typeof AppAdminDespachoRoute
   '/app/admin/diagnostico': typeof AppAdminDiagnosticoRoute
+  '/app/admin/dominios': typeof AppAdminDominiosRoute
   '/app/admin/financeiro': typeof AppAdminFinanceiroRoute
   '/app/admin/frota': typeof AppAdminFrotaRoute
   '/app/admin/governanca': typeof AppAdminGovernancaRoute
@@ -435,6 +452,7 @@ export interface FileRoutesById {
   '/app/admin/locais': typeof AppAdminLocaisRoute
   '/app/admin/login': typeof AppAdminLoginRoute
   '/app/admin/marketing': typeof AppAdminMarketingRoute
+  '/app/admin/meu-aplicativo': typeof AppAdminMeuAplicativoRoute
   '/app/admin/monetizacao': typeof AppAdminMonetizacaoRoute
   '/app/admin/monitoramento': typeof AppAdminMonitoramentoRoute
   '/app/admin/motoristas': typeof AppAdminMotoristasRoute
@@ -478,6 +496,7 @@ export interface FileRouteTypes {
     | '/app/admin/configuracoes'
     | '/app/admin/despacho'
     | '/app/admin/diagnostico'
+    | '/app/admin/dominios'
     | '/app/admin/financeiro'
     | '/app/admin/frota'
     | '/app/admin/governanca'
@@ -487,6 +506,7 @@ export interface FileRouteTypes {
     | '/app/admin/locais'
     | '/app/admin/login'
     | '/app/admin/marketing'
+    | '/app/admin/meu-aplicativo'
     | '/app/admin/monetizacao'
     | '/app/admin/monitoramento'
     | '/app/admin/motoristas'
@@ -526,6 +546,7 @@ export interface FileRouteTypes {
     | '/app/admin/configuracoes'
     | '/app/admin/despacho'
     | '/app/admin/diagnostico'
+    | '/app/admin/dominios'
     | '/app/admin/financeiro'
     | '/app/admin/frota'
     | '/app/admin/governanca'
@@ -535,6 +556,7 @@ export interface FileRouteTypes {
     | '/app/admin/locais'
     | '/app/admin/login'
     | '/app/admin/marketing'
+    | '/app/admin/meu-aplicativo'
     | '/app/admin/monetizacao'
     | '/app/admin/monitoramento'
     | '/app/admin/motoristas'
@@ -576,6 +598,7 @@ export interface FileRouteTypes {
     | '/app/admin/configuracoes'
     | '/app/admin/despacho'
     | '/app/admin/diagnostico'
+    | '/app/admin/dominios'
     | '/app/admin/financeiro'
     | '/app/admin/frota'
     | '/app/admin/governanca'
@@ -585,6 +608,7 @@ export interface FileRouteTypes {
     | '/app/admin/locais'
     | '/app/admin/login'
     | '/app/admin/marketing'
+    | '/app/admin/meu-aplicativo'
     | '/app/admin/monetizacao'
     | '/app/admin/monitoramento'
     | '/app/admin/motoristas'
@@ -810,6 +834,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminDiagnosticoRouteImport
       parentRoute: typeof AppAdminRoute
     }
+    '/app/admin/dominios': {
+      id: '/app/admin/dominios'
+      path: '/dominios'
+      fullPath: '/app/admin/dominios'
+      preLoaderRoute: typeof AppAdminDominiosRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
     '/app/admin/financeiro': {
       id: '/app/admin/financeiro'
       path: '/financeiro'
@@ -871,6 +902,13 @@ declare module '@tanstack/react-router' {
       path: '/marketing'
       fullPath: '/app/admin/marketing'
       preLoaderRoute: typeof AppAdminMarketingRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
+    '/app/admin/meu-aplicativo': {
+      id: '/app/admin/meu-aplicativo'
+      path: '/meu-aplicativo'
+      fullPath: '/app/admin/meu-aplicativo'
+      preLoaderRoute: typeof AppAdminMeuAplicativoRouteImport
       parentRoute: typeof AppAdminRoute
     }
     '/app/admin/monetizacao': {
@@ -962,6 +1000,7 @@ interface AppAdminRouteChildren {
   AppAdminConfiguracoesRoute: typeof AppAdminConfiguracoesRoute
   AppAdminDespachoRoute: typeof AppAdminDespachoRoute
   AppAdminDiagnosticoRoute: typeof AppAdminDiagnosticoRoute
+  AppAdminDominiosRoute: typeof AppAdminDominiosRoute
   AppAdminFinanceiroRoute: typeof AppAdminFinanceiroRoute
   AppAdminFrotaRoute: typeof AppAdminFrotaRoute
   AppAdminGovernancaRoute: typeof AppAdminGovernancaRoute
@@ -971,6 +1010,7 @@ interface AppAdminRouteChildren {
   AppAdminLocaisRoute: typeof AppAdminLocaisRoute
   AppAdminLoginRoute: typeof AppAdminLoginRoute
   AppAdminMarketingRoute: typeof AppAdminMarketingRoute
+  AppAdminMeuAplicativoRoute: typeof AppAdminMeuAplicativoRoute
   AppAdminMonetizacaoRoute: typeof AppAdminMonetizacaoRoute
   AppAdminMonitoramentoRoute: typeof AppAdminMonitoramentoRoute
   AppAdminMotoristasRoute: typeof AppAdminMotoristasRoute
@@ -994,6 +1034,7 @@ const AppAdminRouteChildren: AppAdminRouteChildren = {
   AppAdminConfiguracoesRoute: AppAdminConfiguracoesRoute,
   AppAdminDespachoRoute: AppAdminDespachoRoute,
   AppAdminDiagnosticoRoute: AppAdminDiagnosticoRoute,
+  AppAdminDominiosRoute: AppAdminDominiosRoute,
   AppAdminFinanceiroRoute: AppAdminFinanceiroRoute,
   AppAdminFrotaRoute: AppAdminFrotaRoute,
   AppAdminGovernancaRoute: AppAdminGovernancaRoute,
@@ -1003,6 +1044,7 @@ const AppAdminRouteChildren: AppAdminRouteChildren = {
   AppAdminLocaisRoute: AppAdminLocaisRoute,
   AppAdminLoginRoute: AppAdminLoginRoute,
   AppAdminMarketingRoute: AppAdminMarketingRoute,
+  AppAdminMeuAplicativoRoute: AppAdminMeuAplicativoRoute,
   AppAdminMonetizacaoRoute: AppAdminMonetizacaoRoute,
   AppAdminMonitoramentoRoute: AppAdminMonitoramentoRoute,
   AppAdminMotoristasRoute: AppAdminMotoristasRoute,

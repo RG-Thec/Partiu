@@ -421,22 +421,32 @@ export function isFranqueado(roleOverride?: string): boolean {
   return role === "FRANQUEADO";
 }
 
-export type AdminModuleId = "dashboard" | "operacao" | "motoristas" | "financeiro" | "marketing" | "configuracoes";
+export type AdminModuleId =
+  | "dashboard"
+  | "operacao"
+  | "motoristas"
+  | "financeiro"
+  | "marketing"
+  | "aplicativo"
+  | "dominios"
+  | "configuracoes";
 
 export function canAccessModule(modulo: AdminModuleId, roleOverride?: string): boolean {
   const role = normalizeAdminRole(roleOverride || getAdminRole());
 
   if (role === "SUPER_ADMIN") return true;
 
-  // FRANQUEADO: Tem autonomia operacional, motoristas, financeiro local e marketing local
-  // Bloqueado estritamente em configurações globais da holding / infraestrutura
+  // FRANQUEADO: Tem autonomia operacional, motoristas, financeiro local, marketing e seu próprio PWA/APK
+  // Bloqueado estritamente em configurações globais da holding / infraestrutura de domínios
   switch (modulo) {
     case "dashboard":
     case "operacao":
     case "motoristas":
     case "financeiro":
     case "marketing":
+    case "aplicativo":
       return true;
+    case "dominios":
     case "configuracoes":
       return false;
     default:

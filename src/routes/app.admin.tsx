@@ -8,6 +8,7 @@ import {
   Compass,
   CreditCard,
   DollarSign,
+  Globe,
   Key,
   Layers,
   LayoutDashboard,
@@ -26,6 +27,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   Sliders,
+  Smartphone,
   Sparkles,
   TrendingUp,
   User,
@@ -109,6 +111,20 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
         moduleId: "operacao",
       },
       {
+        to: "/app/admin/meu-aplicativo",
+        label: "Meu Aplicativo / APK",
+        icon: Smartphone,
+        exact: false,
+        moduleId: "aplicativo",
+      },
+      {
+        to: "/app/admin/dominios",
+        label: "Domínios & DNS",
+        icon: Globe,
+        exact: false,
+        moduleId: "dominios",
+      },
+      {
         to: "/app/admin/financeiro",
         label: "Financeiro & SaaS",
         icon: DollarSign,
@@ -144,6 +160,8 @@ const TODOS_MODULOS_SISTEMA = [
   { to: "/app/admin/passageiros", label: "Passageiros Cadastrados", categoriaTitulo: "Cadastros", icon: User },
   { to: "/app/admin/despacho", label: "Corridas & Despacho", categoriaTitulo: "Operação", icon: PhoneCall },
   { to: "/app/admin/operacao", label: "Cockpit Operacional ao Vivo", categoriaTitulo: "Operação", icon: Radio },
+  { to: "/app/admin/meu-aplicativo", label: "Meu Aplicativo & PWA / APK", categoriaTitulo: "Aplicativo", icon: Smartphone },
+  { to: "/app/admin/dominios", label: "Domínios & DNS (White-Label)", categoriaTitulo: "Sistema", icon: Globe },
   { to: "/app/admin/sos", label: "Central SOS 190 (Emergências)", categoriaTitulo: "Operação", icon: ShieldAlert },
   { to: "/app/admin/veiculo", label: "Categorias & Veículos", categoriaTitulo: "Operação", icon: Car },
   { to: "/app/admin/frota", label: "Vistorias de Frota", categoriaTitulo: "Operação", icon: UserCheck },
@@ -323,7 +341,13 @@ function SuperAdminLayout() {
   const itensBuscaRapida = useMemo(() => {
     const permitidos = TODOS_MODULOS_SISTEMA.filter((mod) => {
       // Se for franqueado, não exibir configurações exclusivas da Matriz/Holding
-      if (roleAtiva === "FRANQUEADO" && (mod.to.includes("configuracoes") || mod.to.includes("whitelabel") || mod.to.includes("governanca"))) {
+      if (
+        roleAtiva === "FRANQUEADO" &&
+        (mod.to.includes("configuracoes") ||
+          mod.to.includes("whitelabel") ||
+          mod.to.includes("governanca") ||
+          mod.to.includes("dominios"))
+      ) {
         return false;
       }
       return true;

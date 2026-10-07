@@ -1121,6 +1121,7 @@ import "./osiris-ported-technologies.harness.ts";
 import "./p0-p1-adversarial-remediation.test.ts";
 import "./durable-dispatch-and-security.test.ts";
 import "./native-android-design-system.test.ts";
+import "./white-label-domains-and-manifest.test.ts";
 
 await waitForAllTests();
 const summary = getSummary();

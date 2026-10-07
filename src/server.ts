@@ -3,6 +3,7 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { silentCatchWarn } from "@/lib/structured-logger";
+import { tenantDomainService } from "./lib/white-label/tenant-domain-service";
 
 
 type ServerEntry = {
@@ -69,6 +70,49 @@ export default {
     initOutboxDaemon(15000);
 
     try {
+      const url = new URL(request.url);
+
+      // Interceptação de Manifesto Web App Dinâmico (White-Label PWA / APK / PWABuilder)
+      if (
+        url.pathname === "/manifest.webmanifest" ||
+        url.pathname === "/api/manifest" ||
+        url.pathname === "/manifest.json"
+      ) {
+        const host =
+          request.headers.get("x-forwarded-host") ||
+          request.headers.get("host") ||
+          url.host;
+        const resolution = tenantDomainService.resolveTenantFromHost(host, url.searchParams);
+        const origin = `${url.protocol}//${host}`;
+        const manifest = tenantDomainService.generateDynamicManifest(resolution.tenantId, origin);
+
+        return new Response(JSON.stringify(manifest, null, 2), {
+          status: 200,
+          headers: {
+            "content-type": "application/manifest+json; charset=utf-8",
+            "cache-control": "public, max-age=60, s-maxage=300",
+            "access-control-allow-origin": "*",
+          },
+        });
+      }
+
+      // Endpoint para resolução de domínio de tenant via API
+      if (url.pathname === "/api/domains/resolve") {
+        const host =
+          url.searchParams.get("host") ||
+          request.headers.get("x-forwarded-host") ||
+          request.headers.get("host") ||
+          url.host;
+        const resolution = tenantDomainService.resolveTenantFromHost(host, url.searchParams);
+        return new Response(JSON.stringify(resolution, null, 2), {
+          status: 200,
+          headers: {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+          },
+        });
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
