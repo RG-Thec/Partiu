@@ -434,19 +434,19 @@ export function CentralOperacaoAdminPage() {
   const sosCount = ticketsSuporte.filter((t) => t.prioridade === "SOS_CRITICAL" && t.status !== "RESOLVIDO").length;
 
   return (
-    <div className="w-full space-y-8 pb-20">
+    <div className="w-full space-y-5 pb-12">
       {/* 1. Header Executivo Operacional */}
-      <div className="rounded-3xl bg-slate-950 p-6 sm:p-8 xl:p-10 text-white shadow-xl border border-slate-800 relative overflow-hidden">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="rounded-2xl bg-slate-950 p-5 sm:p-6 text-white shadow-md border border-slate-800 relative overflow-hidden">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2.5 rounded-full bg-[#0088FF]/15 px-4 py-1.5 text-xs sm:text-sm font-black uppercase tracking-wider text-primary-500 border border-yellow-500/25 mb-2.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-primary-600 animate-ping" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#0088FF]/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary-500 border border-yellow-500/25 mb-2">
+              <span className="h-2 w-2 rounded-full bg-primary-600 animate-ping" />
               <span>Cockpit Central de Operação Urbana</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl xl:text-5xl font-black tracking-tight">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight">
               Gestão da Operação em <span className="text-[#0088FF]">Tempo Real</span>
             </h1>
-            <p className="text-sm sm:text-base lg:text-lg text-slate-300 max-w-3xl font-normal leading-relaxed mt-2">
+            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-normal leading-relaxed mt-1">
               Supervisão de viagens de passageiros, entregas flash com duplo PIN e resolução imediata da fila de ocorrências e SOS 190.
             </p>
           </div>

@@ -510,19 +510,19 @@ export function ConfiguracoesAdminPage() {
   }
 
   return (
-    <div className="w-full space-y-6 sm:space-y-8 pb-20">
+    <div className="w-full space-y-5 pb-12">
       {/* 1. Header Executivo Configurações */}
-      <div className="rounded-3xl bg-slate-950 p-6 sm:p-10 xl:p-12 text-white shadow-xl border border-slate-800 relative overflow-hidden">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="rounded-2xl bg-slate-950 p-5 sm:p-6 text-white shadow-md border border-slate-800 relative overflow-hidden">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2.5 rounded-full bg-[#0088FF]/15 px-4 py-2 text-xs sm:text-sm lg:text-base font-black uppercase tracking-wider text-[#0088FF] border border-[#0088FF]/30 mb-3.5">
-              <Sliders className="h-5 w-5 text-[#0088FF]" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#0088FF]/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#0088FF] border border-[#0088FF]/30 mb-2">
+              <Sliders className="h-4 w-4 text-[#0088FF]" />
               <span>Progressive Disclosure &amp; Multi-Cidade</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight leading-tight">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight leading-tight">
               Configurações &amp; <span className="text-[#0088FF]">White Label Expresso</span>
             </h1>
-            <p className="text-base sm:text-lg xl:text-xl text-slate-300 max-w-4xl font-medium mt-3 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-normal mt-1 leading-relaxed">
               Configurações essenciais sempre acessíveis, dados técnicos protegidos por desafio de segurança e assistente de ativação de cidade em 4 passos.
             </p>
           </div>

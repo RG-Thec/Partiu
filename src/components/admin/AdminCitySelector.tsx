@@ -50,7 +50,7 @@ export function AdminCitySelector() {
       <button
         type="button"
         onClick={() => setAberto((prev) => !prev)}
-        className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 h-11 sm:h-13 rounded-2xl border transition-all text-left cursor-pointer active:scale-98 shadow-xs ${
+        className={`flex items-center gap-2 px-2.5 sm:px-3 py-1.5 h-9 rounded-xl border transition-all text-left cursor-pointer active:scale-98 shadow-xs ${
           isNacional
             ? "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800"
             : "bg-blue-50/90 hover:bg-blue-100/90 border-blue-200 text-blue-900"
@@ -58,31 +58,31 @@ export function AdminCitySelector() {
         title="Alternar Praça de Operação / Cidade Ativa"
       >
         <div
-          className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-xl shrink-0 ${
+          className={`flex h-6 w-6 items-center justify-center rounded-lg shrink-0 ${
             isNacional ? "bg-slate-200/80 text-slate-700" : "bg-blue-600 text-white"
           }`}
         >
-          {isNacional ? <Globe className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
+          {isNacional ? <Globe className="h-3.5 w-3.5" /> : <MapPin className="h-3.5 w-3.5" />}
         </div>
 
         <div className="min-w-0 pr-1">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <span
-              className={`h-2 w-2 rounded-full shrink-0 ${
+              className={`h-1.5 w-1.5 rounded-full shrink-0 ${
                 isNacional ? "bg-emerald-500 animate-pulse" : "bg-blue-600"
               }`}
             />
-            <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-500">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
               Praça
             </span>
           </div>
-          <p className="text-xs sm:text-sm lg:text-base font-black truncate max-w-[120px] sm:max-w-[180px] lg:max-w-[220px] leading-tight">
+          <p className="text-xs font-bold truncate max-w-[110px] sm:max-w-[150px] leading-tight">
             {isNacional ? "Rede Nacional" : pracaAtiva.nome}
           </p>
         </div>
 
         <ChevronDown
-          className={`h-4 w-4 shrink-0 transition-transform text-slate-400 ${
+          className={`h-3.5 w-3.5 shrink-0 transition-transform text-slate-400 ${
             aberto ? "rotate-180" : ""
           }`}
         />

@@ -258,17 +258,17 @@ export function PainelFinanceiroUnificadoPage() {
   return (
     <div className="w-full space-y-6 sm:space-y-8 pb-20">
       {/* 1. Header Executivo Financeiro */}
-      <div className="rounded-3xl bg-slate-950 p-6 sm:p-8 xl:p-10 text-white shadow-xl border border-slate-800 relative overflow-hidden">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="rounded-2xl bg-slate-950 p-5 sm:p-6 text-white shadow-md border border-slate-800 relative overflow-hidden">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-[#0088FF]/15 px-3.5 py-1.5 text-xs sm:text-sm font-black uppercase tracking-wider text-[#0088FF] border border-[#0088FF]/30 mb-3">
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#0088FF]/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#0088FF] border border-[#0088FF]/30 mb-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>Faturamento SaaS 0% Comissão • Liquidação Direta</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl xl:text-5xl font-black tracking-tight">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight">
               Governança <span className="text-[#0088FF]">Financeira &amp; Monetização SaaS</span>
             </h1>
-            <p className="text-sm sm:text-base xl:text-lg text-slate-300 max-w-3xl font-medium mt-2">
+            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-normal leading-relaxed mt-1">
               Unificação completa de Faturamento de Diárias SaaS, Volume Transacionado (100% direto aos condutores) e Gestão Tarifária de Carro e Moto.
             </p>
           </div>

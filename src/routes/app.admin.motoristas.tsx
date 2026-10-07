@@ -277,18 +277,18 @@ export function QuadroMotoristasAdminPage() {
   }
 
   return (
-    <div className="w-full space-y-6 sm:space-y-8 pb-20">
+    <div className="w-full space-y-5 pb-12">
       {/* 1. Header Executivo Frota (Light Theme Padrão 8.png) */}
-      <div className="rounded-3xl bg-white p-6 sm:p-8 xl:p-10 border border-slate-200/90 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="rounded-2xl bg-white p-5 sm:p-6 border border-slate-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3.5 py-1.5 text-xs sm:text-sm font-bold text-[#0088FF] border border-blue-200/60 mb-3">
-            <ShieldCheck className="h-4 w-4" />
+          <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-[#0088FF] border border-blue-200/60 mb-2">
+            <ShieldCheck className="h-3.5 w-3.5" />
             <span>Painel Administrativo • Frota Carro e Moto</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl xl:text-5xl font-black tracking-tight text-[#003366]">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-[#003366]">
             Gestão de Motoristas
           </h1>
-          <p className="text-sm sm:text-base xl:text-lg text-slate-500 max-w-3xl font-medium mt-2">
+          <p className="text-xs sm:text-sm text-slate-500 max-w-2xl font-normal leading-relaxed mt-1">
             Controle central da frota urbana, esteira inteligente de aprovação com validação documental e ativação autônoma.
           </p>
         </div>
