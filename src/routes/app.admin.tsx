@@ -22,6 +22,7 @@ import {
   PanelLeftOpen,
   PhoneCall,
   Radio,
+  Search,
   ShieldAlert,
   ShieldCheck,
   Sliders,
@@ -297,6 +298,22 @@ function SuperAdminLayout() {
 
   const [menuAbertoMobile, setMenuAbertoMobile] = useState(false);
   const [recolhido, setRecolhido] = useState(false);
+  const [buscaRapidaAberta, setBuscaRapidaAberta] = useState(false);
+  const [termoBuscaRapida, setTermoBuscaRapida] = useState("");
+
+  // Atalho Global de Teclado (Ctrl+K ou Cmd+K para abrir; Escape para fechar)
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setBuscaRapidaAberta((prev) => !prev);
+      } else if (e.key === "Escape" && buscaRapidaAberta) {
+        setBuscaRapidaAberta(false);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [buscaRapidaAberta]);
 
   // Monitoramento em tempo real de SOS e Cadastros Pendentes
   useAlertasSOSRealtime();
@@ -413,6 +430,24 @@ function SuperAdminLayout() {
       })
       .filter((cat) => cat.itens.length > 0);
   }, [roleAtiva, chamadosSOSAtivos, motoristasPendentes]);
+
+  // Lista plana e filtrada para a Command Palette (Ctrl+K)
+  const itensBuscaRapida = useMemo(() => {
+    const todos = categoriasFiltradas.flatMap((cat) =>
+      cat.itens.map((it) => ({
+        ...it,
+        categoriaTitulo: cat.titulo,
+      }))
+    );
+    if (!termoBuscaRapida.trim()) return todos;
+    const q = termoBuscaRapida.toLowerCase().trim();
+    return todos.filter(
+      (it) =>
+        it.label.toLowerCase().includes(q) ||
+        it.categoriaTitulo.toLowerCase().includes(q) ||
+        it.to.toLowerCase().includes(q)
+    );
+  }, [categoriasFiltradas, termoBuscaRapida]);
 
   if (isLoginRoute) {
     return <Outlet />;
@@ -667,6 +702,28 @@ function SuperAdminLayout() {
 
               {/* Seletor Global Interativo de Cidade / Praça de Operação */}
               <AdminCitySelector />
+
+              {/* Botão de Busca Rápida / Command Palette (Ctrl+K) */}
+              <button
+                type="button"
+                onClick={() => setBuscaRapidaAberta(true)}
+                className="hidden sm:flex items-center gap-2 h-7.5 px-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-500 hover:text-slate-800 text-[11px] font-medium transition cursor-pointer"
+                title="Acesso Rápido a Módulos (Ctrl+K)"
+              >
+                <Search className="h-3.5 w-3.5 text-slate-400" />
+                <span className="hidden md:inline">Navegar...</span>
+                <kbd className="px-1.5 py-0.2 rounded bg-white text-[9px] font-mono text-slate-500 border border-slate-200 shadow-2xs">
+                  Ctrl K
+                </kbd>
+              </button>
+              <button
+                type="button"
+                onClick={() => setBuscaRapidaAberta(true)}
+                className="flex sm:hidden h-7.5 w-7.5 items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 cursor-pointer"
+                title="Buscar Módulo (Ctrl+K)"
+              >
+                <Search className="h-3.5 w-3.5" />
+              </button>
             </div>
 
             <div className="flex items-center gap-2 shrink-0 py-0.5">
@@ -969,6 +1026,99 @@ function SuperAdminLayout() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* 4. MODAL COMMAND PALETTE (CTRL+K) — NAVEGAÇÃO ULTRARRÁPIDA */}
+        {buscaRapidaAberta && (
+          <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-3 sm:px-4 animate-in fade-in duration-150">
+            <div
+              className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity"
+              onClick={() => setBuscaRapidaAberta(false)}
+            />
+            <div className="relative w-full max-w-xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-10 text-white flex flex-col max-h-[75vh]">
+              {/* Barra de Entrada da Busca */}
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-800 bg-slate-950/60">
+                <Search className="h-4 w-4 text-amber-400 shrink-0" />
+                <input
+                  type="text"
+                  autoFocus
+                  value={termoBuscaRapida}
+                  onChange={(e) => setTermoBuscaRapida(e.target.value)}
+                  placeholder="Navegar no painel... (ex: motoristas, diárias, sos, caixa, financeiro)"
+                  className="w-full bg-transparent text-xs sm:text-sm font-medium text-white placeholder:text-slate-500 outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setBuscaRapidaAberta(false)}
+                  className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-mono text-slate-400 hover:text-white transition cursor-pointer"
+                >
+                  ESC
+                </button>
+              </div>
+
+              {/* Lista de Resultados Filtrados */}
+              <div className="overflow-y-auto p-2 divide-y divide-slate-800/40 custom-admin-scrollbar">
+                {itensBuscaRapida.length === 0 ? (
+                  <div className="py-8 text-center text-slate-500 text-xs px-4">
+                    Nenhum módulo encontrado para &quot;{termoBuscaRapida}&quot;. Tente buscar por{" "}
+                    <strong className="text-slate-400">motoristas</strong>,{" "}
+                    <strong className="text-slate-400">saas</strong>,{" "}
+                    <strong className="text-slate-400">caixa</strong> ou{" "}
+                    <strong className="text-slate-400">sos</strong>.
+                  </div>
+                ) : (
+                  itensBuscaRapida.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.to}
+                        to={item.to}
+                        onClick={() => {
+                          setBuscaRapidaAberta(false);
+                          setTermoBuscaRapida("");
+                        }}
+                        className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-800/80 active:bg-slate-800 transition group cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="h-7 w-7 rounded-lg bg-slate-800 text-slate-300 group-hover:bg-amber-400 group-hover:text-slate-950 transition flex items-center justify-center shrink-0">
+                            <Icon className="h-3.5 w-3.5" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-slate-200 group-hover:text-white truncate">
+                              {item.label}
+                            </p>
+                            <span className="text-[10px] text-slate-500 truncate block">
+                              {item.categoriaTitulo} • {item.to}
+                            </span>
+                          </div>
+                        </div>
+
+                        {item.badge && (
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider shrink-0 ${
+                              item.badgeVariant === "critical"
+                                ? "bg-red-600 text-white animate-pulse"
+                                : item.badgeVariant === "warning"
+                                ? "bg-amber-400 text-slate-950 font-black"
+                                : "bg-slate-800 text-slate-300"
+                            }`}
+                          >
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Rodapé Informativo */}
+              <div className="px-3.5 py-2 border-t border-slate-800/80 bg-slate-950/60 flex items-center justify-between text-[10px] text-slate-500">
+                <span>Dica: Use as setas ou clique para acessar diretamente</span>
+                <span className="font-mono">Pressione ESC para fechar</span>
+              </div>
             </div>
           </div>
         )}

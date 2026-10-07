@@ -605,8 +605,25 @@ export function QuadroMotoristasAdminPage() {
               <tbody className="divide-y divide-slate-100">
                 {motoristasFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-10 px-4 text-center text-slate-400 text-xs font-medium">
-                      Nenhum motorista encontrado para os filtros selecionados.
+                    <td colSpan={7} className="py-12 px-4 text-center text-slate-500 text-xs font-medium">
+                      <div className="max-w-sm mx-auto space-y-2">
+                        <Users className="w-8 h-8 text-slate-300 mx-auto" />
+                        <p className="font-bold text-slate-700">Nenhum motorista encontrado com os filtros atuais</p>
+                        <p className="text-[11px] text-slate-400">Tente buscar por outro nome, placa ou redefinir os filtros de status.</p>
+                        {(busca.trim() || filtroStatus !== "TODOS" || filtroModal !== "TODOS") && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setBusca("");
+                              setFiltroStatus("TODOS");
+                              setFiltroModal("TODOS");
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                          >
+                            Limpar Filtros
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ) : (

@@ -384,15 +384,34 @@ export function CentralPanicoSOSAdminPage() {
       {/* LISTA DE OCORRÊNCIAS SOS */}
       <div className="space-y-4">
         {listaFiltrada.length === 0 ? (
-          <div className="p-12 text-center rounded-3xl bg-card border border-border/60 shadow-sm space-y-3">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-7 h-7" />
+          <div className="p-8 sm:p-12 text-center rounded-3xl bg-card border border-border/60 shadow-xs space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-base font-black text-foreground">Malha Urbana 100% Segura</h3>
+              <h3 className="text-base font-black text-foreground">
+                {busca.trim() || filtroStatus !== "todos" || filtroUsuario !== "todos"
+                  ? "Nenhum chamado encontrado com os filtros atuais"
+                  : "Malha Urbana 100% Segura"}
+              </h3>
               <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1">
-                Nenhum chamado de emergência ou incidente crítico ativo no momento.
+                {busca.trim() || filtroStatus !== "todos" || filtroUsuario !== "todos"
+                  ? "Tente alterar os termos de busca ou redefinir os filtros de status e solicitante."
+                  : "Nenhum chamado de emergência ou incidente crítico ativo. O sistema permanece monitorando a frota e os passageiros 24/7."}
               </p>
+              {(busca.trim() || filtroStatus !== "todos" || filtroUsuario !== "todos") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBusca("");
+                    setFiltroStatus("todos");
+                    setFiltroUsuario("todos");
+                  }}
+                  className="mt-3 px-4 py-2 rounded-xl bg-muted hover:bg-muted/80 text-foreground text-xs font-bold transition cursor-pointer"
+                >
+                  Limpar Todos os Filtros
+                </button>
+              )}
             </div>
           </div>
         ) : (

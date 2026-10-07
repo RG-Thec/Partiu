@@ -24,6 +24,8 @@ import {
   ChevronRight,
   Eye,
   Sparkles,
+  UserCheck,
+  Zap,
 } from "lucide-react";
 import { UniversalMapView } from "@/components/maps/UniversalMapView";
 import {
@@ -537,6 +539,73 @@ export function SuperAdminDashboardExecutive() {
               {chamadosSOSAtivos > 0 ? "Intervenção requerida" : `${taxaSucesso.toFixed(1)}% taxa de sucesso`}
             </span>
           </div>
+        </div>
+      </div>
+
+      {/* 2.1 AÇÕES RÁPIDAS EXECUTIVAS DO OPERADOR (1-CLIQUE) */}
+      <div className="bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200/90 shadow-xs flex flex-wrap items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+            <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+            Atalhos do Operador:
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            to="/app/admin/aprovacoes"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition shadow-2xs group"
+          >
+            <UserCheck className="h-3.5 w-3.5 text-blue-600 group-hover:scale-110 transition-transform" />
+            <span>Fila de Aprovações</span>
+            {motoristasBanco.filter((m: any) => m.status_aprovacao === "pendente").length > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black">
+                {motoristasBanco.filter((m: any) => m.status_aprovacao === "pendente").length}
+              </span>
+            )}
+          </Link>
+
+          <Link
+            to="/app/admin/motoristas"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition shadow-2xs group"
+          >
+            <Zap className="h-3.5 w-3.5 text-amber-500 group-hover:scale-110 transition-transform" />
+            <span>Planos &amp; Diárias SaaS</span>
+          </Link>
+
+          <Link
+            to="/app/admin/operacao"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition shadow-2xs group"
+          >
+            <Radio className="h-3.5 w-3.5 text-emerald-600 group-hover:scale-110 transition-transform" />
+            <span>Cockpit ao Vivo</span>
+          </Link>
+
+          <Link
+            to="/app/admin/financeiro"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition shadow-2xs group"
+          >
+            <DollarSign className="h-3.5 w-3.5 text-emerald-700 group-hover:scale-110 transition-transform" />
+            <span>Cockpit Financeiro</span>
+          </Link>
+
+          {chamadosSOSAtivos > 0 ? (
+            <Link
+              to="/app/admin/sos"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold animate-pulse transition shadow-xs"
+            >
+              <ShieldAlert className="h-3.5 w-3.5" />
+              <span>Ver {chamadosSOSAtivos} SOS Ativo(s)</span>
+            </Link>
+          ) : (
+            <Link
+              to="/app/admin/sos"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition shadow-2xs"
+            >
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+              <span>Central SOS 190</span>
+            </Link>
+          )}
         </div>
       </div>
 
