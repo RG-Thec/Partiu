@@ -182,23 +182,23 @@ function AdminPassageiros() {
   }, [passageiroDetalhe, todasCorridas]);
 
   return (
-    <div className="space-y-6 sm:space-y-8 pb-20 max-w-7xl mx-auto">
+    <div className="space-y-4 sm:space-y-5 pb-12 max-w-7xl mx-auto">
       {/* 1. Header Executivo */}
-      <div className="rounded-3xl bg-white p-6 sm:p-8 border border-slate-200/90 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="rounded-2xl bg-white p-4 sm:p-5 border border-slate-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3.5 py-1.5 text-xs sm:text-sm font-bold text-[#0088FF] border border-blue-200/60 mb-2.5">
-            <Users className="h-4 w-4" />
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-[#0088FF] border border-blue-200/60 mb-1.5">
+            <Users className="h-3.5 w-3.5" />
             <span>Módulo de Clientes • Base de Passageiros</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#003366]">
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#003366]">
             Gestão de Passageiros &amp; LTV
           </h1>
-          <p className="text-sm sm:text-base text-slate-500 max-w-2xl font-medium mt-1.5">
+          <p className="text-xs sm:text-sm text-slate-500 max-w-2xl font-medium mt-0.5 leading-relaxed">
             Métricas de valor acumulado por cliente (LTV), histórico de corridas realizadas, validação cadastral e governança de bloqueio cautelar.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -218,85 +218,85 @@ function AdminPassageiros() {
                 ])
               );
             }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs sm:text-sm font-bold border border-emerald-300 transition-all cursor-pointer shadow-xs"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 h-8.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 transition-all cursor-pointer shadow-xs active:scale-95"
             title="Exportar base de passageiros em CSV"
           >
-            <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+            <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />
             <span>Exportar CSV</span>
           </button>
 
           <Link
             to="/app"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold transition-all shadow-sm cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 h-8.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
           >
-            <Car className="h-4 w-4 text-[#0088FF]" />
+            <Car className="h-3.5 w-3.5 text-[#0088FF]" />
             <span>Abrir App</span>
           </Link>
         </div>
       </div>
 
       {/* 2. Top Metrics (KPIs Executivos de LTV) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Base Total</span>
-            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0088FF] flex items-center justify-center">
-              <Users className="w-5 h-5" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Base Total</span>
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#0088FF] flex items-center justify-center">
+              <Users className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-slate-900">{kpis.total}</span>
-            <span className="text-xs font-bold text-slate-500">passageiros</span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-lg sm:text-xl font-black text-slate-900">{kpis.total}</span>
+            <span className="text-[11px] font-bold text-slate-500">passageiros</span>
           </div>
         </div>
 
-        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm">
+        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">LTV Acumulado (GMV)</span>
-            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <DollarSign className="w-5 h-5" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">LTV Acumulado (GMV)</span>
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <DollarSign className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-emerald-700">
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-lg sm:text-xl font-black text-emerald-700">
               R$ {kpis.ltvTotal.toFixed(2).replace(".", ",")}
             </span>
           </div>
         </div>
 
-        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm">
+        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Média Corridas/Cliente</span>
-            <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Média Corridas/Cliente</span>
+            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-slate-900">{kpis.mediaViagens}</span>
-            <span className="text-xs font-bold text-slate-500">viagens/usuário</span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-lg sm:text-xl font-black text-slate-900">{kpis.mediaViagens}</span>
+            <span className="text-[11px] font-bold text-slate-500">viagens/usuário</span>
           </div>
         </div>
 
-        <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm">
+        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Novos Clientes Hoje</span>
-            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-              <UserPlus className="w-5 h-5" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Novos Clientes Hoje</span>
+            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+              <UserPlus className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-slate-900">{kpis.novosHoje}</span>
-            <span className="text-xs font-bold text-emerald-600">cadastros hoje</span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-lg sm:text-xl font-black text-slate-900">{kpis.novosHoje}</span>
+            <span className="text-[11px] font-bold text-emerald-600">cadastros hoje</span>
           </div>
         </div>
       </div>
 
       {/* 3. Formulário de Novo Passageiro */}
-      <section className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-sm">
-        <h2 className="flex items-center gap-2 text-base font-black text-slate-800">
-          <UserPlus className="h-5 w-5 text-primary-600" /> Cadastrar novo passageiro
+      <section className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs">
+        <h2 className="flex items-center gap-2 text-sm font-black text-slate-800">
+          <UserPlus className="h-4 w-4 text-primary-600" /> Cadastrar novo passageiro
         </h2>
-        <div className="mt-3 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
           {(
             [
               ["nome", "Nome completo", "text"],
@@ -607,56 +607,56 @@ function AdminPassageiros() {
 
       {/* 7. Modal de Detalhes do Passageiro, LTV e Histórico de Corridas */}
       {passageiroDetalhe && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-2xs">
-          <div className="w-full max-w-3xl max-h-[90vh] rounded-3xl bg-white shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in fade-in-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
+          <div className="w-full max-w-2xl max-h-[90vh] rounded-2xl bg-white shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in fade-in-50">
             {/* Header do Modal */}
-            <div className="p-6 bg-slate-950 text-white flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-primary-500 text-slate-950 flex items-center justify-center font-black text-lg shrink-0">
+            <div className="p-4 sm:p-5 bg-slate-950 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-black text-sm shrink-0">
                   {(passageiroDetalhe.full_name || "P").charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-lg font-black">{passageiroDetalhe.full_name ?? "Passageiro PARTIU"}</h3>
-                  <p className="text-xs text-slate-400">{passageiroDetalhe.email ?? "—"}</p>
+                  <h3 className="text-sm sm:text-base font-black leading-tight">{passageiroDetalhe.full_name ?? "Passageiro PARTIU"}</h3>
+                  <p className="text-[11px] text-slate-400 leading-tight">{passageiroDetalhe.email ?? "—"}</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setPassageiroDetalhe(null)}
-                className="h-9 w-9 rounded-full flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                className="h-7.5 w-7.5 rounded-lg flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
             {/* Conteúdo com Scroll */}
-            <div className="p-6 space-y-6 overflow-y-auto">
+            <div className="p-4 sm:p-5 space-y-4 overflow-y-auto">
               {/* Cards de Métricas do Passageiro */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 block">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">
                     Gasto Total (LTV)
                   </span>
-                  <p className="text-xl font-black text-emerald-700 mt-1">
+                  <p className="text-base sm:text-lg font-black text-emerald-700 mt-0.5">
                     R$ {(passageiroDetalhe.ltv_brl || 0).toFixed(2).replace(".", ",")}
                   </p>
                 </div>
 
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 block">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">
                     Total de Viagens
                   </span>
-                  <p className="text-xl font-black text-slate-900 mt-1">
+                  <p className="text-base sm:text-lg font-black text-slate-900 mt-0.5">
                     {viagensModal.length} corridas
                   </p>
                 </div>
 
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 block">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">
                     Status da Conta
                   </span>
                   <p
-                    className={`text-sm font-black mt-1.5 uppercase ${
+                    className={`text-xs font-black mt-1 uppercase ${
                       passageiroDetalhe.status === "bloqueado" ? "text-red-600" : "text-emerald-600"
                     }`}
                   >

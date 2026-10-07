@@ -1027,32 +1027,32 @@ export function QuadroMotoristasAdminPage() {
       {/* MODAL REJEITAR CONDUTOR */}
       {modalRejeitarAberto && motoristaSelecionado && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-white p-6 rounded-3xl shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
+          <div className="w-full max-w-md bg-white p-5 rounded-2xl shadow-2xl border border-slate-200 space-y-3.5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
               <div className="flex items-center gap-2 text-red-600">
-                <AlertCircle className="h-5 w-5" />
-                <h3 className="text-base font-black text-slate-900">Rejeitar Cadastro</h3>
+                <AlertCircle className="h-4 w-4" />
+                <h3 className="text-sm font-black text-slate-900">Rejeitar Cadastro</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setModalRejeitarAberto(false)}
-                className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-slate-100 text-slate-500"
+                className="h-7 w-7 rounded-lg flex items-center justify-center hover:bg-slate-100 text-slate-500 cursor-pointer"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <p className="text-slate-600">
+            <div className="space-y-2.5 text-xs">
+              <p className="text-slate-600 leading-snug">
                 O condutor <strong>{motoristaSelecionado.nome}</strong> será notificado automaticamente via WhatsApp com a justificativa selecionada.
               </p>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Motivo da Rejeição:</label>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">Motivo da Rejeição:</label>
                 <select
                   value={motivoRejeicao}
                   onChange={(e) => setMotivoRejeicao(e.target.value)}
-                  className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-medium bg-white"
+                  className="w-full h-8.5 px-2.5 rounded-lg border border-slate-300 text-xs font-medium bg-white focus:outline-hidden focus:ring-1 focus:ring-red-500"
                 >
                   <option value="Documento CNH ilegível ou com foto cortada">Documento CNH ilegível ou com foto cortada</option>
                   <option value="CNH sem a observação Exerce Atividade Remunerada (EAR)">CNH sem observação EAR</option>
@@ -1062,18 +1062,18 @@ export function QuadroMotoristasAdminPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 pt-2">
+            <div className="grid grid-cols-2 gap-2 pt-1.5">
               <button
                 type="button"
                 onClick={() => setModalRejeitarAberto(false)}
-                className="h-11 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200"
+                className="h-8.5 rounded-lg bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200 cursor-pointer transition active:scale-95"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleConfirmarRejeicao}
-                className="h-11 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 shadow-xs"
+                className="h-8.5 rounded-lg bg-red-600 text-white font-bold text-xs hover:bg-red-700 shadow-xs cursor-pointer transition active:scale-95"
               >
                 Confirmar Rejeição
               </button>
@@ -1085,18 +1085,18 @@ export function QuadroMotoristasAdminPage() {
       {/* MODAL SUCESSO DA ESTEIRA OCR */}
       {modalOcrAberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-white p-6 rounded-3xl shadow-2xl border border-slate-200 space-y-4">
+          <div className="w-full max-w-md bg-white p-5 rounded-2xl shadow-2xl border border-slate-200 space-y-3.5">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black">
-                <Bot className="h-6 w-6" />
+              <div className="h-10 w-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black">
+                <Bot className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-base font-black text-slate-900">Esteira OCR Executada com Sucesso</h3>
-                <p className="text-xs text-slate-500">Validação algorítmica autônoma concluída</p>
+                <h3 className="text-sm font-black text-slate-900">Esteira OCR Executada com Sucesso</h3>
+                <p className="text-[11px] text-slate-500">Validação algorítmica autônoma concluída</p>
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-2">
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-slate-600">Documentos Válidos Analisados:</span>
                 <span className="font-bold text-slate-900">100% dos candidatos</span>
@@ -1114,7 +1114,7 @@ export function QuadroMotoristasAdminPage() {
             <button
               type="button"
               onClick={() => setModalOcrAberto(false)}
-              className="w-full h-11 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800"
+              className="w-full h-8.5 rounded-lg bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 cursor-pointer transition active:scale-95"
             >
               Concluir Revisão
             </button>
@@ -1124,31 +1124,31 @@ export function QuadroMotoristasAdminPage() {
 
       {/* MODAL DETALHES DO MOTORISTA & GESTÃO DA CATEGORIA */}
       {modalDetalhesAberto && motoristaSelecionado && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-in fade-in">
-          <div className="w-full max-w-lg bg-white p-6 rounded-3xl shadow-2xl border border-slate-200 space-y-5 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-lg bg-white p-5 rounded-2xl shadow-2xl border border-slate-200 space-y-3.5 max-h-[90vh] overflow-y-auto">
             {/* Topo */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0088FF] flex items-center justify-center font-black">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0088FF] flex items-center justify-center font-black text-sm">
                   {motoristaSelecionado.nome.charAt(0)}
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-slate-900">{motoristaSelecionado.nome}</h3>
-                  <p className="text-xs text-slate-500">{motoristaSelecionado.cidade} • {motoristaSelecionado.telefone}</p>
+                  <h3 className="text-sm sm:text-base font-black text-slate-900 leading-tight">{motoristaSelecionado.nome}</h3>
+                  <p className="text-[11px] text-slate-500 leading-tight">{motoristaSelecionado.cidade} • {motoristaSelecionado.telefone}</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setModalDetalhesAberto(false)}
-                className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-slate-100 text-slate-500 cursor-pointer"
+                className="h-7 w-7 rounded-lg flex items-center justify-center hover:bg-slate-100 text-slate-500 cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             {/* Dados do Veículo Cadastrado */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-2">
-              <span className="font-black text-slate-700 uppercase tracking-wider block">Veículo Declarado:</span>
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
+              <span className="font-black text-slate-700 uppercase tracking-wider block text-[10px]">Veículo Declarado:</span>
               <div className="grid grid-cols-2 gap-2 text-slate-700">
                 <div>
                   <span className="text-[10px] text-slate-400 block">Modelo e Marca</span>
@@ -1170,19 +1170,19 @@ export function QuadroMotoristasAdminPage() {
             </div>
 
             {/* Gestão da Categoria de Atendimento (Controle Administrativo) */}
-            <div className="space-y-2.5 p-4 rounded-2xl bg-blue-50/70 border border-blue-200">
+            <div className="space-y-2 p-3.5 rounded-xl bg-blue-50/70 border border-blue-200">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-black text-blue-950 uppercase tracking-wider block">
+                <label className="text-[11px] font-black text-blue-950 uppercase tracking-wider block">
                   Categoria de Atendimento Operacional:
                 </label>
-                <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full border border-blue-200">
+                <span className="text-[9px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full border border-blue-200">
                   Exclusivo Operação
                 </span>
               </div>
-              <p className="text-[11px] text-slate-600">
+              <p className="text-[10px] text-slate-600">
                 Definido pela equipe de moderação com base na vistoria do veículo e documentação:
               </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-0.5">
                 {(["CARRO", "MOTO", "PLUS", "MULHER"] as const).map((cat) => {
                   const isSelected = categoriaEdicao === cat;
                   return (
@@ -1190,18 +1190,18 @@ export function QuadroMotoristasAdminPage() {
                       key={cat}
                       type="button"
                       onClick={() => setCategoriaEdicao(cat)}
-                      className={`p-2.5 rounded-xl border text-center transition cursor-pointer flex flex-col items-center gap-0.5 ${
+                      className={`p-2 rounded-lg border text-center transition cursor-pointer flex flex-col items-center gap-0.5 ${
                         isSelected
-                          ? "bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-slate-900/20"
+                          ? "bg-slate-900 text-white border-slate-900 shadow-xs ring-1 ring-slate-900/20"
                           : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
                       }`}
                     >
-                      <span className="text-xs font-black">{cat}</span>
-                      <span className={`text-[10px] ${isSelected ? "text-slate-300" : "text-slate-400"}`}>
+                      <span className="text-[11px] font-black">{cat}</span>
+                      <span className={`text-[9px] ${isSelected ? "text-slate-300" : "text-slate-400"}`}>
                         {cat === "CARRO" && "Partiu Pop"}
-                        {cat === "MOTO" && "Moto & Flash"}
-                        {cat === "PLUS" && "Sedan / Plus"}
-                        {cat === "MULHER" && "Partiu Delas"}
+                        {cat === "MOTO" && "Moto Flash"}
+                        {cat === "PLUS" && "Plus Sedan"}
+                        {cat === "MULHER" && "Delas"}
                       </span>
                     </button>
                   );
@@ -1210,14 +1210,14 @@ export function QuadroMotoristasAdminPage() {
             </div>
 
             {/* Ações */}
-            <div className="flex items-center justify-between gap-3 pt-2">
+            <div className="flex items-center justify-between gap-2.5 pt-1">
               <button
                 type="button"
                 onClick={() => {
                   const msg = encodeURIComponent(`Olá ${motoristaSelecionado.nome}, contato da Central PARTIU Operações.`);
                   window.open(`https://wa.me/55${motoristaSelecionado.telefone.replace(/\D/g, "")}?text=${msg}`, "_blank");
                 }}
-                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                className="h-8.5 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer active:scale-95"
               >
                 <Phone className="w-3.5 h-3.5 text-emerald-600" />
                 <span>WhatsApp</span>
@@ -1243,9 +1243,9 @@ export function QuadroMotoristasAdminPage() {
                     setSalvandoCategoria(false);
                   }
                 }}
-                className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer disabled:opacity-50"
+                className="h-8.5 px-3.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-black text-xs flex items-center gap-1.5 shadow-xs transition cursor-pointer disabled:opacity-50 active:scale-95"
               >
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                 <span>{salvandoCategoria ? "Salvando..." : "Salvar Categoria"}</span>
               </button>
             </div>

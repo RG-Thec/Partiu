@@ -618,16 +618,16 @@ export function CentralPanicoSOSAdminPage() {
 
       {/* MODAL: CONCLUIR OCORRÊNCIA COM RELATÓRIO DO OPERADOR */}
       {modalConclusaoAberto && alertaParaConcluir && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-card w-full max-w-lg rounded-3xl border border-border shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-border/60">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl p-5 sm:p-6 space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-                  <CheckCircle2 className="w-5 h-5" />
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-black text-foreground">Concluir Atendimento de Crise</h2>
-                  <p className="text-xs text-muted-foreground">
+                  <h2 className="text-sm sm:text-base font-black text-slate-900 leading-tight">Concluir Atendimento de Crise</h2>
+                  <p className="text-[11px] text-slate-500 leading-tight">
                     Ocorrência #{alertaParaConcluir.id} · {alertaParaConcluir.solicitanteNome}
                   </p>
                 </div>
@@ -635,51 +635,51 @@ export function CentralPanicoSOSAdminPage() {
               <button
                 type="button"
                 onClick={() => setModalConclusaoAberto(false)}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={salvarConclusaoOcorrencia} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">Protocolo Policial / Órgão Externo (Se houver)</label>
+            <form onSubmit={salvarConclusaoOcorrencia} className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Protocolo Policial / Órgão Externo (Se houver)</label>
                 <input
                   type="text"
                   placeholder="Ex: 190-RJ-2026-9812 ou SAMU-04"
                   value={protocoloPoliciaInput}
                   onChange={(e) => setProtocoloPoliciaInput(e.target.value)}
-                  className="w-full min-h-11 h-11 px-3.5 rounded-xl bg-background border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  className="w-full h-8.5 px-3 rounded-lg bg-white border border-slate-300 text-xs text-slate-900 focus:outline-hidden focus:ring-1 focus:ring-primary focus:border-primary"
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">
                   Relatório do Operador / Providências Tomadas *
                 </label>
                 <textarea
                   required
-                  rows={4}
+                  rows={3}
                   placeholder="Descreva o desfecho do incidente: se os envolvidos ficaram em segurança, se a viatura compareceu ou se houve engano..."
                   value={textoDesfecho}
                   onChange={(e) => setTextoDesfecho(e.target.value)}
-                  className="w-full p-3.5 rounded-xl bg-background border border-border text-xs sm:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  className="w-full p-2.5 rounded-lg bg-white border border-slate-300 text-xs text-slate-900 focus:outline-hidden focus:ring-1 focus:ring-primary focus:border-primary"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-border/60">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setModalConclusaoAberto(false)}
-                  className="min-h-11 px-4 rounded-xl border border-border text-foreground font-semibold text-xs sm:text-sm hover:bg-accent transition-colors cursor-pointer"
+                  className="h-8.5 px-3 rounded-lg border border-slate-300 text-slate-700 font-semibold text-xs hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="min-h-11 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm transition-colors cursor-pointer shadow-sm flex items-center gap-2"
+                  className="h-8.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors cursor-pointer shadow-xs flex items-center gap-1.5 active:scale-95"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
+                  <CheckCircle2 className="w-3.5 h-3.5" />
                   Finalizar &amp; Arquivar
                 </button>
               </div>

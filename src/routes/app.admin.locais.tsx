@@ -503,18 +503,18 @@ export function AdminLocaisPage() {
 
       {/* Modal de Criação / Edição de Praça */}
       {modalAberto && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-card w-full max-w-lg rounded-3xl border border-border shadow-2xl p-6 sm:p-7 space-y-5 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-border/60">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl p-5 sm:p-6 space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                  <MapPin className="w-5 h-5" />
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#0088FF] flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-black text-foreground">
+                  <h2 className="text-sm sm:text-base font-black text-slate-900 leading-tight">
                     {pracaEmEdicao ? "Editar Praça de Operação" : "Nova Praça de Operação"}
                   </h2>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[11px] text-slate-500 leading-tight">
                     Configure os parâmetros territoriais para a central de despacho.
                   </p>
                 </div>
@@ -522,15 +522,15 @@ export function AdminLocaisPage() {
               <button
                 type="button"
                 onClick={() => setModalAberto(false)}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {erroForm && (
-              <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs font-semibold flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <div className="p-2.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                 <span>{erroForm}</span>
               </div>
             )}
@@ -538,16 +538,16 @@ export function AdminLocaisPage() {
             {/* Sugestões Rápidas de Cidades Brasileiras */}
             {!pracaEmEdicao && (
               <div>
-                <label className="text-xs font-bold text-muted-foreground block mb-1.5">
+                <label className="text-[10px] font-bold text-slate-500 block mb-1">
                   Sugestões Rápidas:
                 </label>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1">
                   {Object.keys(COORDENADAS_PREDEFINIDAS).slice(0, 6).map((cidade) => (
                     <button
                       key={cidade}
                       type="button"
                       onClick={() => handleSugestaoCidade(cidade)}
-                      className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-muted/70 hover:bg-muted text-foreground border border-border/60 transition-colors cursor-pointer"
+                      className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
                     >
                       {cidade}
                     </button>
@@ -556,25 +556,25 @@ export function AdminLocaisPage() {
               </div>
             )}
 
-            <form onSubmit={handleSalvarPraca} className="space-y-4">
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2 space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Nome da Cidade</label>
+            <form onSubmit={handleSalvarPraca} className="space-y-3">
+              <div className="grid grid-cols-3 gap-2.5">
+                <div className="col-span-2 space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Nome da Cidade</label>
                   <input
                     type="text"
                     required
                     placeholder="Ex: São Paulo, Rio de Janeiro"
                     value={formNome}
                     onChange={(e) => setFormNome(e.target.value)}
-                    className="w-full min-h-11 h-11 px-3.5 rounded-xl bg-background border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    className="w-full h-8.5 px-3 rounded-lg bg-white border border-slate-300 text-xs text-slate-900 focus:outline-hidden focus:ring-1 focus:ring-primary focus:border-primary"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">UF</label>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">UF</label>
                   <select
                     value={formUf}
                     onChange={(e) => setFormUf(e.target.value)}
-                    className="w-full min-h-11 h-11 px-3 rounded-xl bg-background border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer"
+                    className="w-full h-8.5 px-2.5 rounded-lg bg-white border border-slate-300 text-xs text-slate-900 focus:outline-hidden focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer"
                   >
                     {ESTADOS_BRASIL.map((uf) => (
                       <option key={uf} value={uf}>
@@ -585,37 +585,37 @@ export function AdminLocaisPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Latitude Central</label>
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Latitude Central</label>
                   <input
                     type="text"
                     required
                     placeholder="-9.6658"
                     value={formLat}
                     onChange={(e) => setFormLat(e.target.value)}
-                    className="w-full min-h-11 h-11 px-3.5 rounded-xl bg-background border border-border font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    className="w-full h-8.5 px-3 rounded-lg bg-white border border-slate-300 font-mono text-xs text-slate-900 focus:outline-hidden focus:ring-1 focus:ring-primary focus:border-primary"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Longitude Central</label>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Longitude Central</label>
                   <input
                     type="text"
                     required
                     placeholder="-35.7351"
                     value={formLng}
                     onChange={(e) => setFormLng(e.target.value)}
-                    className="w-full min-h-11 h-11 px-3.5 rounded-xl bg-background border border-border font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    className="w-full h-8.5 px-3 rounded-lg bg-white border border-slate-300 font-mono text-xs text-slate-900 focus:outline-hidden focus:ring-1 focus:ring-primary focus:border-primary"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-foreground">
-                    Raio Máximo de Despacho (km): <span className="text-primary font-black">{formRaioKm} km</span>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                    Raio de Despacho: <span className="text-primary font-black">{formRaioKm} km</span>
                   </label>
-                  <span className="text-[11px] text-muted-foreground">Padrão: 15-30 km</span>
+                  <span className="text-[10px] text-slate-500">Padrão: 15-30 km</span>
                 </div>
                 <input
                   type="range"
@@ -624,22 +624,22 @@ export function AdminLocaisPage() {
                   step={1}
                   value={formRaioKm}
                   onChange={(e) => setFormRaioKm(Number(e.target.value))}
-                  className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                  className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary"
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">Status Operacional</label>
-                <div className="grid grid-cols-3 gap-2">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Status Operacional</label>
+                <div className="grid grid-cols-3 gap-1.5">
                   {(["ATIVA", "EM_CONFIGURACAO", "PAUSADA"] as const).map((st) => (
                     <button
                       key={st}
                       type="button"
                       onClick={() => setFormStatus(st)}
-                      className={`min-h-10 py-2 px-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                      className={`h-8 py-1 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
                         formStatus === st
-                          ? "bg-primary text-primary-foreground border-primary shadow-xs"
-                          : "border-border text-muted-foreground hover:bg-muted"
+                          ? "bg-slate-900 text-white border-slate-900 shadow-xs"
+                          : "border-slate-200 text-slate-600 hover:bg-slate-100"
                       }`}
                     >
                       {st === "ATIVA" && "Ativa"}
@@ -650,19 +650,19 @@ export function AdminLocaisPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-border/60">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setModalAberto(false)}
-                  className="min-h-11 px-4 rounded-xl border border-border text-foreground font-semibold text-xs sm:text-sm hover:bg-accent transition-colors cursor-pointer"
+                  className="h-8.5 px-3 rounded-lg border border-slate-300 text-slate-700 font-semibold text-xs hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="min-h-11 px-5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs sm:text-sm transition-colors cursor-pointer shadow-sm flex items-center gap-2"
+                  className="h-8.5 px-4 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors cursor-pointer shadow-xs flex items-center gap-1.5 active:scale-95"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                   {pracaEmEdicao ? "Salvar Alterações" : "Cadastrar Praça"}
                 </button>
               </div>
