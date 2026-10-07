@@ -236,6 +236,41 @@ GRANT EXECUTE ON FUNCTION public.is_franqueado(UUID) TO authenticated, service_r
 GRANT EXECUTE ON FUNCTION public.get_admin_tenant_id(UUID) TO authenticated, service_role;
 
 -- ------------------------------------------------------------------------------
+-- 4.9. GARANTIR A EXISTÊNCIA DAS COLUNAS DE TENANCY / PRAÇA
+-- ------------------------------------------------------------------------------
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'partiu_corridas') THEN
+    ALTER TABLE public.partiu_corridas ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) DEFAULT 'ten_matriz';
+    ALTER TABLE public.partiu_corridas ADD COLUMN IF NOT EXISTS praca_id VARCHAR(64) DEFAULT 'ten_matriz';
+    CREATE INDEX IF NOT EXISTS idx_partiu_corridas_tenant ON public.partiu_corridas(tenant_id, praca_id);
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'rides') THEN
+    ALTER TABLE public.rides ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) DEFAULT 'ten_matriz';
+    ALTER TABLE public.rides ADD COLUMN IF NOT EXISTS praca_id VARCHAR(64) DEFAULT 'ten_matriz';
+    CREATE INDEX IF NOT EXISTS idx_rides_tenant ON public.rides(tenant_id, praca_id);
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'driver_profiles') THEN
+    ALTER TABLE public.driver_profiles ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) DEFAULT 'ten_matriz';
+    ALTER TABLE public.driver_profiles ADD COLUMN IF NOT EXISTS praca_id VARCHAR(64) DEFAULT 'ten_matriz';
+    CREATE INDEX IF NOT EXISTS idx_driver_profiles_tenant ON public.driver_profiles(tenant_id, praca_id);
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'partiu_motoristas') THEN
+    ALTER TABLE public.partiu_motoristas ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) DEFAULT 'ten_matriz';
+    ALTER TABLE public.partiu_motoristas ADD COLUMN IF NOT EXISTS praca_id VARCHAR(64) DEFAULT 'ten_matriz';
+    CREATE INDEX IF NOT EXISTS idx_partiu_motoristas_tenant ON public.partiu_motoristas(tenant_id, praca_id);
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'driver_subscriptions') THEN
+    ALTER TABLE public.driver_subscriptions ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) DEFAULT 'ten_matriz';
+    CREATE INDEX IF NOT EXISTS idx_driver_subscriptions_tenant ON public.driver_subscriptions(tenant_id);
+  END IF;
+END $$;
+
+-- ------------------------------------------------------------------------------
 -- 5. POLÍTICAS RLS PURIFICADAS (SUPER ADMIN = GLOBAL, FRANQUEADO = POR TENANT)
 -- ------------------------------------------------------------------------------
 
