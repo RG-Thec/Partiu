@@ -39,9 +39,17 @@ import { AddressSearchSkeleton } from "@/components/ui/skeleton";
 import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { getHistoricoViagens } from "@/lib/partiu-engine";
+import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 
-
-const STORAGE_RECENT_KEY = "partiu_recent_destinations_v1";
+function getStorageRecentKey(): string {
+  if (typeof window === "undefined") return "partiu_recent_destinations_v1";
+  try {
+    const session = supabaseAuthService.getStoredSession();
+    const uid = session?.id || localStorage.getItem("partiu_user_id");
+    if (uid) return `partiu_recent_destinations_v1_${uid}`;
+  } catch {}
+  return "partiu_recent_destinations_v1";
+}
 
 interface RecentItem {
   id: string;
@@ -52,14 +60,14 @@ interface RecentItem {
 }
 
 /**
- * Recupera o histórico autêntico e real de viagens do passageiro.
- * Se não houver viagens reais (nem no cache local limpo nem na engine/banco),
- * retorna array vazio `[]` para manter a interface 100% limpa, sem fakes engessados.
+ * Recupera o histórico autêntico e real de viagens exclusivo do passageiro ativo.
+ * Se não houver viagens reais para o usuário atual, retorna array vazio `[]`.
  */
 function carregarHistoricoReal(): RecentItem[] {
   if (typeof window === "undefined") return [];
   try {
-    const salvo = localStorage.getItem(STORAGE_RECENT_KEY);
+    const key = getStorageRecentKey();
+    const salvo = localStorage.getItem(key);
     if (salvo) {
       const parsed = JSON.parse(salvo);
       if (Array.isArray(parsed)) {
@@ -75,7 +83,7 @@ function carregarHistoricoReal(): RecentItem[] {
         );
         // Higieniza o storage para não deixar resíduos em disco/cache
         if (validos.length !== parsed.length) {
-          localStorage.setItem(STORAGE_RECENT_KEY, JSON.stringify(validos));
+          localStorage.setItem(key, JSON.stringify(validos));
         }
         if (validos.length > 0) {
           return validos.slice(0, 2);
@@ -83,8 +91,11 @@ function carregarHistoricoReal(): RecentItem[] {
       }
     }
 
-    // Se o storage recente estiver limpo, consulta corridas reais concluídas na engine
-    const historicoEngine = getHistoricoViagens();
+    // Se o storage recente deste usuário estiver limpo, consulta corridas reais dele
+    const session = supabaseAuthService.getStoredSession();
+    const userPhone = session?.phone || localStorage.getItem("partiu_user_phone");
+
+    const historicoEngine = getHistoricoViagens(userPhone ? { phone: userPhone } : undefined);
     if (Array.isArray(historicoEngine) && historicoEngine.length > 0) {
       const corridasValidas = historicoEngine
         .filter(
@@ -384,7 +395,16 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
     };
   }, [buscaDestino, origemLocal, campoAtivo, origemCoords]);
 
-  // 5. Salvar e recuperar no histórico persistente
+  // 4.1 Limpar histórico recente ao alternar de usuário ou logout
+  useEffect(() => {
+    const handleHistoryCleared = () => {
+      setHistoricoRecente([]);
+    };
+    window.addEventListener("partiu:history-cleared", handleHistoryCleared);
+    return () => window.removeEventListener("partiu:history-cleared", handleHistoryCleared);
+  }, []);
+
+  // 5. Salvar e recuperar no histórico persistente escopado por usuário
   function registrarViagemRecente(label: string, endereco: string, coords?: [number, number]) {
     try {
       const novo: RecentItem = {
@@ -399,7 +419,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
       );
       const atualizados = [novo, ...filtrados].slice(0, 2);
       setHistoricoRecente(atualizados);
-      localStorage.setItem(STORAGE_RECENT_KEY, JSON.stringify(atualizados));
+      localStorage.setItem(getStorageRecentKey(), JSON.stringify(atualizados));
     } catch (err) { silentCatchWarn("PassengerSearchDestinationSheet", err); }
   }
 

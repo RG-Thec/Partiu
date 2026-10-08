@@ -4,10 +4,78 @@ import { Search, MapPin, ChevronRight, Clock, Home, Briefcase, Car, Package } fr
 import { usePassengerRide } from "@/contexts/PassengerRideContext";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
-import { SAVED_LOCATIONS, SavedLocation } from "@/lib/passenger/passenger-ride-machine";
+import { SavedLocation } from "@/lib/passenger/passenger-ride-machine";
 import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
 import { silentCatchWarn } from "@/lib/structured-logger";
+import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
+import { addressService } from "@/services/AddressService";
 
+function carregarDestinosReais(): SavedLocation[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const session = supabaseAuthService?.getStoredSession?.() || null;
+    const uid = session?.id || localStorage.getItem("partiu_user_id") || undefined;
+    const key =
+      uid && uid !== "passageiro_default"
+        ? `partiu_recent_destinations_v1_${uid}`
+        : "partiu_recent_destinations_v1";
+
+    const salvo = localStorage.getItem(key);
+    if (salvo) {
+      const parsed = JSON.parse(salvo);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const validos = parsed.filter(
+          (item: any) =>
+            item &&
+            item.id !== "rec-1" &&
+            item.id !== "rec-2" &&
+            item.label !== "Rua Dez de Maio, 188" &&
+            item.label !== "Hospital São José do Avaí"
+        );
+        if (validos.length > 0) {
+          return validos.slice(0, 2).map((item: any) => ({
+            id: item.id || `rec-${Math.random()}`,
+            label: item.label || item.titulo || "Recente",
+            sublabel: item.endereco || "",
+            endereco: item.endereco,
+            coords: item.coords || [-41.8860, -21.2065],
+            icone: "clock",
+          }));
+        }
+      }
+    }
+
+    // Se não há viagens recentes, verifica se o usuário configurou Casa ou Trabalho reais
+    const casa = addressService.getCasa();
+    const trabalho = addressService.getTrabalho();
+    const reais: SavedLocation[] = [];
+    if (casa && casa.endereco) {
+      reais.push({
+        id: casa.id,
+        label: casa.label || "Casa",
+        sublabel: casa.sublabel || casa.endereco,
+        endereco: casa.endereco,
+        coords: casa.coords,
+        icone: "home",
+      });
+    }
+    if (trabalho && trabalho.endereco) {
+      reais.push({
+        id: trabalho.id,
+        label: trabalho.label || "Trabalho",
+        sublabel: trabalho.sublabel || trabalho.endereco,
+        endereco: trabalho.endereco,
+        coords: trabalho.coords,
+        icone: "work",
+      });
+    }
+
+    return reais.slice(0, 2);
+  } catch (err) {
+    silentCatchWarn("PassengerIdleCard", err);
+    return [];
+  }
+}
 
 interface PassengerIdleCardProps {
   userName?: string;
@@ -20,55 +88,28 @@ export function PassengerIdleCard({ userName = "Passageiro" }: PassengerIdleCard
   const { appConfig } = useTheme();
   const { colors, ui } = appConfig.branding;
 
-  const casaPadrao: SavedLocation = SAVED_LOCATIONS[0] ?? {
-    id: "loc-casa",
-    label: "Casa",
-    sublabel: "Rua Dez de Maio, 188 - Centro",
-    endereco: "Rua Dez de Maio, 188 - Centro, Itaperuna - RJ",
-    coords: [-41.8860, -21.2065],
-    icone: "home",
-  };
-
-  // Máximo 2 Destinos Recentes/Frequentes (Modelo Uber / 99)
-  const [destinosFrequentes, setDestinosFrequentes] = useState<SavedLocation[]>(() => {
-    return SAVED_LOCATIONS.slice(0, 2); // Padrão: Casa e Trabalho
-  });
+  // Destinos Recentes/Frequentes autênticos (vazio para novo usuário)
+  const [destinosFrequentes, setDestinosFrequentes] = useState<SavedLocation[]>(() =>
+    carregarDestinosReais()
+  );
 
   useEffect(() => {
-    try {
-      const salvo = localStorage.getItem("partiu_recent_destinations_v1");
-      if (salvo) {
-        const parsed = JSON.parse(salvo);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const validos = parsed.filter(
-            (item: any) =>
-              item &&
-              item.id !== "rec-1" &&
-              item.id !== "rec-2" &&
-              item.label !== "Rua Dez de Maio, 188" &&
-              item.label !== "Hospital São José do Avaí"
-          );
-          const ultimo = validos[0];
-          // Se o último for diferente de Casa, exibe Último + Casa
-          if (ultimo && ultimo.endereco && ultimo.endereco.toLowerCase() !== casaPadrao.endereco.toLowerCase()) {
-            setDestinosFrequentes([
-              {
-                id: ultimo.id || "rec-last",
-                label: ultimo.label || "Último Destino",
-                sublabel: ultimo.endereco,
-                endereco: ultimo.endereco,
-                coords: ultimo.coords || [-41.8860, -21.2065],
-                icone: "clock",
-              },
-              casaPadrao, // Casa
-            ]);
-            return;
-          }
-        }
-      }
-    } catch (err) { silentCatchWarn("PassengerIdleCard", err); }
-    setDestinosFrequentes(SAVED_LOCATIONS.slice(0, 2));
-  }, [casaPadrao]);
+    const handleSync = () => {
+      setDestinosFrequentes(carregarDestinosReais());
+    };
+    const handleClear = () => {
+      setDestinosFrequentes([]);
+    };
+
+    window.addEventListener("partiu:history-cleared", handleClear);
+    window.addEventListener("partiu:user-profile-updated", handleSync);
+    window.addEventListener("partiu:addresses_updated", handleSync);
+    return () => {
+      window.removeEventListener("partiu:history-cleared", handleClear);
+      window.removeEventListener("partiu:user-profile-updated", handleSync);
+      window.removeEventListener("partiu:addresses_updated", handleSync);
+    };
+  }, []);
 
   return (
     <div className="w-full max-w-md mx-auto z-20 animate-in slide-in-from-bottom duration-300 pointer-events-auto">
@@ -130,45 +171,47 @@ export function PassengerIdleCard({ userName = "Passageiro" }: PassengerIdleCard
           </span>
         </button>
 
-        {/* 3. Destinos Frequentes / Recentes (Modelo Uber / 99 — Máximo 2) */}
-        <div className="pt-0.5 divide-y divide-slate-100">
-          {destinosFrequentes.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => {
-                hapticFeedback.selection();
-                selectDestination(item.endereco, item.coords);
-              }}
-              style={{ borderRadius: ui.borderRadius }}
-              className="w-full min-h-[48px] py-2.5 px-2 flex items-center gap-3 hover:bg-slate-50 transition active:scale-[0.99] cursor-pointer group text-left"
-            >
-              <div
+        {/* 3. Destinos Frequentes / Recentes (Modelo Uber / 99 — Exibição estrita se existirem) */}
+        {destinosFrequentes.length > 0 && (
+          <div className="pt-0.5 divide-y divide-slate-100">
+            {destinosFrequentes.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  hapticFeedback.selection();
+                  selectDestination(item.endereco, item.coords);
+                }}
                 style={{ borderRadius: ui.borderRadius }}
-                className="w-9 h-9 bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 transition-colors"
+                className="w-full min-h-[48px] py-2.5 px-2 flex items-center gap-3 hover:bg-slate-50 transition active:scale-[0.99] cursor-pointer group text-left"
               >
-                {item.icone === "home" ? (
-                  <Home className="w-4 h-4 stroke-[2.2]" />
-                ) : item.icone === "work" ? (
-                  <Briefcase className="w-4 h-4 stroke-[2.2]" />
-                ) : (
-                  <Clock className="w-4 h-4 stroke-[2.2]" />
-                )}
-              </div>
+                <div
+                  style={{ borderRadius: ui.borderRadius }}
+                  className="w-9 h-9 bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 transition-colors"
+                >
+                  {item.icone === "home" ? (
+                    <Home className="w-4 h-4 stroke-[2.2]" />
+                  ) : item.icone === "work" ? (
+                    <Briefcase className="w-4 h-4 stroke-[2.2]" />
+                  ) : (
+                    <Clock className="w-4 h-4 stroke-[2.2]" />
+                  )}
+                </div>
 
-              <div className="flex-1 min-w-0">
-                <span className="text-sm font-bold text-slate-900 block truncate leading-tight">
-                  {item.label}
-                </span>
-                <span className="text-xs text-slate-500 group-hover:text-slate-700 font-normal block truncate mt-0.5">
-                  {item.sublabel || item.endereco}
-                </span>
-              </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-bold text-slate-900 block truncate leading-tight">
+                    {item.label}
+                  </span>
+                  <span className="text-xs text-slate-500 group-hover:text-slate-700 font-normal block truncate mt-0.5">
+                    {item.sublabel || item.endereco}
+                  </span>
+                </div>
 
-              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 shrink-0 transition-colors" />
-            </button>
-          ))}
-        </div>
+                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 shrink-0 transition-colors" />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

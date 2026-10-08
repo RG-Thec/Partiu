@@ -43,6 +43,64 @@ const AppDrawer = lazy(() =>
   import("@/components/navigation/AppDrawer").then((m) => ({ default: m.AppDrawer }))
 );
 
+function carregarDestinosRecentesPassageiro(uid?: string, phone?: string): RecentAddressItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const key =
+      uid && uid !== "passageiro_default"
+        ? `partiu_recent_destinations_v1_${uid}`
+        : "partiu_recent_destinations_v1";
+
+    const salvo = localStorage.getItem(key);
+    if (salvo) {
+      const parsed = JSON.parse(salvo);
+      if (Array.isArray(parsed)) {
+        // Filtrar e expurgar registros mock legados
+        const validos = parsed.filter(
+          (item: any) =>
+            item &&
+            item.id !== "rec-1" &&
+            item.id !== "rec-2" &&
+            item.label !== "Rua Dez de Maio, 188" &&
+            item.label !== "Hospital São José do Avaí"
+        );
+        if (validos.length !== parsed.length) {
+          localStorage.setItem(key, JSON.stringify(validos));
+        }
+        if (validos.length > 0) {
+          return validos.slice(0, 2).map((item: any) => ({
+            id: item.id,
+            titulo: item.label || item.titulo || "Recente",
+            endereco: item.endereco,
+            coords: item.coords || [-41.886, -21.2065],
+          }));
+        }
+      }
+    }
+
+    // Se storage estiver vazio, verifica se há viagens reais finalizadas no histórico deste usuário
+    const historicoEngine = getHistoricoViagens(
+      uid || phone ? { userId: uid, phone } : undefined
+    );
+    if (Array.isArray(historicoEngine) && historicoEngine.length > 0) {
+      const validas = historicoEngine
+        .filter((c) => c && c.destino && c.id && !c.id.startsWith("mock-"))
+        .slice(0, 2);
+      if (validas.length > 0) {
+        return validas.map((c) => ({
+          id: `ride-${c.id}`,
+          titulo: c.destino.split(",")[0]?.trim() || c.destino,
+          endereco: c.destino,
+          coords: c.destinoCoords ? [c.destinoCoords.lng, c.destinoCoords.lat] : [-41.886, -21.2065],
+        }));
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return [];
+}
+
 export const Route = createFileRoute("/app/")({
   head: () => ({
     meta: [
@@ -173,57 +231,37 @@ function PartiuPassengerHomeContent() {
     [selectDestination]
   );
 
-  // Histórico de destinos recentes do passageiro (100% autêntico e real)
-  const [recentAddresses, setRecentAddresses] = useState<RecentAddressItem[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const salvo = localStorage.getItem("partiu_recent_destinations_v1");
-      if (salvo) {
-        const parsed = JSON.parse(salvo);
-        if (Array.isArray(parsed)) {
-          // Filtrar e expurgar registros mock legados
-          const validos = parsed.filter(
-            (item: any) =>
-              item &&
-              item.id !== "rec-1" &&
-              item.id !== "rec-2" &&
-              item.label !== "Rua Dez de Maio, 188" &&
-              item.label !== "Hospital São José do Avaí"
-          );
-          if (validos.length !== parsed.length) {
-            localStorage.setItem("partiu_recent_destinations_v1", JSON.stringify(validos));
-          }
-          if (validos.length > 0) {
-            return validos.slice(0, 2).map((item: any) => ({
-              id: item.id,
-              titulo: item.label || item.titulo || "Recente",
-              endereco: item.endereco,
-              coords: item.coords || [-41.886, -21.2065],
-            }));
-          }
-        }
-      }
+  // Histórico de destinos recentes do passageiro (100% autêntico, isolado por usuário)
+  const [recentAddresses, setRecentAddresses] = useState<RecentAddressItem[]>(() =>
+    carregarDestinosRecentesPassageiro(passengerId, activeUser?.phone)
+  );
 
-      // Se storage estiver vazio, verifica se há viagens reais finalizadas no histórico
-      const historicoEngine = getHistoricoViagens();
-      if (Array.isArray(historicoEngine) && historicoEngine.length > 0) {
-        const validas = historicoEngine
-          .filter((c) => c && c.destino && c.id && !c.id.startsWith("mock-"))
-          .slice(0, 2);
-        if (validas.length > 0) {
-          return validas.map((c) => ({
-            id: `ride-${c.id}`,
-            titulo: c.destino.split(",")[0]?.trim() || c.destino,
-            endereco: c.destino,
-            coords: c.destinoCoords ? [c.destinoCoords.lng, c.destinoCoords.lat] : [-41.886, -21.2065],
-          }));
-        }
-      }
-    } catch {
-      // ignore
-    }
-    return [];
-  });
+  // Reatividade em tempo real: zera ao deslogar ou ao alternar de usuário
+  useEffect(() => {
+    const handleHistoryCleared = () => {
+      setRecentAddresses([]);
+    };
+    const handleUserChanged = () => {
+      const session =
+        supabaseAuthService?.getCurrentUser?.() ||
+        supabaseAuthService?.getStoredSession?.() ||
+        null;
+      const uid = session?.id || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_id") || undefined : undefined);
+      const phone = session?.phone || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_phone") || undefined : undefined);
+      setRecentAddresses(carregarDestinosRecentesPassageiro(uid, phone));
+    };
+
+    window.addEventListener("partiu:history-cleared", handleHistoryCleared);
+    window.addEventListener("partiu:user-profile-updated", handleUserChanged);
+    return () => {
+      window.removeEventListener("partiu:history-cleared", handleHistoryCleared);
+      window.removeEventListener("partiu:user-profile-updated", handleUserChanged);
+    };
+  }, []);
+
+  useEffect(() => {
+    setRecentAddresses(carregarDestinosRecentesPassageiro(passengerId, activeUser?.phone));
+  }, [passengerId, activeUser?.phone]);
 
   // Banners Ativos do Ecossistema (Zero dados falsos - Consome estritamente o serviço)
   const [activeBanners, setActiveBanners] = useState<PromoBannerItem[]>(() => {
@@ -284,20 +322,9 @@ function PartiuPassengerHomeContent() {
         const salvoAv = localStorage.getItem("partiu_user_avatar");
         if (salvoAv) setUserAvatar(salvoAv);
 
-        const salvoRec = localStorage.getItem("partiu_recent_destinations_v1");
-        if (salvoRec) {
-          const parsed = JSON.parse(salvoRec);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setRecentAddresses(
-              parsed.slice(0, 2).map((item: any) => ({
-                id: item.id,
-                titulo: item.label || item.titulo || "Recente",
-                endereco: item.endereco,
-                coords: item.coords || [-41.886, -21.2065],
-              }))
-            );
-          }
-        }
+        const uid = localStorage.getItem("partiu_user_id") || undefined;
+        const phone = localStorage.getItem("partiu_user_phone") || undefined;
+        setRecentAddresses(carregarDestinosRecentesPassageiro(uid, phone));
       } catch {
         // ignore
       }

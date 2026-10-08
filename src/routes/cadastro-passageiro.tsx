@@ -142,30 +142,6 @@ export function CadastroPassageiroPage() {
 
     setCarregando(true);
     try {
-      // 1. Persistência imediata de perfil e selfie para garantir integridade local
-      try {
-        if (fotoUrl) {
-          localStorage.setItem("partiu_user_avatar", fotoUrl);
-          localStorage.setItem("partiu_user_foto", fotoUrl);
-          localStorage.setItem("partiu_user_selfie", fotoUrl);
-        }
-        localStorage.setItem("partiu_user_nome", cleanNome);
-        localStorage.setItem("partiu_user_phone", telefone);
-        localStorage.setItem("partiu_user_telefone", telefone);
-        localStorage.setItem("partiu_user_cpf", cpf);
-        localStorage.setItem("partiu_user_email", cleanEmail);
-        if (permissaoConcedida) {
-          localStorage.setItem("partiu_gps_permitido", "true");
-        }
-        window.dispatchEvent(
-          new CustomEvent("partiu:user-profile-updated", {
-            detail: { name: cleanNome, avatarUrl: fotoUrl, phone: telefone },
-          })
-        );
-      } catch {
-        // storage resiliente
-      }
-
       const res = await supabaseAuthService.signUpPassenger({
         name: cleanNome,
         email: cleanEmail,
@@ -179,6 +155,12 @@ export function CadastroPassageiroPage() {
         setErroCadastro(res.error || "Não foi possível concluir o cadastro no momento. Tente novamente.");
         setCarregando(false);
         return;
+      }
+
+      if (permissaoConcedida) {
+        try {
+          localStorage.setItem("partiu_gps_permitido", "true");
+        } catch {}
       }
 
       setSucesso(true);
@@ -313,7 +295,19 @@ export function CadastroPassageiroPage() {
                   label="CPF"
                   required
                   value={cpf}
-                  onChange={(e) => setCpf(formatarCpf(e.target.value))}
+                  onChange={(e) => {
+                    setCpf(formatarCpf(e.target.value));
+                    if (erroCadastro?.includes("CPF")) setErroCadastro(null);
+                  }}
+                  onBlur={async () => {
+                    const raw = cpf.replace(/\D/g, "");
+                    if (raw.length === 11) {
+                      const check = await supabaseAuthService.isEmailOrCpfRegistered("", raw);
+                      if (check.registered && check.field === "cpf") {
+                        setErroCadastro(check.message || "Este CPF já está cadastrado.");
+                      }
+                    }
+                  }}
                   placeholder="000.000.000-00"
                   leftIcon={<FileText className="w-4 h-4 text-slate-400" />}
                 />
@@ -324,7 +318,18 @@ export function CadastroPassageiroPage() {
                 required
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (erroCadastro?.includes("e-mail") || erroCadastro?.includes("E-mail")) setErroCadastro(null);
+                }}
+                onBlur={async () => {
+                  if (email.includes("@") && email.includes(".")) {
+                    const check = await supabaseAuthService.isEmailOrCpfRegistered(email.trim().toLowerCase());
+                    if (check.registered && check.field === "email") {
+                      setErroCadastro(check.message || "Este e-mail já está cadastrado.");
+                    }
+                  }
+                }}
                 placeholder="seu.email@exemplo.com"
                 leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
               />

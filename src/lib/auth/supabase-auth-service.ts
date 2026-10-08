@@ -206,6 +206,252 @@ export class SupabaseAuthService {
   }
 
   /**
+   * Limpa integralmente todos os caches locais de histórico de viagens, destinos recentes,
+   * corridas ativas e dados de sessão para garantir isolamento estrito entre usuários.
+   */
+  public clearUserSessionAndCaches(): void {
+    if (typeof window === "undefined") return;
+    try {
+      // 1. Limpa chaves de perfil e sessão
+      localStorage.removeItem("partiu_demo_user");
+      localStorage.removeItem("partiu_driver_demo");
+      localStorage.removeItem("partiu_user_id");
+      localStorage.removeItem("partiu_user_nome");
+      localStorage.removeItem("partiu_user_phone");
+      localStorage.removeItem("partiu_user_telefone");
+      localStorage.removeItem("partiu_user_cpf");
+      localStorage.removeItem("partiu_user_email");
+      localStorage.removeItem("partiu_user_avatar");
+      localStorage.removeItem("partiu_user_foto");
+      localStorage.removeItem("partiu_user_selfie");
+      localStorage.removeItem("partiu_user_preferences_v1");
+      localStorage.removeItem("partiu_user_tipo");
+      localStorage.removeItem("partiu_enderecos_salvos_v1");
+
+      // 2. Limpa histórico de corridas e destinos recentes
+      localStorage.removeItem("partiu_recent_destinations_v1");
+      localStorage.removeItem("partiu_historico_viagens");
+      localStorage.removeItem("partiu_offline_rides_history");
+      localStorage.removeItem("partiu_corrida_ativa");
+      localStorage.removeItem("partiu_active_ride");
+      localStorage.removeItem("partiu_motorista_ativo");
+      localStorage.removeItem("partiu_ganhos_motorista");
+
+      // Limpa qualquer chave recente ou de histórico com prefixo de usuário
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (
+          key &&
+          (key.startsWith("partiu_recent_destinations_v1_") ||
+            key.startsWith("partiu_historico_viagens_") ||
+            key.startsWith("partiu_offline_rides_history_"))
+        ) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+
+      // 3. Dispara eventos de reatividade para limpar a interface
+      window.dispatchEvent(new CustomEvent("partiu:user-profile-updated", { detail: null }));
+      window.dispatchEvent(new CustomEvent("partiu:history-cleared"));
+      window.dispatchEvent(new CustomEvent("partiu:addresses_updated"));
+    } catch (err) {
+      silentCatchWarn("clearUserSessionAndCaches", err);
+    }
+    this.clearStoredSession();
+  }
+
+  /**
+   * Registra um usuário localmente para garantir consistência anti-duplicidade
+   * mesmo em contingência ou sem conexão Supabase imediata.
+   */
+  public recordRegisteredUserLocally(user: {
+    id: string;
+    email: string;
+    cpf?: string;
+    role: string;
+  }): void {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem("partiu_registered_users_store");
+      const list = raw ? JSON.parse(raw) : [];
+      const cleanEmail = user.email.toLowerCase().trim();
+      const cleanCpf = user.cpf ? user.cpf.replace(/\D/g, "") : "";
+      const exists = list.some(
+        (u: any) =>
+          u.email?.toLowerCase().trim() === cleanEmail ||
+          (cleanCpf && u.cpf && u.cpf.replace(/\D/g, "") === cleanCpf)
+      );
+      if (!exists) {
+        list.push({
+          id: user.id,
+          email: cleanEmail,
+          cpf: user.cpf,
+          role: user.role,
+          registeredAt: Date.now(),
+        });
+        localStorage.setItem("partiu_registered_users_store", JSON.stringify(list));
+      }
+    } catch (err) {
+      silentCatchWarn("recordRegisteredUserLocally", err);
+    }
+  }
+
+  /**
+   * Verifica proativamente se um e-mail ou CPF já está cadastrado no sistema
+   * (seja no Supabase Auth, nas tabelas public.profiles/partiu_passageiros/partiu_motoristas,
+   * ou no registro local persistido de usuários).
+   */
+  public async isEmailOrCpfRegistered(
+    email: string,
+    cpf?: string
+  ): Promise<{ registered: boolean; field?: "email" | "cpf"; message?: string }> {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanCpf = cpf ? cpf.replace(/\D/g, "") : "";
+
+    // 1. Verificação no registro local persistido
+    if (typeof window !== "undefined") {
+      try {
+        const rawStore = localStorage.getItem("partiu_registered_users_store");
+        if (rawStore) {
+          const list = JSON.parse(rawStore);
+          if (Array.isArray(list)) {
+            const emailMatch = list.find((u: any) => u.email?.toLowerCase().trim() === cleanEmail);
+            if (emailMatch) {
+              return {
+                registered: true,
+                field: "email",
+                message: "Este e-mail já está cadastrado no sistema. Faça login para acessar sua conta.",
+              };
+            }
+            if (cleanCpf && cleanCpf.length === 11) {
+              const cpfMatch = list.find(
+                (u: any) => u.cpf && u.cpf.replace(/\D/g, "") === cleanCpf
+              );
+              if (cpfMatch) {
+                return {
+                  registered: true,
+                  field: "cpf",
+                  message: "Este CPF já está cadastrado na plataforma. Cada usuário deve ter um CPF único.",
+                };
+              }
+            }
+          }
+        }
+      } catch {}
+    }
+
+    // 2. Verificação no Supabase (se configurado)
+    if (isSupabaseConfigured()) {
+      try {
+        // A. Checagem em public.profiles
+        if (cleanEmail) {
+          const { data: profileByEmail } = await (supabase as any)
+            .from("profiles")
+            .select("id, email")
+            .eq("email", cleanEmail)
+            .maybeSingle();
+
+          if (profileByEmail) {
+            return {
+              registered: true,
+              field: "email",
+              message: "Este e-mail já está cadastrado no sistema. Faça login para acessar sua conta.",
+            };
+          }
+        }
+
+        if (cleanCpf && cleanCpf.length === 11) {
+          const { data: profileByCpf } = await (supabase as any)
+            .from("profiles")
+            .select("id, cpf")
+            .eq("cpf", cpf)
+            .maybeSingle();
+
+          if (profileByCpf) {
+            return {
+              registered: true,
+              field: "cpf",
+              message: "Este CPF já está cadastrado na plataforma.",
+            };
+          }
+        }
+
+        // B. Checagem em public.partiu_passageiros
+        if (cleanEmail) {
+          const { data: paxByEmail } = await (supabase as any)
+            .from("partiu_passageiros")
+            .select("id, email")
+            .eq("email", cleanEmail)
+            .maybeSingle();
+
+          if (paxByEmail) {
+            return {
+              registered: true,
+              field: "email",
+              message: "Este e-mail já está cadastrado como passageiro. Faça login.",
+            };
+          }
+        }
+
+        if (cleanCpf && cleanCpf.length === 11) {
+          const { data: paxByCpf } = await (supabase as any)
+            .from("partiu_passageiros")
+            .select("id, cpf")
+            .eq("cpf", cpf)
+            .maybeSingle();
+
+          if (paxByCpf) {
+            return {
+              registered: true,
+              field: "cpf",
+              message: "Este CPF já está cadastrado na plataforma.",
+            };
+          }
+        }
+
+        // C. Checagem em public.partiu_motoristas
+        if (cleanEmail) {
+          const { data: drvByEmail } = await (supabase as any)
+            .from("partiu_motoristas")
+            .select("id, email")
+            .eq("email", cleanEmail)
+            .maybeSingle();
+
+          if (drvByEmail) {
+            return {
+              registered: true,
+              field: "email",
+              message: "Este e-mail já está cadastrado como motorista parceiro. Faça login.",
+            };
+          }
+        }
+
+        if (cleanCpf && cleanCpf.length === 11) {
+          const { data: drvByCpf } = await (supabase as any)
+            .from("partiu_motoristas")
+            .select("id, cpf")
+            .eq("cpf", cleanCpf)
+            .maybeSingle();
+
+          if (drvByCpf) {
+            return {
+              registered: true,
+              field: "cpf",
+              message: "Este CPF já está vinculado a um motorista cadastrado.",
+            };
+          }
+        }
+      } catch (err) {
+        silentCatchWarn("isEmailOrCpfRegistered", err);
+      }
+    }
+
+    return { registered: false };
+  }
+
+  /**
    * Verifica a sessão ativa no Supabase e hidrata o perfil a partir de public.profiles
    */
   public async checkAndHydrateSession(): Promise<AuthUserProfile | null> {
@@ -595,7 +841,18 @@ export class SupabaseAuthService {
             createdAt: profileData?.created_at ? new Date(profileData.created_at).getTime() : Date.now(),
           };
 
+          // Se estiver trocando de conta no mesmo navegador, purga integralmente o cache do usuário anterior
+          if (!isSameUser) {
+            this.clearUserSessionAndCaches();
+          }
+
           this.saveStoredSession(authUser);
+          this.recordRegisteredUserLocally({
+            id: authUser.id,
+            email: cleanEmail,
+            cpf: resolvedCpf,
+            role: finalRole,
+          });
 
           // Sincroniza imediatamente o localStorage para o novo usuário autenticado
           if (typeof window !== "undefined") {
@@ -966,6 +1223,17 @@ export class SupabaseAuthService {
       return { success: false, error: "A senha deve ter no mínimo 6 caracteres." };
     }
 
+    const cleanCpf = cpf ? cpf.trim() : "";
+
+    // 0. Bloqueio proativo de e-mail e CPF duplicados
+    const checkDuplicity = await this.isEmailOrCpfRegistered(cleanEmail, cleanCpf);
+    if (checkDuplicity.registered) {
+      return {
+        success: false,
+        error: checkDuplicity.message || "Este e-mail ou CPF já está cadastrado no sistema.",
+      };
+    }
+
     // 1. Criação no Supabase Auth
     let supabaseUserId = `usr-pax-${Date.now().toString(36)}`;
     if (isSupabaseConfigured()) {
@@ -977,7 +1245,7 @@ export class SupabaseAuthService {
             data: {
               name: cleanName,
               phone: normPhone.formatado,
-              cpf,
+              cpf: cleanCpf,
               role: "PASSAGEIRO",
               avatar_url: avatarUrl && !avatarUrl.startsWith("data:") ? avatarUrl : undefined,
             },
@@ -985,8 +1253,29 @@ export class SupabaseAuthService {
         });
 
         if (error) {
+          const msg = error.message.toLowerCase();
+          if (
+            msg.includes("already registered") ||
+            msg.includes("already exists") ||
+            msg.includes("unique")
+          ) {
+            return {
+              success: false,
+              error: "Este endereço de e-mail já está cadastrado no sistema. Faça login para continuar.",
+            };
+          }
           return { success: false, error: error.message };
         }
+
+        // Validação estrita GoTrue: quando o usuário já existe e a confirmação é requerida/ativa,
+        // o Supabase retorna user com array identities vazio sem lançar erro de propósito.
+        if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+          return {
+            success: false,
+            error: "Este endereço de e-mail já está cadastrado no sistema. Faça login para continuar.",
+          };
+        }
+
         if (data.user) {
           supabaseUserId = data.user.id;
 
@@ -997,7 +1286,7 @@ export class SupabaseAuthService {
               email: cleanEmail,
               full_name: cleanName,
               phone: normPhone.formatado,
-              cpf,
+              cpf: cleanCpf,
               role: "passenger",
               approval_status: "aprovado",
               avatar_url: avatarUrl || null,
@@ -1010,7 +1299,7 @@ export class SupabaseAuthService {
             await (supabase as any).from("partiu_passageiros").insert({
               user_id: data.user.id,
               nome: cleanName,
-              cpf,
+              cpf: cleanCpf,
               telefone: normPhone.formatado,
               email: cleanEmail,
               foto_url: avatarUrl || null,
@@ -1038,12 +1327,23 @@ export class SupabaseAuthService {
       }
     }
 
+    // 2. ISOLAMENTO TOTAL DE SESSÃO: Limpa qualquer histórico e cache residual de outro usuário anterior
+    this.clearUserSessionAndCaches();
+
+    // 3. Registra localmente para garantir consistência anti-duplicidade
+    this.recordRegisteredUserLocally({
+      id: supabaseUserId,
+      email: cleanEmail,
+      cpf: cleanCpf,
+      role: "PASSAGEIRO",
+    });
+
     const newUser: AuthUserProfile = {
       id: supabaseUserId,
       name: cleanName,
       email: cleanEmail,
       phone: normPhone.formatado,
-      cpf,
+      cpf: cleanCpf,
       role: "PASSAGEIRO",
       avatarUrl: avatarUrl || "",
       rating: 5.0,
@@ -1058,10 +1358,11 @@ export class SupabaseAuthService {
           localStorage.setItem("partiu_user_foto", avatarUrl);
           localStorage.setItem("partiu_user_selfie", avatarUrl);
         }
+        localStorage.setItem("partiu_user_id", supabaseUserId);
         localStorage.setItem("partiu_user_nome", cleanName);
         localStorage.setItem("partiu_user_phone", normPhone.formatado);
         localStorage.setItem("partiu_user_telefone", normPhone.formatado);
-        if (cpf) localStorage.setItem("partiu_user_cpf", cpf);
+        if (cleanCpf) localStorage.setItem("partiu_user_cpf", cleanCpf);
         localStorage.setItem("partiu_user_email", cleanEmail);
         window.dispatchEvent(new CustomEvent("partiu:user-profile-updated", { detail: newUser }));
       } catch {}
@@ -1117,6 +1418,17 @@ export class SupabaseAuthService {
       return { success: false, error: "A senha deve ter no mínimo 6 caracteres." };
     }
 
+    const cleanCpf = cpf ? cpf.trim() : "";
+
+    // 0. Bloqueio proativo de e-mail e CPF duplicados
+    const checkDuplicity = await this.isEmailOrCpfRegistered(cleanEmail, cleanCpf);
+    if (checkDuplicity.registered) {
+      return {
+        success: false,
+        error: checkDuplicity.message || "Este e-mail ou CPF já está cadastrado no sistema.",
+      };
+    }
+
     let supabaseUserId = `usr-drv-${Date.now().toString(36)}`;
     if (isSupabaseConfigured()) {
       try {
@@ -1127,7 +1439,7 @@ export class SupabaseAuthService {
             data: {
               name: cleanName,
               phone: normPhone.formatado,
-              cpf,
+              cpf: cleanCpf,
               role: "driver",
               vehicle_model: params.vehicleModel,
               vehicle_plate: params.vehiclePlate?.toUpperCase(),
@@ -1136,7 +1448,26 @@ export class SupabaseAuthService {
         });
 
         if (error) {
+          const msg = error.message.toLowerCase();
+          if (
+            msg.includes("already registered") ||
+            msg.includes("already exists") ||
+            msg.includes("unique")
+          ) {
+            return {
+              success: false,
+              error: "Este endereço de e-mail já está cadastrado no sistema. Faça login para continuar.",
+            };
+          }
           return { success: false, error: error.message };
+        }
+
+        // Validação estrita GoTrue: se identities for array vazio, o usuário já existia!
+        if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+          return {
+            success: false,
+            error: "Este endereço de e-mail já está cadastrado no sistema. Faça login para continuar.",
+          };
         }
 
         if (data.user) {
@@ -1149,7 +1480,7 @@ export class SupabaseAuthService {
               email: cleanEmail,
               full_name: cleanName,
               phone: normPhone.formatado,
-              cpf,
+              cpf: cleanCpf,
               role: "driver",
               approval_status: "pendente",
               avatar_url: params.fotoPerfilUrl || null,
@@ -1173,7 +1504,7 @@ export class SupabaseAuthService {
             await (supabase as any).from("partiu_motoristas").insert({
               user_id: data.user.id,
               nome: cleanName,
-              cpf: cpf.replace(/\D/g, "") || cpf || "00000000000",
+              cpf: cleanCpf.replace(/\D/g, "") || cleanCpf || "00000000000",
               telefone: normPhone.formatado,
               email: cleanEmail,
               cnh_numero: params.cnh || "00000000000",
@@ -1213,12 +1544,23 @@ export class SupabaseAuthService {
       }
     }
 
+    // 2. ISOLAMENTO TOTAL DE SESSÃO: Limpa caches e histórico anteriores
+    this.clearUserSessionAndCaches();
+
+    // 3. Registra localmente para garantir consistência anti-duplicidade
+    this.recordRegisteredUserLocally({
+      id: supabaseUserId,
+      email: cleanEmail,
+      cpf: cleanCpf,
+      role: "MOTORISTA",
+    });
+
     const newDriver: AuthUserProfile = {
       id: supabaseUserId,
       name: cleanName,
       email: cleanEmail,
       phone: normPhone.formatado,
-      cpf,
+      cpf: cleanCpf,
       role: "MOTORISTA",
       avatarUrl: params.fotoPerfilUrl || "",
       rating: 5.0,
@@ -1298,7 +1640,7 @@ export class SupabaseAuthService {
   }
 
   /**
-   * Encerra a sessão do usuário
+   * Encerra a sessão do usuário com higienização estrita de todos os caches
    */
   public async signOut(): Promise<void> {
     if (isSupabaseConfigured()) {
@@ -1306,28 +1648,7 @@ export class SupabaseAuthService {
         await supabase.auth.signOut();
       } catch (err) { silentCatchWarn("supabase-auth-service", err); }
     }
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.removeItem("partiu_demo_user");
-        localStorage.removeItem("partiu_driver_demo");
-        localStorage.removeItem("partiu_user_id");
-        localStorage.removeItem("partiu_user_nome");
-        localStorage.removeItem("partiu_user_phone");
-        localStorage.removeItem("partiu_user_telefone");
-        localStorage.removeItem("partiu_user_cpf");
-        localStorage.removeItem("partiu_user_email");
-        localStorage.removeItem("partiu_user_avatar");
-        localStorage.removeItem("partiu_user_foto");
-        localStorage.removeItem("partiu_user_selfie");
-        localStorage.removeItem("partiu_user_preferences_v1");
-        localStorage.removeItem("partiu_user_tipo");
-        localStorage.removeItem("partiu_enderecos_salvos_v1");
-        window.dispatchEvent(
-          new CustomEvent("partiu:user-profile-updated", { detail: null })
-        );
-      } catch {}
-    }
-    this.clearStoredSession();
+    this.clearUserSessionAndCaches();
   }
 }
 

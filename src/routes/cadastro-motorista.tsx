@@ -508,7 +508,7 @@ export function CadastroMotoristaPage() {
                     size="lg"
                     fullWidth
                     rightIcon={<ArrowRight className="h-4 w-4" />}
-                    onClick={() => {
+                    onClick={async () => {
                       setErroValidacao(null);
                       if (!fotoPerfilUrl) {
                         setErroValidacao("A selfie oficial pela câmera do celular é obrigatória.");
@@ -521,6 +521,15 @@ export function CadastroMotoristaPage() {
                       if (senha && senha.length < 6) {
                         setErroValidacao("A senha de acesso deve ter no mínimo 6 caracteres.");
                         return;
+                      }
+                      try {
+                        const check = await supabaseAuthService.isEmailOrCpfRegistered(email, cpf);
+                        if (check.registered) {
+                          setErroValidacao(check.message || "E-mail ou CPF já cadastrado no sistema.");
+                          return;
+                        }
+                      } catch (err) {
+                        silentCatchWarn("cadastro-motorista:checkDuplicate", err);
                       }
                       setEtapa(2);
                     }}

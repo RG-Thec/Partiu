@@ -254,6 +254,7 @@ export interface CorridaPartiu {
   detalhesDestino?: string | undefined;
   passageiroNome: string;
   passageiroTelefone: string;
+  passageiroId?: string | undefined;
   valor: number;
   distanciaKm: number;
   duracaoMin: number;
@@ -488,6 +489,7 @@ export function criarNovaCorrida(params: {
   detalhesDestino?: string | undefined;
   passageiroNome: string;
   passageiroTelefone: string;
+  passageiroId?: string | undefined;
   valor: number;
   distanciaKm: number;
   duracaoMin: number;
@@ -523,6 +525,10 @@ export function criarNovaCorrida(params: {
     finalValor = calc.totalBrl;
   }
 
+  const resolvedPassengerId =
+    params.passageiroId ||
+    (typeof window !== "undefined" ? localStorage.getItem("partiu_user_id") || undefined : undefined);
+
   const corrida: CorridaPartiu = {
     id,
     modalidade: params.modalidade,
@@ -531,6 +537,7 @@ export function criarNovaCorrida(params: {
     detalhesDestino: params.detalhesDestino,
     passageiroNome: params.passageiroNome || "Passageiro",
     passageiroTelefone: params.passageiroTelefone || "",
+    passageiroId: resolvedPassengerId,
     valor: finalValor,
     distanciaKm: params.distanciaKm,
     duracaoMin: params.duracaoMin,
@@ -1171,13 +1178,48 @@ export function calcularTaxaCancelamentoPassageiro(): {
   };
 }
 
-// 8. Obter histórico de viagens
-export function getHistoricoViagens(): CorridaPartiu[] {
+// 8. Obter histórico de viagens (com filtro estrito por usuário e purga de mocks)
+export function getHistoricoViagens(filter?: {
+  userId?: string | undefined;
+  phone?: string | undefined;
+}): CorridaPartiu[] {
   if (typeof window === "undefined") return [];
   const raw = localStorage.getItem(STORAGE_KEY_HISTORICO);
   if (!raw) return [];
   try {
-    return JSON.parse(raw);
+    const parsed: CorridaPartiu[] = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    // Expurgar qualquer mock herdado de ambientes anteriores
+    const validas = parsed.filter(
+      (c) =>
+        c &&
+        c.id &&
+        !c.id.startsWith("mock-") &&
+        c.destino &&
+        c.destino !== "Hospital São José do Avaí" &&
+        c.destino !== "Rua Dez de Maio, 188"
+    );
+
+    if (!filter || (!filter.userId && !filter.phone)) {
+      return validas;
+    }
+
+    const cleanFilterPhone = filter.phone ? filter.phone.replace(/\D/g, "") : "";
+    return validas.filter((c) => {
+      // 1. Se tem correspondência de passageiroId
+      if (filter.userId && c.passageiroId && c.passageiroId === filter.userId) {
+        return true;
+      }
+      // 2. Se tem correspondência de telefone
+      if (cleanFilterPhone && c.passageiroTelefone) {
+        const cPhone = c.passageiroTelefone.replace(/\D/g, "");
+        if (cPhone && cPhone === cleanFilterPhone) {
+          return true;
+        }
+      }
+      return false;
+    });
   } catch {
     return [];
   }
