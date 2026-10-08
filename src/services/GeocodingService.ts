@@ -919,23 +919,56 @@ export class GeocodingService {
     const distanciaPoloCurado = calcularDistanciaHaversineMetros(centroRef, [-41.888, -21.205]);
     const estaNoPoloCurado = distanciaPoloCurado <= 35000;
 
-    // 1. Caso sem digitação (campo em branco): Retorna os locais estratégicos mais próximos do passageiro se estiver no polo
+    // 1. Caso sem digitação (campo em branco): Retorna os locais estratégicos mais próximos do passageiro
     if (!q) {
-      if (!estaNoPoloCurado) {
-        return [];
-      }
-      const comDistancias = LUGARES_CURADOS_ITAPERUNA.map((lugar) => {
-        const distanciaMetros = calcularDistanciaHaversineMetros(centroRef, lugar.coords);
-        return {
-          ...lugar,
-          distanciaMetros,
-          distanciaFormatada: formatarDistanciaLegivel(distanciaMetros),
-        };
-      });
+      if (estaNoPoloCurado) {
+        const comDistancias = LUGARES_CURADOS_ITAPERUNA.map((lugar) => {
+          const distanciaMetros = calcularDistanciaHaversineMetros(centroRef, lugar.coords);
+          return {
+            ...lugar,
+            distanciaMetros,
+            distanciaFormatada: formatarDistanciaLegivel(distanciaMetros),
+          };
+        });
 
-      // Ordena por proximidade estrita
-      comDistancias.sort((a, b) => (a.distanciaMetros || 0) - (b.distanciaMetros || 0));
-      return comDistancias.slice(0, 6);
+        // Ordena por proximidade estrita
+        comDistancias.sort((a, b) => (a.distanciaMetros || 0) - (b.distanciaMetros || 0));
+        return comDistancias.slice(0, 6);
+      }
+
+      // Se fora do polo curado, busca pontos de referência locais por proximidade geográfica real
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 1800);
+        const photonUrl = `https://photon.komoot.io/api/?q=centro&lat=${centroRef[1]}&lon=${centroRef[0]}&limit=6&lang=pt`;
+        const res = await fetch(photonUrl, { signal: controller.signal });
+        clearTimeout(timeout);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.features)) {
+            const remotos: GeocodedPlace[] = data.features.map((f: any) => {
+              const coords: [number, number] = [f.geometry.coordinates[0], f.geometry.coordinates[1]];
+              const dist = calcularDistanciaHaversineMetros(centroRef, coords);
+              const props = f.properties || {};
+              const nome = props.name || props.street || "Ponto de Referência";
+              const sublabel = props.district || props.city || "Região Central";
+              return {
+                id: `osm-${coords[0].toFixed(4)}-${coords[1].toFixed(4)}`,
+                label: nome,
+                sublabel,
+                endereco: `${nome}, ${sublabel}`,
+                coords,
+                tipo: "rua" as const,
+                distanciaMetros: dist,
+                distanciaFormatada: formatarDistanciaLegivel(dist),
+              };
+            });
+            remotos.sort((a, b) => (a.distanciaMetros || 0) - (b.distanciaMetros || 0));
+            return remotos.slice(0, 6);
+          }
+        }
+      } catch {}
+      return [];
     }
 
     const tokens = q.split(/\s+/).filter(Boolean);

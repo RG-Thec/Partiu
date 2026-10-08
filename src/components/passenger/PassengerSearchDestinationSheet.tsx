@@ -20,6 +20,7 @@ import {
   Users,
   Compass,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { usePassengerRide } from "@/contexts/PassengerRideContext";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
@@ -33,6 +34,11 @@ import {
 } from "@/lib/passenger/geocoding-service";
 import { reverseGeocodingService } from "@/services/ReverseGeocodingService";
 import { addressService } from "@/services/AddressService";
+import {
+  getSeisSugestoesDestino,
+  registrarDestinoFrequente,
+  type SuggestedPlaceItem,
+} from "@/lib/passenger/smart-destination-suggestions";
 import { AddressSetupModal } from "@/components/passenger/AddressSetupModal";
 import { FavoritesManagerModal } from "@/components/passenger/FavoritesManagerModal";
 import { AddressSearchSkeleton } from "@/components/ui/skeleton";
@@ -127,21 +133,27 @@ function carregarHistoricoReal(): RecentItem[] {
 }
 
 interface SearchDestinationItemRowProps {
-  item: GeocodedPlace;
+  item: GeocodedPlace | SuggestedPlaceItem;
   distText: string | null;
-  onSelect: (item: GeocodedPlace) => void;
-  getIcon: (label: string) => React.ReactNode;
+  badge?: string;
+  onSelect: (item: any) => void;
+  getIcon: (label: string, origemSugestao?: string) => React.ReactNode;
 }
 
 const SearchDestinationItemRow = React.memo(function SearchDestinationItemRow({
   item,
   distText,
+  badge,
   onSelect,
   getIcon,
 }: SearchDestinationItemRowProps) {
   const handleClick = React.useCallback(() => {
     onSelect(item);
   }, [item, onSelect]);
+
+  const placeItem = item as SuggestedPlaceItem;
+  const badgeFinal = badge || placeItem.badge;
+  const isFrequente = placeItem.origemSugestao === "FREQUENTE";
 
   return (
     <button
@@ -150,13 +162,26 @@ const SearchDestinationItemRow = React.memo(function SearchDestinationItemRow({
       className="w-full p-3 flex items-center gap-3 text-left hover:bg-slate-50 rounded-2xl transition active:scale-[0.99] cursor-pointer group"
     >
       <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-slate-200/80 text-slate-700 flex items-center justify-center shrink-0 transition">
-        {getIcon(item.label)}
+        {getIcon(item.label, placeItem.origemSugestao)}
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-xs sm:text-sm font-black text-slate-900 truncate leading-tight transition">
-          {item.label}
-        </p>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <p className="text-xs sm:text-sm font-black text-slate-900 truncate leading-tight transition">
+            {item.label}
+          </p>
+          {badgeFinal && (
+            <span
+              className={`text-[9.5px] font-bold px-1.5 py-0.2 rounded border shrink-0 ${
+                isFrequente || badgeFinal === "Casa" || badgeFinal === "Trabalho" || badgeFinal === "Favorito" || badgeFinal === "Frequente"
+                  ? "text-amber-800 bg-amber-50 border-amber-200"
+                  : "text-blue-800 bg-blue-50 border-blue-200"
+              }`}
+            >
+              {badgeFinal}
+            </span>
+          )}
+        </div>
         <p className="text-xs text-slate-700 truncate mt-0.5 font-medium">
           {item.sublabel || item.endereco}
         </p>
@@ -332,6 +357,14 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
   const [lugaresEncontrados, setLugaresEncontrados] = useState<GeocodedPlace[]>(LUGARES_CURADOS_ITAPERUNA);
   const [carregandoLugares, setCarregandoLugares] = useState(false);
 
+  // 6 Sugestões inteligentes: 3 que o usuário mais frequenta + 3 mais próximos da localização GPS real
+  const [sugestoesInteligentes, setSugestoesInteligentes] = useState<{
+    frequentes: SuggestedPlaceItem[];
+    proximos: SuggestedPlaceItem[];
+    todas: SuggestedPlaceItem[];
+  }>({ frequentes: [], proximos: [], todas: [] });
+  const [carregandoSugestoes, setCarregandoSugestoes] = useState(true);
+
   const [historicoRecente, setHistoricoRecente] = useState<RecentItem[]>(() => carregarHistoricoReal());
 
   const inputDestinoRef = useRef<HTMLInputElement>(null);
@@ -395,14 +428,57 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
     };
   }, [buscaDestino, origemLocal, campoAtivo, origemCoords]);
 
-  // 4.1 Limpar histórico recente ao alternar de usuário ou logout
+  // 4.1 Carregamento inteligente e em tempo real das 6 sugestões reais de destino (3 frequentes + 3 próximos)
+  useEffect(() => {
+    let ativo = true;
+    const coordsRef = origemCoords || DEFAULT_ORIGIN.coords;
+    const session = supabaseAuthService.getStoredSession();
+    const uid = session?.id || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_id") || undefined : undefined);
+    const phone = session?.phone || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_phone") || undefined : undefined);
+
+    setCarregandoSugestoes(true);
+    getSeisSugestoesDestino(coordsRef, uid, phone)
+      .then((res) => {
+        if (ativo) {
+          setSugestoesInteligentes(res);
+          setCarregandoSugestoes(false);
+        }
+      })
+      .catch((err) => {
+        silentCatchWarn("PassengerSearchDestinationSheet", err);
+        if (ativo) setCarregandoSugestoes(false);
+      });
+
+    const handleAtualizar = () => {
+      getSeisSugestoesDestino(coordsRef, uid, phone)
+        .then((res) => {
+          if (ativo) setSugestoesInteligentes(res);
+        })
+        .catch(() => {});
+    };
+
+    window.addEventListener("partiu:frequent-destinations-updated", handleAtualizar);
+    window.addEventListener("partiu:addresses_updated", handleAtualizar);
+
+    return () => {
+      ativo = false;
+      window.removeEventListener("partiu:frequent-destinations-updated", handleAtualizar);
+      window.removeEventListener("partiu:addresses_updated", handleAtualizar);
+    };
+  }, [origemCoords]);
+
+  // 4.2 Limpar histórico recente e atualizar sugestões ao alternar de usuário ou logout
   useEffect(() => {
     const handleHistoryCleared = () => {
       setHistoricoRecente([]);
+      const coordsRef = origemCoords || DEFAULT_ORIGIN.coords;
+      getSeisSugestoesDestino(coordsRef).then((res) => {
+        setSugestoesInteligentes(res);
+      }).catch(() => {});
     };
     window.addEventListener("partiu:history-cleared", handleHistoryCleared);
     return () => window.removeEventListener("partiu:history-cleared", handleHistoryCleared);
-  }, []);
+  }, [origemCoords]);
 
   // 5. Salvar e recuperar no histórico persistente escopado por usuário
   function registrarViagemRecente(label: string, endereco: string, coords?: [number, number]) {
@@ -428,14 +504,21 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
     hapticFeedback.selection();
     let coordsFinal = coords;
     if (!coordsFinal) {
-      const match = lugaresEncontrados.find(
-        (l) => l.endereco.toLowerCase() === endereco.toLowerCase() || l.label.toLowerCase() === endereco.toLowerCase()
-      ) || lugaresEncontrados[0] || LUGARES_CURADOS_ITAPERUNA[0];
+      const match =
+        sugestoesInteligentes.todas.find(
+          (s) => s.endereco.toLowerCase() === endereco.toLowerCase() || s.label.toLowerCase() === endereco.toLowerCase()
+        ) ||
+        lugaresEncontrados.find(
+          (l) => l.endereco.toLowerCase() === endereco.toLowerCase() || l.label.toLowerCase() === endereco.toLowerCase()
+        ) ||
+        lugaresEncontrados[0] ||
+        LUGARES_CURADOS_ITAPERUNA[0];
       coordsFinal = match ? match.coords : [-41.886, -21.2065];
     }
 
     const rotuloFinal = label || endereco.split(",")[0] || endereco;
     registrarViagemRecente(rotuloFinal, endereco, coordsFinal);
+    registrarDestinoFrequente(rotuloFinal, endereco, coordsFinal);
     setBuscaDestino(rotuloFinal);
 
     // Se a origem estiver preenchida, avança automaticamente para o modal de seleção de veículo!
@@ -541,19 +624,34 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
   }
 
   // Ícone por categoria
-  function getCategoryIcon(label: string) {
+  function getCategoryIcon(label: string, origemSugestao?: string) {
     const l = label.toLowerCase();
-    if (l.includes("hospital") || l.includes("avaí") || l.includes("upa") || l.includes("saúde")) {
+    if (l === "casa" || l.startsWith("casa ") || l.includes("minha casa")) {
+      return <Home className="w-4 h-4 text-emerald-600" />;
+    }
+    if (l === "trabalho" || l.startsWith("trabalho ") || l.includes("meu trabalho")) {
+      return <Briefcase className="w-4 h-4 text-blue-600" />;
+    }
+    if (l === "favorito" || l.includes("favorito")) {
+      return <Star className="w-4 h-4 text-amber-500 fill-amber-500/20" />;
+    }
+    if (l.includes("hospital") || l.includes("avaí") || l.includes("upa") || l.includes("saúde") || l.includes("clínica")) {
       return <Cross className="w-4 h-4 text-rose-500" />;
     }
-    if (l.includes("redentor") || l.includes("afya") || l.includes("faculdade") || l.includes("escola")) {
+    if (l.includes("redentor") || l.includes("afya") || l.includes("faculdade") || l.includes("escola") || l.includes("universidade")) {
       return <GraduationCap className="w-4 h-4 text-indigo-500" />;
     }
-    if (l.includes("rodoviário") || l.includes("terminal") || l.includes("balsa")) {
+    if (l.includes("rodoviário") || l.includes("terminal") || l.includes("balsa") || l.includes("estação")) {
       return <Bus className="w-4 h-4 text-blue-500" />;
     }
-    if (l.includes("mercado") || l.includes("fluminense") || l.includes("shopping")) {
+    if (l.includes("mercado") || l.includes("fluminense") || l.includes("shopping") || l.includes("supermercado")) {
       return <ShoppingBag className="w-4 h-4 text-emerald-500" />;
+    }
+    if (origemSugestao === "FREQUENTE") {
+      return <Sparkles className="w-4 h-4 text-amber-500" />;
+    }
+    if (origemSugestao === "PROXIMO") {
+      return <MapPin className="w-4 h-4 text-blue-600" />;
     }
     return <Building2 className="w-4 h-4 text-slate-500" />;
   }
@@ -984,16 +1082,16 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                     Locais Próximos Sugeridos para Embarque
                   </span>
                   <div className="space-y-1">
-                    {(lugaresEncontrados && lugaresEncontrados.length > 0
-                      ? lugaresEncontrados
-                      : LUGARES_CURADOS_ITAPERUNA
+                    {(sugestoesInteligentes.proximos.length > 0
+                      ? sugestoesInteligentes.proximos
+                      : lugaresEncontrados
                     )
-                      .slice(0, 6)
+                      .slice(0, 3)
                       .map((lugar) => (
                         <SearchDestinationItemRow
                           key={lugar.id}
                           item={lugar}
-                          distText={getDistanciaTexto(lugar.coords)}
+                          distText={lugar.distanciaFormatada || getDistanciaTexto(lugar.coords)}
                           onSelect={handleSelectOrigem}
                           getIcon={getCategoryIcon}
                         />
@@ -1034,7 +1132,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                       Buscar &ldquo;{buscaDestino}&rdquo;
                     </p>
                     <p className="text-xs text-slate-700 truncate font-medium">
-                      Ir para este endereço em Itaperuna, RJ
+                      Definir este endereço como destino no mapa
                     </p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
@@ -1085,30 +1183,72 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                   </div>
                 )}
 
-                {/* LOCAIS SUGERIDOS EM ITAPERUNA POR PROXIMIDADE REAL */}
-                <div className={`space-y-1 ${historicoRecente && historicoRecente.length > 0 ? "pt-2 border-t border-slate-100" : ""}`}>
-                  <span className="text-xs font-black uppercase tracking-wider text-slate-700 block px-1">
-                    Locais Próximos e Sugeridos
-                  </span>
+                {/* SEÇÃO INTELIGENTE DE SUGESTÕES (6 ITENS REAIS: 3 QUE O USUÁRIO FREQUENTA + 3 PRÓXIMOS REAIS) */}
+                <div className={`space-y-3 ${historicoRecente && historicoRecente.length > 0 ? "pt-2 border-t border-slate-100" : ""}`}>
+                  {/* BLOCO 1: 3 LOCAIS QUE O USUÁRIO MAIS FREQUENTA */}
+                  {sugestoesInteligentes.frequentes.length > 0 && (
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between px-1 py-1">
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                          <span>Locais que Você Frequenta</span>
+                        </span>
+                        <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                          Acesso Rápido
+                        </span>
+                      </div>
 
-                  <div className="space-y-1">
-                    {(lugaresEncontrados && lugaresEncontrados.length > 0
-                      ? lugaresEncontrados
-                      : LUGARES_CURADOS_ITAPERUNA
-                    )
-                      .slice(0, 6)
-                      .map((lugar) => (
-                        <SearchDestinationItemRow
-                          key={lugar.id}
-                          item={lugar}
-                          distText={getDistanciaTexto(lugar.coords)}
-                          onSelect={(itemSel) =>
-                            handleSelectDestino(itemSel.endereco, itemSel.coords, itemSel.label)
-                          }
-                          getIcon={getCategoryIcon}
-                        />
-                      ))}
-                  </div>
+                      <div className="space-y-1">
+                        {sugestoesInteligentes.frequentes.map((lugar) => (
+                          <SearchDestinationItemRow
+                            key={lugar.id}
+                            item={lugar}
+                            badge={lugar.badge || "Frequente"}
+                            distText={lugar.distanciaFormatada || getDistanciaTexto(lugar.coords)}
+                            onSelect={(itemSel) =>
+                              handleSelectDestino(itemSel.endereco, itemSel.coords, itemSel.label)
+                            }
+                            getIcon={getCategoryIcon}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* BLOCO 2: 3 LOCAIS REAIS MAIS PRÓXIMOS PELA LOCALIZAÇÃO GPS DO USUÁRIO */}
+                  {sugestoesInteligentes.proximos.length > 0 && (
+                    <div className={`space-y-1 ${sugestoesInteligentes.frequentes.length > 0 ? "pt-2 border-t border-slate-100" : ""}`}>
+                      <div className="flex items-center justify-between px-1 py-1">
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                          <span>Locais Próximos de Você</span>
+                        </span>
+                        <span className="text-[10px] font-bold text-blue-800 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                          Por Proximidade GPS
+                        </span>
+                      </div>
+
+                      <div className="space-y-1">
+                        {sugestoesInteligentes.proximos.map((lugar) => (
+                          <SearchDestinationItemRow
+                            key={lugar.id}
+                            item={lugar}
+                            badge={lugar.distanciaFormatada ? `~${lugar.distanciaFormatada}` : undefined}
+                            distText={lugar.distanciaFormatada || getDistanciaTexto(lugar.coords)}
+                            onSelect={(itemSel) =>
+                              handleSelectDestino(itemSel.endereco, itemSel.coords, itemSel.label)
+                            }
+                            getIcon={getCategoryIcon}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Shimmer de carregamento enquanto calcula distâncias GPS */}
+                  {carregandoSugestoes && sugestoesInteligentes.todas.length === 0 && (
+                    <AddressSearchSkeleton />
+                  )}
                 </div>
               </div>
             )

@@ -16,6 +16,7 @@ import {
 } from "@/components/home";
 import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
 import { bannerService } from "@/lib/ecosystem/banner-service";
+import { registrarDestinoFrequente } from "@/lib/passenger/smart-destination-suggestions";
 import { PassengerSearchDestinationSheet } from "@/components/passenger/PassengerSearchDestinationSheet";
 import { PassengerReviewRouteSheet } from "@/components/passenger/PassengerReviewRouteSheet";
 import { PassengerConfirmPickupPin } from "@/components/passenger/PassengerConfirmPickupPin";
@@ -226,9 +227,10 @@ function PartiuPassengerHomeContent() {
   }, []);
   const handleSelectAddressItem = useCallback(
     (item: RecentAddressItem) => {
+      registrarDestinoFrequente(item.titulo, item.endereco, item.coords, passengerId);
       selectDestination(item.endereco, item.coords);
     },
-    [selectDestination]
+    [selectDestination, passengerId]
   );
 
   // Histórico de destinos recentes do passageiro (100% autêntico, isolado por usuário)

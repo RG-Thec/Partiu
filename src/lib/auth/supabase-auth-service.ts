@@ -244,6 +244,7 @@ export class SupabaseAuthService {
         if (
           key &&
           (key.startsWith("partiu_recent_destinations_v1_") ||
+            key.startsWith("partiu_user_destination_frequency_") ||
             key.startsWith("partiu_historico_viagens_") ||
             key.startsWith("partiu_offline_rides_history_"))
         ) {
