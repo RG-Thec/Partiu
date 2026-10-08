@@ -392,7 +392,7 @@ export function AdminMonetizacaoPage() {
   };
 
   return (
-    <GuardiaoAcesso permissao="financial:configure_fees" somenteOwner={true}>
+    <GuardiaoAcesso permissao="financial:configure_fees" somenteSuperAdmin={true}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 text-slate-900 animate-in fade-in duration-200">
         {/* TOAST FLUTUANTE */}
         {toastMsg && (

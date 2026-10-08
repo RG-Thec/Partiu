@@ -28,6 +28,7 @@ import {
   RotateCcw,
   Save,
   Server,
+  Shield,
   ShieldAlert,
   ShieldCheck,
   Sliders,
@@ -36,7 +37,10 @@ import {
   Unlock,
   Upload,
   UserCheck,
+  UserPlus,
   Users,
+  Edit3,
+  Building2,
   X,
   Zap,
 } from "lucide-react";
@@ -50,6 +54,8 @@ import { useBranding } from "@/hooks/useBranding";
 import { themeEngine, generatePrimaryPalette, updateBrowserFavicon, generateSvgFavicon } from "@/lib/branding/ThemeEngine";
 import { PalettePickerSection } from "@/components/admin/PalettePickerSection";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
+import { GuardiaoAcesso } from "@/components/admin/GuardiaoAcesso";
+import { AdminUserModal, type AdminUserRecord } from "@/components/admin/AdminUserModal";
 
 export const Route = createFileRoute("/app/admin/configuracoes")({
   head: () => ({
@@ -65,7 +71,7 @@ export const Route = createFileRoute("/app/admin/configuracoes")({
   component: ConfiguracoesAdminPage,
 });
 
-type AbaConfig = "essencial" | "whitelabel" | "avancado";
+type AbaConfig = "essencial" | "whitelabel" | "avancado" | "equipe";
 
 interface CidadeTenant {
   id: string;
@@ -215,7 +221,7 @@ export function ConfiguracoesAdminPage() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get("tab");
-      if (tab === "whitelabel" || tab === "avancado") return tab;
+      if (tab === "whitelabel" || tab === "avancado" || tab === "equipe") return tab;
     }
     return "essencial";
   });
@@ -223,6 +229,62 @@ export function ConfiguracoesAdminPage() {
   const config = getSuperAdminConfig();
   const role = getAdminRole();
   const ehSuperAdmin = isSuperAdmin(role);
+
+  // 4. GESTÃO DE ADMINISTRADORES & RBAC
+  const [adminUsers, setAdminUsers] = useState<AdminUserRecord[]>([
+    {
+      id: "usr_super_1",
+      nome: "Super Administrador (Holding)",
+      email: "dono@partiu.app",
+      role: "SUPER_ADMIN",
+      tenant_id: null,
+      praca_nome: "Acesso Global (Todos os Tenants)",
+      ativo: true,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "usr_franq_1",
+      nome: "Operador Regional Macaé",
+      email: "franqueado@partiu.app",
+      role: "FRANQUEADO",
+      tenant_id: "ten_macae",
+      praca_nome: "Macaé - RJ",
+      ativo: true,
+      created_at: new Date().toISOString(),
+    },
+  ]);
+  const [modalAdminUserAberto, setModalAdminUserAberto] = useState(false);
+  const [usuarioEditando, setUsuarioEditando] = useState<AdminUserRecord | null>(null);
+
+  useEffect(() => {
+    async function carregarUsuariosAdmin() {
+      if (isSupabaseConfigured()) {
+        try {
+          const { data, error } = await (supabase as any)
+            .from("admin_users")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+          if (!error && data && data.length > 0) {
+            const mapped: AdminUserRecord[] = data.map((u: any) => ({
+              id: u.id,
+              nome: u.nome || u.email?.split("@")[0] || "Administrador",
+              email: u.email,
+              role: u.is_super_admin || u.role === "super_admin" ? "SUPER_ADMIN" : "FRANQUEADO",
+              tenant_id: u.tenant_id,
+              praca_nome: u.is_super_admin ? "Acesso Global (Holding)" : (u.tenant_id ? `Praça ${u.tenant_id}` : "Regional"),
+              ativo: u.ativo !== false,
+              created_at: u.created_at || new Date().toISOString(),
+            }));
+            setAdminUsers(mapped);
+          }
+        } catch (err) {
+          console.warn("[Configuracoes] Contingência ao listar admin_users:", err);
+        }
+      }
+    }
+    void carregarUsuariosAdmin();
+  }, []);
 
   // 1. MODO ESSENCIAL (SEMPRE VISÍVEL)
   const [cidadeOperacao, setCidadeOperacao] = useState("Matriz Central");
@@ -522,6 +584,10 @@ export function ConfiguracoesAdminPage() {
     setCidadeAtivadaSucesso(true);
   }
 
+  if (!ehSuperAdmin) {
+    return <GuardiaoAcesso somenteSuperAdmin children={<></>} />;
+  }
+
   return (
     <div className="w-full space-y-5 pb-12">
       {/* 1. Header Executivo Configurações */}
@@ -589,6 +655,20 @@ export function ConfiguracoesAdminPage() {
             modoAvancadoDesbloqueado ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"
           }`}>
             {modoAvancadoDesbloqueado ? "Desbloqueado" : "Protegido"}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setAbaAtiva("equipe")}
+          className={`flex items-center gap-2.5 px-5 sm:px-7 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm lg:text-base font-black transition-all cursor-pointer ${
+            abaAtiva === "equipe" ? "bg-slate-950 text-white shadow-md" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          }`}
+        >
+          <Shield className="h-5 w-5 text-indigo-500" />
+          <span>Usuários &amp; RBAC</span>
+          <span className="ml-1 rounded-full bg-indigo-100 px-3 py-1 text-xs sm:text-sm text-indigo-900 font-bold">
+            2 Modalidades
           </span>
         </button>
       </div>
@@ -1740,6 +1820,128 @@ export function ConfiguracoesAdminPage() {
         </div>
       )}
 
+      {/* 5. ABA 4: GESTÃO DE ADMINISTRADORES & RBAC PURIFICADO */}
+      {abaAtiva === "equipe" && (
+        <div className="space-y-6 sm:space-y-8 animate-in fade-in">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-black uppercase mb-2">
+                <Shield className="h-3.5 w-3.5" />
+                <span>Governança RBAC • 2 Modalidades Estritas</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900">
+                Gestão de Administradores &amp; Acesso
+              </h2>
+              <p className="text-base sm:text-lg text-slate-600 font-medium mt-1">
+                Controle simplificado e purificado: Matriz Global (Super Admin) ou Operador Regional (Franqueado).
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setUsuarioEditando(null);
+                setModalAdminUserAberto(true);
+              }}
+              className="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs sm:text-sm shadow-md flex items-center gap-2 cursor-pointer transition active:scale-95 self-start sm:self-auto"
+            >
+              <UserPlus className="h-4 w-4" />
+              <span>+ Novo Administrador</span>
+            </button>
+          </div>
+
+          {/* Cards Explicativos das 2 Modalidades */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-5 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-950 space-y-2">
+              <div className="flex items-center gap-2 font-black text-sm text-amber-900">
+                <ShieldCheck className="h-5 w-5 text-amber-600" />
+                <span>Super Administrador (Acesso Total)</span>
+              </div>
+              <p className="text-xs text-amber-800 leading-relaxed">
+                Acesso global irrestrito a todos os tenants e praças, configurações avançadas do sistema, ledger contábil central, gateways e catálogos globais.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-3xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-950 space-y-2">
+              <div className="flex items-center gap-2 font-black text-sm text-indigo-900">
+                <Building2 className="h-5 w-5 text-indigo-600" />
+                <span>Franqueado (Acesso Local Regional)</span>
+              </div>
+              <p className="text-xs text-indigo-800 leading-relaxed">
+                Isolamento estrito multi-tenant garantido por Row Level Security (RLS). Autonomia para gerenciar exclusivamente a sua praça, motoristas, chamados e faturamento local.
+              </p>
+            </div>
+          </div>
+
+          {/* Tabela de Usuários Administrativos */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs sm:text-sm">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-black uppercase tracking-wider text-[11px]">
+                  <tr>
+                    <th className="py-4 px-6">Usuário / Nome</th>
+                    <th className="py-4 px-6">E-mail Corporativo</th>
+                    <th className="py-4 px-6">Nível de Acesso (RBAC)</th>
+                    <th className="py-4 px-6">Escopo / Praça Vinculada</th>
+                    <th className="py-4 px-6">Status</th>
+                    <th className="py-4 px-6 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+                  {adminUsers.map((u) => {
+                    const isSuper = u.role === "SUPER_ADMIN";
+                    return (
+                      <tr key={u.id} className="hover:bg-slate-50/80 transition">
+                        <td className="py-4 px-6 font-bold text-slate-900">
+                          {u.nome}
+                        </td>
+                        <td className="py-4 px-6 text-slate-600 font-mono">
+                          {u.email}
+                        </td>
+                        <td className="py-4 px-6">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase ${
+                              isSuper
+                                ? "bg-amber-100 text-amber-900 border border-amber-300"
+                                : "bg-indigo-100 text-indigo-900 border border-indigo-300"
+                            }`}
+                          >
+                            {isSuper ? <ShieldCheck className="h-3.5 w-3.5 text-amber-700" /> : <Building2 className="h-3.5 w-3.5 text-indigo-700" />}
+                            {isSuper ? "Super Administrador (Acesso Total)" : "Franqueado (Acesso Local)"}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-slate-700 font-semibold">
+                          {u.praca_nome || (isSuper ? "Acesso Global (Todos)" : "Regional")}
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                            Ativo
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-right">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUsuarioEditando(u);
+                              setModalAdminUserAberto(true);
+                            }}
+                            className="p-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition cursor-pointer"
+                            title="Editar Administrador"
+                          >
+                            <Edit3 className="h-4 w-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MODAL DESBLOQUEAR MODO AVANÇADO */}
       {modalDesbloquearAberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
@@ -1795,6 +1997,31 @@ export function ConfiguracoesAdminPage() {
           </div>
         </div>
       )}
+
+      {/* MODAL CRIAR / EDITAR USUÁRIO ADMINISTRATIVO */}
+      <AdminUserModal
+        isOpen={modalAdminUserAberto}
+        onClose={() => {
+          setModalAdminUserAberto(false);
+          setUsuarioEditando(null);
+        }}
+        initialUser={usuarioEditando}
+        pracasDisponiveis={cidadesAtivas.map((c) => ({
+          id: c.id,
+          nome: `${c.nome} - ${c.uf}`,
+        }))}
+        onSuccess={(salvo) => {
+          setAdminUsers((prev) => {
+            const index = prev.findIndex((u) => u.id === salvo.id || u.email === salvo.email);
+            if (index >= 0) {
+              const copy = [...prev];
+              copy[index] = salvo;
+              return copy;
+            }
+            return [salvo, ...prev];
+          });
+        }}
+      />
     </div>
   );
 }

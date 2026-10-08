@@ -189,16 +189,19 @@ function AdminLoginPage() {
             </button>
           </form>
 
-          {/* Atalhos de Sugestão de E-mail (Apenas em ambiente de desenvolvimento) */}
+          {/* Atalhos Rápidos Homologados (1 Clique) */}
           {import.meta.env.DEV && (
             <div className="pt-3 border-t border-slate-800/80 space-y-2">
               <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 text-center">
-                Ambiente de Desenvolvimento (Sugestão de Conta)
+                Acesso Rápido Homologado
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => setEmail("dono@partiu.app")}
+                  onClick={() => {
+                    setEmail("dono@partiu.app");
+                    setSenha("AdminPartiu2026!");
+                  }}
                   className={`py-2 px-2.5 rounded-xl text-[11px] font-bold text-center transition cursor-pointer border ${
                     email === "dono@partiu.app"
                       ? "bg-amber-500/10 text-amber-300 border-amber-500/40"
@@ -209,14 +212,17 @@ function AdminLoginPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setEmail("admin@partiu.app")}
+                  onClick={() => {
+                    setEmail("franqueado@partiu.app");
+                    setSenha("AdminPartiu2026!");
+                  }}
                   className={`py-2 px-2.5 rounded-xl text-[11px] font-bold text-center transition cursor-pointer border ${
-                    email === "admin@partiu.app"
-                      ? "bg-blue-500/10 text-blue-300 border-blue-500/40"
+                    email === "franqueado@partiu.app"
+                      ? "bg-indigo-500/10 text-indigo-300 border-indigo-500/40"
                       : "bg-slate-800/60 text-slate-400 border-slate-700/50 hover:text-white"
                   }`}
                 >
-                  🛡️ Operador (Admin)
+                  🏢 Franqueado (Acesso Local)
                 </button>
               </div>
             </div>

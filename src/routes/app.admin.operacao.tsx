@@ -49,7 +49,7 @@ import {
 import { UniversalMapView } from "@/components/maps/UniversalMapView";
 import { exportarParaCSV } from "@/lib/export-csv";
 import { useAdminCity } from "@/contexts/AdminCityContext";
-import { getAdminRole } from "@/lib/admin-rbac";
+import { getAdminRole, isFranqueado } from "@/lib/admin-rbac";
 
 export const Route = createFileRoute("/app/admin/operacao")({
   head: () => ({
@@ -443,7 +443,7 @@ export function CentralOperacaoAdminPage() {
           <div className="flex items-center gap-2 mb-1">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              Cockpit Operacional • {adminRole === "franqueado" ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
+              Cockpit Operacional • {isFranqueado(adminRole) ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
             </span>
           </div>
           <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
@@ -495,13 +495,15 @@ export function CentralOperacaoAdminPage() {
               Fila Operacional filtrada pela praça: <strong>{pracaAtiva.labelCompleto}</strong> ({pracaAtiva.raioKm} km de raio)
             </span>
           </div>
-          <button
-            type="button"
-            onClick={() => selecionarPraca("todas")}
-            className="text-[11px] font-black px-2.5 py-1 rounded-lg bg-white border border-blue-300 hover:bg-blue-100/70 text-blue-950 transition-colors cursor-pointer shrink-0"
-          >
-            Ver Todas as Praças
-          </button>
+          {!isFranqueado(adminRole) && (
+            <button
+              type="button"
+              onClick={() => selecionarPraca("todas")}
+              className="text-[11px] font-black px-2.5 py-1 rounded-lg bg-white border border-blue-300 hover:bg-blue-100/70 text-blue-950 transition-colors cursor-pointer shrink-0"
+            >
+              Ver Todas as Praças
+            </button>
+          )}
         </div>
       )}
 

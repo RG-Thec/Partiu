@@ -1,33 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import {
-  Activity,
-  AlertTriangle,
-  ArrowRight,
-  Car,
-  CheckCircle2,
-  Clock,
-  DollarSign,
-  MapPin,
-  Radio,
   RefreshCw,
-  ShieldAlert,
-  ShieldCheck,
-  TrendingUp,
-  Users,
-  Award,
-  Trophy,
-  Star,
-  BarChart3,
-  PieChart,
-  Calendar,
-  ChevronRight,
-  Eye,
-  Sparkles,
-  UserCheck,
-  Zap,
-  Bell,
   Building2,
+  Bell,
+  BarChart3,
+  MapPin,
+  QrCode,
 } from "lucide-react";
 import { UniversalMapView } from "@/components/maps/UniversalMapView";
 import {
@@ -40,8 +19,11 @@ import {
   useMotoristas,
   useCaixaAdmin,
 } from "@/lib/partiu-db";
-import { driverSubscriptionService } from "@/lib/ecosystem/driver-subscription-service";
-import { getAdminRole, type AdminRole } from "@/lib/admin-rbac";
+import {
+  driverSubscriptionService,
+  type DriverSubscriptionAccount,
+} from "@/lib/ecosystem/driver-subscription-service";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useAdminCity } from "@/contexts/AdminCityContext";
 import {
   AdminPageHeader,
@@ -55,6 +37,10 @@ import { DashboardRankingsSection } from "@/components/admin/dashboard/Dashboard
 import { DashboardRecentRidesTable } from "@/components/admin/dashboard/DashboardRecentRidesTable";
 import { DashboardCityComparisonModal } from "@/components/admin/dashboard/DashboardCityComparisonModal";
 import { DashboardAlertsWebhookModal } from "@/components/admin/dashboard/DashboardAlertsWebhookModal";
+import {
+  AdminPixCobrancaModal,
+  type DriverCobrancaInfo,
+} from "@/components/admin/AdminPixCobrancaModal";
 
 export const Route = createFileRoute("/app/admin/")({
   head: () => ({
@@ -63,7 +49,7 @@ export const Route = createFileRoute("/app/admin/")({
       {
         name: "description",
         content:
-          "Centro nervoso da mobilidade urbana: KPIs executivos, mapa operacional ao vivo, comparativo multi-cidade e alertas de plantão.",
+          "Centro nervoso da mobilidade urbana: KPIs executivos SaaS, mapa operacional em tempo real e gestão de retenção.",
       },
     ],
   }),
@@ -71,7 +57,7 @@ export const Route = createFileRoute("/app/admin/")({
 });
 
 export function SuperAdminDashboardExecutive() {
-  const [roleAtiva, setRoleAtiva] = useState<AdminRole>(() => getAdminRole());
+  const { isSuperAdmin, isFranqueado, contaAtiva } = useAdminAuth();
   const { pracaAtiva, isNacional, selecionarPraca } = useAdminCity();
 
   // Queries e Subscrições em Tempo Real
@@ -87,25 +73,38 @@ export function SuperAdminDashboardExecutive() {
   const [modalComparativoPracas, setModalComparativoPracas] = useState(false);
   const [modalAlertasTelegram, setModalAlertasTelegram] = useState(false);
 
-  // Assinaturas SaaS (Modelo Zero Comissão)
+  // Assinaturas e Contas SaaS do Ecossistema
   const [assinaturas, setAssinaturas] = useState(() => driverSubscriptionService.getAllSubscriptions());
+  const [driverAccounts, setDriverAccounts] = useState<DriverSubscriptionAccount[]>(() =>
+    driverSubscriptionService.getDriverAccounts()
+  );
   const saasMetrics = useMemo(() => driverSubscriptionService.getSaaSMetrics(), [assinaturas]);
 
   useEffect(() => {
-    return driverSubscriptionService.subscribe((subs) => setAssinaturas(subs));
+    const unsub1 = driverSubscriptionService.subscribe((subs) => setAssinaturas(subs));
+    const unsub2 = driverSubscriptionService.subscribeAccounts((accs) => setDriverAccounts(accs));
+    return () => {
+      unsub1();
+      unsub2();
+    };
   }, []);
 
-  // Filtragem Multi-Tenant
+  // Modal de Cobrança Instantânea Pix
+  const [modalPixAberto, setModalPixAberto] = useState(false);
+  const [motoristaCobranca, setMotoristaCobranca] = useState<DriverCobrancaInfo | null>(null);
+
+  // Filtragem Multi-Tenant / Escopo de Corridas
   const ridesFiltradas = useMemo(() => {
-    if (isNacional || !pracaAtiva?.nome) return ridesBanco;
-    const cidNorm = pracaAtiva.nome.toLowerCase();
+    if (isSuperAdmin && isNacional) return ridesBanco;
+    const cidNorm = (contaAtiva?.tenantNome || pracaAtiva?.nome || "").toLowerCase();
+    const tenNorm = (contaAtiva?.tenantId || pracaAtiva?.id || "").toLowerCase();
     return ridesBanco.filter((r) => {
       const orig = (r.pickup_address || "").toLowerCase();
       const dest = (r.destination_address || "").toLowerCase();
       const ten = (r.tenant_id || "").toLowerCase();
-      return orig.includes(cidNorm) || dest.includes(cidNorm) || ten.includes(pracaAtiva.id.toLowerCase());
+      return orig.includes(cidNorm) || dest.includes(cidNorm) || ten.includes(tenNorm);
     });
-  }, [ridesBanco, isNacional, pracaAtiva]);
+  }, [ridesBanco, isSuperAdmin, isNacional, contaAtiva, pracaAtiva]);
 
   const motoristasOnline = useMemo(() => {
     return frotaBanco.filter((v) => v.status === "em_rota" || v.status === "parado").length;
@@ -144,16 +143,20 @@ export function SuperAdminDashboardExecutive() {
   // Dados dos Últimos 7 Dias
   const dadosUltimos7Dias = useMemo(() => {
     const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-    const resultado = [];
     const hoje = new Date();
+    const resultado = [];
 
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(hoje);
-      d.setDate(d.getDate() - i);
-      const isoData = d.toISOString().slice(0, 10);
-      const nomeDia = i === 0 ? "Hoje" : diasSemana[d.getDay()];
+      const dataRef = new Date(hoje);
+      dataRef.setDate(hoje.getDate() - i);
+      const isoData = dataRef.toISOString().split("T")[0];
+      const nomeDia = diasSemana[dataRef.getDay()];
 
-      const corridasNoDia = ridesFiltradas.filter((r) => r.created_at && r.created_at.startsWith(isoData));
+      const corridasNoDia = ridesFiltradas.filter((r) => {
+        const d = r.created_at || (r as any).data;
+        return d && typeof d === "string" && d.startsWith(isoData);
+      });
+
       const concluidasNoDia = corridasNoDia.filter((r) => r.status === "COMPLETED");
       const receitaNoDia = concluidasNoDia.reduce((acc, r) => acc + (Number(r.fare_brl) || 0), 0);
 
@@ -265,7 +268,7 @@ export function SuperAdminDashboardExecutive() {
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
       {/* 1. Header Oficial do Dashboard */}
       <AdminPageHeader
-        title="Central de Operações & Comando"
+        title={isSuperAdmin ? "Central de Operações & Comando" : `Cockpit da Franquia — ${pracaAtiva?.nome || "Regional"}`}
         subtitle={`Centro nervoso da mobilidade: ${
           isNacional ? "Visão Consolidada Nacional" : `Operação Ativa em ${pracaAtiva?.nome || "Praça Regional"}`
         } • Padrão Zero Comissão`}
@@ -277,15 +280,17 @@ export function SuperAdminDashboardExecutive() {
         }
         actions={
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-            <AdminActionButton
-              variant="outline"
-              size="sm"
-              iconLeft={<Building2 className="h-4 w-4 text-primary" />}
-              onClick={() => setModalComparativoPracas(true)}
-            >
-              <span className="hidden sm:inline">Comparativo de Praças</span>
-              <span className="sm:hidden">Praças</span>
-            </AdminActionButton>
+            {isSuperAdmin && (
+              <AdminActionButton
+                variant="outline"
+                size="sm"
+                iconLeft={<Building2 className="h-4 w-4 text-primary" />}
+                onClick={() => setModalComparativoPracas(true)}
+              >
+                <span className="hidden sm:inline">Comparativo de Praças</span>
+                <span className="sm:hidden">Praças</span>
+              </AdminActionButton>
+            )}
 
             <AdminActionButton
               variant="outline"
@@ -296,6 +301,33 @@ export function SuperAdminDashboardExecutive() {
               <span className="hidden sm:inline">Alertas Telegram</span>
               <span className="sm:hidden">Telegram</span>
             </AdminActionButton>
+
+            {isFranqueado && (
+              <AdminActionButton
+                variant="outline"
+                size="sm"
+                iconLeft={<QrCode className="h-4 w-4 text-emerald-600" />}
+                onClick={() => {
+                  if (driverAccounts.length > 0) {
+                    const acc = driverAccounts[0];
+                    setMotoristaCobranca({
+                      id: acc.driverId,
+                      nome: acc.driverName,
+                      telefone: acc.phone,
+                      veiculo_placa: acc.vehiclePlate,
+                      veiculo_modelo: acc.vehicleModel,
+                      plano_nome: acc.currentPlanName,
+                      plano_valor: acc.lastPaymentBrl,
+                      dias_vencido: acc.daysRemaining < 0 ? Math.abs(acc.daysRemaining) : undefined,
+                    });
+                    setModalPixAberto(true);
+                  }
+                }}
+              >
+                <span className="hidden sm:inline">Gerar Pix</span>
+                <span className="sm:hidden">Pix</span>
+              </AdminActionButton>
+            )}
 
             <AdminActionButton
               variant="secondary"
@@ -371,6 +403,22 @@ export function SuperAdminDashboardExecutive() {
         open={modalAlertasTelegram}
         onClose={() => setModalAlertasTelegram(false)}
       />
+
+      {/* Modal de Cobrança Instantânea Pix */}
+      {modalPixAberto && motoristaCobranca && (
+        <AdminPixCobrancaModal
+          isOpen={modalPixAberto}
+          onClose={() => {
+            setModalPixAberto(false);
+            setMotoristaCobranca(null);
+          }}
+          driver={motoristaCobranca}
+          pracaNome={contaAtiva?.tenantNome || pracaAtiva?.nome || "Praça Regional"}
+          onSuccess={() => {
+            recarregarTudo();
+          }}
+        />
+      )}
     </div>
   );
 }

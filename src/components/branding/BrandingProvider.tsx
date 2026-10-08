@@ -9,6 +9,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { whiteLabelEngine } from "@/lib/white-label";
+import { Globe, Radio } from "lucide-react";
+import { tenantDomainService, type TenantDomainResolution } from "@/lib/white-label/tenant-domain-service";
 
 const STORAGE_KEY_BRANDING = "partiu_active_branding_v2";
 const STORAGE_KEY_TENANT = "partiu_active_tenant_id_v2";
@@ -19,6 +21,11 @@ function getInitialTenantId(): string {
   if (typeof window === "undefined") return "default";
   try {
     const urlParams = new URLSearchParams(window.location.search);
+    const resolution = tenantDomainService.resolveTenantFromHost(window.location.hostname, urlParams);
+    if (resolution.tenantId && resolution.tenantId !== "default") {
+      return resolution.tenantId;
+    }
+
     const tenantParam = urlParams.get("tenant") || urlParams.get("tenant_id");
     if (tenantParam) return tenantParam.trim();
 
@@ -53,6 +60,18 @@ function getInitialBranding(tenantId: string): AppBrandingRecord {
 
 export function BrandingProvider({ children }: { children: React.ReactNode }) {
   const [activeTenantId, setActiveTenantIdState] = useState<string>(getInitialTenantId);
+  const [isMounted, setIsMounted] = useState(false);
+  const [domainResolution, setDomainResolution] = useState<TenantDomainResolution>(() => {
+    if (typeof window === "undefined") {
+      return { tenantId: "default", source: "DEFAULT", isCustomDomain: false, status: "OK" };
+    }
+    const urlParams = new URLSearchParams(window.location.search);
+    return tenantDomainService.resolveTenantFromHost(window.location.hostname, urlParams);
+  });
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   const [branding, setBrandingState] = useState<AppBrandingRecord>(() => {
     const init = getInitialBranding(getInitialTenantId());
     themeEngine.applyTheme(init);
@@ -64,6 +83,23 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
   const activeTenantRef = useRef(activeTenantId);
   activeTenantRef.current = activeTenantId;
+
+  // Atualiza a tag <link rel="manifest"> no DOM para apontar para o manifesto dinâmico do tenant ativo
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    try {
+      let link = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+      if (!link) {
+        link = document.createElement("link");
+        link.rel = "manifest";
+        document.head.appendChild(link);
+      }
+      const targetHref = `/manifest.webmanifest?tenant=${encodeURIComponent(activeTenantId)}`;
+      if (link.getAttribute("href") !== targetHref) {
+        link.setAttribute("href", targetHref);
+      }
+    } catch {}
+  }, [activeTenantId]);
 
   // Aplicação de tema síncrona com sincronização lockstep do WhiteLabelEngine
   const applyBrandingTheme = useCallback((b: AppBrandingRecord) => {
@@ -375,5 +411,67 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     ]
   );
 
-  return <BrandingContext.Provider value={value}>{children}</BrandingContext.Provider>;
+  return (
+    <BrandingContext.Provider value={value}>
+      {isMounted && domainResolution.status === "DOMAIN_NOT_FOUND" ? (
+        <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-center">
+          <div className="max-w-md w-full p-8 rounded-2xl border border-slate-800 bg-slate-900/90 shadow-2xl backdrop-blur-xl">
+            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto mb-4 text-amber-400">
+              <Globe className="w-8 h-8" />
+            </div>
+            <h1 className="text-2xl font-black text-white">404 - Franquia Não Encontrada</h1>
+            <p className="mt-2 text-sm text-slate-400">
+              O domínio <strong className="text-amber-400 font-mono">{domainResolution.matchedDomain}</strong> não está associado a nenhuma praça ativa do ecossistema PARTIU MOBE.
+            </p>
+            <div className="mt-6 flex flex-col gap-2.5">
+              <a
+                href="https://partiumobe.com.br"
+                className="w-full py-3 px-4 rounded-xl bg-amber-500 text-slate-950 font-bold text-sm shadow hover:bg-amber-400 transition"
+              >
+                Acessar Portal Principal
+              </a>
+              <button
+                onClick={() => {
+                  setDomainResolution({ ...domainResolution, status: "OK" });
+                }}
+                className="w-full py-2.5 px-4 rounded-xl bg-slate-800 text-slate-300 font-medium text-xs hover:bg-slate-700 transition cursor-pointer"
+              >
+                Acessar em Modo de Demonstração (Tenant Padrão)
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : isMounted && domainResolution.status === "DNS_PENDING" ? (
+        <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-center">
+          <div className="max-w-md w-full p-8 rounded-2xl border border-slate-800 bg-slate-900/90 shadow-2xl backdrop-blur-xl">
+            <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center mx-auto mb-4 text-blue-400">
+              <Radio className="w-8 h-8 animate-pulse" />
+            </div>
+            <h1 className="text-2xl font-black text-white">Domínio em Propagação DNS</h1>
+            <p className="mt-2 text-sm text-slate-400">
+              O domínio <strong className="text-blue-400 font-mono">{domainResolution.matchedDomain}</strong> foi cadastrado, mas o apontamento DNS (<code className="text-blue-300">CNAME cname.partiumobe.com.br</code>) ainda está em propagação.
+            </p>
+            <div className="mt-6 flex flex-col gap-2.5">
+              <button
+                onClick={() => window.location.reload()}
+                className="w-full py-3 px-4 rounded-xl bg-blue-600 text-white font-bold text-sm shadow hover:bg-blue-500 transition cursor-pointer"
+              >
+                Rechecar Propagação DNS
+              </button>
+              <button
+                onClick={() => {
+                  setDomainResolution({ ...domainResolution, status: "OK" });
+                }}
+                className="w-full py-2.5 px-4 rounded-xl bg-slate-800 text-slate-300 font-medium text-xs hover:bg-slate-700 transition cursor-pointer"
+              >
+                Continuar Mesmo Assim (Testes)
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        children
+      )}
+    </BrandingContext.Provider>
+  );
 }

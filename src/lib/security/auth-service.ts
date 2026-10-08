@@ -11,21 +11,7 @@ import { silentCatchWarn } from "@/lib/structured-logger";
  * - Eliminação definitiva de autenticação baseada em flags inseguras de localStorage
  */
 
-export type AdminRole = 
-  | 'super_admin'
-  | 'admin'
-  | 'franqueado'
-  | 'operador'
-  | 'suporte'
-  | 'OWNER'
-  | 'SUPER_ADMIN'
-  | 'ADMIN'
-  | 'FRANCHISE_ADMIN'
-  | 'CORPORATE_ADMIN'
-  | 'DRIVER'
-  | 'PASSENGER'
-  | 'OPERATOR'
-  | 'AUDITOR';
+export type AdminRole = 'SUPER_ADMIN' | 'FRANQUEADO';
 
 export type AdminPermission =
   | 'financial:view_revenue'

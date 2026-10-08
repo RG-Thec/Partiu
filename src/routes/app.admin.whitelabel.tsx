@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { GuardiaoAcesso } from "@/components/admin/GuardiaoAcesso";
-import { getAdminRole, isOwner } from "@/lib/admin-rbac";
+import { getAdminRole, getContaAtiva, isOwner, isSuperAdmin } from "@/lib/admin-rbac";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useBranding } from "@/hooks/useBranding";
 import { BRANDING_PRESETS } from "@/lib/branding";
@@ -73,7 +73,9 @@ function WhiteLabelStudioPage() {
 
 function WhiteLabelStudioContent() {
   const role = getAdminRole();
-  const usuarioOwner = isOwner(role);
+  const contaAtiva = getContaAtiva();
+  const isFranqueadoRole = role === "FRANQUEADO";
+  const usuarioOwner = isSuperAdmin(role) || isOwner(role);
 
   const {
     activeTenant,
@@ -88,6 +90,13 @@ function WhiteLabelStudioContent() {
     applyPreset: applySaasPreset,
     isSyncing,
   } = useBranding();
+
+  // Franqueado: vincula automaticamente ao seu próprio tenant
+  useEffect(() => {
+    if (isFranqueadoRole && contaAtiva.tenantId && activeTenant?.tenantId !== contaAtiva.tenantId) {
+      switchTenant(contaAtiva.tenantId);
+    }
+  }, [isFranqueadoRole, contaAtiva.tenantId, activeTenant?.tenantId, switchTenant]);
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("brand");
   const [liveLandingData, setLiveLandingData] = useState<MobilityLandingPageData | null>(null);
@@ -224,55 +233,56 @@ function WhiteLabelStudioContent() {
             </button>
           )}
 
-          {/* Alternar Preview Lateral */}
+          {/* Feedback de Salvo */}
+          {salvoFeedback && (
+            <span className="flex items-center gap-1 text-emerald-600 font-bold text-xs bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Salvo</span>
+            </span>
+          )}
+
+          {/* Alternar Preview Mobile */}
           <button
             type="button"
             onClick={() => setPreviewAberto(!previewAberto)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
               previewAberto
                 ? "bg-[#0088FF] text-white shadow-xs"
-                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                : "bg-slate-100 hover:bg-slate-200 text-slate-700"
             }`}
           >
             <Smartphone className="w-3.5 h-3.5" />
-            <span>{previewAberto ? "Ocultar Preview" : "Ver Simulador"}</span>
+            <span>{previewAberto ? "Ocultar Preview" : "Simulador"}</span>
           </button>
         </div>
       </header>
 
-      {/* 2. BARRA DE PRESETS RÁPIDOS */}
-      <div className="bg-white border-b border-slate-200 px-4 sm:px-6 py-2.5 flex items-center gap-2 overflow-x-auto shadow-xs">
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 shrink-0">
-          Presets 1-Click:
-        </span>
-        <div className="flex items-center gap-2">
+      {/* 2. SUB-BAR: PALETAS RÁPIDAS (PRESETS PRONTOS) */}
+      <div className="bg-white border-b border-slate-200 px-4 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto py-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 shrink-0">
+            Presets Prontos:
+          </span>
           {presets.map((p) => (
             <button
               key={p.id}
               type="button"
-              onClick={async () => {
+              onClick={() => {
                 applyPreset(p.id);
-                await applySaasPreset(p.id);
+                void applySaasPreset(p.id);
                 triggerSaveFeedback();
               }}
-              className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-700 transition cursor-pointer shrink-0"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition cursor-pointer shrink-0"
             >
-              <span
-                className="w-2.5 h-2.5 rounded-full ring-1 ring-slate-300"
-                style={{ backgroundColor: p.cor }}
-              />
+              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.cor }} />
               <span>{p.nome}</span>
             </button>
           ))}
         </div>
-        <div className="ml-auto flex items-center gap-2">
-          {salvoFeedback ? (
-            <div className="flex items-center gap-1.5 text-xs text-[#22C55E] font-semibold animate-in fade-in">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Salvo no Supabase em tempo real!</span>
-            </div>
-          ) : isSyncing ? (
-            <div className="flex items-center gap-1.5 text-xs text-amber-600 font-semibold animate-pulse">
+
+        <div className="flex items-center gap-2">
+          {isSyncing ? (
+            <div className="flex items-center gap-1.5 text-[11px] text-amber-600 font-semibold animate-pulse">
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
               <span>Sincronizando com a nuvem...</span>
             </div>

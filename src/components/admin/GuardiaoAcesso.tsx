@@ -5,6 +5,7 @@ import { temPermissao, getAdminRole, type AdminPermission } from "@/lib/admin-rb
 
 interface GuardiaoAcessoProps {
   permissao?: AdminPermission;
+  somenteSuperAdmin?: boolean;
   somenteOwner?: boolean;
   children: ReactNode;
 }
@@ -12,15 +13,21 @@ interface GuardiaoAcessoProps {
 /**
  * 🛡️ COMPONENTE GUARDIÃO DE ACESSO ADMINISTRATIVO (HTTP 403 INTERNO)
  * Bloqueia a renderização de componentes, abas ou páginas inteiras
- * quando o usuário ativo não tem a permissão ou é apenas Administrador tentando ver financeiro.
+ * quando o usuário ativo não tem a permissão ou é Franqueado tentando acessar área global.
  */
-export function GuardiaoAcesso({ permissao, somenteOwner = false, children }: GuardiaoAcessoProps) {
+export function GuardiaoAcesso({
+  permissao,
+  somenteSuperAdmin = false,
+  somenteOwner = false,
+  children,
+}: GuardiaoAcessoProps) {
   const role = getAdminRole();
+  const exigeSuper = somenteSuperAdmin || somenteOwner;
 
-  const negadoPorOwner = somenteOwner && role !== "OWNER";
+  const negadoPorSuperAdmin = exigeSuper && role !== "SUPER_ADMIN";
   const negadoPorPermissao = permissao ? !temPermissao(permissao) : false;
 
-  if (negadoPorOwner || negadoPorPermissao) {
+  if (negadoPorSuperAdmin || negadoPorPermissao) {
     return (
       <div className="w-full min-h-[550px] flex items-center justify-center p-6 animate-in fade-in">
         <div className="w-full max-w-md bg-white rounded-3xl p-8 border-2 border-slate-200 text-center shadow-xl space-y-5">
@@ -30,15 +37,15 @@ export function GuardiaoAcesso({ permissao, somenteOwner = false, children }: Gu
 
           <div className="space-y-1.5">
             <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 bg-primary-50 px-3 py-1 rounded-full border border-amber-200">
-              Acesso Restrito ao Proprietário
+              Acesso Restrito ao Super Administrador
             </span>
             <h2 className="text-xl font-black text-slate-900 tracking-tight">
-              Área Financeira &amp; Estratégica Bloqueada
+              Área Central da Matriz / Holding Bloqueada
             </h2>
             <p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
-              Seu perfil atual de acesso é <strong>Administrador / Gestor Operacional</strong>.
-              Informações de faturamento, splits contábeis, lucros e contas bancárias são restritas
-              exclusivamente ao <strong>Proprietário (Owner)</strong> do sistema.
+              Seu perfil atual de acesso é <strong>Franqueado Regional (Acesso Local)</strong>.
+              Configurações globais da holding, catálogo nacional e credenciais de infraestrutura são
+              restritos exclusivamente ao <strong>Super Administrador</strong> do sistema.
             </p>
           </div>
 

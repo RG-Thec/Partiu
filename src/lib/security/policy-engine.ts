@@ -37,9 +37,9 @@ export class PolicyEngine {
     context: SecurityContext,
     request: AccessEvaluationRequest
   ): PolicyEvaluationResult {
-    // 1. OWNER possui acesso irrestrito global
-    if (context.role === 'OWNER') {
-      return { allowed: true, reason: 'OWNER_SUPERUSER_ACCESS', auditRequired: true };
+    // 1. SUPER_ADMIN possui acesso irrestrito global a todos os tenants e configurações
+    if (context.role === 'SUPER_ADMIN') {
+      return { allowed: true, reason: 'SUPER_ADMIN_GLOBAL_ACCESS', auditRequired: true };
     }
 
     // 2. Validação da permissão base no RBAC
@@ -52,23 +52,12 @@ export class PolicyEngine {
       };
     }
 
-    // 3. Isolamento Multi-Tenant por Praça Municipal (Franchise Admin)
-    if (context.role === 'FRANCHISE_ADMIN' && request.targetCityId) {
+    // 3. Isolamento Multi-Tenant por Praça Municipal (FRANQUEADO)
+    if (context.role === 'FRANQUEADO' && request.targetCityId) {
       if (!context.tenantCityId || context.tenantCityId !== request.targetCityId) {
         return {
           allowed: false,
           reason: 'CROSS_TENANT_BOUNDARY_VIOLATION: Franquia não autorizada nesta praça.',
-          auditRequired: true
-        };
-      }
-    }
-
-    // 4. Isolamento Corporativo (Corporate Admin)
-    if (context.role === 'CORPORATE_ADMIN' && request.resourceOwnerId) {
-      if (context.userId !== request.resourceOwnerId) {
-        return {
-          allowed: false,
-          reason: 'CORPORATE_TENANT_BOUNDARY_VIOLATION',
           auditRequired: true
         };
       }

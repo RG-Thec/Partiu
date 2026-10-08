@@ -31,7 +31,7 @@ import {
   setPracaAtiva,
 } from "@/lib/admin-city-service";
 import { useAdminCity } from "@/contexts/AdminCityContext";
-import { getAdminRole } from "@/lib/admin-rbac";
+import { getAdminRole, isFranqueado } from "@/lib/admin-rbac";
 
 export const Route = createFileRoute("/app/admin/locais")({
   head: () => ({
@@ -234,7 +234,7 @@ export function AdminLocaisPage() {
           <div className="flex items-center gap-2 mb-1">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              Expansão &amp; Gestão Territorial • {adminRole === "franqueado" ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
+              Expansão &amp; Gestão Territorial • {isFranqueado(adminRole) ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
             </span>
           </div>
           <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
@@ -257,14 +257,16 @@ export function AdminLocaisPage() {
             <Download className="w-3.5 h-3.5" />
             <span>Exportar CSV</span>
           </button>
-          <button
-            type="button"
-            onClick={abrirModalNovo}
-            className="flex h-10 items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-4 text-xs font-black transition-all cursor-pointer shadow-xs"
-          >
-            <Plus className="w-3.5 h-3.5 text-[#0088FF]" />
-            <span>Nova Praça</span>
-          </button>
+          {!isFranqueado(adminRole) && (
+            <button
+              type="button"
+              onClick={abrirModalNovo}
+              className="flex h-10 items-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-4 text-xs font-black transition-all cursor-pointer shadow-xs"
+            >
+              <Plus className="w-3.5 h-3.5 text-[#0088FF]" />
+              <span>Nova Praça</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -455,7 +457,7 @@ export function AdminLocaisPage() {
                             <ShieldCheck className="w-3.5 h-3.5" />
                             Ativo
                           </span>
-                        ) : (
+                        ) : !isFranqueado(adminRole) ? (
                           <button
                             type="button"
                             onClick={() => handleDefinirAtivaNoPainel(praca.id, praca.nome)}
@@ -463,40 +465,46 @@ export function AdminLocaisPage() {
                           >
                             Filtrar
                           </button>
+                        ) : (
+                          <span className="text-[10px] text-slate-400">Outra Praça</span>
                         )}
                       </td>
 
                       <td className="py-3.5 px-4 sm:px-5 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            type="button"
-                            onClick={() => handleAlternarStatus(praca.id, praca.nome)}
-                            title={praca.status === "ATIVA" ? "Pausar Praça" : "Ativar Praça"}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
-                          >
-                            {praca.status === "ATIVA" ? (
-                              <PauseCircle className="w-4 h-4 text-amber-500" />
-                            ) : (
-                              <PlayCircle className="w-4 h-4 text-emerald-500" />
-                            )}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => abrirModalEditar(praca)}
-                            title="Editar Praça"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-slate-100 transition-colors cursor-pointer"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleRemover(praca.id, praca.nome)}
-                            title="Excluir Praça"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-slate-100 transition-colors cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                        {!isFranqueado(adminRole) ? (
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleAlternarStatus(praca.id, praca.nome)}
+                              title={praca.status === "ATIVA" ? "Pausar Praça" : "Ativar Praça"}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+                            >
+                              {praca.status === "ATIVA" ? (
+                                <PauseCircle className="w-4 h-4 text-amber-500" />
+                              ) : (
+                                <PlayCircle className="w-4 h-4 text-emerald-500" />
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => abrirModalEditar(praca)}
+                              title="Editar Praça"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemover(praca.id, praca.nome)}
+                              title="Excluir Praça"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-[11px] text-slate-400">Somente Leitura</span>
+                        )}
                       </td>
                     </tr>
                   );

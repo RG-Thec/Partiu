@@ -23,7 +23,7 @@ import {
 } from "@/lib/partiu-db";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { exportarParaCSV } from "@/lib/export-csv";
-import { getAdminRole } from "@/lib/admin-rbac";
+import { getAdminRole, isFranqueado } from "@/lib/admin-rbac";
 import { useAdminCity } from "@/contexts/AdminCityContext";
 import {
   AdminPageHeader,
@@ -297,16 +297,16 @@ export function AdminAprovacoesPage() {
   ];
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto pb-20">
       {/* 1. Header Oficial do Painel */}
       <AdminPageHeader
         title="Pipeline de Aprovação de Motoristas"
         subtitle={`Auditoria cadastral de condutores, verificação de CNH com EAR e governança de frota — ${
-          adminRole === "franqueado" ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"
+          isFranqueado(adminRole) ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"
         }`}
         breadcrumbs={[
           { label: "Dashboard", to: "/app/admin" },
-          { label: "Frota", to: "/app/admin/frota" },
+          { label: "Frota", to: "/app/admin/motoristas" },
           { label: "Aprovações" },
         ]}
         badge={

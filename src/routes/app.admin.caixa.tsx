@@ -229,7 +229,7 @@ export function AdminCaixaPage() {
   ];
 
   return (
-    <GuardiaoAcesso somenteOwner>
+    <GuardiaoAcesso somenteSuperAdmin>
       <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
         {/* Header Oficial do Admin Design System */}
         <AdminPageHeader
