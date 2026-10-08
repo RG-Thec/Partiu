@@ -12,7 +12,7 @@ export interface PromoCarouselProps {
 export const PromoCarousel = memo(function PromoCarousel({
   banners = [],
   onBannerClick,
-  autoPlayIntervalMs = 3000,
+  autoPlayIntervalMs = 7000,
 }: PromoCarouselProps) {
   const { corPrimaria } = useBrandTheme();
   const [activeSlide, setActiveSlide] = useState(0);

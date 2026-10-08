@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useMemo, useEffect } from "react";
 import {
   AlertCircle,
   Bell,
@@ -27,7 +27,10 @@ import {
   Save,
   Star,
 } from "lucide-react";
-import { useBanners } from "@/lib/partiu-db";
+import {
+  bannerService,
+  type BannerItem as EcosystemBannerItem,
+} from "@/lib/ecosystem/banner-service";
 import {
   type CmsLandingExtendedData,
   carregarCmsLandingData,
@@ -77,35 +80,14 @@ interface CupomItem {
 
 export function MarketingAdminPage() {
   const [abaAtiva, setAbaAtiva] = useState<AbaMarketing>("banners");
-  const { data: bannersBanco = [] } = useBanners();
+  const [banners, setBanners] = useState<EcosystemBannerItem[]>(() => bannerService.getAllBanners());
 
-  // Banners com dados reais e fallback
-  const [banners, setBanners] = useState<BannerItem[]>([
-    {
-      id: "ban_01",
-      titulo: "Partiu Flash: Entregas Expressas",
-      subtitulo: "Envie encomendas pela cidade a partir de R$ 7,50",
-      imagemUrl: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80",
-      linkDestino: "/app/encomendas",
-      aspectRatio: "16:9",
-      pesoKb: 142,
-      dimensoes: "800x450 px",
-      ativo: true,
-      ordem: 1,
-    },
-    {
-      id: "ban_02",
-      titulo: "Desconto de 20% na Primeira Corrida",
-      subtitulo: "Use o cupom BEMVINDO e viaje com segurança",
-      imagemUrl: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&auto=format&fit=crop&q=80",
-      linkDestino: "/app/perfil",
-      aspectRatio: "16:9",
-      pesoKb: 198,
-      dimensoes: "800x450 px",
-      ativo: true,
-      ordem: 2,
-    },
-  ]);
+  useEffect(() => {
+    const unsub = bannerService.subscribe((list) => {
+      setBanners(list);
+    });
+    return () => unsub();
+  }, []);
 
   // Cupons promocionais
   const [cupons, setCupons] = useState<CupomItem[]>([
@@ -253,24 +235,21 @@ export function MarketingAdminPage() {
     };
   }
 
-  function handleSalvarBanner(e: React.FormEvent) {
+  async function handleSalvarBanner(e: React.FormEvent) {
     e.preventDefault();
     if (!previewBannerUrl || validacaoErro) return;
 
-    const novoBanner: BannerItem = {
-      id: "ban_" + Date.now(),
-      titulo: novoTituloBanner || "Banner Promocional",
-      subtitulo: novoSubtituloBanner || "",
-      imagemUrl: previewBannerUrl,
-      linkDestino: novoLinkBanner || "/app",
-      aspectRatio: validacaoInfo ? `${validacaoInfo.aspectRatio}:1` : "16:9",
-      pesoKb: validacaoInfo?.tamanhoKb || 200,
-      dimensoes: validacaoInfo ? `${validacaoInfo.largura}x${validacaoInfo.altura} px` : "800x450 px",
-      ativo: true,
-      ordem: banners.length + 1,
-    };
+    await bannerService.createBanner({
+      title: novoTituloBanner || "Banner Promocional",
+      subtitle: novoSubtituloBanner || "",
+      image_url: previewBannerUrl,
+      link_url: novoLinkBanner || "/app",
+      category: "PASSENGER",
+      badge: "DESTAQUE",
+      is_active: true,
+      order_index: banners.length + 1,
+    });
 
-    setBanners((prev) => [novoBanner, ...prev]);
     setModalBannerAberto(false);
     setNovoTituloBanner("");
     setNovoSubtituloBanner("");
@@ -383,19 +362,28 @@ export function MarketingAdminPage() {
       {/* 3. ABA 1: BANNERS MOBILE */}
       {abaAtiva === "banners" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 className="text-base font-black text-slate-900">Banners Ativos no Aplicativo</h2>
-              <p className="text-xs text-slate-500">Padrão mobile verificado: Proporção 16:9 e peso menor que 1 MB.</p>
+              <p className="text-xs text-slate-500">Exibição sincronizada em tempo real com o app do passageiro.</p>
             </div>
-            <button
-              type="button"
-              onClick={() => setModalBannerAberto(true)}
-              className="flex h-11 items-center gap-2 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white px-4 text-xs font-black shadow-xs transition-all cursor-pointer"
-            >
-              <Plus className="h-4 w-4 text-[#0088FF]" />
-              <span>Novo Banner Mobile</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <Link
+                to="/app/admin/banners"
+                className="flex h-11 items-center gap-2 rounded-2xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 px-4 text-xs font-bold shadow-xs transition-all cursor-pointer"
+              >
+                <ExternalLink className="h-4 w-4 text-slate-500" />
+                <span>Gerenciador Avançado</span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => setModalBannerAberto(true)}
+                className="flex h-11 items-center gap-2 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white px-4 text-xs font-black shadow-xs transition-all cursor-pointer"
+              >
+                <Plus className="h-4 w-4 text-[#0088FF]" />
+                <span>Novo Banner Mobile</span>
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -407,36 +395,48 @@ export function MarketingAdminPage() {
                 <div>
                   <div className="relative aspect-video bg-slate-100 overflow-hidden">
                     <img
-                      src={b.imagemUrl}
-                      alt={b.titulo}
+                      src={b.image_url}
+                      alt={b.title}
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
                       <span className="px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-xs text-white text-[10px] font-black">
-                        {b.dimensoes}
+                        {b.badge || "DESTAQUE"}
                       </span>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/90 text-white text-[10px] font-black">
-                        {b.pesoKb} KB
+                      <span className="px-2 py-0.5 rounded-full bg-blue-500/90 text-white text-[10px] font-black">
+                        #{b.order_index}
                       </span>
                     </div>
                   </div>
 
                   <div className="p-4 space-y-1">
-                    <h3 className="text-sm font-black text-slate-900 leading-tight">{b.titulo}</h3>
-                    <p className="text-xs text-slate-500 leading-snug">{b.subtitulo}</p>
+                    <h3 className="text-sm font-black text-slate-900 leading-tight">{b.title}</h3>
+                    <p className="text-xs text-slate-500 leading-snug">{b.subtitle || "Sem descrição"}</p>
                     <p className="text-[11px] font-mono text-slate-400 pt-1 truncate">
-                      Link: {b.linkDestino}
+                      Link: {b.link_url}
                     </p>
                   </div>
                 </div>
 
                 <div className="p-4 pt-0 flex items-center justify-between border-t border-slate-100 mt-2">
-                  <span className={`text-[10px] font-black uppercase ${b.ativo ? "text-emerald-600" : "text-slate-400"}`}>
-                    {b.ativo ? "● Ativo no App" : "○ Desativado"}
-                  </span>
                   <button
                     type="button"
-                    onClick={() => setBanners((prev) => prev.filter((item) => item.id !== b.id))}
+                    onClick={async () => {
+                      await bannerService.toggleBannerStatus(b.id);
+                    }}
+                    className={`text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer transition-colors ${
+                      b.is_active ? "text-emerald-600 hover:text-emerald-700" : "text-slate-400 hover:text-slate-600"
+                    }`}
+                  >
+                    <span>{b.is_active ? "● Ativo no App" : "○ Desativado"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (window.confirm("Deseja realmente remover este banner do aplicativo?")) {
+                        await bannerService.deleteBanner(b.id);
+                      }
+                    }}
                     className="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all cursor-pointer"
                     title="Excluir Banner"
                   >

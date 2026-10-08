@@ -118,6 +118,13 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
         moduleId: "aplicativo",
       },
       {
+        to: "/app/admin/banners",
+        label: "Banners do App",
+        icon: Megaphone,
+        exact: false,
+        moduleId: "marketing",
+      },
+      {
         to: "/app/admin/whitelabel",
         label: "Identidade & White Label",
         icon: Palette,
@@ -179,6 +186,7 @@ const TODOS_MODULOS_SISTEMA = [
   { to: "/app/admin/configuracoes", label: "Configurações Globais", categoriaTitulo: "Sistema", icon: Sliders },
   { to: "/app/admin/whitelabel", label: "White Label Studio", categoriaTitulo: "Sistema", icon: Palette },
   { to: "/app/admin/governanca", label: "Governança & LGPD", categoriaTitulo: "Sistema", icon: ShieldCheck },
+  { to: "/app/admin/banners", label: "Banners do Aplicativo", categoriaTitulo: "Marketing", icon: Megaphone },
   { to: "/app/admin/marketing", label: "Banners & Cupons", categoriaTitulo: "Marketing", icon: Megaphone },
   { to: "/app/admin/afiliados", label: "Clube & B2B", categoriaTitulo: "Marketing", icon: Layers },
   { to: "/app/admin/growth", label: "Indique & Ganhe", categoriaTitulo: "Marketing", icon: TrendingUp },

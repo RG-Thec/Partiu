@@ -66,6 +66,54 @@ export const SEED_BANNERS: BannerItem[] = [
 
 const BANNERS_STORAGE_KEY = "partiu_promotional_banners_store";
 
+/**
+ * Identifica e expurga qualquer banner residual da antiga cooperativa de vans (UNIVANS/COOPVAN).
+ */
+export function isLegacyVanBanner(b: {
+  id?: string;
+  image_url?: string;
+  imagem_url?: string;
+  title?: string;
+  titulo?: string;
+  subtitle?: string;
+  subtitulo?: string;
+  link_url?: string;
+  link_destino?: string;
+}): boolean {
+  const img = (b.image_url || b.imagem_url || "").toLowerCase();
+  const tit = (b.title || b.titulo || "").toLowerCase();
+  const sub = (b.subtitle || b.subtitulo || "").toLowerCase();
+  const link = (b.link_url || b.link_destino || "").toLowerCase();
+  const id = (b.id || "").toLowerCase();
+
+  return (
+    img.includes("univans") ||
+    img.includes("coopvan") ||
+    img.includes("banner-univans") ||
+    img.includes("banner-coopvan") ||
+    img.includes("/banners/banner-univans") ||
+    img.includes("/banners/banner-coopvan") ||
+    img.includes("/banners/banner-1.jpg") ||
+    img.includes("/banners/banner-2.jpg") ||
+    img.includes("/banners/banner-3.jpg") ||
+    img.includes("/banners/banner-4.jpg") ||
+    img.includes("/slides/") ||
+    tit.includes("van") ||
+    sub.includes("van") ||
+    tit.includes("univans") ||
+    sub.includes("univans") ||
+    tit.includes("cooperativa") ||
+    sub.includes("cooperativa") ||
+    tit.includes("toritama") ||
+    sub.includes("toritama") ||
+    tit.includes("trevo") ||
+    sub.includes("trevo") ||
+    sub.includes("chegada da sua van") ||
+    link.includes("/app/linhas") ||
+    id.startsWith("c0000000-")
+  );
+}
+
 class BannerService {
   private banners: BannerItem[] = [];
   private listeners: Set<(banners: BannerItem[]) => void> = new Set();
@@ -83,8 +131,14 @@ class BannerService {
       const raw = localStorage.getItem(BANNERS_STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+        if (Array.isArray(parsed)) {
+          const limpos = parsed.filter((b) => !isLegacyVanBanner(b));
+          if (limpos.length !== parsed.length) {
+            localStorage.setItem(BANNERS_STORAGE_KEY, JSON.stringify(limpos));
+          }
+          if (limpos.length > 0) {
+            return limpos;
+          }
         }
       }
     } catch (e) {
@@ -96,7 +150,11 @@ class BannerService {
   private saveToStorage() {
     if (typeof window === "undefined") return;
     try {
-      localStorage.setItem(BANNERS_STORAGE_KEY, JSON.stringify(this.banners));
+      const limpos = this.banners.filter((b) => !isLegacyVanBanner(b));
+      localStorage.setItem(BANNERS_STORAGE_KEY, JSON.stringify(limpos));
+      window.dispatchEvent(
+        new CustomEvent("partiu:banners-updated", { detail: limpos })
+      );
     } catch (e) {
       console.warn("[BannerService] Falha ao salvar cache:", e);
     }
@@ -113,22 +171,59 @@ class BannerService {
         .select("*")
         .order("order_index", { ascending: true });
 
-      if (!error && Array.isArray(data) && data.length > 0) {
-        this.banners = data.map((b: any) => ({
-          id: b.id,
-          image_url: b.image_url || b.imagem_url || "",
-          link_url: b.link_url || b.link_destino || "/app",
-          order_index: Number(b.order_index ?? b.ordem ?? 1),
-          is_active: b.is_active !== undefined ? Boolean(b.is_active) : (b.ativo !== undefined ? Boolean(b.ativo) : true),
-          category: (b.category as BannerCategory) || "PASSENGER",
-          title: b.title || b.titulo || "Partiu Mobilidade",
-          subtitle: b.subtitle || b.subtitulo || "",
-          badge: b.badge || b.tag || "DESTAQUE",
-          created_at: b.created_at,
-          updated_at: b.updated_at,
-        }));
-        this.saveToStorage();
-        this.notifyListeners();
+      if (!error && Array.isArray(data)) {
+        // 1. Detecta e purga do Supabase qualquer banner legado de van/cooperativa
+        const legacyRows = data.filter(isLegacyVanBanner);
+        if (legacyRows.length > 0) {
+          const legacyIds = legacyRows.map((r) => r.id);
+          try {
+            await (supabase as any).from("banners").delete().in("id", legacyIds);
+          } catch {}
+        }
+
+        const validos = data.filter((b) => !isLegacyVanBanner(b));
+        if (validos.length > 0) {
+          this.banners = validos.map((b: any) => ({
+            id: b.id,
+            image_url: b.image_url || b.imagem_url || "",
+            link_url: b.link_url || b.link_destino || "/app",
+            order_index: Number(b.order_index ?? b.ordem ?? 1),
+            is_active:
+              b.is_active !== undefined
+                ? Boolean(b.is_active)
+                : b.ativo !== undefined
+                ? Boolean(b.ativo)
+                : true,
+            category: (b.category as BannerCategory) || "PASSENGER",
+            title: b.title || b.titulo || "Partiu Mobilidade",
+            subtitle: b.subtitle || b.subtitulo || "",
+            badge: b.badge || b.tag || "DESTAQUE",
+            created_at: b.created_at,
+            updated_at: b.updated_at,
+          }));
+          this.saveToStorage();
+          this.notifyListeners();
+        } else if (legacyRows.length > 0 && validos.length === 0) {
+          // Se o banco continha unicamente as vans legadas, inicializa com SEED_BANNERS limpos
+          this.banners = [...SEED_BANNERS];
+          for (const sb of SEED_BANNERS) {
+            try {
+              await (supabase as any).from("banners").insert({
+                id: sb.id,
+                image_url: sb.image_url,
+                link_url: sb.link_url,
+                order_index: sb.order_index,
+                is_active: sb.is_active,
+                category: sb.category,
+                title: sb.title,
+                subtitle: sb.subtitle,
+                badge: sb.badge,
+              });
+            } catch {}
+          }
+          this.saveToStorage();
+          this.notifyListeners();
+        }
       }
     } catch (e) {
       console.warn("[BannerService] Falha ao carregar do Supabase:", e);
@@ -138,12 +233,14 @@ class BannerService {
   }
 
   public getAllBanners(): BannerItem[] {
-    return [...this.banners].sort((a, b) => a.order_index - b.order_index);
+    return [...this.banners]
+      .filter((b) => !isLegacyVanBanner(b))
+      .sort((a, b) => a.order_index - b.order_index);
   }
 
   public getActiveBanners(category: BannerCategory = "PASSENGER"): BannerItem[] {
     return this.getAllBanners().filter(
-      (b) => b.is_active && (b.category === category || b.category === "ALL")
+      (b) => b.is_active && !isLegacyVanBanner(b) && (b.category === category || b.category === "ALL")
     );
   }
 

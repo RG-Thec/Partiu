@@ -340,7 +340,8 @@ function PartiuPassengerHomeContent() {
     window.addEventListener("partiu:user-profile-updated", handleProfileUpdate);
 
     // Inscrição reativa para alterações de banners no Admin
-    const unsubBanner = bannerService.subscribe((all) => {
+    const handleBannersUpdate = (allBanners?: any[]) => {
+      const all = allBanners || bannerService.getAllBanners();
       const passengerBanners = all.filter((b) => b.is_active && (b.category === "PASSENGER" || b.category === "ALL"));
       if (passengerBanners.length > 0) {
         setActiveBanners(
@@ -361,11 +362,16 @@ function PartiuPassengerHomeContent() {
       } else {
         setActiveBanners([]);
       }
-    });
+    };
+
+    const unsubBanner = bannerService.subscribe(handleBannersUpdate);
+    const onCustomBannerEvent = (e: any) => handleBannersUpdate(e.detail);
+    window.addEventListener("partiu:banners-updated", onCustomBannerEvent);
 
     return () => {
       window.removeEventListener("storage", sincronizarStorage);
       window.removeEventListener("partiu:user-profile-updated", handleProfileUpdate);
+      window.removeEventListener("partiu:banners-updated", onCustomBannerEvent);
       unsubBanner();
     };
   }, []);
@@ -647,7 +653,7 @@ function PartiuPassengerHomeContent() {
                 </button>
                 <PromoCarousel
                   banners={activeBanners}
-                  autoPlayIntervalMs={3000}
+                  autoPlayIntervalMs={7000}
                 />
               </div>
             )}
