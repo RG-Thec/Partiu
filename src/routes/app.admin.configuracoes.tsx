@@ -273,12 +273,25 @@ export function ConfiguracoesAdminPage() {
     if (s.active_gateway) setActiveGateway(s.active_gateway);
     if (s.mercadopago_access_token) setMercadopagoAccessToken(s.mercadopago_access_token);
     if (s.mercadopago_public_key) setMercadopagoPublicKey(s.mercadopago_public_key);
-    if (s.mercadopago_webhook_secret) setMercadopagoWebhookSecret(s.mercadopago_webhook_secret);
     if (s.mercadopago_sandbox !== undefined) setMercadopagoSandbox(s.mercadopago_sandbox);
     if (s.base_fare_ride) setTarifaBaseEssencial(String(s.base_fare_ride));
     if (s.price_per_km) setValorKmEssencial(String(s.price_per_km));
     if (s.price_per_minute) setValorMinutoEssencial(String(s.price_per_minute));
     if (s.pix_key) setChavePixPadrao(s.pix_key);
+
+    if (isSupabaseConfigured()) {
+      (supabase as any)
+        .rpc("fn_get_admin_gateway_secrets")
+        .then((res: any) => {
+          if (res.data?.mercadopago_access_token) {
+            setMercadopagoAccessToken(res.data.mercadopago_access_token);
+          }
+          if (res.data?.mercadopago_webhook_secret) {
+            setMercadopagoWebhookSecret(res.data.mercadopago_webhook_secret);
+          }
+        })
+        .catch(() => {});
+    }
 
     try {
       const cfg = getSuperAdminConfig();

@@ -99,7 +99,25 @@ export class AppSettingsService {
     try {
       const { data, error } = await (supabase as any)
         .from("app_settings")
-        .select("*")
+        .select(`
+          id,
+          whatsapp_support,
+          phone_emergency,
+          support_hours,
+          app_version,
+          daily_fee_car,
+          daily_fee_moto,
+          base_fare_ride,
+          base_fare_delivery,
+          is_ride_active,
+          is_delivery_active,
+          pix_key,
+          pix_receiver_name,
+          pix_receiver_city,
+          referral_bonus_brl,
+          referral_discount_brl,
+          referral_active
+        `)
         .eq("id", "global")
         .maybeSingle();
 

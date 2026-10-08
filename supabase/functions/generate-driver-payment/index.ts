@@ -86,6 +86,12 @@ serve(async (req) => {
       .eq("id", "global")
       .maybeSingle();
 
+    const { data: gatewaySecrets } = await supabaseClient
+      .from("admin_gateway_secrets")
+      .select("mercadopago_access_token, mercadopago_webhook_secret")
+      .eq("id", "global")
+      .maybeSingle();
+
     const { data: driverProfile } = await supabaseClient
       .from("profiles")
       .select("full_name, email, phone")
@@ -97,8 +103,9 @@ serve(async (req) => {
     const [payerFirstName, ...payerLastNameParts] = payerFullName.split(" ");
     const payerLastName = payerLastNameParts.join(" ") || "Parceiro";
 
-    // Credenciais Mercado Pago (prioriza o que o admin configurou na tabela app_settings)
+    // Credenciais Mercado Pago (prioriza tabela isolada admin_gateway_secrets)
     const mpAccessToken =
+      gatewaySecrets?.mercadopago_access_token ||
       appSettings?.mercadopago_access_token ||
       Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN") ||
       Deno.env.get("MP_ACCESS_TOKEN");

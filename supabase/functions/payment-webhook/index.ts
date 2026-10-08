@@ -39,8 +39,15 @@ serve(async (req) => {
       .eq("id", "global")
       .maybeSingle();
 
+    const { data: gatewaySecrets } = await supabaseClient
+      .from("admin_gateway_secrets")
+      .select("mercadopago_access_token, mercadopago_webhook_secret")
+      .eq("id", "global")
+      .maybeSingle();
+
     // 1. Validação de Segurança contra Falsificação de Webhook (HMAC / Shared Secret)
     const webhookSecret =
+      gatewaySecrets?.mercadopago_webhook_secret ||
       Deno.env.get("PAYMENT_WEBHOOK_SECRET") ||
       Deno.env.get("WEBHOOK_SECRET") ||
       appSettings?.mercadopago_webhook_secret;
@@ -120,6 +127,7 @@ serve(async (req) => {
     const body = JSON.parse(rawBody);
 
     const mpAccessToken =
+      gatewaySecrets?.mercadopago_access_token ||
       appSettings?.mercadopago_access_token ||
       Deno.env.get("MERCADO_PAGO_ACCESS_TOKEN") ||
       Deno.env.get("MP_ACCESS_TOKEN");

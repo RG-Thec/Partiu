@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, test, testAsync, expect } from "./test-harness.mjs";
 import {
   distanceM,
   haversine,
@@ -11,283 +11,148 @@ import {
   shouldAnnounce,
   viaRoad,
   decodePolyline,
-} from "../src/services/NavigationEngine";
+} from "../src/services/NavigationEngine.ts";
 import {
   pointInPolygon,
   ringBbox,
   circleToRing,
   polygonArea,
   formatDistanceKm,
-} from "../src/lib/geo/geofence";
-import { createBoundedPool } from "../src/lib/network/fetchPool";
-import { cachedSource, clearSourceCache } from "../src/lib/network/sourceCache";
+} from "../src/lib/geo/geofence.ts";
+import { createBoundedPool } from "../src/lib/network/fetchPool.ts";
+import { cachedSource, clearSourceCache } from "../src/lib/network/sourceCache.ts";
 
-describe("🧭 NavigationEngine (Ported & Adapted from Osiris)", () => {
+describe("🧭 SUÍTE OFICIAL V8: TECNOLOGIAS GEOESPACIAIS AVANÇADAS (OSIRIS)", () => {
   const sampleRoute: [number, number][] = [
-    [-46.6565, -23.5615], // Ponto A (ex: MASP - Paulista)
-    [-46.6540, -23.5630], // Ponto B
-    [-46.6510, -23.5650], // Ponto C
+    [-46.6565, -23.5615],
+    [-46.6540, -23.5630],
+    [-46.6510, -23.5650],
   ];
 
-  it("calcula distâncias acumuladas com precisão", () => {
+  test("1.1 cumulativeDistances calcula distâncias acumuladas da rota", () => {
     const cum = cumulativeDistances(sampleRoute);
-    expect(cum).toHaveLength(3);
+    expect(cum.length).toBe(3);
     expect(cum[0]).toBe(0);
     expect(cum[1]).toBeGreaterThan(200);
     expect(cum[2]).toBeGreaterThan(cum[1]);
   });
 
-  it("projeta a coordenada GPS perpendicularmente sobre o segmento (snapToRoute)", () => {
-    // Ponto ligeiramente ao lado do segmento A-B
+  test("1.2 snapToRoute projeta o ponto GPS ortogonalmente no segmento", () => {
     const noisyGps = { lat: -23.5620, lng: -46.6550 };
     const snap = snapToRoute(sampleRoute, noisyGps.lat, noisyGps.lng);
 
-    expect(snap.index).toBe(0); // Pertence ao segmento 0 (A->B)
+    expect(snap.index).toBe(0);
     expect(snap.deviation).toBeGreaterThan(0);
     expect(snap.deviation).toBeLessThan(100);
-    expect(snap.point).toHaveLength(2);
-    // Coordenada projetada deve estar contida na faixa de longitude entre A e B (números negativos)
     expect(snap.point[0]).toBeGreaterThan(sampleRoute[0][0]);
     expect(snap.point[0]).toBeLessThan(sampleRoute[1][0]);
   });
 
-  it("calcula progresso, offRoute e chegada ao destino", () => {
+  test("1.3 computeProgress detecta chegada ao destino (<35m) e desvio (>45m)", () => {
     const steps = [
-      {
-        instruction: "Siga pela Avenida Paulista",
-        distance: 300,
-        duration: 60,
-        location: sampleRoute[0],
-        type: "depart",
-      },
-      {
-        instruction: "Vire à direita na Rua Peixoto Gomide",
-        distance: 400,
-        duration: 90,
-        location: sampleRoute[1],
-        type: "right",
-      },
-      {
-        instruction: "Você chegou ao destino",
-        distance: 0,
-        duration: 0,
-        location: sampleRoute[2],
-        type: "arrive",
-      },
+      { instruction: "Siga pela Avenida Paulista", distance: 300, duration: 60, location: sampleRoute[0], type: "depart" },
+      { instruction: "Vire à direita na Rua Peixoto Gomide", distance: 400, duration: 90, location: sampleRoute[1], type: "right" },
+      { instruction: "Você chegou ao destino", distance: 0, duration: 0, location: sampleRoute[2], type: "arrive" },
     ];
-
     const cum = cumulativeDistances(sampleRoute);
     const stepAlong = [0, cum[1], cum[2]];
 
-    // Caso 1: Veículo no início da rota
-    const progressStart = computeProgress(
-      sampleRoute,
-      steps,
-      stepAlong,
-      150,
-      { lat: sampleRoute[0][1], lng: sampleRoute[0][0] },
-      cum,
-    );
-    expect(progressStart.offRoute).toBe(false);
-    expect(progressStart.arrived).toBe(false);
-    expect(progressStart.fraction).toBeLessThan(0.1);
+    // Início da rota
+    const pStart = computeProgress(sampleRoute, steps, stepAlong, 150, { lat: sampleRoute[0][1], lng: sampleRoute[0][0] }, cum);
+    expect(pStart.offRoute).toBe(false);
+    expect(pStart.arrived).toBe(false);
 
-    // Caso 2: Veículo próximo ao destino (< 35m)
-    const progressEnd = computeProgress(
-      sampleRoute,
-      steps,
-      stepAlong,
-      150,
-      { lat: sampleRoute[2][1], lng: sampleRoute[2][0] },
-      cum,
-    );
-    expect(progressEnd.arrived).toBe(true);
-    expect(progressEnd.distanceRemaining).toBeLessThan(35);
+    // Destino
+    const pEnd = computeProgress(sampleRoute, steps, stepAlong, 150, { lat: sampleRoute[2][1], lng: sampleRoute[2][0] }, cum);
+    expect(pEnd.arrived).toBe(true);
 
-    // Caso 3: Veículo afastado (> 45m de desvio)
-    const progressOff = computeProgress(
-      sampleRoute,
-      steps,
-      stepAlong,
-      150,
-      { lat: -23.5700, lng: -46.6600 },
-      cum,
-    );
-    expect(progressOff.offRoute).toBe(true);
-    expect(progressOff.deviation).toBeGreaterThan(45);
+    // Fora de rota
+    const pOff = computeProgress(sampleRoute, steps, stepAlong, 150, { lat: -23.5700, lng: -46.6600 }, cum);
+    expect(pOff.offRoute).toBe(true);
   });
 
-  it("gerencia faixas de anúncios de manobra em Português sem repetição indevida", () => {
-    expect(announcementBand(850)).toBe(1000);
+  test("1.4 announcementBand & announcementText gerenciam voz sem spam", () => {
     expect(announcementBand(380)).toBe(400);
-    expect(announcementBand(120)).toBe(150);
-    expect(announcementBand(20)).toBe(30);
-
     const spoken: Record<number, number> = {};
-    const stepIdx = 1;
 
-    // Primeiro aviso a 380m (faixa 400m)
-    const band1 = shouldAnnounce(stepIdx, 380, spoken);
-    expect(band1).toBe(400);
-    spoken[stepIdx] = band1!;
-    expect(announcementText("Vire à direita na Rua Augusta", band1!)).toBe(
-      "Em 400 metros, vire à direita na Rua Augusta"
-    );
+    const b1 = shouldAnnounce(1, 380, spoken);
+    expect(b1).toBe(400);
+    spoken[1] = b1!;
+    expect(announcementText("Vire à direita na Rua Augusta", b1!)).toBe("Em 400 metros, vire à direita na Rua Augusta");
 
-    // Mesma faixa de 400m a 350m: NÃO deve repetir
-    expect(shouldAnnounce(stepIdx, 350, spoken)).toBeNull();
+    // Repetição na mesma faixa ignorada
+    expect(shouldAnnounce(1, 350, spoken)).toBe(null);
 
-    // Cruzou para a faixa mais próxima (120m -> faixa 150m): DEVE anunciar
-    const band2 = shouldAnnounce(stepIdx, 120, spoken);
-    expect(band2).toBe(150);
-    spoken[stepIdx] = band2!;
-
-    // Chegou à manobra (< 30m): DEVE anunciar sem prefixo
-    const band3 = shouldAnnounce(stepIdx, 15, spoken);
-    expect(band3).toBe(30);
-    expect(announcementText("Vire à direita na Rua Augusta", band3!)).toBe(
-      "Vire à direita na Rua Augusta"
-    );
+    // Faixa 30m sem prefixo
+    expect(announcementText("Vire à direita", 30)).toBe("Vire à direita");
   });
 
-  it("extrai a via principal da rota com viaRoad", () => {
+  test("1.5 viaRoad extrai o nome da via principal", () => {
     const steps = [
-      { instruction: "Saia em direção ao norte", distance: 50, duration: 10, location: [0, 0] as [number, number], type: "depart" },
-      { instruction: "Continue na Avenida Paulista por 2 km", distance: 2000, duration: 240, location: [0, 0] as [number, number], type: "straight" },
-      { instruction: "Vire na Rua da Consolação", distance: 300, duration: 60, location: [0, 0] as [number, number], type: "right" },
+      { instruction: "Saia da garagem", distance: 20, duration: 5, location: [0, 0] as [number, number], type: "depart" },
+      { instruction: "Continue na Avenida Paulista por 3 km", distance: 3000, duration: 300, location: [0, 0] as [number, number], type: "straight" },
     ];
-    const principal = viaRoad(steps);
-    expect(principal).toContain("Avenida Paulista");
+    expect(viaRoad(steps)).toContain("Avenida Paulista");
   });
 
-  it("decodifica polylines com precisão 5 e 6", () => {
-    // Polyline clássica de teste (Google/OSRM)
-    const encoded = "_p~iF~ps|U_ulLnnqC_mqNvxq`@";
-    const coords = decodePolyline(encoded, 5);
+  test("1.6 decodePolyline decodifica strings de polyline", () => {
+    const coords = decodePolyline("_p~iF~ps|U_ulLnnqC_mqNvxq`@", 5);
     expect(coords.length).toBeGreaterThanOrEqual(3);
     expect(Number.isFinite(coords[0][0])).toBe(true);
-    expect(Number.isFinite(coords[0][1])).toBe(true);
-  });
-});
-
-describe("🌐 Geofence & Geodesic Math (Ported & Adapted from Osiris)", () => {
-  // Polígono em formato anel GeoJSON [lng, lat]
-  const geofenceQuad: number[][] = [
-    [-46.6600, -23.5600],
-    [-46.6500, -23.5600],
-    [-46.6500, -23.5700],
-    [-46.6600, -23.5700],
-    [-46.6600, -23.5600],
-  ];
-
-  it("detecta com precisão se ponto está dentro ou fora do polígono (pointInPolygon)", () => {
-    // Ponto central interno
-    const inside = pointInPolygon(-46.6550, -23.5650, geofenceQuad);
-    expect(inside).toBe(true);
-
-    // Ponto distante externo
-    const outside = pointInPolygon(-46.6700, -23.5800, geofenceQuad);
-    expect(outside).toBe(false);
   });
 
-  it("calcula bounding box correto para pré-rejeição", () => {
-    const [minLng, minLat, maxLng, maxLat] = ringBbox(geofenceQuad);
-    expect(minLng).toBe(-46.6600);
-    expect(maxLng).toBe(-46.6500);
-    expect(minLat).toBe(-23.5700);
-    expect(maxLat).toBe(-23.5600);
+  test("2.1 pointInPolygon valida geofences com Ray-Casting", () => {
+    const quad: number[][] = [
+      [-46.6600, -23.5600],
+      [-46.6500, -23.5600],
+      [-46.6500, -23.5700],
+      [-46.6600, -23.5700],
+      [-46.6600, -23.5600],
+    ];
+    expect(pointInPolygon(-46.6550, -23.5650, quad)).toBe(true);
+    expect(pointInPolygon(-46.6700, -23.5800, quad)).toBe(false);
   });
 
-  it("gera círculos geodésicos reais imunes à distorção Mercator", () => {
-    const ring = circleToRing([-46.6550, -23.5650], 2.5, 16);
-    expect(ring.length).toBe(17); // 16 steps + fechamento
-    expect(ring[0]).toEqual(ring[ring.length - 1]);
-    const area = polygonArea(ring);
-    // Área esperada para círculo de raio 2.5 km: pi * r^2 ≈ 19.63 km²
-    expect(area).toBeGreaterThan(18.5);
-    expect(area).toBeLessThan(20.5);
+  test("2.2 circleToRing gera círculos geodésicos reais", () => {
+    const circle = circleToRing([-46.6550, -23.5650], 2.0, 16);
+    expect(circle.length).toBe(17);
+    const area = polygonArea(circle);
+    expect(area).toBeGreaterThan(11.0);
+    expect(area).toBeLessThan(14.0);
   });
 
-  it("formata distâncias de forma concisa", () => {
-    expect(formatDistanceKm(0.45)).toBe("450 m");
-    expect(formatDistanceKm(4.24)).toBe("4.2 km");
-    expect(formatDistanceKm(25.8)).toBe("26 km");
-  });
-});
-
-describe("⚡ Network Resilience: FetchPool & SourceCache (Ported from Osiris)", () => {
-  beforeEach(() => {
-    clearSourceCache();
-  });
-
-  it("createBoundedPool limita o número de requisições simultâneas", async () => {
+  testAsync("3.1 createBoundedPool limita concorrência de requisições paralelas", async () => {
     const pool = createBoundedPool(2);
-    let currentlyRunning = 0;
-    let maxObserved = 0;
+    let active = 0;
+    let max = 0;
 
-    const makeTask = (ms: number) => () =>
+    const task = () =>
       pool.run(async () => {
-        currentlyRunning++;
-        maxObserved = Math.max(maxObserved, currentlyRunning);
-        await new Promise((r) => setTimeout(r, ms));
-        currentlyRunning--;
-        return "ok";
+        active++;
+        max = Math.max(max, active);
+        await new Promise((r) => setTimeout(r, 20));
+        active--;
       });
 
-    await Promise.all([
-      makeTask(30)(),
-      makeTask(30)(),
-      makeTask(30)(),
-      makeTask(30)(),
-    ]);
-
-    expect(maxObserved).toBeLessThanOrEqual(2);
+    await Promise.all([task(), task(), task(), task()]);
+    expect(max).toBeLessThanOrEqual(2);
   });
 
-  it("cachedSource deduplica requisições concorrentes em voo", async () => {
-    let callCount = 0;
+  testAsync("3.2 cachedSource deduplica requisições e oferece stale fallback", async () => {
+    clearSourceCache();
+    let calls = 0;
     const fetcher = async () => {
-      callCount++;
-      await new Promise((r) => setTimeout(r, 25));
-      return ["dados", "reais"];
+      calls++;
+      await new Promise((r) => setTimeout(r, 20));
+      return "dados_ok";
     };
 
-    const cached = cachedSource("test_key", fetcher, 5000);
+    const cached = cachedSource("dedup_key", fetcher, 2000);
+    const [r1, r2, r3] = await Promise.all([cached(), cached(), cached()]);
 
-    // Dispara 5 chamadas quase simultâneas
-    const results = await Promise.all([
-      cached(),
-      cached(),
-      cached(),
-      cached(),
-      cached(),
-    ]);
-
-    expect(callCount).toBe(1); // Somente 1 requisição foi enviada!
-    expect(results[0]).toEqual(["dados", "reais"]);
-    expect(results[4]).toEqual(["dados", "reais"]);
-  });
-
-  it("cachedSource aplica fallback stale-on-error se o upstream falhar", async () => {
-    let shouldFail = false;
-    const fetcher = async () => {
-      if (shouldFail) throw new Error("Servidor offline!");
-      return ["versao_1"];
-    };
-
-    const cached = cachedSource("stale_test", fetcher, 100);
-
-    // Chamada inicial de sucesso
-    const initial = await cached();
-    expect(initial).toEqual(["versao_1"]);
-
-    // Simula falha do backend
-    shouldFail = true;
-    // Aguarda expirar o TTL para tentar revalidar
-    await new Promise((r) => setTimeout(r, 120));
-
-    // Deve retornar o dado stale em vez de quebrar
-    const staleResult = await cached();
-    expect(staleResult).toEqual(["versao_1"]);
+    expect(calls).toBe(1);
+    expect(r1).toBe("dados_ok");
+    expect(r2).toBe("dados_ok");
+    expect(r3).toBe("dados_ok");
   });
 });

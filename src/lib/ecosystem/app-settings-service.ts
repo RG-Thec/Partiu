@@ -155,7 +155,25 @@ class AppSettingsService {
     try {
       const { data, error } = await (supabase as any)
         .from("app_settings")
-        .select("*")
+        .select(`
+          id,
+          daily_fee_car,
+          daily_fee_moto,
+          base_fare_ride,
+          base_fare_delivery,
+          price_per_km,
+          price_per_minute,
+          is_delivery_active,
+          is_ride_active,
+          currency_symbol,
+          pix_key,
+          pix_receiver_name,
+          pix_receiver_city,
+          active_gateway,
+          mercadopago_public_key,
+          mercadopago_sandbox,
+          updated_at
+        `)
         .eq("id", "global")
         .maybeSingle();
 
@@ -222,6 +240,17 @@ class AppSettingsService {
 
     if (isSupabaseConfigured()) {
       try {
+        if (patch.mercadopago_access_token || patch.mercadopago_webhook_secret) {
+          try {
+            await (supabase as any).rpc("fn_save_admin_gateway_secrets", {
+              p_access_token: patch.mercadopago_access_token || "",
+              p_webhook_secret: patch.mercadopago_webhook_secret || "",
+            });
+          } catch (secErr) {
+            silentCatchWarn("app-settings-service:save-secrets", secErr);
+          }
+        }
+
         await (supabase as any)
           .from("app_settings")
           .upsert({
@@ -238,9 +267,7 @@ class AppSettingsService {
             pix_receiver_name: updated.pix_receiver_name,
             pix_receiver_city: updated.pix_receiver_city,
             active_gateway: updated.active_gateway,
-            mercadopago_access_token: updated.mercadopago_access_token,
             mercadopago_public_key: updated.mercadopago_public_key,
-            mercadopago_webhook_secret: updated.mercadopago_webhook_secret,
             mercadopago_sandbox: updated.mercadopago_sandbox,
             updated_at: updated.updated_at,
           });
