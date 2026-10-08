@@ -40,9 +40,17 @@ export function PassengerIdleCard({ userName = "Passageiro" }: PassengerIdleCard
       if (salvo) {
         const parsed = JSON.parse(salvo);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const ultimo = parsed[0];
+          const validos = parsed.filter(
+            (item: any) =>
+              item &&
+              item.id !== "rec-1" &&
+              item.id !== "rec-2" &&
+              item.label !== "Rua Dez de Maio, 188" &&
+              item.label !== "Hospital São José do Avaí"
+          );
+          const ultimo = validos[0];
           // Se o último for diferente de Casa, exibe Último + Casa
-          if (ultimo.endereco && ultimo.endereco.toLowerCase() !== casaPadrao.endereco.toLowerCase()) {
+          if (ultimo && ultimo.endereco && ultimo.endereco.toLowerCase() !== casaPadrao.endereco.toLowerCase()) {
             setDestinosFrequentes([
               {
                 id: ultimo.id || "rec-last",

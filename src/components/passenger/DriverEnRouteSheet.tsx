@@ -391,7 +391,7 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                     <MapPin className="w-3.5 h-3.5 text-brand-primary-vibrant shrink-0" />
                     <div className="min-w-0">
                       <span className="text-xs uppercase font-extrabold text-slate-600 block">Destino</span>
-                      <span className="text-xs font-bold text-slate-900 truncate block">{destino || "Hospital São José"}</span>
+                      <span className="text-xs font-bold text-slate-900 truncate block">{destino || "Destino selecionado"}</span>
                     </div>
                   </div>
                 </div>
@@ -768,7 +768,7 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                   <MapPin className="w-4 h-4 text-brand-primary-vibrant shrink-0" />
                   <div className="truncate">
                     <span className="text-slate-600 block text-xs font-semibold">Destino</span>
-                    <span className="font-bold text-slate-900 truncate block">{destino || "Hospital São José"}</span>
+                    <span className="font-bold text-slate-900 truncate block">{destino || "Destino selecionado"}</span>
                   </div>
                 </div>
               </div>

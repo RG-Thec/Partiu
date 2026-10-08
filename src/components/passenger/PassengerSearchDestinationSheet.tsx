@@ -38,6 +38,7 @@ import { FavoritesManagerModal } from "@/components/passenger/FavoritesManagerMo
 import { AddressSearchSkeleton } from "@/components/ui/skeleton";
 import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
 import { silentCatchWarn } from "@/lib/structured-logger";
+import { getHistoricoViagens } from "@/lib/partiu-engine";
 
 
 const STORAGE_RECENT_KEY = "partiu_recent_destinations_v1";
@@ -50,22 +51,69 @@ interface RecentItem {
   timestamp: number;
 }
 
-const VIAGENS_RECENTES_DEFAULT: RecentItem[] = [
-  {
-    id: "rec-1",
-    label: "Rua Dez de Maio, 188",
-    endereco: "Rua Dez de Maio, 188 - Centro, Itaperuna - RJ",
-    coords: [-41.886, -21.2065],
-    timestamp: Date.now() - 3600000,
-  },
-  {
-    id: "rec-2",
-    label: "Hospital São José do Avaí",
-    endereco: "Rua Cel. Luiz Ferraz, 397 - Centro, Itaperuna - RJ",
-    coords: [-41.8895, -21.2038],
-    timestamp: Date.now() - 7200000,
-  },
-];
+/**
+ * Recupera o histórico autêntico e real de viagens do passageiro.
+ * Se não houver viagens reais (nem no cache local limpo nem na engine/banco),
+ * retorna array vazio `[]` para manter a interface 100% limpa, sem fakes engessados.
+ */
+function carregarHistoricoReal(): RecentItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const salvo = localStorage.getItem(STORAGE_RECENT_KEY);
+    if (salvo) {
+      const parsed = JSON.parse(salvo);
+      if (Array.isArray(parsed)) {
+        // Expurgar qualquer dado mock/fake legado
+        const validos = parsed.filter(
+          (item: any) =>
+            item &&
+            typeof item === "object" &&
+            item.id !== "rec-1" &&
+            item.id !== "rec-2" &&
+            item.label !== "Rua Dez de Maio, 188" &&
+            item.label !== "Hospital São José do Avaí"
+        );
+        // Higieniza o storage para não deixar resíduos em disco/cache
+        if (validos.length !== parsed.length) {
+          localStorage.setItem(STORAGE_RECENT_KEY, JSON.stringify(validos));
+        }
+        if (validos.length > 0) {
+          return validos.slice(0, 2);
+        }
+      }
+    }
+
+    // Se o storage recente estiver limpo, consulta corridas reais concluídas na engine
+    const historicoEngine = getHistoricoViagens();
+    if (Array.isArray(historicoEngine) && historicoEngine.length > 0) {
+      const corridasValidas = historicoEngine
+        .filter(
+          (c) =>
+            c &&
+            c.destino &&
+            c.id &&
+            !c.id.startsWith("mock-")
+        )
+        .slice(0, 2);
+
+      if (corridasValidas.length > 0) {
+        return corridasValidas.map((c) => ({
+          id: `ride-${c.id}`,
+          label: c.destino.split(",")[0]?.trim() || c.destino,
+          endereco: c.destino,
+          coords: c.destinoCoords
+            ? [c.destinoCoords.lng, c.destinoCoords.lat]
+            : undefined,
+          timestamp: new Date(c.criadoEm).getTime() || Date.now(),
+        }));
+      }
+    }
+  } catch (err) {
+    silentCatchWarn("PassengerSearchDestinationSheet", err);
+  }
+
+  return [];
+}
 
 interface SearchDestinationItemRowProps {
   item: GeocodedPlace;
@@ -273,19 +321,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
   const [lugaresEncontrados, setLugaresEncontrados] = useState<GeocodedPlace[]>(LUGARES_CURADOS_ITAPERUNA);
   const [carregandoLugares, setCarregandoLugares] = useState(false);
 
-  const [historicoRecente, setHistoricoRecente] = useState<RecentItem[]>(() => {
-    if (typeof window === "undefined") return VIAGENS_RECENTES_DEFAULT;
-    try {
-      const salvo = localStorage.getItem(STORAGE_RECENT_KEY);
-      if (salvo) {
-        const parsed = JSON.parse(salvo);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.slice(0, 2);
-        }
-      }
-    } catch (err) { silentCatchWarn("PassengerSearchDestinationSheet", err); }
-    return VIAGENS_RECENTES_DEFAULT;
-  });
+  const [historicoRecente, setHistoricoRecente] = useState<RecentItem[]>(() => carregarHistoricoReal());
 
   const inputDestinoRef = useRef<HTMLInputElement>(null);
   const inputOrigemRef = useRef<HTMLInputElement>(null);
@@ -1030,7 +1066,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                 )}
 
                 {/* LOCAIS SUGERIDOS EM ITAPERUNA POR PROXIMIDADE REAL */}
-                <div className="space-y-1 pt-2 border-t border-slate-100">
+                <div className={`space-y-1 ${historicoRecente && historicoRecente.length > 0 ? "pt-2 border-t border-slate-100" : ""}`}>
                   <span className="text-xs font-black uppercase tracking-wider text-slate-700 block px-1">
                     Locais Próximos e Sugeridos
                   </span>

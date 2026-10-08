@@ -30,21 +30,8 @@ export const USER_PROFILE_MOCK: UserProfileMock = {
   iniciais: "RG",
 };
 
-// 2. Mock dos Últimos Destinos Pesquisados em Itaperuna, RJ (Oficiais de 2.png)
-export const RECENT_SEARCH_MOCKS: RecentAddressItem[] = [
-  {
-    id: "rec-1",
-    titulo: "Centro, Itaperuna - RJ",
-    endereco: "Praça Getúlio Vargas, Centro",
-    coords: [-41.8835, -21.2080],
-  },
-  {
-    id: "rec-2",
-    titulo: "Hospital São José",
-    endereco: "Rua 10 de Maio, 456 - Centro",
-    coords: [-41.8895, -21.2038],
-  },
-];
+// 2. Destinos Recentes — padrão limpo (zero mocks engessados)
+export const RECENT_SEARCH_MOCKS: RecentAddressItem[] = [];
 
 // 3. Mock do Carrossel de Banners de Marketing (Estritamente Mobilidade e Entregas)
 export const PROMO_BANNERS_MOCK: PromoBannerItem[] = [

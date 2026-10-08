@@ -36,6 +36,7 @@ import { NotificationCenterModal } from "@/components/notifications/Notification
 import { pushNotificationService } from "@/services/PushNotificationService";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { userService } from "@/services/UserService";
+import { getHistoricoViagens } from "@/lib/partiu-engine";
 
 // Lazy loading sob demanda para componentes pesados secundários (TTI acelerado)
 const AppDrawer = lazy(() =>
@@ -172,19 +173,49 @@ function PartiuPassengerHomeContent() {
     [selectDestination]
   );
 
-  // Histórico de destinos recentes do passageiro (100% real)
+  // Histórico de destinos recentes do passageiro (100% autêntico e real)
   const [recentAddresses, setRecentAddresses] = useState<RecentAddressItem[]>(() => {
     if (typeof window === "undefined") return [];
     try {
       const salvo = localStorage.getItem("partiu_recent_destinations_v1");
       if (salvo) {
         const parsed = JSON.parse(salvo);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.slice(0, 2).map((item: any) => ({
-            id: item.id,
-            titulo: item.label || item.titulo || "Recente",
-            endereco: item.endereco,
-            coords: item.coords || [-41.886, -21.2065],
+        if (Array.isArray(parsed)) {
+          // Filtrar e expurgar registros mock legados
+          const validos = parsed.filter(
+            (item: any) =>
+              item &&
+              item.id !== "rec-1" &&
+              item.id !== "rec-2" &&
+              item.label !== "Rua Dez de Maio, 188" &&
+              item.label !== "Hospital São José do Avaí"
+          );
+          if (validos.length !== parsed.length) {
+            localStorage.setItem("partiu_recent_destinations_v1", JSON.stringify(validos));
+          }
+          if (validos.length > 0) {
+            return validos.slice(0, 2).map((item: any) => ({
+              id: item.id,
+              titulo: item.label || item.titulo || "Recente",
+              endereco: item.endereco,
+              coords: item.coords || [-41.886, -21.2065],
+            }));
+          }
+        }
+      }
+
+      // Se storage estiver vazio, verifica se há viagens reais finalizadas no histórico
+      const historicoEngine = getHistoricoViagens();
+      if (Array.isArray(historicoEngine) && historicoEngine.length > 0) {
+        const validas = historicoEngine
+          .filter((c) => c && c.destino && c.id && !c.id.startsWith("mock-"))
+          .slice(0, 2);
+        if (validas.length > 0) {
+          return validas.map((c) => ({
+            id: `ride-${c.id}`,
+            titulo: c.destino.split(",")[0]?.trim() || c.destino,
+            endereco: c.destino,
+            coords: c.destinoCoords ? [c.destinoCoords.lng, c.destinoCoords.lat] : [-41.886, -21.2065],
           }));
         }
       }
