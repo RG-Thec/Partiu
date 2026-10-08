@@ -50,14 +50,39 @@ export class AddressService {
   }
 
   /**
-   * Leitura rápida síncrona do cache local (0ms de latência)
+   * Obtém a chave de armazenamento isolada por usuário para prevenir vazamento cross-account
    */
-  public getLocalAddresses(): SavedLocation[] {
+  public getStorageKey(userIdParam?: string): string {
+    if (typeof window === "undefined") return STORAGE_ENDERECOS_KEY;
+    const session = supabaseAuthService.getStoredSession();
+    const uid = userIdParam || session?.id || localStorage.getItem("partiu_user_id");
+    if (uid && uid !== "passageiro_default") {
+      return `partiu_enderecos_salvos_v1_${uid}`;
+    }
+    return STORAGE_ENDERECOS_KEY;
+  }
+
+  /**
+   * Leitura rápida síncrona do cache local (0ms de latência), isolada por usuário
+   */
+  public getLocalAddresses(userIdParam?: string): SavedLocation[] {
     if (typeof window === "undefined") return [];
     try {
-      const stored = localStorage.getItem(STORAGE_ENDERECOS_KEY);
+      const key = this.getStorageKey(userIdParam);
+      const stored = localStorage.getItem(key);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed: SavedLocation[] = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          // Filtra itens residuais mockados de ambientes legados
+          return parsed.filter(
+            (a) =>
+              a &&
+              a.endereco &&
+              a.endereco !== "Rua Dez de Maio, 188 - Centro, Itaperuna - RJ" &&
+              a.endereco !== "Av. Cardoso Moreira, 310 - Centro, Itaperuna - RJ" &&
+              a.endereco !== "Av. Vinhosa, 780 - Vinhosa, Itaperuna - RJ"
+          );
+        }
       }
     } catch (err) { silentCatchWarn("AddressService", err); }
     return [];
@@ -66,10 +91,11 @@ export class AddressService {
   /**
    * Salva lista no armazenamento local e notifica os componentes reativos
    */
-  public saveLocalAddresses(lista: SavedLocation[]): void {
+  public saveLocalAddresses(lista: SavedLocation[], userIdParam?: string): void {
     if (typeof window === "undefined") return;
     try {
-      localStorage.setItem(STORAGE_ENDERECOS_KEY, JSON.stringify(lista));
+      const key = this.getStorageKey(userIdParam);
+      localStorage.setItem(key, JSON.stringify(lista));
       window.dispatchEvent(new CustomEvent("partiu:addresses_updated"));
     } catch (err) { silentCatchWarn("AddressService", err); }
   }
@@ -77,8 +103,8 @@ export class AddressService {
   /**
    * Retorna o endereço de Casa (ou null se não cadastrado)
    */
-  public getCasa(): UserAddressItem | null {
-    const addresses = this.getLocalAddresses();
+  public getCasa(userIdParam?: string): UserAddressItem | null {
+    const addresses = this.getLocalAddresses(userIdParam);
     const found = addresses.find(
       (a) => a.id === "loc-casa" || a.label.trim().toLowerCase() === "casa" || a.icone === "home"
     );
@@ -98,8 +124,8 @@ export class AddressService {
   /**
    * Retorna o endereço de Trabalho (ou null se não cadastrado)
    */
-  public getTrabalho(): UserAddressItem | null {
-    const addresses = this.getLocalAddresses();
+  public getTrabalho(userIdParam?: string): UserAddressItem | null {
+    const addresses = this.getLocalAddresses(userIdParam);
     const found = addresses.find(
       (a) => a.id === "loc-trabalho" || a.label.trim().toLowerCase() === "trabalho" || a.icone === "work"
     );
@@ -119,8 +145,8 @@ export class AddressService {
   /**
    * Retorna a lista de locais favoritos customizados (excluindo Casa e Trabalho)
    */
-  public getFavoritos(): UserAddressItem[] {
-    const addresses = this.getLocalAddresses();
+  public getFavoritos(userIdParam?: string): UserAddressItem[] {
+    const addresses = this.getLocalAddresses(userIdParam);
     return addresses
       .filter((a) => {
         const lbl = a.label.trim().toLowerCase();
@@ -204,11 +230,11 @@ export class AddressService {
       icone: "home",
     };
 
-    const atuais = this.getLocalAddresses().filter(
+    const atuais = this.getLocalAddresses(userIdParam).filter(
       (a) => a.id !== "loc-casa" && a.label.trim().toLowerCase() !== "casa"
     );
     const atualizados = [item, ...atuais];
-    this.saveLocalAddresses(atualizados);
+    this.saveLocalAddresses(atualizados, userIdParam);
 
     this.syncToCloud(item, userIdParam, "home");
 
@@ -237,11 +263,11 @@ export class AddressService {
       icone: "work",
     };
 
-    const atuais = this.getLocalAddresses().filter(
+    const atuais = this.getLocalAddresses(userIdParam).filter(
       (a) => a.id !== "loc-trabalho" && a.label.trim().toLowerCase() !== "trabalho"
     );
     const atualizados = [item, ...atuais];
-    this.saveLocalAddresses(atualizados);
+    this.saveLocalAddresses(atualizados, userIdParam);
 
     this.syncToCloud(item, userIdParam, "briefcase");
 
@@ -276,9 +302,9 @@ export class AddressService {
       icone: "cart",
     };
 
-    const atuais = this.getLocalAddresses();
+    const atuais = this.getLocalAddresses(userIdParam);
     const atualizados = [...atuais, item];
-    this.saveLocalAddresses(atualizados);
+    this.saveLocalAddresses(atualizados, userIdParam);
 
     this.syncToCloud(item, userIdParam, icon);
 

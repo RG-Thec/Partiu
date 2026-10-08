@@ -46,8 +46,8 @@ function carregarDestinosReais(): SavedLocation[] {
     }
 
     // Se não há viagens recentes, verifica se o usuário configurou Casa ou Trabalho reais
-    const casa = addressService.getCasa();
-    const trabalho = addressService.getTrabalho();
+    const casa = addressService.getCasa(uid);
+    const trabalho = addressService.getTrabalho(uid);
     const reais: SavedLocation[] = [];
     if (casa && casa.endereco) {
       reais.push({

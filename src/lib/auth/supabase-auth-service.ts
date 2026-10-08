@@ -236,8 +236,9 @@ export class SupabaseAuthService {
       localStorage.removeItem("partiu_active_ride");
       localStorage.removeItem("partiu_motorista_ativo");
       localStorage.removeItem("partiu_ganhos_motorista");
+      localStorage.removeItem("partiu_enderecos_salvos_v1");
 
-      // Limpa qualquer chave recente ou de histórico com prefixo de usuário
+      // Limpa qualquer chave recente, frequência ou de endereço com prefixo de usuário
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -245,6 +246,7 @@ export class SupabaseAuthService {
           key &&
           (key.startsWith("partiu_recent_destinations_v1_") ||
             key.startsWith("partiu_user_destination_frequency_") ||
+            key.startsWith("partiu_enderecos_salvos_v1_") ||
             key.startsWith("partiu_historico_viagens_") ||
             key.startsWith("partiu_offline_rides_history_"))
         ) {

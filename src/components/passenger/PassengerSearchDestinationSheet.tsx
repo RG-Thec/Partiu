@@ -354,7 +354,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
   };
 
   // Sugestões dinâmicas e histórico recente (estritamente as 2 últimas viagens)
-  const [lugaresEncontrados, setLugaresEncontrados] = useState<GeocodedPlace[]>(LUGARES_CURADOS_ITAPERUNA);
+  const [lugaresEncontrados, setLugaresEncontrados] = useState<GeocodedPlace[]>([]);
   const [carregandoLugares, setCarregandoLugares] = useState(false);
 
   // 6 Sugestões inteligentes: 3 que o usuário mais frequenta + 3 mais próximos da localização GPS real
@@ -395,6 +395,10 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
   useEffect(() => {
     let ativo = true;
     const termo = campoAtivo === "embarque" ? origemLocal : buscaDestino;
+    const estaEmItaperuna = origemCoords
+      ? calcularDistanciaHaversine(origemCoords, [-41.888, -21.205]) <= 25
+      : false;
+    const fallbackLugares = estaEmItaperuna ? LUGARES_CURADOS_ITAPERUNA : [];
 
     if (!termo.trim() || (campoAtivo === "embarque" && termo === "Meu Local Atual")) {
       geocodingService
@@ -403,7 +407,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
           if (ativo) setLugaresEncontrados(locaisProximos);
         })
         .catch(() => {
-          if (ativo) setLugaresEncontrados(LUGARES_CURADOS_ITAPERUNA);
+          if (ativo) setLugaresEncontrados(fallbackLugares);
         });
       return;
     }
@@ -416,7 +420,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
           setLugaresEncontrados(resultados);
         }
       } catch {
-        if (ativo) setLugaresEncontrados(LUGARES_CURADOS_ITAPERUNA);
+        if (ativo) setLugaresEncontrados(fallbackLugares);
       } finally {
         if (ativo) setCarregandoLugares(false);
       }
@@ -1076,18 +1080,14 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                   <ChevronRight className="w-4 h-4 text-emerald-600 shrink-0" />
                 </button>
 
-                {/* Sugestões de locais próximos para embarque */}
-                <div className="space-y-1 pt-1">
-                  <span className="text-xs font-black uppercase tracking-wider text-slate-700 block px-1 pb-1">
-                    Locais Próximos Sugeridos para Embarque
-                  </span>
-                  <div className="space-y-1">
-                    {(sugestoesInteligentes.proximos.length > 0
-                      ? sugestoesInteligentes.proximos
-                      : lugaresEncontrados
-                    )
-                      .slice(0, 3)
-                      .map((lugar) => (
+                {/* Sugestões de locais próximos para embarque (reais por GPS) */}
+                {sugestoesInteligentes.proximos.length > 0 && (
+                  <div className="space-y-1 pt-1">
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-700 block px-1 pb-1">
+                      Locais Próximos Sugeridos para Embarque
+                    </span>
+                    <div className="space-y-1">
+                      {sugestoesInteligentes.proximos.slice(0, 3).map((lugar) => (
                         <SearchDestinationItemRow
                           key={lugar.id}
                           item={lugar}
@@ -1096,8 +1096,9 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                           getIcon={getCategoryIcon}
                         />
                       ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )
           ) : (

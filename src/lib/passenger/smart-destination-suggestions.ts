@@ -1,13 +1,27 @@
 /**
  * ==============================================================================
- * 🧠 PARTIU — SMART DESTINATION SUGGESTIONS ENGINE (V2.0)
+ * 🧠 PARTIU — SMART DESTINATION SUGGESTIONS ENGINE (V3.0 REAL GEOLOCATION)
  * ==============================================================================
- * Motor inteligente de sugestões de destinos com:
- * - 3 Locais Mais Frequentados pelo usuário (aprendizado de frequência real,
- *   destinos favoritos, histórico de viagens e preferências)
- * - 3 Locais Próximos Reais calculados geograficamente a partir da localização
- *   GPS exata do passageiro.
- * Total: Exatamente 6 sugestões inteligentes, reais e contextualizadas.
+ * Motor 100% autêntico e inteligente de sugestões de destinos:
+ *
+ * 1. LOCAIS QUE VOCÊ FREQUENTA (Máximo 3 itens):
+ *    - Baseado estritamente em hábitos reais do usuário ativo (Casa, Trabalho,
+ *      Favoritos salvos por ele, contagem de frequência de destinos e histórico
+ *      de corridas reais concluídas).
+ *    - SE O USUÁRIO FOR NOVO OU NÃO TIVER LOCAIS FREQUENTADOS:
+ *      Retorna lista VAZIA ([]). Zero mocks, zero dados herdados de outros
+ *      perfis e zero polos artificiais de outras cidades.
+ *    - Restrito a destinos dentro de raio de mobilidade urbana (< 80 km) em
+ *      relação à posição atual do passageiro.
+ *
+ * 2. LOCAIS PRÓXIMOS DE VOCÊ (Máximo 3 itens):
+ *    - Calculado em tempo real por proximidade geodésica estrita (metros/km)
+ *      em torno das coordenadas GPS atuais do passageiro.
+ *    - Utiliza bounding box (bbox) restrita (~4 km) e geocoding reverso/POIs
+ *      para encontrar vias de acesso, avenidas, praças e referências locais reais.
+ *    - Raio máximo estrito de 8 km. Qualquer local acima de 8 km é descartado.
+ *    - Se o usuário estiver fora de Itaperuna, locais de Itaperuna JAMAIS são
+ *      usados.
  * ==============================================================================
  */
 
@@ -45,13 +59,16 @@ interface DestinoFrequenteRegistro {
   ultimaVisita: number;
 }
 
+/**
+ * Obtém a chave de armazenamento isolada estritamente por ID de usuário
+ */
 function getStorageFrequencyKey(uid?: string): string {
-  if (typeof window === "undefined") return "partiu_user_destination_frequency_v2";
+  if (typeof window === "undefined") return "partiu_user_destination_frequency_v3";
   const user = uid || supabaseAuthService.getStoredSession()?.id || localStorage.getItem("partiu_user_id");
   if (user && user !== "passageiro_default") {
-    return `partiu_user_destination_frequency_v2_${user}`;
+    return `partiu_user_destination_frequency_v3_${user}`;
   }
-  return "partiu_user_destination_frequency_v2";
+  return "partiu_user_destination_frequency_v3_anon";
 }
 
 function normalizarTexto(txt: string): string {
@@ -73,7 +90,7 @@ export function registrarDestinoFrequente(
   coords?: [number, number],
   uid?: string
 ): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || !endereco) return;
   try {
     const key = getStorageFrequencyKey(uid);
     const raw = localStorage.getItem(key);
@@ -116,7 +133,9 @@ export function registrarDestinoFrequente(
 }
 
 /**
- * Obtém os 3 locais que o usuário mais frequenta
+ * Obtém até 3 locais que o usuário REALMENTE frequenta ou salvou.
+ * Se o usuário não tiver locais frequentes (conta nova), retorna array vazio ([]).
+ * Zero dados falsos, zero mocks e zero preenchimento com outras cidades.
  */
 export async function getTop3LocaisFrequentados(
   coordsOrigem?: [number, number],
@@ -132,54 +151,71 @@ export async function getTop3LocaisFrequentados(
     frequencia: number;
   }>();
 
-  // 1. Endereços salvos prioritários (Casa e Trabalho)
+  // 1. Endereços salvos prioritários do próprio usuário (Casa e Trabalho)
   try {
-    const casa = addressService.getCasa();
+    const casa = addressService.getCasa(uid);
     if (casa && casa.endereco) {
-      const norm = normalizarTexto(casa.endereco);
-      lugaresAgrupados.set(norm, {
-        label: "Casa",
-        endereco: casa.endereco,
-        coords: casa.coords,
-        score: 100, // Prioridade máxima
-        badge: "Casa",
-        frequencia: 15,
-      });
-    }
-
-    const trabalho = addressService.getTrabalho();
-    if (trabalho && trabalho.endereco) {
-      const norm = normalizarTexto(trabalho.endereco);
-      lugaresAgrupados.set(norm, {
-        label: "Trabalho",
-        endereco: trabalho.endereco,
-        coords: trabalho.coords,
-        score: 90, // Alta prioridade
-        badge: "Trabalho",
-        frequencia: 12,
-      });
-    }
-
-    // Outros favoritos salvos no AddressService
-    const outrosSalvos = addressService.getLocalAddresses();
-    for (const fav of outrosSalvos) {
-      if (fav && fav.endereco && fav.id !== "loc-casa" && fav.id !== "loc-trabalho") {
-        const norm = normalizarTexto(fav.endereco);
-        if (!lugaresAgrupados.has(norm)) {
+      // Ignora se for mock de ambiente de teste antigo
+      const eMock = casa.endereco.includes("Itaperuna") && coordsOrigem && calcularDistanciaHaversineMetros(coordsOrigem, casa.coords) > 80000;
+      if (!eMock) {
+        const dist = coordsOrigem ? calcularDistanciaHaversineMetros(coordsOrigem, casa.coords) : undefined;
+        // Só exibe se for na mesma macrorregião (< 80 km)
+        if (dist === undefined || dist < 80000) {
+          const norm = normalizarTexto(casa.endereco);
           lugaresAgrupados.set(norm, {
-            label: fav.label || "Favorito",
-            endereco: fav.endereco,
-            coords: fav.coords,
-            score: 75,
-            badge: "Favorito",
+            label: "Casa",
+            endereco: casa.endereco,
+            coords: casa.coords,
+            score: 100,
+            badge: "Casa",
+            frequencia: 10,
+          });
+        }
+      }
+    }
+
+    const trabalho = addressService.getTrabalho(uid);
+    if (trabalho && trabalho.endereco) {
+      const eMock = trabalho.endereco.includes("Itaperuna") && coordsOrigem && calcularDistanciaHaversineMetros(coordsOrigem, trabalho.coords) > 80000;
+      if (!eMock) {
+        const dist = coordsOrigem ? calcularDistanciaHaversineMetros(coordsOrigem, trabalho.coords) : undefined;
+        if (dist === undefined || dist < 80000) {
+          const norm = normalizarTexto(trabalho.endereco);
+          lugaresAgrupados.set(norm, {
+            label: "Trabalho",
+            endereco: trabalho.endereco,
+            coords: trabalho.coords,
+            score: 90,
+            badge: "Trabalho",
             frequencia: 8,
           });
         }
       }
     }
+
+    // Outros favoritos salvos no AddressService
+    const outrosSalvos = addressService.getFavoritos(uid);
+    for (const fav of outrosSalvos) {
+      if (fav && fav.endereco) {
+        const dist = coordsOrigem ? calcularDistanciaHaversineMetros(coordsOrigem, fav.coords) : undefined;
+        if (dist === undefined || dist < 80000) {
+          const norm = normalizarTexto(fav.endereco);
+          if (!lugaresAgrupados.has(norm)) {
+            lugaresAgrupados.set(norm, {
+              label: fav.label || "Favorito",
+              endereco: fav.endereco,
+              coords: fav.coords,
+              score: 75,
+              badge: "Favorito",
+              frequencia: 5,
+            });
+          }
+        }
+      }
+    }
   } catch {}
 
-  // 2. Histórico de frequência registrado localmente
+  // 2. Histórico de frequência registrado localmente pelo usuário atual
   try {
     const key = getStorageFrequencyKey(uid);
     const raw = typeof window !== "undefined" ? localStorage.getItem(key) : null;
@@ -188,6 +224,11 @@ export async function getTop3LocaisFrequentados(
       if (Array.isArray(parsed)) {
         for (const reg of parsed) {
           if (!reg || !reg.endereco) continue;
+          if (coordsOrigem && reg.coords) {
+            const dist = calcularDistanciaHaversineMetros(coordsOrigem, reg.coords);
+            if (dist > 80000) continue; // Fora da macrorregião atual
+          }
+
           const norm = normalizarTexto(reg.endereco);
           const pesoTempo = Date.now() - reg.ultimaVisita < 7 * 24 * 60 * 60 * 1000 ? 10 : 0;
           const score = (reg.contagem * 8) + pesoTempo;
@@ -211,45 +252,55 @@ export async function getTop3LocaisFrequentados(
     }
   } catch {}
 
-  // 3. Viagens reais já realizadas no Partiu Engine
+  // 3. Viagens reais já realizadas no Partiu Engine por este usuário específico
   try {
-    const historicoViagens = getHistoricoViagens(
-      uid || phone ? { userId: uid, phone } : undefined
-    );
-    if (Array.isArray(historicoViagens)) {
-      for (const viagem of historicoViagens) {
-        if (!viagem || !viagem.destino || viagem.id.startsWith("mock-")) continue;
-        const norm = normalizarTexto(viagem.destino);
-        const coords: [number, number] | undefined = viagem.destinoCoords
-          ? [viagem.destinoCoords.lng, viagem.destinoCoords.lat]
-          : undefined;
+    if (uid || phone) {
+      const historicoViagens = getHistoricoViagens({ userId: uid, phone });
+      if (Array.isArray(historicoViagens)) {
+        for (const viagem of historicoViagens) {
+          if (!viagem || !viagem.destino || viagem.id.startsWith("mock-")) continue;
+          const coords: [number, number] | undefined = viagem.destinoCoords
+            ? [viagem.destinoCoords.lng, viagem.destinoCoords.lat]
+            : undefined;
 
-        if (lugaresAgrupados.has(norm)) {
-          const item = lugaresAgrupados.get(norm)!;
-          item.score += 6;
-          item.frequencia += 1;
-        } else {
-          lugaresAgrupados.set(norm, {
-            label: viagem.destino.split(",")[0]?.trim() || viagem.destino,
-            endereco: viagem.destino,
-            coords,
-            score: 15,
-            badge: "Frequente",
-            frequencia: 1,
-          });
+          if (coordsOrigem && coords) {
+            const dist = calcularDistanciaHaversineMetros(coordsOrigem, coords);
+            if (dist > 80000) continue;
+          }
+
+          const norm = normalizarTexto(viagem.destino);
+          if (lugaresAgrupados.has(norm)) {
+            const item = lugaresAgrupados.get(norm)!;
+            item.score += 6;
+            item.frequencia += 1;
+          } else {
+            lugaresAgrupados.set(norm, {
+              label: viagem.destino.split(",")[0]?.trim() || viagem.destino,
+              endereco: viagem.destino,
+              coords,
+              score: 20,
+              badge: "Frequente",
+              frequencia: 1,
+            });
+          }
         }
       }
     }
   } catch {}
 
-  // Converte o mapa em lista e ordena por pontuação de frequência
-  const candidatos = Array.from(lugaresAgrupados.values()).sort((a, b) => b.score - a.score);
+  // Se o usuário não tem nenhum dado real registrado, RETORNA VAZIO ([]).
+  // Zero dados falsos ou preenchimentos arbitrários.
+  if (lugaresAgrupados.size === 0) {
+    return [];
+  }
 
+  // Ordena por pontuação de frequência real
+  const candidatos = Array.from(lugaresAgrupados.values()).sort((a, b) => b.score - a.score);
   const resultadoFrequentes: SuggestedPlaceItem[] = [];
 
   for (const item of candidatos) {
     if (resultadoFrequentes.length >= 3) break;
-    const coordsFinal = item.coords || [-41.886, -21.2065];
+    const coordsFinal = item.coords || coordsOrigem || [-47.935, -15.795];
     const distanciaMetros = coordsOrigem ? calcularDistanciaHaversineMetros(coordsOrigem, coordsFinal) : undefined;
     resultadoFrequentes.push({
       id: `freq-${normalizarTexto(item.label).slice(0, 15)}-${resultadoFrequentes.length}`,
@@ -265,43 +316,12 @@ export async function getTop3LocaisFrequentados(
     });
   }
 
-  // Se o usuário ainda não tiver 3 locais frequentes cadastrados (ex: conta nova com 0 ou 1 corrida),
-  // complementa os slots vazios com os principais polos cívicos/comerciais de referência da cidade:
-  if (resultadoFrequentes.length < 3) {
-    const enderecosJaAdicionados = new Set(resultadoFrequentes.map((r) => normalizarTexto(r.endereco)));
-
-    // Polos de alta frequência urbana garantidos
-    const polosReferencia: GeocodedPlace[] = LUGARES_CURADOS_ITAPERUNA.filter(
-      (l) => l.tipo === "comercio" || l.tipo === "hospital" || l.tipo === "transporte" || l.tipo === "faculdade"
-    );
-
-    for (const polo of polosReferencia) {
-      if (resultadoFrequentes.length >= 3) break;
-      const norm = normalizarTexto(polo.endereco);
-      if (!enderecosJaAdicionados.has(norm)) {
-        enderecosJaAdicionados.add(norm);
-        const dist = coordsOrigem ? calcularDistanciaHaversineMetros(coordsOrigem, polo.coords) : undefined;
-        resultadoFrequentes.push({
-          id: `freq-ref-${polo.id}`,
-          label: polo.label,
-          sublabel: polo.sublabel || polo.endereco,
-          endereco: polo.endereco,
-          coords: polo.coords,
-          origemSugestao: "FREQUENTE",
-          distanciaMetros: dist,
-          distanciaFormatada: dist !== undefined ? formatarDistanciaLegivel(dist) : undefined,
-          badge: "Mais Buscado",
-          frequencia: 1,
-        });
-      }
-    }
-  }
-
   return resultadoFrequentes.slice(0, 3);
 }
 
 /**
- * Obtém os 3 locais reais mais próximos da localização GPS exata do usuário
+ * Obtém até 3 locais reais mais próximos da localização GPS exata do usuário.
+ * Raio máximo estrito de 8 km. Filtra qualquer local distante.
  */
 export async function getTop3LocaisProximosReais(
   coordsOrigem: [number, number],
@@ -310,149 +330,192 @@ export async function getTop3LocaisProximosReais(
   const normExcluidos = new Set(excluirEnderecos.map(normalizarTexto));
   const candidatosProximos: (SuggestedPlaceItem & { distanciaMetros: number })[] = [];
 
-  // 1. Busca em catálogo local estruturado de alta fidelidade
-  for (const lugar of LUGARES_CURADOS_ITAPERUNA) {
-    const endNorm = normalizarTexto(lugar.endereco);
-    const labelNorm = normalizarTexto(lugar.label);
-    if (normExcluidos.has(endNorm) || normExcluidos.has(labelNorm)) continue;
+  const lng = coordsOrigem[0];
+  const lat = coordsOrigem[1];
 
-    const distancia = calcularDistanciaHaversineMetros(coordsOrigem, lugar.coords);
+  // 1. Catálogo local se o usuário estiver estritamente na cidade de Itaperuna (raio < 25 km)
+  const distItaperuna = calcularDistanciaHaversineMetros(coordsOrigem, [-41.888, -21.205]);
+  const estaEmItaperuna = distItaperuna <= 25000;
 
-    // Ignora se estiver a menos de 40m (é a própria posição do passageiro)
-    if (distancia < 40) continue;
+  if (estaEmItaperuna) {
+    for (const lugar of LUGARES_CURADOS_ITAPERUNA) {
+      const endNorm = normalizarTexto(lugar.endereco);
+      const labelNorm = normalizarTexto(lugar.label);
+      if (normExcluidos.has(endNorm) || normExcluidos.has(labelNorm)) continue;
 
-    candidatosProximos.push({
-      id: `prox-${lugar.id}`,
-      label: lugar.label,
-      sublabel: lugar.sublabel || lugar.endereco,
-      endereco: lugar.endereco,
-      coords: lugar.coords,
-      origemSugestao: "PROXIMO",
-      distanciaMetros: distancia,
-      distanciaFormatada: formatarDistanciaLegivel(distancia),
-      badge: formatarDistanciaLegivel(distancia),
-      tipo: lugar.tipo,
-    });
+      const distancia = calcularDistanciaHaversineMetros(coordsOrigem, lugar.coords);
+      // Ignora ponto de embarque imediato (<40m) ou fora do raio urbano (< 8km)
+      if (distancia < 40 || distancia > 8000) continue;
+
+      candidatosProximos.push({
+        id: `prox-${lugar.id}`,
+        label: lugar.label,
+        sublabel: lugar.sublabel || lugar.endereco,
+        endereco: lugar.endereco,
+        coords: lugar.coords,
+        origemSugestao: "PROXIMO",
+        distanciaMetros: distancia,
+        distanciaFormatada: formatarDistanciaLegivel(distancia),
+        badge: formatarDistanciaLegivel(distancia),
+        tipo: lugar.tipo,
+      });
+    }
   }
 
-  // 2. Busca remota ao vivo via Mapbox Places API ou Photon OSM
-  // Se o usuário estiver em qualquer outra praça/cidade fora de Itaperuna
-  const distanciaItaperuna = calcularDistanciaHaversineMetros(coordsOrigem, [-41.888, -21.205]);
-  const estaForaDeItaperuna = distanciaItaperuna > 25000;
-
-  if (estaForaDeItaperuna || candidatosProximos.length < 5) {
+  // 2. Busca ao vivo de alta precisão via Mapbox Geocoding com Bounding Box (BBOX) restrita (~4 km)
+  // Utiliza as coordenadas GPS reais do usuário em qualquer cidade do Brasil (ex: Brasília, SP, BH, etc.)
+  if (candidatosProximos.length < 3) {
     try {
       const token = MapboxConfig.getAccessToken();
-      if (token && token.startsWith("pk.")) {
-        const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/shopping,hospital,farmacia,praca.json?proximity=${coordsOrigem[0]},${coordsOrigem[1]}&types=poi,address&limit=6&language=pt&access_token=${token}`;
-        const res = await fetch(endpoint, { method: "GET" });
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data.features)) {
-            for (const feat of data.features) {
-              const coords = feat.center as [number, number];
-              if (!coords || !Array.isArray(coords)) continue;
+      if (token && token.startsWith("pk.") && !token.includes("example")) {
+        const deltaLat = 0.035; // ~3.8 km
+        const cosLat = Math.cos((lat * Math.PI) / 180) || 1;
+        const deltaLng = Math.abs(0.035 / cosLat);
+        const minLng = (lng - deltaLng).toFixed(5);
+        const maxLng = (lng + deltaLng).toFixed(5);
+        const minLat = (lat - deltaLat).toFixed(5);
+        const maxLat = (lat + deltaLat).toFixed(5);
+        const bbox = `${minLng},${minLat},${maxLng},${maxLat}`;
 
-              const dist = calcularDistanciaHaversineMetros(coordsOrigem, coords);
-              if (dist < 40) continue; // Ponto de embarque imediato
+        const termos = ["avenida", "praca", "mercado", "farmacia", "hospital"];
+        const endpoints = termos.map(
+          (termo) =>
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${termo}.json?proximity=${lng},${lat}&bbox=${bbox}&limit=3&country=br&language=pt&access_token=${token}`
+        );
 
-              const nome = feat.text || feat.place_name?.split(",")[0] || "Local Próximo";
-              const enderecoCompleto = feat.place_name || nome;
-              const norm = normalizarTexto(enderecoCompleto);
-
-              if (normExcluidos.has(norm)) continue;
-
-              candidatosProximos.push({
-                id: `mapbox-poi-${coords[0].toFixed(4)}-${coords[1].toFixed(4)}`,
-                label: nome,
-                sublabel: feat.place_name || nome,
-                endereco: enderecoCompleto,
-                coords,
-                origemSugestao: "PROXIMO",
-                distanciaMetros: dist,
-                distanciaFormatada: formatarDistanciaLegivel(dist),
-                badge: formatarDistanciaLegivel(dist),
-                tipo: "poi",
+        const responses = await Promise.allSettled(
+          endpoints.map((url) => {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 2200);
+            return fetch(url, { signal: controller.signal })
+              .then((r) => {
+                clearTimeout(timeout);
+                return r.ok ? r.json() : null;
+              })
+              .catch(() => {
+                clearTimeout(timeout);
+                return null;
               });
-            }
+          })
+        );
+
+        for (const resp of responses) {
+          if (resp.status !== "fulfilled" || !resp.value || !Array.isArray(resp.value.features)) continue;
+          for (const feat of resp.value.features) {
+            const coords = feat.center as [number, number];
+            if (!coords || !Array.isArray(coords)) continue;
+
+            const dist = calcularDistanciaHaversineMetros(coordsOrigem, coords);
+            // FILTRO ESTRITO: Descarta embarque (<40m) e descarta locais além de 8 km
+            if (dist < 40 || dist > 8000) continue;
+
+            const nome = feat.text || feat.place_name?.split(",")[0] || "Local Próximo";
+            const enderecoCompleto = feat.place_name || nome;
+            const norm = normalizarTexto(enderecoCompleto);
+            const normNome = normalizarTexto(nome);
+
+            if (normExcluidos.has(norm) || normExcluidos.has(normNome)) continue;
+
+            // Evita duplicar local idêntico ou muito próximo (< 100m)
+            const jaExiste = candidatosProximos.some(
+              (c) =>
+                calcularDistanciaHaversineMetros(c.coords, coords) < 100 ||
+                normalizarTexto(c.label) === normNome
+            );
+            if (jaExiste) continue;
+
+            candidatosProximos.push({
+              id: `mapbox-prox-${coords[0].toFixed(4)}-${coords[1].toFixed(4)}`,
+              label: nome,
+              sublabel: feat.place_name || nome,
+              endereco: enderecoCompleto,
+              coords,
+              origemSugestao: "PROXIMO",
+              distanciaMetros: dist,
+              distanciaFormatada: formatarDistanciaLegivel(dist),
+              badge: formatarDistanciaLegivel(dist),
+              tipo: "poi",
+            });
           }
         }
       }
-    } catch (_) {
-      // Fallback gracioso
+    } catch (err) {
+      silentCatchWarn("getTop3LocaisProximosReais-Mapbox", err);
     }
+  }
 
-    // Fallback secundário ao vivo via Photon OpenStreetMap
-    if (candidatosProximos.length < 3) {
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 1800);
-        const photonUrl = `https://photon.komoot.io/api/?q=centro&lat=${coordsOrigem[1]}&lon=${coordsOrigem[0]}&limit=6&lang=pt`;
-        const res = await fetch(photonUrl, { signal: controller.signal });
-        clearTimeout(timeout);
+  // 3. Fallback complementar ao vivo via Photon OpenStreetMap (apenas com raio restrito < 8 km)
+  if (candidatosProximos.length < 3) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 1800);
+      // Nota: Photon não suporta lang=pt (suporta default, de, en, fr)
+      const photonUrl = `https://photon.komoot.io/api/?q=avenida&lat=${lat}&lon=${lng}&limit=6`;
+      const res = await fetch(photonUrl, { signal: controller.signal });
+      clearTimeout(timeout);
 
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data.features)) {
-            for (const f of data.features) {
-              if (!f.geometry || !Array.isArray(f.geometry.coordinates)) continue;
-              const coords: [number, number] = [f.geometry.coordinates[0], f.geometry.coordinates[1]];
-              const dist = calcularDistanciaHaversineMetros(coordsOrigem, coords);
-              if (dist < 40) continue;
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.features)) {
+          for (const f of data.features) {
+            if (!f.geometry || !Array.isArray(f.geometry.coordinates)) continue;
+            const coords: [number, number] = [f.geometry.coordinates[0], f.geometry.coordinates[1]];
+            const dist = calcularDistanciaHaversineMetros(coordsOrigem, coords);
 
-              const props = f.properties || {};
-              const nome = props.name || props.street || "Ponto de Referência";
-              const cidade = props.city || props.town || "";
-              const sublabel = props.district ? `${props.district} — ${cidade}` : cidade;
-              const enderecoCompleto = `${nome}, ${sublabel}`;
-              const norm = normalizarTexto(enderecoCompleto);
+            // FILTRO ESTRITO: Descarta locais a mais de 8 km
+            if (dist < 40 || dist > 8000) continue;
 
-              if (normExcluidos.has(norm)) continue;
+            const props = f.properties || {};
+            const nome = props.name || props.street || "Ponto de Referência";
+            const cidade = props.city || props.town || "";
+            const sublabel = props.district ? `${props.district} — ${cidade}` : cidade;
+            const enderecoCompleto = `${nome}, ${sublabel}`;
+            const norm = normalizarTexto(enderecoCompleto);
+            const normNome = normalizarTexto(nome);
 
-              candidatosProximos.push({
-                id: `osm-prox-${coords[0].toFixed(4)}-${coords[1].toFixed(4)}`,
-                label: nome,
-                sublabel: sublabel || enderecoCompleto,
-                endereco: enderecoCompleto,
-                coords,
-                origemSugestao: "PROXIMO",
-                distanciaMetros: dist,
-                distanciaFormatada: formatarDistanciaLegivel(dist),
-                badge: formatarDistanciaLegivel(dist),
-                tipo: "poi",
-              });
-            }
+            if (normExcluidos.has(norm) || normExcluidos.has(normNome)) continue;
+
+            const jaExiste = candidatosProximos.some(
+              (c) =>
+                calcularDistanciaHaversineMetros(c.coords, coords) < 100 ||
+                normalizarTexto(c.label) === normNome
+            );
+            if (jaExiste) continue;
+
+            candidatosProximos.push({
+              id: `osm-prox-${coords[0].toFixed(4)}-${coords[1].toFixed(4)}`,
+              label: nome,
+              sublabel: sublabel || enderecoCompleto,
+              endereco: enderecoCompleto,
+              coords,
+              origemSugestao: "PROXIMO",
+              distanciaMetros: dist,
+              distanciaFormatada: formatarDistanciaLegivel(dist),
+              badge: formatarDistanciaLegivel(dist),
+              tipo: "poi",
+            });
           }
         }
-      } catch (_) {}
+      }
+    } catch (err) {
+      silentCatchWarn("getTop3LocaisProximosReais-Photon", err);
     }
   }
 
-  // Ordena estritamente pela menor distância (mais próximo primeiro)
+  // Ordena estritamente por distância crescente (o mais próximo primeiro: 200m, 500m, etc.)
   candidatosProximos.sort((a, b) => a.distanciaMetros - b.distanciaMetros);
 
-  // Filtra itens duplicados por coordenadas muito próximas (< 80 metros)
-  const filtrados: SuggestedPlaceItem[] = [];
-  for (const c of candidatosProximos) {
-    if (filtrados.length >= 3) break;
-    const jaTemMuitoPerto = filtrados.some(
-      (f) => calcularDistanciaHaversineMetros(f.coords, c.coords) < 80
-    );
-    if (!jaTemMuitoPerto) {
-      filtrados.push(c);
-    }
-  }
-
-  return filtrados;
+  // Retorna os TOP 3 mais próximos reais dentro de 8 km
+  return candidatosProximos.slice(0, 3);
 }
 
 /**
- * 🎯 Função Principal: Retorna exatamente 6 sugestões reais e inteligentes:
- * - 3 locais que o usuário frequenta (aprendizado de histórico/favoritos)
- * - 3 locais reais mais próximos da localização do passageiro
+ * 🎯 Função Principal: Retorna sugestões 100% autênticas:
+ * - Até 3 locais que o usuário frequenta (vazio se novo usuário sem histórico)
+ * - Até 3 locais reais mais próximos da localização do passageiro (máximo 8 km)
  */
 export async function getSeisSugestoesDestino(
-  coordsOrigem: [number, number] = [-41.8880, -21.2050],
+  coordsOrigem: [number, number] = [-47.935, -15.795],
   uid?: string,
   phone?: string
 ): Promise<{
@@ -465,11 +528,9 @@ export async function getSeisSugestoesDestino(
 
   const proximos = await getTop3LocaisProximosReais(coordsOrigem, enderecosFrequentes);
 
-  const todas = [...frequentes, ...proximos];
-
   return {
     frequentes,
     proximos,
-    todas,
+    todas: [...frequentes, ...proximos],
   };
 }

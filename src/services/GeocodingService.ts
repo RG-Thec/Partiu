@@ -936,23 +936,28 @@ export class GeocodingService {
         return comDistancias.slice(0, 6);
       }
 
-      // Se fora do polo curado, busca pontos de referência locais por proximidade geográfica real
+      // Se fora do polo curado, busca pontos de referência locais por proximidade geográfica real (< 8 km)
       try {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 1800);
-        const photonUrl = `https://photon.komoot.io/api/?q=centro&lat=${centroRef[1]}&lon=${centroRef[0]}&limit=6&lang=pt`;
+        const photonUrl = `https://photon.komoot.io/api/?q=avenida&lat=${centroRef[1]}&lon=${centroRef[0]}&limit=6`;
         const res = await fetch(photonUrl, { signal: controller.signal });
         clearTimeout(timeout);
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data.features)) {
-            const remotos: GeocodedPlace[] = data.features.map((f: any) => {
+            const remotos: GeocodedPlace[] = [];
+            for (const f of data.features) {
+              if (!f.geometry || !Array.isArray(f.geometry.coordinates)) continue;
               const coords: [number, number] = [f.geometry.coordinates[0], f.geometry.coordinates[1]];
               const dist = calcularDistanciaHaversineMetros(centroRef, coords);
+              // Filtro estrito: Somente locais reais dentro de 8 km
+              if (dist < 40 || dist > 8000) continue;
+
               const props = f.properties || {};
               const nome = props.name || props.street || "Ponto de Referência";
-              const sublabel = props.district || props.city || "Região Central";
-              return {
+              const sublabel = props.district || props.city || "Região Local";
+              remotos.push({
                 id: `osm-${coords[0].toFixed(4)}-${coords[1].toFixed(4)}`,
                 label: nome,
                 sublabel,
@@ -961,8 +966,8 @@ export class GeocodingService {
                 tipo: "rua" as const,
                 distanciaMetros: dist,
                 distanciaFormatada: formatarDistanciaLegivel(dist),
-              };
-            });
+              });
+            }
             remotos.sort((a, b) => (a.distanciaMetros || 0) - (b.distanciaMetros || 0));
             return remotos.slice(0, 6);
           }
