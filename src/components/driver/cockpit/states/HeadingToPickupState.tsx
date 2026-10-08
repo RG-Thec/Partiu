@@ -84,41 +84,34 @@ export function HeadingToPickupState({
         </div>
       </div>
 
-      {/* Atalhos Rápidos de Navegação Externa (Waze & Google Maps) */}
+      {/* Atalhos Rápidos de Navegação Externa (Waze & Google Maps) — Alvo de Toque 44px */}
       <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
           onClick={() => onNavegar("waze")}
-          style={{ borderRadius: ui.borderRadius }}
-          className="h-9 min-h-[36px] bg-sky-50 hover:bg-sky-100 text-sky-950 border border-sky-200 font-semibold text-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+          className="h-11 min-h-[44px] rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-950 border border-sky-200 font-bold text-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
         >
-          <Compass className="w-3.5 h-3.5 text-sky-600" />
+          <Compass className="w-4 h-4 text-sky-600" />
           <span>Waze</span>
         </button>
         <button
           type="button"
           onClick={() => onNavegar("google_maps")}
-          style={{ borderRadius: ui.borderRadius }}
-          className="h-9 min-h-[36px] bg-muted/60 hover:bg-muted text-foreground border border-border font-semibold text-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+          className="h-11 min-h-[44px] rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200 font-bold text-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
         >
-          <MapPin className="w-3.5 h-3.5" style={{ color: colors.primary }} />
+          <MapPin className="w-4 h-4 text-emerald-600" />
           <span>Google Maps</span>
         </button>
       </div>
 
-      {/* Botão Primário de Chegada (Padrão Flutter 44px) */}
+      {/* Botão Primário de Chegada — Thumb Zone 56px Ergonomia Veicular */}
       <button
         type="button"
         onClick={onChegueiAoLocal}
-        style={{
-          backgroundColor: colors.primary,
-          color: colors.surface,
-          borderRadius: ui.borderRadius,
-          boxShadow: ui.buttonShadow,
-        }}
-        className="w-full h-11 min-h-[44px] font-bold text-xs sm:text-sm shadow-md transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer hover:brightness-105"
+        className="w-full h-14 min-h-[56px] rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm sm:text-base shadow-lg transition active:scale-[0.98] flex items-center justify-center gap-2.5 cursor-pointer uppercase tracking-wider"
       >
-        <span>✓ Cheguei ao local</span>
+        <span className="text-lg">✓</span>
+        <span>CHEGUEI AO LOCAL DE EMBARQUE</span>
       </button>
 
       {/* Opção Secundária: Cancelamento Justificado */}

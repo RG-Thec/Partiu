@@ -12,7 +12,9 @@
  */
 
 import { silentCatchWarn } from "@/lib/structured-logger";
-import { updateBrowserFavicon, generateSvgFavicon } from "@/lib/branding/ThemeEngine";
+import { updateBrowserFavicon, generateSvgFavicon, themeEngine } from "@/lib/branding/ThemeEngine";
+import { type AppBrandingRecord } from "@/lib/branding/branding-types";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import {
   type WhiteLabelFullConfig,
   type WhiteLabelTenantRecord,
@@ -23,6 +25,53 @@ import {
 
 const STORAGE_KEY_ACTIVE_TENANT = "partiu_whitelabel_active_tenant_id_v1";
 const STORAGE_KEY_TENANTS_MAP = "partiu_whitelabel_tenants_registry_v1";
+
+/**
+ * Mapeador canônico de WhiteLabelFullConfig para AppBrandingRecord
+ * Garante que a identidade visual completa persista no schema padrão do Supabase
+ */
+export function convertWhiteLabelToBrandingRecord(
+  config: WhiteLabelFullConfig,
+  tenantId: string
+): AppBrandingRecord {
+  const prim = config.designSystem?.paletaPrimaria;
+  const radiusMap: Record<BorderRadiusOption, string> = {
+    sm: "6px",
+    md: "8px",
+    lg: "12px",
+    xl: "16px",
+    "2xl": "20px",
+    "3xl": "24px",
+    full: "9999px",
+  };
+  const br = radiusMap[config.designSystem?.raioBordas] || "16px";
+
+  return {
+    tenant_id: tenantId,
+    app_name: config.brandCenter?.nomePlataforma || "PARTIU",
+    company_name: config.nativeApp?.razaoSocial || config.brandCenter?.slogan || "PARTIU Mobilidade Urbana",
+    primary_color: prim?.corPrincipal || "#FF6B00",
+    secondary_color: prim?.corSecundaria || "#FFB800",
+    accent_color: prim?.corTerciaria || prim?.corSecundaria || "#00C6FF",
+    background_color: prim?.corFundoApp || "#F8FAFC",
+    surface_color: prim?.corSuperficieCard || "#FFFFFF",
+    text_primary: prim?.corTextoPrincipal || "#090D16",
+    text_secondary: "#64748B",
+    logo_url: config.brandCenter?.logos?.logoPrincipalUrl || null,
+    splash_logo_url: config.brandCenter?.splash?.splashAndroidUrl || config.nativeApp?.splashAndroidUrl || null,
+    favicon_url: config.brandCenter?.favicons?.faviconDesktopUrl || null,
+    app_icon_url: config.nativeApp?.iconeAppUrl || null,
+    push_icon_url: config.nativeApp?.iconeNotificacaoPushUrl || null,
+    header_gradient_start: prim?.corPrincipal || "#FF6B00",
+    header_gradient_end: prim?.corSecundaria || "#FFB800",
+    footer_sync_with_header: true,
+    footer_gradient_start: prim?.corPrincipal || "#FF6B00",
+    footer_gradient_end: prim?.corSecundaria || "#FFB800",
+    border_radius: br,
+    font_family: config.typography?.familiaPrincipal || "Plus Jakarta Sans",
+    updated_at: new Date().toISOString(),
+  };
+}
 
 // ------------------------------------------------------------------------------
 // CONFIGURAÇÃO PADRÃO CANÔNICA (PARTIU OFICIAL)
@@ -726,6 +775,13 @@ export class WhiteLabelEngine {
         SEED_TENANTS.forEach((t) => this.tenantsMap.set(t.tenantId, t));
         this.saveTenantsRegistry();
       }
+
+      // Sincroniza a praça ativa com o Supabase em segundo plano (resiliência cloud)
+      if (typeof window !== "undefined") {
+        setTimeout(() => {
+          void this.syncFromSupabase(this.activeTenantId);
+        }, 150);
+      }
     } catch (err) { silentCatchWarn("white-label-engine", err); }
   }
 
@@ -797,6 +853,8 @@ export class WhiteLabelEngine {
     this.saveTenantsRegistry();
     this.applyTheme(tenant.configuracaoCompleta);
     this.broadcastUpdate();
+    // Sincroniza do Supabase para garantir a versão mais recente em nuvem
+    void this.syncFromSupabase(tenantId);
     return tenant;
   }
 
@@ -813,7 +871,193 @@ export class WhiteLabelEngine {
     this.saveTenantsRegistry();
     this.applyTheme(updated);
     this.broadcastUpdate();
+
+    // Sincronização automática com Supabase (Nuvem como Fonte Única de Verdade)
+    void this.persistToSupabase(updated, tenant.tenantId);
+
     return updated;
+  }
+
+  /**
+   * Persiste atomicamente a configuração no banco de dados Supabase
+   * Atualiza simultaneamente app_branding e white_label_tenant_configs
+   */
+  public async persistToSupabase(config: WhiteLabelFullConfig, tenantId: string): Promise<boolean> {
+    if (!isSupabaseConfigured()) return false;
+    try {
+      const brandingRecord = convertWhiteLabelToBrandingRecord(config, tenantId);
+      const tenant = this.tenantsMap.get(tenantId) || this.getActiveTenant();
+
+      // 1. Persiste na tabela app_branding (lida pelos apps em tempo real)
+      const { error: brandingError } = await supabase
+        .from("app_branding" as any)
+        .upsert(brandingRecord as any, { onConflict: "tenant_id" });
+
+      if (brandingError) {
+        silentCatchWarn("WhiteLabelEngine:persistToSupabase:app_branding", brandingError);
+      }
+
+      // 2. Garante persistência da franquia na tabela white_label_tenants
+      const { error: tenantError } = await supabase
+        .from("white_label_tenants" as any)
+        .upsert(
+          {
+            tenant_id: tenantId,
+            operation_name: tenant.nomeOperacao || config.brandCenter?.nomePlataforma || "PARTIU Operação",
+            city_id: tenant.cidadeId || `cidade-${tenantId}`,
+            city_name: tenant.cidadeNome || "Cidade Operacional",
+            state_uf: tenant.uf || "BR",
+            manager_name: tenant.responsavelNome || "Gestão Geral",
+            manager_email: tenant.responsavelEmail || "admin@partiu.app",
+            manager_phone: tenant.responsavelTelefone || "(00) 00000-0000",
+            cnpj: tenant.cnpjFranqueado || null,
+            is_active: true,
+            updated_at: new Date().toISOString(),
+          } as any,
+          { onConflict: "tenant_id" }
+        );
+
+      if (tenantError) {
+        silentCatchWarn("WhiteLabelEngine:persistToSupabase:white_label_tenants", tenantError);
+      }
+
+      // 3. Persiste o snapshot estruturado completo em white_label_tenant_configs
+      const { error: configError } = await supabase
+        .from("white_label_tenant_configs" as any)
+        .upsert(
+          {
+            tenant_id: tenantId,
+            schema_version: 1,
+            brand_center: config.brandCenter,
+            design_system: config.designSystem,
+            typography: config.typography,
+            home_page: config.homePage,
+            menu_builder: config.menuBuilder,
+            business_models: config.businessModels,
+            monetization: config.monetization,
+            cms: config.cms,
+            geo: config.geo,
+            native_app: config.nativeApp,
+            full_snapshot: config,
+            updated_at: new Date().toISOString(),
+          } as any,
+          { onConflict: "tenant_id" }
+        );
+
+      if (configError) {
+        silentCatchWarn("WhiteLabelEngine:persistToSupabase:white_label_tenant_configs", configError);
+      }
+
+      return !brandingError;
+    } catch (err) {
+      silentCatchWarn("WhiteLabelEngine:persistToSupabase:exception", err);
+      return false;
+    }
+  }
+
+  /**
+   * Sincroniza a configuração do tenant diretamente do Supabase
+   */
+  public async syncFromSupabase(tenantId: string): Promise<WhiteLabelFullConfig | null> {
+    if (!isSupabaseConfigured()) return null;
+    try {
+      // 1. Tenta carregar o snapshot estruturado de white_label_tenant_configs
+      const { data: configData, error: configError }: { data: any; error: any } = await (supabase
+        .from("white_label_tenant_configs" as any) as any)
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .maybeSingle();
+
+      if (!configError && configData?.full_snapshot) {
+        const loadedConfig = configData.full_snapshot as WhiteLabelFullConfig;
+        const tenant = this.tenantsMap.get(tenantId);
+        if (tenant) {
+          tenant.configuracaoCompleta = loadedConfig;
+          this.tenantsMap.set(tenantId, tenant);
+        } else {
+          this.tenantsMap.set(tenantId, {
+            tenantId,
+            nomeOperacao: loadedConfig.brandCenter?.nomePlataforma || "Franquia PARTIU",
+            cidadeId: loadedConfig.geo?.cidadeSede
+              ? `${loadedConfig.geo.cidadeSede.toLowerCase()}-${loadedConfig.geo.estadoUf?.toLowerCase()}`
+              : `cidade-${tenantId}`,
+            cidadeNome: loadedConfig.geo?.cidadeSede || "Cidade Matriz",
+            uf: loadedConfig.geo?.estadoUf || "RJ",
+            responsavelNome: "Diretoria",
+            responsavelEmail: "admin@partiu.app",
+            responsavelTelefone: "(22) 99876-5432",
+            cnpjFranqueado: "00.000.000/0001-00",
+            ativo: true,
+            criadoEm: Date.now(),
+            configuracaoCompleta: loadedConfig,
+          });
+        }
+        this.saveTenantsRegistry();
+        this.applyTheme(loadedConfig);
+        this.broadcastUpdate();
+        return loadedConfig;
+      }
+
+      // 2. Fallback: Hidrata dados visuais a partir da tabela app_branding
+      const { data: brandingData, error: brandingError }: { data: any; error: any } = await (supabase
+        .from("app_branding" as any) as any)
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .maybeSingle();
+
+      if (!brandingError && brandingData) {
+        const current = this.getActiveConfig();
+        const merged: WhiteLabelFullConfig = {
+          ...current,
+          tenantId,
+          brandCenter: {
+            ...current.brandCenter,
+            nomePlataforma: brandingData.app_name || current.brandCenter.nomePlataforma,
+            slogan: brandingData.company_name || current.brandCenter.slogan,
+            logos: {
+              ...current.brandCenter.logos,
+              logoPrincipalUrl: brandingData.logo_url || current.brandCenter.logos.logoPrincipalUrl,
+            },
+            favicons: {
+              ...current.brandCenter.favicons,
+              faviconDesktopUrl: brandingData.favicon_url || current.brandCenter.favicons.faviconDesktopUrl,
+            },
+          },
+          designSystem: {
+            ...current.designSystem,
+            paletaPrimaria: {
+              ...current.designSystem.paletaPrimaria,
+              corPrincipal: brandingData.primary_color || current.designSystem.paletaPrimaria.corPrincipal,
+              corSecundaria: brandingData.secondary_color || current.designSystem.paletaPrimaria.corSecundaria,
+              corTerciaria: brandingData.accent_color || current.designSystem.paletaPrimaria.corTerciaria,
+              corFundoApp: brandingData.background_color || current.designSystem.paletaPrimaria.corFundoApp,
+              corSuperficieCard: brandingData.surface_color || current.designSystem.paletaPrimaria.corSuperficieCard,
+              corTextoPrincipal: brandingData.text_primary || current.designSystem.paletaPrimaria.corTextoPrincipal,
+            },
+          },
+          typography: {
+            ...current.typography,
+            familiaPrincipal: brandingData.font_family || current.typography.familiaPrincipal,
+          },
+          atualizadoEm: Date.now(),
+        };
+
+        const tenant = this.tenantsMap.get(tenantId);
+        if (tenant) {
+          tenant.configuracaoCompleta = merged;
+          this.tenantsMap.set(tenantId, tenant);
+        }
+        this.saveTenantsRegistry();
+        this.applyTheme(merged);
+        this.broadcastUpdate();
+        return merged;
+      }
+
+      return null;
+    } catch (err) {
+      silentCatchWarn("WhiteLabelEngine:syncFromSupabase", err);
+      return null;
+    }
   }
 
   /**
@@ -948,12 +1192,18 @@ export class WhiteLabelEngine {
   public applyTheme(config: WhiteLabelFullConfig): void {
     if (typeof document === "undefined") return;
 
+    // 1. Aplica tokens universais via ThemeEngine (fonte única de verdade do design system)
+    const brandingRecord = convertWhiteLabelToBrandingRecord(config, config.tenantId || this.activeTenantId);
+    themeEngine.applyTheme(brandingRecord);
+
     const root = document.documentElement;
-    const prim = config.designSystem.paletaPrimaria;
-    const sem = config.designSystem.paletaSemantica;
+    const prim = config.designSystem?.paletaPrimaria;
+    const sem = config.designSystem?.paletaSemantica;
     const typ = config.typography;
 
-    // 1. Variáveis Canônicas de Marca
+    if (!prim || !sem) return;
+
+    // 2. Tokens semânticos complementares de alta fidelidade
     root.style.setProperty("--brand-primary", prim.corPrincipal);
     root.style.setProperty("--brand-primary-hover", prim.corPrincipalHover);
     root.style.setProperty("--brand-secondary", prim.corSecundaria);
@@ -961,7 +1211,7 @@ export class WhiteLabelEngine {
     root.style.setProperty("--brand-text", prim.corTextoPrincipal);
     root.style.setProperty("--brand-tertiary", prim.corTerciaria);
 
-    // 1.1. Paleta Corporativa Oficial "Azul Tech"
+    // Paleta Corporativa Oficial "Azul Tech" / White Label
     root.style.setProperty("--brand-primary-deep", prim.corPrincipal || "#003366");
     root.style.setProperty("--brand-primary-vibrant", prim.corSecundaria || "#0088FF");
     root.style.setProperty("--brand-primary-accent", prim.corTerciaria || "#00C6FF");
@@ -972,14 +1222,14 @@ export class WhiteLabelEngine {
     root.style.setProperty("--brand-border-subtle", "#E2E8F0");
     root.style.setProperty("--brand-pill-bg", "#F1F5F9");
 
-    // 2. Cores do Tailwind Theme Inline
+    // Cores de Tailwind Theme Inline
     root.style.setProperty("--color-primary", prim.corPrincipal);
     root.style.setProperty("--color-primary-foreground", prim.corTextoPrincipal);
     root.style.setProperty("--color-secondary", prim.corSecundaria);
     root.style.setProperty("--color-background", prim.corFundoApp);
     root.style.setProperty("--color-card", prim.corSuperficieCard);
 
-    // 3. Paleta Semântica
+    // Paleta Semântica
     root.style.setProperty("--color-success", sem.sucesso);
     root.style.setProperty("--color-success-soft", sem.sucessoSoft);
     root.style.setProperty("--color-danger", sem.erro);
@@ -989,33 +1239,15 @@ export class WhiteLabelEngine {
     root.style.setProperty("--color-info", sem.informacao);
     root.style.setProperty("--color-info-soft", sem.informacaoSoft);
 
-    // 4. Raio de Bordas
-    const radiusMap: Record<BorderRadiusOption, string> = {
-      sm: "0.375rem",
-      md: "0.5rem",
-      lg: "0.75rem",
-      xl: "1rem",
-      "2xl": "1.25rem",
-      "3xl": "1.5rem",
-      full: "9999px",
-    };
-    root.style.setProperty("--radius", radiusMap[config.designSystem.raioBordas] || "0.75rem");
-
-    // 5. Família Tipográfica
-    root.style.setProperty(
-      "--font-sans",
-      `"${typ.familiaPrincipal}", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`
-    );
-
-    // 6. Atualiza dinamicamente o título e o favicon da aba se configurados
+    // 3. Atualiza dinamicamente o título e o favicon da aba se configurados
     try {
-      if (config.brandCenter.nomePlataforma) {
-        document.title = `${config.brandCenter.nomePlataforma} — ${config.brandCenter.slogan}`;
+      if (config.brandCenter?.nomePlataforma) {
+        document.title = `${config.brandCenter.nomePlataforma} — ${config.brandCenter.slogan || "Mobilidade Urbana"}`;
       }
-      if (config.brandCenter.favicons.faviconDesktopUrl) {
+      if (config.brandCenter?.favicons?.faviconDesktopUrl) {
         updateBrowserFavicon(config.brandCenter.favicons.faviconDesktopUrl);
       } else {
-        updateBrowserFavicon(generateSvgFavicon(config.designSystem.paletaPrimaria.corPrincipal));
+        updateBrowserFavicon(generateSvgFavicon(prim.corPrincipal, prim.corSecundaria));
       }
     } catch (err) { silentCatchWarn("white-label-engine", err); }
   }

@@ -21,6 +21,7 @@ import { PassengerReviewRouteSheet } from "@/components/passenger/PassengerRevie
 import { PassengerConfirmPickupPin } from "@/components/passenger/PassengerConfirmPickupPin";
 import { PassengerConfirmDestinationPin } from "@/components/passenger/PassengerConfirmDestinationPin";
 import { PassengerFindingDriverRadar } from "@/components/passenger/PassengerFindingDriverRadar";
+import { FloatingRidePill } from "@/components/passenger/FloatingRidePill";
 import { PassengerTimeoutBottomSheet } from "@/components/passenger/PassengerTimeoutBottomSheet";
 import { PassengerActiveRideCard } from "@/components/passenger/PassengerActiveRideCard";
 import { DriverEnRouteSheet } from "@/components/passenger/DriverEnRouteSheet";
@@ -213,6 +214,7 @@ function PartiuPassengerHomeContent() {
     }
     return [];
   });
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   // Hook desacoplado de UX Motion para interpolação de scroll (0 a 28px no raio da onda)
   const { scrollRef, waveRadius, isScrolled, onScroll } = useScrollInterpolation({
@@ -482,6 +484,7 @@ function PartiuPassengerHomeContent() {
       {/* BANNER DE RESILIÊNCIA DE REDE */}
       <NetworkReconnectionBanner />
       <GpsPermissionModal />
+      <FloatingRidePill />
 
       {/* ========================================================================= */}
       {/* SEÇÃO DO MAPA: TELA CHEIA EM TODOS OS ESTADOS (FUNDO TOTALMENTE VISÍVEL)  */}
@@ -541,10 +544,10 @@ function PartiuPassengerHomeContent() {
           {/* ========================================================================= */}
           <div
             ref={idlePanelCallbackRef}
-            className="absolute inset-x-0 bottom-0 z-20 pointer-events-none flex flex-col justify-end w-full max-w-lg mx-auto pb-[max(0.5rem,env(safe-area-inset-bottom))] space-y-2"
+            className="absolute inset-x-0 bottom-0 z-20 pointer-events-none flex flex-col justify-end w-full max-w-lg mx-auto px-3 sm:px-4 pb-[max(0.4rem,env(safe-area-inset-bottom))] space-y-1.5 sm:space-y-2 select-none"
           >
             {/* BOTÃO RECENTRALIZAR GPS: Flutuando com precisão alinhado à direita logo acima do DestinationCard */}
-            <div className="w-full px-3.5 flex justify-end pointer-events-auto">
+            <div className="w-full flex justify-end pointer-events-auto pr-1 -mb-1">
               <button
                 type="button"
                 onClick={handleRecenterMap}
@@ -557,7 +560,7 @@ function PartiuPassengerHomeContent() {
             </div>
 
             {/* BLOCO 1 (DESTINO): Card flutuante "Para onde vamos?" + Histórico + Seleção no Mapa */}
-            <div className="w-full px-3.5 pointer-events-auto">
+            <div className="w-full pointer-events-auto">
               <DestinationCard
                 onSearchClick={startSearch}
                 onAdjustPinOnMap={selectDestinationOnMap}
@@ -569,9 +572,21 @@ function PartiuPassengerHomeContent() {
               />
             </div>
 
-            {/* BLOCO 2 (BANNERS): Carrossel de Banners Promocionais Flutuante */}
-            {activeBanners && activeBanners.length > 0 && (
-              <div className="w-full px-3.5 overflow-hidden pointer-events-auto max-h-[115px] transition-all">
+            {/* BLOCO 2 (BANNERS): Carrossel Promocional Condicional com Opção de Fechar para Liberar 65%+ do Mapa */}
+            {activeBanners && activeBanners.length > 0 && !bannerDismissed && (
+              <div className="w-full overflow-hidden pointer-events-auto transition-all relative group">
+                <button
+                  type="button"
+                  onClick={() => {
+                    hapticFeedback.light();
+                    setBannerDismissed(true);
+                  }}
+                  className="absolute top-1.5 right-4 z-20 w-5 h-5 rounded-full bg-slate-900/60 text-white flex items-center justify-center text-[10px] hover:bg-slate-900 shadow-xs cursor-pointer backdrop-blur-xs opacity-75 group-hover:opacity-100 transition-opacity"
+                  title="Ocultar promoções e liberar visão do mapa"
+                  aria-label="Ocultar promoções"
+                >
+                  ✕
+                </button>
                 <PromoCarousel
                   banners={activeBanners}
                   autoPlayIntervalMs={3000}
@@ -580,8 +595,8 @@ function PartiuPassengerHomeContent() {
             )}
 
             {/* RODAPÉ: Barra de Navegação Flutuante Sem Fundo Preto */}
-            <div className="w-full px-3.5 pointer-events-auto">
-              <HomeBottomNav activeTab="corridas" />
+            <div className="w-full pointer-events-auto">
+              <HomeBottomNav activeTab="corridas" disableSafeAreaBottom />
             </div>
           </div>
         </>

@@ -58,15 +58,36 @@ export function useBrandTheme() {
     };
   }, []);
 
-  // Handlers de mutação reativa
+  // Handlers de mutação reativa sincronizados com Supabase e BrandingProvider
   const updateConfig = useCallback(
     (partial: Partial<WhiteLabelFullConfig>) => {
       const updated = whiteLabelEngine.updateActiveConfig(partial);
       setConfig(updated);
       setActiveTenant(whiteLabelEngine.getActiveTenant());
+
+      // Sincroniza em lockstep com o BrandingProvider e Supabase
+      if (brandingCtx?.updateBranding) {
+        const prim = updated.designSystem?.paletaPrimaria;
+        void brandingCtx.updateBranding({
+          app_name: updated.brandCenter?.nomePlataforma,
+          company_name: updated.nativeApp?.razaoSocial || updated.brandCenter?.slogan,
+          primary_color: prim?.corPrincipal,
+          secondary_color: prim?.corSecundaria,
+          accent_color: prim?.corTerciaria || prim?.corSecundaria,
+          background_color: prim?.corFundoApp,
+          surface_color: prim?.corSuperficieCard,
+          text_primary: prim?.corTextoPrincipal,
+          header_gradient_start: prim?.corPrincipal,
+          header_gradient_end: prim?.corSecundaria,
+          logo_url: updated.brandCenter?.logos?.logoPrincipalUrl,
+          favicon_url: updated.brandCenter?.favicons?.faviconDesktopUrl,
+          splash_logo_url: updated.brandCenter?.splash?.splashAndroidUrl || updated.nativeApp?.splashAndroidUrl,
+        });
+      }
+
       return updated;
     },
-    []
+    [brandingCtx]
   );
 
   const switchTenant = useCallback((tenantId: string) => {
@@ -74,9 +95,12 @@ export function useBrandTheme() {
     if (t) {
       setActiveTenant(t);
       setConfig(t.configuracaoCompleta);
+      if (brandingCtx?.setTenantId) {
+        void brandingCtx.setTenantId(tenantId);
+      }
     }
     return t;
-  }, []);
+  }, [brandingCtx]);
 
   const cloneTenant = useCallback(
     (targetTenantId: string, nomeCidade: string, estadoUf: string) => {
@@ -107,18 +131,24 @@ export function useBrandTheme() {
   }, []);
 
   const applyPreset = useCallback((presetId: string) => {
-    const ok = whiteLabelEngine.applyPreset(presetId);
-    if (ok) {
-      setConfig(whiteLabelEngine.getActiveConfig());
+    const updated = whiteLabelEngine.applyPreset(presetId);
+    if (updated) {
+      setConfig(updated);
+      if (brandingCtx?.applyPreset) {
+        void brandingCtx.applyPreset(presetId);
+      }
     }
-    return ok;
-  }, []);
+    return Boolean(updated);
+  }, [brandingCtx]);
 
   const resetToDefaults = useCallback(() => {
     const fresh = whiteLabelEngine.resetToDefaults();
     setConfig(fresh);
+    if (brandingCtx?.resetToDefault) {
+      void brandingCtx.resetToDefault();
+    }
     return fresh;
-  }, []);
+  }, [brandingCtx]);
 
   // Mapeamentos unificados: Branding Supabase Realtime tem precedência máxima, seguido de WhiteLabel e legado
   const nomeApp = branding?.app_name || config.brandCenter?.nomePlataforma || identidade.nomeApp || "PARTIU";

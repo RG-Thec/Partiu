@@ -15,6 +15,7 @@ import React, { useEffect, useState, memo, useRef } from "react";
 import { Star, MapPin, Clock, ArrowRight, User, ChevronRight, X } from "lucide-react";
 import { callAlertService } from "@/services/CallAlertService";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
 
 export interface DriverOfferData {
   rideId: string;
@@ -42,7 +43,7 @@ export const DriverOfferModal = memo(function DriverOfferModal({
   oferta,
   onAceitar,
   onRecusar,
-  countdownSeconds = 60,
+  countdownSeconds = 20,
 }: DriverOfferModalProps) {
   const { appConfig } = useTheme();
   const { colors, ui } = appConfig.branding;
@@ -90,18 +91,24 @@ export const DriverOfferModal = memo(function DriverOfferModal({
   const handleAccept = () => {
     if (accepted) return;
     setAccepted(true);
+    hapticFeedback.heavy();
     callAlertService.stopAlert();
     onAceitar();
   };
 
-  // Suporte a deslizamento interativo (Slide to Accept)
+  // Suporte a deslizamento interativo (Slide to Accept) com feedback háptico contínuo
   const handleTouchMove = (e: React.TouchEvent | React.MouseEvent) => {
     if (!isDragging.current || !sliderRef.current) return;
     const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
     const rect = sliderRef.current.getBoundingClientRect();
-    const maxSlide = rect.width - 64;
+    const maxSlide = rect.width - 68;
     const currentOffset = Math.max(0, Math.min(clientX - rect.left - 28, maxSlide));
     setSliderPosition(currentOffset);
+
+    // Micro-vibração tátil a cada avanço expressivo
+    if (Math.round(currentOffset) % 30 === 0) {
+      hapticFeedback.selection();
+    }
 
     if (currentOffset >= maxSlide * 0.85) {
       isDragging.current = false;
@@ -118,8 +125,8 @@ export const DriverOfferModal = memo(function DriverOfferModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-white rounded-[32px] p-5 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[0_20px_60px_rgba(0,0,0,0.18)] border border-slate-100 text-slate-900 animate-in slide-in-from-bottom duration-300 select-none text-center">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-2 sm:p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="w-full max-w-md bg-white rounded-[28px] sm:rounded-[32px] p-4 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[0_20px_60px_rgba(0,0,0,0.18)] border border-slate-100 text-slate-900 animate-in slide-in-from-bottom duration-300 select-none text-center max-h-[92dvh] overflow-y-auto scrollbar-none">
         {/* Barra tátil de puxar */}
         <div className="w-12 h-1.5 rounded-full bg-slate-200 mx-auto mb-3" />
 
@@ -335,7 +342,7 @@ export const DriverOfferModal = memo(function DriverOfferModal({
           </div>
         </div>
 
-        {/* 5. SLIDER DE CONFIRMAÇÃO (Padrão Flutter 48px) */}
+        {/* 5. SLIDER DE CONFIRMAÇÃO — THUMB ZONE 56px */}
         <div
           ref={sliderRef}
           onMouseMove={handleTouchMove}
@@ -344,15 +351,15 @@ export const DriverOfferModal = memo(function DriverOfferModal({
           onTouchEnd={handleTouchEnd}
           style={{
             background: `linear-gradient(90deg, ${colors.primary} 0%, ${colors.secondary || colors.primary} 100%)`,
-            boxShadow: ui.buttonShadow || `0 4px 14px 0 ${colors.primary}40`,
-            borderRadius: "9999px",
+            boxShadow: ui.buttonShadow || `0 6px 20px 0 ${colors.primary}45`,
+            borderRadius: "20px",
           }}
-          className="relative w-full h-12 min-h-[48px] p-1.5 flex items-center justify-center select-none cursor-pointer overflow-hidden transition active:scale-[0.99]"
+          className="relative w-full h-14 min-h-[56px] p-2 flex items-center justify-center select-none cursor-pointer overflow-hidden transition active:scale-[0.99]"
           onClick={handleAccept}
         >
           {/* Rótulo Central */}
-          <span className="font-bold text-xs sm:text-sm text-white tracking-wide pl-7">
-            {accepted ? "Corrida aceita" : "Deslize para aceitar"}
+          <span className="font-black text-xs sm:text-sm text-white uppercase tracking-wider pl-9">
+            {accepted ? "✓ CORRIDA ACEITA" : "DESLIZE PARA ACEITAR >>>"}
           </span>
 
           {/* Botão Deslizante Branco com Seta */}
@@ -368,14 +375,14 @@ export const DriverOfferModal = memo(function DriverOfferModal({
               transition: isDragging.current ? "none" : "transform 0.2s ease-out",
               color: colors.primary,
             }}
-            className="absolute left-1.5 top-1.5 bottom-1.5 w-9 rounded-full bg-white flex items-center justify-center shadow-md active:scale-95 transition"
+            className="absolute left-2 top-2 bottom-2 w-11 rounded-xl bg-white flex items-center justify-center shadow-lg active:scale-95 transition"
           >
-            <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+            <ArrowRight className="w-5 h-5 stroke-[2.8]" />
           </div>
         </div>
 
-        {/* Ação de Recusa Ergonômica */}
-        <div className="mt-2.5">
+        {/* Ação de Recusa Ergonômica — 48px Altura Mínima */}
+        <div className="mt-3">
           <button
             type="button"
             onClick={() => {
@@ -383,10 +390,9 @@ export const DriverOfferModal = memo(function DriverOfferModal({
               onRecusar();
             }}
             aria-label="Recusar oferta de corrida"
-            className="w-full h-9.5 min-h-[38px] flex items-center justify-center bg-slate-100 hover:bg-rose-50 hover:text-rose-700 active:scale-98 text-xs font-semibold text-slate-700 transition-all cursor-pointer border border-slate-200/90 shadow-2xs"
-            style={{ borderRadius: ui.borderRadius }}
+            className="w-full h-12 min-h-[48px] rounded-2xl flex items-center justify-center bg-slate-100 hover:bg-rose-50 hover:text-rose-700 active:scale-98 text-xs font-bold uppercase tracking-wider text-slate-700 transition-all cursor-pointer border border-slate-200/90 shadow-2xs"
           >
-            Recusar corrida
+            RECUSAR OFERTA
           </button>
         </div>
       </div>

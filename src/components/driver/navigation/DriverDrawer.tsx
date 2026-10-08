@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   LogOut,
@@ -61,18 +61,23 @@ export function DriverDrawer({
 }: DriverDrawerProps) {
   const navigate = useNavigate();
   const { nomeApp, corPrimaria, corSecundaria, corTextoPrimaria } = useBrandTheme();
+  const [confirmSairAberto, setConfirmSairAberto] = useState(false);
 
   // Fecha o drawer com a tecla ESC
   useEffect(() => {
     if (!open) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        if (confirmSairAberto) {
+          setConfirmSairAberto(false);
+        } else {
+          onClose();
+        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
+  }, [open, onClose, confirmSairAberto]);
 
   if (!open) return null;
 
@@ -84,14 +89,15 @@ export function DriverDrawer({
     .join("")
     .toUpperCase();
 
-  // Logout Oficial com Confirmação e Limpeza de Estado
-  async function handleSairAplicativo() {
-    const confirmou = window.confirm(
-      `Deseja realmente sair da sua conta de motorista no ${nomeApp}?`
-    );
-    if (!confirmou) return;
+  // Abertura do modal ergonômico de confirmação
+  function handleSairAplicativo() {
+    setConfirmSairAberto(true);
+  }
 
+  // Execução real do logout após confirmação deliberada
+  async function executarSairAplicativo() {
     try {
+      setConfirmSairAberto(false);
       onClose();
       if (onLogout) {
         onLogout();
@@ -523,6 +529,53 @@ export function DriverDrawer({
           </button>
         </div>
       </aside>
+
+      {/* MODAL NATIVO DE CONFIRMAÇÃO DE LOGOUT DO MOTORISTA */}
+      {confirmSairAberto && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-sair-titulo"
+          className="fixed inset-0 z-[60] bg-slate-950/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setConfirmSairAberto(false);
+          }}
+        >
+          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl border border-slate-100 text-center space-y-4 animate-in slide-in-from-bottom duration-300 select-none">
+            <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 mx-auto flex items-center justify-center border border-rose-100 shadow-2xs">
+              <LogOut className="w-7 h-7 stroke-[2.2]" />
+            </div>
+            <div className="space-y-1.5">
+              <h3 id="confirm-sair-titulo" className="text-lg font-black text-slate-900 tracking-tight">
+                Encerrar Plantão de Motorista?
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                Ao sair da sua conta, você ficará offline e deixará de receber ofertas de corridas no {nomeApp}.
+              </p>
+            </div>
+            <div className="space-y-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setConfirmSairAberto(false)}
+                style={{
+                  backgroundColor: corPrimaria || "#FF6B00",
+                  color: corTextoPrimaria || "#FFFFFF",
+                }}
+                className="w-full h-12 min-h-[48px] rounded-2xl font-black text-xs sm:text-sm shadow-md transition active:scale-[0.98] cursor-pointer hover:brightness-105 flex items-center justify-center"
+              >
+                Continuar Trabalhando
+              </button>
+              <button
+                type="button"
+                onClick={executarSairAplicativo}
+                className="w-full h-11 min-h-[44px] rounded-2xl bg-slate-100 hover:bg-rose-50 text-rose-700 font-bold text-xs transition active:scale-[0.98] cursor-pointer border border-slate-200 hover:border-rose-300 flex items-center justify-center"
+              >
+                Encerrar Plantão e Sair
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

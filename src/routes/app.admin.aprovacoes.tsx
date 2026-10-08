@@ -1,48 +1,51 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowLeft,
-  Bike,
-  Car,
-  CheckCircle2,
-  Clock,
-  ExternalLink,
-  FileCheck2,
-  FileSpreadsheet,
-  FileText,
-  Filter,
-  Loader2,
-  Phone,
-  Printer,
-  Search,
-  ShieldAlert,
-  ShieldCheck,
-  UserCheck,
   Users,
-  X,
+  Clock,
+  CheckCircle2,
   XCircle,
-  Zap,
+  FileSpreadsheet,
+  LayoutGrid,
+  List,
+  Eye,
+  Phone,
+  ShieldCheck,
+  ShieldAlert,
+  Car,
+  Bike,
 } from "lucide-react";
 import {
   usePartiuTodasSolicitacoesMotoristas,
   useAprovarPartiuMotorista,
   useRejeitarPartiuMotorista,
 } from "@/lib/partiu-db";
-import { driverFleetService } from "@/lib/ecosystem/driver-fleet-service";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { exportarParaCSV } from "@/lib/export-csv";
 import { getAdminRole } from "@/lib/admin-rbac";
 import { useAdminCity } from "@/contexts/AdminCityContext";
+import {
+  AdminPageHeader,
+  AdminKpiCard,
+  AdminFilterBar,
+  AdminTabBar,
+  AdminDataTable,
+  AdminBadge,
+  AdminActionButton,
+  type AdminColumn,
+} from "@/components/admin/ui";
+import { DriverApprovalKanban } from "@/components/admin/aprovacoes/DriverApprovalKanban";
+import { DriverApprovalAuditModal } from "@/components/admin/aprovacoes/DriverApprovalAuditModal";
 
 export const Route = createFileRoute("/app/admin/aprovacoes")({
   head: () => ({
     meta: [
-      { title: "Aprovação de Motoristas & Entregadores | PARTIU Admin" },
+      { title: "Pipeline de Aprovação de Motoristas | PARTIU Admin" },
       {
         name: "description",
         content:
-          "Central de auditoria documental e aprovação de motoristas autônomos (Partiu Pop) e entregadores (Partiu Moto / Flash).",
+          "Pipeline Kanban operacional, auditoria documental e timeline de vida de motoristas e entregadores.",
       },
     ],
   }),
@@ -82,15 +85,16 @@ export function AdminAprovacoesPage() {
   const { data: todasReais = [], isLoading } = usePartiuTodasSolicitacoesMotoristas();
   const aprovarMutation = useAprovarPartiuMotorista();
   const rejeitarMutation = useRejeitarPartiuMotorista();
-  const { pracaAtiva, isNacional } = useAdminCity();
+  const { pracaAtiva } = useAdminCity();
   const adminRole = getAdminRole();
 
   const [solicitacoes, setSolicitacoes] = useState<SolicitacaoCondutor[]>([]);
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState<
-    "CARRO" | "MOTO" | "PLUS" | "MULHER"
-  >("CARRO");
+  const [visualizacao, setVisualizacao] = useState<"kanban" | "tabela">("kanban");
+  const [filtroStatus, setFiltroStatus] = useState<"todas" | "pendente" | "aprovado" | "rejeitado">("todas");
+  const [busca, setBusca] = useState("");
+  const [modalAuditoria, setModalAuditoria] = useState<SolicitacaoCondutor | null>(null);
 
-  // Sincroniza dados reais com o estado local
+  // Sincroniza dados do backend
   useEffect(() => {
     if (todasReais && todasReais.length > 0) {
       const convertidas: SolicitacaoCondutor[] = todasReais.map((p) => {
@@ -140,22 +144,17 @@ export function AdminAprovacoesPage() {
     }
   }, [todasReais]);
 
-  // Sincronização em tempo real via Supabase Realtime
+  // Sincronização em tempo real via Supabase
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
-
     let channel: any = null;
     try {
-      const channelId = `admin_motoristas_${Math.random().toString(36).substring(2, 9)}`;
+      const channelId = `admin_motoristas_rt_${Math.random().toString(36).substring(2, 9)}`;
       channel = supabase
         .channel(channelId)
         .on(
           "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "partiu_motoristas",
-          },
+          { event: "*", schema: "public", table: "partiu_motoristas" },
           () => {
             void qc.invalidateQueries({ queryKey: ["admin", "solicitacoes_motoristas"] });
             void qc.invalidateQueries({ queryKey: ["admin", "motoristas_pendentes"] });
@@ -163,9 +162,7 @@ export function AdminAprovacoesPage() {
           }
         )
         .subscribe();
-    } catch (err) {
-      console.warn("Falha ao registrar canal de motoristas:", err);
-    }
+    } catch {}
 
     return () => {
       if (channel) {
@@ -176,713 +173,319 @@ export function AdminAprovacoesPage() {
     };
   }, [qc]);
 
-  const [filtro, setFiltro] = useState<"todas" | "pendente" | "aprovado" | "rejeitado">("todas");
-  const [busca, setBusca] = useState("");
-  const [modalDetalhes, setModalDetalhes] = useState<SolicitacaoCondutor | null>(null);
-  const [motivoRejeicaoInput, setMotivoRejeicaoInput] = useState("");
-  const [mostrarRejeitarModal, setMostrarRejeitarModal] = useState(false);
-  const [imagemZoom, setImagemZoom] = useState<{ url: string; titulo: string } | null>(null);
-
-  function abrirModalDetalhes(sol: SolicitacaoCondutor) {
-    setModalDetalhes(sol);
-    setCategoriaSelecionada(sol.categoriaVeiculo || (sol.modalidade === "moto_flash" ? "MOTO" : "CARRO"));
-    setMostrarRejeitarModal(false);
-  }
-
-  function alterarStatus(
-    id: string,
-    novoStatus: "aprovado" | "rejeitado",
-    motivo?: string,
-    catVeiculo?: "CARRO" | "MOTO" | "PLUS" | "MULHER"
-  ) {
-    const categoriaFinal = catVeiculo || categoriaSelecionada;
-    if (novoStatus === "aprovado") {
-      aprovarMutation.mutate({ id, categoriaVeiculo: categoriaFinal });
-      void driverFleetService.approveDriver(id, categoriaFinal === "MOTO" ? "MOTO" : "CARRO");
-    } else {
-      rejeitarMutation.mutate({ id, motivo: motivo || "Documentação reprovada pelo operador" });
-      void driverFleetService.rejectDriver(id, motivo || "Documentação reprovada pelo operador");
-    }
-    setSolicitacoes((prev) =>
-      prev.map((s) =>
-        s.id === id
-          ? {
-              ...s,
-              status: novoStatus,
-              motivoRejeicao: motivo,
-              categoriaVeiculo: categoriaFinal,
-            }
-          : s
-      ),
-    );
-    setMostrarRejeitarModal(false);
-    setModalDetalhes(null);
-  }
-
-  const listaFiltrada = solicitacoes
-    .filter((s) => filtro === "todas" || s.status === filtro)
-    .filter((s) => {
-      if (!isNacional) {
-        if (!s.cidade.toLowerCase().includes(pracaAtiva.nome.toLowerCase()) && s.cidade !== "Praça Regional") {
-          return false;
-        }
-      }
-      return true;
-    })
-    .filter((s) => {
-      if (!busca.trim()) return true;
-      const t = busca.toLowerCase();
-      return (
-        s.nomeCompleto.toLowerCase().includes(t) ||
-        s.veiculoPlaca.toLowerCase().includes(t) ||
-        s.veiculoMarcaModelo.toLowerCase().includes(t) ||
-        s.cpf.includes(t)
-      );
+  // Filtros combinados
+  const listaFiltrada = useMemo(() => {
+    return solicitacoes.filter((s) => {
+      const atendeStatus = filtroStatus === "todas" ? true : s.status === filtroStatus;
+      const atendeBusca =
+        !busca.trim() ||
+        s.nomeCompleto.toLowerCase().includes(busca.toLowerCase()) ||
+        s.cpf.includes(busca) ||
+        s.whatsapp.includes(busca) ||
+        s.veiculoPlaca.toLowerCase().includes(busca.toLowerCase());
+      return atendeStatus && atendeBusca;
     });
+  }, [solicitacoes, filtroStatus, busca]);
 
-  const totalPendentes = solicitacoes.filter((s) => s.status === "pendente").length;
-  const totalAprovados = solicitacoes.filter((s) => s.status === "aprovado").length;
-  const totalRejeitados = solicitacoes.filter((s) => s.status === "rejeitado").length;
+  const totalPendentes = useMemo(() => solicitacoes.filter((s) => s.status === "pendente").length, [solicitacoes]);
+  const totalAprovados = useMemo(() => solicitacoes.filter((s) => s.status === "aprovado").length, [solicitacoes]);
+  const totalRejeitados = useMemo(() => solicitacoes.filter((s) => s.status === "rejeitado").length, [solicitacoes]);
+
+  // Mutação de aprovação
+  function handleAprovar(id: string, categoria: "CARRO" | "MOTO" | "PLUS" | "MULHER") {
+    aprovarMutation.mutate({ id, categoriaVeiculo: categoria });
+  }
+
+  // Mutação de rejeição
+  function handleRejeitar(id: string, motivo: string) {
+    rejeitarMutation.mutate({ id, motivo });
+  }
+
+  // Definição das colunas para visualização em Tabela
+  const colunasTabela: AdminColumn<SolicitacaoCondutor>[] = [
+    {
+      key: "condutor",
+      header: "Condutor",
+      render: (s) => (
+        <div className="flex items-center gap-3">
+          <img
+            src={s.documentos.fotoPerfilUrl}
+            alt={s.nomeCompleto}
+            className="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-slate-700"
+          />
+          <div>
+            <p className="font-bold text-slate-900 dark:text-slate-100">{s.nomeCompleto}</p>
+            <p className="text-[11px] text-slate-500 font-mono">CPF: {s.cpf}</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "modalidade",
+      header: "Modalidade",
+      render: (s) => (
+        <AdminBadge variant={s.modalidade === "moto_flash" ? "warning" : "info"} size="sm">
+          {s.modalidade === "moto_flash" ? "MOTO" : "POP"}
+        </AdminBadge>
+      ),
+    },
+    {
+      key: "veiculo",
+      header: "Veículo & Placa",
+      render: (s) => (
+        <div>
+          <p className="font-semibold text-slate-800 dark:text-slate-200">{s.veiculoMarcaModelo}</p>
+          <p className="text-[11px] font-mono font-bold text-slate-500 uppercase">{s.veiculoPlaca}</p>
+        </div>
+      ),
+    },
+    {
+      key: "ear",
+      header: "EAR na CNH",
+      render: (s) =>
+        s.possuiEAR ? (
+          <span className="text-emerald-600 dark:text-emerald-400 font-bold inline-flex items-center gap-1 text-xs">
+            <ShieldCheck className="h-3.5 w-3.5" /> Sim
+          </span>
+        ) : (
+          <span className="text-amber-600 dark:text-amber-400 font-bold inline-flex items-center gap-1 text-xs">
+            <ShieldAlert className="h-3.5 w-3.5" /> Ausente
+          </span>
+        ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (s) => (
+        <AdminBadge
+          variant={
+            s.status === "aprovado" ? "success" : s.status === "rejeitado" ? "critical" : "warning"
+          }
+          size="sm"
+          dot
+          pulse={s.status === "pendente"}
+        >
+          {s.status.toUpperCase()}
+        </AdminBadge>
+      ),
+    },
+    {
+      key: "acoes",
+      header: "Ações",
+      align: "right",
+      render: (s) => (
+        <div className="flex items-center justify-end gap-1.5">
+          <AdminActionButton
+            variant="outline"
+            size="xs"
+            iconLeft={<Eye className="h-3 w-3" />}
+            onClick={() => setModalAuditoria(s)}
+          >
+            Auditar
+          </AdminActionButton>
+          <a
+            href={`https://wa.me/55${s.whatsapp.replace(/\D/g, "")}`}
+            target="_blank"
+            rel="noreferrer"
+            className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+          >
+            <Phone className="h-3.5 w-3.5" />
+          </a>
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <div className="w-full space-y-4 sm:space-y-5 pb-20">
-      {/* 1. Header do Módulo */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              Auditoria Cadastral • {adminRole === "franqueado" ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
-            </span>
-          </div>
-          <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-            Aprovações &amp; Auditoria de Frota
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#0088FF] border border-blue-200/50">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+      {/* 1. Header Oficial do Painel */}
+      <AdminPageHeader
+        title="Pipeline de Aprovação de Motoristas"
+        subtitle={`Auditoria cadastral de condutores, verificação de CNH com EAR e governança de frota — ${
+          adminRole === "franqueado" ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"
+        }`}
+        breadcrumbs={[
+          { label: "Dashboard", to: "/app/admin" },
+          { label: "Frota", to: "/app/admin/frota" },
+          { label: "Aprovações" },
+        ]}
+        badge={
+          totalPendentes > 0 ? (
+            <AdminBadge variant="warning" dot pulse size="sm">
               {totalPendentes} PENDENTES
-            </span>
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Conferência de CNH com EAR, CRLV anual e liberação de acesso às categorias Pop e Moto.
-          </p>
-        </div>
+            </AdminBadge>
+          ) : (
+            <AdminBadge variant="success" size="sm">
+              EM DIA
+            </AdminBadge>
+          )
+        }
+        actions={
+          <div className="flex items-center gap-2">
+            {/* Seletor de Modo de Visualização */}
+            <div className="inline-flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <button
+                type="button"
+                onClick={() => setVisualizacao("kanban")}
+                className={`p-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  visualizacao === "kanban"
+                    ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xs"
+                    : "text-slate-500 hover:text-slate-900"
+                }`}
+              >
+                <LayoutGrid className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Kanban</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setVisualizacao("tabela")}
+                className={`p-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  visualizacao === "tabela"
+                    ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xs"
+                    : "text-slate-500 hover:text-slate-900"
+                }`}
+              >
+                <List className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Tabela</span>
+              </button>
+            </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={() => {
-              exportarParaCSV(
-                "motoristas_solicitacoes",
-                ["Nome", "CPF", "Telefone", "Email", "Cidade", "Modalidade", "CNH", "EAR", "Veículo", "Placa", "Ano", "Cor", "Status", "Data Solicitação"],
-                listaFiltrada.map((s) => [
-                  s.nomeCompleto,
-                  s.cpf,
-                  s.whatsapp,
-                  s.email,
-                  s.cidade,
-                  s.modalidade,
-                  s.cnhNumero,
-                  s.possuiEAR ? "Sim" : "Não",
-                  s.veiculoMarcaModelo,
-                  s.veiculoPlaca,
-                  s.veiculoAno,
-                  s.veiculoCor,
-                  s.status,
-                  s.dataSolicitacao,
-                ])
-              );
-            }}
-            className="flex h-10 items-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 px-4 text-xs font-black transition-all cursor-pointer shadow-xs shrink-0"
-            title="Baixar planilha de solicitações"
-          >
-            <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />
-            <span>Exportar CSV</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 2. Quatro Cards de Sumário Rápido */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="rounded-2xl bg-white p-4 border border-slate-200/90 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-black uppercase text-slate-500 block">Total de Cadastros</span>
-            <span className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5 block">{solicitacoes.length}</span>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold">
-            <Users className="h-4.5 w-4.5" />
-          </div>
-        </div>
-
-        <div className="rounded-2xl bg-white p-4 border border-slate-200/90 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-black uppercase text-amber-600 block">Aguardando Análise</span>
-            <span className="text-xl sm:text-2xl font-black text-amber-950 flex items-center gap-1.5 mt-0.5">
-              {totalPendentes}
-              {totalPendentes > 0 && <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />}
-            </span>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-800 flex items-center justify-center font-bold">
-            <Clock className="h-4.5 w-4.5" />
-          </div>
-        </div>
-
-        <div className="rounded-2xl bg-white p-4 border border-slate-200/90 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-black uppercase text-emerald-700 block">Credenciados Ativos</span>
-            <span className="text-xl sm:text-2xl font-black text-emerald-950 mt-0.5 block">{totalAprovados}</span>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center font-bold">
-            <CheckCircle2 className="h-4.5 w-4.5" />
-          </div>
-        </div>
-
-        <div className="rounded-2xl bg-white p-4 border border-slate-200/90 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-black uppercase text-rose-700 block">Recusados / Reprovados</span>
-            <span className="text-xl sm:text-2xl font-black text-rose-950 mt-0.5 block">{totalRejeitados}</span>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-rose-50 text-rose-800 flex items-center justify-center font-bold">
-            <XCircle className="h-4.5 w-4.5" />
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Barra de Busca e Filtros */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        {/* Filtros de Status */}
-        <div className="flex items-center gap-1.5 p-1 bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-x-auto no-scrollbar">
-          {[
-            { id: "todas", label: `Todas (${solicitacoes.length})` },
-            { id: "pendente", label: `Pendentes (${totalPendentes})` },
-            { id: "aprovado", label: `Aprovados (${totalAprovados})` },
-            { id: "rejeitado", label: `Rejeitados (${totalRejeitados})` },
-          ].map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setFiltro(item.id as any)}
-              className={`shrink-0 rounded-xl px-3 py-1.5 text-xs font-black transition-all cursor-pointer ${
-                filtro === item.id
-                  ? "bg-slate-950 text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-              }`}
+            <AdminActionButton
+              variant="secondary"
+              size="sm"
+              iconLeft={<FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />}
+              onClick={() => {
+                exportarParaCSV(
+                  "motoristas_solicitacoes",
+                  [
+                    "Nome",
+                    "CPF",
+                    "Telefone",
+                    "Email",
+                    "Cidade",
+                    "Modalidade",
+                    "CNH",
+                    "EAR",
+                    "Veículo",
+                    "Placa",
+                    "Status",
+                    "Data",
+                  ],
+                  listaFiltrada.map((s) => [
+                    s.nomeCompleto,
+                    s.cpf,
+                    s.whatsapp,
+                    s.email,
+                    s.cidade,
+                    s.modalidade,
+                    s.cnhNumero,
+                    s.possuiEAR ? "Sim" : "Não",
+                    s.veiculoMarcaModelo,
+                    s.veiculoPlaca,
+                    s.status,
+                    s.dataSolicitacao,
+                  ])
+                );
+              }}
             >
-              {item.label}
-            </button>
-          ))}
-        </div>
+              Exportar CSV
+            </AdminActionButton>
+          </div>
+        }
+      />
 
-        {/* Campo de Busca */}
-        <div className="relative flex-1 sm:max-w-xs">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-          <input
-            type="text"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar por nome, placa ou CPF..."
-            className="w-full rounded-xl bg-white border border-slate-200/90 pl-9 pr-3 py-2 text-xs font-bold text-slate-900 placeholder:text-slate-400 outline-none focus:border-[#0088FF] shadow-xs"
-          />
-        </div>
+      {/* 2. Quatro KPI Cards com Tendências */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <AdminKpiCard
+          label="Total de Cadastros"
+          value={solicitacoes.length}
+          icon={<Users className="h-5 w-5" />}
+          iconColor="brand"
+        />
+
+        <AdminKpiCard
+          label="Aguardando Auditoria"
+          value={totalPendentes}
+          icon={<Clock className="h-5 w-5" />}
+          iconColor="warning"
+          badge={
+            totalPendentes > 0 ? (
+              <AdminBadge variant="warning" dot pulse size="sm">
+                Ação Requerida
+              </AdminBadge>
+            ) : undefined
+          }
+        />
+
+        <AdminKpiCard
+          label="Credenciados Ativos"
+          value={totalAprovados}
+          icon={<CheckCircle2 className="h-5 w-5" />}
+          iconColor="success"
+        />
+
+        <AdminKpiCard
+          label="Reprovados / Incompletos"
+          value={totalRejeitados}
+          icon={<XCircle className="h-5 w-5" />}
+          iconColor="critical"
+        />
       </div>
 
-      {/* 3. Lista de Solicitações ou Estados Especiais */}
-      {isLoading ? (
-        <div className="rounded-3xl bg-white p-12 border border-slate-200 text-center shadow-xs space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-primary-vibrant mx-auto" />
-          <p className="text-xs font-bold text-slate-600">Sincronizando fila de cadastros com o banco...</p>
-        </div>
-      ) : listaFiltrada.length === 0 ? (
-        <div className="rounded-3xl bg-white p-10 border border-slate-200 text-center shadow-xs space-y-4 max-w-lg mx-auto">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-100">
-            <CheckCircle2 className="w-8 h-8" />
-          </div>
-          <div className="space-y-1.5">
-            <h3 className="text-base font-black text-slate-900">
-              {busca ? "Nenhum cadastro encontrado" : "Tudo em dia na Moderação!"}
-            </h3>
-            <p className="text-xs text-slate-500 font-medium leading-relaxed">
-              {busca
-                ? `Não encontramos nenhum motorista ou entregador correspondente ao termo "${busca}".`
-                : filtro === "pendente"
-                ? "Nenhum motorista ou entregador aguardando auditoria documental no momento."
-                : "Nenhum cadastro registrado nesta categoria de filtro."}
-            </p>
-          </div>
-          {busca && (
-            <button
-              type="button"
-              onClick={() => setBusca("")}
-              className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
-            >
-              Limpar busca
-            </button>
-          )}
-        </div>
+      {/* 3. Barra de Filtros e Busca */}
+      <AdminFilterBar
+        searchQuery={busca}
+        onSearchChange={setBusca}
+        searchPlaceholder="Buscar por nome, CPF, telefone ou placa..."
+        totalResults={listaFiltrada.length}
+        totalLabel="solicitações listadas"
+        hasActiveFilters={filtroStatus !== "todas" || Boolean(busca)}
+        onResetFilters={() => {
+          setFiltroStatus("todas");
+          setBusca("");
+        }}
+      >
+        <AdminTabBar
+          variant="pills"
+          activeTab={filtroStatus}
+          onChange={(tab) => setFiltroStatus(tab as any)}
+          tabs={[
+            { id: "todas", label: "Todas", badge: solicitacoes.length },
+            { id: "pendente", label: "Pendentes", badge: totalPendentes, badgeVariant: "warning" },
+            { id: "aprovado", label: "Aprovados", badge: totalAprovados },
+            { id: "rejeitado", label: "Reprovados", badge: totalRejeitados },
+          ]}
+        />
+      </AdminFilterBar>
+
+      {/* 4. Corpo Principal: Kanban ou Tabela */}
+      {visualizacao === "kanban" ? (
+        <DriverApprovalKanban
+          solicitacoes={listaFiltrada}
+          onAuditar={(s) => setModalAuditoria(s)}
+          onAprovarRapido={(id, cat) => handleAprovar(id, cat)}
+          onRejeitarRapido={(s) => setModalAuditoria(s)}
+        />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {listaFiltrada.map((item) => {
-            const isCarro = item.modalidade === "pop_carro";
-
-          return (
-            <div
-              key={item.id}
-              className="rounded-3xl bg-white p-5 sm:p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all space-y-4 flex flex-col justify-between"
-            >
-              <div className="space-y-3">
-                {/* Topo do Card */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={item.documentos.fotoPerfilUrl}
-                      alt={item.nomeCompleto}
-                      className="w-12 h-12 rounded-2xl object-cover border-2 border-slate-200"
-                    />
-                    <div>
-                      <h3 className="text-base font-black text-slate-950 leading-tight">
-                        {item.nomeCompleto}
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        {item.cidade} · CPF: <span className="font-semibold">{item.cpf}</span>
-                      </p>
-                    </div>
-                  </div>
-
-                  <span
-                    className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase shrink-0 ${
-                      item.status === "pendente"
-                        ? "bg-amber-50 text-amber-800 border border-amber-200"
-                        : item.status === "aprovado"
-                          ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                          : "bg-rose-50 text-rose-800 border border-rose-200"
-                    }`}
-                  >
-                    ● {item.status}
-                  </span>
-                </div>
-
-                {/* Badge da Modalidade e Categoria Atribuída */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span
-                    className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-black ${
-                      isCarro
-                        ? "bg-slate-900 text-white"
-                        : "bg-blue-600 text-white"
-                    }`}
-                  >
-                    {isCarro ? <Car className="w-3.5 h-3.5" /> : <Bike className="w-3.5 h-3.5" />}
-                    <span>{isCarro ? "Partiu Pop (Carro)" : "Partiu Moto & Flash"}</span>
-                  </span>
-
-                  <span className="inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-bold bg-blue-50 text-blue-900 border border-blue-200/60">
-                    <span className="text-[10px] text-blue-500 uppercase">Cat:</span>
-                    <strong className="font-black">{item.categoriaVeiculo}</strong>
-                  </span>
-
-                  <span className="text-[11px] font-bold text-slate-500">
-                    Solicitado {item.dataSolicitacao}
-                  </span>
-                </div>
-
-                {/* Dados do Veículo */}
-                <div className="rounded-2xl bg-slate-50 p-3.5 border border-slate-200 space-y-1 text-xs font-medium text-slate-700">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Veículo:</span>
-                    <strong className="text-slate-900">{item.veiculoMarcaModelo} ({item.veiculoAno})</strong>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Placa / Cor:</span>
-                    <span className="font-black text-slate-900 uppercase">
-                      {item.veiculoPlaca} · {item.veiculoCor}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Exercício CRLV:</span>
-                    <span className="font-bold text-emerald-700">Vigente ({item.crlvAnoExercicio})</span>
-                  </div>
-                </div>
-
-                {/* Checklist Documental */}
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="flex items-center gap-1.5 text-slate-800">
-                    <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <span>CNH: <strong>{item.cnhCategoria}</strong></span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-slate-800">
-                    {item.possuiEAR ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                    ) : (
-                      <XCircle className="h-4 w-4 text-rose-600 shrink-0" />
-                    )}
-                    <span>{item.possuiEAR ? "EAR Averbado ✓" : "Sem EAR ✗"}</span>
-                  </div>
-                </div>
-
-                {/* Motivo de Rejeição (se houver) */}
-                {item.motivoRejeicao && (
-                  <div className="rounded-xl bg-rose-50 p-3 border border-rose-200 text-xs text-rose-800">
-                    <strong>Motivo da Reprovação:</strong> {item.motivoRejeicao}
-                  </div>
-                )}
-              </div>
-
-              {/* Ações do Administrador */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={() => abrirModalDetalhes(item)}
-                  className="flex items-center gap-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 px-4 py-2.5 text-xs font-black text-slate-800 transition-colors cursor-pointer"
-                >
-                  <FileText className="h-4 w-4" />
-                  Ver Documentos &amp; Categoria
-                </button>
-
-                {item.status === "pendente" && (
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        abrirModalDetalhes(item);
-                        setMostrarRejeitarModal(true);
-                      }}
-                      className="flex items-center gap-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 px-3.5 py-2.5 text-xs font-black text-rose-700 border border-rose-200 transition-colors cursor-pointer"
-                    >
-                      <XCircle className="h-4 w-4" /> Recusar
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => abrirModalDetalhes(item)}
-                      className="flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2.5 text-xs font-black text-white shadow-sm transition-colors cursor-pointer"
-                    >
-                      <CheckCircle2 className="h-4 w-4" /> Aprovar...
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    )}
-
-      {/* MODAL DE AUDITORIA DE DOCUMENTOS E DEFINIÇÃO DE CATEGORIA */}
-      {modalDetalhes && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
-          <div className="relative w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 space-y-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <div className="flex items-center gap-3">
-                <img
-                  src={modalDetalhes.documentos.fotoPerfilUrl}
-                  alt={modalDetalhes.nomeCompleto}
-                  className="w-12 h-12 rounded-2xl object-cover"
-                />
-                <div>
-                  <h2 className="text-lg font-black text-slate-950">{modalDetalhes.nomeCompleto}</h2>
-                  <p className="text-xs text-slate-500">
-                    {modalDetalhes.modalidade === "pop_carro" ? "Partiu Pop (Carro)" : "Partiu Moto & Flash"} · WhatsApp: {modalDetalhes.whatsapp}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setModalDetalhes(null);
-                  setMostrarRejeitarModal(false);
-                }}
-                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Imagens de CNH e CRLV */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-600">
-                Documentos Anexados pelo Condutor
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() =>
-                    setImagemZoom({
-                      url: modalDetalhes.documentos.cnhUrl,
-                      titulo: `CNH do Condutor - ${modalDetalhes.nomeCompleto}`,
-                    })
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      setImagemZoom({
-                        url: modalDetalhes.documentos.cnhUrl,
-                        titulo: `CNH do Condutor - ${modalDetalhes.nomeCompleto}`,
-                      });
-                    }
-                  }}
-                  className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50 cursor-zoom-in group relative transition-all hover:border-primary/50 shadow-xs"
-                >
-                  <div className="p-3 bg-slate-100 border-b border-slate-200 text-xs font-bold text-slate-800 flex items-center justify-between">
-                    <span>CNH com EAR</span>
-                    <span className="text-[10px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded font-black flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" /> Nº {modalDetalhes.cnhNumero}
-                    </span>
-                  </div>
-                  <div className="relative overflow-hidden h-44">
-                    <img
-                      src={modalDetalhes.documentos.cnhUrl}
-                      alt="CNH do Condutor"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-slate-950/0 group-hover:bg-slate-950/25 flex items-center justify-center transition-colors">
-                      <span className="opacity-0 group-hover:opacity-100 bg-slate-900/90 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transition-opacity flex items-center gap-1.5">
-                        <ExternalLink className="w-3.5 h-3.5" /> Clique para Ampliar
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() =>
-                    setImagemZoom({
-                      url: modalDetalhes.documentos.crlvUrl,
-                      titulo: `CRLV do Veículo - Placa ${modalDetalhes.veiculoPlaca}`,
-                    })
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      setImagemZoom({
-                        url: modalDetalhes.documentos.crlvUrl,
-                        titulo: `CRLV do Veículo - Placa ${modalDetalhes.veiculoPlaca}`,
-                      });
-                    }
-                  }}
-                  className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50 cursor-zoom-in group relative transition-all hover:border-primary/50 shadow-xs"
-                >
-                  <div className="p-3 bg-slate-100 border-b border-slate-200 text-xs font-bold text-slate-800 flex items-center justify-between">
-                    <span>CRLV do Veículo</span>
-                    <span className="text-[10px] text-slate-800 bg-slate-200 px-2 py-0.5 rounded font-black flex items-center gap-1">
-                      <Car className="w-3 h-3" /> Placa: {modalDetalhes.veiculoPlaca}
-                    </span>
-                  </div>
-                  <div className="relative overflow-hidden h-44">
-                    <img
-                      src={modalDetalhes.documentos.crlvUrl}
-                      alt="CRLV do Veículo"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-slate-950/0 group-hover:bg-slate-950/25 flex items-center justify-center transition-colors">
-                      <span className="opacity-0 group-hover:opacity-100 bg-slate-900/90 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transition-opacity flex items-center gap-1.5">
-                        <ExternalLink className="w-3.5 h-3.5" /> Clique para Ampliar
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Resumo do Veículo */}
-            <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200 text-xs space-y-1.5">
-              <span className="font-black text-slate-900 uppercase tracking-wider block">Veículo Declarado no Cadastro:</span>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-slate-700 pt-1">
-                <div>
-                  <span className="text-[10px] text-slate-400 block">Modelo / Marca</span>
-                  <strong>{modalDetalhes.veiculoMarcaModelo}</strong>
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 block">Ano de Fabricação</span>
-                  <strong>{modalDetalhes.veiculoAno}</strong>
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 block">Placa</span>
-                  <strong className="uppercase">{modalDetalhes.veiculoPlaca}</strong>
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 block">Cor</span>
-                  <strong>{modalDetalhes.veiculoCor}</strong>
-                </div>
-              </div>
-            </div>
-
-            {/* Chave PIX e Repasse */}
-            <div className="rounded-2xl bg-primary-50/70 p-4 border border-amber-200 text-xs space-y-1">
-              <span className="font-black text-amber-950 block">Conta PIX de Repasse (D+0):</span>
-              <p className="text-amber-900 font-semibold">{modalDetalhes.chavePix}</p>
-            </div>
-
-            {/* DEFINIÇÃO ADMINISTRATIVA DA CATEGORIA DE ATENDIMENTO */}
-            <div className="space-y-2 p-4 rounded-2xl bg-blue-50/60 border border-blue-200">
-              <div className="flex items-center justify-between">
-                <label className="block text-xs font-black text-blue-950 uppercase tracking-wider">
-                  Atribuir Categoria de Atendimento (Controle Administrativo):
-                </label>
-                <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full border border-blue-300">
-                  Exclusivo Operação
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
-                Audite os dados do veículo e selecione a categoria oficial permitida para este parceiro:
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                {(["CARRO", "MOTO", "PLUS", "MULHER"] as const).map((cat) => {
-                  const isSelected = categoriaSelecionada === cat;
-                  return (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setCategoriaSelecionada(cat)}
-                      className={`p-2.5 rounded-xl border text-center transition cursor-pointer flex flex-col items-center gap-0.5 ${
-                        isSelected
-                          ? "bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-slate-900/20"
-                          : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
-                      }`}
-                    >
-                      <span className="text-xs font-black">{cat}</span>
-                      <span className={`text-[10px] ${isSelected ? "text-slate-300" : "text-slate-400"}`}>
-                        {cat === "CARRO" && "Partiu Pop"}
-                        {cat === "MOTO" && "Moto & Flash"}
-                        {cat === "PLUS" && "Sedan Executivo"}
-                        {cat === "MULHER" && "Partiu Delas"}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Formulário de Rejeição */}
-            {mostrarRejeitarModal ? (
-              <div className="space-y-3 p-4 rounded-2xl bg-rose-50 border border-rose-200">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-black text-rose-950">
-                    Informe o motivo da reprovação documental:
-                  </label>
-                  <span className="text-[10px] text-rose-700 font-bold">
-                    Mensagem enviada ao condutor
-                  </span>
-                </div>
-
-                {/* Motivos Rápidos Predefinidos (1 Clique) */}
-                <div className="flex flex-wrap gap-1.5">
-                  {[
-                    "CNH sem observação EAR obrigatória",
-                    "Foto da CNH cortada ou ilegível",
-                    "CRLV com exercício desatualizado",
-                    "Veículo fabricado antes do ano limite",
-                    "Placa ilegível no documento",
-                    "Foto do perfil inadequada",
-                  ].map((motivoRapido) => (
-                    <button
-                      key={motivoRapido}
-                      type="button"
-                      onClick={() => setMotivoRejeicaoInput(motivoRapido)}
-                      className="px-2.5 py-1 rounded-lg bg-white hover:bg-rose-100 text-rose-900 border border-rose-200 text-[10px] font-bold transition cursor-pointer"
-                    >
-                      + {motivoRapido}
-                    </button>
-                  ))}
-                </div>
-
-                <textarea
-                  rows={3}
-                  value={motivoRejeicaoInput}
-                  onChange={(e) => setMotivoRejeicaoInput(e.target.value)}
-                  placeholder="Selecione um motivo acima ou digite uma orientação personalizada..."
-                  className="w-full rounded-xl bg-white border border-rose-300 p-3 text-xs font-medium text-slate-900 outline-none"
-                />
-                <div className="flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setMostrarRejeitarModal(false)}
-                    className="px-4 py-2 rounded-xl bg-white text-slate-700 text-xs font-bold border border-slate-200 cursor-pointer"
-                  >
-                    Voltar
-                  </button>
-                  <button
-                    type="button"
-                    disabled={!motivoRejeicaoInput.trim()}
-                    onClick={() =>
-                      alterarStatus(modalDetalhes.id, "rejeitado", motivoRejeicaoInput)
-                    }
-                    className="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-black hover:bg-rose-500 disabled:opacity-50 cursor-pointer"
-                  >
-                    Confirmar Reprovação
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setMostrarRejeitarModal(true)}
-                  className="px-5 py-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-black hover:bg-rose-100 border border-rose-200 cursor-pointer"
-                >
-                  Reprovar Cadastro
-                </button>
-                <button
-                  type="button"
-                  onClick={() => alterarStatus(modalDetalhes.id, "aprovado", undefined, categoriaSelecionada)}
-                  className="px-6 py-3 rounded-xl bg-emerald-600 text-white text-xs font-black hover:bg-emerald-500 shadow-md cursor-pointer flex items-center gap-2"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>Aprovar como {categoriaSelecionada} (Liberar Degustação 7d)</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+        <AdminDataTable
+          columns={colunasTabela}
+          data={listaFiltrada}
+          keyExtractor={(s) => s.id}
+          loading={isLoading}
+          emptyTitle="Nenhuma solicitação encontrada"
+          emptyDescription="Ajuste os filtros de status ou o termo de busca para visualizar registros."
+          onRowClick={(s) => setModalAuditoria(s)}
+        />
       )}
 
-      {/* MODAL LIGHTBOX DE INSPEÇÃO DOCUMENTAL EM ALTA RESOLUÇÃO (FIGMA CABER VIEW DOCUMENT) */}
-      {imagemZoom && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-60 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-4 select-none animate-in fade-in duration-200"
-          onClick={() => setImagemZoom(null)}
-        >
-          <div
-            className="relative max-w-4xl w-full max-h-[90vh] flex flex-col bg-slate-900 border border-slate-700/80 rounded-3xl overflow-hidden shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header do Lightbox */}
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-slate-950 text-white">
-              <div className="flex items-center gap-2">
-                <FileCheck2 className="w-5 h-5 text-emerald-400" />
-                <span className="text-sm font-bold truncate">{imagemZoom.titulo}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setImagemZoom(null)}
-                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Imagem em alta resolução */}
-            <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-slate-950/50">
-              <img
-                src={imagemZoom.url}
-                alt={imagemZoom.titulo}
-                className="max-w-full max-h-[75vh] object-contain rounded-xl shadow-lg border border-slate-800"
-              />
-            </div>
-
-            {/* Rodapé com atalho */}
-            <div className="px-5 py-3 border-t border-slate-800 bg-slate-950 flex items-center justify-between text-xs text-slate-400">
-              <span>Auditoria de conformidade legal de condutores</span>
-              <button
-                type="button"
-                onClick={() => setImagemZoom(null)}
-                className="px-4 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold transition-colors cursor-pointer"
-              >
-                Fechar Visualização
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 5. Modal de Auditoria e Checklist com Timeline de Vida */}
+      <DriverApprovalAuditModal
+        solicitacao={modalAuditoria}
+        open={Boolean(modalAuditoria)}
+        onClose={() => setModalAuditoria(null)}
+        onAprovar={handleAprovar}
+        onRejeitar={handleRejeitar}
+      />
     </div>
   );
 }

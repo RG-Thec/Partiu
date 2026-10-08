@@ -1,5 +1,5 @@
 import React from "react";
-import { Menu, Volume2, VolumeX, Bell, Clock } from "lucide-react";
+import { Menu, Volume2, VolumeX, Bell, Clock, Moon, Sun } from "lucide-react";
 import { PartiuLogo } from "@/components/common/PartiuLogo";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
@@ -17,6 +17,8 @@ export interface DriverHeaderProps {
   unreadCount?: number;
   diariaBadgeText?: string;
   onOpenDiaria?: () => void;
+  isNightMode?: boolean;
+  onToggleNightMode?: () => void;
 }
 
 export function DriverHeader({
@@ -32,6 +34,8 @@ export function DriverHeader({
   unreadCount = 0,
   diariaBadgeText,
   onOpenDiaria,
+  isNightMode = false,
+  onToggleNightMode,
 }: DriverHeaderProps) {
   const { corPrimaria } = useBrandTheme();
   const { appConfig } = useTheme();
@@ -152,6 +156,24 @@ export function DriverHeader({
           >
             {somAtivo ? <Volume2 className="w-3.5 h-3.5 stroke-[1.8]" /> : <VolumeX className="w-3.5 h-3.5 stroke-[1.8]" />}
           </button>
+
+          {/* Alternância de Modo Noturno / Diurno */}
+          {onToggleNightMode && (
+            <button
+              type="button"
+              onClick={onToggleNightMode}
+              style={{ borderRadius: ui.borderRadius }}
+              className="w-9 h-9 min-h-[36px] min-w-[36px] rounded-lg flex items-center justify-center text-foreground hover:bg-muted active:scale-90 transition cursor-pointer"
+              title={isNightMode ? "Modo Noturno ativo (clique para alternar)" : "Modo Diurno ativo (clique para alternar)"}
+              aria-label="Alternar modo noturno veicular"
+            >
+              {isNightMode ? (
+                <Moon className="w-3.5 h-3.5 text-amber-400 fill-amber-400 stroke-[1.8]" />
+              ) : (
+                <Sun className="w-3.5 h-3.5 stroke-[1.8]" />
+              )}
+            </button>
+          )}
 
           {/* Sino de Notificações com Badge Numérico Vermelho em Tempo Real */}
           <button

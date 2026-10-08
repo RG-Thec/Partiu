@@ -99,7 +99,7 @@ export const PromoCarousel = memo(function PromoCarousel({
             key={item.id}
             data-banner-slide={idx}
             onClick={() => onBannerClick?.(item)}
-            className={`min-w-[270px] sm:min-w-[320px] max-w-[360px] snap-center rounded-2xl p-3.5 sm:p-4 bg-gradient-to-r ${item.corGradiente} shadow-md flex flex-col justify-between cursor-pointer active:scale-[0.99] transition-transform select-none relative overflow-hidden h-[134px] sm:h-[148px] min-h-[130px] shrink-0 text-white`}
+            className={`min-w-[260px] sm:min-w-[320px] max-w-[360px] snap-center rounded-2xl p-2.5 sm:p-3.5 bg-gradient-to-r ${item.corGradiente} shadow-md flex flex-col justify-between cursor-pointer active:scale-[0.99] transition-transform select-none relative overflow-hidden h-[98px] sm:h-[124px] min-h-[96px] shrink-0 text-white`}
           >
             {/* Imagem de Fundo Administrativa com object-cover (resizeMode="cover") */}
             {item.imagemUrl && (
@@ -119,14 +119,14 @@ export const PromoCarousel = memo(function PromoCarousel({
             <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none z-[1]" />
 
             {/* Topo do Banner: Badge Promocional + Cupom */}
-            <div className="flex items-center justify-between gap-2 relative z-10">
-              <span className={`text-[9.5px] sm:text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full ${item.tagCor} shadow-xs tracking-wider flex items-center gap-1`}>
+            <div className="flex items-center justify-between gap-1.5 relative z-10">
+              <span className={`text-[8.5px] sm:text-[9.5px] font-semibold uppercase px-2 py-0.5 rounded-full ${item.tagCor} shadow-xs tracking-wider flex items-center gap-1`}>
                 <Sparkles className="w-2.5 h-2.5" />
                 {item.badge}
               </span>
 
               {item.cupom && (
-                <div className="flex items-center gap-1 text-[9.5px] sm:text-[10px] font-mono font-medium bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-md text-primary-500 border border-primary-600/30 shadow-xs">
+                <div className="flex items-center gap-1 text-[8.5px] sm:text-[9.5px] font-mono font-medium bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded-md text-primary-500 border border-primary-600/30 shadow-xs">
                   <Tag className="w-2.5 h-2.5 text-primary-600" />
                   <span>{item.cupom}</span>
                 </div>
@@ -134,21 +134,21 @@ export const PromoCarousel = memo(function PromoCarousel({
             </div>
 
             {/* Conteúdo Central: Título e Subtítulo */}
-            <div className="relative z-10 my-auto py-1">
-              <h3 className="text-sm sm:text-[15px] font-semibold tracking-tight leading-snug drop-shadow-sm line-clamp-1">
+            <div className="relative z-10 my-0.5 sm:my-auto py-0.5">
+              <h3 className="text-xs sm:text-[14px] font-bold tracking-tight leading-tight drop-shadow-sm line-clamp-1">
                 {item.titulo}
               </h3>
-              <p className="text-[11px] sm:text-xs text-white/95 font-medium leading-snug mt-0.5 drop-shadow-xs line-clamp-2">
+              <p className="text-[10px] sm:text-xs text-white/95 font-medium leading-tight mt-0.5 drop-shadow-xs line-clamp-1">
                 {item.subtitulo}
               </p>
             </div>
 
             {/* Rodapé do Banner: Chamada para ação com seta */}
-            <div className="flex items-center justify-between text-[10.5px] sm:text-[11px] font-bold text-white/95 relative z-10 pt-1.5 border-t border-white/20">
+            <div className="flex items-center justify-between text-[9px] sm:text-[10.5px] font-bold text-white/95 relative z-10 pt-1 border-t border-white/20">
               <span className="opacity-90">Aproveite agora</span>
-              <div className="flex items-center gap-1 bg-white/20 hover:bg-white/30 backdrop-blur-xs px-2.5 py-0.5 rounded-md transition-colors">
+              <div className="flex items-center gap-1 bg-white/20 hover:bg-white/30 backdrop-blur-xs px-2 py-0.5 rounded-md transition-colors">
                 <span>Usar benefício</span>
-                <ArrowRight className="w-3 h-3" />
+                <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               </div>
             </div>
           </div>

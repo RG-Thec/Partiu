@@ -8,6 +8,7 @@ import {
 } from "@/lib/branding";
 import { supabase } from "@/integrations/supabase/client";
 import { silentCatchWarn } from "@/lib/structured-logger";
+import { whiteLabelEngine } from "@/lib/white-label";
 
 const STORAGE_KEY_BRANDING = "partiu_active_branding_v2";
 const STORAGE_KEY_TENANT = "partiu_active_tenant_id_v2";
@@ -64,13 +65,57 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
   const activeTenantRef = useRef(activeTenantId);
   activeTenantRef.current = activeTenantId;
 
-  // Aplicação de tema síncrona
+  // Aplicação de tema síncrona com sincronização lockstep do WhiteLabelEngine
   const applyBrandingTheme = useCallback((b: AppBrandingRecord) => {
     setBrandingState(b);
     themeEngine.applyTheme(b);
     try {
       localStorage.setItem(STORAGE_KEY_BRANDING, JSON.stringify(b));
     } catch {}
+
+    // Mantém WhiteLabelEngine sincronizado se houver mudanças visuais
+    try {
+      const activeWl = whiteLabelEngine.getActiveConfig();
+      if (
+        b.primary_color &&
+        (b.primary_color !== activeWl.designSystem.paletaPrimaria.corPrincipal ||
+          b.app_name !== activeWl.brandCenter.nomePlataforma)
+      ) {
+        whiteLabelEngine.updateActiveConfig({
+          brandCenter: {
+            ...activeWl.brandCenter,
+            nomePlataforma: b.app_name || activeWl.brandCenter.nomePlataforma,
+            slogan: b.company_name || activeWl.brandCenter.slogan,
+            logos: {
+              ...activeWl.brandCenter.logos,
+              logoPrincipalUrl: b.logo_url || activeWl.brandCenter.logos.logoPrincipalUrl,
+            },
+            favicons: {
+              ...activeWl.brandCenter.favicons,
+              faviconDesktopUrl: b.favicon_url || activeWl.brandCenter.favicons.faviconDesktopUrl,
+            },
+          },
+          designSystem: {
+            ...activeWl.designSystem,
+            paletaPrimaria: {
+              ...activeWl.designSystem.paletaPrimaria,
+              corPrincipal: b.primary_color,
+              corSecundaria: b.secondary_color || activeWl.designSystem.paletaPrimaria.corSecundaria,
+              corTerciaria: b.accent_color || activeWl.designSystem.paletaPrimaria.corTerciaria,
+              corFundoApp: b.background_color || activeWl.designSystem.paletaPrimaria.corFundoApp,
+              corSuperficieCard: b.surface_color || activeWl.designSystem.paletaPrimaria.corSuperficieCard,
+              corTextoPrincipal: b.text_primary || activeWl.designSystem.paletaPrimaria.corTextoPrincipal,
+            },
+          },
+          typography: {
+            ...activeWl.typography,
+            familiaPrincipal: (b.font_family as any) || activeWl.typography.familiaPrincipal,
+          },
+        });
+      }
+    } catch (err) {
+      silentCatchWarn("BrandingProvider:syncWithWhiteLabelEngine", err);
+    }
   }, []);
 
   // Escuta seleção dinâmica de paletas monocromáticas

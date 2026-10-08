@@ -66,10 +66,14 @@ export type AdminPermission =
   | "app:manage_banners"
   | "app:manage_announcements"
   | "app:manage_affiliates"
-  | "app:configure_system_parameters";
+  | "app:configure_system_parameters"
+
+  // 🎨 Permissões de Customização White Label & Identidade Visual
+  | "whitelabel:manage";
 
 const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
   super_admin: [
+    "whitelabel:manage",
     "financial:view_revenue",
     "financial:view_profit",
     "financial:view_splits",
@@ -124,8 +128,10 @@ const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
     "app:manage_announcements",
     "app:manage_affiliates",
     "app:configure_system_parameters",
+    "whitelabel:manage",
   ],
   admin: [
+    "whitelabel:manage",
     "financial:view_revenue",
     "financial:manage_cash_closing",
     "financial:configure_fees",
@@ -144,6 +150,7 @@ const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
     "app:manage_affiliates",
   ],
   ADMIN: [
+    "whitelabel:manage",
     "financial:view_revenue",
     "financial:manage_cash_closing",
     "financial:configure_fees",
@@ -162,6 +169,7 @@ const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
     "app:manage_affiliates",
   ],
   franqueado: [
+    "whitelabel:manage",
     "financial:view_revenue",
     "financial:view_splits",
     "operations:view_radar",
@@ -435,7 +443,7 @@ export function isOwner(roleOverride?: AdminRole): boolean {
   return isSuperAdmin(roleOverride);
 }
 
-export type AdminModuleId = "dashboard" | "operacao" | "motoristas" | "financeiro" | "marketing" | "configuracoes";
+export type AdminModuleId = "dashboard" | "operacao" | "motoristas" | "financeiro" | "marketing" | "configuracoes" | "whitelabel";
 
 export function canAccessModule(modulo: AdminModuleId, roleOverride?: AdminRole): boolean {
   const role = roleOverride || getAdminRole();
@@ -453,6 +461,8 @@ export function canAccessModule(modulo: AdminModuleId, roleOverride?: AdminRole)
     case "marketing":
       return role === "admin" || role === "ADMIN" || role === "franqueado";
     case "configuracoes":
+      return role === "admin" || role === "ADMIN" || role === "franqueado";
+    case "whitelabel":
       return role === "admin" || role === "ADMIN" || role === "franqueado";
     default:
       return false;

@@ -8,6 +8,7 @@ import React, {
   type ReactNode,
 } from "react";
 import { useBranding } from "@/hooks/useBranding";
+import { themeEngine } from "@/lib/branding/ThemeEngine";
 
 // ==============================================================================
 // 🏷️ WHITE LABEL SAAS THEME CONTRACT (Conforme Especificação de Painel Admin)
@@ -122,10 +123,8 @@ const STORAGE_KEY_WL_CONFIG = "partiu_wl_app_config_v2";
 function applyCssVariablesToRoot(config: AppConfig) {
   if (typeof document === "undefined") return;
 
-  const root = document.documentElement;
-  const branding = config?.branding || DEFAULT_APP_CONFIG.branding;
-  const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
-  const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
+  const colors = config?.branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+  const ui = config?.branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
 
   const primary = colors?.primary || DEFAULT_APP_CONFIG.branding.colors.primary;
   const primaryHover = colors?.primaryHover || DEFAULT_APP_CONFIG.branding.colors.primaryHover;
@@ -140,7 +139,27 @@ function applyCssVariablesToRoot(config: AppConfig) {
   const buttonShadow = ui?.buttonShadow || DEFAULT_APP_CONFIG.branding.ui.buttonShadow;
   const fontFamily = ui?.fontFamily || DEFAULT_APP_CONFIG.branding.ui.fontFamily;
 
-  // Variáveis Scoped White Label
+  // 1. Injeta tokens canônicos globais via ThemeEngine (Fonte Única de Verdade)
+  themeEngine.applyTheme({
+    tenant_id: "default",
+    app_name: config.branding?.appName || "PARTIU",
+    company_name: "PARTIU Mobilidade Urbana",
+    primary_color: primary,
+    secondary_color: secondary,
+    accent_color: secondary,
+    background_color: background,
+    surface_color: surface,
+    text_primary: textPrimary,
+    text_secondary: textSecondary,
+    header_gradient_start: primary,
+    header_gradient_end: secondary,
+    border_radius: borderRadius,
+    font_family: fontFamily,
+  });
+
+  const root = document.documentElement;
+
+  // 2. Variáveis Scoped White Label específicas do contexto
   root.style.setProperty("--wl-primary", primary);
   root.style.setProperty("--wl-primary-hover", primaryHover);
   root.style.setProperty("--wl-secondary", secondary);
@@ -153,27 +172,6 @@ function applyCssVariablesToRoot(config: AppConfig) {
   root.style.setProperty("--wl-border-radius", borderRadius);
   root.style.setProperty("--wl-button-shadow", buttonShadow);
   root.style.setProperty("--wl-font-family", fontFamily);
-
-  // Mapeamentos de compatibilidade com classes Tailwind / Shadcn existentes
-  root.style.setProperty("--primary", primary);
-  root.style.setProperty("--primary-foreground", "#FFFFFF");
-  root.style.setProperty("--background", background);
-  root.style.setProperty("--card", surface);
-  root.style.setProperty("--surface", surface);
-  root.style.setProperty("--radius", borderRadius);
-  root.style.setProperty("--color-primary", primary);
-  root.style.setProperty("--color-secondary", secondary);
-  root.style.setProperty("--color-background", background);
-  root.style.setProperty("--color-surface", surface);
-  root.style.setProperty("--header-gradient-start", primary);
-  root.style.setProperty("--header-gradient-end", secondary);
-  root.style.setProperty("--brand-primary-vibrant", primary);
-  root.style.setProperty("--brand-primary-deep", primaryHover || primary);
-  root.style.setProperty("--brand-primary-accent", secondary);
-  root.style.setProperty("--brand-bg-neutral", background);
-  root.style.setProperty("--brand-surface-card", surface);
-  root.style.setProperty("--button-shadow", buttonShadow);
-  root.style.setProperty("--border-radius", borderRadius);
 }
 
 export function WhiteLabelThemeProvider({
@@ -265,49 +263,87 @@ export function WhiteLabelThemeProvider({
     } catch {}
   }, [appConfig]);
 
-  const updateAppConfig = useCallback((partial: Partial<AppConfig>) => {
-    setAppConfigState((prev) => ({
-      ...prev,
-      ...partial,
-      branding: {
-        ...(prev?.branding || DEFAULT_APP_CONFIG.branding),
-        ...(partial.branding || {}),
-        colors: {
-          ...(prev?.branding?.colors || DEFAULT_APP_CONFIG.branding.colors),
-          ...(partial.branding?.colors || {}),
-        },
-        ui: {
-          ...(prev?.branding?.ui || DEFAULT_APP_CONFIG.branding.ui),
-          ...(partial.branding?.ui || {}),
-        },
-      },
-      features: {
-        ...(prev?.features || DEFAULT_APP_CONFIG.features),
-        ...(partial.features || {}),
-      },
-    }));
-  }, []);
+  const updateAppConfig = useCallback(
+    (partial: Partial<AppConfig>) => {
+      setAppConfigState((prev) => {
+        const next = {
+          ...prev,
+          ...partial,
+          branding: {
+            ...(prev?.branding || DEFAULT_APP_CONFIG.branding),
+            ...(partial.branding || {}),
+            colors: {
+              ...(prev?.branding?.colors || DEFAULT_APP_CONFIG.branding.colors),
+              ...(partial.branding?.colors || {}),
+            },
+            ui: {
+              ...(prev?.branding?.ui || DEFAULT_APP_CONFIG.branding.ui),
+              ...(partial.branding?.ui || {}),
+            },
+          },
+          features: {
+            ...(prev?.features || DEFAULT_APP_CONFIG.features),
+            ...(partial.features || {}),
+          },
+        };
 
-  const updateBrandingColors = useCallback((partialColors: Partial<AppConfigBrandingColors>) => {
-    setAppConfigState((prev) => {
-      const prevColors = prev?.branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
-      const primary = partialColors.primary || prevColors.primary || DEFAULT_APP_CONFIG.branding.colors.primary;
-      return {
-        ...prev,
-        branding: {
-          ...(prev?.branding || DEFAULT_APP_CONFIG.branding),
-          colors: {
-            ...prevColors,
-            ...partialColors,
+        if (globalBranding?.updateBranding) {
+          const c = next.branding.colors;
+          const u = next.branding.ui;
+          void globalBranding.updateBranding({
+            app_name: next.branding.appName,
+            primary_color: c.primary,
+            secondary_color: c.secondary,
+            background_color: c.background,
+            surface_color: c.surface,
+            text_primary: c.textPrimary,
+            text_secondary: c.textSecondary,
+            border_radius: u.borderRadius,
+          });
+        }
+
+        return next;
+      });
+    },
+    [globalBranding]
+  );
+
+  const updateBrandingColors = useCallback(
+    (partialColors: Partial<AppConfigBrandingColors>) => {
+      setAppConfigState((prev) => {
+        const prevColors = prev?.branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+        const primary = partialColors.primary || prevColors.primary || DEFAULT_APP_CONFIG.branding.colors.primary;
+        const newColors = {
+          ...prevColors,
+          ...partialColors,
+        };
+
+        if (globalBranding?.updateBranding) {
+          void globalBranding.updateBranding({
+            primary_color: newColors.primary,
+            secondary_color: newColors.secondary,
+            background_color: newColors.background,
+            surface_color: newColors.surface,
+            text_primary: newColors.textPrimary,
+            text_secondary: newColors.textSecondary,
+          });
+        }
+
+        return {
+          ...prev,
+          branding: {
+            ...(prev?.branding || DEFAULT_APP_CONFIG.branding),
+            colors: newColors,
+            ui: {
+              ...(prev?.branding?.ui || DEFAULT_APP_CONFIG.branding.ui),
+              buttonShadow: computeButtonShadow(primary),
+            },
           },
-          ui: {
-            ...(prev?.branding?.ui || DEFAULT_APP_CONFIG.branding.ui),
-            buttonShadow: computeButtonShadow(primary),
-          },
-        },
-      };
-    });
-  }, []);
+        };
+      });
+    },
+    [globalBranding]
+  );
 
   const updateFeatures = useCallback((partialFeatures: Partial<AppConfigFeatures>) => {
     setAppConfigState((prev) => ({

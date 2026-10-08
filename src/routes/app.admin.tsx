@@ -682,8 +682,8 @@ function SuperAdminLayout() {
 
         {/* 2. Container Principal & Topbar Executiva */}
         <div className="flex-1 h-screen max-h-screen overflow-hidden flex flex-col min-w-0 bg-slate-50">
-          <header className="shrink-0 h-12 pt-[env(safe-area-inset-top,0px)] bg-white border-b border-slate-200/80 px-3 sm:px-5 flex items-center justify-between sticky top-0 z-30 shadow-xs">
-            <div className="flex items-center gap-2 sm:gap-3 py-0.5 min-w-0">
+          <header className="shrink-0 min-h-12 h-auto pt-[max(0.4rem,calc(env(safe-area-inset-top,0px)+4px))] pb-2 bg-white border-b border-slate-200/80 px-2.5 sm:px-5 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+            <div className="flex items-center gap-1.5 sm:gap-3 py-0.5 min-w-0 flex-1 mr-2">
               <button
                 type="button"
                 onClick={() => setMenuAbertoMobile(true)}
@@ -719,19 +719,19 @@ function SuperAdminLayout() {
               <button
                 type="button"
                 onClick={() => setBuscaRapidaAberta(true)}
-                className="flex sm:hidden h-7.5 w-7.5 items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 cursor-pointer"
+                className="flex sm:hidden h-7.5 w-7.5 items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 cursor-pointer shrink-0"
                 title="Buscar Módulo (Ctrl+K)"
               >
                 <Search className="h-3.5 w-3.5" />
               </button>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0 py-0.5">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 py-0.5">
               {/* Alerta SOS em tempo real (Apenas se houver chamado ativo) */}
               {chamadosSOSAtivos > 0 && (
                 <Link
                   to="/app/admin/sos"
-                  className="flex items-center gap-1.5 px-2.5 py-1 h-7.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold border border-red-500 animate-pulse shadow-xs transition-all shrink-0"
+                  className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 h-7.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold border border-red-500 animate-pulse shadow-xs transition-all shrink-0"
                 >
                   <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
                   <span>{chamadosSOSAtivos} SOS</span>
@@ -752,17 +752,19 @@ function SuperAdminLayout() {
               {/* Atalho Rápido para Operação ao Vivo */}
               <Link
                 to="/app/admin/operacao"
-                className="flex items-center gap-1.5 px-2.5 py-1 h-7.5 rounded-lg bg-emerald-50 text-emerald-900 text-[11px] font-bold border border-emerald-300/80 hover:bg-emerald-100 active:scale-95 transition-all shadow-xs"
+                className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 h-7.5 rounded-lg bg-emerald-50 text-emerald-900 text-[11px] font-bold border border-emerald-300/80 hover:bg-emerald-100 active:scale-95 transition-all shadow-xs"
+                title="Operação ao Vivo"
               >
                 <Radio className="h-3.5 w-3.5 animate-pulse text-emerald-600 shrink-0" />
-                <span>Ao Vivo</span>
+                <span className="hidden sm:inline">Ao Vivo</span>
               </Link>
 
               {/* Conta / Perfil */}
               <button
                 type="button"
                 onClick={abrirModalConta}
-                className="flex h-7.5 items-center gap-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 active:scale-95 px-2.5 text-[11px] font-bold text-slate-800 transition-all border border-slate-200 cursor-pointer shadow-xs"
+                className="flex h-7.5 items-center gap-1 sm:gap-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 active:scale-95 px-2 sm:px-2.5 text-[11px] font-bold text-slate-800 transition-all border border-slate-200 cursor-pointer shadow-xs"
+                title="Configurar Perfil"
               >
                 <Key className="h-3.5 w-3.5 text-amber-600 shrink-0" />
                 <span className="hidden sm:inline">{contaAtiva.nome ? contaAtiva.nome.split(" ")[0] : "Admin"}</span>
@@ -772,7 +774,7 @@ function SuperAdminLayout() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex h-7.5 px-2.5 items-center gap-1 rounded-lg bg-slate-900 text-white text-[11px] font-bold hover:bg-red-950 active:scale-95 transition-all cursor-pointer shadow-xs"
+                className="flex h-7.5 px-2 sm:px-2.5 items-center gap-1 rounded-lg bg-slate-900 text-white text-[11px] font-bold hover:bg-red-950 active:scale-95 transition-all cursor-pointer shadow-xs"
                 title="Sair da Conta"
               >
                 <LogOut className="h-3.5 w-3.5 shrink-0" />

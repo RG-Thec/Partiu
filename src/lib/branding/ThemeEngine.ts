@@ -149,6 +149,97 @@ export function updateBrowserFavicon(faviconUrl: string): void {
   }
 }
 
+/**
+ * Injeta dinamicamente no <head> o manifesto WebManifest (PWA) e as meta tags
+ * da plataforma (theme-color, apple-mobile-web-app-title, etc.) refletindo
+ * em tempo real as configurações White Label ativas sem exigir rebuild do app.
+ */
+export function updateWebManifestAndMeta(branding: AppBrandingRecord): void {
+  if (typeof document === "undefined") return;
+
+  try {
+    const head = document.head || document.querySelector("head") || document.documentElement;
+    const appName = branding.app_name || "PARTIU";
+    const shortName = branding.app_name?.split(" ")[0] || "PARTIU";
+    const primaryColor = branding.primary_color || "#FF6B00";
+    const bgColor = branding.background_color || "#0b0f17";
+    const iconUrl = branding.favicon_url || branding.logo_url || "/favicon.ico";
+
+    // 1. Meta Theme-Color (barra de status Android / navegador mobile)
+    let metaThemeColor = document.querySelector<HTMLMetaElement>("meta[name='theme-color']");
+    if (metaThemeColor) {
+      metaThemeColor.content = primaryColor;
+    } else {
+      metaThemeColor = document.createElement("meta");
+      metaThemeColor.name = "theme-color";
+      metaThemeColor.content = primaryColor;
+      head.appendChild(metaThemeColor);
+    }
+
+    // 2. Meta Apple Mobile Web App Title (tela inicial iOS)
+    let metaAppleTitle = document.querySelector<HTMLMetaElement>("meta[name='apple-mobile-web-app-title']");
+    if (metaAppleTitle) {
+      metaAppleTitle.content = appName;
+    } else {
+      metaAppleTitle = document.createElement("meta");
+      metaAppleTitle.name = "apple-mobile-web-app-title";
+      metaAppleTitle.content = appName;
+      head.appendChild(metaAppleTitle);
+    }
+
+    // 3. Manifesto Web PWA dinâmico em tempo real (Blob URL)
+    const manifestData = {
+      name: `${appName} - Mobilidade Urbana & Entregas`,
+      short_name: shortName,
+      description: `${appName} - Para onde você for, tarifa justa e acompanhamento em tempo real.`,
+      start_url: "/app",
+      display: "standalone",
+      orientation: "portrait",
+      lang: "pt-BR",
+      categories: ["travel", "transportation"],
+      background_color: bgColor,
+      theme_color: primaryColor,
+      icons: [
+        {
+          src: iconUrl,
+          sizes: "192x192 512x512",
+          type: iconUrl.endsWith(".svg") ? "image/svg+xml" : "image/png",
+          purpose: "any maskable",
+        },
+      ],
+      shortcuts: [
+        {
+          name: "Pedir Corrida",
+          url: "/app",
+          description: "Solicite corridas em minutos",
+        },
+        {
+          name: "Cockpit do Motorista",
+          url: "/app/motorista",
+          description: "Trip Radar e corridas para atender",
+        },
+      ],
+    };
+
+    const blob = new Blob([JSON.stringify(manifestData, null, 2)], {
+      type: "application/manifest+json",
+    });
+    const manifestBlobUrl = URL.createObjectURL(blob);
+
+    let manifestLink = document.querySelector<HTMLLinkElement>("link[rel='manifest']");
+    if (manifestLink) {
+      manifestLink.href = manifestBlobUrl;
+    } else {
+      manifestLink = document.createElement("link");
+      manifestLink.rel = "manifest";
+      manifestLink.href = manifestBlobUrl;
+      head.appendChild(manifestLink);
+    }
+  } catch (err) {
+    silentCatchWarn("ThemeEngine:updateWebManifestAndMeta", err);
+  }
+}
+
 export class ThemeEngine {
   private static instance: ThemeEngine;
 
@@ -275,7 +366,10 @@ export class ThemeEngine {
         updateBrowserFavicon(generateSvgFavicon(primaryColor, secondaryColor));
       }
 
-      // 8. Notificação de sincronização global no DOM
+      // 8. Atualização Dinâmica do Web Manifest (PWA) e Meta Tags (theme-color, apple title)
+      updateWebManifestAndMeta(branding);
+
+      // 9. Notificação de sincronização global no DOM
       window.dispatchEvent(
         new CustomEvent("partiu:theme-palette-updated", {
           detail: { primaryColor, palette, branding },
@@ -352,6 +446,7 @@ export class ThemeEngine {
       root.style.setProperty("--brand-surface-highlight", primaryPalette[100]);
 
       // 5. Persistência no LocalStorage para retenção cross-session e reload
+      let updatedV2: AppBrandingRecord | null = null;
       try {
         localStorage.setItem("partiu_active_palette_id", palette.id);
         localStorage.setItem("partiu_branding_primary", c.primary);
@@ -362,7 +457,7 @@ export class ThemeEngine {
         // Atualiza cache canônico v2 consumido pelo BrandingProvider
         const currentBrandingV2Raw = localStorage.getItem("partiu_active_branding_v2");
         const baseV2 = currentBrandingV2Raw ? JSON.parse(currentBrandingV2Raw) : {};
-        const updatedV2 = {
+        updatedV2 = {
           ...baseV2,
           tenant_id: baseV2.tenant_id || "default",
           app_name: appName || baseV2.app_name || "PARTIU",
@@ -417,7 +512,12 @@ export class ThemeEngine {
         document.title = `${appName} — Mobilidade Sob Demanda`;
       }
 
-      // 8. Notificação de sincronização global no DOM
+      // 8. Atualização Dinâmica do Web Manifest (PWA) e Meta Tags
+      if (updatedV2) {
+        updateWebManifestAndMeta(updatedV2);
+      }
+
+      // 9. Notificação de sincronização global no DOM
       window.dispatchEvent(
         new CustomEvent("partiu:theme-palette-updated", {
           detail: { palette, primaryColor: c.primary },

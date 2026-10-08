@@ -5,6 +5,8 @@ import { useBrandTheme } from "@/hooks/useBrandTheme";
 
 export interface HomeBottomNavProps {
   activeTab?: "corridas" | "entregas" | string;
+  className?: string;
+  disableSafeAreaBottom?: boolean;
 }
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -18,7 +20,11 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   HelpCircle,
 };
 
-export const HomeBottomNav = memo(function HomeBottomNav({ activeTab }: HomeBottomNavProps) {
+export const HomeBottomNav = memo(function HomeBottomNav({
+  activeTab,
+  className = "",
+  disableSafeAreaBottom = false,
+}: HomeBottomNavProps) {
   const location = useLocation();
   const pathname = location.pathname;
   const { menuBuilder, corPrimaria, corSecundaria } = useBrandTheme();
@@ -31,10 +37,14 @@ export const HomeBottomNav = memo(function HomeBottomNav({ activeTab }: HomeBott
   if (customTabs && customTabs.length > 0) {
     return (
       <nav
-        className="w-full z-30 flex items-center justify-center bg-transparent pointer-events-auto select-none"
-        style={{
-          paddingBottom: "max(0.5rem, env(safe-area-inset-bottom, 10px))",
-        }}
+        className={`w-full z-30 flex items-center justify-center bg-transparent pointer-events-auto select-none ${className}`}
+        style={
+          disableSafeAreaBottom
+            ? undefined
+            : {
+                paddingBottom: "max(0.25rem, env(safe-area-inset-bottom, 8px))",
+              }
+        }
         aria-label="Navegação Principal"
       >
         <div className="flex items-center justify-around gap-1 p-1 rounded-full bg-white/95 backdrop-blur-md shadow-md border border-slate-200/80 max-w-md w-full mx-auto">
@@ -102,10 +112,14 @@ export const HomeBottomNav = memo(function HomeBottomNav({ activeTab }: HomeBott
 
   return (
     <nav
-      className="w-full z-30 flex items-center justify-center bg-transparent pointer-events-auto select-none"
-      style={{
-        paddingBottom: "max(0.4rem, env(safe-area-inset-bottom, 8px))",
-      }}
+      className={`w-full z-30 flex items-center justify-center bg-transparent pointer-events-auto select-none ${className}`}
+      style={
+        disableSafeAreaBottom
+          ? undefined
+          : {
+              paddingBottom: "max(0.4rem, env(safe-area-inset-bottom, 8px))",
+            }
+      }
       aria-label="Navegação Principal"
     >
       <div className="flex items-center justify-around gap-1 p-1 sm:p-1.5 rounded-full bg-white/95 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-slate-200/80 max-w-sm sm:max-w-md w-full mx-auto">

@@ -53,7 +53,8 @@ export type AdminPermission =
   | 'app:manage_banners'
   | 'app:manage_announcements'
   | 'app:manage_affiliates'
-  | 'app:configure_system_parameters';
+  | 'app:configure_system_parameters'
+  | 'whitelabel:manage';
 
 export interface TokenPayload {
   sub: string;               // User ID

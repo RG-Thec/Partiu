@@ -44,25 +44,26 @@ import {
   gerarDumpPreventivo,
 } from "@/lib/data-governance-service";
 import { GuardiaoAcesso } from "@/components/admin/GuardiaoAcesso";
+import { AuditLogsViewerTab } from "@/components/admin/governanca/AuditLogsViewerTab";
 
 export const Route = createFileRoute("/app/admin/governanca")({
   head: () => ({
     meta: [
-      { title: "Governança de Dados, Cold Storage & Soft Delete | PARTIU Admin" },
+      { title: "Governança de Dados, Logs de Auditoria & LGPD | PARTIU Admin" },
       {
         name: "description",
         content:
-          "Ciclo de vida dos dados, exclusão lógica em compliance com a LGPD, arquivamento e purga em cold storage e dumps preventivos.",
+          "Trilha de auditoria imutável, exclusão lógica em compliance com a LGPD, arquivamento em cold storage e dumps preventivos.",
       },
     ],
   }),
   component: DataGovernanceAdminPage,
 });
 
-type AbaGovernanca = "soft_delete" | "cold_storage" | "backup_dump";
+type AbaGovernanca = "audit_trail" | "soft_delete" | "cold_storage" | "backup_dump";
 
 export function DataGovernanceAdminPage() {
-  const [abaAtiva, setAbaAtiva] = useState<AbaGovernanca>("soft_delete");
+  const [abaAtiva, setAbaAtiva] = useState<AbaGovernanca>("audit_trail");
   const [softDeletes, setSoftDeletes] = useState<RegistroSoftDelete[]>(() => listarSoftDeletes());
   const [purgas, setPurgas] = useState<RegistroPurgaExecutada[]>(() => listarPurgas());
   const [backups, setBackups] = useState<BackupDumpMetadata[]>(() => listarBackups());
@@ -241,6 +242,7 @@ export function DataGovernanceAdminPage() {
         {/* Seletor de Abas */}
         <div className="flex border-b border-slate-200 gap-2 pb-1 overflow-x-auto scrollbar-none">
           {[
+            { id: "audit_trail", label: "Trilha de Auditoria & Compliance", icon: History },
             { id: "soft_delete", label: "Soft Delete & LGPD", icon: UserCheck },
             { id: "cold_storage", label: "Cold Storage & Purga", icon: Archive },
             { id: "backup_dump", label: "Backups & Dumps Preventivos", icon: Database },
@@ -264,6 +266,15 @@ export function DataGovernanceAdminPage() {
             );
           })}
         </div>
+
+        {/* =================================================================== */}
+        {/* ABA 0: TRILHA DE AUDITORIA & COMPLIANCE (audit_logs)                */}
+        {/* =================================================================== */}
+        {abaAtiva === "audit_trail" && (
+          <div className="space-y-4 animate-in fade-in duration-150">
+            <AuditLogsViewerTab />
+          </div>
+        )}
 
         {/* =================================================================== */}
         {/* ABA 1: SOFT DELETE & COMPLIANCE LGPD                                */}

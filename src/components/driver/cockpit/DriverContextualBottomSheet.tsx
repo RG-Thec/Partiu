@@ -105,7 +105,7 @@ export function DriverContextualBottomSheet({
     >
       <div
         style={{ borderRadius: ui.borderRadius }}
-        className="p-4 sm:p-5 bg-card/98 backdrop-blur-md border border-border shadow-[0_16px_50px_rgba(0,0,0,0.18)] space-y-2.5"
+        className="p-3.5 sm:p-5 bg-card/98 backdrop-blur-md border border-border shadow-[0_16px_50px_rgba(0,0,0,0.18)] space-y-2.5 max-h-[85dvh] overflow-y-auto scrollbar-none"
       >
         {/* Barra tátil superior de puxar (Drag handle) */}
         <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mx-auto mb-1" />

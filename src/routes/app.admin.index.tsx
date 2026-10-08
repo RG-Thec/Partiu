@@ -26,6 +26,8 @@ import {
   Sparkles,
   UserCheck,
   Zap,
+  Bell,
+  Building2,
 } from "lucide-react";
 import { UniversalMapView } from "@/components/maps/UniversalMapView";
 import {
@@ -40,17 +42,28 @@ import {
 } from "@/lib/partiu-db";
 import { driverSubscriptionService } from "@/lib/ecosystem/driver-subscription-service";
 import { getAdminRole, type AdminRole } from "@/lib/admin-rbac";
-import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 import { useAdminCity } from "@/contexts/AdminCityContext";
+import {
+  AdminPageHeader,
+  AdminBadge,
+  AdminActionButton,
+  AdminTabBar,
+} from "@/components/admin/ui";
+import { DashboardKpisSection } from "@/components/admin/dashboard/DashboardKpisSection";
+import { DashboardPerformanceCharts } from "@/components/admin/dashboard/DashboardPerformanceCharts";
+import { DashboardRankingsSection } from "@/components/admin/dashboard/DashboardRankingsSection";
+import { DashboardRecentRidesTable } from "@/components/admin/dashboard/DashboardRecentRidesTable";
+import { DashboardCityComparisonModal } from "@/components/admin/dashboard/DashboardCityComparisonModal";
+import { DashboardAlertsWebhookModal } from "@/components/admin/dashboard/DashboardAlertsWebhookModal";
 
 export const Route = createFileRoute("/app/admin/")({
   head: () => ({
     meta: [
-      { title: "Central de Operações Nacional | PARTIU Admin" },
+      { title: "Central de Comando Executiva | PARTIU Admin" },
       {
         name: "description",
         content:
-          "Centro nervoso da mobilidade urbana: KPIs executivos, mapa operacional em tempo real e alertas inteligentes de exceção.",
+          "Centro nervoso da mobilidade urbana: KPIs executivos, mapa operacional ao vivo, comparativo multi-cidade e alertas de plantão.",
       },
     ],
   }),
@@ -58,49 +71,31 @@ export const Route = createFileRoute("/app/admin/")({
 });
 
 export function SuperAdminDashboardExecutive() {
-  const { appConfig } = useTheme();
-  const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
-  const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
-  const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
-
   const [roleAtiva, setRoleAtiva] = useState<AdminRole>(() => getAdminRole());
   const { pracaAtiva, isNacional, selecionarPraca } = useAdminCity();
+
+  // Queries e Subscrições em Tempo Real
   const { data: frotaBanco = [], refetch: recarregarFrota } = useTelemetriaFrota();
   usePartiuRidesRealtime();
   const { data: ridesBanco = [], refetch: recarregarRides } = usePartiuRides(100);
   const { data: motoristasBanco = [], refetch: recarregarMotoristas } = useMotoristas();
   const { data: caixasBanco = [], refetch: recarregarCaixas } = useCaixaAdmin();
-
-  // Subscrição em tempo real aos alertas SOS
   useAlertasSOSRealtime();
   const { data: alertasSOS = [], refetch: recarregarSOS } = useAlertasSOS();
 
-  const [abaAtiva, setAbaAtiva] = useState<"geral" | "radar" | "alertas">("geral");
-  const [abaRanking, setAbaRanking] = useState<"motoristas" | "passageiros">("motoristas");
+  const [abaVisao, setAbaVisao] = useState<"executivo" | "mapa_noc">("executivo");
+  const [modalComparativoPracas, setModalComparativoPracas] = useState(false);
+  const [modalAlertasTelegram, setModalAlertasTelegram] = useState(false);
 
-  // Assinaturas e Planos SaaS dos Motoristas (Modelo Zero Comissão)
+  // Assinaturas SaaS (Modelo Zero Comissão)
   const [assinaturas, setAssinaturas] = useState(() => driverSubscriptionService.getAllSubscriptions());
   const saasMetrics = useMemo(() => driverSubscriptionService.getSaaSMetrics(), [assinaturas]);
 
   useEffect(() => {
-    return driverSubscriptionService.subscribe((subs) => {
-      setAssinaturas(subs);
-    });
+    return driverSubscriptionService.subscribe((subs) => setAssinaturas(subs));
   }, []);
 
-  useEffect(() => {
-    function onRoleChange(e: any) {
-      if (e.detail?.role) {
-        setRoleAtiva(e.detail.role);
-      }
-    }
-    window.addEventListener("partiu:role-changed", onRoleChange);
-    return () => {
-      window.removeEventListener("partiu:role-changed", onRoleChange);
-    };
-  }, []);
-
-  // 1. CÁLCULO DOS CARDS EXECUTIVOS BASEADO 100% EM DADOS REAIS
+  // Filtragem Multi-Tenant
   const ridesFiltradas = useMemo(() => {
     if (isNacional || !pracaAtiva?.nome) return ridesBanco;
     const cidNorm = pracaAtiva.nome.toLowerCase();
@@ -121,9 +116,8 @@ export function SuperAdminDashboardExecutive() {
   }, [alertasSOS]);
 
   const metrics = usePartiuMetrics(ridesFiltradas, chamadosSOSAtivos, motoristasOnline);
-  const { receitaHoje, corridasEmAndamento, corridasFinalizadasHoje, entregasEmAndamento } = metrics;
+  const { receitaHoje, corridasEmAndamento, corridasFinalizadasHoje } = metrics;
 
-  // Modelo Econômico PARTIU: Zero Comissão nas Corridas + Receita SaaS por Assinatura
   const faturamentoSaasHoje = useMemo(() => {
     const doCaixa = caixasBanco
       .filter((c: any) => c.tipo === "diaria" || c.tipo === "entrada" || c.tipo === "recarga")
@@ -132,47 +126,22 @@ export function SuperAdminDashboardExecutive() {
   }, [caixasBanco, saasMetrics.totalRevenueToday]);
 
   const economiaGeradaMotoristas = useMemo(() => {
-    // Estimativa de economia gerada aos motoristas vs taxa de 25% de concorrentes (Uber/99)
-    return Math.round((receitaHoje * 0.25) * 100) / 100;
+    return Math.round(receitaHoje * 0.25 * 100) / 100;
   }, [receitaHoje]);
 
-  // Corridas no Mês, Faturamento Mensal, Ticket Médio e Taxas de Conversão
-  const { corridasMes, receitaMes, taxaSucesso, taxaCancelamento, ticketMedio } = useMemo(() => {
-    const now = new Date();
-    const prefixoMes = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-
-    const ridesDoMes = ridesFiltradas.filter((r) => r.created_at && r.created_at.startsWith(prefixoMes));
-    const concluidasMes = ridesDoMes.filter((r) => r.status === "COMPLETED");
-    const recMes = concluidasMes.reduce((acc, r) => acc + (Number(r.fare_brl) || 0), 0);
-
+  // Indicadores de Eficiência
+  const { taxaSucesso, ticketMedio } = useMemo(() => {
     const totalConcluidas = ridesFiltradas.filter((r) => r.status === "COMPLETED").length;
     const totalCanceladas = ridesFiltradas.filter((r) => r.status === "CANCELLED" || r.status === "TIMEOUT").length;
     const totalDecididas = totalConcluidas + totalCanceladas;
 
     const txSucesso = totalDecididas > 0 ? (totalConcluidas / totalDecididas) * 100 : 96.5;
-    const txCancelamento = totalDecididas > 0 ? (totalCanceladas / totalDecididas) * 100 : 3.5;
+    const tMedio = corridasFinalizadasHoje > 0 ? receitaHoje / corridasFinalizadasHoje : 24.5;
 
-    const tMedio = corridasFinalizadasHoje > 0
-      ? receitaHoje / corridasFinalizadasHoje
-      : concluidasMes.length > 0
-      ? recMes / concluidasMes.length
-      : 24.5;
-
-    return {
-      corridasMes: ridesDoMes.length,
-      receitaMes: recMes,
-      taxaSucesso: txSucesso,
-      taxaCancelamento: txCancelamento,
-      ticketMedio: tMedio,
-    };
+    return { taxaSucesso: txSucesso, ticketMedio: tMedio };
   }, [ridesFiltradas, receitaHoje, corridasFinalizadasHoje]);
 
-  // Motoristas Credenciados & Ativos
-  const assinaturasAtivasQtd = useMemo(() => {
-    return motoristasBanco.filter((m: any) => m.status === "ativo" || m.status_aprovacao === "aprovado").length;
-  }, [motoristasBanco]);
-
-  // Volume temporal dos últimos 7 dias
+  // Dados dos Últimos 7 Dias
   const dadosUltimos7Dias = useMemo(() => {
     const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
     const resultado = [];
@@ -204,7 +173,7 @@ export function SuperAdminDashboardExecutive() {
     return { dias: resultado, maxTotal, totalSemana, receitaSemana };
   }, [ridesFiltradas]);
 
-  // Distribuição por Status das Corridas
+  // Distribuição de Status
   const distribuicaoStatus = useMemo(() => {
     const concluidas = ridesFiltradas.filter((r) => r.status === "COMPLETED").length;
     const emAndamento = ridesFiltradas.filter((r) =>
@@ -217,7 +186,7 @@ export function SuperAdminDashboardExecutive() {
       ["CANCELLED", "TIMEOUT"].includes(r.status)
     ).length;
 
-    const total = ridesFiltradas.length || (concluidas + emAndamento + buscando + canceladas);
+    const total = ridesFiltradas.length || concluidas + emAndamento + buscando + canceladas;
     const totalSeguro = total > 0 ? total : 1;
 
     return {
@@ -229,7 +198,7 @@ export function SuperAdminDashboardExecutive() {
     };
   }, [ridesFiltradas]);
 
-  // Rankings: Top Motoristas e Top Passageiros
+  // Rankings
   const { topMotoristas, topPassageiros } = useMemo(() => {
     const motoristasMap = new Map<string, { nome: string; corridas: number; gmv: number; rating: number }>();
     ridesFiltradas.forEach((r) => {
@@ -260,10 +229,6 @@ export function SuperAdminDashboardExecutive() {
       });
     }
 
-    const listaTopMotoristas = Array.from(motoristasMap.values())
-      .sort((a, b) => b.corridas - a.corridas)
-      .slice(0, 5);
-
     const passageirosMap = new Map<string, { nome: string; telefone: string; corridas: number; gastoTotal: number }>();
     ridesFiltradas.forEach((r) => {
       if (r.passenger_name) {
@@ -280,748 +245,132 @@ export function SuperAdminDashboardExecutive() {
       }
     });
 
-    const listaTopPassageiros = Array.from(passageirosMap.values())
-      .sort((a, b) => b.gastoTotal - a.gastoTotal)
-      .slice(0, 5);
-
     return {
-      topMotoristas: listaTopMotoristas,
-      topPassageiros: listaTopPassageiros,
+      topMotoristas: Array.from(motoristasMap.values()).sort((a, b) => b.corridas - a.corridas).slice(0, 5),
+      topPassageiros: Array.from(passageirosMap.values()).sort((a, b) => b.gastoTotal - a.gastoTotal).slice(0, 5),
     };
   }, [ridesFiltradas, motoristasBanco]);
 
-  // Últimas corridas para a tabela de acesso rápido
-  const ultimasCorridas = useMemo(() => {
-    return ridesFiltradas.slice(0, 6);
-  }, [ridesFiltradas]);
+  const ultimasCorridas = useMemo(() => ridesFiltradas.slice(0, 6), [ridesFiltradas]);
 
-  // Alertas Inteligentes (Somente Exceções)
-  const alertasInteligentes = useMemo(() => {
-    const lista = [];
-
-    if (chamadosSOSAtivos > 0) {
-      lista.push({
-        id: "alerta_sos",
-        tipo: "CRITICAL" as const,
-        titulo: "Chamado SOS 190 Acionado",
-        descricao: `Existe(m) ${chamadosSOSAtivos} chamado(s) de emergência ativo(s). Ação imediata requerida.`,
-        acaoTexto: "Intervir no SOS",
-        acaoLink: "/app/admin/sos",
-        icone: ShieldAlert,
-        corBadge: "bg-red-600 text-white animate-pulse",
-      });
-    }
-
-    if (motoristasOnline === 0 && (corridasEmAndamento > 0 || entregasEmAndamento > 0)) {
-      lista.push({
-        id: "alerta_sem_motorista",
-        tipo: "WARNING" as const,
-        titulo: "Demanda sem Motoristas Livres",
-        descricao: `Existem ${corridasEmAndamento + entregasEmAndamento} solicitações ativas e nenhum motorista livre online no momento.`,
-        acaoTexto: "Ver Cockpit",
-        acaoLink: "/app/admin/operacao",
-        icone: AlertTriangle,
-        corBadge: "bg-amber-500 text-slate-950",
-      });
-    }
-
-    const motoristasPendentes = motoristasBanco.filter((m: any) => m.status_aprovacao === "pendente").length;
-    if (motoristasPendentes > 0) {
-      lista.push({
-        id: "alerta_motoristas_pendentes",
-        tipo: "INFO" as const,
-        titulo: "Cadastros em Análise",
-        descricao: `${motoristasPendentes} condutor(es) aguardando aprovação de CNH e documentos.`,
-        acaoTexto: "Avaliar Fila",
-        acaoLink: "/app/admin/aprovacoes",
-        icone: Users,
-        corBadge: "bg-blue-600 text-white",
-      });
-    }
-
-    return lista;
-  }, [chamadosSOSAtivos, motoristasOnline, corridasEmAndamento, entregasEmAndamento, motoristasBanco]);
-
-  function handleRecarregarTudo() {
-    recarregarFrota();
-    recarregarRides();
-    recarregarSOS();
-    recarregarMotoristas();
-    recarregarCaixas();
+  function recarregarTudo() {
+    void recarregarFrota();
+    void recarregarRides();
+    void recarregarMotoristas();
+    void recarregarCaixas();
+    void recarregarSOS();
   }
 
   return (
-    <div className="w-full space-y-4 pb-10">
-      {/* 1. Header Executivo Limpo & Abas Superiores */}
-      <div className="bg-white p-3.5 sm:p-4.5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg sm:text-xl font-black tracking-tight text-slate-900">
-              Central de Comando <span style={{ color: colors.primary }}>{branding.appName}</span>
-            </h1>
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              NOC Ativo
-            </span>
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+      {/* 1. Header Oficial do Dashboard */}
+      <AdminPageHeader
+        title="Central de Operações & Comando"
+        subtitle={`Centro nervoso da mobilidade: ${
+          isNacional ? "Visão Consolidada Nacional" : `Operação Ativa em ${pracaAtiva?.nome || "Praça Regional"}`
+        } • Padrão Zero Comissão`}
+        breadcrumbs={[{ label: "Painel Admin", to: "/app/admin" }, { label: "Comando" }]}
+        badge={
+          <AdminBadge variant="success" dot pulse size="sm">
+            NOC OPERACIONAL 60 FPS
+          </AdminBadge>
+        }
+        actions={
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <AdminActionButton
+              variant="outline"
+              size="sm"
+              iconLeft={<Building2 className="h-4 w-4 text-primary" />}
+              onClick={() => setModalComparativoPracas(true)}
+            >
+              <span className="hidden sm:inline">Comparativo de Praças</span>
+              <span className="sm:hidden">Praças</span>
+            </AdminActionButton>
+
+            <AdminActionButton
+              variant="outline"
+              size="sm"
+              iconLeft={<Bell className="h-4 w-4 text-amber-500" />}
+              onClick={() => setModalAlertasTelegram(true)}
+            >
+              <span className="hidden sm:inline">Alertas Telegram</span>
+              <span className="sm:hidden">Telegram</span>
+            </AdminActionButton>
+
+            <AdminActionButton
+              variant="secondary"
+              size="sm"
+              iconLeft={<RefreshCw className="h-3.5 w-3.5" />}
+              onClick={recarregarTudo}
+              title="Recarregar métricas"
+            >
+              <span className="hidden sm:inline">Atualizar</span>
+            </AdminActionButton>
           </div>
-          <p className="text-xs text-slate-500 font-medium">
-            Supervisão instantânea de volume, corridas, faturamento e incidentes operacionais.
-          </p>
-        </div>
+        }
+      />
 
-        {/* Abas e Ações */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="bg-slate-100 p-0.5 rounded-xl border border-slate-200/80 flex items-center gap-0.5">
-            <button
-              type="button"
-              onClick={() => setAbaAtiva("geral")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                abaAtiva === "geral"
-                  ? "bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <BarChart3 className="h-3.5 w-3.5" />
-              <span>Visão Geral</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setAbaAtiva("radar")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                abaAtiva === "radar"
-                  ? "bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <Radio className="h-3.5 w-3.5 text-emerald-600" />
-              <span>Radar Urbano</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setAbaAtiva("alertas")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 relative ${
-                abaAtiva === "alertas"
-                  ? "bg-white text-slate-900 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <AlertTriangle className={`h-3.5 w-3.5 ${alertasInteligentes.length > 0 ? "text-amber-500" : ""}`} />
-              <span>Alertas</span>
-              {alertasInteligentes.length > 0 && (
-                <span className="h-4 min-w-4 px-1 rounded-full bg-red-600 text-white text-[9px] font-black flex items-center justify-center">
-                  {alertasInteligentes.length}
-                </span>
-              )}
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleRecarregarTudo}
-            className="h-8.5 px-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 transition text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
-            title="Recarregar Dados em Tempo Real"
-          >
-            <RefreshCw className="h-3.5 w-3.5 text-slate-500" />
-            <span className="hidden sm:inline">Atualizar</span>
-          </button>
-        </div>
+      {/* 2. Seletor de Modo de Visão: Executivo vs NOC Mapa ao Vivo */}
+      <div className="flex items-center justify-between gap-3">
+        <AdminTabBar
+          variant="pills"
+          activeTab={abaVisao}
+          onChange={(tab) => setAbaVisao(tab as any)}
+          tabs={[
+            { id: "executivo", label: "Visão Executiva & Métricas", icon: <BarChart3 className="h-3.5 w-3.5" /> },
+            { id: "mapa_noc", label: "Mapa Cartográfico ao Vivo", icon: <MapPin className="h-3.5 w-3.5" /> },
+          ]}
+        />
       </div>
 
-      {/* Escopo Regional (Se cidade selecionada) */}
-      {!isNacional && (
-        <div className="rounded-xl bg-blue-50/80 border border-blue-200/80 px-3 py-2 flex items-center justify-between text-blue-900 text-xs">
-          <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-blue-600 shrink-0" />
-            <span>
-              Filtrando praça: <strong>{pracaAtiva.labelCompleto}</strong> (Raio {pracaAtiva.raioKm} km)
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => selecionarPraca("todas")}
-            className="text-[11px] font-bold text-blue-700 hover:underline cursor-pointer"
-          >
-            Ver Nacional
-          </button>
-        </div>
-      )}
+      {/* 3. Renderização Condicional da Visão */}
+      {abaVisao === "executivo" ? (
+        <div className="space-y-6">
+          {/* Seção 1: KPIs Executivos */}
+          <DashboardKpisSection
+            gmvHoje={receitaHoje}
+            faturamentoSaasHoje={faturamentoSaasHoje}
+            corridasEmAndamento={corridasEmAndamento}
+            motoristasOnline={motoristasOnline}
+            chamadosSOSAtivos={chamadosSOSAtivos}
+            taxaSucesso={taxaSucesso}
+            ticketMedio={ticketMedio}
+            economiaMotoristas={economiaGeradaMotoristas}
+          />
 
-      {/* 2. OS 4 CARDS ESSENCIAIS DE KPI (ALTA DENSIDADE, SEM POLUIÇÃO) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
-        {/* KPI 1: Volume Hoje (GMV) e Faturamento SaaS */}
-        <div className="rounded-xl bg-white p-3.5 border border-slate-200/90 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Volume Hoje (GMV)</span>
-            <div className="h-7 w-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-              <DollarSign className="h-3.5 w-3.5 stroke-[2.5]" />
-            </div>
-          </div>
-          <div className="pt-2">
-            <p className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
-              R$ {receitaHoje.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </p>
-            <div className="flex items-center justify-between text-[11px] font-bold mt-1 pt-1 border-t border-slate-100">
-              <span className="text-emerald-700 flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3 shrink-0" />
-                100% Repasse (0% Taxa)
-              </span>
-              <span className="text-blue-700 font-black">
-                SaaS: R$ {faturamentoSaasHoje.toFixed(2)}
-              </span>
-            </div>
-          </div>
-        </div>
+          {/* Seção 2: Gráficos de Performance e Distribuição */}
+          <DashboardPerformanceCharts
+            dados7Dias={dadosUltimos7Dias}
+            distribuicao={distribuicaoStatus}
+          />
 
-        {/* KPI 2: Viagens em Andamento */}
-        <div className="rounded-xl bg-white p-3.5 border border-slate-200/90 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Em Andamento</span>
-            <div className="h-7 w-7 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
-              <Car className="h-3.5 w-3.5 stroke-[2.5]" />
-            </div>
-          </div>
-          <div className="pt-2">
-            <p className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
-              {corridasEmAndamento}
-            </p>
-            <span className="text-[11px] text-slate-500 font-medium mt-0.5 block">
-              +{entregasEmAndamento} entregas expressas
-            </span>
-          </div>
-        </div>
-
-        {/* KPI 3: Motoristas Online & Acessos SaaS */}
-        <div className="rounded-xl bg-white p-3.5 border border-slate-200/90 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Motoristas Online</span>
-            <div className="h-7 w-7 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
-              <Users className="h-3.5 w-3.5 stroke-[2.5]" />
-            </div>
-          </div>
-          <div className="pt-2">
-            <p className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-1.5">
-              <span className={`h-2 w-2 rounded-full ${motoristasOnline > 0 ? "bg-emerald-500 animate-pulse" : "bg-slate-300"}`} />
-              {motoristasOnline}
-            </p>
-            <span className="text-[11px] text-slate-500 font-medium mt-0.5 block">
-              {saasMetrics.activeDriversCount} planos SaaS ativos • {assinaturasAtivasQtd} na frota
-            </span>
-          </div>
-        </div>
-
-        {/* KPI 4: Status Operacional / SOS */}
-        <div className={`rounded-xl p-3.5 border shadow-xs flex flex-col justify-between transition-all ${
-          chamadosSOSAtivos > 0 ? "bg-red-50/95 border-red-300" : "bg-white border-slate-200/90"
-        }`}>
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Status Operacional</span>
-            <div className={`h-7 w-7 rounded-lg flex items-center justify-center ${
-              chamadosSOSAtivos > 0 ? "bg-red-600 text-white animate-pulse" : "bg-emerald-50 text-emerald-700"
-            }`}>
-              {chamadosSOSAtivos > 0 ? (
-                <ShieldAlert className="h-3.5 w-3.5 stroke-[2.5]" />
-              ) : (
-                <CheckCircle2 className="h-3.5 w-3.5 stroke-[2.5]" />
-              )}
-            </div>
-          </div>
-          <div className="pt-2">
-            <p className={`text-lg sm:text-xl font-black tracking-tight ${
-              chamadosSOSAtivos > 0 ? "text-red-700" : "text-slate-900"
-            }`}>
-              {chamadosSOSAtivos > 0 ? `${chamadosSOSAtivos} SOS Ativo(s)` : "100% Estável"}
-            </p>
-            <span className={`text-[11px] font-bold mt-0.5 block ${
-              chamadosSOSAtivos > 0 ? "text-red-700 animate-pulse" : "text-emerald-700"
-            }`}>
-              {chamadosSOSAtivos > 0 ? "Intervenção requerida" : `${taxaSucesso.toFixed(1)}% taxa de sucesso`}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* 2.1 AÇÕES RÁPIDAS EXECUTIVAS DO OPERADOR (1-CLIQUE) */}
-      <div className="bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200/90 shadow-xs flex flex-wrap items-center justify-between gap-2.5">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-            Atalhos do Operador:
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          <Link
-            to="/app/admin/aprovacoes"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition shadow-2xs group"
-          >
-            <UserCheck className="h-3.5 w-3.5 text-blue-600 group-hover:scale-110 transition-transform" />
-            <span>Fila de Aprovações</span>
-            {motoristasBanco.filter((m: any) => m.status_aprovacao === "pendente").length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black">
-                {motoristasBanco.filter((m: any) => m.status_aprovacao === "pendente").length}
-              </span>
-            )}
-          </Link>
-
-          <Link
-            to="/app/admin/motoristas"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition shadow-2xs group"
-          >
-            <Zap className="h-3.5 w-3.5 text-amber-500 group-hover:scale-110 transition-transform" />
-            <span>Planos &amp; Diárias SaaS</span>
-          </Link>
-
-          <Link
-            to="/app/admin/operacao"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition shadow-2xs group"
-          >
-            <Radio className="h-3.5 w-3.5 text-emerald-600 group-hover:scale-110 transition-transform" />
-            <span>Cockpit ao Vivo</span>
-          </Link>
-
-          <Link
-            to="/app/admin/financeiro"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition shadow-2xs group"
-          >
-            <DollarSign className="h-3.5 w-3.5 text-emerald-700 group-hover:scale-110 transition-transform" />
-            <span>Cockpit Financeiro</span>
-          </Link>
-
-          {chamadosSOSAtivos > 0 ? (
-            <Link
-              to="/app/admin/sos"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold animate-pulse transition shadow-xs"
-            >
-              <ShieldAlert className="h-3.5 w-3.5" />
-              <span>Ver {chamadosSOSAtivos} SOS Ativo(s)</span>
-            </Link>
-          ) : (
-            <Link
-              to="/app/admin/sos"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition shadow-2xs"
-            >
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-              <span>Central SOS 190</span>
-            </Link>
-          )}
-        </div>
-      </div>
-
-      {/* 3. VISÃO CONFORME ABA ATIVA */}
-
-      {/* ABA 1: VISÃO GERAL (EQUILIBRADA & MODERNA) */}
-      {abaAtiva === "geral" && (
-        <div className="space-y-4 animate-in fade-in-50 duration-200">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-            {/* Gráfico 7 Dias (7 de 12) */}
-            <div className="lg:col-span-7 bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <div className="flex items-center gap-2">
-                    <BarChart3 className="h-4 w-4 text-[#0088FF]" />
-                    <h3 className="text-sm font-bold text-slate-900">Demanda (Últimos 7 Dias)</h3>
-                  </div>
-                  <span className="text-[11px] font-semibold text-slate-500 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
-                    {dadosUltimos7Dias.totalSemana} corridas • R$ {dadosUltimos7Dias.receitaSemana.toFixed(2)}
-                  </span>
-                </div>
-
-                <div className="pt-4 pb-1">
-                  <div className="h-36 flex items-end justify-between gap-2.5 px-1">
-                    {dadosUltimos7Dias.dias.map((d) => {
-                      const alturaPct = Math.max((d.total / dadosUltimos7Dias.maxTotal) * 100, 10);
-                      const isHoje = d.label === "Hoje";
-                      return (
-                        <div key={d.data} className="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer">
-                          <span className="text-[9px] font-bold text-slate-700 opacity-0 group-hover:opacity-100 transition-opacity mb-1 bg-slate-900 text-white px-1.5 py-0.5 rounded shadow-xs whitespace-nowrap">
-                            {d.total} viag. (R${d.receita.toFixed(0)})
-                          </span>
-                          <div className="w-full max-w-[32px] bg-slate-100 rounded-lg overflow-hidden p-0.5 flex flex-col justify-end h-full">
-                            <div
-                              style={{ height: `${alturaPct}%` }}
-                              className={`w-full rounded-md transition-all duration-300 ${
-                                isHoje
-                                  ? "bg-gradient-to-t from-[#003366] to-[#0088FF]"
-                                  : "bg-slate-300 group-hover:bg-[#0088FF]/80"
-                              }`}
-                            />
-                          </div>
-                          <span className={`text-[10px] mt-1.5 font-bold ${isHoje ? "text-[#0088FF]" : "text-slate-500"}`}>
-                            {d.label}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-slate-100 pt-2.5 mt-2 flex items-center justify-between text-[11px] text-slate-500">
-                <span>Média: {(dadosUltimos7Dias.totalSemana / 7).toFixed(1)} corridas/dia</span>
-                <span className="text-emerald-700 font-bold flex items-center gap-1">
-                  <TrendingUp className="h-3 w-3" /> +14% vs semana anterior
-                </span>
-              </div>
-            </div>
-
-            {/* Donut Chart de Status (5 de 12) */}
-            <div className="lg:col-span-5 bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <div className="flex items-center gap-2">
-                    <PieChart className="h-4 w-4 text-emerald-600" />
-                    <h3 className="text-sm font-bold text-slate-900">Distribuição Operacional</h3>
-                  </div>
-                  <span className="text-[11px] font-semibold text-slate-500">
-                    Total: {distribuicaoStatus.total}
-                  </span>
-                </div>
-
-                <div className="py-4 flex items-center justify-around gap-3">
-                  <div className="relative w-28 h-28 shrink-0 flex items-center justify-center">
-                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                      <circle cx="50" cy="50" r="38" fill="transparent" stroke="#F1F5F9" strokeWidth="12" />
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="38"
-                        fill="transparent"
-                        stroke="#10B981"
-                        strokeWidth="12"
-                        strokeDasharray={`${(distribuicaoStatus.concluidas.pct / 100) * 238.7} 238.7`}
-                        strokeDashoffset="0"
-                        strokeLinecap="round"
-                        className="transition-all duration-500"
-                      />
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="38"
-                        fill="transparent"
-                        stroke="#0088FF"
-                        strokeWidth="12"
-                        strokeDasharray={`${(distribuicaoStatus.emAndamento.pct / 100) * 238.7} 238.7`}
-                        strokeDashoffset={`-${(distribuicaoStatus.concluidas.pct / 100) * 238.7}`}
-                        className="transition-all duration-500"
-                      />
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="38"
-                        fill="transparent"
-                        stroke="#F59E0B"
-                        strokeWidth="12"
-                        strokeDasharray={`${(distribuicaoStatus.buscando.pct / 100) * 238.7} 238.7`}
-                        strokeDashoffset={`-${((distribuicaoStatus.concluidas.pct + distribuicaoStatus.emAndamento.pct) / 100) * 238.7}`}
-                        className="transition-all duration-500"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                      <span className="text-lg font-black text-slate-900">{distribuicaoStatus.concluidas.pct}%</span>
-                      <span className="text-[8px] font-bold uppercase text-slate-400">Eficácia</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                      <span className="text-slate-600 font-medium">Finalizadas:</span>
-                      <strong className="text-slate-900">{distribuicaoStatus.concluidas.qtd}</strong>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-[#0088FF]" />
-                      <span className="text-slate-600 font-medium">Em Curso:</span>
-                      <strong className="text-slate-900">{distribuicaoStatus.emAndamento.qtd}</strong>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-amber-500" />
-                      <span className="text-slate-600 font-medium">Buscando:</span>
-                      <strong className="text-slate-900">{distribuicaoStatus.buscando.qtd}</strong>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-rose-500" />
-                      <span className="text-slate-600 font-medium">Canceladas:</span>
-                      <strong className="text-slate-900">{distribuicaoStatus.canceladas.qtd}</strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-slate-100 pt-2.5 mt-2 flex items-center justify-between text-[11px] text-slate-500">
-                <span>Taxa de Atendimento:</span>
-                <span className="font-bold text-emerald-700">{taxaSucesso.toFixed(1)}%</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Duas Colunas: Últimas Corridas (Esquerda) + Rankings Compactos (Direita) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            {/* Tabela de Últimas Corridas (7 de 12) */}
-            <div className="lg:col-span-7 bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <Car className="h-4 w-4 text-[#0088FF]" />
-                  <h3 className="text-sm font-bold text-slate-900">Últimas Viagens Registradas</h3>
-                </div>
-                <Link
-                  to="/app/admin/operacao"
-                  className="text-xs font-bold text-[#0088FF] hover:underline flex items-center gap-1"
-                >
-                  <span>Cockpit Operacional</span>
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-
-              {ultimasCorridas.length === 0 ? (
-                <div className="py-8 text-center text-slate-400 text-xs">
-                  Nenhuma corrida registrada nesta praça no momento.
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-                        <th className="pb-2">Passageiro</th>
-                        <th className="pb-2">Motorista</th>
-                        <th className="pb-2">Valor</th>
-                        <th className="pb-2">Status</th>
-                        <th className="pb-2 text-right">Ação</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {ultimasCorridas.map((r) => {
-                        const isConcluida = r.status === "COMPLETED";
-                        const isAndamento = ["IN_PROGRESS", "DRIVER_ARRIVING", "DRIVER_ASSIGNED"].includes(r.status);
-                        const isBuscando = ["REQUESTED", "SEARCHING_R1", "SEARCHING_R2", "SEARCHING_R3"].includes(r.status);
-                        return (
-                          <tr key={r.id} className="hover:bg-slate-50/70 transition">
-                            <td className="py-2.5 font-bold text-slate-900 truncate max-w-[120px]">
-                              {r.passenger_name}
-                            </td>
-                            <td className="py-2.5 text-slate-600 truncate max-w-[120px]">
-                              {r.driver_name || "Aguardando condutor..."}
-                            </td>
-                            <td className="py-2.5 font-bold text-slate-900 whitespace-nowrap">
-                              R$ {Number(r.fare_brl || 0).toFixed(2)}
-                            </td>
-                            <td className="py-2.5">
-                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
-                                isConcluida
-                                  ? "bg-emerald-50 text-emerald-700"
-                                  : isAndamento
-                                  ? "bg-blue-50 text-blue-700 animate-pulse"
-                                  : isBuscando
-                                  ? "bg-amber-50 text-amber-700"
-                                  : "bg-rose-50 text-rose-700"
-                              }`}>
-                                {r.status}
-                              </span>
-                            </td>
-                            <td className="py-2.5 text-right whitespace-nowrap">
-                              <Link
-                                to="/app/admin/operacao"
-                                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0088FF] hover:underline"
-                              >
-                                <Eye className="h-3 w-3" />
-                                <span>Ver</span>
-                              </Link>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-
-            {/* Rankings com Abas Internas (5 de 12) */}
-            <div className="lg:col-span-5 bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                  <div className="flex items-center gap-1.5 bg-slate-100 p-0.5 rounded-lg border border-slate-200/60">
-                    <button
-                      type="button"
-                      onClick={() => setAbaRanking("motoristas")}
-                      className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer flex items-center gap-1 ${
-                        abaRanking === "motoristas"
-                          ? "bg-white text-slate-900 shadow-xs"
-                          : "text-slate-500 hover:text-slate-800"
-                      }`}
-                    >
-                      <Trophy className="h-3 w-3 text-amber-500" />
-                      <span>Top Motoristas</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAbaRanking("passageiros")}
-                      className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition cursor-pointer flex items-center gap-1 ${
-                        abaRanking === "passageiros"
-                          ? "bg-white text-slate-900 shadow-xs"
-                          : "text-slate-500 hover:text-slate-800"
-                      }`}
-                    >
-                      <Award className="h-3 w-3 text-purple-600" />
-                      <span>Top Passageiros</span>
-                    </button>
-                  </div>
-
-                  <Link
-                    to={abaRanking === "motoristas" ? "/app/admin/motoristas" : "/app/admin/passageiros"}
-                    className="text-xs font-bold text-[#0088FF] hover:underline"
-                  >
-                    Ver Todos
-                  </Link>
-                </div>
-
-                {/* Conteúdo do Ranking Ativo */}
-                <div className="divide-y divide-slate-100 pt-1">
-                  {abaRanking === "motoristas" ? (
-                    topMotoristas.map((m, idx) => (
-                      <div key={m.nome} className="py-2 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black shrink-0 bg-slate-100 text-slate-600">
-                            {idx + 1}º
-                          </span>
-                          <div className="truncate">
-                            <p className="text-xs font-bold text-slate-900 truncate">{m.nome}</p>
-                            <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                              <Star className="h-2.5 w-2.5 text-amber-500 fill-amber-500" />
-                              {m.rating.toFixed(1)} • {m.corridas} viagens
-                            </span>
-                          </div>
-                        </div>
-                        <span className="text-xs font-black text-emerald-700 whitespace-nowrap">
-                          R$ {m.gmv.toFixed(2)}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    topPassageiros.map((p, idx) => (
-                      <div key={p.nome} className="py-2 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black shrink-0 bg-slate-100 text-slate-600">
-                            {idx + 1}º
-                          </span>
-                          <div className="truncate">
-                            <p className="text-xs font-bold text-slate-900 truncate">{p.nome}</p>
-                            <span className="text-[10px] text-slate-400">
-                              {p.corridas} viagens • {p.telefone}
-                            </span>
-                          </div>
-                        </div>
-                        <span className="text-xs font-black text-[#003366] whitespace-nowrap">
-                          R$ {p.gastoTotal.toFixed(2)}
-                        </span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              <div className="border-t border-slate-100 pt-2 flex items-center justify-between text-[11px] text-slate-400">
-                <span>Gamificação urbana ativa</span>
-                <span>Atualizado em tempo real</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ABA 2: RADAR & MAPA URBANO */}
-      {abaAtiva === "radar" && (
-        <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden animate-in fade-in-50 duration-200">
-          <div className="p-3.5 sm:p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/60">
-            <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center">
-                <Radio className="h-4 w-4 animate-pulse" />
-              </div>
-              <div>
-                <h2 className="text-sm sm:text-base font-bold text-slate-900">
-                  Radar Operacional em Tempo Real
-                </h2>
-                <p className="text-[11px] text-slate-500">
-                  Exibindo motoristas conectados, trajetos e pontos de calor urbano.
-                </p>
-              </div>
-            </div>
-
-            <Link
-              to="/app/admin/operacao"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs cursor-pointer self-start sm:self-auto"
-            >
-              <span>Abrir Cockpit Completo</span>
-              <ArrowRight className="h-3.5 w-3.5 text-emerald-400" />
-            </Link>
-          </div>
-
-          <div className="w-full h-[520px] relative bg-slate-100">
-            <UniversalMapView
-              veiculos={frotaBanco}
-              altura="h-full min-h-[520px]"
-              mostrarControles={true}
-              mostrarTrafego={true}
-              mostrarCardInferior={true}
-              centroCoords={isNacional ? undefined : [pracaAtiva.lng, pracaAtiva.lat]}
-              zoom={isNacional ? 9.6 : 12.5}
+          {/* Seção 3: Últimas Corridas e Rankings de Engajamento */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DashboardRecentRidesTable rides={ultimasCorridas} />
+            <DashboardRankingsSection
+              topMotoristas={topMotoristas}
+              topPassageiros={topPassageiros}
             />
           </div>
         </div>
-      )}
-
-      {/* ABA 3: ALERTAS INTELIGENTES & EXCEÇÕES */}
-      {abaAtiva === "alertas" && (
-        <div className="space-y-3 animate-in fade-in-50 duration-200">
-          {alertasInteligentes.length === 0 ? (
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-8 text-center space-y-2 shadow-xs">
-              <div className="h-12 w-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
-                <ShieldCheck className="h-6 w-6" />
-              </div>
-              <h3 className="text-base font-black text-slate-900">Operação em Conformidade</h3>
-              <p className="text-xs text-slate-500 max-w-md mx-auto">
-                Nenhuma anomalia ou emergência ativa no momento. Toda a frota e despachos operam normalmente.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {alertasInteligentes.map((alerta) => {
-                const Icon = alerta.icone;
-                return (
-                  <div
-                    key={alerta.id}
-                    className="rounded-2xl bg-white border border-slate-200/90 p-4 shadow-xs flex items-start justify-between gap-3 hover:border-slate-300 transition"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="p-2.5 rounded-xl bg-slate-100 text-slate-800 shrink-0 mt-0.5">
-                        <Icon className="h-5 w-5" />
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${alerta.corBadge}`}>
-                            {alerta.tipo}
-                          </span>
-                          <h4 className="text-xs sm:text-sm font-bold text-slate-900">{alerta.titulo}</h4>
-                        </div>
-                        <p className="text-xs text-slate-600 leading-relaxed">{alerta.descricao}</p>
-                      </div>
-                    </div>
-
-                    <Link
-                      to={alerta.acaoLink}
-                      className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs"
-                    >
-                      <span>{alerta.acaoTexto}</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+      ) : (
+        /* Visão Mapa Cartográfico ao Vivo */
+        <div className="h-[650px] rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-md">
+          <UniversalMapView />
         </div>
       )}
+
+      {/* Modais Operacionais de Gestão */}
+      <DashboardCityComparisonModal
+        open={modalComparativoPracas}
+        onClose={() => setModalComparativoPracas(false)}
+        onSelecionarPraca={(id) => selecionarPraca(id)}
+      />
+
+      <DashboardAlertsWebhookModal
+        open={modalAlertasTelegram}
+        onClose={() => setModalAlertasTelegram(false)}
+      />
     </div>
   );
 }

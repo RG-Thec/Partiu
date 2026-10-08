@@ -138,27 +138,27 @@ export function InTripState({
         </div>
       </div>
 
-      {/* Atalhos Rápidos de Navegação Externa (Waze & Google Maps) */}
+      {/* Atalhos Rápidos de Navegação Externa (Waze & Google Maps) — Alvo de Toque 44px */}
       <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
           onClick={() => onNavegar("waze")}
-          className="h-9 min-h-[36px] rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-950 border border-sky-200 font-semibold text-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+          className="h-11 min-h-[44px] rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-950 border border-sky-200 font-bold text-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
         >
-          <Compass className="w-3.5 h-3.5 text-sky-600" />
+          <Compass className="w-4 h-4 text-sky-600" />
           <span>Waze</span>
         </button>
         <button
           type="button"
           onClick={() => onNavegar("google_maps")}
-          className="h-9 min-h-[36px] rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 font-semibold text-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+          className="h-11 min-h-[44px] rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200 font-bold text-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
         >
-          <MapPin className="w-3.5 h-3.5 text-brand-primary-vibrant" />
+          <MapPin className="w-4 h-4 text-emerald-600" />
           <span>Google Maps</span>
         </button>
       </div>
 
-      {/* Ações de Conclusão */}
+      {/* Ações de Conclusão — Thumb Zone 56px Ergonomia Veicular */}
       {isEntrega ? (
         <div className="space-y-2 pt-1">
           <div className="grid grid-cols-2 gap-2">
@@ -166,9 +166,9 @@ export function InTripState({
             <button
               type="button"
               onClick={onOpenDevolucao}
-              className="h-10 min-h-[40px] rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 font-semibold text-xs transition active:scale-95 flex items-center justify-center gap-1 cursor-pointer text-center px-2"
+              className="h-12 min-h-[48px] rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 font-bold text-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center px-2 shadow-xs"
             >
-              <UserX className="w-3.5 h-3.5 shrink-0 text-amber-700" />
+              <UserX className="w-4 h-4 shrink-0 text-amber-700" />
               <span>Destinatário ausente</span>
             </button>
 
@@ -176,9 +176,9 @@ export function InTripState({
             <button
               type="button"
               onClick={onOpenPinNumpadDropoff}
-              className="h-10 min-h-[40px] rounded-xl bg-brand-primary-vibrant hover:brightness-105 text-slate-950 font-bold text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-1 cursor-pointer text-center px-2"
+              className="h-12 min-h-[48px] rounded-2xl bg-brand-primary-vibrant hover:brightness-105 text-slate-950 font-black text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center px-2"
             >
-              <KeyRound className="w-3.5 h-3.5 shrink-0" />
+              <KeyRound className="w-4 h-4 shrink-0" />
               <span>Digitar PIN 2</span>
             </button>
           </div>
@@ -191,9 +191,9 @@ export function InTripState({
         <button
           type="button"
           onClick={onConcluirCorrida}
-          className="w-full h-11 min-h-[44px] rounded-xl bg-gradient-to-r from-brand-primary-vibrant to-brand-primary-deep text-slate-950 font-bold text-xs sm:text-sm shadow-md transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer hover:brightness-105"
+          className="w-full h-14 min-h-[56px] rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm sm:text-base shadow-lg transition active:scale-[0.98] flex items-center justify-center gap-2.5 cursor-pointer uppercase tracking-wider"
         >
-          <span>🏁 Finalizar corrida</span>
+          <span>🏁 CONCLUIR VIAGEM COM SUCESSO</span>
         </button>
       )}
     </div>

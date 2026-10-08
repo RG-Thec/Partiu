@@ -1030,5 +1030,39 @@ input:-webkit-autofill:focus {
   }
 }
 
+/* ========================================================================= */
+/* AJUSTES RESPONSIVOS MOBILE & CONVIVÊNCIA COM MAPBOX                       */
+/* ========================================================================= */
+/* 1. Oculta controles nativos do Mapbox que conflitam com os botões desenhados no app */
+.mapboxgl-ctrl-top-right,
+.mapboxgl-ctrl-top-left {
+  display: none !important;
+}
 
+/* 2. Reposiciona de forma limpa a atribuição e logo do Mapbox para não ser atropelada pela navegação inferior */
+.mapboxgl-ctrl-bottom-left {
+  bottom: max(68px, calc(env(safe-area-inset-bottom, 0px) + 64px)) !important;
+  opacity: 0.75;
+  transform: scale(0.85);
+  transform-origin: bottom left;
+  z-index: 10 !important;
+  pointer-events: none;
+}
 
+.mapboxgl-ctrl-bottom-right {
+  bottom: max(68px, calc(env(safe-area-inset-bottom, 0px) + 64px)) !important;
+  opacity: 0.75;
+  transform: scale(0.85);
+  transform-origin: bottom right;
+  z-index: 10 !important;
+  pointer-events: none;
+}
+
+/* 3. Utilitários para telas mobile com rolagem suave e sem barra visual */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

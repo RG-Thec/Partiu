@@ -175,25 +175,25 @@ export function WaitingPassengerState({
         </button>
       )}
 
-      {/* Ação Primária de Embarque */}
+      {/* Ação Primária de Embarque — Thumb Zone 56px */}
       {isEntrega ? (
         <button
           type="button"
           onClick={onOpenPinNumpad}
-          className="w-full h-11 min-h-[44px] rounded-xl bg-brand-primary-vibrant text-slate-950 font-bold text-xs sm:text-sm shadow-md transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer hover:brightness-105"
+          className="w-full h-14 min-h-[56px] rounded-2xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-sm sm:text-base shadow-lg transition active:scale-[0.98] flex items-center justify-center gap-2.5 cursor-pointer uppercase tracking-wider"
         >
-          <KeyRound className="w-4 h-4" />
-          <span>Digitar PIN de coleta</span>
-          <ChevronRight className="w-3.5 h-3.5" />
+          <KeyRound className="w-5 h-5" />
+          <span>DIGITAR PIN DE COLETA</span>
+          <ChevronRight className="w-4 h-4" />
         </button>
       ) : (
         <button
           type="button"
           onClick={onConfirmarEmbarque}
-          className="w-full h-11 min-h-[44px] rounded-xl bg-gradient-to-r from-brand-primary-vibrant to-brand-primary-deep text-slate-950 font-bold text-xs sm:text-sm shadow-md transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer hover:brightness-105"
+          className="w-full h-14 min-h-[56px] rounded-2xl bg-gradient-to-r from-brand-primary-vibrant via-brand-primary-deep to-brand-primary-deep text-white font-black text-sm sm:text-base shadow-lg transition active:scale-[0.98] flex items-center justify-center gap-2.5 cursor-pointer uppercase tracking-wider hover:brightness-105"
         >
-          <span>Iniciar corrida</span>
-          <span>✓</span>
+          <span>INICIAR VIAGEM COM PASSAGEIRO</span>
+          <span className="text-lg">✓</span>
         </button>
       )}
 

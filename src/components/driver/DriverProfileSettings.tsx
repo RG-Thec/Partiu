@@ -76,6 +76,7 @@ export function DriverProfileSettings({
   // Estado de controle de upload e persistência
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [confirmSairAberto, setConfirmSairAberto] = useState(false);
   const [toastFeedback, setToastFeedback] = useState<{
     tipo: "sucesso" | "erro";
     mensagem: string;
@@ -236,11 +237,13 @@ export function DriverProfileSettings({
     }
   }
 
-  // Encerramento de sessão do condutor
-  async function handleSairConta() {
-    const confirmou = window.confirm("Deseja realmente sair da sua conta de motorista?");
-    if (!confirmou) return;
+  // Encerramento de sessão do condutor com confirmação ergonômica
+  function handleSairConta() {
+    setConfirmSairAberto(true);
+  }
 
+  async function executarSairConta() {
+    setConfirmSairAberto(false);
     onClose();
     if (onLogout) {
       onLogout();
@@ -626,6 +629,53 @@ export function DriverProfileSettings({
           </div>
         </form>
       </div>
+
+      {/* MODAL NATIVO DE CONFIRMAÇÃO DE SAÍDA */}
+      {confirmSairAberto && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-sair-perfil-titulo"
+          className="fixed inset-0 z-[60] bg-slate-950/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setConfirmSairAberto(false);
+          }}
+        >
+          <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl border border-slate-100 text-center space-y-4 animate-in slide-in-from-bottom duration-300 select-none">
+            <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 mx-auto flex items-center justify-center border border-rose-100 shadow-2xs">
+              <LogOut className="w-7 h-7 stroke-[2.2]" />
+            </div>
+            <div className="space-y-1.5">
+              <h3 id="confirm-sair-perfil-titulo" className="text-lg font-black text-slate-900 tracking-tight">
+                Sair da Conta de Motorista?
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                Você será desconectado e não receberá corridas enquanto estiver desconectado.
+              </p>
+            </div>
+            <div className="space-y-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setConfirmSairAberto(false)}
+                style={{
+                  background: brandGradient,
+                  color: corTextoPrimaria || "#FFFFFF",
+                }}
+                className="w-full h-12 min-h-[48px] rounded-2xl font-black text-xs sm:text-sm shadow-md transition active:scale-[0.98] cursor-pointer hover:brightness-105 flex items-center justify-center"
+              >
+                Continuar Conectado
+              </button>
+              <button
+                type="button"
+                onClick={executarSairConta}
+                className="w-full h-11 min-h-[44px] rounded-2xl bg-slate-100 hover:bg-rose-50 text-rose-700 font-bold text-xs transition active:scale-[0.98] cursor-pointer border border-slate-200 hover:border-rose-300 flex items-center justify-center"
+              >
+                Encerrar e Sair
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

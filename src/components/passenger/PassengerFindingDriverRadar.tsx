@@ -1,4 +1,4 @@
-import React, { useMemo, memo } from "react";
+import React, { useMemo, memo, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   X,
@@ -13,6 +13,7 @@ import { useDriverSearchRealtime } from "@/hooks/useDriverSearchRealtime";
 import { DriverViewing99Card } from "./DriverViewing99Card";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
 
 /**
  * ==============================================================================
@@ -37,7 +38,11 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
     requestCancel,
     dismissCancel,
     confirmCancel,
+    selectVehicle,
+    confirmPickupAndFindDriver,
   } = usePassengerRide();
+
+  const [incentivoAdicionado, setIncentivoAdicionado] = useState(false);
 
   const { currentDriver, isTransitioning, hasActiveDriver } = useDriverSearchRealtime();
   const { corPrimaria, corTextoPrimaria } = useBrandTheme();
@@ -121,6 +126,11 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
     const secs = totalSecondsRemaining % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   }, [totalSecondsRemaining]);
+
+  // Feedback tátil sutil a cada progressão de onda
+  useEffect(() => {
+    hapticFeedback.light();
+  }, [currentWave]);
 
   return (
     <>
@@ -341,6 +351,46 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
               </span>
             </div>
           </div>
+
+          {/* ASSISTÊNCIA PRÓ-ATIVA DE CONVERSÃO RÁPIDA (ONDA 2+) */}
+          {currentWave >= 2 && (
+            <div className="p-2.5 rounded-2xl bg-amber-50/80 border border-amber-200/80 space-y-2 text-left">
+              <div className="flex items-center justify-between text-[11px] font-bold text-amber-950">
+                <span>⚡ Busca prolongada. Deseja acelerar o aceite?</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {!incentivoAdicionado ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      hapticFeedback.medium();
+                      setIncentivoAdicionado(true);
+                    }}
+                    className="flex-1 py-1.5 px-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1"
+                  >
+                    <span>+ R$ 3 de incentivo</span>
+                  </button>
+                ) : (
+                  <div className="flex-1 py-1.5 px-2 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-xs text-center border border-emerald-300">
+                    ✓ +R$ 3 adicionado
+                  </div>
+                )}
+                {categoriaVeiculo === "CARRO" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      hapticFeedback.medium();
+                      selectVehicle("MOTO");
+                      confirmPickupAndFindDriver();
+                    }}
+                    className="flex-1 py-1.5 px-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-xs transition active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1"
+                  >
+                    <span>🏍️ Tentar Moto</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* 5. AÇÃO SECUNDÁRIA: CANCELAR BUSCA (ETAPA 5: NEUTRO, SEM VERMELHO AGRESSIVO) */}
           <button

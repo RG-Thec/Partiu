@@ -126,6 +126,13 @@ import { DriverFinancialDashboardModal } from "@/components/driver/DriverFinanci
 import { DriverSubscriptionScreen } from "@/components/driver/DriverSubscriptionScreen";
 import { driverFinancialService } from "@/services/driverFinancialService";
 import { DriverDrawer } from "@/components/driver/navigation/DriverDrawer";
+import { useDriverDailyPass } from "@/hooks/driver/useDriverDailyPass";
+import { useDriverVoiceAlerts } from "@/hooks/driver/useDriverVoiceAlerts";
+import { useDriverCockpitNightMode } from "@/hooks/driver/useDriverCockpitNightMode";
+import { DriverDailyPassBanner } from "@/components/driver/cockpit/DriverDailyPassBanner";
+import { DriverSosModal } from "@/components/driver/cockpit/DriverSosModal";
+import { DriverApprovalAlert } from "@/components/driver/cockpit/DriverApprovalAlert";
+import { DriverDeliveryModals } from "@/components/driver/cockpit/DriverDeliveryModals";
 import { toast } from "sonner";
 
 function SirenIcon({ className = "w-5 h-5 text-brand-danger-red" }: { className?: string }) {
@@ -511,15 +518,21 @@ export function PartiuDriverCockpit() {
     });
   }, [perfilMotorista.id]);
 
-  // Modo Noturno / Diurno do Mapa
-  const [modoNoturno, setModoNoturno] = useState(() => {
-    return localStorage.getItem("partiu_driver_modo_noturno") === "true";
-  });
+  // Modo Noturno Automático & Controle Manual
+  const { isNightMode, toggleNightMode } = useDriverCockpitNightMode();
 
-  // Controle de Som do Radar de Chamadas
+  // Controle de Som do Radar de Chamadas & Síntese de Voz Nativas em PT-BR
   const [somAtivo, setSomAtivo] = useState(() => {
     return localStorage.getItem("partiu_driver_som_radar") !== "false";
   });
+  const voiceAlerts = useDriverVoiceAlerts(somAtivo);
+
+  // Monitoramento contínuo da diária / assinatura SaaS e renovação 1-toque
+  const dailyPass = useDriverDailyPass(
+    perfilMotorista.id,
+    perfilMotorista.categoria === "MOTO" ? "MOTO" : "CARRO"
+  );
+  const diariaCountdownTexto = dailyPass.diariaCountdownTexto;
 
   // Métricas do Dia (D+0) 100% Reais e Auditáveis
   const [ganhosHoje, setGanhosHoje] = useState(() => getGanhosHojeMotorista());
@@ -552,7 +565,6 @@ export function PartiuDriverCockpit() {
 
   // Corrida ativa sincronizada
   const [corridaSincronizada, setCorridaSincronizada] = useState<CorridaPartiu | null>(() => getCorridaAtiva());
-  const [acionandoSos, setAcionandoSos] = useState(false);
 
   // Inicia ou pausa transmissão inteligente de localização conforme disponibilidade
   useEffect(() => {
@@ -595,7 +607,6 @@ export function PartiuDriverCockpit() {
   const [modalFinanceiroAberto, setModalFinanceiroAberto] = useState(false);
   const [modalAcertoCorridaAberto, setModalAcertoCorridaAberto] = useState(false);
   const [modalAssinaturaSaasAberto, setModalAssinaturaSaasAberto] = useState(false);
-  const [diariaCountdownTexto, setDiariaCountdownTexto] = useState<string>("");
   const [destinoAtivo, setDestinoAtivo] = useState<DriverDestination | null>(() =>
     driverDestinationModeService.getActiveDestination(perfilMotorista.id)
   );
@@ -665,43 +676,14 @@ export function PartiuDriverCockpit() {
     return cleanup;
   }, [ofertaAtiva?.id]);
 
-  // Monitoramento contínuo da diária / assinatura SaaS e contagem regressiva
+  // Se a diária venceu e o motorista estava online, força offline com alerta
   useEffect(() => {
-    function atualizarDiaria() {
-      const sub = driverSubscriptionService.getSubscription(perfilMotorista.id);
-      if (!sub || sub.status !== "ACTIVE") {
-        setDiariaCountdownTexto("");
-        return;
-      }
-      const expiresTime = new Date(sub.expires_at).getTime();
-      if (expiresTime <= Date.now()) {
-        setDiariaCountdownTexto("");
-        // Se a diária venceu e o motorista estava online, força offline
-        if (isOnline) {
-          setIsOnline(false);
-          setErroElegibilidade("Sua diária expirou. Pague a nova diária via PIX para continuar recebendo chamados.");
-        }
-        return;
-      }
-      const diff = expiresTime - Date.now();
-      const hours = Math.floor(diff / 3600000);
-      const minutes = Math.floor((diff % 3600000) / 60000);
-      setDiariaCountdownTexto(`${hours}h ${minutes}m`);
+    if (dailyPass.isExpired && isOnline) {
+      setIsOnline(false);
+      setErroElegibilidade("Sua diária expirou. Pague a nova diária via PIX para continuar recebendo chamados.");
+      voiceAlerts.anunciarDiariaExpirando(0);
     }
-
-    atualizarDiaria();
-    const interval = setInterval(atualizarDiaria, 20000);
-
-    const handleSubUpdated = () => atualizarDiaria();
-    window.addEventListener("partiu:driver_subscription_activated", handleSubUpdated);
-    window.addEventListener("partiu:monetizacao-atualizada", handleSubUpdated);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("partiu:driver_subscription_activated", handleSubUpdated);
-      window.removeEventListener("partiu:monetizacao-atualizada", handleSubUpdated);
-    };
-  }, [perfilMotorista.id, isOnline]);
+  }, [dailyPass.isExpired, isOnline, voiceAlerts]);
 
   // Delivery OS states
   const [modalPinNumpadAberto, setModalPinNumpadAberto] = useState(false);
@@ -745,19 +727,21 @@ export function PartiuDriverCockpit() {
     });
   }
 
-  // Alternar modo noturno
+  // Alternar modo noturno veicular
   function toggleModoNoturno() {
-    setModoNoturno((prev) => {
-      const next = !prev;
-      localStorage.setItem("partiu_driver_modo_noturno", String(next));
-      return next;
-    });
+    toggleNightMode();
   }
 
-  // Tocar alerta de radar se habilitado
-  function dispararAlertaRadar() {
+  // Tocar alerta de radar e sintetizar voz veicular
+  function dispararAlertaRadar(distanciaKm?: number, valor?: number, modalidade?: string) {
     if (somAtivo) {
-      tocarAlertaRadar();
+      if (distanciaKm !== undefined && valor !== undefined) {
+        voiceAlerts.anunciarNovaOferta(distanciaKm, valor, modalidade || "corrida");
+      } else {
+        obterAudioContext();
+        tocarAlertaRadar();
+        voiceAlerts.falar("Nova corrida disponível no Trip Radar.");
+      }
     }
   }
 
@@ -1080,6 +1064,9 @@ export function PartiuDriverCockpit() {
       motoristaAceitarCorrida(driverInfoForEngine);
     }
     setEstadoCockpit("HEADING_TO_PICKUP");
+    if (somAtivo) {
+      voiceAlerts.falar("Oferta aceita. Rota traçada até o local de embarque.");
+    }
   }
 
   async function handleRecusarOferta() {
@@ -1105,8 +1092,9 @@ export function PartiuDriverCockpit() {
   function handleChegueiAoLocal() {
     if (ofertaAtiva?.isReal) {
       motoristaChegouAoLocal();
-    } else if (somAtivo) {
-      tocarAlertaChegada();
+    }
+    if (somAtivo) {
+      voiceAlerts.anunciarChegadaEmbarque();
     }
 
     // Inicia sessão de espera com 5 minutos (300s) de carência auditada
@@ -1272,6 +1260,7 @@ export function PartiuDriverCockpit() {
       if (res.sucesso) {
         setErroPin("");
         setEstadoCockpit("IN_PROGRESS");
+        if (somAtivo) voiceAlerts.anunciarInicioViagem(ofertaAtiva?.destino);
       } else {
         setErroPin(res.mensagem || "Não foi possível confirmar o embarque.");
       }
@@ -1279,7 +1268,7 @@ export function PartiuDriverCockpit() {
       // Modo demonstração / teste
       setErroPin("");
       setEstadoCockpit("IN_PROGRESS");
-      if (somAtivo) tocarAlertaInicioViagem();
+      if (somAtivo) voiceAlerts.anunciarInicioViagem(ofertaAtiva?.destino);
     }
   }
 
@@ -1382,8 +1371,10 @@ export function PartiuDriverCockpit() {
       } else {
         finalizarViagem();
       }
-    } else {
-      if (somAtivo) tocarAlertaFimViagem();
+    }
+
+    if (somAtivo) {
+      voiceAlerts.anunciarFimViagem(valorCorrida);
     }
 
     setGanhosHoje((prev) => Number((prev + valorCorrida).toFixed(2)));
@@ -1553,7 +1544,7 @@ export function PartiuDriverCockpit() {
         estado={estadoCockpit}
         origemEndereco={ofertaAtiva?.origem}
         destinoEndereco={emDevolucao ? ofertaAtiva?.origem : ofertaAtiva?.destino}
-        modoNoturno={modoNoturno}
+        modoNoturno={isNightMode}
         className="absolute inset-0 z-0"
       />
 
@@ -1564,104 +1555,43 @@ export function PartiuDriverCockpit() {
         isOnline={isOnline}
         somAtivo={somAtivo}
         onToggleSom={toggleSom}
+        isNightMode={isNightMode}
+        onToggleNightMode={toggleNightMode}
         onOpenMenu={() => setModalMenuMotoristaAberto(true)}
         onOpenProfile={() => setModalPerfilMotorista(true)}
         driverAvatarUrl={perfilMotorista.fotoUrl}
         driverName={perfilMotorista.nome}
         onOpenNotifications={() => setModalNotificacoesAberto(true)}
         unreadCount={unreadNotificationsCount}
-        diariaBadgeText={diariaCountdownTexto}
+        diariaBadgeText={dailyPass.diariaCountdownTexto}
         onOpenDiaria={() => setModalAssinaturaSaasAberto(true)}
       />
 
-      {/* Alerta de Moderação Documental Pendente / Rejeitada */}
-      {driverApprovalStatus === "pendente" && (
-        <div
-          style={{ borderRadius: ui.borderRadius }}
-          className="absolute top-[4.5rem] inset-x-3 z-40 max-w-lg mx-auto p-3.5 bg-amber-500/15 text-foreground text-xs font-semibold shadow-2xl flex items-start gap-3 border border-amber-500/30 animate-in slide-in-from-top duration-200"
-        >
-          <Clock className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-semibold text-xs uppercase tracking-tight block">
-                Cadastro em Análise pela Moderação
-              </span>
-              <span className="text-xs bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold uppercase shrink-0">
-                Pendente
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1 leading-snug font-medium">
-              Sua documentação (CNH com EAR e CRLV) está sob auditoria da equipe operacional. O botão <strong>ONLINE</strong> será liberado instantaneamente assim que for aprovado.
-            </p>
-          </div>
-        </div>
-      )}
+      {/* Alertas de Moderação Documental e Elegibilidade */}
+      <DriverApprovalAlert
+        driverApprovalStatus={driverApprovalStatus}
+        subscriptionStatus={subscription.status}
+        accumulatedDebtBrl={subscription.accumulatedDebtBrl}
+        erroElegibilidade={erroElegibilidade}
+        onClearErro={() => setErroElegibilidade(null)}
+        onOpenRegularizacao={() => setModalRegularizacaoAberto(true)}
+      />
 
-      {driverApprovalStatus === "rejeitado" && (
-        <div
-          style={{ borderRadius: ui.borderRadius }}
-          className="absolute top-[4.5rem] inset-x-3 z-40 max-w-lg mx-auto p-3.5 bg-destructive/15 text-destructive text-xs font-semibold shadow-2xl flex items-start gap-3 border border-destructive/30 animate-in slide-in-from-top duration-200"
-        >
-          <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-black text-xs uppercase tracking-tight block">
-                Cadastro Reprovado na Auditoria
-              </span>
-              <span className="text-xs bg-destructive text-destructive-foreground px-2 py-0.5 rounded-full font-bold uppercase shrink-0">
-                Reprovado
-              </span>
-            </div>
-            <p className="text-xs text-destructive/80 mt-1 leading-snug font-medium">
-              Houve inconsistências na sua documentação. Por favor, contate o suporte operacional para regularização.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Alerta de Suspensão por Inadimplência (Fase 19) */}
-      {(subscription.status === "SUSPENDED" || subscription.status === "REACTIVATION_REQUIRED") && (
-        <div
-          style={{ borderRadius: ui.borderRadius }}
-          className="absolute top-[4.5rem] inset-x-3 z-40 max-w-md mx-auto p-3.5 bg-destructive text-destructive-foreground text-xs font-semibold shadow-2xl flex items-center justify-between animate-in slide-in-from-top duration-200"
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-base">🚨</span>
-            <div>
-              <span className="font-black block text-xs">CONTA SUSPENSA POR INADIMPLÊNCIA</span>
-              <span className="text-xs opacity-90">
-                Débito: {subscription.accumulatedDebtBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-              </span>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setModalRegularizacaoAberto(true)}
-            style={{ borderRadius: ui.borderRadius }}
-            className="px-3 py-1.5 bg-card text-destructive font-black text-xs hover:bg-muted shadow-md active:scale-95 transition cursor-pointer"
-          >
-            Regularizar chave pix
-          </button>
-        </div>
-      )}
-
-      {/* Alerta de Elegibilidade do Condutor (Se Bloqueado/Suspenso/CNH Vencida) */}
-      {erroElegibilidade && !(subscription.status === "SUSPENDED" || subscription.status === "REACTIVATION_REQUIRED") && (
-        <div
-          style={{ borderRadius: ui.borderRadius }}
-          className="absolute top-[4.5rem] inset-x-3 z-40 max-w-md mx-auto p-3 bg-destructive/10 border border-destructive/20 text-destructive text-xs font-semibold shadow-lg flex items-center justify-between animate-in slide-in-from-top duration-200"
-        >
-          <span>⚠️ {erroElegibilidade}</span>
-          <button
-            type="button"
-            onClick={() => setErroElegibilidade(null)}
-            aria-label="Dispensar alerta de elegibilidade"
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-destructive hover:bg-destructive/10 rounded-full transition-all cursor-pointer"
-          >
-            ✕
-          </button>
-        </div>
-      )}
+      {/* Banner de Expiração Suave da Diária com Renovação 1-Toque */}
+      <DriverDailyPassBanner
+        isExpiringSoon={dailyPass.isExpiringSoon}
+        minutesRemaining={dailyPass.minutesRemaining}
+        diariaCountdownTexto={dailyPass.diariaCountdownTexto}
+        dailyFeeAmount={dailyPass.dailyFeeAmount}
+        saldoDisponivel={ganhosHoje}
+        onRenovarComSaldo={async () => {
+          const ok = await dailyPass.renovarComSaldo(ganhosHoje, (val) => {
+            setGanhosHoje((prev) => Math.max(0, Number((prev - val).toFixed(2))));
+          });
+          return ok;
+        }}
+        onOpenPlanos={() => setModalAssinaturaSaasAberto(true)}
+      />
 
       {/* ================================================================= */}
       {/* 3. CONTEXTUAL BOTTOM SHEET (DIRIGIDO PELO ESTADO OPERACIONAL)     */}
@@ -1718,231 +1648,26 @@ export function PartiuDriverCockpit() {
       />
 
       {/* =================================================================== */}
-      {/* MODAL: DESTINATÁRIO AUSENTE / PROTOCOLO DE DEVOLUÇÃO 99ENTREGA     */}
+      {/* MODAIS: DEVOLUÇÃO E FINALIZAÇÃO DE ENCOMENDA 99ENTREGA             */}
       {/* =================================================================== */}
-      {modalDevolucaoAberto && waitStatus && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div
-            style={{ borderRadius: ui.borderRadius }}
-            className="bg-card border border-border p-5 max-w-sm w-full space-y-4 shadow-2xl animate-in slide-in-from-bottom duration-200 text-foreground pb-[max(1.5rem,env(safe-area-inset-bottom))]"
-          >
-            <div className="flex items-center justify-between border-b border-border pb-2.5">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-amber-500" />
-                <h3 className="text-sm font-black text-foreground">Destinatário Não Localizado</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setModalDevolucaoAberto(false)}
-                className="p-1 rounded-full text-muted-foreground hover:text-foreground cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Cronômetro de Carência Obrigatória (5 minutos / 300s) */}
-            <div
-              className="p-3.5 border text-center space-y-1"
-              style={{
-                borderRadius: ui.borderRadius,
-                backgroundColor: `${colors.primary}0D`,
-                borderColor: `${colors.primary}30`,
-              }}
-            >
-              <span className="text-[10px] font-black uppercase tracking-wider block" style={{ color: colors.primary }}>
-                Tolerância Obrigatória de Espera
-              </span>
-              <div className="text-3xl font-mono font-black" style={{ color: colors.primary }}>
-                {Math.floor(waitStatus.elapsedSeconds / 60).toString().padStart(2, "0")}:
-                {(waitStatus.elapsedSeconds % 60).toString().padStart(2, "0")}{" "}
-                <span className="text-xs font-sans font-bold text-muted-foreground">/ 05:00 min</span>
-              </div>
-              <p className="text-xs text-foreground font-medium">
-                {waitStatus.canInitiateReturn
-                  ? "✓ Tolerância e tentativas cumpridas! Devolução liberada."
-                  : "Aguarde e tente contatar o destinatário antes de devolver."}
-              </p>
-            </div>
-
-            {/* Botões de Tentativa de Contato Obrigatório */}
-            <div className="space-y-1.5">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
-                Registre suas tentativas de contato:
-              </span>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleRegistrarContato("CALL")}
-                  style={{
-                    borderRadius: ui.borderRadius,
-                    backgroundColor: colors.inputBackground,
-                    borderColor: colors.inputBorder,
-                  }}
-                  className="p-2.5 border text-foreground font-bold text-xs flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer"
-                >
-                  <Phone className="w-4 h-4" style={{ color: colors.primary }} />
-                  <span>Ligação</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleRegistrarContato("MESSAGE")}
-                  style={{
-                    borderRadius: ui.borderRadius,
-                    backgroundColor: colors.inputBackground,
-                    borderColor: colors.inputBorder,
-                  }}
-                  className="p-2.5 border text-foreground font-bold text-xs flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer"
-                >
-                  <MessageCircle className="w-4 h-4" style={{ color: colors.primary }} />
-                  <span>WhatsApp</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleRegistrarContato("BUZZER")}
-                  style={{
-                    borderRadius: ui.borderRadius,
-                    backgroundColor: colors.inputBackground,
-                    borderColor: colors.inputBorder,
-                  }}
-                  className="p-2.5 border text-foreground font-bold text-xs flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer"
-                >
-                  <Bell className="w-4 h-4" style={{ color: colors.primary }} />
-                  <span>Interfone</span>
-                </button>
-              </div>
-
-              {waitStatus.contactAttempts.length > 0 && (
-                <div className="text-[11px] font-semibold text-center pt-1" style={{ color: colors.primary }}>
-                  ✓ {waitStatus.contactAttempts.length} tentativa(s) registrada(s) na auditoria.
-                </div>
-              )}
-            </div>
-
-            {/* Ação de Iniciar Devolução */}
-            <div className="pt-2 border-t border-border space-y-2">
-              <button
-                type="button"
-                onClick={handleIniciarDevolucao}
-                style={{
-                  borderRadius: ui.borderRadius,
-                  background: brandGradient,
-                  color: corTextoPrimaria,
-                }}
-                className="w-full py-3.5 font-black text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <RotateCcw className="w-4 h-4" />
-                <span>INICIAR DEVOLUÇÃO AO REMETENTE</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setModalDevolucaoAberto(false)}
-                style={{ borderRadius: ui.borderRadius }}
-                className="w-full py-2.5 bg-muted text-foreground font-bold text-xs hover:bg-muted/80 transition cursor-pointer"
-              >
-                Continuar Aguardando
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* =================================================================== */}
-      {/* MODAL: FINALIZAÇÃO DA DEVOLUÇÃO NO REMETENTE                       */}
-      {/* =================================================================== */}
-      {modalReturnFinalizarAberto && returnDetails && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div
-            style={{ borderRadius: ui.borderRadius }}
-            className="bg-card border border-border p-5 max-w-sm w-full space-y-4 shadow-2xl animate-in slide-in-from-bottom duration-200 text-foreground pb-[max(1.5rem,env(safe-area-inset-bottom))]"
-          >
-            <div className="flex items-center justify-between border-b border-border pb-2.5">
-              <div className="flex items-center gap-2">
-                <RotateCcw className="w-5 h-5" style={{ color: colors.primary }} />
-                <h3 className="text-sm font-black text-foreground">Confirmar Devolução</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setModalReturnFinalizarAberto(false)}
-                className="p-1 rounded-full text-muted-foreground hover:text-foreground cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div
-              className="p-3 border text-xs space-y-1 text-foreground"
-              style={{
-                borderRadius: ui.borderRadius,
-                backgroundColor: `${colors.primary}0D`,
-                borderColor: `${colors.primary}30`,
-              }}
-            >
-              <span className="font-black block" style={{ color: colors.primary }}>Remetente Presente no Local:</span>
-              <p className="text-muted-foreground">Solicite o PIN de 4 dígitos ao remetente ou confirme a entrega do pacote de volta.</p>
-              <p className="font-bold pt-1" style={{ color: colors.primary }}>
-                Compensação Condutor: R$ {returnDetails.driverReturnCompensationBrl.toFixed(2)}
-              </p>
-            </div>
-
-            {/* Input PIN Remetente */}
-            <div className="space-y-1 text-center">
-              <label className="text-xs font-bold text-muted-foreground block">
-                PIN de Devolução (Dica: {returnDetails.returnOtpExpected}):
-              </label>
-              <input
-                type="text"
-                maxLength={4}
-                value={pinDevolucaoDigitado}
-                onChange={(e) => setPinDevolucaoDigitado(e.target.value)}
-                placeholder={returnDetails.returnOtpExpected}
-                style={{
-                  borderRadius: ui.borderRadius,
-                  backgroundColor: colors.inputBackground,
-                  borderColor: colors.inputBorder,
-                }}
-                className="w-36 mx-auto px-4 py-2.5 text-center font-mono font-black text-xl border text-foreground focus:outline-none tracking-widest"
-              />
-              {erroPinDevolucao && (
-                <p className="text-xs text-destructive font-bold">{erroPinDevolucao}</p>
-              )}
-            </div>
-
-            {/* Comprovante Fotográfico */}
-            <div className="space-y-1">
-              <span className="text-[11px] font-bold text-muted-foreground uppercase block">
-                Foto do Pacote Devolvido (POD):
-              </span>
-              <div
-                style={{ borderRadius: ui.borderRadius }}
-                className="h-28 w-full overflow-hidden border border-border relative"
-              >
-                <img
-                  src={fotoDevolucaoUrl}
-                  alt="Comprovante de Devolução"
-                  className="w-full h-full object-cover"
-                />
-                <span className="absolute bottom-1 right-1 px-2 py-0.5 bg-black/70 text-white rounded text-[9px] font-bold">
-                  Foto Comprovada ✓
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleConcluirDevolucao}
-              style={{
-                borderRadius: ui.borderRadius,
-                background: brandGradient,
-                color: corTextoPrimaria,
-              }}
-              className="w-full h-14 font-black text-sm shadow-xl transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <CheckCircle2 className="w-5 h-5" />
-              <span>FINALIZAR DEVOLUÇÃO &amp; RECEBER PIX D+0</span>
-            </button>
-          </div>
-        </div>
-      )}
+      <DriverDeliveryModals
+        modalDevolucaoAberto={modalDevolucaoAberto}
+        waitStatus={waitStatus}
+        onCloseDevolucao={() => setModalDevolucaoAberto(false)}
+        onRegistrarContato={handleRegistrarContato}
+        onIniciarDevolucao={handleIniciarDevolucao}
+        modalReturnFinalizarAberto={modalReturnFinalizarAberto}
+        returnDetails={returnDetails}
+        onCloseReturnFinalizar={() => setModalReturnFinalizarAberto(false)}
+        pinDevolucaoDigitado={pinDevolucaoDigitado}
+        setPinDevolucaoDigitado={setPinDevolucaoDigitado}
+        erroPinDevolucao={erroPinDevolucao}
+        fotoDevolucaoUrl={fotoDevolucaoUrl}
+        onConcluirDevolucao={handleConcluirDevolucao}
+        corPrimaria={corPrimaria}
+        brandGradient={brandGradient}
+        corTextoPrimaria={corTextoPrimaria}
+      />
 
       {/* =================================================================== */}
       {/* MODAL / NUMPAD BOTTOM SHEET: DUPLO PIN DE ENTREGA (BLIND VALIDATION) */}
@@ -2484,87 +2209,12 @@ export function PartiuDriverCockpit() {
       </div>
 
       {/* MODAL DE CONFIRMAÇÃO SOS 190 */}
-      {modalSosAberto && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white border-2 border-brand-danger-red rounded-3xl p-5 sm:p-6 max-w-sm w-full text-slate-900 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-brand-danger-red flex items-center justify-center border border-brand-danger-red/30 shrink-0">
-                <AlertTriangle className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-base font-semibold text-brand-primary-deep">Emergência &amp; SOS 190</h3>
-                <p className="text-xs text-slate-700 font-semibold">Acionamento Policial PARTIU</p>
-              </div>
-            </div>
-
-            <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs space-y-2 text-slate-900 font-medium">
-              <p className="leading-relaxed">
-                Você está prestes a acionar a <strong>Central de Emergência 190</strong>.
-              </p>
-              <div className="p-2 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-900 font-semibold flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-brand-danger-red animate-ping shrink-0" />
-                <span>Telemetria GPS enviada aos canais de apoio</span>
-              </div>
-            </div>
-
-            <div className="space-y-2 pt-1">
-              <button
-                type="button"
-                onClick={async () => {
-                  setAcionandoSos(true);
-                  try {
-                    const pos = driverLocationService.getCurrentPosition();
-                    let coords = pos ? `${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}` : "";
-                    if (!coords && typeof navigator !== "undefined" && navigator.geolocation) {
-                      coords = await new Promise<string>((resolve) => {
-                        navigator.geolocation.getCurrentPosition(
-                          (p) => resolve(`${p.coords.latitude.toFixed(6)}, ${p.coords.longitude.toFixed(6)}`),
-                          () => resolve(""),
-                          { timeout: 1200, maximumAge: 10000 }
-                        );
-                      });
-                    }
-
-                    await registrarETransmitirAlertaSOS({
-                      tipo: "seguranca",
-                      solicitanteNome: perfilMotorista?.nome || "Motorista Parceiro PARTIU",
-                      solicitanteTelefone: perfilMotorista?.telefone || "+5582999999999",
-                      motoristaNome: perfilMotorista?.nome || "Motorista Parceiro",
-                      veiculoPlaca: (perfilMotorista as any)?.placa || "PARTIU",
-                      rodovia:
-                        (typeof corridaSincronizada?.destino === "string"
-                          ? corridaSincronizada.destino
-                          : (corridaSincronizada?.destino as any)?.endereco) || "Perímetro Urbano",
-                      coordenadas: coords || undefined,
-                      descricao: `Emergência SOS 190 acionada pelo motorista em rota. Corrida: ${corridaSincronizada?.id || "N/A"}`,
-                      corridaId: corridaSincronizada?.id,
-                      usuarioId: perfilMotorista?.id,
-                    });
-                  } catch (e) {
-                    console.error("Erro ao registrar telemetria SOS motorista:", e);
-                  } finally {
-                    window.location.href = "tel:190";
-                    setAcionandoSos(false);
-                    setModalSosAberto(false);
-                  }
-                }}
-                disabled={acionandoSos}
-                className="w-full h-12 rounded-2xl bg-brand-danger-red hover:bg-red-600 text-white font-semibold text-xs shadow-md shadow-red-600/20 flex items-center justify-center gap-2 active:scale-95 transition cursor-pointer disabled:opacity-50"
-              >
-                <Phone className="w-4 h-4" />
-                <span>{acionandoSos ? "TRANSMITINDO TELEMETRIA..." : "LIGAR PARA POLÍCIA MILITAR (190)"}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setModalSosAberto(false)}
-                className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs transition cursor-pointer"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DriverSosModal
+        isOpen={modalSosAberto}
+        onClose={() => setModalSosAberto(false)}
+        driverProfile={perfilMotorista}
+        corridaAtiva={corridaSincronizada}
+      />
 
       {/* ========================================================================= */}
       {/* MENU LATERAL COMPLETO DO MOTORISTA COM OPÇÃO DE SAIR (LOGOUT)             */}
