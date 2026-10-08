@@ -56,11 +56,11 @@ export interface AppConfig {
 export const DEFAULT_APP_CONFIG: AppConfig = {
   branding: {
     appName: "Partiu",
-    logoUrl: "",
+    logoUrl: "/favicon.svg",
     colors: {
       primary: "#FF8C00", // Laranja principal
       primaryHover: "#E67E00",
-      secondary: "#003366", // Azul marinho
+      secondary: "#FFB800", // Amarelo/âmbar complementar (harmonizado com paleta solar)
       background: "#FAFAFA",
       surface: "#FFFFFF",
       textPrimary: "#1A1A1A",
@@ -69,8 +69,8 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
       inputBackground: "#F5F7FA",
     },
     ui: {
-      borderRadius: "16px", // Controla o arredondamento de botões e cards
-      buttonShadow: "0 4px 14px 0 rgba(255, 140, 0, 0.39)", // Dinâmico com a cor primária
+      borderRadius: "16px",
+      buttonShadow: "0 4px 14px 0 rgba(255, 140, 0, 0.39)",
       fontFamily: "'Inter', sans-serif",
     },
   },
@@ -191,6 +191,15 @@ export function WhiteLabelThemeProvider({
         const saved = localStorage.getItem(STORAGE_KEY_WL_CONFIG);
         if (saved) {
           const parsed = JSON.parse(saved);
+          const urlParams = new URLSearchParams(window.location.search);
+          if (
+            !urlParams.get("tenant") &&
+            (parsed.branding?.appName === "GO MOBILIDADE" || parsed.branding?.colors?.primary === "#2563EB")
+          ) {
+            try { localStorage.removeItem(STORAGE_KEY_WL_CONFIG); } catch {}
+            return DEFAULT_APP_CONFIG;
+          }
+
           return {
             ...DEFAULT_APP_CONFIG,
             ...parsed,
@@ -225,6 +234,18 @@ export function WhiteLabelThemeProvider({
         const prevColors = prev?.branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
         const prevUi = prev?.branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
         const primary = b.primary_color || prevColors.primary || DEFAULT_APP_CONFIG.branding.colors.primary;
+        const targetAppName = b.app_name || prev?.branding?.appName || DEFAULT_APP_CONFIG.branding.appName;
+
+        if (
+          prev?.branding?.appName === targetAppName &&
+          prevColors.primary === primary &&
+          prevColors.secondary === (b.secondary_color || prevColors.secondary) &&
+          prevColors.background === (b.background_color || prevColors.background) &&
+          prevColors.surface === (b.surface_color || prevColors.surface)
+        ) {
+          return prev;
+        }
+
         const newColors: AppConfigBrandingColors = {
           ...prevColors,
           primary,
@@ -244,7 +265,7 @@ export function WhiteLabelThemeProvider({
         return {
           ...prev,
           branding: {
-            appName: b.app_name || prev?.branding?.appName || DEFAULT_APP_CONFIG.branding.appName,
+            appName: targetAppName,
             logoUrl: b.logo_url || prev?.branding?.logoUrl || "",
             colors: newColors,
             ui: newUi,

@@ -737,7 +737,10 @@ export class WhiteLabelEngine {
         this.broadcastChannel = new BroadcastChannel("partiu_whitelabel_channel");
         this.broadcastChannel.onmessage = (event) => {
           if (event.data?.type === "TENANT_OR_THEME_UPDATED") {
-            this.initStorage();
+            const incomingTenantId = event.data?.tenantId;
+            if (incomingTenantId && incomingTenantId !== this.activeTenantId) {
+              this.activeTenantId = incomingTenantId;
+            }
             this.applyTheme(this.getActiveConfig());
           }
         };
@@ -760,8 +763,18 @@ export class WhiteLabelEngine {
 
     try {
       const savedTenantId = localStorage.getItem(STORAGE_KEY_ACTIVE_TENANT);
-      if (savedTenantId) {
+      if (savedTenantId && savedTenantId !== "tenant-campos") {
         this.activeTenantId = savedTenantId;
+      } else if (savedTenantId === "tenant-campos") {
+        const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+        if (urlParams?.get("tenant") === "tenant-campos") {
+          this.activeTenantId = "tenant-campos";
+        } else {
+          this.activeTenantId = "tenant-itaperuna";
+          localStorage.setItem(STORAGE_KEY_ACTIVE_TENANT, "tenant-itaperuna");
+        }
+      } else {
+        this.activeTenantId = "tenant-itaperuna";
       }
 
       const rawTenants = localStorage.getItem(STORAGE_KEY_TENANTS_MAP);
@@ -774,13 +787,6 @@ export class WhiteLabelEngine {
       if (this.tenantsMap.size === 0) {
         SEED_TENANTS.forEach((t) => this.tenantsMap.set(t.tenantId, t));
         this.saveTenantsRegistry();
-      }
-
-      // Sincroniza a praça ativa com o Supabase em segundo plano (resiliência cloud)
-      if (typeof window !== "undefined") {
-        setTimeout(() => {
-          void this.syncFromSupabase(this.activeTenantId);
-        }, 150);
       }
     } catch (err) { silentCatchWarn("white-label-engine", err); }
   }
@@ -858,7 +864,10 @@ export class WhiteLabelEngine {
     return tenant;
   }
 
-  public updateActiveConfig(partialConfig: Partial<WhiteLabelFullConfig>): WhiteLabelFullConfig {
+  public updateActiveConfig(
+    partialConfig: Partial<WhiteLabelFullConfig>,
+    options?: { silent?: boolean; skipPersist?: boolean }
+  ): WhiteLabelFullConfig {
     const tenant = this.getActiveTenant();
     const updated: WhiteLabelFullConfig = {
       ...tenant.configuracaoCompleta,
@@ -870,10 +879,15 @@ export class WhiteLabelEngine {
     this.tenantsMap.set(tenant.tenantId, tenant);
     this.saveTenantsRegistry();
     this.applyTheme(updated);
-    this.broadcastUpdate();
+
+    if (!options?.silent) {
+      this.broadcastUpdate();
+    }
 
     // Sincronização automática com Supabase (Nuvem como Fonte Única de Verdade)
-    void this.persistToSupabase(updated, tenant.tenantId);
+    if (!options?.skipPersist) {
+      void this.persistToSupabase(updated, tenant.tenantId);
+    }
 
     return updated;
   }
@@ -993,8 +1007,9 @@ export class WhiteLabelEngine {
           });
         }
         this.saveTenantsRegistry();
-        this.applyTheme(loadedConfig);
-        this.broadcastUpdate();
+        if (tenantId === this.activeTenantId) {
+          this.applyTheme(loadedConfig);
+        }
         return loadedConfig;
       }
 
@@ -1048,8 +1063,9 @@ export class WhiteLabelEngine {
           this.tenantsMap.set(tenantId, tenant);
         }
         this.saveTenantsRegistry();
-        this.applyTheme(merged);
-        this.broadcastUpdate();
+        if (tenantId === this.activeTenantId) {
+          this.applyTheme(merged);
+        }
         return merged;
       }
 

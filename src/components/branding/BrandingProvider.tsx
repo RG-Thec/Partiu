@@ -21,16 +21,16 @@ function getInitialTenantId(): string {
   if (typeof window === "undefined") return "default";
   try {
     const urlParams = new URLSearchParams(window.location.search);
-    const resolution = tenantDomainService.resolveTenantFromHost(window.location.hostname, urlParams);
-    if (resolution.tenantId && resolution.tenantId !== "default") {
-      return resolution.tenantId;
-    }
-
     const tenantParam = urlParams.get("tenant") || urlParams.get("tenant_id");
     if (tenantParam) return tenantParam.trim();
 
+    const resolution = tenantDomainService.resolveTenantFromHost(window.location.hostname, urlParams);
+    if (resolution.tenantId && resolution.tenantId !== "default" && resolution.tenantId !== "tenant-campos") {
+      return resolution.tenantId;
+    }
+
     const stored = localStorage.getItem(STORAGE_KEY_TENANT);
-    if (stored) return stored.trim();
+    if (stored && stored !== "tenant-campos") return stored.trim();
   } catch {}
   return "default";
 }
@@ -38,10 +38,23 @@ function getInitialTenantId(): string {
 function getInitialBranding(tenantId: string): AppBrandingRecord {
   if (typeof window === "undefined") return DEFAULT_BRANDING;
   try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasExplicitTenant = Boolean(urlParams.get("tenant") || urlParams.get("tenant_id"));
     const stored = localStorage.getItem(STORAGE_KEY_BRANDING);
     if (stored) {
       const parsed = JSON.parse(stored) as AppBrandingRecord;
-      if (parsed && (parsed.tenant_id === tenantId || tenantId === "default")) {
+      if (parsed) {
+        // Se os dados salvos estiverem com GO MOBILIDADE ou azul sem parâmetro de tenant explícito, purga
+        if (
+          !hasExplicitTenant &&
+          (parsed.app_name === "GO MOBILIDADE" ||
+            parsed.company_name?.includes("GO Mobilidade") ||
+            parsed.primary_color === "#2563EB")
+        ) {
+          try { localStorage.removeItem(STORAGE_KEY_BRANDING); } catch {}
+          return { ...DEFAULT_BRANDING, tenant_id: "default" };
+        }
+
         // Se os dados salvos ainda forem o azul legado da antiga migração (#003366 com fundo escuro #0B132B)
         // e o usuário não escolheu explicitamente a paleta azul real, migra para o padrão Laranja Solar
         const savedPalette = localStorage.getItem("partiu_active_palette_id");
@@ -51,7 +64,9 @@ function getInitialBranding(tenantId: string): AppBrandingRecord {
         ) {
           return { ...DEFAULT_BRANDING, tenant_id: tenantId };
         }
-        return parsed;
+        if (parsed.tenant_id === tenantId || tenantId === "default") {
+          return parsed;
+        }
       }
     }
   } catch {}
@@ -101,57 +116,31 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [activeTenantId]);
 
-  // Aplicação de tema síncrona com sincronização lockstep do WhiteLabelEngine
+  const brandingRef = useRef<AppBrandingRecord>(branding);
+  brandingRef.current = branding;
+
+  // Aplicação de tema síncrona com deduplicação atômica
   const applyBrandingTheme = useCallback((b: AppBrandingRecord) => {
+    const cur = brandingRef.current;
+    if (
+      cur &&
+      cur.primary_color === b.primary_color &&
+      cur.secondary_color === b.secondary_color &&
+      cur.accent_color === b.accent_color &&
+      cur.background_color === b.background_color &&
+      cur.surface_color === b.surface_color &&
+      cur.text_primary === b.text_primary &&
+      cur.app_name === b.app_name &&
+      cur.logo_url === b.logo_url
+    ) {
+      return;
+    }
+
     setBrandingState(b);
     themeEngine.applyTheme(b);
     try {
       localStorage.setItem(STORAGE_KEY_BRANDING, JSON.stringify(b));
     } catch {}
-
-    // Mantém WhiteLabelEngine sincronizado se houver mudanças visuais
-    try {
-      const activeWl = whiteLabelEngine.getActiveConfig();
-      if (
-        b.primary_color &&
-        (b.primary_color !== activeWl.designSystem.paletaPrimaria.corPrincipal ||
-          b.app_name !== activeWl.brandCenter.nomePlataforma)
-      ) {
-        whiteLabelEngine.updateActiveConfig({
-          brandCenter: {
-            ...activeWl.brandCenter,
-            nomePlataforma: b.app_name || activeWl.brandCenter.nomePlataforma,
-            slogan: b.company_name || activeWl.brandCenter.slogan,
-            logos: {
-              ...activeWl.brandCenter.logos,
-              logoPrincipalUrl: b.logo_url || activeWl.brandCenter.logos.logoPrincipalUrl,
-            },
-            favicons: {
-              ...activeWl.brandCenter.favicons,
-              faviconDesktopUrl: b.favicon_url || activeWl.brandCenter.favicons.faviconDesktopUrl,
-            },
-          },
-          designSystem: {
-            ...activeWl.designSystem,
-            paletaPrimaria: {
-              ...activeWl.designSystem.paletaPrimaria,
-              corPrincipal: b.primary_color,
-              corSecundaria: b.secondary_color || activeWl.designSystem.paletaPrimaria.corSecundaria,
-              corTerciaria: b.accent_color || activeWl.designSystem.paletaPrimaria.corTerciaria,
-              corFundoApp: b.background_color || activeWl.designSystem.paletaPrimaria.corFundoApp,
-              corSuperficieCard: b.surface_color || activeWl.designSystem.paletaPrimaria.corSuperficieCard,
-              corTextoPrincipal: b.text_primary || activeWl.designSystem.paletaPrimaria.corTextoPrincipal,
-            },
-          },
-          typography: {
-            ...activeWl.typography,
-            familiaPrincipal: (b.font_family as any) || activeWl.typography.familiaPrincipal,
-          },
-        });
-      }
-    } catch (err) {
-      silentCatchWarn("BrandingProvider:syncWithWhiteLabelEngine", err);
-    }
   }, []);
 
   // Escuta seleção dinâmica de paletas monocromáticas
@@ -256,6 +245,17 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
         (payload) => {
           const newRec = payload.new as unknown as AppBrandingRecord;
           if (newRec && (newRec.tenant_id === activeTenantRef.current || newRec.tenant_id === "default")) {
+            const cur = brandingRef.current;
+            if (
+              cur &&
+              cur.primary_color === newRec.primary_color &&
+              cur.secondary_color === newRec.secondary_color &&
+              cur.app_name === newRec.app_name &&
+              cur.background_color === newRec.background_color &&
+              cur.surface_color === newRec.surface_color
+            ) {
+              return;
+            }
             applyBrandingTheme(newRec);
             setLastSyncedAt(new Date());
           }
@@ -288,6 +288,30 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
 
     // Aplica imediatamente na UI (Zero Latency)
     applyBrandingTheme(updated);
+
+    // Mantém WhiteLabelEngine sincronizado silenciosamente sem loops de broadcast
+    try {
+      const activeWl = whiteLabelEngine.getActiveConfig();
+      whiteLabelEngine.updateActiveConfig({
+        brandCenter: {
+          ...activeWl.brandCenter,
+          nomePlataforma: updated.app_name || activeWl.brandCenter.nomePlataforma,
+          slogan: updated.company_name || activeWl.brandCenter.slogan,
+        },
+        designSystem: {
+          ...activeWl.designSystem,
+          paletaPrimaria: {
+            ...activeWl.designSystem.paletaPrimaria,
+            corPrincipal: updated.primary_color || activeWl.designSystem.paletaPrimaria.corPrincipal,
+            corSecundaria: updated.secondary_color || activeWl.designSystem.paletaPrimaria.corSecundaria,
+            corTerciaria: updated.accent_color || activeWl.designSystem.paletaPrimaria.corTerciaria,
+            corFundoApp: updated.background_color || activeWl.designSystem.paletaPrimaria.corFundoApp,
+            corSuperficieCard: updated.surface_color || activeWl.designSystem.paletaPrimaria.corSuperficieCard,
+            corTextoPrincipal: updated.text_primary || activeWl.designSystem.paletaPrimaria.corTextoPrincipal,
+          },
+        },
+      }, { silent: true, skipPersist: true });
+    } catch {}
 
     try {
       const { error } = await supabase

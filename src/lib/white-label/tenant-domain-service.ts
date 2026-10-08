@@ -222,6 +222,7 @@ export class TenantDomainService {
       h.includes("vercel.app") ||
       h.includes("now.sh") ||
       h.includes("lovable.app") ||
+      h.includes("lovable.dev") ||
       h.includes("lovableproject.com") ||
       h.includes("netlify.app") ||
       h.includes("pages.dev") ||
@@ -270,7 +271,7 @@ export class TenantDomainService {
       if (typeof window !== "undefined") {
         try {
           const storedTenant = localStorage.getItem("partiu_whitelabel_active_tenant_id_v1");
-          if (storedTenant) {
+          if (storedTenant && storedTenant !== "tenant-campos") {
             return {
               tenantId: storedTenant,
               source: "STORAGE",
@@ -278,6 +279,9 @@ export class TenantDomainService {
               isCustomDomain: false,
               status: "OK",
             };
+          } else if (storedTenant === "tenant-campos") {
+            // Em ambiente de plataforma/core, o tenant de demonstração 'tenant-campos' não deve sequestrar a marca padrão PARTIU
+            localStorage.setItem("partiu_whitelabel_active_tenant_id_v1", "tenant-itaperuna");
           }
         } catch {}
       }

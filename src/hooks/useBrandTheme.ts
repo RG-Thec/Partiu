@@ -33,7 +33,7 @@ export function useBrandTheme() {
     whiteLabelEngine.applyTheme(config);
 
     function handleWhiteLabelAtualizacao(e: any) {
-      const novaConfig = e.detail?.config || whiteLabelEngine.getActiveConfig();
+      const novaConfig = (e.detail?.config || (e.detail?.brandCenter ? e.detail : null)) || whiteLabelEngine.getActiveConfig();
       setConfig(novaConfig);
       setActiveTenant(whiteLabelEngine.getActiveTenant());
       whiteLabelEngine.applyTheme(novaConfig);

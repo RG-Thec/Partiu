@@ -242,6 +242,7 @@ export function updateWebManifestAndMeta(branding: AppBrandingRecord): void {
 
 export class ThemeEngine {
   private static instance: ThemeEngine;
+  private lastAppliedThemeSignature: string = "";
 
   public static getInstance(): ThemeEngine {
     if (!ThemeEngine.instance) {
@@ -254,13 +255,20 @@ export class ThemeEngine {
    * Aplica atômica e instantaneamente todos os tokens e variáveis CSS no :root
    * gerando dinamicamente a escala tonal completa para Tailwind v4 e Shadcn
    */
-  public applyTheme(branding: AppBrandingRecord): void {
+  public applyTheme(branding: AppBrandingRecord, force = false): void {
     if (typeof document === "undefined") return;
 
     try {
-      const root = document.documentElement;
       const primaryColor = branding.primary_color || "#FF6B00";
       const secondaryColor = branding.secondary_color || "#FFB800";
+      const signature = `${primaryColor}_${secondaryColor}_${branding.accent_color || ""}_${branding.background_color || ""}_${branding.surface_color || ""}_${branding.text_primary || ""}_${branding.border_radius || ""}_${branding.font_family || ""}`;
+
+      if (!force && this.lastAppliedThemeSignature === signature) {
+        return;
+      }
+      this.lastAppliedThemeSignature = signature;
+
+      const root = document.documentElement;
       const palette = generatePrimaryPalette(primaryColor);
 
       // 1. Variáveis Canônicas Requeridas pelo SaaS White Label
