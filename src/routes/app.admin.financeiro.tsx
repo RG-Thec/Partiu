@@ -51,6 +51,7 @@ import {
   driverSubscriptionService,
   type DriverSubscriptionRecord,
 } from "@/lib/ecosystem/driver-subscription-service";
+import { appSettingsService } from "@/lib/ecosystem/app-settings-service";
 import { useCaixaAdmin, usePartiuRides, usePartiuRidesRealtime, useMotoristas } from "@/lib/partiu-db";
 import { getAdminRole, isFranqueado } from "@/lib/admin-rbac";
 import { useAdminCity } from "@/contexts/AdminCityContext";
@@ -147,6 +148,16 @@ export function PainelFinanceiroUnificadoPage() {
     setSalvandoMonetizacao(true);
     const atualizada = saveMonetizacaoConfig(monetizacao);
     setMonetizacao(atualizada);
+
+    // Sincronização direta no banco Supabase em tempo real
+    void appSettingsService.updateSettings({
+      daily_fee_car: Number(monetizacao.diariaCarro) || 10.0,
+      daily_fee_moto: Number(monetizacao.diariaMoto) || 5.0,
+      pix_key: monetizacao.chavePixAdmin || "financeiro@partiumobilidade.com.br",
+      pix_receiver_name: monetizacao.beneficiarioAdmin || "PARTIU MOBILIDADE URBANA LTDA",
+      pix_receiver_city: monetizacao.cidadeAdmin || "BRASIL",
+    });
+
     setTimeout(() => {
       setSalvandoMonetizacao(false);
       setSucessoMonetizacao(true);
@@ -252,6 +263,15 @@ export function PainelFinanceiroUnificadoPage() {
       },
     };
     saveSuperAdminConfig(atualizado);
+
+    // Sincronização direta das tarifas no banco Supabase em tempo real
+    void appSettingsService.updateSettings({
+      base_fare_ride: Number(tarifasCarro.tarifaBase) || 6.0,
+      price_per_km: Number(tarifasCarro.valorKm) || 1.8,
+      price_per_minute: Number(tarifasCarro.valorMinuto) || 0.3,
+      base_fare_delivery: Number(atualizado.tarifas?.partiuFlash?.tarifaBase) || 5.0,
+    });
+
     setTimeout(() => {
       setSalvandoTarifas(false);
       setSucessoTarifas(true);

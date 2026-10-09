@@ -1387,11 +1387,22 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       console.warn("[PassengerRideContext] Erro ao cancelar corrida:", err);
     }
 
+    // Se o motorista já havia aceito ou estava a caminho, gera taxa de cancelamento para compensação na próxima corrida
+    const hadDriverAssigned = Boolean(
+      currentActive?.motorista ||
+      state === "DRIVER_ASSIGNED" ||
+      state === "DRIVER_ARRIVING" ||
+      state === "DRIVER_ARRIVED"
+    );
+    if (hadDriverAssigned && typeof window !== "undefined") {
+      localStorage.setItem("partiu_pending_cancellation_fee", "5.00");
+    }
+
     setIsCancelModalOpen(false);
     setActiveRide(null);
     setProgressiveSession(null);
     setState("IDLE");
-  }, [activeRide, progressiveSession]);
+  }, [activeRide, progressiveSession, state]);
 
   // 7.1 Tentar novamente após Timeout (Reinicia o ciclo em SEARCHING_R1)
   const retrySearchAfterTimeout = useCallback(() => {

@@ -165,6 +165,12 @@ export function PaymentSelectionModal({
             <Check className="w-5 h-5 stroke-[3] shrink-0 ml-2" style={{ color: primaryColor }} />
           )}
         </NativeSurface>
+
+        {/* SELO DE TRANSPARÊNCIA ZERO-CUSTÓDIA */}
+        <div className="pt-1.5 px-1 flex items-center gap-2 text-[11px] text-slate-500 font-medium">
+          <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+          <span>Pagamento 100% direto ao parceiro condutor (P2P sem intermediação).</span>
+        </div>
       </div>
     </NativeBottomSheet>
   );

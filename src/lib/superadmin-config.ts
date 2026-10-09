@@ -1,3 +1,5 @@
+import { appSettingsService } from "@/lib/ecosystem/app-settings-service";
+
 export type ProvedorMapa = "openstreetmap" | "google_maps" | "mapbox" | "cartodb";
 export type TipoDispositivoGPS = "starlink" | "rastreador_4g_barato" | "app_motorista";
 
@@ -728,6 +730,29 @@ export function saveSuperAdminConfig(config: ConfigSuperAdmin) {
     window.dispatchEvent(
       new CustomEvent("partiu:banners-atualizados", { detail: config.banners })
     );
+
+    // Sincronização em tempo real no banco Supabase (public.app_settings)
+    try {
+      const patch: any = {};
+      if (config.tarifas?.partiuPop) {
+        patch.base_fare_ride = config.tarifas.partiuPop.tarifaBase;
+        patch.price_per_km = config.tarifas.partiuPop.valorKm;
+        patch.price_per_minute = config.tarifas.partiuPop.valorMinuto;
+      }
+      if (config.tarifas?.partiuFlash) {
+        patch.base_fare_delivery = config.tarifas.partiuFlash.tarifaBase;
+      }
+      if (config.monetizacao) {
+        patch.daily_fee_car = config.monetizacao.diariaCarro;
+        patch.daily_fee_moto = config.monetizacao.diariaMoto;
+        patch.pix_key = config.monetizacao.chavePixAdmin;
+        patch.pix_receiver_name = config.monetizacao.beneficiarioAdmin;
+        patch.pix_receiver_city = config.monetizacao.cidadeAdmin;
+      }
+      if (Object.keys(patch).length > 0) {
+        void appSettingsService.updateSettings(patch);
+      }
+    } catch {}
   }
 }
 

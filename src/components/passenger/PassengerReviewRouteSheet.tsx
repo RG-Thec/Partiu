@@ -114,8 +114,17 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
     setModalPagamentoAberto(true);
   }, []);
 
+  // Taxa de cancelamento pendente de corrida anterior (se houver)
+  const [taxaCancelamentoPendente] = useState<number>(() => {
+    if (typeof window === "undefined") return 0;
+    return Number(localStorage.getItem("partiu_pending_cancellation_fee") || 0);
+  });
+
   const handleConfirm = useCallback(() => {
     hapticFeedback.heavy();
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("partiu_pending_cancellation_fee");
+    }
     confirmPickupAndFindDriver();
   }, [confirmPickupAndFindDriver]);
 
@@ -136,8 +145,12 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
   const quoteMoto = multiCategoryQuotes?.["PARTIU_MOTO"];
   const quotePop = multiCategoryQuotes?.["PARTIU_CARRO"];
 
-  const rawMoto = quoteMoto?.priceBrl ?? cotacoes?.moto?.precoBrl ?? 7.5;
-  const rawPop = quotePop?.priceBrl ?? cotacoes?.carro?.precoBrl ?? 11.5;
+  const rawMotoBase = quoteMoto?.priceBrl ?? cotacoes?.moto?.precoBrl ?? 7.5;
+  const rawPopBase = quotePop?.priceBrl ?? cotacoes?.carro?.precoBrl ?? 11.5;
+
+  // Aplica taxa de cancelamento pendente (se houver débito anterior com condutor a caminho)
+  const rawMoto = rawMotoBase + taxaCancelamentoPendente;
+  const rawPop = rawPopBase + taxaCancelamentoPendente;
 
   const calculateDiscounted = (basePrice: number) => {
     if (!cupomAtivo) return { discounted: basePrice, hasDiscount: false };
@@ -332,6 +345,21 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
               <strong className="text-slate-900">Preço fixo garantido:</strong> Sem alteração com trânsito ou semáforos.
             </p>
           </div>
+
+          {/* AVISO DE TAXA DE CANCELAMENTO PENDENTE DE VIAGEM ANTERIOR */}
+          {taxaCancelamentoPendente > 0 && (
+            <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium shrink-0 animate-in fade-in">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span className="truncate">
+                  Inclui <strong>R$ {taxaCancelamentoPendente.toFixed(2).replace(".", ",")}</strong> de taxa por cancelamento anterior
+                </span>
+              </div>
+              <span className="text-[10px] bg-amber-200/80 text-amber-900 px-1.5 py-0.5 rounded-md font-bold shrink-0 ml-1">
+                Taxa
+              </span>
+            </div>
+          )}
 
           {/* 3. CHIPS DE OPÇÕES EXTRAS (PARADA / PASSAGEIRO / MULHER) */}
           <div className="flex flex-row items-center justify-between gap-1.5 pt-0.5 shrink-0">

@@ -1217,8 +1217,13 @@ export function PartiuDriverCockpit() {
       });
 
       if (res.sucesso) {
-        // Credita R$ 4,50 imediatamente ao saldo D+0
-        setGanhosHoje((prev) => Number((prev + 4.5).toFixed(2)));
+        // Credita R$ 4,50 como crédito operacional para abater na próxima diária SaaS (Modelo Zero-Custódia)
+        const creditsKey = `partiu_driver_daily_credits_${perfilMotorista.id}`;
+        const currentCredits = Number(localStorage.getItem(creditsKey) || localStorage.getItem("partiu_driver_daily_credits") || 0);
+        const updatedCredits = Number((currentCredits + 4.5).toFixed(2));
+        localStorage.setItem(creditsKey, String(updatedCredits));
+        localStorage.setItem("partiu_driver_daily_credits", String(updatedCredits));
+
         driverStateMachine.safeTransitionRide("ONLINE", perfilMotorista.id, ofertaAtiva.id, "DRIVER", {
           cancellationType: "NO_SHOW",
           feeCreditedBrl: 4.5,
@@ -1229,7 +1234,7 @@ export function PartiuDriverCockpit() {
         setModalNoShowConfirmAberto(false);
         setPinDigitado("");
         setErroPin("");
-        alert("Passageiro não compareceu ao embarque. Taxa de cancelamento de R$ 4,50 creditada ao seu saldo PIX D+0!");
+        alert("Passageiro ausente confirmado. Você recebeu R$ 4,50 de crédito operacional para abater na sua próxima diária do aplicativo!");
       }
     } catch (err: any) {
       alert(err.message || "Erro ao processar cancelamento por no-show.");
@@ -1515,7 +1520,7 @@ export function PartiuDriverCockpit() {
       setEstadoCockpit("IDLE");
       setOfertaAtiva(null);
       if (somAtivo) tocarAlertaFimViagem();
-      alert(`Devolução concluída! Compensação de R$ ${returnDetails.driverReturnCompensationBrl.toFixed(2)} creditada via PIX D+0.`);
+      alert(`Devolução concluída! Compensação de R$ ${returnDetails.driverReturnCompensationBrl.toFixed(2)} recebida diretamente do passageiro.`);
     } else {
       setErroPinDevolucao(res.message);
     }
@@ -2223,13 +2228,13 @@ export function PartiuDriverCockpit() {
                 <span className="font-black text-slate-900">R$ 6,00</span>
               </div>
               <div className="flex items-center justify-between bg-white/80 p-2 rounded-xl border" style={{ borderColor: `${accentColor}40` }}>
-                <span className="font-black" style={{ color: corPrimaria }}>Seu Crédito Instantâneo PIX:</span>
+                <span className="font-black" style={{ color: corPrimaria }}>Crédito na Próxima Diária:</span>
                 <span className="font-black text-sm" style={{ color: corPrimaria }}>+ R$ 4,50</span>
               </div>
             </div>
 
             <p className="text-xs text-slate-700 font-medium text-center leading-relaxed">
-              Esta corrida será encerrada sem penalizar sua taxa de cancelamento. O crédito de R$ 4,50 entrará no seu saldo hoje.
+              Esta corrida será encerrada sem penalizar sua taxa de cancelamento. Você recebeu R$ 4,50 de crédito operacional que abaterá a sua próxima diária do app.
             </p>
 
             <div className="space-y-2 pt-1">
@@ -2237,9 +2242,9 @@ export function PartiuDriverCockpit() {
                 type="button"
                 disabled={isProcessandoNoShow}
                 onClick={handleConfirmarNoShow}
-                className="w-full h-13 rounded-2xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-black text-sm shadow-xl transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full h-13 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-black text-sm shadow-xl transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>{isProcessandoNoShow ? "PROCESSANDO..." : "CONFIRMAR & RECEBER R$ 4,50"}</span>
+                <span>{isProcessandoNoShow ? "PROCESSANDO..." : "CONFIRMAR & ABATER R$ 4,50 NA DIÁRIA"}</span>
               </button>
               <button
                 type="button"

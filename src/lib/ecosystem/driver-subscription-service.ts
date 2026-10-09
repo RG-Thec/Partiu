@@ -366,6 +366,17 @@ class DriverSubscriptionService {
       amount = vehicleType === "MOTO" ? config.mensalMoto : config.mensalCarro;
     }
 
+    // Abate créditos operacionais acumulados (ex: taxa de no-show / cancelamento)
+    if (typeof window !== "undefined") {
+      const creditsKey = `partiu_driver_daily_credits_${driverId}`;
+      const availableCredits = Number(
+        localStorage.getItem(creditsKey) || localStorage.getItem("partiu_driver_daily_credits") || 0
+      );
+      if (availableCredits > 0) {
+        amount = Math.max(1.0, Number((amount - availableCredits).toFixed(2)));
+      }
+    }
+
     const txId = `PARTIU_${cycle}_${Date.now()}_${driverId.slice(-4)}`;
     const copiaECola = buildStandardEmvPix(pixKey, receiverName, receiverCity, amount, txId);
 
@@ -384,6 +395,18 @@ class DriverSubscriptionService {
         city: receiverCity,
       },
     };
+  }
+
+  /**
+   * Obtém os créditos operacionais disponíveis para o motorista
+   */
+  public getOperationalCredits(driverId: string): number {
+    if (typeof window === "undefined") return 0;
+    return Number(
+      localStorage.getItem(`partiu_driver_daily_credits_${driverId}`) ||
+      localStorage.getItem("partiu_driver_daily_credits") ||
+      0
+    );
   }
 
   /**
@@ -417,6 +440,13 @@ class DriverSubscriptionService {
     // Remove eventuais ativas anteriores expiradas e insere no topo
     this.subscriptions = [newSub, ...this.subscriptions];
     this.saveToStorage();
+
+    // Limpa créditos operacionais que foram consumidos no pagamento
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(`partiu_driver_daily_credits_${driverId}`);
+      localStorage.removeItem("partiu_driver_daily_credits");
+    }
+
     this.notifyListeners();
 
     if (typeof window !== "undefined") {
