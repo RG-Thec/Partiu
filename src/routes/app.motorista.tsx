@@ -2210,33 +2210,67 @@ export function PartiuDriverCockpit() {
 
       {/* ========================================================================= */}
       {/* BOTÕES FLUTUANTES NO MAPA (RECENTRALIZAR À ESQUERDA & SOS À DIREITA)       */}
+      {/* Z-Index 35 e offset dinâmico para NUNCA ficarem cobertos pelo Bottom Sheet*/}
       {/* ========================================================================= */}
-      {/* 1. Botão Recenter (Inferior Esquerdo, posicionado acima do Bottom Sheet) */}
-      <button
-        type="button"
-        onClick={() => {
-          window.dispatchEvent(new CustomEvent("partiu:recenter-map"));
-        }}
-        className="fixed left-4 bottom-56 sm:bottom-64 z-20 w-13 h-13 rounded-full bg-white shadow-xl border border-slate-100 flex items-center justify-center text-brand-primary-vibrant hover:bg-slate-50 active:scale-95 transition pointer-events-auto cursor-pointer"
-        title="Centralizar Minha Posição"
-        aria-label="Centralizar no Mapa"
-      >
-        <Compass className="w-6 h-6 stroke-[2.2]" />
-      </button>
+      {estadoCockpit !== "OFFER" && (
+        <>
+          {/* 1. Botão Recenter (Inferior Esquerdo) */}
+          <button
+            type="button"
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent("partiu:recenter-map"));
+            }}
+            style={{
+              backgroundColor: isNightMode ? "#0F172A" : colors.surface || "#FFFFFF",
+              color: colors.primary,
+            }}
+            className={`fixed left-4 z-35 w-12 h-12 min-w-[48px] min-h-[48px] rounded-full shadow-lg border border-border flex items-center justify-center hover:brightness-105 active:scale-95 transition-all duration-300 pointer-events-auto cursor-pointer backdrop-blur-md ${
+              !isOnline
+                ? "bottom-[210px] sm:bottom-[225px]"
+                : estadoCockpit === "IDLE"
+                ? "bottom-[260px] sm:bottom-[275px]"
+                : estadoCockpit === "HEADING_TO_PICKUP"
+                ? "bottom-[340px] sm:bottom-[355px]"
+                : estadoCockpit === "WAITING_PIN"
+                ? "bottom-[370px] sm:bottom-[385px]"
+                : "bottom-[340px] sm:bottom-[355px]"
+            }`}
+            title="Centralizar Minha Posição"
+            aria-label="Centralizar no Mapa"
+          >
+            <Compass className="w-5 h-5 stroke-[2.2]" />
+          </button>
 
-      {/* 2. Botão SOS Emergência 190 (Inferior Direito, posicionado acima do Bottom Sheet) */}
-      <div className="fixed bottom-56 sm:bottom-64 right-4 z-20 pointer-events-auto">
-        <button
-          type="button"
-          onClick={() => setModalSosAberto(true)}
-          aria-label="Botão de Emergência e SOS Policial 190"
-          className="w-14 h-14 rounded-full bg-white hover:bg-rose-50 active:scale-95 text-brand-danger-red flex flex-col items-center justify-center shadow-xl border-2 border-brand-danger-red transition-all cursor-pointer animate-pulse"
-          title="Central de Emergência SOS 190"
-        >
-          <SirenIcon className="w-5 h-5 text-brand-danger-red" />
-          <span className="text-[9px] font-extrabold tracking-wider leading-none mt-0.5 text-brand-danger-red">SOS</span>
-        </button>
-      </div>
+          {/* 2. Botão SOS Emergência 190 (Inferior Direito) */}
+          <div
+            className={`fixed right-4 z-35 pointer-events-auto transition-all duration-300 ${
+              !isOnline
+                ? "bottom-[210px] sm:bottom-[225px]"
+                : estadoCockpit === "IDLE"
+                ? "bottom-[260px] sm:bottom-[275px]"
+                : estadoCockpit === "HEADING_TO_PICKUP"
+                ? "bottom-[340px] sm:bottom-[355px]"
+                : estadoCockpit === "WAITING_PIN"
+                ? "bottom-[370px] sm:bottom-[385px]"
+                : "bottom-[340px] sm:bottom-[355px]"
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => setModalSosAberto(true)}
+              style={{
+                backgroundColor: isNightMode ? "#0F172A" : colors.surface || "#FFFFFF",
+              }}
+              aria-label="Botão de Emergência e SOS Policial 190"
+              className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-full text-rose-600 flex flex-col items-center justify-center shadow-lg border-2 border-rose-600 active:scale-95 hover:bg-rose-500/10 transition-all cursor-pointer animate-pulse backdrop-blur-md"
+              title="Central de Emergência SOS 190"
+            >
+              <SirenIcon className="w-4 h-4 text-rose-600" />
+              <span className="text-[8.5px] font-black tracking-wider leading-none mt-0.5 text-rose-600">SOS</span>
+            </button>
+          </div>
+        </>
+      )}
 
       {/* MODAL DE CONFIRMAÇÃO SOS 190 */}
       <DriverSosModal
