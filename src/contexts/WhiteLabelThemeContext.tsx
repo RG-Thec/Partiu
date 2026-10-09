@@ -86,12 +86,12 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
  */
 export function computeButtonShadow(hexColor: string, opacity = 0.39): string {
   if (!hexColor || !hexColor.startsWith("#")) {
-    return "0 4px 14px 0 rgba(255, 140, 0, 0.39)";
+    return "0 4px 14px 0 rgba(2, 132, 199, 0.39)";
   }
   const clean = hexColor.replace("#", "");
-  let r = 255;
-  let g = 140;
-  let b = 0;
+  let r = 2;
+  let g = 132;
+  let b = 199;
   if (clean.length === 6) {
     r = parseInt(clean.slice(0, 2), 16);
     g = parseInt(clean.slice(2, 4), 16);
@@ -139,24 +139,6 @@ function applyCssVariablesToRoot(config: AppConfig) {
   const buttonShadow = ui?.buttonShadow || DEFAULT_APP_CONFIG.branding.ui.buttonShadow;
   const fontFamily = ui?.fontFamily || DEFAULT_APP_CONFIG.branding.ui.fontFamily;
 
-  // 1. Injeta tokens canônicos globais via ThemeEngine (Fonte Única de Verdade)
-  themeEngine.applyTheme({
-    tenant_id: "default",
-    app_name: config.branding?.appName || "PARTIU",
-    company_name: "PARTIU Mobilidade Urbana",
-    primary_color: primary,
-    secondary_color: secondary,
-    accent_color: secondary,
-    background_color: background,
-    surface_color: surface,
-    text_primary: textPrimary,
-    text_secondary: textSecondary,
-    header_gradient_start: primary,
-    header_gradient_end: secondary,
-    border_radius: borderRadius,
-    font_family: fontFamily,
-  });
-
   const root = document.documentElement;
 
   // 2. Variáveis Scoped White Label específicas do contexto
@@ -188,18 +170,40 @@ export function WhiteLabelThemeProvider({
 
     if (typeof window !== "undefined") {
       try {
+        const storedBranding = localStorage.getItem("partiu_active_branding_v2");
+        if (storedBranding) {
+          const b = JSON.parse(storedBranding);
+          if (b && b.primary_color) {
+            return {
+              ...DEFAULT_APP_CONFIG,
+              branding: {
+                appName: b.app_name || DEFAULT_APP_CONFIG.branding.appName,
+                logoUrl: b.logo_url || DEFAULT_APP_CONFIG.branding.logoUrl,
+                colors: {
+                  primary: b.primary_color,
+                  primaryHover: b.secondary_color || b.primary_color,
+                  secondary: b.secondary_color || DEFAULT_APP_CONFIG.branding.colors.secondary,
+                  background: b.background_color || DEFAULT_APP_CONFIG.branding.colors.background,
+                  surface: b.surface_color || DEFAULT_APP_CONFIG.branding.colors.surface,
+                  textPrimary: b.text_primary || DEFAULT_APP_CONFIG.branding.colors.textPrimary,
+                  textSecondary: b.text_secondary || DEFAULT_APP_CONFIG.branding.colors.textSecondary,
+                  inputBorder: DEFAULT_APP_CONFIG.branding.colors.inputBorder,
+                  inputBackground: DEFAULT_APP_CONFIG.branding.colors.inputBackground,
+                },
+                ui: {
+                  borderRadius: b.border_radius || DEFAULT_APP_CONFIG.branding.ui.borderRadius,
+                  buttonShadow: computeButtonShadow(b.primary_color),
+                  fontFamily: b.font_family || DEFAULT_APP_CONFIG.branding.ui.fontFamily,
+                },
+              },
+              features: DEFAULT_APP_CONFIG.features,
+            };
+          }
+        }
+
         const saved = localStorage.getItem(STORAGE_KEY_WL_CONFIG);
         if (saved) {
           const parsed = JSON.parse(saved);
-          const urlParams = new URLSearchParams(window.location.search);
-          if (
-            !urlParams.get("tenant") &&
-            (parsed.branding?.appName === "GO MOBILIDADE" || parsed.branding?.colors?.primary === "#2563EB")
-          ) {
-            try { localStorage.removeItem(STORAGE_KEY_WL_CONFIG); } catch {}
-            return DEFAULT_APP_CONFIG;
-          }
-
           return {
             ...DEFAULT_APP_CONFIG,
             ...parsed,

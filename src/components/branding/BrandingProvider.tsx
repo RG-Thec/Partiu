@@ -38,34 +38,27 @@ function getInitialTenantId(): string {
 function getInitialBranding(tenantId: string): AppBrandingRecord {
   if (typeof window === "undefined") return DEFAULT_BRANDING;
   try {
-    const urlParams = new URLSearchParams(window.location.search);
-    const hasExplicitTenant = Boolean(urlParams.get("tenant") || urlParams.get("tenant_id"));
+    // 1. Tenta carregar o cache isolado específico deste tenant
+    const tenantStored = localStorage.getItem(`partiu_branding_tenant_${tenantId}`);
+    if (tenantStored) {
+      const parsed = JSON.parse(tenantStored) as AppBrandingRecord;
+      if (parsed && parsed.primary_color) {
+        return parsed;
+      }
+    }
+
+    // 2. Tenta carregar o branding ativo salvo globalmente
     const stored = localStorage.getItem(STORAGE_KEY_BRANDING);
     if (stored) {
       const parsed = JSON.parse(stored) as AppBrandingRecord;
-      if (parsed) {
-        // Se os dados salvos estiverem com GO MOBILIDADE ou azul sem parâmetro de tenant explícito, purga
+      if (parsed && parsed.primary_color) {
         if (
-          !hasExplicitTenant &&
-          (parsed.app_name === "GO MOBILIDADE" ||
-            parsed.company_name?.includes("GO Mobilidade") ||
-            parsed.primary_color === "#2563EB")
+          parsed.tenant_id === tenantId ||
+          parsed.tenant_id === "default" ||
+          tenantId === "default" ||
+          tenantId === "tenant-itaperuna"
         ) {
-          try { localStorage.removeItem(STORAGE_KEY_BRANDING); } catch {}
-          return { ...DEFAULT_BRANDING, tenant_id: "default" };
-        }
-
-        // Se os dados salvos ainda forem o azul legado da antiga migração (#003366 com fundo escuro #0B132B)
-        // e o usuário não escolheu explicitamente a paleta azul real, migra para o padrão Laranja Solar
-        const savedPalette = localStorage.getItem("partiu_active_palette_id");
-        if (
-          parsed.primary_color === "#003366" &&
-          (parsed.background_color === "#0B132B" || !savedPalette)
-        ) {
-          return { ...DEFAULT_BRANDING, tenant_id: tenantId };
-        }
-        if (parsed.tenant_id === tenantId || tenantId === "default") {
-          return parsed;
+          return { ...parsed, tenant_id: tenantId };
         }
       }
     }
@@ -140,6 +133,12 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     themeEngine.applyTheme(b);
     try {
       localStorage.setItem(STORAGE_KEY_BRANDING, JSON.stringify(b));
+      if (b.tenant_id) {
+        localStorage.setItem(`partiu_branding_tenant_${b.tenant_id}`, JSON.stringify(b));
+      }
+      if (activeTenantRef.current && activeTenantRef.current !== b.tenant_id) {
+        localStorage.setItem(`partiu_branding_tenant_${activeTenantRef.current}`, JSON.stringify(b));
+      }
     } catch {}
   }, []);
 

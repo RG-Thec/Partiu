@@ -280,8 +280,8 @@ export class TenantDomainService {
               status: "OK",
             };
           } else if (storedTenant === "tenant-campos") {
-            // Em ambiente de plataforma/core, o tenant de demonstração 'tenant-campos' não deve sequestrar a marca padrão PARTIU
-            localStorage.setItem("partiu_whitelabel_active_tenant_id_v1", "tenant-itaperuna");
+            // Em ambiente de plataforma/core, o tenant de demonstração não deve sequestrar a marca padrão
+            localStorage.setItem("partiu_whitelabel_active_tenant_id_v1", "default");
           }
         } catch {}
       }

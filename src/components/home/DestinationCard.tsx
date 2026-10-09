@@ -137,7 +137,7 @@ export const DestinationCard = memo(function DestinationCard({
             <div
               className="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded-xl flex items-center justify-center shadow-2xs shrink-0 group-hover:scale-105 transition-transform"
               style={{
-                backgroundColor: corPrimaria || "var(--brand-primary-vibrant)",
+                backgroundColor: corPrimaria || "var(--brand-primary-vibrant, #0284C7)",
                 color: corTextoPrimaria || "#FFFFFF",
               }}
             >
@@ -165,8 +165,8 @@ export const DestinationCard = memo(function DestinationCard({
               <div
                 className="w-5.5 h-5.5 sm:w-6 sm:h-6 rounded-lg flex items-center justify-center"
                 style={{
-                  backgroundColor: `${corPrimaria || "#FF6B00"}15`,
-                  color: corPrimaria || "#FF6B00",
+                  backgroundColor: `${corPrimaria || "#0284C7"}15`,
+                  color: corPrimaria || "#0284C7",
                 }}
               >
                 <MapPin className="w-3.5 h-3.5 stroke-[2.2]" />

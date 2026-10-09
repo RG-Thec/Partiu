@@ -237,21 +237,21 @@
 
   --primary-deep: #EA580C;
   --primary-vibrant: #FF6B00;
-  --primary-accent: #FFB800;
-  --dark-navy: #0F172A;
+  --primary-accent: #38BDF8;
+  --dark-navy: #082F49;
 
-  --primary: #FF6B00;
+  --primary: #0284C7;
   --primary-foreground: #ffffff;
-  --brand: #FF6B00;
+  --brand: #0284C7;
   --brand-foreground: #ffffff;
-  --brand-primary: #FF6B00;
-  --brand-primary-hover: #EA580C;
-  --brand-secondary: #FFB800;
-  --brand-text: #0F172A;
-  --brand-soft: #FFF7ED;
+  --brand-primary: #0284C7;
+  --brand-primary-hover: #0369A1;
+  --brand-secondary: #0369A1;
+  --brand-text: #082F49;
+  --brand-soft: #F0F9FF;
 
-  --secondary: #FFB800;
-  --secondary-foreground: #090d16;
+  --secondary: #0369A1;
+  --secondary-foreground: #ffffff;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
   --text-secondary: #64748b;
@@ -316,21 +316,21 @@
   --card-foreground: #f8fafc;
   --popover: #111827;
   --popover-foreground: #f8fafc;
-  --primary: var(--color-primary, #FF6B00);
+  --primary: var(--color-primary, #0284C7);
   --primary-foreground: #ffffff;
   --secondary: #1e293b;
   --secondary-foreground: #f8fafc;
   --muted: #1e293b;
   --muted-foreground: #94a3b8;
-  --accent: #00C6FF;
+  --accent: #38BDF8;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
   --border: rgba(255, 255, 255, 0.1);
   --input: rgba(255, 255, 255, 0.15);
-  --ring: var(--color-primary, #FF6B00);
-  --chart-1: var(--color-primary, #FF6B00);
-  --chart-2: var(--color-secondary, #FFB800);
+  --ring: var(--color-primary, #0284C7);
+  --chart-1: var(--color-primary, #0284C7);
+  --chart-2: var(--color-secondary, #0369A1);
   --chart-3: #00C6FF;
   --chart-4: #ef4444;
   --chart-5: #10b981;
@@ -448,12 +448,12 @@ select {
 
 /* Gradiente Padrão CTAs Oficial: Dinâmico White-Label */
 .bg-gradient-cta {
-  background: linear-gradient(135deg, var(--color-primary, var(--header-gradient-start, #FF6B00)) 0%, var(--color-secondary, var(--header-gradient-end, #FFB800)) 100%) !important;
+  background: linear-gradient(135deg, var(--color-primary, var(--header-gradient-start, #0284C7)) 0%, var(--color-secondary, var(--header-gradient-end, #075985)) 100%) !important;
   color: #FFFFFF !important;
 }
 
 .btn-gradient-cta {
-  background: linear-gradient(135deg, var(--color-primary, var(--header-gradient-start, #FF6B00)) 0%, var(--color-secondary, var(--header-gradient-end, #FFB800)) 100%);
+  background: linear-gradient(135deg, var(--color-primary, var(--header-gradient-start, #0284C7)) 0%, var(--color-secondary, var(--header-gradient-end, #075985)) 100%);
   color: #FFFFFF;
   box-shadow: var(--wl-button-shadow, var(--button-shadow, 0 4px 14px 0 rgba(0, 0, 0, 0.15)));
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
