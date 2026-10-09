@@ -61,7 +61,7 @@ export const HomeBottomNav = memo(function HomeBottomNav({
                 <Link
                   key={tab.id}
                   to={tab.rota as any}
-                  className={`flex-1 flex items-center justify-center py-1.5 px-2.5 rounded-full transition-all duration-200 active:scale-95 cursor-pointer ${
+                  className={`flex-1 min-h-[44px] flex items-center justify-center py-1.5 px-2.5 rounded-full transition-all duration-200 active:scale-95 cursor-pointer touch-manipulation ${
                     isActive
                       ? "font-semibold shadow-2xs text-white"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/60"
@@ -131,7 +131,7 @@ export const HomeBottomNav = memo(function HomeBottomNav({
             <Link
               key={tab.id}
               to={tab.rota as any}
-              className={`flex-1 flex flex-col sm:flex-row items-center justify-center py-1.5 sm:py-2 px-2 rounded-full transition-all duration-200 active:scale-95 cursor-pointer ${
+              className={`flex-1 min-h-[44px] flex flex-col sm:flex-row items-center justify-center py-1.5 sm:py-2 px-2 rounded-full transition-all duration-200 active:scale-95 cursor-pointer touch-manipulation ${
                 isActive
                   ? "font-bold shadow-xs text-white"
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/60"

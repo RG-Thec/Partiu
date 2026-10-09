@@ -57,7 +57,7 @@ export function PassengerConfirmDestinationPin() {
             <button
               type="button"
               onClick={backFromDestinationMapPin}
-              className="p-2 -ml-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition cursor-pointer active:scale-95"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 -ml-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition cursor-pointer active:scale-95 touch-manipulation"
               aria-label="Voltar para a busca"
             >
               <ArrowLeft className="w-5 h-5 stroke-[2.4]" />
@@ -89,7 +89,7 @@ export function PassengerConfirmDestinationPin() {
               borderRadius: ui.borderRadius,
               boxShadow: ui.buttonShadow,
             }}
-            className="w-full py-4 font-bold text-sm sm:text-base flex items-center justify-center gap-2 transition active:scale-[0.98] cursor-pointer disabled:opacity-50 hover:brightness-105"
+            className="w-full h-14 font-extrabold text-sm sm:text-base flex items-center justify-center gap-2.5 transition active:scale-[0.98] cursor-pointer disabled:opacity-50 hover:brightness-105 touch-manipulation select-none"
           >
             <Check className="w-5 h-5 stroke-[2.5]" />
             <span>Confirmar este local</span>

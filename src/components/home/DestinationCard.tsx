@@ -33,11 +33,11 @@ const RecentAddressItemRow = memo(function RecentAddressItemRow({
     <button
       type="button"
       onClick={handleClick}
-      className="w-full py-3 px-1 flex items-center justify-between border-b border-slate-100 hover:bg-slate-50/80 rounded-xl transition active:scale-[0.99] cursor-pointer group text-left"
+      className="w-full min-h-[52px] py-3.5 px-2 flex items-center justify-between border-b border-slate-100 hover:bg-slate-50/80 rounded-xl transition active:scale-[0.99] cursor-pointer group text-left touch-manipulation"
     >
       <div className="flex items-center gap-3.5 min-w-0 flex-1">
-        <div className="w-6 h-6 rounded-full flex items-center justify-center text-slate-500 shrink-0 group-hover:text-brand-primary-vibrant transition-colors">
-          <Clock className="w-5 h-5 stroke-[2]" />
+        <div className="w-7 h-7 rounded-full flex items-center justify-center text-slate-500 shrink-0 group-hover:text-brand-primary-vibrant transition-colors bg-slate-100/70">
+          <Clock className="w-4 h-4 stroke-[2.2]" />
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-primary-vibrant truncate transition-colors">
@@ -130,22 +130,22 @@ export const DestinationCard = memo(function DestinationCard({
           <button
             type="button"
             onClick={handleSearch}
-            className="group flex-1 h-9.5 sm:h-11 px-2.5 sm:px-3 rounded-2xl border border-slate-200 bg-slate-50/90 hover:bg-slate-100/80 flex items-center transition-all duration-200 active:scale-[0.99] cursor-pointer text-left shadow-2xs"
+            className="group flex-1 h-12 sm:h-12 px-3 rounded-2xl border border-slate-200 bg-slate-50/90 hover:bg-slate-100/80 flex items-center transition-all duration-200 active:scale-[0.99] cursor-pointer text-left shadow-2xs touch-manipulation"
             aria-label="Para onde vamos? Buscar endereços"
           >
             {/* Lupa estilizada com a cor primária */}
             <div
-              className="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded-xl flex items-center justify-center shadow-2xs shrink-0 group-hover:scale-105 transition-transform"
+              className="w-8 h-8 rounded-xl flex items-center justify-center shadow-2xs shrink-0 group-hover:scale-105 transition-transform"
               style={{
                 backgroundColor: corPrimaria || "var(--brand-primary-vibrant, #0284C7)",
                 color: corTextoPrimaria || "#FFFFFF",
               }}
             >
-              <Search className="w-3.5 h-3.5 stroke-[2.2]" />
+              <Search className="w-4 h-4 stroke-[2.4]" />
             </div>
 
-            <div className="flex-1 min-w-0 ml-2 sm:ml-2.5">
-              <span className="text-xs sm:text-sm font-bold text-slate-900 block truncate leading-tight">
+            <div className="flex-1 min-w-0 ml-2.5 sm:ml-3">
+              <span className="text-sm sm:text-base font-bold text-slate-900 block truncate leading-tight">
                 Para onde vamos hoje?
               </span>
             </div>
@@ -158,53 +158,53 @@ export const DestinationCard = memo(function DestinationCard({
                 hapticFeedback.light();
                 onAdjustPinOnMap();
               }}
-              className="h-9.5 sm:h-11 px-2 sm:px-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center gap-1.5 text-slate-700 hover:text-slate-900 transition-all active:scale-95 shadow-2xs shrink-0 cursor-pointer"
+              className="h-12 sm:h-12 min-w-[48px] px-3 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center gap-1.5 text-slate-700 hover:text-slate-900 transition-all active:scale-95 shadow-2xs shrink-0 cursor-pointer touch-manipulation"
               title="Escolher destino diretamente no mapa"
               aria-label="Escolher destino no mapa"
             >
               <div
-                className="w-5.5 h-5.5 sm:w-6 sm:h-6 rounded-lg flex items-center justify-center"
+                className="w-6 h-6 rounded-lg flex items-center justify-center"
                 style={{
                   backgroundColor: `${corPrimaria || "#0284C7"}15`,
                   color: corPrimaria || "#0284C7",
                 }}
               >
-                <MapPin className="w-3.5 h-3.5 stroke-[2.2]" />
+                <MapPin className="w-4 h-4 stroke-[2.2]" />
               </div>
-              <span className="text-[10px] sm:text-[10.5px] font-bold text-slate-700 tracking-tight">
+              <span className="text-xs font-bold text-slate-700 tracking-tight hidden sm:inline">
                 No mapa
               </span>
             </button>
           )}
         </div>
 
-        {/* 2. PÍLULAS RÁPIDAS HORIZONTAIS MINIMALISTAS */}
-        <div className="flex items-center gap-1.5 pt-0.5 overflow-x-auto no-scrollbar">
+        {/* 2. PÍLULAS RÁPIDAS HORIZONTAIS MINIMALISTAS (TOUCH TARGET >= 44PX) */}
+        <div className="flex items-center gap-2 pt-0.5 overflow-x-auto no-scrollbar">
           <button
             type="button"
             onClick={handleCasaClick}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 text-left transition active:scale-[0.98] cursor-pointer shrink-0 shadow-2xs"
+            className="flex items-center gap-2 px-3 py-2.5 min-h-[44px] rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 text-left transition active:scale-[0.98] cursor-pointer shrink-0 shadow-2xs touch-manipulation"
           >
-            <Home className="w-3.5 h-3.5 text-emerald-600 stroke-[2.2]" />
-            <span className="text-[10.5px] sm:text-[11px] font-bold text-slate-800">Casa</span>
+            <Home className="w-4 h-4 text-emerald-600 stroke-[2.2]" />
+            <span className="text-xs font-bold text-slate-800">Casa</span>
           </button>
 
           <button
             type="button"
             onClick={handleTrabalhoClick}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 text-left transition active:scale-[0.98] cursor-pointer shrink-0 shadow-2xs"
+            className="flex items-center gap-2 px-3 py-2.5 min-h-[44px] rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 text-left transition active:scale-[0.98] cursor-pointer shrink-0 shadow-2xs touch-manipulation"
           >
-            <Briefcase className="w-3.5 h-3.5 text-blue-600 stroke-[2.2]" />
-            <span className="text-[10.5px] sm:text-[11px] font-bold text-slate-800">Trabalho</span>
+            <Briefcase className="w-4 h-4 text-blue-600 stroke-[2.2]" />
+            <span className="text-xs font-bold text-slate-800">Trabalho</span>
           </button>
 
           <button
             type="button"
             onClick={handleSearch}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 text-left transition active:scale-[0.98] cursor-pointer shrink-0 shadow-2xs"
+            className="flex items-center gap-2 px-3 py-2.5 min-h-[44px] rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 text-left transition active:scale-[0.98] cursor-pointer shrink-0 shadow-2xs touch-manipulation"
           >
-            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400 stroke-[2.2]" />
-            <span className="text-[10.5px] sm:text-[11px] font-bold text-slate-800">Favoritos</span>
+            <Star className="w-4 h-4 text-amber-500 fill-amber-400 stroke-[2.2]" />
+            <span className="text-xs font-bold text-slate-800">Favoritos</span>
           </button>
         </div>
 

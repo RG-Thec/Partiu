@@ -63,7 +63,7 @@ export function PassengerConfirmPickupPin() {
             <button
               type="button"
               onClick={backToReviewRoute}
-              className="p-2 -ml-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition cursor-pointer"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 -ml-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition cursor-pointer touch-manipulation active:scale-95"
               aria-label="Voltar para opções de viagem"
             >
               <ArrowLeft className="w-5 h-5 stroke-[2.2]" />
@@ -123,7 +123,7 @@ export function PassengerConfirmPickupPin() {
               borderRadius: ui.borderRadius,
               boxShadow: ui.buttonShadow,
             }}
-            className="w-full py-3.5 px-4 font-bold text-sm sm:text-base active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer hover:brightness-105"
+            className="w-full h-14 py-3.5 px-4 font-extrabold text-sm sm:text-base active:scale-[0.98] transition flex items-center justify-center gap-2.5 cursor-pointer hover:brightness-105 touch-manipulation select-none"
           >
             <Check className="w-5 h-5 stroke-[2.5]" />
             <span>Confirmar Este Ponto de Embarque</span>
