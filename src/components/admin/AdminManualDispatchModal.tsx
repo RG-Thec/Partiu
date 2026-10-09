@@ -44,6 +44,32 @@ export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> =
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sucesso, setSucesso] = useState<{ id: string; pin: string } | null>(null);
 
+  // Formatação em tempo real de telefone brasileiro
+  function handleTelefoneChange(valor: string) {
+    const digitos = valor.replace(/\D/g, "").slice(0, 11);
+    if (digitos.length <= 2) {
+      setTelefone(digitos ? `(${digitos}` : "");
+    } else if (digitos.length <= 6) {
+      setTelefone(`(${digitos.slice(0, 2)}) ${digitos.slice(2)}`);
+    } else if (digitos.length <= 10) {
+      setTelefone(`(${digitos.slice(0, 2)}) ${digitos.slice(2, 6)}-${digitos.slice(6)}`);
+    } else {
+      setTelefone(`(${digitos.slice(0, 2)}) ${digitos.slice(2, 7)}-${digitos.slice(7)}`);
+    }
+  }
+
+  // Atalho de Teclado (Esc para fechar)
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   // Carrega motoristas disponíveis para atribuição direta
   useEffect(() => {
     if (!isOpen) return;
@@ -277,7 +303,7 @@ export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> =
                     required
                     placeholder="(22) 99999-9999"
                     value={telefone}
-                    onChange={(e) => setTelefone(e.target.value)}
+                    onChange={(e) => handleTelefoneChange(e.target.value)}
                     className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-slate-200 font-bold text-xs text-slate-900 focus:outline-none focus:border-amber-400"
                   />
                 </div>
@@ -333,9 +359,12 @@ export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> =
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
-                    <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Valor da Corrida (R$)</span>
+                  <label className="text-[11px] font-bold text-slate-600 flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Valor da Corrida (R$)</span>
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-normal">Ajuste rápido:</span>
                   </label>
                   <input
                     type="number"
@@ -344,6 +373,21 @@ export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> =
                     onChange={(e) => setValorSugerido(e.target.value)}
                     className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-slate-200 font-bold text-xs text-slate-900 focus:outline-none focus:border-amber-400"
                   />
+                  <div className="flex items-center gap-1.5 pt-1">
+                    {[2, 5, 10].map((acrescimo) => (
+                      <button
+                        key={acrescimo}
+                        type="button"
+                        onClick={() => {
+                          const atual = parseFloat(valorSugerido) || 0;
+                          setValorSugerido((atual + acrescimo).toFixed(2));
+                        }}
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition cursor-pointer"
+                      >
+                        +R$ {acrescimo}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
