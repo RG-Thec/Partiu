@@ -199,12 +199,26 @@ const ROLES_DISPONIVEIS: { id: AdminRole; label: string; badge: string }[] = [
   { id: "FRANQUEADO", label: "Franqueado (Acesso Local)", badge: "bg-indigo-600 text-white" },
 ];
 
+function getContrastTextColor(hexColor: string): string {
+  if (!hexColor || !hexColor.startsWith("#")) return "#FFFFFF";
+  const hex = hexColor.replace("#", "");
+  const r = parseInt(hex.substring(0, 2), 16) || 0;
+  const g = parseInt(hex.substring(2, 4), 16) || 0;
+  const b = parseInt(hex.substring(4, 6), 16) || 0;
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 150 ? "#090D16" : "#FFFFFF";
+}
+
 function SuperAdminLayout() {
   const navigate = useNavigate();
   const { appConfig } = useTheme();
   const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
   const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
   const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
+
+  const primaryContrastColor = useMemo(() => {
+    return getContrastTextColor(colors.primary);
+  }, [colors.primary]);
 
   const [roleAtiva, setRoleAtiva] = useState<AdminRole>(() => getAdminRole());
   const [contaAtiva, setContaAtiva] = useState<AdminAccount>(() => getContaAtiva());
@@ -414,14 +428,14 @@ function SuperAdminLayout() {
               {!recolhido ? (
                 <Link to="/app/admin" className="flex items-center gap-2 min-w-0 group">
                   <div
-                    className="flex h-8 w-8 items-center justify-center text-white shadow-xs shrink-0 font-black rounded-lg transition-transform group-hover:scale-105"
+                    className="flex h-8 w-8 items-center justify-center shadow-xs shrink-0 font-black rounded-lg transition-transform group-hover:scale-105"
                     style={{
                       backgroundColor: colors.primary,
                       borderRadius: ui.borderRadius,
                       boxShadow: ui.buttonShadow,
                     }}
                   >
-                    <Zap className="h-4 w-4 fill-white stroke-[2.5]" />
+                    <Zap className="h-4 w-4 stroke-[2.5]" style={{ fill: primaryContrastColor, stroke: primaryContrastColor }} />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-black tracking-tight leading-none text-white truncate">
@@ -438,14 +452,14 @@ function SuperAdminLayout() {
               ) : (
                 <div className="mx-auto">
                   <div
-                    className="flex h-8 w-8 items-center justify-center text-white shadow-xs rounded-lg"
+                    className="flex h-8 w-8 items-center justify-center shadow-xs rounded-lg"
                     style={{
                       backgroundColor: colors.primary,
                       borderRadius: ui.borderRadius,
                       boxShadow: ui.buttonShadow,
                     }}
                   >
-                    <Zap className="h-4 w-4 fill-white stroke-[2.5]" />
+                    <Zap className="h-4 w-4 stroke-[2.5]" style={{ fill: primaryContrastColor, stroke: primaryContrastColor }} />
                   </div>
                 </div>
               )}
@@ -464,17 +478,21 @@ function SuperAdminLayout() {
 
             {/* Seletor de Perfil RBAC */}
             {!recolhido && (
-              <div className="px-2 py-1.5 rounded-lg bg-slate-900/90 border border-slate-800/90 flex items-center justify-between gap-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
-                  Perfil:
-                </span>
+              <div className="px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800/90 flex items-center justify-between gap-1.5 shadow-2xs">
+                <div className="flex items-center gap-1 shrink-0 text-slate-400">
+                  <ShieldCheck className="h-3 w-3 text-emerald-400 shrink-0" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">
+                    Perfil:
+                  </span>
+                </div>
                 <select
                   value={roleAtiva}
                   onChange={(e) => handleTrocarRole(e.target.value as AdminRole)}
-                  className="w-full bg-slate-950 border border-slate-800 text-[10px] font-bold text-white rounded-md px-1.5 py-0.5 h-6.5 focus:ring-1 focus:ring-amber-400 focus:outline-hidden cursor-pointer"
+                  className="w-full bg-slate-950 border border-slate-800 text-[10px] font-bold text-slate-200 rounded-md px-1.5 py-0.5 h-6.5 focus:ring-1 focus:ring-amber-400 focus:outline-hidden cursor-pointer truncate"
+                  title="Alternar perfil de visualização RBAC"
                 >
                   {ROLES_DISPONIVEIS.map((r) => (
-                    <option key={r.id} value={r.id} className="bg-slate-950 text-white font-bold text-xs py-1">
+                    <option key={r.id} value={r.id} className="bg-slate-950 text-white font-medium text-xs py-1">
                       {r.label}
                     </option>
                   ))}
@@ -508,7 +526,7 @@ function SuperAdminLayout() {
                           isAtivo
                             ? {
                                 backgroundColor: colors.primary,
-                                color: "#FFFFFF",
+                                color: primaryContrastColor,
                                 borderRadius: ui.borderRadius,
                                 boxShadow: ui.buttonShadow,
                               }
@@ -516,7 +534,7 @@ function SuperAdminLayout() {
                         }
                         className={`group flex items-center justify-between px-2.5 py-1.5 text-xs font-semibold transition-all relative rounded-lg ${
                           isAtivo
-                            ? "font-black text-white shadow-xs"
+                            ? "font-black shadow-xs"
                             : "text-slate-300 hover:bg-slate-900/90 hover:text-white"
                         } ${recolhido ? "justify-center px-1" : ""}`}
                         title={recolhido ? item.label : undefined}
@@ -524,11 +542,15 @@ function SuperAdminLayout() {
                         <div className="flex items-center gap-2 min-w-0">
                           <Icon
                             className={`h-4 w-4 shrink-0 transition-transform group-hover:scale-105 ${
-                              isAtivo ? "text-white stroke-[2.5]" : "text-slate-400 group-hover:text-slate-200"
+                              isAtivo ? "stroke-[2.5]" : "text-slate-400 group-hover:text-slate-200"
                             }`}
+                            style={isAtivo ? { color: primaryContrastColor } : undefined}
                           />
                           {!recolhido && (
-                            <span className="truncate text-[11px] leading-tight font-medium">
+                            <span
+                              className="truncate text-[11px] leading-tight font-medium"
+                              style={isAtivo ? { color: primaryContrastColor } : undefined}
+                            >
                               {item.label}
                             </span>
                           )}
@@ -625,8 +647,8 @@ function SuperAdminLayout() {
 
         {/* 2. Container Principal & Topbar Executiva */}
         <div className="flex-1 h-screen max-h-screen overflow-hidden flex flex-col min-w-0 bg-slate-50">
-          <header className="shrink-0 min-h-12 h-auto pt-[max(0.4rem,calc(env(safe-area-inset-top,0px)+4px))] pb-2 bg-white border-b border-slate-200/80 px-2.5 sm:px-5 flex items-center justify-between sticky top-0 z-30 shadow-xs">
-            <div className="flex items-center gap-1.5 sm:gap-3 py-0.5 min-w-0 flex-1 mr-2">
+          <header className="shrink-0 h-14 bg-white border-b border-slate-200/80 px-2.5 sm:px-5 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
+            <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 mr-2 h-full">
               <button
                 type="button"
                 onClick={() => setMenuAbertoMobile(true)}
@@ -638,9 +660,9 @@ function SuperAdminLayout() {
 
               {/* Breadcrumb visual contextual */}
               <div className="hidden lg:flex items-center gap-1.5 text-xs font-semibold text-slate-500 mr-1 shrink-0">
-                <span className="text-slate-400">PARTIU OPS</span>
-                <ChevronRight className="h-3 w-3 text-slate-300" />
-                <span className="text-slate-800 font-bold">{roleMeta.titulo}</span>
+                <span className="text-slate-400 font-bold tracking-wider uppercase text-[10px]">PARTIU OPS</span>
+                <ChevronRight className="h-3 w-3 text-slate-300 shrink-0" />
+                <span className="text-slate-800 font-bold max-w-[150px] truncate">{roleMeta.titulo}</span>
               </div>
 
               {/* Seletor Global Interativo de Cidade / Praça de Operação */}
@@ -650,31 +672,31 @@ function SuperAdminLayout() {
               <button
                 type="button"
                 onClick={() => setBuscaRapidaAberta(true)}
-                className="hidden sm:flex items-center gap-2 h-7.5 px-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-500 hover:text-slate-800 text-[11px] font-medium transition cursor-pointer"
+                className="hidden sm:flex items-center gap-2 h-8 px-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 hover:text-slate-900 text-[11px] font-medium transition cursor-pointer"
                 title="Acesso Rápido a Módulos (Ctrl+K)"
               >
                 <Search className="h-3.5 w-3.5 text-slate-400" />
                 <span className="hidden md:inline">Navegar...</span>
-                <kbd className="px-1.5 py-0.2 rounded bg-white text-[9px] font-mono text-slate-500 border border-slate-200 shadow-2xs">
+                <kbd className="px-1.5 py-0.5 rounded bg-white text-[9px] font-mono text-slate-500 border border-slate-200 shadow-2xs">
                   Ctrl K
                 </kbd>
               </button>
               <button
                 type="button"
                 onClick={() => setBuscaRapidaAberta(true)}
-                className="flex sm:hidden h-7.5 w-7.5 items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 cursor-pointer shrink-0"
+                className="flex sm:hidden h-8 w-8 items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 cursor-pointer shrink-0"
                 title="Buscar Módulo (Ctrl+K)"
               >
                 <Search className="h-3.5 w-3.5" />
               </button>
             </div>
 
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 py-0.5">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 h-full">
               {/* Alerta SOS em tempo real (Apenas se houver chamado ativo) */}
               {chamadosSOSAtivos > 0 && (
                 <Link
                   to="/app/admin/sos"
-                  className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 h-7.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold border border-red-500 animate-pulse shadow-xs transition-all shrink-0"
+                  className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1 h-8 rounded-lg bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold border border-red-500 animate-pulse shadow-xs transition-all shrink-0"
                 >
                   <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
                   <span>{chamadosSOSAtivos} SOS</span>
@@ -685,7 +707,7 @@ function SuperAdminLayout() {
               {motoristasPendentes > 0 && (
                 <Link
                   to="/app/admin/aprovacoes"
-                  className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 h-7.5 rounded-lg bg-amber-400 hover:bg-amber-500 text-slate-950 text-[11px] font-bold border border-amber-300 shadow-xs transition-all shrink-0"
+                  className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 h-8 rounded-lg bg-amber-400 hover:bg-amber-500 text-slate-950 text-[11px] font-bold border border-amber-300 shadow-xs transition-all shrink-0"
                 >
                   <UserCheck className="h-3.5 w-3.5 shrink-0" />
                   <span>{motoristasPendentes} Pend.</span>
@@ -695,7 +717,7 @@ function SuperAdminLayout() {
               {/* Atalho Rápido para Operação ao Vivo */}
               <Link
                 to="/app/admin/operacao"
-                className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 h-7.5 rounded-lg bg-emerald-50 text-emerald-900 text-[11px] font-bold border border-emerald-300/80 hover:bg-emerald-100 active:scale-95 transition-all shadow-xs"
+                className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1 h-8 rounded-lg bg-emerald-50 text-emerald-900 text-[11px] font-bold border border-emerald-300/80 hover:bg-emerald-100 active:scale-95 transition-all shadow-xs"
                 title="Operação ao Vivo"
               >
                 <Radio className="h-3.5 w-3.5 animate-pulse text-emerald-600 shrink-0" />
@@ -706,7 +728,7 @@ function SuperAdminLayout() {
               <button
                 type="button"
                 onClick={abrirModalConta}
-                className="flex h-7.5 items-center gap-1 sm:gap-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 active:scale-95 px-2 sm:px-2.5 text-[11px] font-bold text-slate-800 transition-all border border-slate-200 cursor-pointer shadow-xs"
+                className="flex h-8 items-center gap-1 sm:gap-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 active:scale-95 px-2.5 text-[11px] font-bold text-slate-800 transition-all border border-slate-200 cursor-pointer shadow-xs"
                 title="Configurar Perfil"
               >
                 <Key className="h-3.5 w-3.5 text-amber-600 shrink-0" />
@@ -717,7 +739,7 @@ function SuperAdminLayout() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex h-7.5 px-2 sm:px-2.5 items-center gap-1 rounded-lg bg-slate-900 text-white text-[11px] font-bold hover:bg-red-950 active:scale-95 transition-all cursor-pointer shadow-xs"
+                className="flex h-8 px-2.5 items-center gap-1.5 rounded-lg bg-slate-900 text-white text-[11px] font-bold hover:bg-red-950 active:scale-95 transition-all cursor-pointer shadow-xs"
                 title="Sair da Conta"
               >
                 <LogOut className="h-3.5 w-3.5 shrink-0" />
@@ -743,13 +765,13 @@ function SuperAdminLayout() {
                 <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div
-                      className="flex h-8 w-8 items-center justify-center text-white font-black shrink-0 rounded-lg"
+                      className="flex h-8 w-8 items-center justify-center font-black shrink-0 rounded-lg shadow-xs"
                       style={{
                         backgroundColor: colors.primary,
                         borderRadius: ui.borderRadius,
                       }}
                     >
-                      <Zap className="h-4 w-4 fill-white" />
+                      <Zap className="h-4 w-4 stroke-[2.5]" style={{ fill: primaryContrastColor, stroke: primaryContrastColor }} />
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs font-black text-white leading-tight truncate">{branding.appName} OPS</p>
@@ -801,7 +823,7 @@ function SuperAdminLayout() {
                                 isAtivo
                                   ? {
                                       backgroundColor: colors.primary,
-                                      color: "#FFFFFF",
+                                      color: primaryContrastColor,
                                       borderRadius: ui.borderRadius,
                                     }
                                   : { borderRadius: ui.borderRadius }
@@ -813,8 +835,11 @@ function SuperAdminLayout() {
                               }`}
                             >
                               <div className="flex items-center gap-2.5">
-                                <Icon className={`h-4 w-4 ${isAtivo ? "text-white" : "text-slate-400"}`} />
-                                <span>{item.label}</span>
+                                <Icon
+                                  className={`h-4 w-4 ${isAtivo ? "stroke-[2.5]" : "text-slate-400"}`}
+                                  style={isAtivo ? { color: primaryContrastColor } : undefined}
+                                />
+                                <span style={isAtivo ? { color: primaryContrastColor } : undefined}>{item.label}</span>
                               </div>
                               {item.badge && (
                                 <span className={`text-[9px] px-1.5 py-0.2 rounded-md font-bold uppercase tracking-wider ${
