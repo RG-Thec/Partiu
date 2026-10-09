@@ -55,14 +55,18 @@ function carregarDestinosRecentesPassageiro(uid?: string, phone?: string): Recen
     if (salvo) {
       const parsed = JSON.parse(salvo);
       if (Array.isArray(parsed)) {
-        // Filtrar e expurgar registros mock legados
+        // Filtrar e expurgar registros mock legados e inválidos
         const validos = parsed.filter(
           (item: any) =>
             item &&
             item.id !== "rec-1" &&
             item.id !== "rec-2" &&
             item.label !== "Rua Dez de Maio, 188" &&
-            item.label !== "Hospital São José do Avaí"
+            item.label !== "Hospital São José do Avaí" &&
+            Array.isArray(item.coords) &&
+            item.coords.length === 2 &&
+            typeof item.coords[0] === "number" &&
+            typeof item.coords[1] === "number"
         );
         if (validos.length !== parsed.length) {
           localStorage.setItem(key, JSON.stringify(validos));
@@ -72,7 +76,7 @@ function carregarDestinosRecentesPassageiro(uid?: string, phone?: string): Recen
             id: item.id,
             titulo: item.label || item.titulo || "Recente",
             endereco: item.endereco,
-            coords: item.coords || [-41.886, -21.2065],
+            coords: [item.coords[0], item.coords[1]] as [number, number],
           }));
         }
       }
@@ -84,14 +88,23 @@ function carregarDestinosRecentesPassageiro(uid?: string, phone?: string): Recen
     );
     if (Array.isArray(historicoEngine) && historicoEngine.length > 0) {
       const validas = historicoEngine
-        .filter((c) => c && c.destino && c.id && !c.id.startsWith("mock-"))
+        .filter(
+          (c) =>
+            c &&
+            c.destino &&
+            c.id &&
+            !c.id.startsWith("mock-") &&
+            c.destinoCoords &&
+            typeof c.destinoCoords.lng === "number" &&
+            typeof c.destinoCoords.lat === "number"
+        )
         .slice(0, 2);
       if (validas.length > 0) {
         return validas.map((c) => ({
           id: `ride-${c.id}`,
           titulo: c.destino.split(",")[0]?.trim() || c.destino,
           endereco: c.destino,
-          coords: c.destinoCoords ? [c.destinoCoords.lng, c.destinoCoords.lat] : [-41.886, -21.2065],
+          coords: [c.destinoCoords!.lng, c.destinoCoords!.lat] as [number, number],
         }));
       }
     }

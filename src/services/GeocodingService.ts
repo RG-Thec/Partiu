@@ -1126,12 +1126,14 @@ export class GeocodingService {
 
     // 5. Fallback seguro e resiliente: se o usuário digitou uma rua personalizada não catalogada
     const distFallback = 350;
+    const sublabel = estaNoPoloCurado ? "Endereço em Itaperuna, RJ" : "Localização sugerida";
+    const endereco = estaNoPoloCurado ? `${termo}, Itaperuna - RJ` : termo;
     return [
       {
         id: `custom-${Date.now()}`,
         label: termo,
-        sublabel: "Endereço em Itaperuna, RJ",
-        endereco: `${termo}, Itaperuna - RJ`,
+        sublabel,
+        endereco,
         coords: centroRef,
         tipo: "rua",
         distanciaMetros: distFallback,
@@ -1158,24 +1160,27 @@ export class GeocodingService {
 
     const termoNormalizado = normalizarTexto(termo);
 
-    // 1. Lugares curados prioritários da região
-    const locaisCurados = LUGARES_CURADOS_ITAPERUNA.filter((l) => {
-      const labelNorm = normalizarTexto(l.label);
-      const endNorm = normalizarTexto(l.endereco);
-      const bairroNorm = normalizarTexto(l.bairro || "");
-      return (
-        labelNorm.includes(termoNormalizado) ||
-        endNorm.includes(termoNormalizado) ||
-        bairroNorm.includes(termoNormalizado)
-      );
-    }).map((l) => {
-      const dist = calcularDistanciaHaversineMetros(proximity, l.coords);
-      return {
-        ...l,
-        distanciaMetros: dist,
-        distanciaFormatada: formatarDistanciaLegivel(dist),
-      };
-    });
+    // 1. Lugares curados prioritários da região (apenas se o usuário estiver próximo ao polo curado)
+    const estaNoPoloCurado = calcularDistanciaHaversineMetros(proximity, [-41.888, -21.205]) <= 35000;
+    const locaisCurados = estaNoPoloCurado
+      ? LUGARES_CURADOS_ITAPERUNA.filter((l) => {
+          const labelNorm = normalizarTexto(l.label);
+          const endNorm = normalizarTexto(l.endereco);
+          const bairroNorm = normalizarTexto(l.bairro || "");
+          return (
+            labelNorm.includes(termoNormalizado) ||
+            endNorm.includes(termoNormalizado) ||
+            bairroNorm.includes(termoNormalizado)
+          );
+        }).map((l) => {
+          const dist = calcularDistanciaHaversineMetros(proximity, l.coords);
+          return {
+            ...l,
+            distanciaMetros: dist,
+            distanciaFormatada: formatarDistanciaLegivel(dist),
+          };
+        })
+      : [];
 
     // 2. Tenta consulta ao Mapbox Geocoding API v5 caso token esteja presente
     let remotePlaces: GeocodedPlace[] = [];

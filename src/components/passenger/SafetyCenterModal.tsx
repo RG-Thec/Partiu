@@ -9,6 +9,7 @@ import {
   Lock,
 } from "lucide-react";
 import { registrarETransmitirAlertaSOS } from "@/lib/partiu-realtime-service";
+import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
 import { NativeBottomSheet } from "@/components/native/NativeBottomSheet";
 import { NativeButton } from "@/components/native/NativeButton";
@@ -79,10 +80,23 @@ export const SafetyCenterModal = memo(function SafetyCenterModal({
         });
       }
 
+      const session =
+        supabaseAuthService?.getStoredSession?.() ||
+        supabaseAuthService?.getCurrentUser?.() ||
+        null;
+      const userName =
+        session?.name ||
+        (typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : null) ||
+        `Passageiro ${appName}`;
+      const userPhone =
+        session?.phone ||
+        (typeof window !== "undefined" ? localStorage.getItem("partiu_user_phone") : null) ||
+        "";
+
       await registrarETransmitirAlertaSOS({
         tipo: "seguranca",
-        solicitanteNome: `Passageiro ${appName}`,
-        solicitanteTelefone: "+5582999999999",
+        solicitanteNome: userName,
+        solicitanteTelefone: userPhone || "Não informado",
         motoristaNome: driverName,
         veiculoPlaca: driverPlate,
         rodovia: destination || "Perímetro Urbano",

@@ -4,7 +4,6 @@ import { addressService, type UserAddressItem } from "@/services/AddressService"
 import {
   geocodingService,
   type GeocodedPlace,
-  LUGARES_CURADOS_ITAPERUNA,
 } from "@/lib/passenger/geocoding-service";
 import { calcularDistanciaHaversine } from "@/lib/passenger/eta-service";
 import { usePassengerRide } from "@/contexts/PassengerRideContext";
@@ -29,7 +28,7 @@ export function FavoritesManagerModal({
   const [favoritos, setFavoritos] = useState<UserAddressItem[]>([]);
   const [modoAdicionar, setModoAdicionar] = useState(false);
   const [busca, setBusca] = useState("");
-  const [lugares, setLugares] = useState<GeocodedPlace[]>(LUGARES_CURADOS_ITAPERUNA);
+  const [lugares, setLugares] = useState<GeocodedPlace[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [lugarSelecionado, setLugarSelecionado] = useState<GeocodedPlace | null>(null);
   const [nomeCustomizado, setNomeCustomizado] = useState("");
@@ -66,10 +65,10 @@ export function FavoritesManagerModal({
             if (ativo) setLugares(res);
           })
           .catch(() => {
-            if (ativo) setLugares(LUGARES_CURADOS_ITAPERUNA);
+            if (ativo) setLugares([]);
           });
       } else {
-        setLugares(LUGARES_CURADOS_ITAPERUNA);
+        setLugares([]);
       }
       return;
     }
@@ -80,7 +79,7 @@ export function FavoritesManagerModal({
         const resultados = await geocodingService.buscarLugares(busca.trim(), origemCoords);
         if (ativo) setLugares(resultados);
       } catch {
-        if (ativo) setLugares(LUGARES_CURADOS_ITAPERUNA);
+        if (ativo) setLugares([]);
       } finally {
         if (ativo) setCarregando(false);
       }

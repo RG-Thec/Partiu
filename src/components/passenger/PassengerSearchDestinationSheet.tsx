@@ -30,7 +30,6 @@ import { calcularDistanciaHaversine } from "@/lib/passenger/eta-service";
 import {
   geocodingService,
   type GeocodedPlace,
-  LUGARES_CURADOS_ITAPERUNA,
 } from "@/lib/passenger/geocoding-service";
 import { reverseGeocodingService } from "@/services/ReverseGeocodingService";
 import { addressService } from "@/services/AddressService";
@@ -397,10 +396,6 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
   useEffect(() => {
     let ativo = true;
     const termo = campoAtivo === "embarque" ? origemLocal : buscaDestino;
-    const estaEmItaperuna = origemCoords
-      ? calcularDistanciaHaversine(origemCoords, [-41.888, -21.205]) <= 25
-      : false;
-    const fallbackLugares = estaEmItaperuna ? LUGARES_CURADOS_ITAPERUNA : [];
 
     if (!termo.trim() || (campoAtivo === "embarque" && termo === "Meu Local Atual")) {
       geocodingService
@@ -409,7 +404,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
           if (ativo) setLugaresEncontrados(locaisProximos);
         })
         .catch(() => {
-          if (ativo) setLugaresEncontrados(fallbackLugares);
+          if (ativo) setLugaresEncontrados([]);
         });
       return;
     }
@@ -422,7 +417,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
           setLugaresEncontrados(resultados);
         }
       } catch {
-        if (ativo) setLugaresEncontrados(fallbackLugares);
+        if (ativo) setLugaresEncontrados([]);
       } finally {
         if (ativo) setCarregandoLugares(false);
       }
@@ -517,9 +512,8 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
         lugaresEncontrados.find(
           (l) => l.endereco.toLowerCase() === endereco.toLowerCase() || l.label.toLowerCase() === endereco.toLowerCase()
         ) ||
-        lugaresEncontrados[0] ||
-        LUGARES_CURADOS_ITAPERUNA[0];
-      coordsFinal = match ? match.coords : [-41.886, -21.2065];
+        lugaresEncontrados[0];
+      coordsFinal = match ? match.coords : (origemCoords || DEFAULT_ORIGIN.coords);
     }
 
     const rotuloFinal = label || endereco.split(",")[0] || endereco;
