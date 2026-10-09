@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { registrarETransmitirAlertaSOS } from "@/lib/partiu-realtime-service";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
+import { rideLiveTrackingService } from "@/lib/tracking/ride-live-tracking-service";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
 import { NativeBottomSheet } from "@/components/native/NativeBottomSheet";
 import { NativeButton } from "@/components/native/NativeButton";
@@ -46,23 +47,48 @@ export const SafetyCenterModal = memo(function SafetyCenterModal({
   const shareText = `Estou a bordo do ${appName} em viagem com o motorista ${driverName} (${driverPlate}). Destino: ${destination}. Rota acompanhada em tempo real.`;
 
   const handleShare = async () => {
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share({
-          title: `Acompanhar minha viagem ${appName}`,
-          text: shareText,
-          url: window.location.href,
-        });
-        return;
-      } catch {
-        // Fallback para cópia
-      }
-    }
+    try {
+      const trackingData = rideLiveTrackingService.registerRideTracking({
+        rideId: rideId || "partiu-ride",
+        status: "EM_VIAGEM",
+        origem: origin,
+        destino: destination,
+        driverName,
+        vehiclePlate: driverPlate,
+        passengerName: (typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : "") || "Passageiro",
+      });
 
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      await navigator.clipboard.writeText(`${shareText} Link: ${window.location.href}`);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      const shareUrl = rideLiveTrackingService.buildShareUrl(trackingData.trackingToken);
+      const shareMessage = rideLiveTrackingService.buildShareMessage(
+        trackingData.trackingToken,
+        "Veículo Parceiro",
+        driverPlate
+      );
+
+      if (typeof navigator !== "undefined" && navigator.share) {
+        try {
+          await navigator.share({
+            title: `Acompanhar minha viagem no ${appName}`,
+            text: shareMessage,
+            url: shareUrl,
+          });
+          return;
+        } catch {
+          // Fallback para cópia
+        }
+      }
+
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(`${shareMessage}`);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      }
+    } catch {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(`${shareText} Link: ${window.location.href}`);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      }
     }
   };
 

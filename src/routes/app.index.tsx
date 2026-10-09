@@ -17,6 +17,7 @@ import {
 import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
 import { bannerService } from "@/lib/ecosystem/banner-service";
 import { registrarDestinoFrequente } from "@/lib/passenger/smart-destination-suggestions";
+import { ModeTabSelector } from "@/components/navigation/ModeTabSelector";
 import { PassengerSearchDestinationSheet } from "@/components/passenger/PassengerSearchDestinationSheet";
 import { PassengerReviewRouteSheet } from "@/components/passenger/PassengerReviewRouteSheet";
 import { PassengerConfirmPickupPin } from "@/components/passenger/PassengerConfirmPickupPin";
@@ -651,6 +652,11 @@ function PartiuPassengerHomeContent() {
             waveRadius={waveRadius}
             isScrolled={isScrolled}
           />
+
+          {/* SELETOR DE MODALIDADE (CORRIDA / ENTREGA) NO TOPO DO MAPA */}
+          <div className="absolute top-[max(4.4rem,calc(env(safe-area-inset-top,0px)+68px))] inset-x-0 z-20 flex justify-center pointer-events-none px-4 select-none animate-in fade-in duration-300">
+            <ModeTabSelector className="shadow-sm" />
+          </div>
 
           {/* ========================================================================= */}
           {/* PAINEL INFERIOR FLUTUANTE SOBRE O MAPA (HALF-MAP COMFORT ZONE)           */}

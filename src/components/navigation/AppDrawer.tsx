@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Star,
   ShieldAlert,
+  Package,
 } from "lucide-react";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
@@ -359,6 +360,39 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
                     <Clock className="h-4 w-4" style={{ color: colors.primary }} />
                   </div>
                   <span className="text-xs font-bold">Minhas Viagens e Entregas</span>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </Link>
+
+              {/* Item: Enviar Encomenda (Delivery com Duplo PIN) */}
+              <Link
+                to="/app/encomendas"
+                onClick={onClose}
+                style={{ borderRadius: ui.borderRadius }}
+                className="w-full flex items-center justify-between p-3 hover:bg-muted active:scale-[0.99] transition-all text-foreground group"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    style={{
+                      borderRadius: ui.borderRadius,
+                      backgroundColor: `${colors.primary}15`,
+                      color: colors.primary,
+                    }}
+                    className="p-2.5 transition-all shrink-0 flex items-center justify-center group-hover:scale-105"
+                  >
+                    <Package className="h-4 w-4" style={{ color: colors.primary }} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold leading-none">Enviar Encomenda</span>
+                      <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 border border-amber-500/20">
+                        Rápido
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground mt-1 block">
+                      Entrega expressa com validação por Duplo PIN
+                    </span>
+                  </div>
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
               </Link>

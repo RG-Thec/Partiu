@@ -27,6 +27,7 @@ import { buildStandardEmvPix } from "@/services/payment/PaymentProviderAdapter";
 import { usePassengerRide } from "@/contexts/PassengerRideContext";
 import { ChatBottomSheet } from "@/components/chat";
 import { chatRealtimeService } from "@/services/ChatRealtimeService";
+import { rideLiveTrackingService } from "@/lib/tracking/ride-live-tracking-service";
 import { cancellationPolicyService } from "@/services/CancellationPolicyService";
 import { SafetyCenterModal } from "./SafetyCenterModal";
 import { VehiclePerspectiveGraphic } from "./VehiclePerspectiveGraphic";
@@ -283,6 +284,74 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
       setTimeout(() => setPinCopied(false), 2000);
     }
   }, [pinDigits]);
+
+  // Compartilhamento público da rota em tempo real (Siga Minha Viagem)
+  const handleShareTracking = useCallback(() => {
+    hapticFeedback.light();
+    try {
+      const trackingData = rideLiveTrackingService.registerRideTracking({
+        rideId: currentRideId,
+        status: isEmViagem
+          ? "EM_VIAGEM"
+          : isChegou
+          ? "CHEGOU"
+          : "A_CAMINHO",
+        origem: origem || "Local de Embarque",
+        destino: destino || "Destino",
+        origemCoords: activeRide?.origemCoords,
+        destinoCoords: activeRide?.destinoCoords,
+        driverCoords: (activeRide as any)?.motoristaCoords || (activeRide as any)?.motorista?.coords,
+        driverName,
+        driverPhoto: avatarUrl,
+        driverRating: rating,
+        vehicleModel,
+        vehiclePlate: licensePlate,
+        passengerName: (typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : "") || "Passageiro",
+        distanceKm: distanciaKm,
+        durationMin: typeof etaCalculado === "number" ? etaCalculado : undefined,
+      });
+
+      const shareUrl = rideLiveTrackingService.buildShareUrl(trackingData.trackingToken);
+      const shareMessage = rideLiveTrackingService.buildShareMessage(
+        trackingData.trackingToken,
+        vehicleModel,
+        licensePlate
+      );
+
+      if (typeof navigator !== "undefined" && navigator.share) {
+        navigator
+          .share({
+            title: `Siga minha rota no ${nomeApp || "PARTIU"}`,
+            text: shareMessage,
+            url: shareUrl,
+          })
+          .catch(() => {});
+      } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+        navigator.clipboard.writeText(`${shareMessage}`);
+        toast.success("Link do mapa ao vivo copiado!");
+      }
+    } catch {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        navigator.clipboard.writeText(`Acompanhe minha rota no ${nomeApp || "PARTIU"}: ${window.location.href}`);
+        toast.success("Link copiado!");
+      }
+    }
+  }, [
+    currentRideId,
+    isEmViagem,
+    isChegou,
+    origem,
+    destino,
+    activeRide,
+    driverName,
+    avatarUrl,
+    rating,
+    vehicleModel,
+    licensePlate,
+    distanciaKm,
+    etaCalculado,
+    nomeApp,
+  ]);
 
   // Política dinâmica de cancelamento
   const acceptedAtTimestamp = activeRide?.criadoEm || progressiveSession?.startedAt || null;
@@ -897,21 +966,7 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                 {/* Compartilhar Trajeto */}
                 <button
                   type="button"
-                  onClick={() => {
-                    hapticFeedback.light();
-                    const shareText = `Estou a caminho no ${nomeApp || "App"} com ${driverName} (${licensePlate}).`;
-                    if (typeof navigator !== "undefined" && navigator.share) {
-                      navigator
-                        .share({
-                          title: `Acompanhe minha rota no ${nomeApp || "App"}`,
-                          text: shareText,
-                          url: window.location.href,
-                        })
-                        .catch(() => {});
-                    } else if (typeof navigator !== "undefined" && navigator.clipboard) {
-                      navigator.clipboard.writeText(`${shareText} ${window.location.href}`);
-                    }
-                  }}
+                  onClick={handleShareTracking}
                   className="h-10.5 sm:h-11 rounded-xl border-2 border-primary text-primary hover:bg-primary/10 font-semibold text-xs sm:text-[13px] flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer touch-manipulation"
                 >
                   <Share2 className="w-3.5 h-3.5" />
@@ -1063,21 +1118,7 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                   {/* Compartilhar */}
                   <button
                     type="button"
-                    onClick={() => {
-                      hapticFeedback.light();
-                      const shareText = `Estou a caminho no ${nomeApp || "App"} com ${driverName} (${licensePlate}). PIN: ${pinDigits.join("")}`;
-                      if (typeof navigator !== "undefined" && navigator.share) {
-                        navigator
-                          .share({
-                            title: `Minha viagem no ${nomeApp || "App"}`,
-                            text: shareText,
-                            url: window.location.href,
-                          })
-                          .catch(() => {});
-                      } else if (typeof navigator !== "undefined" && navigator.clipboard) {
-                        navigator.clipboard.writeText(`${shareText} ${window.location.href}`);
-                      }
-                    }}
+                    onClick={handleShareTracking}
                     className="min-h-[44px] min-w-[44px] h-11 w-11 rounded-xl bg-muted hover:bg-muted/80 text-foreground flex items-center justify-center active:scale-95 transition cursor-pointer shrink-0 shadow-2xs"
                     title="Compartilhar rota"
                     aria-label="Compartilhar trajeto da viagem"

@@ -13,9 +13,15 @@ import {
   KeyRound,
   RefreshCw,
   AlertCircle,
+  Share2,
+  HelpCircle,
+  Send,
+  Check,
+  Phone,
 } from "lucide-react";
 import { rideService, type UserActivityItem } from "@/services/RideService";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
+import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
 
 export const Route = createFileRoute("/app/bilhetes")({
   head: () => ({
@@ -33,7 +39,7 @@ export const Route = createFileRoute("/app/bilhetes")({
 
 export function AtividadePage() {
   const navigate = useNavigate();
-  const { corPrimaria, corTextoPrimaria } = useBrandTheme();
+  const { corPrimaria, corTextoPrimaria, nomeApp } = useBrandTheme();
 
   const [abaAtiva, setAbaAtiva] = useState<"todas" | "corridas" | "entregas">("todas");
   const [historico, setHistorico] = useState<UserActivityItem[]>([]);
@@ -63,6 +69,78 @@ export function AtividadePage() {
   function handleRecarregar() {
     setRecarregando(true);
     carregarHistorico();
+  }
+
+  // Ações de Suporte e Recibo
+  const [modalObjetoAberto, setModalObjetoAberto] = useState(false);
+  const [descricaoObjeto, setDescricaoObjeto] = useState("");
+  const [telefoneObjeto, setTelefoneObjeto] = useState(() => {
+    return (typeof window !== "undefined" ? localStorage.getItem("partiu_user_phone") : "") || "";
+  });
+  const [enviandoObjeto, setEnviandoObjeto] = useState(false);
+
+  function handleCompartilharRecibo(item: UserActivityItem) {
+    hapticFeedback.light();
+    const texto = [
+      `🧾 *COMPROVANTE OFICIAL DE VIAGEM — ${nomeApp || "PARTIU"}*`,
+      `📅 Data: ${item.data}`,
+      `🚗 Categoria: ${item.categoria}`,
+      `💰 Valor: R$ ${item.valor.toFixed(2).replace(".", ",")}`,
+      `📍 Embarque: ${item.origem}`,
+      `🏁 Desembarque: ${item.destino}`,
+      `👤 Motorista: ${item.motorista}`,
+      `🚘 Veículo: ${item.veiculo}`,
+      item.pinSeguranca ? `🔑 PIN: ${item.pinSeguranca}` : "",
+      `🛡️ Status: Auditado & Confirmado`,
+    ].filter(Boolean).join("\n");
+
+    if (typeof navigator !== "undefined" && navigator.share) {
+      navigator.share({
+        title: `Recibo de Viagem ${nomeApp || "PARTIU"}`,
+        text: texto,
+      }).catch(() => {});
+    } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(texto);
+      alert("Comprovante copiado para a área de transferência!");
+    }
+  }
+
+  function handleEnviarChamadoObjeto() {
+    if (!descricaoObjeto.trim()) {
+      alert("Por favor, descreva o objeto esquecido.");
+      return;
+    }
+    setEnviandoObjeto(true);
+    hapticFeedback.medium();
+
+    try {
+      const tickets = JSON.parse(localStorage.getItem("partiu_lost_items_tickets") || "[]");
+      const novoTicket = {
+        id: `ticket_${Date.now()}`,
+        viagemId: viagemDetalhe?.id,
+        motorista: viagemDetalhe?.motorista,
+        dataViagem: viagemDetalhe?.data,
+        descricao: descricaoObjeto,
+        telefone: telefoneObjeto,
+        status: "ABERTO",
+        criadoEm: new Date().toISOString(),
+      };
+      localStorage.setItem("partiu_lost_items_tickets", JSON.stringify([novoTicket, ...tickets]));
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("partiu:lost_item_reported", { detail: novoTicket })
+        );
+      }
+
+      alert("Chamado aberto com sucesso! O condutor e nossa central foram notificados. Caso o objeto seja localizado, o retorno será agendado diretamente com você.");
+      setModalObjetoAberto(false);
+      setDescricaoObjeto("");
+    } catch {
+      alert("Erro ao registrar chamado. Tente novamente.");
+    } finally {
+      setEnviandoObjeto(false);
+    }
   }
 
   const listaFiltrada = historico.filter((item) => {
@@ -360,12 +438,114 @@ export function AtividadePage() {
                 </div>
               </div>
 
+              {/* AÇÕES DO RECIBO: COMPARTILHAR & SUPORTE */}
+              <div className="pt-1 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => handleCompartilharRecibo(viagemDetalhe)}
+                  className="w-full py-2.5 rounded-xl border border-border bg-card hover:bg-muted text-foreground font-bold text-xs flex items-center justify-center gap-2 transition active:scale-98 cursor-pointer"
+                >
+                  <Share2 className="w-3.5 h-3.5 text-brand-primary-vibrant" />
+                  <span>Compartilhar Comprovante</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setModalObjetoAberto(true)}
+                  className="w-full py-2 text-muted-foreground hover:text-amber-600 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                >
+                  <HelpCircle className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Esqueci um objeto nesta viagem</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setViagemDetalhe(null)}
+                  className="w-full py-3 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 active:scale-95 transition-all cursor-pointer min-h-[44px]"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: REPORTAR OBJETO ESQUECIDO */}
+      {modalObjetoAberto && viagemDetalhe && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-card text-foreground rounded-3xl p-5 max-w-sm w-full shadow-2xl border border-border space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-border">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-600 flex items-center justify-center">
+                  <HelpCircle className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">Objeto Esquecido</h3>
+                  <p className="text-[10px] text-muted-foreground">Viagem com {viagemDetalhe.motorista}</p>
+                </div>
+              </div>
               <button
                 type="button"
-                onClick={() => setViagemDetalhe(null)}
-                className="w-full mt-2 py-3 rounded-xl bg-brand-primary-deep text-white font-bold text-xs hover:brightness-110 active:scale-95 transition-all cursor-pointer min-h-[44px]"
+                onClick={() => setModalObjetoAberto(false)}
+                className="p-1 rounded-full text-muted-foreground hover:text-foreground cursor-pointer"
               >
-                Fechar recibo
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-200/80 text-[11px] text-amber-900 leading-relaxed font-medium">
+              <strong>Como funciona a devolução:</strong> O motorista parceiro será notificado para checar o veículo. Caso o item seja localizado, você combinará a devolução e pagará diretamente a ele o valor do deslocamento de entrega.
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-[11px] font-bold text-foreground block mb-1">
+                  Qual objeto foi esquecido?
+                </label>
+                <input
+                  type="text"
+                  value={descricaoObjeto}
+                  onChange={(e) => setDescricaoObjeto(e.target.value)}
+                  placeholder="Ex: Carteira preta, celular no banco traseiro..."
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-foreground block mb-1">
+                  Telefone de contato para devolução
+                </label>
+                <div className="relative flex items-center">
+                  <Phone className="w-3.5 h-3.5 text-muted-foreground absolute left-3" />
+                  <input
+                    type="tel"
+                    value={telefoneObjeto}
+                    onChange={(e) => setTelefoneObjeto(e.target.value)}
+                    placeholder="(22) 99999-9999"
+                    className="w-full pl-8 pr-3 py-2 text-xs rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                disabled={enviandoObjeto || !descricaoObjeto.trim()}
+                onClick={handleEnviarChamadoObjeto}
+                className="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer shadow-md"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>{enviandoObjeto ? "Enviando..." : "Enviar Chamado ao Motorista"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setModalObjetoAberto(false)}
+                className="w-full py-2 text-muted-foreground hover:text-foreground text-xs font-semibold cursor-pointer text-center"
+              >
+                Cancelar
               </button>
             </div>
           </div>
