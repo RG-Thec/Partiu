@@ -27,18 +27,18 @@ function carregarDestinosReais(): SavedLocation[] {
         const validos = parsed.filter(
           (item: any) =>
             item &&
-            item.id !== "rec-1" &&
-            item.id !== "rec-2" &&
-            item.label !== "Rua Dez de Maio, 188" &&
-            item.label !== "Hospital São José do Avaí"
+            item.id &&
+            !item.id.startsWith("mock-") &&
+            item.endereco &&
+            !item.endereco.includes("Itaperuna")
         );
         if (validos.length > 0) {
           return validos.slice(0, 2).map((item: any) => ({
             id: item.id || `rec-${Math.random()}`,
-            label: item.label || item.titulo || "Recente",
-            sublabel: item.endereco || "",
+            label: item.label || item.titulo || item.endereco?.split(",")[0] || "Recente",
+            sublabel: item.sublabel || item.endereco || "",
             endereco: item.endereco,
-            coords: item.coords || [-41.8860, -21.2065],
+            coords: item.coords,
             icone: "clock",
           }));
         }

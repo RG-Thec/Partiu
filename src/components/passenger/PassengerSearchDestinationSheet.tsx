@@ -82,10 +82,12 @@ function carregarHistoricoReal(): RecentItem[] {
           (item: any) =>
             item &&
             typeof item === "object" &&
+            item.id &&
+            !item.id.startsWith("mock-") &&
             item.id !== "rec-1" &&
             item.id !== "rec-2" &&
-            item.label !== "Rua Dez de Maio, 188" &&
-            item.label !== "Hospital São José do Avaí"
+            item.endereco &&
+            !item.endereco.includes("Itaperuna")
         );
         // Higieniza o storage para não deixar resíduos em disco/cache
         if (validos.length !== parsed.length) {
@@ -556,7 +558,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
     ) || lugaresEncontrados[0];
     const coordsFinal = match ? match.coords : (origemCoords || DEFAULT_ORIGIN.coords);
     const rotuloFinal = match ? match.label : termoLimpo;
-    const enderecoFinal = match ? match.endereco : `${termoLimpo}, Itaperuna - RJ`;
+    const enderecoFinal = match ? match.endereco : termoLimpo;
     setOrigemLocal(rotuloFinal);
     setOrigemEndereco(enderecoFinal, coordsFinal);
     if (!buscaDestino.trim()) {
@@ -955,36 +957,36 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
             <button
               type="button"
               onClick={handleShortcutCasa}
-              className="min-h-[36px] px-3.5 py-1.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0 shadow-2xs"
+              className="min-h-[44px] px-4 py-2 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0 shadow-2xs"
             >
-              <Home className="w-3.5 h-3.5 text-primary-700" />
+              <Home className="w-4 h-4 text-primary-700" />
               <span>Casa</span>
             </button>
 
             <button
               type="button"
               onClick={handleShortcutTrabalho}
-              className="min-h-[36px] px-3.5 py-1.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0 shadow-2xs"
+              className="min-h-[44px] px-4 py-2 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0 shadow-2xs"
             >
-              <Briefcase className="w-3.5 h-3.5" style={{ color: colors.primary }} />
+              <Briefcase className="w-4 h-4" style={{ color: colors.primary }} />
               <span>Trabalho</span>
             </button>
 
             <button
               type="button"
               onClick={handleShortcutFavoritos}
-              className="min-h-[36px] px-3.5 py-1.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0 shadow-2xs"
+              className="min-h-[44px] px-4 py-2 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0 shadow-2xs"
             >
-              <Star className="w-3.5 h-3.5 text-primary-600 fill-amber-500" />
+              <Star className="w-4 h-4 text-primary-600 fill-amber-500" />
               <span>Favoritos</span>
             </button>
 
             <button
               type="button"
               onClick={selectDestinationOnMap}
-              className="min-h-[36px] px-3.5 py-1.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0 shadow-2xs"
+              className="min-h-[44px] px-4 py-2 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0 shadow-2xs"
             >
-              <MapPin className="w-3.5 h-3.5 text-rose-500" />
+              <MapPin className="w-4 h-4 text-rose-500" />
               <span>No Mapa</span>
             </button>
           </div>
@@ -1024,7 +1026,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                       Definir &ldquo;{origemLocal}&rdquo; como local de embarque
                     </p>
                     <p className="text-xs text-slate-700 truncate font-medium">
-                      Definir este endereço de partida em Itaperuna, RJ
+                      Definir este endereço como ponto de partida
                     </p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />

@@ -45,7 +45,7 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
   const [incentivoAdicionado, setIncentivoAdicionado] = useState(false);
 
   const { currentDriver, isTransitioning, hasActiveDriver } = useDriverSearchRealtime();
-  const { corPrimaria, corTextoPrimaria } = useBrandTheme();
+  const { corPrimaria, corTextoPrimaria, nomeApp } = useBrandTheme();
   const { appConfig } = useTheme();
   const { colors, ui } = appConfig.branding;
 
@@ -328,7 +328,7 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
                 <span className="truncate text-slate-950 font-black">{destino ? destino.split(",")[0] : "Destino"}</span>
               </div>
               <div className="flex items-center gap-2 text-xs text-slate-700 font-bold mt-0.5">
-                <span>{categoriaVeiculo === "MOTO" ? "Partiu Moto" : "Partiu Carro"}</span>
+                <span>{categoriaVeiculo === "MOTO" ? `${nomeApp} Moto` : `${nomeApp} Carro`}</span>
                 <span>•</span>
                 <span>
                   {String(formaPagamento).toUpperCase() === "PIX"
@@ -354,11 +354,11 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
 
           {/* ASSISTÊNCIA PRÓ-ATIVA DE CONVERSÃO RÁPIDA (ONDA 2+) */}
           {currentWave >= 2 && (
-            <div className="p-2.5 rounded-2xl bg-amber-50/80 border border-amber-200/80 space-y-2 text-left">
-              <div className="flex items-center justify-between text-[11px] font-bold text-amber-950">
+            <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200/80 space-y-2 text-left">
+              <div className="flex items-center justify-between text-xs font-bold text-amber-950">
                 <span>⚡ Busca prolongada. Deseja acelerar o aceite?</span>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 {!incentivoAdicionado ? (
                   <button
                     type="button"
@@ -366,12 +366,12 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
                       hapticFeedback.medium();
                       setIncentivoAdicionado(true);
                     }}
-                    className="flex-1 py-1.5 px-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1"
+                    className="min-h-[44px] flex-1 py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1"
                   >
                     <span>+ R$ 3 de incentivo</span>
                   </button>
                 ) : (
-                  <div className="flex-1 py-1.5 px-2 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-xs text-center border border-emerald-300">
+                  <div className="min-h-[44px] flex-1 py-2 px-3 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-xs text-center border border-emerald-300 flex items-center justify-center">
                     ✓ +R$ 3 adicionado
                   </div>
                 )}
@@ -383,7 +383,7 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
                       selectVehicle("MOTO");
                       confirmPickupAndFindDriver();
                     }}
-                    className="flex-1 py-1.5 px-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-xs transition active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1"
+                    className="min-h-[44px] flex-1 py-2 px-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-xs transition active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1"
                   >
                     <span>🏍️ Tentar Moto</span>
                   </button>
@@ -396,10 +396,10 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
           <button
             type="button"
             onClick={requestCancel}
-            className="w-full h-9 sm:h-9.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 font-semibold text-xs flex items-center justify-center gap-1.5 active:scale-[0.99] transition-all cursor-pointer shadow-2xs border border-slate-200"
+            className="w-full min-h-[44px] h-11 sm:h-12 rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-[0.99] transition-all cursor-pointer shadow-2xs border border-slate-200"
             aria-label="Cancelar busca de motorista"
           >
-            <X className="w-3.5 h-3.5 stroke-[2.2] text-slate-600" />
+            <X className="w-4 h-4 stroke-[2.2] text-slate-600" />
             <span>Cancelar busca</span>
           </button>
         </div>

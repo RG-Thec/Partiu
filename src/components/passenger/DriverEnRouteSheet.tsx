@@ -29,6 +29,8 @@ import { SafetyCenterModal } from "./SafetyCenterModal";
 import { VehiclePerspectiveGraphic } from "./VehiclePerspectiveGraphic";
 import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
 import { RideCancellationModal } from "@/components/modals/RideCancellationModal";
+import { useBrandTheme } from "@/hooks/useBrandTheme";
+import { useTheme } from "@/contexts/WhiteLabelThemeContext";
 
 // Lazy-loaded para otimização de bundle e TTI de 60fps
 const DriverProfileModal = lazy(() =>
@@ -86,6 +88,7 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
     state,
     activeRide,
     categoriaVeiculo,
+    origem,
     destino,
     distanciaKm,
     etaCalculado,
@@ -98,6 +101,10 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
     progressiveSession,
     retrySearchAfterTimeout,
   } = usePassengerRide();
+
+  const { corPrimaria, corSecundaria, nomeApp } = useBrandTheme();
+  const { appConfig } = useTheme();
+  const { colors, ui } = appConfig.branding;
 
   // Estados dos Modais
   const [isTrustCenterOpen, setIsTrustCenterOpen] = useState(false);
@@ -212,7 +219,7 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
   const phone =
     activeRide?.motorista?.telefone ||
     trustProfile?.phone ||
-    "(22) 99876-5432";
+    "(61) 99876-5432";
 
   // Estados de progresso da corrida
   const isEmViagem = state === "ON_TRIP" || state === "IN_PROGRESS" || activeRide?.status === "EM_VIAGEM";
@@ -274,9 +281,9 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
 
   useEffect(() => {
     if (!isConcluida) return;
-    const chave = activeRide?.motorista?.chavePix || phone || "22998765432";
+    const chave = activeRide?.motorista?.chavePix || phone?.replace(/\D/g, "") || "61998765432";
     const beneficiario = activeRide?.motorista?.nome || driverName;
-    const cidade = activeRide?.motorista?.cidade || "ITAPERUNA";
+    const cidade = activeRide?.motorista?.cidade || (destino ? destino.split(",")[1]?.trim() : "") || "BRASIL";
     const valor = activeRide?.valor || 24.9;
     const txId = (activeRide?.id || "COR-101").replace(/[^a-zA-Z0-9]/g, "").slice(0, 25);
 
@@ -384,7 +391,7 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                     <span className="w-2.5 h-2.5 rounded-full bg-brand-primary-vibrant shrink-0" />
                     <div className="min-w-0">
                       <span className="text-xs uppercase font-extrabold text-slate-600 block">Origem</span>
-                      <span className="text-xs font-bold text-slate-900 truncate block">Centro, Itaperuna - RJ</span>
+                      <span className="text-xs font-bold text-slate-900 truncate block">{origem || activeRide?.origem || "Local de embarque"}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -741,14 +748,14 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                     <span className="text-lg">🚗</span>
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-brand-primary-deep">Partiu Pop</h4>
+                    <h4 className="text-sm font-bold text-slate-900">{isMoto ? `${nomeApp} Moto` : `${nomeApp} Pop`}</h4>
                     <p className="text-xs text-slate-700 font-semibold">Viagem econômica</p>
                   </div>
                 </div>
 
                 <div className="border-l border-brand-border-active pl-4 text-right">
                   <span className="text-xs text-slate-700 font-bold uppercase block">Valor estimado</span>
-                  <div className="text-xl font-bold text-brand-primary-deep leading-tight">
+                  <div className="text-xl font-bold text-slate-900 leading-tight">
                     {valorCorridaFormatado}
                   </div>
                 </div>
@@ -780,11 +787,11 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                   type="button"
                   onClick={() => {
                     hapticFeedback.light();
-                    const shareText = `Estou a caminho no PARTIU com ${driverName} (${licensePlate}).`;
+                    const shareText = `Estou a caminho no ${nomeApp || "App"} com ${driverName} (${licensePlate}).`;
                     if (typeof navigator !== "undefined" && navigator.share) {
                       navigator
                         .share({
-                          title: "Acompanhe minha rota PARTIU",
+                          title: `Acompanhe minha rota no ${nomeApp || "App"}`,
                           text: shareText,
                           url: window.location.href,
                         })
@@ -910,71 +917,79 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                 </span>
               </button>
 
-              {/* Barra de Ações Rápidas do Passageiro (Ligar, Chat, Cancelar) */}
-              <div className="flex items-center justify-between gap-1.5 pt-1.5 border-t border-slate-100 text-xs">
-                {/* Ligar */}
-                <a
-                  href={`tel:${phone.replace(/\D/g, "")}`}
-                  onClick={() => hapticFeedback.light()}
-                  className="flex-1 h-9.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold flex items-center justify-center gap-1 active:scale-95 transition text-xs"
-                >
-                  <Phone className="w-3.5 h-3.5 text-slate-600" />
-                  <span>Ligar</span>
-                </a>
+              {/* Barra de Ações Rápidas do Passageiro (Padrão Uber / 99: Ligar, Chat e Compartilhar) */}
+              <div className="space-y-2 pt-2 border-t border-slate-100 text-xs">
+                <div className="flex items-center gap-2">
+                  {/* Ligar */}
+                  <a
+                    href={`tel:${phone.replace(/\D/g, "")}`}
+                    onClick={() => hapticFeedback.light()}
+                    className="flex-1 min-h-[44px] h-11 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold flex items-center justify-center gap-1.5 active:scale-95 transition text-xs shadow-2xs"
+                  >
+                    <Phone className="w-4 h-4 text-slate-700 stroke-[2.2]" />
+                    <span>Ligar</span>
+                  </a>
 
-                {/* Mensagem / Chat */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    hapticFeedback.light();
-                    setIsChatOpen(true);
-                  }}
-                  className="flex-1 h-9.5 rounded-xl bg-brand-primary-vibrant hover:brightness-105 text-white font-semibold flex items-center justify-center gap-1 shadow-xs active:scale-95 transition relative cursor-pointer text-xs"
-                >
-                  <MessageCircle className="w-3.5 h-3.5 text-white" />
-                  <span>Chat</span>
-                  {unreadCount > 0 && (
-                    <span className="px-1.5 py-0.2 rounded-full bg-rose-600 text-white font-bold text-[10px] animate-pulse">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
+                  {/* Mensagem / Chat */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      hapticFeedback.light();
+                      setIsChatOpen(true);
+                    }}
+                    style={{
+                      backgroundColor: colors.primary,
+                      color: colors.surface,
+                    }}
+                    className="flex-1 min-h-[44px] h-11 rounded-xl hover:brightness-105 font-bold flex items-center justify-center gap-1.5 shadow-xs active:scale-95 transition relative cursor-pointer text-xs"
+                  >
+                    <MessageCircle className="w-4 h-4 stroke-[2.2]" />
+                    <span>Chat</span>
+                    {unreadCount > 0 && (
+                      <span className="px-1.5 py-0.2 rounded-full bg-rose-600 text-white font-black text-[10px] animate-pulse">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
 
-                {/* Compartilhar */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    hapticFeedback.light();
-                    const shareText = `Estou a caminho no PARTIU com ${driverName} (${licensePlate}). PIN: ${pinDigits.join("")}`;
-                    if (typeof navigator !== "undefined" && navigator.share) {
-                      navigator
-                        .share({
-                          title: "Minha viagem PARTIU",
-                          text: shareText,
-                          url: window.location.href,
-                        })
-                        .catch(() => {});
-                    } else if (typeof navigator !== "undefined" && navigator.clipboard) {
-                      navigator.clipboard.writeText(`${shareText} ${window.location.href}`);
-                    }
-                  }}
-                  className="w-9.5 h-9.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center active:scale-95 transition cursor-pointer shrink-0"
-                  title="Compartilhar"
-                >
-                  <Share2 className="w-3.5 h-3.5 text-slate-600" />
-                </button>
+                  {/* Compartilhar */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      hapticFeedback.light();
+                      const shareText = `Estou a caminho no ${nomeApp || "App"} com ${driverName} (${licensePlate}). PIN: ${pinDigits.join("")}`;
+                      if (typeof navigator !== "undefined" && navigator.share) {
+                        navigator
+                          .share({
+                            title: `Minha viagem no ${nomeApp || "App"}`,
+                            text: shareText,
+                            url: window.location.href,
+                          })
+                          .catch(() => {});
+                      } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+                        navigator.clipboard.writeText(`${shareText} ${window.location.href}`);
+                      }
+                    }}
+                    className="min-h-[44px] min-w-[44px] h-11 w-11 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center active:scale-95 transition cursor-pointer shrink-0 shadow-2xs"
+                    title="Compartilhar rota"
+                    aria-label="Compartilhar trajeto da viagem"
+                  >
+                    <Share2 className="w-4 h-4 text-slate-700 stroke-[2.2]" />
+                  </button>
+                </div>
 
-                {/* Cancelar */}
+                {/* Cancelar Corrida (Ação Segura Separada) */}
                 <button
                   type="button"
                   onClick={() => {
                     hapticFeedback.warning();
                     requestCancel();
                   }}
-                  className="w-9.5 h-9.5 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 flex items-center justify-center active:scale-95 transition cursor-pointer shrink-0"
+                  className="w-full min-h-[38px] py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
                   title="Cancelar corrida"
                 >
                   <X className="w-3.5 h-3.5" />
+                  <span>Cancelar corrida</span>
                 </button>
               </div>
 

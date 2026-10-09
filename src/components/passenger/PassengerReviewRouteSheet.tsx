@@ -66,7 +66,7 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
     togglePreference,
   } = usePassengerRide();
 
-  const { corPrimaria, corSecundaria } = useBrandTheme();
+  const { corPrimaria, corSecundaria, nomeApp } = useBrandTheme();
   const { appConfig } = useTheme();
   const { colors } = appConfig.branding;
 
@@ -238,11 +238,11 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
             <button
               type="button"
               onClick={handleBack}
-              className="h-7.5 px-2.5 text-slate-700 hover:text-slate-950 hover:bg-slate-100 active:scale-95 rounded-xl transition cursor-pointer flex flex-row items-center gap-1 font-bold text-xs border border-slate-200/80 bg-white shadow-2xs shrink-0"
+              className="min-h-[44px] h-9 sm:h-10 px-3 text-slate-700 hover:text-slate-950 hover:bg-slate-100 active:scale-95 rounded-xl transition cursor-pointer flex flex-row items-center gap-1.5 font-bold text-xs border border-slate-200/80 bg-white shadow-2xs shrink-0"
               title="Voltar e alterar endereço"
               aria-label="Voltar para busca de endereço"
             >
-              <ArrowLeft className="w-3.5 h-3.5 stroke-[2.4]" />
+              <ArrowLeft className="w-4 h-4 stroke-[2.4]" />
               <span>Voltar</span>
             </button>
 
@@ -336,7 +336,7 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
           {/* 3. CHIPS DE OPÇÕES EXTRAS (PARADA / PASSAGEIRO / MULHER) */}
           <div className="flex flex-row items-center justify-between gap-1.5 pt-0.5 shrink-0">
             {/* Chip de Parada */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 flex items-center">
               <button
                 type="button"
                 onClick={() => {
@@ -352,7 +352,7 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
                       }
                     : undefined
                 }
-                className={`min-h-[34px] h-8.5 w-full flex flex-row items-center justify-between gap-1.5 font-semibold text-[11px] px-2.5 py-1 rounded-xl border transition active:scale-95 cursor-pointer touch-manipulation ${
+                className={`min-h-[44px] h-9 w-full flex flex-row items-center justify-between gap-1.5 font-semibold text-xs px-2.5 py-1.5 rounded-xl border transition active:scale-95 cursor-pointer touch-manipulation ${
                   paradas.length > 0
                     ? "font-bold"
                     : "bg-slate-100/90 text-slate-700 hover:text-slate-950 border-slate-200/80"
@@ -367,26 +367,34 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
                     {paradas.length === 0
                       ? "+ Parada"
                       : paradas.length === 1
-                      ? `1 Parada`
-                      : `2 Paradas`}
+                      ? "1 Parada"
+                      : "2 Paradas"}
                   </span>
                 </div>
                 {paradas.length > 0 && (
                   <span
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Remover paradas intermediárias"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      hapticFeedback.light();
-                      setParadaIntermediaria(null);
-                    }}
-                    className="w-4.5 h-4.5 -mr-0.5 rounded-full bg-rose-100 hover:bg-rose-200 text-rose-700 flex items-center justify-center font-bold active:scale-90 transition shrink-0 text-[10px]"
+                    className="w-5 h-5 -mr-0.5 rounded-full bg-rose-100 hover:bg-rose-200 text-rose-700 flex items-center justify-center font-bold text-[11px] shrink-0"
+                    title="Paradas adicionadas"
                   >
-                    ✕
+                    {paradas.length}
                   </span>
                 )}
               </button>
+              {paradas.length > 0 && (
+                <button
+                  type="button"
+                  aria-label="Remover paradas intermediárias"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    hapticFeedback.light();
+                    setParadaIntermediaria(null);
+                  }}
+                  className="ml-1 min-h-[44px] min-w-[36px] flex items-center justify-center text-rose-600 hover:text-rose-800 p-1.5 rounded-xl hover:bg-rose-50 transition active:scale-90 cursor-pointer shrink-0"
+                  title="Remover paradas"
+                >
+                  ✕
+                </button>
+              )}
             </div>
 
             {/* Chip de Passageiro */}
@@ -406,7 +414,7 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
                       }
                     : undefined
                 }
-                className={`min-h-[34px] h-8.5 w-full flex flex-row items-center justify-center gap-1.5 font-semibold text-[11px] px-2.5 py-1 rounded-xl border transition active:scale-95 cursor-pointer touch-manipulation ${
+                className={`min-h-[44px] h-9 w-full flex flex-row items-center justify-center gap-1.5 font-semibold text-xs px-2.5 py-1.5 rounded-xl border transition active:scale-95 cursor-pointer touch-manipulation ${
                   viajanteOutraPessoa
                     ? "font-bold"
                     : "bg-slate-100/90 text-slate-700 hover:text-slate-950 border-slate-200/80"
@@ -423,7 +431,7 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
               </button>
             </div>
 
-            {/* Chip Partiu Mulher */}
+            {/* Chip Mulher (Motoristas Mulheres) */}
             <div className="flex-1 min-w-0">
               <button
                 type="button"
@@ -431,19 +439,19 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
                   hapticFeedback.medium();
                   togglePreference("isFemaleOnly");
                 }}
-                className={`min-h-[34px] h-8.5 w-full flex flex-row items-center justify-center gap-1.5 font-semibold text-[11px] px-2.5 py-1 rounded-xl border transition active:scale-95 cursor-pointer touch-manipulation ${
+                className={`min-h-[44px] h-9 w-full flex flex-row items-center justify-center gap-1.5 font-semibold text-xs px-2.5 py-1.5 rounded-xl border transition active:scale-95 cursor-pointer touch-manipulation ${
                   preferences?.isFemaleOnly
                     ? "bg-purple-50 text-purple-900 border-purple-300 shadow-2xs font-bold"
                     : "bg-slate-100/90 text-slate-700 hover:text-slate-950 border-slate-200/80"
                 }`}
-                title="Partiu Mulher — Apenas motoristas mulheres"
+                title={`${nomeApp} Mulher — Apenas condutoras mulheres`}
               >
                 <ShieldCheck
                   className={`w-3.5 h-3.5 ${
                     preferences?.isFemaleOnly ? "text-purple-600 stroke-[2.4]" : "text-slate-500"
                   } shrink-0`}
                 />
-                <span className="truncate">Partiu Mulher</span>
+                <span className="truncate">{nomeApp} Mulher</span>
               </button>
             </div>
           </div>

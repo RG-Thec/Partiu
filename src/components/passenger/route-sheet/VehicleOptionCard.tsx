@@ -42,15 +42,11 @@ export const VehicleOptionCard = memo(function VehicleOptionCard({
   }, [onSelect, category]);
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
+    <button
+      type="button"
+      aria-pressed={isSelected}
+      aria-label={`${title}, ${price}, tempo estimado ${etaMinutes} minutos`}
       onClick={handleClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          handleClick();
-        }
-      }}
       style={
         isSelected && corPrimaria
           ? {
@@ -61,7 +57,7 @@ export const VehicleOptionCard = memo(function VehicleOptionCard({
       }
       className={`relative w-full flex flex-row items-center justify-between p-2.5 sm:p-3 rounded-2xl border transition-all duration-150 cursor-pointer touch-manipulation text-left select-none ${
         isSelected
-          ? "border-2 shadow-sm font-bold bg-slate-50"
+          ? "border-2 shadow-sm font-bold bg-slate-50/90"
           : "border-slate-200/90 bg-white hover:bg-slate-50/80 hover:border-slate-300"
       }`}
     >
@@ -114,14 +110,9 @@ export const VehicleOptionCard = memo(function VehicleOptionCard({
         </div>
       </div>
 
-      {/* Lado Direito: Preço Final em Destaque e Original Riscado */}
+      {/* Lado Direito: Preço Final em Alto Contraste e Original Riscado */}
       <div className="flex flex-col items-end justify-center shrink-0 pl-2">
-        <span
-          style={isSelected && corPrimaria ? { color: corPrimaria } : undefined}
-          className={`font-black text-sm sm:text-base tracking-tight leading-none ${
-            isSelected ? "text-brand-primary-vibrant" : "text-slate-900"
-          }`}
-        >
+        <span className="font-black text-sm sm:text-base tracking-tight leading-none text-slate-950">
           {price}
         </span>
         {originalPrice && (
@@ -130,6 +121,6 @@ export const VehicleOptionCard = memo(function VehicleOptionCard({
           </span>
         )}
       </div>
-    </div>
+    </button>
   );
 });

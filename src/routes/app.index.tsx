@@ -24,7 +24,6 @@ import { PassengerConfirmDestinationPin } from "@/components/passenger/Passenger
 import { PassengerFindingDriverRadar } from "@/components/passenger/PassengerFindingDriverRadar";
 import { FloatingRidePill } from "@/components/passenger/FloatingRidePill";
 import { PassengerTimeoutBottomSheet } from "@/components/passenger/PassengerTimeoutBottomSheet";
-import { PassengerActiveRideCard } from "@/components/passenger/PassengerActiveRideCard";
 import { DriverEnRouteSheet } from "@/components/passenger/DriverEnRouteSheet";
 import { NetworkReconnectionBanner } from "@/components/passenger/NetworkReconnectionBanner";
 import { GpsPermissionModal } from "@/components/passenger/GpsPermissionModal";
@@ -617,11 +616,11 @@ function PartiuPassengerHomeContent() {
               <button
                 type="button"
                 onClick={handleRecenterMap}
-                className="w-10 h-10 rounded-full bg-white/95 backdrop-blur-md text-slate-800 shadow-md border border-slate-200/80 flex items-center justify-center hover:bg-white hover:scale-105 active:scale-95 transition-all cursor-pointer ring-2 ring-black/5"
+                className="w-12 h-12 rounded-full bg-white/95 backdrop-blur-md text-slate-800 shadow-md border border-slate-200/80 flex items-center justify-center hover:bg-white hover:scale-105 active:scale-95 transition-all cursor-pointer ring-2 ring-black/5"
                 title="Centralizar no meu local exato"
                 aria-label="Centralizar no meu local exato"
               >
-                <LocateFixed className="w-5 h-5 text-blue-600" />
+                <LocateFixed className="w-5.5 h-5.5 text-blue-600" />
               </button>
             </div>
 
@@ -647,11 +646,13 @@ function PartiuPassengerHomeContent() {
                     hapticFeedback.light();
                     setBannerDismissed(true);
                   }}
-                  className="absolute top-1.5 right-4 z-20 w-5 h-5 rounded-full bg-slate-900/60 text-white flex items-center justify-center text-[10px] hover:bg-slate-900 shadow-xs cursor-pointer backdrop-blur-xs opacity-75 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-1.5 right-3 z-20 min-h-[40px] min-w-[40px] p-2 flex items-center justify-center cursor-pointer text-slate-400 hover:text-white"
                   title="Ocultar promoções e liberar visão do mapa"
                   aria-label="Ocultar promoções"
                 >
-                  ✕
+                  <span className="w-6 h-6 rounded-full bg-slate-900/75 text-white flex items-center justify-center text-xs shadow-xs backdrop-blur-xs">
+                    ✕
+                  </span>
                 </button>
                 <PromoCarousel
                   banners={activeBanners}
