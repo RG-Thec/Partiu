@@ -96,13 +96,22 @@ export function SuperAdminDashboardExecutive() {
   // Filtragem Multi-Tenant / Escopo de Corridas
   const ridesFiltradas = useMemo(() => {
     if (isSuperAdmin && isNacional) return ridesBanco;
+    const targetTenantId = (contaAtiva?.tenantId || pracaAtiva?.id || "").toLowerCase();
     const cidNorm = (contaAtiva?.tenantNome || pracaAtiva?.nome || "").toLowerCase();
-    const tenNorm = (contaAtiva?.tenantId || pracaAtiva?.id || "").toLowerCase();
+
     return ridesBanco.filter((r) => {
-      const orig = (r.pickup_address || "").toLowerCase();
-      const dest = (r.destination_address || "").toLowerCase();
       const ten = (r.tenant_id || "").toLowerCase();
-      return orig.includes(cidNorm) || dest.includes(cidNorm) || ten.includes(tenNorm);
+      // 1. Prioridade absoluta: isolamento estrito por tenant_id
+      if (targetTenantId && ten) {
+        return ten === targetTenantId;
+      }
+      // 2. Fallback de contingência apenas para registros legados sem tenant_id
+      if (cidNorm) {
+        const orig = (r.pickup_address || "").toLowerCase();
+        const dest = (r.destination_address || "").toLowerCase();
+        return orig.includes(cidNorm) || dest.includes(cidNorm);
+      }
+      return false;
     });
   }, [ridesBanco, isSuperAdmin, isNacional, contaAtiva, pracaAtiva]);
 

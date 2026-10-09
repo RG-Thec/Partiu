@@ -24,8 +24,10 @@ import {
   X,
   FileText,
   AlertCircle,
+  Copy,
 } from "lucide-react";
 import { useAlertasSOS, useAtualizarStatusSOS, useAlertasSOSRealtime } from "@/lib/partiu-db";
+import { useAdminCity } from "@/contexts/AdminCityContext";
 
 export const Route = createFileRoute("/app/admin/sos")({
   head: () => ({
@@ -66,6 +68,7 @@ export interface ItemAlertaPanico {
 }
 
 export function CentralPanicoSOSAdminPage() {
+  const { pracaAtiva } = useAdminCity();
   useAlertasSOSRealtime();
   const { data: alertasBanco = [], refetch } = useAlertasSOS();
   const atualizarStatus = useAtualizarStatusSOS();
@@ -87,76 +90,77 @@ export function CentralPanicoSOSAdminPage() {
     setTimeout(() => setToastFeedback(null), 3500);
   };
 
-  // Normalização e Fallback dos Alertas Urbanos
+  const defaultCoords =
+    pracaAtiva?.lat && pracaAtiva?.lng && pracaAtiva.id !== "todas"
+      ? `${pracaAtiva.lat}, ${pracaAtiva.lng}`
+      : "";
+
+  // Normalização e Fallback Seguro dos Alertas Urbanos (Sem amarras regionais)
   const alertas: ItemAlertaPanico[] = useMemo(() => {
-    if (alertasBanco.length > 0) {
-      return alertasBanco.map((a: any) => {
-        const isPassageiro = a.tipo?.includes("passageiro") || !a.van_placa;
-        return {
-          id: a.id,
-          tipo: (a.tipo as any) || "seguranca",
-          tipoSolicitante: isPassageiro ? "passageiro" : "motorista",
-          solicitanteNome: a.solicitante_nome || "Usuário não identificado",
-          solicitanteTelefone: a.solicitante_telefone || "(22) 99999-0000",
-          contraparteNome: isPassageiro ? a.motorista_nome : "Passageiro em corrida",
-          veiculoModelo: a.veiculo_modelo || "Veículo em rota",
-          veiculoPlaca: a.van_placa || a.veiculo_placa || "Placa oculta",
-          veiculoCor: a.veiculo_cor || "Prata",
-          endereco: a.rodovia || a.endereco || "Perímetro Urbano",
-          coordenadas: a.coordenadas || "-21.2054, -41.8892",
-          status: (a.status as StatusAtendimentoSOS) || "ativo",
-          dataHora: new Date(a.created_at).toLocaleTimeString("pt-BR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          timestamp: new Date(a.created_at).getTime(),
-          descricao: a.descricao || "Botão de Pânico acionado durante a corrida.",
-          corridaId: a.corrida_id || undefined,
-        };
-      });
+    if (!alertasBanco || alertasBanco.length === 0) {
+      return [];
     }
 
-    // Mock realista de contingência para pronta demonstração
-    return [
-      {
-        id: "sos-101",
-        tipo: "panico_passageiro",
-        tipoSolicitante: "passageiro",
-        solicitanteNome: "Juliana Mendes da Silva",
-        solicitanteTelefone: "(11) 99876-5432",
-        contraparteNome: "Motorista Parceiro",
-        veiculoModelo: "Chevrolet Onix Plus",
-        veiculoPlaca: "MOB-8K99",
-        veiculoCor: "Prata",
-        endereco: "Av. Central, 410 - Centro",
-        coordenadas: "-21.2054, -41.8892",
-        status: "ativo",
-        dataHora: "Agora há pouco",
-        timestamp: Date.now() - 1000 * 60 * 3,
-        descricao: "Passageira acionou botão de pânico via app móvel: motorista desviou bruscamente da rota prevista.",
-        corridaId: "partiu-101",
-      },
-      {
-        id: "sos-102",
-        tipo: "panico_motorista",
-        tipoSolicitante: "motorista",
-        solicitanteNome: "Marcos Vinicius Ribeiro",
-        solicitanteTelefone: "(11) 99765-4321",
-        contraparteNome: "Passageiro solicitou corrida no ponto",
-        veiculoModelo: "Fiat Cronos",
-        veiculoPlaca: "RIO-4F12",
-        veiculoCor: "Branco",
-        endereco: "Av. Principal, 492 - Bairro Jardim",
-        coordenadas: "-21.2180, -41.8750",
-        status: "em_atendimento",
-        dataHora: "Há 18 min",
-        timestamp: Date.now() - 1000 * 60 * 18,
-        descricao: "Condutor relatou ameaça verbal e tentativa de coerção por passageiro suspeito.",
-        corridaId: "partiu-089",
-        protocoloPolicia: "190-BR-98214",
-      },
-    ];
-  }, [alertasBanco]);
+    return alertasBanco.map((a: any) => {
+      const isPassageiro = a.tipo?.includes("passageiro") || !a.van_placa;
+      const coordsReais =
+        a.coordenadas ||
+        (a.latitude && a.longitude ? `${a.latitude}, ${a.longitude}` : defaultCoords || "0.0, 0.0");
+
+      return {
+        id: a.id,
+        tipo: (a.tipo as any) || "seguranca",
+        tipoSolicitante: isPassageiro ? "passageiro" : "motorista",
+        solicitanteNome: a.solicitante_nome || "Usuário não identificado",
+        solicitanteTelefone: a.solicitante_telefone || "Não informado",
+        contraparteNome: isPassageiro ? a.motorista_nome : "Passageiro em corrida",
+        veiculoModelo: a.veiculo_modelo || "Veículo em rota",
+        veiculoPlaca: a.van_placa || a.veiculo_placa || "Placa oculta",
+        veiculoCor: a.veiculo_cor || "Prata",
+        endereco: a.rodovia || a.endereco || "Perímetro Urbano",
+        coordenadas: coordsReais,
+        status: (a.status as StatusAtendimentoSOS) || "ativo",
+        dataHora: new Date(a.created_at).toLocaleTimeString("pt-BR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        timestamp: new Date(a.created_at).getTime(),
+        descricao: a.descricao || "Botão de Pânico acionado durante a corrida.",
+        corridaId: a.corrida_id || undefined,
+        protocoloPolicia: a.protocolo_policia || a.protocoloPolicia || undefined,
+      };
+    });
+  }, [alertasBanco, defaultCoords]);
+
+  const handleCopiarDossie190 = (item: ItemAlertaPanico) => {
+    const [lat, lng] = item.coordenadas.split(",").map((s) => s.trim());
+    const mapsLink = lat && lng ? `https://www.google.com/maps?q=${lat},${lng}` : "Indisponível";
+    const textoDossie = [
+      `🚨 DOSSIÊ DE EMERGÊNCIA — SOS PARTIU MOBILIDADE 🚨`,
+      `--------------------------------------------------`,
+      `Protocolo: #${item.id}`,
+      `Horário do Chamado: ${item.dataHora}`,
+      `Vítima/Solicitante: ${item.solicitanteNome} (${item.tipoSolicitante.toUpperCase()})`,
+      `Telefone de Contato: ${item.solicitanteTelefone}`,
+      item.contraparteNome ? `Outra Parte Envolvida: ${item.contraparteNome}` : null,
+      `Veículo: ${item.veiculoModelo} ${item.veiculoCor ? `(${item.veiculoCor})` : ""}`,
+      `Placa: ${item.veiculoPlaca}`,
+      `Endereço Aproximado: ${item.endereco}`,
+      `Coordenadas GPS: ${item.coordenadas}`,
+      `Link Maps: ${mapsLink}`,
+      item.descricao ? `Relato do Incidente: "${item.descricao}"` : null,
+      item.protocoloPolicia ? `Protocolo PM já registrado: ${item.protocoloPolicia}` : null,
+      `--------------------------------------------------`,
+      `Central de Operações PARTIU • Plantão Tático 24h`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(textoDossie);
+      showToast(`Dossiê de emergência #${item.id} copiado para a área de transferência.`);
+    }
+  };
 
   const handleAlterarStatus = async (id: string, novoStatus: StatusAtendimentoSOS) => {
     try {
@@ -598,6 +602,16 @@ export function CentralPanicoSOSAdminPage() {
                       <ShieldAlert className="w-3.5 h-3.5" />
                       Acionar 190 (Polícia Militar)
                     </a>
+
+                    <button
+                      type="button"
+                      onClick={() => handleCopiarDossie190(item)}
+                      className="min-h-10 px-3.5 rounded-xl bg-card border border-border text-foreground hover:bg-accent text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                      title="Copiar Dossiê Completo para envio ao COPOM ou autoridade policial"
+                    >
+                      <Copy className="w-3.5 h-3.5 text-primary" />
+                      Copiar Dossiê 190
+                    </button>
                   </div>
 
                   <div className="flex items-center gap-2">
