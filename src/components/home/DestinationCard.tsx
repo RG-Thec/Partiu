@@ -1,5 +1,5 @@
 import React, { memo, useCallback } from "react";
-import { Search, Clock, ChevronRight, Home, Briefcase, MapPin, Star } from "lucide-react";
+import { Search, Clock, ChevronRight, MapPin } from "lucide-react";
 import type { RecentAddressItem } from "./home-mock-data";
 import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
@@ -9,7 +9,9 @@ export interface DestinationCardProps {
   onEditPickupClick?: () => void;
   onAdjustPinOnMap?: () => void;
   onSelectAddress?: (item: RecentAddressItem) => void;
+  /** @deprecated Atalhos diretos de Casa/Trabalho foram removidos da home para priorizar os banners */
   onSelectCasa?: () => void;
+  /** @deprecated Atalhos diretos de Casa/Trabalho foram removidos da home para priorizar os banners */
   onSelectTrabalho?: () => void;
   recentAddresses?: RecentAddressItem[];
   currentAddress?: string;
@@ -56,11 +58,10 @@ const RecentAddressItemRow = memo(function RecentAddressItemRow({
  * 📍 DESTINATION CARD — HOME DO PASSAGEIRO
  * ==============================================================================
  * Alinhado com 100% de fidelidade estética e estrutural com Lealt Recomendado/2.png:
- * 1. Superfície com cantos superiores arredondados rounded-t-[32px]
+ * 1. Superfície com cantos superiores arredondados rounded-3xl
  * 2. Drag Handle central cinza
- * 3. Pílula de Busca "Para onde vamos?" com botão circular azul (#0088FF)
- * 4. Cabeçalho "Destinos recentes" com link "Ver todos >"
- * 5. Lista de endereços recentes com ícone de relógio e chevron
+ * 3. Pílula de Busca "Para onde vamos hoje?" com botão circular de destaque
+ * 4. Histórico recente ultra compacto
  * ==============================================================================
  */
 export const DestinationCard = memo(function DestinationCard({
@@ -68,8 +69,6 @@ export const DestinationCard = memo(function DestinationCard({
   onEditPickupClick,
   onAdjustPinOnMap,
   onSelectAddress,
-  onSelectCasa,
-  onSelectTrabalho,
   recentAddresses = [],
   currentAddress,
 }: DestinationCardProps) {
@@ -83,21 +82,9 @@ export const DestinationCard = memo(function DestinationCard({
     onSearchClick();
   }, [onSearchClick]);
 
-  const handleCasaClick = useCallback(() => {
-    hapticFeedback.light();
-    if (onSelectCasa) onSelectCasa();
-    else onSearchClick();
-  }, [onSelectCasa, onSearchClick]);
-
-  const handleTrabalhoClick = useCallback(() => {
-    hapticFeedback.light();
-    if (onSelectTrabalho) onSelectTrabalho();
-    else onSearchClick();
-  }, [onSelectTrabalho, onSearchClick]);
-
   return (
     <div className="w-full z-20 pointer-events-auto select-none">
-      <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-200/80 p-3 sm:p-4 space-y-2.5 sm:space-y-3 text-left">
+      <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-slate-200/80 p-3 sm:p-4 space-y-2 sm:space-y-2.5 text-left">
         {/* DRAG HANDLE BAR CENTRAL */}
         <div className="w-10 h-1 rounded-full bg-slate-300 mx-auto" />
 
@@ -176,36 +163,6 @@ export const DestinationCard = memo(function DestinationCard({
               </span>
             </button>
           )}
-        </div>
-
-        {/* 2. PÍLULAS RÁPIDAS HORIZONTAIS MINIMALISTAS (TOUCH TARGET >= 44PX) */}
-        <div className="flex items-center gap-2 pt-0.5 overflow-x-auto no-scrollbar">
-          <button
-            type="button"
-            onClick={handleCasaClick}
-            className="flex items-center gap-2 px-3 py-2.5 min-h-[44px] rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 text-left transition active:scale-[0.98] cursor-pointer shrink-0 shadow-2xs touch-manipulation"
-          >
-            <Home className="w-4 h-4 text-emerald-600 stroke-[2.2]" />
-            <span className="text-xs font-bold text-slate-800">Casa</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleTrabalhoClick}
-            className="flex items-center gap-2 px-3 py-2.5 min-h-[44px] rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 text-left transition active:scale-[0.98] cursor-pointer shrink-0 shadow-2xs touch-manipulation"
-          >
-            <Briefcase className="w-4 h-4 text-blue-600 stroke-[2.2]" />
-            <span className="text-xs font-bold text-slate-800">Trabalho</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleSearch}
-            className="flex items-center gap-2 px-3 py-2.5 min-h-[44px] rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 text-left transition active:scale-[0.98] cursor-pointer shrink-0 shadow-2xs touch-manipulation"
-          >
-            <Star className="w-4 h-4 text-amber-500 fill-amber-400 stroke-[2.2]" />
-            <span className="text-xs font-bold text-slate-800">Favoritos</span>
-          </button>
         </div>
 
         {/* 3. HISTÓRICO RECENTE ULTRA COMPACTO */}

@@ -99,7 +99,7 @@ export const PromoCarousel = memo(function PromoCarousel({
             key={item.id}
             data-banner-slide={idx}
             onClick={() => onBannerClick?.(item)}
-            className={`min-w-[260px] sm:min-w-[320px] max-w-[360px] snap-center rounded-2xl p-2.5 sm:p-3.5 bg-gradient-to-r ${item.corGradiente} shadow-md flex flex-col justify-between cursor-pointer active:scale-[0.99] transition-transform select-none relative overflow-hidden h-[98px] sm:h-[124px] min-h-[96px] shrink-0 text-white`}
+            className={`min-w-[280px] sm:min-w-[340px] max-w-[400px] snap-center rounded-2xl p-3.5 sm:p-4 bg-gradient-to-r ${item.corGradiente} shadow-md flex flex-col justify-between cursor-pointer active:scale-[0.99] transition-transform select-none relative overflow-hidden h-[152px] sm:h-[172px] min-h-[148px] shrink-0 text-white`}
           >
             {/* Imagem de Fundo Administrativa com object-cover (resizeMode="cover") */}
             {item.imagemUrl && (
@@ -113,42 +113,42 @@ export const PromoCarousel = memo(function PromoCarousel({
             )}
 
             {/* Scrim Gradiente Suave: Garante contraste e legibilidade impecável sobre qualquer arte */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/25 z-[1] pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30 z-[1] pointer-events-none" />
 
             {/* Elemento Decorativo no Fundo */}
-            <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none z-[1]" />
+            <div className="absolute -right-4 -bottom-4 w-28 h-28 bg-white/10 rounded-full blur-xl pointer-events-none z-[1]" />
 
             {/* Topo do Banner: Badge Promocional + Cupom */}
-            <div className="flex items-center justify-between gap-1.5 relative z-10">
-              <span className={`text-[8.5px] sm:text-[9.5px] font-semibold uppercase px-2 py-0.5 rounded-full ${item.tagCor} shadow-xs tracking-wider flex items-center gap-1`}>
-                <Sparkles className="w-2.5 h-2.5" />
+            <div className="flex items-center justify-between gap-2 relative z-10">
+              <span className={`text-[9.5px] sm:text-[10.5px] font-bold uppercase px-2.5 py-0.5 rounded-full ${item.tagCor} shadow-xs tracking-wider flex items-center gap-1.5`}>
+                <Sparkles className="w-3 h-3" />
                 {item.badge}
               </span>
 
               {item.cupom && (
-                <div className="flex items-center gap-1 text-[8.5px] sm:text-[9.5px] font-mono font-medium bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded-md text-primary-500 border border-primary-600/30 shadow-xs">
-                  <Tag className="w-2.5 h-2.5 text-primary-600" />
+                <div className="flex items-center gap-1.5 text-[9.5px] sm:text-[10.5px] font-mono font-semibold bg-black/50 backdrop-blur-md px-2 py-0.5 rounded-lg text-primary-400 border border-primary-500/30 shadow-xs">
+                  <Tag className="w-3 h-3 text-primary-400" />
                   <span>{item.cupom}</span>
                 </div>
               )}
             </div>
 
-            {/* Conteúdo Central: Título e Subtítulo */}
-            <div className="relative z-10 my-0.5 sm:my-auto py-0.5">
-              <h3 className="text-xs sm:text-[14px] font-bold tracking-tight leading-tight drop-shadow-sm line-clamp-1">
+            {/* Conteúdo Central: Título e Subtítulo com destaque e espaçamento imersivo */}
+            <div className="relative z-10 my-auto py-1">
+              <h3 className="text-sm sm:text-base font-extrabold tracking-tight leading-snug drop-shadow-sm line-clamp-2">
                 {item.titulo}
               </h3>
-              <p className="text-[10px] sm:text-xs text-white/95 font-medium leading-tight mt-0.5 drop-shadow-xs line-clamp-1">
+              <p className="text-xs sm:text-[13px] text-white/90 font-medium leading-relaxed mt-1 drop-shadow-xs line-clamp-2">
                 {item.subtitulo}
               </p>
             </div>
 
             {/* Rodapé do Banner: Chamada para ação com seta */}
-            <div className="flex items-center justify-between text-[9px] sm:text-[10.5px] font-bold text-white/95 relative z-10 pt-1 border-t border-white/20">
+            <div className="flex items-center justify-between text-[10.5px] sm:text-xs font-bold text-white/95 relative z-10 pt-2 border-t border-white/20">
               <span className="opacity-90">Aproveite agora</span>
-              <div className="flex items-center gap-1 bg-white/20 hover:bg-white/30 backdrop-blur-xs px-2 py-0.5 rounded-md transition-colors">
+              <div className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-xs px-2.5 py-1 rounded-lg transition-colors">
                 <span>Usar benefício</span>
-                <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                <ArrowRight className="w-3 h-3" />
               </div>
             </div>
           </div>
@@ -157,18 +157,18 @@ export const PromoCarousel = memo(function PromoCarousel({
 
       {/* Paginação em Pontos (Dots) Flutuando Dentro/Sobre o Banner (Zero Espaço Residual Abaixo) */}
       {banners.length > 1 && (
-        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1.5 z-20 pointer-events-none bg-black/30 backdrop-blur-xs px-2 py-0.5 rounded-full">
+        <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1.5 z-20 pointer-events-none bg-black/40 backdrop-blur-xs px-2.5 py-0.5 rounded-full">
           {banners.map((_, index) => (
             <span
               key={index}
               className={`block rounded-full transition-all duration-300 ${
-                activeSlide === index ? "w-3.5 h-1 shadow-xs" : "w-1 h-1"
+                activeSlide === index ? "w-4 h-1.5 shadow-xs" : "w-1.5 h-1.5 opacity-60"
               }`}
               style={{
                 backgroundColor:
                   activeSlide === index
                     ? (corPrimaria || "#FF6B00")
-                    : "rgba(255, 255, 255, 0.6)",
+                    : "rgba(255, 255, 255, 0.8)",
               }}
             />
           ))}

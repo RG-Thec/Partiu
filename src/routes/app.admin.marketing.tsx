@@ -180,8 +180,8 @@ export function MarketingAdminPage() {
    * VALIDAÇÃO OBRIGATÓRIA DE BANNERS ANTES DO UPLOAD
    * Verifica:
    * 1. Peso: máximo 1 MB (ideal < 500 KB)
-   * 2. Largura mínima: 640 px
-   * 3. Proporção (Aspect Ratio): entre 1.6 e 2.2 (padrão mobile 16:9 a 2:1)
+   * 2. Largura mínima: 600 px
+   * 3. Proporção (Aspect Ratio): entre 1.20 e 2.40 (padrão mobile 16:9 a 4:3, recomendado 800x450px a 800x600px)
    */
   function handleArquivoSelecionado(e: React.ChangeEvent<HTMLInputElement>) {
     setValidacaoErro(null);
@@ -224,9 +224,9 @@ export function MarketingAdminPage() {
         return;
       }
 
-      // Validação de Aspect Ratio (16:9 ~ 1.77 ou 2:1 ~ 2.0 com tolerância)
-      if (ratio < 1.4 || ratio > 2.4) {
-        setValidacaoErro(`Proporção inadequada (${ratio.toFixed(2)}:1). Para mobile, o padrão obrigatório é 16:9 (1.78) ou 2:1 (2.00). Evite banners verticais ou quadrados.`);
+      // Validação de Aspect Ratio (16:9 ~ 1.78 a 4:3 ~ 1.33 com tolerância 1.20 a 2.40)
+      if (ratio < 1.2 || ratio > 2.4) {
+        setValidacaoErro(`Proporção inadequada (${ratio.toFixed(2)}:1). Para o carrossel mobile, use proporções entre 4:3 (1.33) e 16:9 (1.78), recomendado 800x450px a 800x600px. Evite imagens verticais ou panorâmicas extremas.`);
         return;
       }
 
@@ -1158,7 +1158,7 @@ export function MarketingAdminPage() {
               {/* Upload com Validação Obrigatória */}
               <div>
                 <label className="block font-bold text-slate-700 mb-1">
-                  Arquivo de Imagem (Obrigatório: Padrão Mobile 16:9, máx 1 MB):
+                  Arquivo de Imagem (Recomendado: 800x450px a 800x600px - Proporção 16:9 a 4:3, máx 1 MB):
                 </label>
                 <input
                   type="file"
@@ -1181,7 +1181,7 @@ export function MarketingAdminPage() {
                 <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-start gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                   <div className="text-xs">
-                    <p className="font-bold">Imagem aprovada para dispositivos móveis!</p>
+                    <p className="font-bold">Imagem aprovada para o carrossel mobile!</p>
                     <p className="text-[11px] text-emerald-800">
                       Dimensões: {validacaoInfo.largura}x{validacaoInfo.altura}px | Aspect: {validacaoInfo.aspectRatio}:1 | Peso: {validacaoInfo.tamanhoKb} KB
                     </p>
@@ -1190,8 +1190,11 @@ export function MarketingAdminPage() {
               )}
 
               {previewBannerUrl && !validacaoErro && (
-                <div className="aspect-video w-full rounded-2xl overflow-hidden border border-slate-200">
+                <div className="w-full h-44 sm:h-52 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 relative shadow-inner">
                   <img src={previewBannerUrl} alt="Preview" className="w-full h-full object-cover" />
+                  <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] text-white font-mono">
+                    Pré-visualização Mobile (cover)
+                  </div>
                 </div>
               )}
 
