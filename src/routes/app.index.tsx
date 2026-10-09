@@ -35,6 +35,8 @@ import { useScrollInterpolation } from "@/hooks/useScrollInterpolation";
 import { NotificationCenterModal } from "@/components/notifications/NotificationCenterModal";
 import { pushNotificationService } from "@/services/PushNotificationService";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
+import { AddressSetupModal } from "@/components/passenger/AddressSetupModal";
+import { addressService } from "@/services/AddressService";
 import { userService } from "@/services/UserService";
 import { getHistoricoViagens } from "@/lib/partiu-engine";
 
@@ -237,6 +239,39 @@ function PartiuPassengerHomeContent() {
     setModalPushAberto(false);
     setPushStatus(getStatusPermissaoPush());
   }, []);
+  const [modalSetupCasaAberto, setModalSetupCasaAberto] = useState(false);
+  const [modalSetupTrabalhoAberto, setModalSetupTrabalhoAberto] = useState(false);
+
+  const handleSelectCasa = useCallback(() => {
+    const casa = addressService.getCasa(passengerId);
+    if (casa && casa.endereco && casa.coords) {
+      registrarDestinoFrequente(casa.label || "Casa", casa.endereco, casa.coords, passengerId);
+      selectDestination(casa.endereco, casa.coords);
+    } else {
+      setModalSetupCasaAberto(true);
+    }
+  }, [passengerId, selectDestination]);
+
+  const handleSelectTrabalho = useCallback(() => {
+    const trab = addressService.getTrabalho(passengerId);
+    if (trab && trab.endereco && trab.coords) {
+      registrarDestinoFrequente(trab.label || "Trabalho", trab.endereco, trab.coords, passengerId);
+      selectDestination(trab.endereco, trab.coords);
+    } else {
+      setModalSetupTrabalhoAberto(true);
+    }
+  }, [passengerId, selectDestination]);
+
+  const handleAddressConfigured = useCallback(
+    (item: { label: string; endereco: string; coords: [number, number] }) => {
+      setModalSetupCasaAberto(false);
+      setModalSetupTrabalhoAberto(false);
+      registrarDestinoFrequente(item.label, item.endereco, item.coords, passengerId);
+      selectDestination(item.endereco, item.coords);
+    },
+    [passengerId, selectDestination]
+  );
+
   const handleSelectAddressItem = useCallback(
     (item: RecentAddressItem) => {
       registrarDestinoFrequente(item.titulo, item.endereco, item.coords, passengerId);
@@ -644,6 +679,8 @@ function PartiuPassengerHomeContent() {
                 onAdjustPinOnMap={selectDestinationOnMap}
                 onEditPickupClick={startEditingPickup}
                 onSelectAddress={handleSelectAddressItem}
+                onSelectCasa={handleSelectCasa}
+                onSelectTrabalho={handleSelectTrabalho}
                 currentAddress={origem}
                 userAccuracyMeters={userAccuracyMeters}
                 recentAddresses={recentAddresses}
@@ -757,6 +794,19 @@ function PartiuPassengerHomeContent() {
         <Suspense fallback={null}>
           <AppDrawer open={drawerAberto} onClose={handleCloseDrawer} />
         </Suspense>
+      )}
+
+      {/* MODAL CONFIGURAÇÃO RÁPIDA CASA / TRABALHO */}
+      {(modalSetupCasaAberto || modalSetupTrabalhoAberto) && (
+        <AddressSetupModal
+          isOpen={modalSetupCasaAberto || modalSetupTrabalhoAberto}
+          tipo={modalSetupCasaAberto ? "casa" : "trabalho"}
+          onClose={() => {
+            setModalSetupCasaAberto(false);
+            setModalSetupTrabalhoAberto(false);
+          }}
+          onAddressSelected={handleAddressConfigured}
+        />
       )}
     </div>
   );

@@ -35,7 +35,7 @@ export function PaymentSelectionModal({
       showDragHandle
       showCloseButton
     >
-      <div className="space-y-3 pb-3">
+      <div className="space-y-2.5 pb-2">
         {/* OPÇÃO 1: PIX DIRETO */}
         <NativeSurface
           elevation={1}
@@ -48,34 +48,35 @@ export function PaymentSelectionModal({
           style={
             formaPagamento === "pix" && !pagamentoNaMaquininha
               ? {
-                  border: `1.5px solid ${primaryColor}`,
+                  border: `2px solid ${primaryColor}`,
                   backgroundColor: `${primaryColor}12`,
                 }
               : undefined
           }
-          className="flex items-center justify-between"
+          className="min-h-[56px] py-3 px-3.5 rounded-2xl flex items-center justify-between border border-slate-200/80 touch-manipulation transition"
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{
-                backgroundColor: `${primaryColor}18`,
-                color: primaryColor,
-              }}
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-emerald-50 text-emerald-600 border border-emerald-200"
             >
               <QrCode className="w-5 h-5 stroke-[2.2]" />
             </div>
-            <div>
-              <span className="text-xs font-black block" style={{ color: textColor }}>
-                PIX Direto
-              </span>
-              <span className="text-xs font-medium block" style={{ color: secondaryTextColor }}>
-                Transferência instantânea para o motorista
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-extrabold block truncate" style={{ color: textColor }}>
+                  PIX Direto
+                </span>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full shrink-0">
+                  Instantâneo
+                </span>
+              </div>
+              <span className="text-xs font-medium block truncate mt-0.5" style={{ color: secondaryTextColor }}>
+                Transferência para chave do condutor
               </span>
             </div>
           </div>
           {formaPagamento === "pix" && !pagamentoNaMaquininha && (
-            <Check className="w-5 h-5 stroke-[3]" style={{ color: primaryColor }} />
+            <Check className="w-5 h-5 stroke-[3] shrink-0 ml-2" style={{ color: primaryColor }} />
           )}
         </NativeSurface>
 
@@ -91,28 +92,33 @@ export function PaymentSelectionModal({
           style={
             formaPagamento === "dinheiro" && !pagamentoNaMaquininha
               ? {
-                  border: `1.5px solid ${primaryColor}`,
+                  border: `2px solid ${primaryColor}`,
                   backgroundColor: `${primaryColor}12`,
                 }
               : undefined
           }
-          className="flex items-center justify-between"
+          className="min-h-[56px] py-3 px-3.5 rounded-2xl flex items-center justify-between border border-slate-200/80 touch-manipulation transition"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center shrink-0">
               <Banknote className="w-5 h-5 stroke-[2.2]" />
             </div>
-            <div>
-              <span className="text-xs font-black block" style={{ color: textColor }}>
-                Dinheiro
-              </span>
-              <span className="text-xs font-medium block" style={{ color: secondaryTextColor }}>
-                Pagar em espécie diretamente ao condutor
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-extrabold block truncate" style={{ color: textColor }}>
+                  Dinheiro
+                </span>
+                <span className="text-[10px] font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full shrink-0">
+                  Presencial
+                </span>
+              </div>
+              <span className="text-xs font-medium block truncate mt-0.5" style={{ color: secondaryTextColor }}>
+                Pagar em notas ou moedas no desembarque
               </span>
             </div>
           </div>
           {formaPagamento === "dinheiro" && !pagamentoNaMaquininha && (
-            <Check className="w-5 h-5 stroke-[3]" style={{ color: primaryColor }} />
+            <Check className="w-5 h-5 stroke-[3] shrink-0 ml-2" style={{ color: primaryColor }} />
           )}
         </NativeSurface>
 
@@ -128,34 +134,35 @@ export function PaymentSelectionModal({
           style={
             pagamentoNaMaquininha
               ? {
-                  border: `1.5px solid ${primaryColor}`,
+                  border: `2px solid ${primaryColor}`,
                   backgroundColor: `${primaryColor}12`,
                 }
               : undefined
           }
-          className="flex items-center justify-between"
+          className="min-h-[56px] py-3 px-3.5 rounded-2xl flex items-center justify-between border border-slate-200/80 touch-manipulation transition"
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{
-                backgroundColor: `${primaryColor}18`,
-                color: primaryColor,
-              }}
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-blue-50 text-blue-600 border border-blue-200"
             >
               <CreditCard className="w-5 h-5 stroke-[2.2]" />
             </div>
-            <div>
-              <span className="text-xs font-black block" style={{ color: textColor }}>
-                Maquininha do Motorista
-              </span>
-              <span className="text-xs font-medium block" style={{ color: secondaryTextColor }}>
-                Cartão de débito ou crédito no veículo
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm font-extrabold block truncate" style={{ color: textColor }}>
+                  Maquininha do Motorista
+                </span>
+                <span className="text-[10px] font-bold text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded-full shrink-0">
+                  Débito / Crédito
+                </span>
+              </div>
+              <span className="text-xs font-medium block truncate mt-0.5" style={{ color: secondaryTextColor }}>
+                Cartão presencial na maquininha do carro
               </span>
             </div>
           </div>
           {pagamentoNaMaquininha && (
-            <Check className="w-5 h-5 stroke-[3]" style={{ color: primaryColor }} />
+            <Check className="w-5 h-5 stroke-[3] shrink-0 ml-2" style={{ color: primaryColor }} />
           )}
         </NativeSurface>
       </div>

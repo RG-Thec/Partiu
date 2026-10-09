@@ -7,6 +7,7 @@ import {
   Star,
   ShieldCheck,
   Car,
+  Bike,
 } from "lucide-react";
 import { usePassengerRide } from "@/contexts/PassengerRideContext";
 import { useDriverSearchRealtime } from "@/hooks/useDriverSearchRealtime";
@@ -356,7 +357,7 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
           {currentWave >= 2 && (
             <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200/80 space-y-2 text-left">
               <div className="flex items-center justify-between text-xs font-bold text-amber-950">
-                <span>⚡ Busca prolongada. Deseja acelerar o aceite?</span>
+                <span>Busca prolongada. Deseja acelerar o aceite?</span>
               </div>
               <div className="flex items-center gap-2">
                 {!incentivoAdicionado ? (
@@ -366,7 +367,7 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
                       hapticFeedback.medium();
                       setIncentivoAdicionado(true);
                     }}
-                    className="min-h-[44px] flex-1 py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1"
+                    className="min-h-[44px] flex-1 py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1 touch-manipulation"
                   >
                     <span>+ R$ 3 de incentivo</span>
                   </button>
@@ -383,9 +384,10 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
                       selectVehicle("MOTO");
                       confirmPickupAndFindDriver();
                     }}
-                    className="min-h-[44px] flex-1 py-2 px-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-xs transition active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1"
+                    className="min-h-[44px] flex-1 py-2 px-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-xs transition active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-1.5 touch-manipulation"
                   >
-                    <span>🏍️ Tentar Moto</span>
+                    <Bike className="w-4 h-4 text-slate-700 stroke-[2.2]" />
+                    <span>Tentar Moto</span>
                   </button>
                 )}
               </div>
@@ -396,7 +398,7 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
           <button
             type="button"
             onClick={requestCancel}
-            className="w-full min-h-[44px] h-11 sm:h-12 rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-[0.99] transition-all cursor-pointer shadow-2xs border border-slate-200"
+            className="w-full min-h-[44px] h-11 sm:h-12 rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-[0.99] transition-all cursor-pointer shadow-2xs border border-slate-200 touch-manipulation"
             aria-label="Cancelar busca de motorista"
           >
             <X className="w-4 h-4 stroke-[2.2] text-slate-600" />
@@ -451,19 +453,19 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
                   style={{
                     backgroundColor: colors.primary,
                     color: colors.surface,
-                    borderRadius: "12px",
+                    borderRadius: "16px",
                   }}
-                  className="w-full h-9.5 sm:h-10 font-semibold text-xs sm:text-[13px] transition active:scale-[0.98] cursor-pointer hover:brightness-105 shadow-2xs flex items-center justify-center"
+                  className="w-full h-12 font-bold text-sm transition active:scale-[0.98] cursor-pointer hover:brightness-105 shadow-2xs flex items-center justify-center touch-manipulation"
                 >
-                  Continuar Aguardando
+                  Continuar aguardando
                 </button>
 
                 <button
                   type="button"
                   onClick={() => confirmCancel()}
-                  className="w-full h-9 sm:h-9.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-700 font-medium text-xs transition active:scale-[0.98] cursor-pointer border border-slate-200 hover:border-rose-300 flex items-center justify-center"
+                  className="w-full h-11 rounded-2xl bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-700 font-bold text-xs sm:text-sm transition active:scale-[0.98] cursor-pointer border border-slate-200 hover:border-rose-300 flex items-center justify-center touch-manipulation"
                 >
-                  Sim, Cancelar Corrida
+                  Sim, cancelar corrida
                 </button>
               </div>
             </div>
