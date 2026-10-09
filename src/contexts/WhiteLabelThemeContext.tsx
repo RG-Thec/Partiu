@@ -86,12 +86,12 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
  */
 export function computeButtonShadow(hexColor: string, opacity = 0.39): string {
   if (!hexColor || !hexColor.startsWith("#")) {
-    return "0 4px 14px 0 rgba(2, 132, 199, 0.39)";
+    return "0 4px 14px 0 rgba(255, 140, 0, 0.39)";
   }
   const clean = hexColor.replace("#", "");
-  let r = 2;
-  let g = 132;
-  let b = 199;
+  let r = 255;
+  let g = 140;
+  let b = 0;
   if (clean.length === 6) {
     r = parseInt(clean.slice(0, 2), 16);
     g = parseInt(clean.slice(2, 4), 16);
@@ -110,6 +110,10 @@ export interface WhiteLabelContextValue {
   updateBrandingColors: (partial: Partial<AppConfigBrandingColors>) => void;
   updateFeatures: (partial: Partial<AppConfigFeatures>) => void;
   resetTheme: () => void;
+  theme: "light";
+  resolvedTheme: "light";
+  setTheme: (theme: string) => void;
+  toggleTheme: () => void;
 }
 
 export const WhiteLabelContext = createContext<WhiteLabelContextValue | null>(null);
@@ -118,7 +122,7 @@ const STORAGE_KEY_WL_CONFIG = "partiu_wl_app_config_v2";
 
 /**
  * Injeta variáveis CSS no elemento raiz (:root) garantindo que nenhum
- * estilo fique hardcoded no código.
+ * estilo fique hardcoded no código e travando o modo claro absoluto.
  */
 function applyCssVariablesToRoot(config: AppConfig) {
   if (typeof document === "undefined") return;
@@ -140,6 +144,16 @@ function applyCssVariablesToRoot(config: AppConfig) {
   const fontFamily = ui?.fontFamily || DEFAULT_APP_CONFIG.branding.ui.fontFamily;
 
   const root = document.documentElement;
+
+  // Bloqueio absoluto do modo claro: erradica classes .dark e força color-scheme: light
+  root.classList.remove("dark");
+  root.classList.add("light");
+  root.style.colorScheme = "light";
+  if (document.body) {
+    document.body.classList.remove("dark");
+    document.body.classList.add("light");
+    document.body.style.colorScheme = "light";
+  }
 
   // 2. Variáveis Scoped White Label específicas do contexto
   root.style.setProperty("--wl-primary", primary);
@@ -229,6 +243,21 @@ export function WhiteLabelThemeProvider({
     }
     return DEFAULT_APP_CONFIG;
   });
+
+  // Garante que o documento esteja travado em light mode em 100% dos acessos
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      const root = document.documentElement;
+      root.classList.remove("dark");
+      root.classList.add("light");
+      root.style.colorScheme = "light";
+      if (document.body) {
+        document.body.classList.remove("dark");
+        document.body.classList.add("light");
+        document.body.style.colorScheme = "light";
+      }
+    }
+  }, []);
 
   // Sincroniza dinamicamente se o BrandingProvider global emitir novos valores do Supabase
   useEffect(() => {
@@ -387,6 +416,24 @@ export function WhiteLabelThemeProvider({
     } catch {}
   }, []);
 
+  const noopSetTheme = useCallback((_theme: string) => {
+    // Bloqueio absoluto do Dark Mode: nenhuma mutação externa é permitida
+    if (typeof document !== "undefined") {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.add("light");
+      document.documentElement.style.colorScheme = "light";
+    }
+  }, []);
+
+  const noopToggleTheme = useCallback(() => {
+    // Bloqueio absoluto do Dark Mode: alternância desativada
+    if (typeof document !== "undefined") {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.add("light");
+      document.documentElement.style.colorScheme = "light";
+    }
+  }, []);
+
   const value = useMemo<WhiteLabelContextValue>(
     () => ({
       appConfig,
@@ -394,8 +441,12 @@ export function WhiteLabelThemeProvider({
       updateBrandingColors,
       updateFeatures,
       resetTheme,
+      theme: "light",
+      resolvedTheme: "light",
+      setTheme: noopSetTheme,
+      toggleTheme: noopToggleTheme,
     }),
-    [appConfig, updateAppConfig, updateBrandingColors, updateFeatures, resetTheme]
+    [appConfig, updateAppConfig, updateBrandingColors, updateFeatures, resetTheme, noopSetTheme, noopToggleTheme]
   );
 
   return <WhiteLabelContext.Provider value={value}>{children}</WhiteLabelContext.Provider>;
@@ -415,6 +466,10 @@ export function useTheme(): WhiteLabelContextValue {
       updateBrandingColors: () => {},
       updateFeatures: () => {},
       resetTheme: () => {},
+      theme: "light",
+      resolvedTheme: "light",
+      setTheme: () => {},
+      toggleTheme: () => {},
     };
   }
   return ctx;

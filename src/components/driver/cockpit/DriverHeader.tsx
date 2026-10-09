@@ -1,5 +1,5 @@
 import React from "react";
-import { Menu, Volume2, VolumeX, Bell, Clock, Moon, Sun } from "lucide-react";
+import { Menu, Volume2, VolumeX, Bell, Clock } from "lucide-react";
 import { PartiuLogo } from "@/components/common/PartiuLogo";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
@@ -53,11 +53,7 @@ export function DriverHeader({
     <header className="absolute top-0 inset-x-0 z-30 pt-[max(0.6rem,calc(env(safe-area-inset-top,0px)+6px))] px-3.5 pb-1.5 pointer-events-none">
       <div
         style={{ borderRadius: ui.borderRadius }}
-        className={`flex items-center justify-between pointer-events-auto px-3 py-2 min-h-[52px] border backdrop-blur-xl transition-colors duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.06)] max-w-lg mx-auto ${
-          isNightMode
-            ? "bg-slate-900/95 border-slate-800 text-slate-100"
-            : "bg-card/95 border-border text-foreground"
-        }`}
+        className="flex items-center justify-between pointer-events-auto px-3 py-2 min-h-[52px] border backdrop-blur-xl transition-colors duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.06)] max-w-lg mx-auto bg-card/95 border-border text-foreground"
       >
         {/* ================================================================= */}
         {/* ESQUERDA: AVATAR DO MOTORISTA (PERFIL) + BOTÃO DE MENU LATERAL     */}
@@ -163,24 +159,6 @@ export function DriverHeader({
           >
             {somAtivo ? <Volume2 className="w-4 h-4 stroke-[2]" /> : <VolumeX className="w-4 h-4 stroke-[2]" />}
           </button>
-
-          {/* Alternância de Modo Noturno / Diurno */}
-          {onToggleNightMode && (
-            <button
-              type="button"
-              onClick={onToggleNightMode}
-              style={{ borderRadius: ui.borderRadius }}
-              className="w-10 h-10 min-h-[40px] min-w-[40px] flex items-center justify-center text-foreground hover:bg-muted active:scale-90 transition cursor-pointer"
-              title={isNightMode ? "Modo Noturno ativo (clique para alternar)" : "Modo Diurno ativo (clique para alternar)"}
-              aria-label="Alternar modo noturno veicular"
-            >
-              {isNightMode ? (
-                <Moon className="w-4 h-4 text-amber-400 fill-amber-400 stroke-[2]" />
-              ) : (
-                <Sun className="w-4 h-4 stroke-[2]" />
-              )}
-            </button>
-          )}
 
           {/* Sino de Notificações com Badge Numérico */}
           <button

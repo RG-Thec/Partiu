@@ -162,8 +162,8 @@ export const PartiuDriverNavigationMap = memo(function PartiuDriverNavigationMap
           : MapboxConfig.DEFAULT_CENTER;
 
       const initialStyle = hasValidToken
-        ? (modoNoturno ? "mapbox://styles/mapbox/dark-v11" : mapboxService.getStyleUrl("streets"))
-        : (modoNoturno ? mapboxService.getCartoDarkStyle() : mapboxService.getCartoPositronStyle());
+        ? mapboxService.getStyleUrl("streets")
+        : mapboxService.getCartoPositronStyle();
 
       const map = new mapboxgl.Map({
         container: mapContainer.current,
@@ -544,7 +544,7 @@ export const PartiuDriverNavigationMap = memo(function PartiuDriverNavigationMap
   }
 
   return (
-    <div className={`relative w-full h-full overflow-hidden ${modoNoturno ? "bg-slate-950" : "bg-[#f1f3f4]"} ${className}`}>
+    <div className={`relative w-full h-full overflow-hidden bg-[#f1f3f4] ${className}`}>
       <div ref={mapContainer} className="w-full h-full" />
 
 

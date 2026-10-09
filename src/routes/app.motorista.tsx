@@ -20,8 +20,6 @@ import {
   Compass,
   Navigation,
   MapPin,
-  Moon,
-  Sun,
   Package,
   Box,
   AlertTriangle,
@@ -1547,7 +1545,7 @@ export function PartiuDriverCockpit() {
         estado={estadoCockpit}
         origemEndereco={ofertaAtiva?.origem}
         destinoEndereco={emDevolucao ? ofertaAtiva?.origem : ofertaAtiva?.destino}
-        modoNoturno={isNightMode}
+        modoNoturno={false}
         className="absolute inset-0 z-0"
       />
 
@@ -1558,8 +1556,6 @@ export function PartiuDriverCockpit() {
         isOnline={isOnline}
         somAtivo={somAtivo}
         onToggleSom={toggleSom}
-        isNightMode={isNightMode}
-        onToggleNightMode={toggleNightMode}
         onOpenMenu={() => setModalMenuMotoristaAberto(true)}
         onOpenProfile={() => setModalPerfilMotorista(true)}
         driverAvatarUrl={perfilMotorista.fotoUrl}
@@ -2228,7 +2224,7 @@ export function PartiuDriverCockpit() {
               window.dispatchEvent(new CustomEvent("partiu:recenter-map"));
             }}
             style={{
-              backgroundColor: isNightMode ? "#0F172A" : colors.surface || "#FFFFFF",
+              backgroundColor: colors.surface || "#FFFFFF",
               color: colors.primary,
             }}
             className={`fixed left-4 z-35 w-12 h-12 min-w-[48px] min-h-[48px] rounded-full shadow-lg border border-border flex items-center justify-center hover:brightness-105 active:scale-95 transition-all duration-300 pointer-events-auto cursor-pointer backdrop-blur-md ${
@@ -2266,7 +2262,7 @@ export function PartiuDriverCockpit() {
               type="button"
               onClick={() => setModalSosAberto(true)}
               style={{
-                backgroundColor: isNightMode ? "#0F172A" : colors.surface || "#FFFFFF",
+                backgroundColor: colors.surface || "#FFFFFF",
               }}
               aria-label="Botão de Emergência e SOS Policial 190"
               className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-full text-rose-600 flex flex-col items-center justify-center shadow-lg border-2 border-rose-600 active:scale-95 hover:bg-rose-500/10 transition-all cursor-pointer animate-pulse backdrop-blur-md"

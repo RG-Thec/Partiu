@@ -104,7 +104,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content",
       },
-      { name: "theme-color", content: "#0088FF" },
+      { name: "color-scheme", content: "light" },
+      { name: "theme-color", content: "#FF6B00" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { title: "PARTIU - Para onde você for, Partiu! Mobilidade & Entregas" },
@@ -152,11 +153,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className="light" style={{ colorScheme: "light" }}>
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className="light" style={{ colorScheme: "light" }}>
         {children}
         <Scripts />
       </body>

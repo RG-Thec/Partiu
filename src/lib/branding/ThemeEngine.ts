@@ -162,8 +162,19 @@ export function updateWebManifestAndMeta(branding: AppBrandingRecord): void {
     const appName = branding.app_name || "PARTIU";
     const shortName = branding.app_name?.split(" ")[0] || "PARTIU";
     const primaryColor = branding.primary_color || "#FF6B00";
-    const bgColor = branding.background_color || "#0b0f17";
+    const bgColor = branding.background_color || "#FAFAFA";
     const iconUrl = branding.favicon_url || branding.logo_url || "/favicon.ico";
+
+    // 0. Meta Color-Scheme (força renderização em Modo Claro Absoluto no navegador)
+    let metaColorScheme = document.querySelector<HTMLMetaElement>("meta[name='color-scheme']");
+    if (metaColorScheme) {
+      metaColorScheme.content = "light";
+    } else {
+      metaColorScheme = document.createElement("meta");
+      metaColorScheme.name = "color-scheme";
+      metaColorScheme.content = "light";
+      head.appendChild(metaColorScheme);
+    }
 
     // 1. Meta Theme-Color (barra de status Android / navegador mobile)
     let metaThemeColor = document.querySelector<HTMLMetaElement>("meta[name='theme-color']");
@@ -269,6 +280,16 @@ export class ThemeEngine {
       this.lastAppliedThemeSignature = signature;
 
       const root = document.documentElement;
+      // Bloqueio absoluto do modo claro: erradica classes .dark e força color-scheme: light
+      root.classList.remove("dark");
+      root.classList.add("light");
+      root.style.colorScheme = "light";
+      if (document.body) {
+        document.body.classList.remove("dark");
+        document.body.classList.add("light");
+        document.body.style.colorScheme = "light";
+      }
+
       const palette = generatePrimaryPalette(primaryColor);
 
       // 1. Variáveis Canônicas Requeridas pelo SaaS White Label
@@ -398,6 +419,16 @@ export class ThemeEngine {
 
     try {
       const root = document.documentElement;
+      // Bloqueio absoluto do modo claro: erradica classes .dark e força color-scheme: light
+      root.classList.remove("dark");
+      root.classList.add("light");
+      root.style.colorScheme = "light";
+      if (document.body) {
+        document.body.classList.remove("dark");
+        document.body.classList.add("light");
+        document.body.style.colorScheme = "light";
+      }
+
       const c = palette?.colors || DEFAULT_MONOCHROMATIC_PALETTE.colors;
       const primaryPalette = generatePrimaryPalette(c?.primary || "#FF6B00");
 

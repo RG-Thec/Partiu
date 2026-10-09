@@ -7,7 +7,6 @@ import {
   Wifi,
   Locate,
   Sun,
-  Moon,
   Globe,
   Gauge,
   Check,
@@ -72,7 +71,7 @@ export function MapboxLiveMap({
 }: MapboxLiveMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [estiloMapa, setEstiloMapa] = useState<"night" | "satellite" | "light">("night");
+  const [estiloMapa, setEstiloMapa] = useState<"light" | "satellite">("light");
   const markersMapRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
 
   // Mapear veículos reais vindos do Supabase com useMemo
@@ -114,7 +113,6 @@ export function MapboxLiveMap({
   }, [vansParaExibir, vanSelecionadaId]);
 
   const mapStyles = {
-    night: "mapbox://styles/mapbox/navigation-night-v1",
     satellite: "mapbox://styles/mapbox/satellite-streets-v12",
     light: "mapbox://styles/mapbox/navigation-day-v1",
   };
@@ -131,9 +129,7 @@ export function MapboxLiveMap({
     let mapInstance: mapboxgl.Map;
     try {
       const fallbackStyle =
-        estiloMapa === "night"
-          ? mapboxService.getCartoDarkStyle()
-          : estiloMapa === "satellite"
+        estiloMapa === "satellite"
           ? mapboxService.getEsriSatelliteStyle()
           : mapboxService.getCartoPositronStyle();
 
@@ -402,45 +398,32 @@ export function MapboxLiveMap({
       {/* Controles Flutuantes Direita: Temas & 3D (Touch target acessível >= 36px) */}
       {!falhaMapa && (
         <div className="absolute top-3 right-3 sm:top-3.5 sm:right-3.5 z-20 flex flex-col gap-2 items-center pointer-events-auto">
-          <div className="flex flex-col gap-1.5 rounded-2xl bg-slate-950/90 backdrop-blur-md p-1.5 border border-white/20 shadow-xl">
-            <button
-              type="button"
-              onClick={() => setEstiloMapa("night")}
-              className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl transition-all ${
-                estiloMapa === "night"
-                  ? "bg-emerald-600 text-white shadow-xs scale-105"
-                  : "text-slate-400 hover:text-white"
-              }`}
-              title="Noturno VIP"
-              aria-label="Mapa Noturno"
-            >
-              <Moon className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setEstiloMapa("satellite")}
-              className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl transition-all ${
-                estiloMapa === "satellite"
-                  ? "bg-emerald-600 text-white shadow-xs scale-105"
-                  : "text-slate-400 hover:text-white"
-              }`}
-              title="Satélite HD"
-              aria-label="Mapa Satélite"
-            >
-              <Globe className="h-4 w-4" />
-            </button>
+          <div className="flex flex-col gap-1.5 rounded-2xl bg-white/95 backdrop-blur-md p-1.5 border border-slate-200 shadow-xl">
             <button
               type="button"
               onClick={() => setEstiloMapa("light")}
-              className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl transition-all ${
+              className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl transition-all cursor-pointer ${
                 estiloMapa === "light"
-                  ? "bg-emerald-600 text-white shadow-xs scale-105"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-primary text-primary-foreground shadow-xs scale-105"
+                  : "text-slate-500 hover:text-slate-900"
               }`}
               title="Modo Claro"
               aria-label="Mapa Claro"
             >
               <Sun className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setEstiloMapa("satellite")}
+              className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl transition-all cursor-pointer ${
+                estiloMapa === "satellite"
+                  ? "bg-primary text-primary-foreground shadow-xs scale-105"
+                  : "text-slate-500 hover:text-slate-900"
+              }`}
+              title="Satélite HD"
+              aria-label="Mapa Satélite"
+            >
+              <Globe className="h-4 w-4" />
             </button>
           </div>
 

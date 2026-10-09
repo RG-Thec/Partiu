@@ -43,10 +43,10 @@ export const PartiuLogo = memo(function PartiuLogo({
 
   const targetHeight = heightMap[size] || 32;
 
-  // Resolução de cores dinâmicas da marca (Padrão Oficial: #0284C7 e #0369A1)
-  const symbolColor = primaryColor || "var(--brand-primary-vibrant, var(--color-primary, #0284C7))";
-  const textColor = secondaryColor || accentColor || "var(--brand-primary-accent, var(--color-secondary, #0369A1))";
-  const taglineColor = secondaryColor || accentColor || "var(--brand-primary-accent, var(--color-secondary, #0369A1))";
+  // Resolução de cores dinâmicas da marca (Padrão Oficial: #FF6B00 e #FFB800)
+  const symbolColor = primaryColor || "var(--brand-primary-vibrant, var(--color-primary, #FF6B00))";
+  const textColor = secondaryColor || accentColor || "var(--brand-primary-accent, var(--color-secondary, #FFB800))";
+  const taglineColor = secondaryColor || accentColor || "var(--brand-primary-accent, var(--color-secondary, #FFB800))";
 
   // Textos dinâmicos que seguem o Painel Administrativo
   const displayAppName = (appName || "PARTIU").trim();

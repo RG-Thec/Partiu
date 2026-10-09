@@ -54,6 +54,18 @@ function AppLayout() {
   useEffect(() => {
     initGlobalFontSize();
     registrarServiceWorker();
+
+    // Bloqueio absoluto do Dark Mode: erradica classes .dark e força color-scheme: light
+    if (typeof document !== "undefined") {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.add("light");
+      document.documentElement.style.colorScheme = "light";
+      if (document.body) {
+        document.body.classList.remove("dark");
+        document.body.classList.add("light");
+        document.body.style.colorScheme = "light";
+      }
+    }
   }, []);
   const href = useRouterState({ select: (s) => s.location.href });
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -68,7 +80,7 @@ function AppLayout() {
   }
 
   return (
-    <div className="h-[100dvh] max-h-[100dvh] bg-slate-100 dark:bg-slate-950 w-full flex flex-col relative overflow-hidden">
+    <div className="h-[100dvh] max-h-[100dvh] bg-slate-50 w-full flex flex-col relative overflow-hidden">
       <div className="w-full flex-1 min-h-0 flex flex-col">
         <Outlet />
       </div>
