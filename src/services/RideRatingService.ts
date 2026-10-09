@@ -101,6 +101,15 @@ export class RideRatingService {
     // Salva no store em memória
     this.localRatings.set(rating.id, rating);
 
+    // Recalcula imediatamente a média atualizada do usuário avaliado
+    let newAverage = rating.score;
+    try {
+      const summary = await this.getUserRatingSummary(rating.toUserId);
+      if (summary.totalRatings > 0) {
+        newAverage = summary.averageScore;
+      }
+    } catch {}
+
     if (isSupabaseConfigured() && supabase) {
       try {
         const { error } = await (supabase as any).from("ride_ratings").insert({
@@ -118,10 +127,43 @@ export class RideRatingService {
 
         if (error) {
           silentCatchWarn("RideRatingService.submitRating", error);
+        } else {
+          // Atualização de contingência direta na tabela correspondente
+          if (rating.role === "DRIVER_TO_PASSENGER") {
+            void (supabase as any)
+              .from("partiu_passageiros")
+              .update({ rating: newAverage, updated_at: now })
+              .or(`user_id.eq.${rating.toUserId},id.eq.${rating.toUserId}`);
+            void (supabase as any)
+              .from("profiles")
+              .update({ rating: newAverage, updated_at: now })
+              .eq("id", rating.toUserId);
+          } else if (rating.role === "PASSENGER_TO_DRIVER") {
+            void (supabase as any)
+              .from("partiu_motoristas")
+              .update({ rating: newAverage, updated_at: now })
+              .or(`user_id.eq.${rating.toUserId},id.eq.${rating.toUserId}`);
+            void (supabase as any)
+              .from("profiles")
+              .update({ rating: newAverage, updated_at: now })
+              .eq("id", rating.toUserId);
+          }
         }
       } catch (err) {
         silentCatchWarn("RideRatingService.submitRating", err);
       }
+    }
+
+    // Se o usuário avaliado for o usuário ativo localmente, atualiza cache e emite evento
+    if (typeof window !== "undefined") {
+      const currentUserId = localStorage.getItem("partiu_user_id") || localStorage.getItem("partiu_user_phone");
+      if (currentUserId && (currentUserId === rating.toUserId || rating.toUserId.includes(currentUserId))) {
+        try {
+          localStorage.setItem("partiu_user_rating", String(newAverage));
+        } catch {}
+      }
+      window.dispatchEvent(new CustomEvent("partiu:user-profile-updated", { detail: { rating: newAverage } }));
+      window.dispatchEvent(new CustomEvent("partiu:rating-submitted", { detail: rating }));
     }
 
     return rating;

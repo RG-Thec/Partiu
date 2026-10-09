@@ -20,6 +20,7 @@ import {
   QrCode,
   Car,
   Bike,
+  Loader2,
 } from "lucide-react";
 import QRCode from "qrcode";
 import { buildStandardEmvPix } from "@/services/payment/PaymentProviderAdapter";
@@ -33,6 +34,13 @@ import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
 import { RideCancellationModal } from "@/components/modals/RideCancellationModal";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { toast } from "sonner";
+import { userService } from "@/services/UserService";
+import {
+  rideRatingService,
+  TAGS_99_PASSENGER_TO_DRIVER_POSITIVE,
+  TAGS_99_PASSENGER_TO_DRIVER_IMPROVEMENT,
+} from "@/services/RideRatingService";
 
 // Lazy-loaded para otimização de bundle e TTI de 60fps
 const DriverProfileModal = lazy(() =>
@@ -114,9 +122,19 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Estados de avaliação pós-viagem (8.png)
+  // Estados de avaliação pós-viagem (8.png & Padrão 99)
   const [selectedRating, setSelectedRating] = useState<number>(5);
   const [selectedTip, setSelectedTip] = useState<number | null>(null);
+  const [selectedRatingTags, setSelectedRatingTags] = useState<string[]>([]);
+  const [ratingComment, setRatingComment] = useState<string>("");
+  const [isSubmittingRating, setIsSubmittingRating] = useState<boolean>(false);
+
+  // Chips dinâmicos com base na nota (Padrão 99: elogios >= 4, melhorias <= 3)
+  const availableRatingTags = useMemo(() => {
+    return selectedRating >= 4
+      ? TAGS_99_PASSENGER_TO_DRIVER_POSITIVE
+      : TAGS_99_PASSENGER_TO_DRIVER_IMPROVEMENT;
+  }, [selectedRating]);
 
   // Feedback tátil comemorativo de motorista confirmado na montagem
   useEffect(() => {
@@ -313,10 +331,38 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
     setTimeout(() => setCopiedPix(false), 3000);
   };
 
-  // Handler de conclusão da avaliação (8.png)
-  const handleConcluirAvaliacao = () => {
+  // Handler de conclusão da avaliação (8.png & Padrão 99)
+  const handleConcluirAvaliacao = async () => {
+    if (isSubmittingRating) return;
+    setIsSubmittingRating(true);
     hapticFeedback.success();
-    resetToIdle();
+
+    try {
+      const profile = await userService.getCurrentUserProfile().catch(() => null);
+      const passageiroId = profile?.id || (progressiveSession as any)?.passengerId || "pax_current";
+      const motoristaId = activeRide?.motorista?.id || (progressiveSession as any)?.driverId || "drv_default";
+
+      await rideRatingService.submitRating({
+        rideId: currentRideId,
+        fromUserId: passageiroId,
+        toUserId: String(motoristaId),
+        role: "PASSENGER_TO_DRIVER",
+        score: selectedRating,
+        tags: selectedRatingTags,
+        comment: ratingComment.trim() || undefined,
+        tenantId: (appConfig as any)?.tenantId || "default",
+      });
+
+      toast.success("Avaliação registrada!", {
+        description: `Obrigado por avaliar ${firstName}. Sua nota fortalece a segurança na comunidade PARTIU.`,
+      });
+    } catch (err) {
+      console.error("[DriverEnRouteSheet] Erro ao submeter avaliação:", err);
+      toast.info("Avaliação registrada localmente.");
+    } finally {
+      setIsSubmittingRating(false);
+      resetToIdle();
+    }
   };
 
   // Se o motorista cancelou a corrida, exibe card de recuperação rápida
@@ -513,10 +559,10 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
               </p>
             </div>
 
-            {/* Seletor de Avaliação 5 Estrelas (8.png) */}
+            {/* Seletor de Avaliação 5 Estrelas (8.png & Padrão 99) */}
             <div className="space-y-2 pt-1">
               <h3 className="text-base font-bold text-foreground">Como foi sua experiência?</h3>
-              <p className="text-xs text-muted-foreground">Sua avaliação ajuda a melhorar o nosso serviço.</p>
+              <p className="text-xs text-muted-foreground">Sua avaliação ajuda a manter a qualidade e segurança no PARTIU.</p>
               <div className="flex items-center justify-center gap-2 pt-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
@@ -537,6 +583,60 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                     />
                   </button>
                 ))}
+              </div>
+
+              {/* Tag de Feedback do Score */}
+              <div className="text-center pt-1">
+                <span className="text-xs font-bold text-foreground bg-muted px-3 py-1 rounded-full border border-border">
+                  {selectedRating === 5 && "⭐ Excelente experiência"}
+                  {selectedRating === 4 && "👍 Muito boa"}
+                  {selectedRating === 3 && "😐 Regular"}
+                  {selectedRating === 2 && "👎 Ruim"}
+                  {selectedRating === 1 && "⚠️ Insatisfatória"}
+                </span>
+              </div>
+
+              {/* Chips com Tags Qualitativas da 99 */}
+              <div className="pt-2 text-left">
+                <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2 text-center">
+                  {selectedRating >= 4 ? "O que você mais gostou?" : "O que pode melhorar?"}
+                </label>
+                <div className="flex flex-wrap gap-1.5 justify-center">
+                  {availableRatingTags.map((tag) => {
+                    const isSelected = selectedRatingTags.includes(tag);
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => {
+                          hapticFeedback.light();
+                          setSelectedRatingTags((prev) =>
+                            isSelected ? prev.filter((t) => t !== tag) : [...prev, tag]
+                          );
+                        }}
+                        className={`text-xs px-3 py-1.5 rounded-xl font-medium border transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-amber-400 text-slate-950 border-amber-400 shadow-xs font-bold scale-102"
+                            : "bg-muted text-foreground border-border hover:bg-muted/80"
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Comentário Opcional */}
+              <div className="pt-2 text-left">
+                <textarea
+                  value={ratingComment}
+                  onChange={(e) => setRatingComment(e.target.value)}
+                  rows={2}
+                  placeholder="Escreva um elogio ou observação sobre a corrida (opcional)..."
+                  maxLength={250}
+                  className="w-full px-3.5 py-2.5 bg-card border border-border rounded-2xl text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 transition resize-none shadow-xs"
+                />
               </div>
             </div>
 
@@ -578,11 +678,21 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
           <div className="pt-5 space-y-3">
             <button
               type="button"
+              disabled={isSubmittingRating}
               onClick={handleConcluirAvaliacao}
-              className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all touch-manipulation cursor-pointer hover:brightness-105"
+              className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all touch-manipulation cursor-pointer hover:brightness-105 disabled:opacity-50"
             >
-              <span>Concluir avaliação</span>
-              <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+              {isSubmittingRating ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-primary-foreground" />
+                  <span>Registrando avaliação...</span>
+                </>
+              ) : (
+                <>
+                  <span>Concluir avaliação</span>
+                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                </>
+              )}
             </button>
 
             <button

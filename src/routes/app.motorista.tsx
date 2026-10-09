@@ -120,6 +120,7 @@ import { NotificationCenterModal } from "@/components/notifications/Notification
 import { pushNotificationService } from "@/services/PushNotificationService";
 import { registrarETransmitirAlertaSOS } from "@/lib/partiu-realtime-service";
 import { RidePaymentSettlementModal } from "@/components/driver/RidePaymentSettlementModal";
+import { RideRatingModal } from "@/components/rating/RideRatingModal";
 import { DriverFinancialDashboardModal } from "@/components/driver/DriverFinancialDashboardModal";
 import { DriverSubscriptionScreen } from "@/components/driver/DriverSubscriptionScreen";
 import { driverFinancialService } from "@/services/driverFinancialService";
@@ -468,6 +469,9 @@ export function PartiuDriverCockpit() {
             veiculoModelo: data.vehicle_model || prev.veiculoModelo,
             veiculoPlaca: data.vehicle_plate || prev.veiculoPlaca,
             veiculoCor: data.vehicle_color || prev.veiculoCor,
+            avaliacao: Number((data as any)?.rating || prev.avaliacao || 5.0),
+            avaliacaoMedia: Number((data as any)?.rating || prev.avaliacaoMedia || 5.0),
+            rating: Number((data as any)?.rating || prev.rating || 5.0),
           }));
           if (data.approval_status) {
             setDriverApprovalStatus(data.approval_status);
@@ -475,6 +479,23 @@ export function PartiuDriverCockpit() {
         }
       });
   }, [effectiveDriverId]);
+
+  // Escuta recálculo dinâmico da reputação do motorista
+  useEffect(() => {
+    const handleRatingUpdate = (e: any) => {
+      const newRating = e.detail?.rating;
+      if (typeof newRating === "number") {
+        setPerfilMotorista((prev) => ({
+          ...prev,
+          avaliacao: newRating,
+          avaliacaoMedia: newRating,
+          rating: newRating,
+        }));
+      }
+    };
+    window.addEventListener("partiu:user-profile-updated", handleRatingUpdate);
+    return () => window.removeEventListener("partiu:user-profile-updated", handleRatingUpdate);
+  }, []);
   const [modalPerfilMotorista, setModalPerfilMotorista] = useState(false);
   const [modalMenuMotoristaAberto, setModalMenuMotoristaAberto] = useState(false);
   const [modalNotificacoesAberto, setModalNotificacoesAberto] = useState(false);
@@ -607,6 +628,13 @@ export function PartiuDriverCockpit() {
   const [modalTaximetro, setModalTaximetro] = useState(false);
   const [modalFinanceiroAberto, setModalFinanceiroAberto] = useState(false);
   const [modalAcertoCorridaAberto, setModalAcertoCorridaAberto] = useState(false);
+  const [modalAvaliarPassageiroAberto, setModalAvaliarPassageiroAberto] = useState(false);
+  const [ratingPassageiroData, setRatingPassageiroData] = useState<{
+    rideId: string;
+    passengerId: string;
+    passengerName: string;
+    passengerPhoto?: string;
+  } | null>(null);
   const [modalAssinaturaSaasAberto, setModalAssinaturaSaasAberto] = useState(false);
   const [destinoAtivo, setDestinoAtivo] = useState<DriverDestination | null>(() =>
     driverDestinationModeService.getActiveDestination(perfilMotorista.id)
@@ -1383,6 +1411,29 @@ export function PartiuDriverCockpit() {
     setPinDigitado("");
     setModalAcertoCorridaAberto(false);
 
+    // Abre avaliação mútua do passageiro pelo motorista (Padrão 99)
+    const passageiroIdAlvo =
+      (ofertaAtiva as any).passageiroId ||
+      (ofertaAtiva as any).passageiroTelefone ||
+      (ofertaAtiva as any).telefone ||
+      "pax_default";
+    const passageiroNomeAlvo = ofertaAtiva.passageiro || "Passageiro";
+    const passageiroFotoAlvo = (ofertaAtiva as any).passageiroFoto || undefined;
+    const corridaIdAlvo = ofertaAtiva.id || `ride-${Date.now()}`;
+
+    setRatingPassageiroData({
+      rideId: corridaIdAlvo,
+      passengerId: String(passageiroIdAlvo),
+      passengerName: passageiroNomeAlvo,
+      passengerPhoto: passageiroFotoAlvo,
+    });
+    setModalAvaliarPassageiroAberto(true);
+  }
+
+  function handleConcluirAvaliacaoPassageiro() {
+    setModalAvaliarPassageiroAberto(false);
+    setRatingPassageiroData(null);
+
     // Verificação de corrida consecutiva enfileirada (Back-to-Back Handover)
     const queued = driverConsecutiveRidesEngine.getQueuedRide(perfilMotorista.id);
     if (queued) {
@@ -1775,6 +1826,23 @@ export function PartiuDriverCockpit() {
           distanceKm={Number(ofertaAtiva.distanciaKm || 4.2)}
           onClose={() => setModalAcertoCorridaAberto(false)}
           onConfirmSettlement={handleConfirmarSettlementFinal}
+        />
+      )}
+
+      {/* =================================================================== */}
+      {/* MODAL: AVALIAÇÃO DO PASSAGEIRO PELO MOTORISTA (PADRÃO 99 / MUTUAL) */}
+      {/* =================================================================== */}
+      {modalAvaliarPassageiroAberto && ratingPassageiroData && (
+        <RideRatingModal
+          isOpen={modalAvaliarPassageiroAberto}
+          onClose={handleConcluirAvaliacaoPassageiro}
+          onSubmitted={handleConcluirAvaliacaoPassageiro}
+          rideId={ratingPassageiroData.rideId}
+          fromUserId={perfilMotorista.id}
+          toUserId={ratingPassageiroData.passengerId}
+          targetName={ratingPassageiroData.passengerName}
+          targetPhoto={ratingPassageiroData.passengerPhoto}
+          role="DRIVER_TO_PASSENGER"
         />
       )}
 

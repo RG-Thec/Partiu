@@ -90,6 +90,7 @@ export class UserService {
       : null;
     const localCpf = typeof window !== "undefined" ? localStorage.getItem("partiu_user_cpf") : null;
     const localEmail = typeof window !== "undefined" ? localStorage.getItem("partiu_user_email") : null;
+    const localRating = typeof window !== "undefined" ? localStorage.getItem("partiu_user_rating") : null;
 
     const sessionName = session?.name && session.name !== "Passageiro" ? session.name : null;
     const sessionEmail = session?.email || null;
@@ -110,7 +111,7 @@ export class UserService {
       phone: sessionPhone || localPhone || DEFAULT_PROFILE.phone,
       cpf: sessionCpf || localCpf || DEFAULT_PROFILE.cpf,
       avatarUrl: sessionAvatar || localAvatar || DEFAULT_PROFILE.avatarUrl,
-      rating: session?.rating || DEFAULT_PROFILE.rating,
+      rating: session?.rating || (localRating ? Number(localRating) : DEFAULT_PROFILE.rating),
       totalTrips: session?.totalTrips || DEFAULT_PROFILE.totalTrips,
       preferences: this.getStoredPreferences(),
     };
