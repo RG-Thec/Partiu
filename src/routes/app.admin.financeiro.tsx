@@ -275,7 +275,7 @@ export function PainelFinanceiroUnificadoPage() {
             <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60">
               D+0 DIRETO
             </span>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#0088FF] border border-blue-200/50">
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200/50 dark:border-blue-800">
               0% COMISSÃO
             </span>
           </h1>
@@ -290,7 +290,7 @@ export function PainelFinanceiroUnificadoPage() {
             onClick={() => alert("Relatório contábil gerado! O arquivo CSV do livro-razão está pronto para download.")}
             className="flex h-10 items-center gap-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 px-4 text-xs font-black shadow-xs transition-all cursor-pointer"
           >
-            <Download className="h-3.5 w-3.5 text-[#0088FF]" />
+            <Download className="h-3.5 w-3.5 text-primary" />
             <span>Exportar Livro-Razão</span>
           </button>
         </div>
@@ -307,7 +307,7 @@ export function PainelFinanceiroUnificadoPage() {
               : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <TrendingUp className="h-4 w-4 text-[#0088FF]" />
+          <TrendingUp className="h-4 w-4 text-primary" />
           <span>Visão Consolidada</span>
         </button>
 
@@ -320,7 +320,7 @@ export function PainelFinanceiroUnificadoPage() {
               : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <Layers className="h-4 w-4 text-[#0088FF]" />
+          <Layers className="h-4 w-4 text-primary" />
           <span>Monetização &amp; Planos SaaS</span>
         </button>
 
@@ -333,7 +333,7 @@ export function PainelFinanceiroUnificadoPage() {
               : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <DollarSign className="h-4 w-4 text-[#0088FF]" />
+          <DollarSign className="h-4 w-4 text-primary" />
           <span>Gestão Tarifária</span>
         </button>
 
@@ -346,7 +346,7 @@ export function PainelFinanceiroUnificadoPage() {
               : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
-          <Receipt className="h-4 w-4 text-[#0088FF]" />
+          <Receipt className="h-4 w-4 text-primary" />
           <span>Extrato de Assinaturas</span>
           <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] text-emerald-800 font-bold">
             D+0
@@ -401,7 +401,7 @@ export function PainelFinanceiroUnificadoPage() {
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Economia dos Condutores</span>
               <div className="pt-2">
-                <p className="text-xl sm:text-2xl font-black text-[#0088FF] tracking-tight">
+                <p className="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
                   R$ {(receitaHoje * 0.25).toFixed(2).replace(".", ",")}
                 </p>
                 <span className="text-[11px] text-slate-500 font-bold mt-1 block truncate">
@@ -427,7 +427,7 @@ export function PainelFinanceiroUnificadoPage() {
           {/* Destaque FinOps & Auditoria */}
           <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
-              <div className="h-11 w-11 rounded-xl bg-blue-50 text-[#0088FF] flex items-center justify-center font-black shrink-0 border border-blue-200/50">
+              <div className="h-11 w-11 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center font-black shrink-0 border border-blue-200/50 dark:border-blue-800">
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div>
@@ -466,7 +466,7 @@ export function PainelFinanceiroUnificadoPage() {
               disabled={salvandoMonetizacao}
               className="flex h-11 items-center justify-center gap-2 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white px-5 text-xs font-black shadow-xs transition-all cursor-pointer shrink-0"
             >
-              <Save className="h-4 w-4 text-[#0088FF]" />
+              <Save className="h-4 w-4 text-primary" />
               <span>{salvandoMonetizacao ? "Salvando..." : "Salvar Configurações de Monetização"}</span>
             </button>
           </div>
@@ -911,7 +911,7 @@ export function PainelFinanceiroUnificadoPage() {
               disabled={salvandoTarifas}
               className="flex h-11 items-center gap-2 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white px-5 text-xs font-black shadow-xs transition-all cursor-pointer"
             >
-              <Save className="h-4 w-4 text-[#0088FF]" />
+              <Save className="h-4 w-4 text-primary" />
               <span>{salvandoTarifas ? "Salvando..." : "Salvar Tarifas"}</span>
             </button>
           </div>

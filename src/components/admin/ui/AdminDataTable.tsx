@@ -9,6 +9,7 @@ export interface AdminColumn<T> {
   render?: (row: T, index: number) => React.ReactNode;
   align?: "left" | "center" | "right";
   width?: string;
+  sticky?: "left" | "right";
 }
 
 export interface AdminDataTableProps<T> {
@@ -76,15 +77,25 @@ export function AdminDataTable<T>({
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-800/40 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              {columns.map((col) => (
-                <th
-                  key={col.key}
-                  style={{ width: col.width }}
-                  className={`py-3 px-4 font-bold ${alignStyles[col.align || "left"]}`}
-                >
-                  {col.header}
-                </th>
-              ))}
+              {columns.map((col) => {
+                const isStickyRight = col.sticky === "right" || col.key === "acoes";
+                const isStickyLeft = col.sticky === "left";
+                const stickyThClass = isStickyRight
+                  ? "sticky right-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.08)] dark:shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.35)]"
+                  : isStickyLeft
+                  ? "sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-[6px_0_10px_-4px_rgba(0,0,0,0.08)]"
+                  : "";
+
+                return (
+                  <th
+                    key={col.key}
+                    style={{ width: col.width }}
+                    className={`py-3 px-4 font-bold ${alignStyles[col.align || "left"]} ${stickyThClass}`}
+                  >
+                    {col.header}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs sm:text-sm">
@@ -92,24 +103,34 @@ export function AdminDataTable<T>({
               <tr
                 key={keyExtractor(row, idx)}
                 onClick={() => onRowClick?.(row)}
-                className={`transition-colors ${
+                className={`group transition-colors ${
                   onRowClick
                     ? "cursor-pointer hover:bg-slate-50/80 dark:hover:bg-slate-800/50"
                     : "hover:bg-slate-50/40 dark:hover:bg-slate-800/30"
                 }`}
               >
-                {columns.map((col) => (
-                  <td
-                    key={col.key}
-                    className={`py-3.5 px-4 text-slate-700 dark:text-slate-300 ${
-                      alignStyles[col.align || "left"]
-                    }`}
-                  >
-                    {col.render
-                      ? col.render(row, idx)
-                      : (row as Record<string, any>)[col.key]}
-                  </td>
-                ))}
+                {columns.map((col) => {
+                  const isStickyRight = col.sticky === "right" || col.key === "acoes";
+                  const isStickyLeft = col.sticky === "left";
+                  const stickyTdClass = isStickyRight
+                    ? "sticky right-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.08)] dark:shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.35)]"
+                    : isStickyLeft
+                    ? "sticky left-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 shadow-[6px_0_10px_-4px_rgba(0,0,0,0.08)]"
+                    : "";
+
+                  return (
+                    <td
+                      key={col.key}
+                      className={`py-3.5 px-4 text-slate-700 dark:text-slate-300 ${
+                        alignStyles[col.align || "left"]
+                      } ${stickyTdClass}`}
+                    >
+                      {col.render
+                        ? col.render(row, idx)
+                        : (row as Record<string, any>)[col.key]}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>

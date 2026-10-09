@@ -84,6 +84,7 @@ function WhiteLabelStudioContent() {
     applyPreset,
     exportThemeJson,
     resetToDefaults,
+    corPrimaria,
   } = useBrandTheme();
 
   const {
@@ -121,24 +122,36 @@ function WhiteLabelStudioContent() {
     preset: p,
   }));
 
+  const primaryColor = corPrimaria || "#0088FF";
+
   return (
-    <div className="w-full min-h-screen bg-[#F8FAFC] text-slate-900 font-sans pb-24">
-      {/* 1. TOP BAR DA PLATAFORMA WHITE LABEL (LIGHT THEME) */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+    <div className="w-full min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans pb-24">
+      {/* 1. TOP BAR DA PLATAFORMA WHITE LABEL (LIGHT/DARK THEME) */}
+      <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-3 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#0088FF] text-white flex items-center justify-center shadow-2xs">
+          <div
+            className="w-8 h-8 rounded-xl text-white flex items-center justify-center shadow-2xs font-black"
+            style={{ backgroundColor: primaryColor }}
+          >
             <Sparkles className="w-4 h-4 stroke-[2.5]" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <h1 className="text-sm sm:text-base font-bold tracking-tight text-[#003366]">
+              <h1 className="text-sm sm:text-base font-bold tracking-tight text-slate-900 dark:text-white">
                 PARTIU White Label Studio OS
               </h1>
-              <span className="text-[9px] font-semibold uppercase tracking-wider bg-blue-50 text-[#0088FF] border border-blue-200 px-1.5 py-0.2 rounded-full">
+              <span
+                className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded-full border"
+                style={{
+                  color: primaryColor,
+                  borderColor: `${primaryColor}40`,
+                  backgroundColor: `${primaryColor}10`,
+                }}
+              >
                 {usuarioOwner ? "Enterprise v1.0 (Owner)" : `Regional (${role})`}
               </span>
             </div>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
               Personalização visual, multi-negócio e governança de franquias em tempo real.
             </p>
           </div>
@@ -146,24 +159,29 @@ function WhiteLabelStudioContent() {
 
         {/* CONTROLES DE TOPO: TENANT, PRESETS E EXPORT/IMPORT */}
         <div className="flex flex-wrap items-center gap-2.5">
+          {/* Indicador de Sincronização em Tempo Real */}
+          <span className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-semibold border border-slate-200 dark:border-slate-700">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Sincronização em Tempo Real
+          </span>
+
           {/* Seletor de Franquia / Tenant */}
-          <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs shadow-xs">
-            <Building2 className="w-3.5 h-3.5 text-[#0088FF]" />
-            <span className="text-slate-500">Franquia:</span>
+          <div className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs shadow-xs">
+            <Building2 className="w-3.5 h-3.5" style={{ color: primaryColor }} />
+            <span className="text-slate-500 dark:text-slate-400">Franquia:</span>
             {usuarioOwner ? (
               <select
                 value={activeTenant?.tenantId}
                 onChange={(e) => switchTenant(e.target.value)}
-                className="bg-transparent font-semibold text-slate-800 focus:outline-hidden cursor-pointer"
+                className="bg-transparent font-semibold text-slate-800 dark:text-slate-200 focus:outline-hidden cursor-pointer"
               >
                 {allTenants.map((t) => (
-                  <option key={t.tenantId} value={t.tenantId} className="bg-white text-slate-800">
+                  <option key={t.tenantId} value={t.tenantId} className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200">
                     {t.cidadeNome} ({t.uf}) — {t.nomeOperacao}
                   </option>
                 ))}
               </select>
             ) : (
-              <span className="font-semibold text-slate-800">
+              <span className="font-semibold text-slate-800 dark:text-slate-200">
                 {activeTenant?.cidadeNome} ({activeTenant?.uf}) — {activeTenant?.nomeOperacao}
               </span>
             )}
@@ -174,9 +192,9 @@ function WhiteLabelStudioContent() {
             <button
               type="button"
               onClick={() => setModalClonarAberto(true)}
-              className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer active:scale-95"
+              className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer active:scale-95"
             >
-              <Copy className="w-3.5 h-3.5 text-[#0088FF]" />
+              <Copy className="w-3.5 h-3.5" style={{ color: primaryColor }} />
               <span>Clonar Cidade</span>
             </button>
           )}
@@ -194,7 +212,7 @@ function WhiteLabelStudioContent() {
               a.click();
               URL.revokeObjectURL(url);
             }}
-            className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer"
+            className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-2.5 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer"
             title="Exportar Configuração em JSON"
           >
             <Download className="w-3.5 h-3.5 text-slate-500" />
@@ -208,7 +226,7 @@ function WhiteLabelStudioContent() {
               onClick={() => {
                 setModalImportarAberto(true);
               }}
-              className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer"
+              className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-2.5 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer"
               title="Importar Configuração em JSON"
             >
               <Upload className="w-3.5 h-3.5 text-slate-500" />
@@ -226,7 +244,7 @@ function WhiteLabelStudioContent() {
                   triggerSaveFeedback();
                 }
               }}
-              className="p-1.5 bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 rounded-xl transition cursor-pointer"
+              className="p-1.5 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950/60 text-slate-500 hover:text-rose-600 rounded-xl transition cursor-pointer"
               title="Restaurar Padrão de Fábrica"
             >
               <RotateCcw className="w-4 h-4" />
@@ -235,7 +253,7 @@ function WhiteLabelStudioContent() {
 
           {/* Feedback de Salvo */}
           {salvoFeedback && (
-            <span className="flex items-center gap-1 text-emerald-600 font-bold text-xs bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200">
+            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold text-xs bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-xl border border-emerald-200 dark:border-emerald-800 animate-in fade-in">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Salvo</span>
             </span>
@@ -245,10 +263,11 @@ function WhiteLabelStudioContent() {
           <button
             type="button"
             onClick={() => setPreviewAberto(!previewAberto)}
+            style={previewAberto ? { backgroundColor: primaryColor } : undefined}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
               previewAberto
-                ? "bg-[#0088FF] text-white shadow-xs"
-                : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                ? "text-white shadow-xs"
+                : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200"
             }`}
           >
             <Smartphone className="w-3.5 h-3.5" />
@@ -300,14 +319,14 @@ function WhiteLabelStudioContent() {
         {/* COLUNA ESQUERDA: NAVEGAÇÃO POR ABAS + FORMULÁRIOS DO STUDIO */}
         <div className={`w-full ${previewAberto ? "lg:w-7/12 xl:w-2/3" : "w-full"} space-y-6`}>
           {/* NAVEGAÇÃO POR ABAS */}
-          <div className="flex items-center gap-1.5 p-1.5 bg-slate-100 border border-slate-200 rounded-2xl overflow-x-auto">
+          <div className="flex items-center gap-1.5 p-1.5 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-x-auto">
             <button
               type="button"
               onClick={() => setActiveTab("brand")}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
                 activeTab === "brand"
-                  ? "bg-[#003366] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
               }`}
             >
               <Sparkles className="w-4 h-4" />
@@ -319,8 +338,8 @@ function WhiteLabelStudioContent() {
               onClick={() => setActiveTab("design")}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
                 activeTab === "design"
-                  ? "bg-[#003366] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
               }`}
             >
               <Palette className="w-4 h-4" />
@@ -332,8 +351,8 @@ function WhiteLabelStudioContent() {
               onClick={() => setActiveTab("typography")}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
                 activeTab === "typography"
-                  ? "bg-[#003366] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
               }`}
             >
               <Type className="w-4 h-4" />
@@ -345,8 +364,8 @@ function WhiteLabelStudioContent() {
               onClick={() => setActiveTab("landing")}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
                 activeTab === "landing"
-                  ? "bg-[#003366] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
               }`}
             >
               <Globe className="w-4 h-4" />
@@ -358,8 +377,8 @@ function WhiteLabelStudioContent() {
               onClick={() => setActiveTab("home")}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
                 activeTab === "home"
-                  ? "bg-[#003366] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
               }`}
             >
               <Layout className="w-4 h-4" />
@@ -371,8 +390,8 @@ function WhiteLabelStudioContent() {
               onClick={() => setActiveTab("menu")}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
                 activeTab === "menu"
-                  ? "bg-[#003366] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
               }`}
             >
               <Compass className="w-4 h-4" />
@@ -384,8 +403,8 @@ function WhiteLabelStudioContent() {
               onClick={() => setActiveTab("business")}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
                 activeTab === "business"
-                  ? "bg-[#003366] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
               }`}
             >
               <Layers className="w-4 h-4" />
@@ -397,8 +416,8 @@ function WhiteLabelStudioContent() {
               onClick={() => setActiveTab("monetization")}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
                 activeTab === "monetization"
-                  ? "bg-[#003366] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
               }`}
             >
               <DollarSign className="w-4 h-4" />
@@ -410,8 +429,8 @@ function WhiteLabelStudioContent() {
               onClick={() => setActiveTab("geo_app")}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
                 activeTab === "geo_app"
-                  ? "bg-[#003366] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
               }`}
             >
               <Globe className="w-4 h-4" />
