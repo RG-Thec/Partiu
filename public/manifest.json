@@ -7,12 +7,18 @@
   "orientation": "portrait",
   "lang": "pt-BR",
   "categories": ["travel", "transportation"],
-  "background_color": "#0b0f17",
-  "theme_color": "#FFDE00",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FF6B00",
   "icons": [
     {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
       "src": "/favicon.ico",
-      "sizes": "64x64 48x48 32x32 16x16",
+      "sizes": "48x48 32x32 16x16",
       "type": "image/x-icon"
     },
     {

@@ -1,38 +1,62 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1e3a5f"/>
-      <stop offset="50%" stop-color="#0f2744"/>
-      <stop offset="100%" stop-color="#0a1929"/>
+    <!-- Gradiente Oficial Partiu Laranja para Dourado/Âmbar -->
+    <linearGradient id="partiuOrangeFavicon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF5500" />
+      <stop offset="45%" stop-color="#FF6B00" />
+      <stop offset="100%" stop-color="#FFA800" />
     </linearGradient>
-    <linearGradient id="car" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#38bdf8"/>
-      <stop offset="100%" stop-color="#2563eb"/>
+
+    <!-- Gradiente Seta e Friso de Aceleração -->
+    <linearGradient id="partiuArrowFavicon" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FF7A00" />
+      <stop offset="60%" stop-color="#FF9E00" />
+      <stop offset="100%" stop-color="#FFC000" />
     </linearGradient>
-    <linearGradient id="road" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#10b981"/>
-      <stop offset="100%" stop-color="#34d399"/>
+
+    <!-- Gradiente GPS Pin Azul Tecnológico -->
+    <linearGradient id="gpsPinGradFavicon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#0284C7" />
     </linearGradient>
+
+    <!-- Sombra Suave de Profundidade -->
+    <filter id="softGlowFavicon" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#FF6B00" flood-opacity="0.35" />
+    </filter>
   </defs>
-  <!-- Fundo arredondado -->
-  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
-  <!-- Ícone do carro estilizado -->
-  <g transform="translate(12, 16)">
-    <!-- Corpo do carro -->
-    <path d="M6 22 L10 12 L30 12 L34 22 L38 22 C39.1 22 40 22.9 40 24 L40 28 C40 29.1 39.1 30 38 30 L2 30 C0.9 30 0 29.1 0 28 L0 24 C0 22.9 0.9 22 2 22 Z" fill="url(#car)"/>
-    <!-- Janela -->
-    <path d="M12 14 L16 8 L24 8 L28 14 Z" fill="#0f2744" opacity="0.7"/>
-    <!-- Rodas -->
-    <circle cx="10" cy="30" r="4" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
-    <circle cx="30" cy="30" r="4" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
-    <circle cx="10" cy="30" r="1.5" fill="#38bdf8"/>
-    <circle cx="30" cy="30" r="1.5" fill="#38bdf8"/>
+
+  <!-- Fundo sutilmente arredondado com fundo branco para contraste em abas claras e escuras -->
+  <rect width="128" height="128" rx="28" fill="#FFFFFF" />
+  <rect width="126" height="126" x="1" y="1" rx="27" stroke="#F1F5F9" stroke-width="2" />
+
+  <!-- Símbolo Oficial do PARTIU (P dinâmico + Seta + Pin GPS) -->
+  <g transform="translate(1, 4)" filter="url(#softGlowFavicon)">
+    <!-- Haste e Loop Dinâmico do 'P' -->
+    <path 
+      d="M32 105 C26 95 24 75 28 50 C33 26 50 12 75 12 C102 12 118 28 116 52 C114 74 96 88 74 88 C55 88 44 80 38 72 L32 105 Z" 
+      fill="url(#partiuOrangeFavicon)" 
+    />
+    
+    <!-- Friso Curvo Superior com Seta de Aceleração -->
+    <path 
+      d="M55 20 C75 14 96 18 108 30 L125 30 L115 16 L138 28 L115 40 L125 32 C108 32 92 24 70 26 Z" 
+      fill="url(#partiuArrowFavicon)" 
+    />
+
+    <!-- Pin de GPS Estilizado Centralizado -->
+    <path 
+      d="M74 38 C68 38 63 43 63 49 C63 58 74 72 74 72 C74 72 85 58 85 49 C85 43 80 38 74 38 Z" 
+      fill="url(#gpsPinGradFavicon)" 
+    />
+    <!-- Orifício do Pin -->
+    <circle cx="74" cy="49" r="3.5" fill="#FFFFFF" />
+
+    <!-- Reflexo de Vidro (Highlight) -->
+    <path 
+      d="M38 48 C42 30 55 20 72 18 C58 24 48 36 44 52 Z" 
+      fill="#FFFFFF" 
+      opacity="0.6" 
+    />
   </g>
-  <!-- Faixa de estrada estilizada -->
-  <path d="M8 52 L20 48 L32 50 L44 46 L56 48" stroke="url(#road)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-  <!-- Pontilhado da estrada -->
-  <line x1="14" y1="50" x2="18" y2="49" stroke="#ffffff" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
-  <line x1="26" y1="49.5" x2="30" y2="49" stroke="#ffffff" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
-  <line x1="38" y1="47.5" x2="42" y2="47" stroke="#ffffff" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
-  <line x1="48" y1="47.5" x2="52" y2="47.5" stroke="#ffffff" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
 </svg>
