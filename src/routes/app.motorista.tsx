@@ -1648,6 +1648,36 @@ export function PartiuDriverCockpit() {
       />
 
       {/* =================================================================== */}
+      {/* MODAL OFICIAL: OFERTA DE CORRIDA NO TRIP RADAR (15s REGRESSIVOS)    */}
+      {/* =================================================================== */}
+      {estadoCockpit === "OFFER" && ofertaAtiva && (
+        <DriverOfferModal
+          oferta={{
+            rideId: ofertaAtiva.id,
+            passageiro: ofertaAtiva.passageiro,
+            passageiroAvaliacao: (ofertaAtiva as any).passageiroAvaliacao || 4.95,
+            valorLiquido: Number(ofertaAtiva.valorLiquido || (ofertaAtiva as any).valorBruto || 24.9),
+            distanciaKm: Number(ofertaAtiva.distanciaKm || 4.2),
+            duracaoMin: Number((ofertaAtiva as any).duracaoMin || 12),
+            origem: ofertaAtiva.origem,
+            destino: ofertaAtiva.destino,
+            modalidadeTag: (ofertaAtiva as any).tipo || (ofertaAtiva as any).modalidade,
+            distanciaAteEmbarqueKm: (ofertaAtiva as any).distanciaAteEmbarqueKm || 1.2,
+            tempoAteEmbarqueMin: (ofertaAtiva as any).tempoAteEmbarqueMin || 3,
+            ganhoPorKm:
+              (ofertaAtiva as any).ganhoPorKm ||
+              (ofertaAtiva.distanciaKm > 0
+                ? Number((ofertaAtiva.valorLiquido / ofertaAtiva.distanciaKm).toFixed(2))
+                : 3.85),
+          }}
+          onAceitar={handleAceitarOferta}
+          onRecusar={handleRecusarOferta}
+          countdownSeconds={tempoRegressivo > 0 ? tempoRegressivo : 15}
+          isNightMode={isNightMode}
+        />
+      )}
+
+      {/* =================================================================== */}
       {/* MODAIS: DEVOLUÇÃO E FINALIZAÇÃO DE ENCOMENDA 99ENTREGA             */}
       {/* =================================================================== */}
       <DriverDeliveryModals

@@ -37,6 +37,7 @@ interface DriverOfferModalProps {
   onAceitar: () => void;
   onRecusar: () => void;
   countdownSeconds?: number;
+  isNightMode?: boolean;
 }
 
 export const DriverOfferModal = memo(function DriverOfferModal({
@@ -44,6 +45,7 @@ export const DriverOfferModal = memo(function DriverOfferModal({
   onAceitar,
   onRecusar,
   countdownSeconds = 20,
+  isNightMode = false,
 }: DriverOfferModalProps) {
   const { appConfig } = useTheme();
   const { colors, ui } = appConfig.branding;
@@ -96,39 +98,67 @@ export const DriverOfferModal = memo(function DriverOfferModal({
     onAceitar();
   };
 
-  // Suporte a deslizamento interativo (Slide to Accept) com feedback háptico contínuo
-  const handleTouchMove = (e: React.TouchEvent | React.MouseEvent) => {
-    if (!isDragging.current || !sliderRef.current) return;
-    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
-    const rect = sliderRef.current.getBoundingClientRect();
-    const maxSlide = rect.width - 68;
-    const currentOffset = Math.max(0, Math.min(clientX - rect.left - 28, maxSlide));
-    setSliderPosition(currentOffset);
+  // Suporte a deslizamento interativo (Slide to Accept) fluido com listeners de janela
+  useEffect(() => {
+    const handleMove = (e: MouseEvent | TouchEvent) => {
+      if (!isDragging.current || !sliderRef.current || accepted) return;
+      const clientX = "touches" in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+      const rect = sliderRef.current.getBoundingClientRect();
+      const maxSlide = rect.width - 64;
+      const currentOffset = Math.max(0, Math.min(clientX - rect.left - 24, maxSlide));
+      setSliderPosition(currentOffset);
 
-    // Micro-vibração tátil a cada avanço expressivo
-    if (Math.round(currentOffset) % 30 === 0) {
-      hapticFeedback.selection();
-    }
+      if (Math.round(currentOffset) % 25 === 0) {
+        hapticFeedback.selection();
+      }
 
-    if (currentOffset >= maxSlide * 0.85) {
+      if (currentOffset >= maxSlide * 0.85) {
+        isDragging.current = false;
+        setSliderPosition(maxSlide);
+        handleAccept();
+      }
+    };
+
+    const handleEnd = () => {
+      if (!isDragging.current) return;
       isDragging.current = false;
-      setSliderPosition(maxSlide);
-      handleAccept();
-    }
-  };
+      if (!accepted) {
+        setSliderPosition(0);
+      }
+    };
 
-  const handleTouchEnd = () => {
-    if (!accepted && sliderPosition < 120) {
-      setSliderPosition(0);
-    }
-    isDragging.current = false;
-  };
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleEnd);
+    window.addEventListener("touchmove", handleMove, { passive: true });
+    window.addEventListener("touchend", handleEnd);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleEnd);
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("touchend", handleEnd);
+    };
+  }, [accepted]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-2 sm:p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-white rounded-[28px] sm:rounded-[32px] p-4 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[0_20px_60px_rgba(0,0,0,0.18)] border border-slate-100 text-slate-900 animate-in slide-in-from-bottom duration-300 select-none text-center max-h-[92dvh] overflow-y-auto scrollbar-none">
+    <div className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 ${isNightMode ? "dark" : ""}`}>
+      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-[28px] sm:rounded-[32px] p-4 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[0_20px_60px_rgba(0,0,0,0.25)] border border-slate-100 dark:border-slate-800 text-slate-900 dark:text-white animate-in slide-in-from-bottom duration-300 select-none text-center max-h-[92dvh] overflow-y-auto scrollbar-none relative">
+        {/* Botão Superior de Recusa Rápida (Thumb-zone / Ergonomia Veicular com uma mão) */}
+        <button
+          type="button"
+          onClick={() => {
+            callAlertService.stopAlert();
+            onRecusar();
+          }}
+          className="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 flex items-center justify-center cursor-pointer transition active:scale-90 border border-slate-200/60 dark:border-slate-700/60 shadow-2xs"
+          title="Recusar oferta agora"
+          aria-label="Recusar oferta de corrida"
+        >
+          <X className="w-4.5 h-4.5 stroke-[2.2]" />
+        </button>
+
         {/* Barra tátil de puxar */}
-        <div className="w-12 h-1.5 rounded-full bg-slate-200 mx-auto mb-3" />
+        <div className="w-12 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 mx-auto mb-3" />
 
         {/* 1. GRANDE TEMPORIZADOR CIRCULAR REGRESSIVO */}
         <div className="relative w-24 h-24 mx-auto mb-2 flex items-center justify-center">
@@ -137,7 +167,7 @@ export const DriverOfferModal = memo(function DriverOfferModal({
               cx="48"
               cy="48"
               r={circleRadius}
-              className="stroke-slate-100"
+              className="stroke-slate-100 dark:stroke-slate-800"
               strokeWidth="5"
               fill="transparent"
             />
@@ -277,88 +307,67 @@ export const DriverOfferModal = memo(function DriverOfferModal({
         <div className="space-y-2.5 mb-5 text-left">
           {/* Local de Embarque */}
           <div
-            className="p-3.5 flex items-center justify-between gap-3 border-l-4 border-emerald-500 shadow-2xs border"
+            className="p-3.5 flex items-center justify-between gap-3 border-l-4 border-emerald-500 shadow-2xs border bg-slate-50/70 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700"
             style={{
-              backgroundColor: colors.inputBackground,
-              borderTopColor: colors.inputBorder,
-              borderRightColor: colors.inputBorder,
-              borderBottomColor: colors.inputBorder,
               borderRadius: ui.borderRadius,
             }}
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
                 <User className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <span
-                  className="text-xs font-black block leading-tight"
-                  style={{ color: colors.textPrimary }}
-                >
+                <span className="text-xs font-black block leading-tight text-slate-900 dark:text-white">
                   Local de embarque
                 </span>
-                <span
-                  className="text-xs font-medium truncate block mt-0.5"
-                  style={{ color: colors.textSecondary }}
-                >
+                <span className="text-xs font-medium truncate block mt-0.5 text-slate-600 dark:text-slate-300">
                   {oferta.origem}
                 </span>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-slate-400 shrink-0" />
+            <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold text-[10px] shrink-0 border border-emerald-500/20">
+              {tempoEmbarqueMin} min
+            </span>
           </div>
 
           {/* Destino */}
           <div
-            className="p-3.5 flex items-center justify-between gap-3 border-l-4 border-rose-500 shadow-2xs border"
+            className="p-3.5 flex items-center justify-between gap-3 border-l-4 border-rose-500 shadow-2xs border bg-slate-50/70 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700"
             style={{
-              backgroundColor: colors.inputBackground,
-              borderTopColor: colors.inputBorder,
-              borderRightColor: colors.inputBorder,
-              borderBottomColor: colors.inputBorder,
               borderRadius: ui.borderRadius,
             }}
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
                 <MapPin className="w-5 h-5 fill-white" />
               </div>
               <div className="min-w-0">
-                <span
-                  className="text-xs font-black block leading-tight"
-                  style={{ color: colors.textPrimary }}
-                >
+                <span className="text-xs font-black block leading-tight text-slate-900 dark:text-white">
                   Destino final
                 </span>
-                <span
-                  className="text-xs font-medium truncate block mt-0.5"
-                  style={{ color: colors.textSecondary }}
-                >
+                <span className="text-xs font-medium truncate block mt-0.5 text-slate-600 dark:text-slate-300">
                   {oferta.destino}
                 </span>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-slate-400 shrink-0" />
+            <span className="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-700 dark:text-rose-400 font-bold text-[10px] shrink-0 border border-rose-500/20">
+              {distanciaViagemTexto}
+            </span>
           </div>
         </div>
 
-        {/* 5. SLIDER DE CONFIRMAÇÃO — THUMB ZONE 56px */}
+        {/* 5. SLIDER DE CONFIRMAÇÃO — THUMB ZONE 56px (SEM CLIQUE ACIDENTAL) */}
         <div
           ref={sliderRef}
-          onMouseMove={handleTouchMove}
-          onTouchMove={handleTouchMove}
-          onMouseUp={handleTouchEnd}
-          onTouchEnd={handleTouchEnd}
           style={{
             background: `linear-gradient(90deg, ${colors.primary} 0%, ${colors.secondary || colors.primary} 100%)`,
             boxShadow: ui.buttonShadow || `0 6px 20px 0 ${colors.primary}45`,
             borderRadius: "20px",
           }}
-          className="relative w-full h-14 min-h-[56px] p-2 flex items-center justify-center select-none cursor-pointer overflow-hidden transition active:scale-[0.99]"
-          onClick={handleAccept}
+          className="relative w-full h-14 min-h-[56px] p-2 flex items-center justify-center select-none overflow-hidden transition active:scale-[0.99] touch-none"
         >
           {/* Rótulo Central */}
-          <span className="font-black text-xs sm:text-sm text-white uppercase tracking-wider pl-9">
+          <span className="font-black text-xs sm:text-sm text-white uppercase tracking-wider pl-9 pointer-events-none">
             {accepted ? "✓ CORRIDA ACEITA" : "DESLIZE PARA ACEITAR >>>"}
           </span>
 
@@ -375,7 +384,7 @@ export const DriverOfferModal = memo(function DriverOfferModal({
               transition: isDragging.current ? "none" : "transform 0.2s ease-out",
               color: colors.primary,
             }}
-            className="absolute left-2 top-2 bottom-2 w-11 rounded-xl bg-white flex items-center justify-center shadow-lg active:scale-95 transition"
+            className="absolute left-2 top-2 bottom-2 w-11 rounded-xl bg-white flex items-center justify-center shadow-lg active:scale-95 transition cursor-grab active:cursor-grabbing"
           >
             <ArrowRight className="w-5 h-5 stroke-[2.8]" />
           </div>
@@ -390,7 +399,7 @@ export const DriverOfferModal = memo(function DriverOfferModal({
               onRecusar();
             }}
             aria-label="Recusar oferta de corrida"
-            className="w-full h-12 min-h-[48px] rounded-2xl flex items-center justify-center bg-slate-100 hover:bg-rose-50 hover:text-rose-700 active:scale-98 text-xs font-bold uppercase tracking-wider text-slate-700 transition-all cursor-pointer border border-slate-200/90 shadow-2xs"
+            className="w-full h-12 min-h-[48px] rounded-2xl flex items-center justify-center bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-400 active:scale-98 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 transition-all cursor-pointer border border-slate-200/90 dark:border-slate-700 shadow-2xs"
           >
             RECUSAR OFERTA
           </button>
