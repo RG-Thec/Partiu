@@ -35,26 +35,26 @@ export function OfflineState({
         </div>
       </div>
 
-      {/* Botão Primário no padrão Flutter Material 3 (44px) */}
+      {/* Botão Primário de Conexão no padrão Veicular Material 3 (52px) */}
       <button
         type="button"
         onClick={onToggleOnline}
         style={{ borderRadius: ui.borderRadius }}
-        className="w-full h-11 min-h-[44px] bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+        className="w-full h-13 min-h-[52px] bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-black text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2.5 transition-all cursor-pointer uppercase tracking-wider"
       >
-        <span className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
+        <span className="w-3 h-3 rounded-full bg-white animate-pulse" />
         <span>Ficar online</span>
       </button>
 
-      {/* Ações Secundárias em Chips Compactos */}
+      {/* Ações Secundárias Ergonômicas (44px) */}
       <div className="grid grid-cols-2 gap-2 pt-1 border-t border-border/50">
         <button
           type="button"
           onClick={onOpenWallet}
           style={{ borderRadius: ui.borderRadius }}
-          className="h-9 min-h-[36px] bg-muted/60 hover:bg-muted active:scale-95 text-foreground font-semibold text-xs flex items-center justify-center gap-1.5 border border-border transition cursor-pointer"
+          className="h-11 min-h-[44px] bg-muted/60 hover:bg-muted active:scale-95 text-foreground font-bold text-xs flex items-center justify-center gap-2 border border-border transition cursor-pointer"
         >
-          <Wallet className="w-3.5 h-3.5" style={{ color: colors.primary }} />
+          <Wallet className="w-4 h-4" style={{ color: colors.primary }} />
           <span>Ganhos &amp; PIX</span>
         </button>
 
@@ -62,9 +62,9 @@ export function OfflineState({
           type="button"
           onClick={onOpenProfile}
           style={{ borderRadius: ui.borderRadius }}
-          className="h-9 min-h-[36px] bg-muted/60 hover:bg-muted active:scale-95 text-foreground font-semibold text-xs flex items-center justify-center gap-1.5 border border-border transition cursor-pointer"
+          className="h-11 min-h-[44px] bg-muted/60 hover:bg-muted active:scale-95 text-foreground font-bold text-xs flex items-center justify-center gap-2 border border-border transition cursor-pointer"
         >
-          <User className="w-3.5 h-3.5" style={{ color: colors.primary }} />
+          <User className="w-4 h-4" style={{ color: colors.primary }} />
           <span>Perfil &amp; veículo</span>
         </button>
       </div>

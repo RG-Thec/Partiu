@@ -50,8 +50,8 @@ export function HeadingToPickupState({
           </span>
         </div>
 
-        {/* Botões de Contato Rápido (Chat Seguro + Ligação) */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        {/* Botões de Contato Rápido (Chat Seguro + Ligação) — Ergonomia Veicular 44px */}
+        <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
             onClick={onOpenChat}
@@ -60,11 +60,11 @@ export function HeadingToPickupState({
               color: colors.surface,
               borderRadius: ui.borderRadius,
             }}
-            className="relative w-9.5 h-9.5 min-h-[38px] min-w-[38px] flex items-center justify-center active:scale-90 transition shadow-xs cursor-pointer hover:brightness-105"
+            className="relative w-11 h-11 min-h-[44px] min-w-[44px] flex items-center justify-center active:scale-90 transition shadow-xs cursor-pointer hover:brightness-105"
             title="Abrir chat operacional"
             aria-label={`Abrir chat operacional${driverUnreadCount > 0 ? ` (${driverUnreadCount} não lidas)` : ""}`}
           >
-            <MessageCircle className="w-4.5 h-4.5" />
+            <MessageCircle className="w-5 h-5" />
             {driverUnreadCount > 0 && (
               <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-rose-600 text-white text-[9px] font-bold border-2 border-white shadow-xs animate-pulse">
                 {driverUnreadCount > 9 ? "9+" : driverUnreadCount}
@@ -75,11 +75,11 @@ export function HeadingToPickupState({
             type="button"
             onClick={onLigar}
             style={{ borderRadius: ui.borderRadius }}
-            className="w-9.5 h-9.5 min-h-[38px] min-w-[38px] bg-muted text-foreground border border-border flex items-center justify-center active:scale-90 transition shadow-xs hover:bg-muted/80 cursor-pointer"
+            className="w-11 h-11 min-h-[44px] min-w-[44px] bg-muted text-foreground border border-border flex items-center justify-center active:scale-90 transition shadow-xs hover:bg-muted/80 cursor-pointer"
             title="Ligar para o passageiro"
             aria-label="Ligar para o passageiro"
           >
-            <Phone className="w-4 h-4" />
+            <Phone className="w-5 h-5" />
           </button>
         </div>
       </div>
