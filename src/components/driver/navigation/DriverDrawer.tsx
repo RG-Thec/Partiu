@@ -60,8 +60,16 @@ export function DriverDrawer({
   onLogout,
 }: DriverDrawerProps) {
   const navigate = useNavigate();
-  const { nomeApp, corPrimaria, corSecundaria, corTextoPrimaria } = useBrandTheme();
+  const { nomeApp, corPrimaria, corSecundaria, corTextoPrimaria, geo, activeTenant, config } = useBrandTheme();
   const [confirmSairAberto, setConfirmSairAberto] = useState(false);
+
+  const cidadeExibicao = activeTenant?.cidadeNome && activeTenant?.uf
+    ? `${activeTenant.cidadeNome}, ${activeTenant.uf}`
+    : geo?.cidadeSede
+    ? `${geo.cidadeSede}, ${geo.estadoUf || "BR"}`
+    : "Operação Regional";
+
+  const suporteUrl = config?.nativeApp?.suporteUrl || `https://wa.me/?text=${encodeURIComponent(`Olá! Sou motorista parceiro ${nomeApp} e preciso de suporte operacional.`)}`;
 
   // Fecha o drawer com a tecla ESC
   useEffect(() => {
@@ -485,7 +493,7 @@ export function DriverDrawer({
 
               {/* Suporte Operacional WhatsApp */}
               <a
-                href="https://wa.me/5522999605162?text=Ol%C3%A1!%20Sou%20motorista%20parceiro%20Partiu%20e%20preciso%20de%20suporte%20operacional."
+                href={suporteUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 active:scale-[0.99] transition-all text-slate-800 group text-left"
@@ -515,7 +523,7 @@ export function DriverDrawer({
         <div className="p-5 border-t border-slate-200 bg-slate-50/80 space-y-3">
           <div className="flex items-center justify-between text-xs text-slate-700 font-semibold px-1">
             <span>{nomeApp} Motorista v1.0.0</span>
-            <span>Itaperuna, RJ</span>
+            <span>{cidadeExibicao}</span>
           </div>
 
           {/* BOTÃO OFICIAL: SAIR DO APLICATIVO */}

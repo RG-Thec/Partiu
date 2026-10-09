@@ -135,7 +135,7 @@ import { DriverApprovalAlert } from "@/components/driver/cockpit/DriverApprovalA
 import { DriverDeliveryModals } from "@/components/driver/cockpit/DriverDeliveryModals";
 import { toast } from "sonner";
 
-function SirenIcon({ className = "w-5 h-5 text-brand-danger-red" }: { className?: string }) {
+function SirenIcon({ className = "w-5 h-5 text-rose-600" }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -319,11 +319,14 @@ export function PartiuDriverCockpit() {
     corCabecalhoFim,
     branding,
     nomeModuloEntrega,
+    geo,
+    activeTenant,
   } = useBrandTheme();
   const { appConfig } = useTheme();
   const wlBranding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
   const colors = wlBranding?.colors || DEFAULT_APP_CONFIG.branding.colors;
   const ui = wlBranding?.ui || DEFAULT_APP_CONFIG.branding.ui;
+  const cidadeOperacional = activeTenant?.cidadeNome || geo?.cidadeSede || "Operação Regional";
 
   const navigate = useNavigate();
 
@@ -1054,7 +1057,7 @@ export function PartiuDriverCockpit() {
       avaliacao: perfilMotorista.avaliacaoMedia,
       totalViagens: perfilMotorista.totalCorridas || 0,
       chavePix: perfilMotorista.chavePix || perfilMotorista.cpf || "",
-      cidade: "Itaperuna",
+      cidade: cidadeOperacional,
     };
 
     void h3DispatchEngine.acceptWaveOffer(rideId, perfilMotorista.id);
@@ -1419,7 +1422,7 @@ export function PartiuDriverCockpit() {
         reason: "RECIPIENT_ABSENT",
         senderContact: {
           name: ofertaAtiva.passageiro,
-          phone: ofertaAtiva.telefone || "(22) 99605-1620",
+          phone: ofertaAtiva.telefone || "",
         },
         pickupAddress: ofertaAtiva.origem,
         distanceKm: ofertaAtiva.distanciaKm,
@@ -1641,8 +1644,12 @@ export function PartiuDriverCockpit() {
         onOpenReturnFinalizar={() => setModalReturnFinalizarAberto(true)}
         onOpenChat={() => setIsChatOpen(true)}
         onLigar={() => {
-          const tel = ofertaAtiva?.telefone?.replace(/\D/g, "") || "22999605162";
-          window.open(`tel:${tel}`, "_self");
+          const tel = ofertaAtiva?.telefone?.replace(/\D/g, "");
+          if (tel) {
+            window.open(`tel:${tel}`, "_self");
+          } else {
+            toast.error("Telefone do passageiro não informado.");
+          }
         }}
         onNavegar={handleNavegarExterno}
       />
@@ -1767,8 +1774,8 @@ export function PartiuDriverCockpit() {
           destinationAddress={ofertaAtiva.destino}
           amountBrl={Number(ofertaAtiva.valorBruto || ofertaAtiva.valorLiquido || 24.9)}
           driverName={perfilMotorista.nome}
-          driverPixKey={perfilMotorista.chavePix || perfilMotorista.cpf || "(22) 99876-5432"}
-          driverCity="ITAPERUNA"
+          driverPixKey={perfilMotorista.chavePix || perfilMotorista.cpf || perfilMotorista.telefone || ""}
+          driverCity={cidadeOperacional.toUpperCase()}
           distanceKm={Number(ofertaAtiva.distanciaKm || 4.2)}
           onClose={() => setModalAcertoCorridaAberto(false)}
           onConfirmSettlement={handleConfirmarSettlementFinal}
@@ -2114,15 +2121,15 @@ export function PartiuDriverCockpit() {
       {/* ========================================================================= */}
       {modalNoShowConfirmAberto && ofertaAtiva && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200 select-none">
-          <div className="w-full max-w-md bg-white border border-slate-200 rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 space-y-4 animate-in slide-in-from-bottom duration-300 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-slate-900">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="w-full max-w-md bg-card border border-border rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 space-y-4 animate-in slide-in-from-bottom duration-300 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-foreground">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600">
+                <div className="w-10 h-10 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-600">
                   <UserX className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-brand-primary-deep">Passageiro Não Compareceu</h3>
-                  <p className="text-xs text-slate-700 font-semibold">Cobrança de taxa de carência</p>
+                  <h3 className="text-base font-semibold text-foreground">Passageiro Não Compareceu</h3>
+                  <p className="text-xs text-muted-foreground font-semibold">Cobrança de taxa de carência</p>
                 </div>
               </div>
               <button
