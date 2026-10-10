@@ -81,13 +81,16 @@ export function getActiveAuthTenantId(): string {
           return adminAuth.tenantId.trim();
         }
       }
-      const storedTenant = localStorage.getItem("partiu_whitelabel_active_tenant_id_v1");
-      if (storedTenant && storedTenant.trim() && storedTenant !== "tenant-campos") {
+      const storedTenant =
+        localStorage.getItem("partiu_whitelabel_active_tenant_id_v1") ||
+        localStorage.getItem("partiu_active_tenant_id_v2") ||
+        localStorage.getItem("partiu_wl_active_tenant_v1");
+      if (storedTenant && storedTenant.trim()) {
         return storedTenant.trim();
       }
     } catch {}
   }
-  return "tenant-itaperuna";
+  return "default";
 }
 
 /**

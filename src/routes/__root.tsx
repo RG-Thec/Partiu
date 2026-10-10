@@ -164,17 +164,24 @@ function RootShell({ children }: { children: ReactNode }) {
   try {
     var urlParams = new URLSearchParams(window.location.search);
     var tid = urlParams.get('tenant') || urlParams.get('tenant_id');
-    if (!tid) {
-      var sessionRaw = localStorage.getItem('partiu_admin_session');
-      if (sessionRaw) {
+    if (tid) {
+      tid = tid.trim();
+      try {
+        localStorage.setItem('partiu_active_tenant_id_v2', tid);
+        localStorage.setItem('partiu_wl_active_tenant_v1', tid);
+        localStorage.setItem('partiu_whitelabel_active_tenant_id_v1', tid);
+      } catch(e) {}
+    } else {
+      var authRaw = localStorage.getItem('partiu_admin_session_auth') || localStorage.getItem('partiu_admin_session');
+      if (authRaw) {
         try {
-          var s = JSON.parse(sessionRaw);
-          if (s && s.role === 'FRANQUEADO' && s.tenantId) tid = s.tenantId;
+          var s = JSON.parse(authRaw);
+          if (s && s.role === 'FRANQUEADO' && s.tenantId) tid = s.tenantId.trim();
         } catch(e) {}
       }
     }
     if (!tid) {
-      tid = localStorage.getItem('partiu_active_tenant_id_v2') || localStorage.getItem('partiu_wl_active_tenant_v1') || 'default';
+      tid = localStorage.getItem('partiu_active_tenant_id_v2') || localStorage.getItem('partiu_wl_active_tenant_v1') || localStorage.getItem('partiu_whitelabel_active_tenant_id_v1') || 'default';
     }
     var raw = localStorage.getItem('partiu_branding_tenant_' + tid) || localStorage.getItem('partiu_active_branding_v2');
     if (raw) {

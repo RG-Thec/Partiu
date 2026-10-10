@@ -11,8 +11,6 @@ import { h3DemandHeatmapEngine } from "@/lib/spatial";
 import { snapToRoute } from "@/services/NavigationEngine";
 import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
 
-const MAPBOX_TOKEN = MapboxConfig.getAccessToken();
-
 export interface PartiuDriverNavigationMapProps {
   estado:
     | "IDLE"
@@ -151,19 +149,40 @@ export const PartiuDriverNavigationMap = memo(function PartiuDriverNavigationMap
     if (!mapContainer.current) return;
 
     try {
-      const hasValidToken = MapboxConfig.hasValidToken();
-      if (hasValidToken && MAPBOX_TOKEN) {
-        mapboxgl.accessToken = MAPBOX_TOKEN;
+      const mapConfig = MapboxConfig.getTenantMapConfig();
+      const hasValidToken = Boolean(
+        mapConfig.effectiveMapboxToken &&
+        mapConfig.effectiveMapboxToken.startsWith("pk.") &&
+        mapConfig.effectiveMapboxToken.length > 20
+      );
+      const isGoogleTiles = Boolean(
+        mapConfig.provider === "google" &&
+        mapConfig.hasOwnGoogleKey
+      );
+
+      if (hasValidToken) {
+        mapboxgl.accessToken = mapConfig.effectiveMapboxToken;
+      } else {
+        mapboxgl.accessToken = "";
       }
 
       const initialCenter: [number, number] =
         currentDriverPos[0] !== 0 && currentDriverPos[1] !== 0
           ? currentDriverPos
-          : MapboxConfig.DEFAULT_CENTER;
+          : mapConfig.center || MapboxConfig.CANONICAL_FALLBACK_CENTER;
 
-      const initialStyle = hasValidToken
-        ? mapboxService.getStyleUrl("streets")
-        : mapboxService.getCartoPositronStyle();
+      let initialStyle: any;
+      if (isGoogleTiles) {
+        initialStyle = mapboxService.getGoogleMapsTileStyle(mapConfig.effectiveGoogleApiKey);
+      } else if (hasValidToken) {
+        initialStyle = modoNoturno
+          ? mapboxService.getStyleUrl("cleanNight")
+          : mapboxService.getStyleUrl("streets");
+      } else {
+        initialStyle = modoNoturno
+          ? mapboxService.getCartoDarkStyle()
+          : mapboxService.getCartoPositronStyle();
+      }
 
       const map = new mapboxgl.Map({
         container: mapContainer.current,
@@ -176,7 +195,7 @@ export const PartiuDriverNavigationMap = memo(function PartiuDriverNavigationMap
       });
 
       map.on("load", () => {
-        if (hasValidToken) {
+        if (hasValidToken && !isGoogleTiles) {
           mapboxService.applyUberCleanFilters(map);
         }
         setMapLoaded(true);

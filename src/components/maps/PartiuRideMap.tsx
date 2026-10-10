@@ -15,10 +15,8 @@ import { getBoundingBoxFromMap, filterPointsInViewport, type BoundingBox } from 
 import { snapToRoute } from "@/services/NavigationEngine";
 import { MapDiagnosticPanel } from "./MapDiagnosticPanel";
 
-const MAPBOX_TOKEN = MapboxConfig.getAccessToken();
-
 // Coordenadas padrão da cidade polo
-const DEFAULT_CENTER: [number, number] = [-41.888, -21.205];
+const CANONICAL_FALLBACK_CENTER: [number, number] = MapboxConfig.CANONICAL_FALLBACK_CENTER;
 
 /**
  * Calcula o azimute (bearing em graus 0-360) entre duas coordenadas geográficas
@@ -694,18 +692,40 @@ export const PartiuRideMap = memo(
     if (!mapContainer.current) return;
 
     try {
-      const currentToken = MapboxConfig.getAccessToken();
-      const hasValidToken = MapboxConfig.hasValidToken();
-      mapboxgl.accessToken = currentToken;
+      const mapConfig = MapboxConfig.getTenantMapConfig();
+      const hasValidToken = Boolean(
+        mapConfig.effectiveMapboxToken &&
+        mapConfig.effectiveMapboxToken.startsWith("pk.") &&
+        mapConfig.effectiveMapboxToken.length > 20
+      );
+      const isGoogleTiles = Boolean(
+        mapConfig.provider === "google" &&
+        mapConfig.hasOwnGoogleKey
+      );
 
-      const initialStyle = hasValidToken
-        ? mapboxService.getStyleUrl("streets")
-        : mapboxService.getCartoPositronStyle();
+      if (hasValidToken) {
+        mapboxgl.accessToken = mapConfig.effectiveMapboxToken;
+      } else {
+        mapboxgl.accessToken = "";
+      }
+
+      let initialStyle: any;
+      if (isGoogleTiles) {
+        initialStyle = mapboxService.getGoogleMapsTileStyle(mapConfig.effectiveGoogleApiKey);
+      } else if (hasValidToken) {
+        initialStyle = mapboxService.getStyleUrl(activeMapStyle || "streets");
+      } else {
+        initialStyle = mapboxService.getFallbackStyle(
+          activeMapStyle === "satellite" ? "satellite" : activeMapStyle === "traffic" ? "traffic" : "streets"
+        );
+      }
+
+      const initialCenter = origemCoords || mapConfig.center || CANONICAL_FALLBACK_CENTER;
 
       const map = new mapboxgl.Map({
         container: mapContainer.current,
         style: initialStyle,
-        center: origemCoords,
+        center: initialCenter,
         zoom: 16.5,
         pitch: status === "A_CAMINHO" || status === "EM_VIAGEM" ? 60 : 35,
         bearing: 0,
@@ -714,7 +734,7 @@ export const PartiuRideMap = memo(
       } as any);
 
       map.on("load", async () => {
-        if (hasValidToken) {
+        if (hasValidToken && !isGoogleTiles) {
           mapboxService.applyGoogleMapsPalette(map);
         }
         await registerAllMapAssets(map);

@@ -19,6 +19,13 @@ import {
   HelpCircle,
   Palette,
   Database,
+  MapPin,
+  Navigation,
+  Eye,
+  EyeOff,
+  Share2,
+  Key,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getContaAtiva } from "@/lib/admin-rbac";
@@ -29,6 +36,8 @@ import {
   CANONICAL_CNAME_TARGET,
   type TenantDomainRecord,
 } from "@/lib/white-label/tenant-domain-service";
+import { whiteLabelEngine } from "@/lib/white-label";
+import { MapboxConfig } from "@/config/MapboxConfig";
 
 export const Route = createFileRoute("/app/admin/meu-aplicativo")({
   component: MeuAplicativoPage,
@@ -128,9 +137,141 @@ export default function MeuAplicativoPage() {
       .catch((err) => console.error("Erro ao gerar QR Code:", err));
   }, [officialAppUrl, previewAppUrl, qrCodeMode]);
 
+  // URLs diretas e portáteis do ecossistema do Franqueado
+  const passengerAppUrl = useMemo(() => {
+    if (typeof window === "undefined") return `/app?tenant=${encodeURIComponent(effectiveTenantId)}`;
+    return `${window.location.origin}/app?tenant=${encodeURIComponent(effectiveTenantId)}`;
+  }, [effectiveTenantId]);
+
+  const driverAppUrl = useMemo(() => {
+    if (typeof window === "undefined") return `/app/motorista?tenant=${encodeURIComponent(effectiveTenantId)}`;
+    return `${window.location.origin}/app/motorista?tenant=${encodeURIComponent(effectiveTenantId)}`;
+  }, [effectiveTenantId]);
+
+  const ordersAppUrl = useMemo(() => {
+    if (typeof window === "undefined") return `/app/encomendas?tenant=${encodeURIComponent(effectiveTenantId)}`;
+    return `${window.location.origin}/app/encomendas?tenant=${encodeURIComponent(effectiveTenantId)}`;
+  }, [effectiveTenantId]);
+
+  // Estados de Configuração de APIs de Mapas Próprias por Franqueado
+  const tenantMapConfig = useMemo(() => {
+    return MapboxConfig.getTenantMapConfig(effectiveTenantId);
+  }, [effectiveTenantId]);
+
+  const [mapProvider, setMapProvider] = useState<"google" | "mapbox" | "osm">(tenantMapConfig.provider);
+  const [mapboxTokenInput, setMapboxTokenInput] = useState<string>(tenantMapConfig.mapboxAccessToken);
+  const [googleKeyInput, setGoogleKeyInput] = useState<string>(tenantMapConfig.googleMapsApiKey);
+  const [centerLatInput, setCenterLatInput] = useState<number>(tenantMapConfig.center[1]);
+  const [centerLngInput, setCenterLngInput] = useState<number>(tenantMapConfig.center[0]);
+  const [radiusKmInput, setRadiusKmInput] = useState<number>(() => {
+    const t = whiteLabelEngine.getTenantById(effectiveTenantId);
+    return t?.configuracaoCompleta?.geo?.raioOperacaoPadraoKm || 15;
+  });
+
+  const [showMapboxToken, setShowMapboxToken] = useState(false);
+  const [showGoogleKey, setShowGoogleKey] = useState(false);
+  const [testandoMapa, setTestandoMapa] = useState(false);
+  const [salvandoMapa, setSalvandoMapa] = useState(false);
+  const [resultadoTesteMapa, setResultadoTesteMapa] = useState<{ valid: boolean; message: string } | null>(null);
+
+  // Recarregar configurações de mapas ao alternar de franquia
+  useEffect(() => {
+    const cfg = MapboxConfig.getTenantMapConfig(effectiveTenantId);
+    setMapProvider(cfg.provider);
+    setMapboxTokenInput(cfg.mapboxAccessToken);
+    setGoogleKeyInput(cfg.googleMapsApiKey);
+    setCenterLatInput(cfg.center[1]);
+    setCenterLngInput(cfg.center[0]);
+    const t = whiteLabelEngine.getTenantById(effectiveTenantId);
+    setRadiusKmInput(t?.configuracaoCompleta?.geo?.raioOperacaoPadraoKm || 15);
+    setResultadoTesteMapa(null);
+  }, [effectiveTenantId]);
+
   function handleCopiarLink() {
     navigator.clipboard.writeText(appUrl);
     toast.success("Link oficial do aplicativo copiado para a área de transferência!");
+  }
+
+  function handleCopiarLinkPassageiro() {
+    navigator.clipboard.writeText(passengerAppUrl);
+    toast.success("Link do aplicativo de passageiros copiado!");
+  }
+
+  function handleCopiarLinkMotorista() {
+    navigator.clipboard.writeText(driverAppUrl);
+    toast.success("Link do portal do motorista copiado!");
+  }
+
+  function handleCompartilharWhatsApp(tipo: "PASSAGEIRO" | "MOTORISTA") {
+    const nomeApp = branding.app_name || "PARTIU";
+    const urlAlvo = tipo === "MOTORISTA" ? driverAppUrl : passengerAppUrl;
+    const texto = tipo === "MOTORISTA"
+      ? `🚗 Venha dirigir no aplicativo ${nomeApp}! Repasse no PIX D+0 e suporte local. Cadastre-se pelo link oficial: ${urlAlvo}`
+      : `📲 Baixe e peça sua viagem no ${nomeApp}! Mais conforto, preço justo e segurança na nossa cidade: ${urlAlvo}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, "_blank", "noopener,noreferrer");
+  }
+
+  async function handleTestarChaveMapa() {
+    setTestandoMapa(true);
+    setResultadoTesteMapa(null);
+    try {
+      if (mapProvider === "mapbox") {
+        const res = await MapboxConfig.testMapboxToken(mapboxTokenInput.trim());
+        setResultadoTesteMapa(res);
+        if (res.valid) {
+          toast.success(res.message);
+        } else {
+          toast.error(res.message);
+        }
+      } else if (mapProvider === "google") {
+        const res = await MapboxConfig.testGoogleMapsApiKey(googleKeyInput.trim());
+        setResultadoTesteMapa(res);
+        if (res.valid) {
+          toast.success(res.message);
+        } else {
+          toast.error(res.message);
+        }
+      } else {
+        const res = {
+          valid: true,
+          message: "OpenStreetMap / CARTO selecionado (camada pública sem custos de chave).",
+        };
+        setResultadoTesteMapa(res);
+        toast.success(res.message);
+      }
+    } catch (err: any) {
+      const res = { valid: false, message: err?.message || "Falha ao testar chave de API." };
+      setResultadoTesteMapa(res);
+      toast.error(res.message);
+    } finally {
+      setTestandoMapa(false);
+    }
+  }
+
+  async function handleSalvarConfigMapas(e: React.FormEvent) {
+    e.preventDefault();
+    setSalvandoMapa(true);
+    try {
+      const tenant = whiteLabelEngine.getTenantById(effectiveTenantId);
+      const prevGeo = tenant?.configuracaoCompleta?.geo || {};
+
+      const updatedGeo = {
+        ...prevGeo,
+        mapProvider,
+        mapboxAccessToken: mapboxTokenInput.trim(),
+        googleMapsApiKey: googleKeyInput.trim(),
+        coordenadasCentroLat: Number(centerLatInput),
+        coordenadasCentroLng: Number(centerLngInput),
+        raioOperacaoPadraoKm: Number(radiusKmInput),
+      };
+
+      whiteLabelEngine.updateTenantConfig(effectiveTenantId, { geo: updatedGeo });
+      toast.success("Configurações de mapa e geolocalização salvas e aplicadas em tempo real!");
+    } catch (err: any) {
+      toast.error(`Erro ao salvar: ${err?.message || "Tente novamente."}`);
+    } finally {
+      setSalvandoMapa(false);
+    }
   }
 
   function handleTestarNavegador() {
@@ -284,46 +425,74 @@ export default function MeuAplicativoPage() {
               </div>
             </div>
 
-            {/* SEÇÃO COMPLEMENTAR: LINK DE TESTE IMEDIATO / PREVIEW NO NAVEGADOR */}
-            <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-primary" />
-                  <span className="text-xs font-bold text-slate-300">
-                    Ambiente de Testes e Web Preview Instantâneo
+            {/* LINKS DEDICADOS E PORTÁTEIS POR PERFIL */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+              {/* Card Link Passageiro */}
+              <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <Smartphone className="w-4 h-4 text-primary" />
+                    Aplicativo de Passageiros
+                  </span>
+                  <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
+                    Trava ?tenant={effectiveTenantId}
                   </span>
                 </div>
-                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                  Disponível Agora
-                </span>
-              </div>
-              <p className="text-xs text-slate-400">
-                Acesse o aplicativo imediatamente neste navegador com as cores ({branding.primary_color}), logomarca e catálogo da sua praça, sem aguardar propagação DNS externa.
-              </p>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
                 <input
                   type="text"
                   readOnly
-                  value={previewAppUrl}
-                  className="flex-1 bg-slate-900 px-3 py-2 text-xs text-slate-300 font-mono rounded-lg border border-slate-800 select-all"
+                  value={passengerAppUrl}
+                  className="w-full bg-slate-900 px-3 py-1.5 text-xs text-slate-300 font-mono rounded-lg border border-slate-800 select-all"
                 />
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 pt-1">
                   <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(previewAppUrl);
-                      toast.success("Link de testes copiado com sucesso!");
-                    }}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold cursor-pointer transition active:scale-95"
+                    onClick={handleCopiarLinkPassageiro}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition cursor-pointer"
                   >
                     <Copy className="w-3 h-3" />
-                    Copiar Preview
+                    Copiar
                   </button>
                   <button
-                    onClick={() => window.open(previewAppUrl, "_blank", "noopener,noreferrer")}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary/90 text-slate-950 text-xs font-bold cursor-pointer transition shadow active:scale-95"
+                    onClick={() => handleCompartilharWhatsApp("PASSAGEIRO")}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow cursor-pointer"
                   >
-                    <ExternalLink className="w-3 h-3" />
-                    Abrir Preview
+                    <Share2 className="w-3 h-3" />
+                    WhatsApp
+                  </button>
+                </div>
+              </div>
+
+              {/* Card Link Motorista */}
+              <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <Navigation className="w-4 h-4 text-emerald-400" />
+                    Portal & App do Motorista
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                    Auto-Cadastro Local
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  readOnly
+                  value={driverAppUrl}
+                  className="w-full bg-slate-900 px-3 py-1.5 text-xs text-slate-300 font-mono rounded-lg border border-slate-800 select-all"
+                />
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    onClick={handleCopiarLinkMotorista}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition cursor-pointer"
+                  >
+                    <Copy className="w-3 h-3" />
+                    Copiar
+                  </button>
+                  <button
+                    onClick={() => handleCompartilharWhatsApp("MOTORISTA")}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow cursor-pointer"
+                  >
+                    <Share2 className="w-3 h-3" />
+                    WhatsApp
                   </button>
                 </div>
               </div>
@@ -549,6 +718,270 @@ export default function MeuAplicativoPage() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* CONECTAR APIS DE MAPAS PRÓPRIA (GOOGLE MAPS / MAPBOX / CARTO) */}
+          <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                  <Navigation className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    Conectar APIs de Mapas Própria (Google Maps / Mapbox)
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Isolamento total de cotas e faturamento por franqueado regional
+                  </p>
+                </div>
+              </div>
+
+              {tenantMapConfig.isMatriz ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 text-xs font-bold">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  Matriz Oficial (Chave Central)
+                </span>
+              ) : tenantMapConfig.hasOwnGoogleKey && mapProvider === "google" ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Google Maps Conectado
+                </span>
+              ) : tenantMapConfig.hasOwnMapboxKey && mapProvider === "mapbox" ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Mapbox Conectado
+                </span>
+              ) : mapProvider === "osm" ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-xs font-bold">
+                  <Globe className="w-3.5 h-3.5" />
+                  CARTO / OSM Gratuito
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  Chave Pendente (CARTO Fallback)
+                </span>
+              )}
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 text-xs text-slate-300 leading-relaxed space-y-1.5">
+              <p>
+                <strong className="text-white">Regra Estrita de Governança e Custos:</strong> Cada franqueado deve conectar sua própria chave de API (Google Maps ou Mapbox). O sistema da Matriz Central é o único que consome a chave oficial do Super Administrador.
+              </p>
+              <p className="text-slate-400">
+                Se você ainda não possui uma chave própria, seu aplicativo operará automaticamente na camada gratuita e de alta disponibilidade CARTO / OpenStreetMap sem qualquer custo extra.
+              </p>
+            </div>
+
+            <form onSubmit={handleSalvarConfigMapas} className="space-y-4">
+              {/* Seletor de Provedor */}
+              <div>
+                <label className="text-xs font-bold text-slate-300 block mb-2">
+                  Selecione o Provedor de Mapas para esta Franquia:
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setMapProvider("google")}
+                    className={`p-3.5 rounded-xl border text-left transition cursor-pointer ${
+                      mapProvider === "google"
+                        ? "bg-primary/10 border-primary text-white shadow-sm"
+                        : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs">Google Maps</span>
+                      {mapProvider === "google" && <CheckCircle2 className="w-4 h-4 text-primary" />}
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Tiles oficiais, rotas de trânsito em tempo real e satélite Google.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setMapProvider("mapbox")}
+                    className={`p-3.5 rounded-xl border text-left transition cursor-pointer ${
+                      mapProvider === "mapbox"
+                        ? "bg-primary/10 border-primary text-white shadow-sm"
+                        : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs">Mapbox GL JS</span>
+                      {mapProvider === "mapbox" && <CheckCircle2 className="w-4 h-4 text-primary" />}
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Visual 3D vetorial ultra-fluido (Padrão Uber e 99 App).
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setMapProvider("osm")}
+                    className={`p-3.5 rounded-xl border text-left transition cursor-pointer ${
+                      mapProvider === "osm"
+                        ? "bg-primary/10 border-primary text-white shadow-sm"
+                        : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs">CARTO / OSM</span>
+                      {mapProvider === "osm" && <CheckCircle2 className="w-4 h-4 text-primary" />}
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      100% gratuito e sem custos por requisição.
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Campo para Google Maps */}
+              {mapProvider === "google" && (
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                      <Key className="w-3.5 h-3.5 text-primary" />
+                      Chave de API do Google Maps (Google Cloud Platform)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowGoogleKey(!showGoogleKey)}
+                      className="text-xs text-slate-400 hover:text-white flex items-center gap-1 cursor-pointer"
+                    >
+                      {showGoogleKey ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                      {showGoogleKey ? "Ocultar" : "Mostrar"}
+                    </button>
+                  </div>
+                  <input
+                    type={showGoogleKey ? "text" : "password"}
+                    value={googleKeyInput}
+                    onChange={(e) => setGoogleKeyInput(e.target.value)}
+                    placeholder="AIzaSyA1B2C3D4E5F6G7H8..."
+                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono focus:outline-none focus:border-primary"
+                  />
+                  <p className="text-[11px] text-slate-400">
+                    Obtenha sua chave no console do Google Cloud com as APIs <code className="text-primary">Maps JavaScript</code>, <code className="text-primary">Directions API</code> e <code className="text-primary">Geocoding API</code> ativadas.
+                  </p>
+                </div>
+              )}
+
+              {/* Campo para Mapbox */}
+              {mapProvider === "mapbox" && (
+                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                      <Key className="w-3.5 h-3.5 text-primary" />
+                      Token de Acesso Mapbox (pk.*)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowMapboxToken(!showMapboxToken)}
+                      className="text-xs text-slate-400 hover:text-white flex items-center gap-1 cursor-pointer"
+                    >
+                      {showMapboxToken ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                      {showMapboxToken ? "Ocultar" : "Mostrar"}
+                    </button>
+                  </div>
+                  <input
+                    type={showMapboxToken ? "text" : "password"}
+                    value={mapboxTokenInput}
+                    onChange={(e) => setMapboxTokenInput(e.target.value)}
+                    placeholder="pk.eyJ1Ijoic3VhZnJhbnF1aWEiLCJhIjoiY2x4..."
+                    className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono focus:outline-none focus:border-primary"
+                  />
+                  <p className="text-[11px] text-slate-400">
+                    Insira seu Public Access Token do Mapbox obtido em <code className="text-primary">account.mapbox.com</code>.
+                  </p>
+                </div>
+              )}
+
+              {/* Coordenadas e Raio da Cidade */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1 flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-rose-500" />
+                    Latitude Central
+                  </label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    value={centerLatInput}
+                    onChange={(e) => setCenterLatInput(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white font-mono focus:outline-none focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1 flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-blue-500" />
+                    Longitude Central
+                  </label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    value={centerLngInput}
+                    onChange={(e) => setCenterLngInput(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white font-mono focus:outline-none focus:border-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">
+                    Raio de Cobertura (Km)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="200"
+                    value={radiusKmInput}
+                    onChange={(e) => setRadiusKmInput(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white font-mono focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              {/* Feedback do Teste de Conexão */}
+              {resultadoTesteMapa && (
+                <div
+                  className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${
+                    resultadoTesteMapa.valid
+                      ? "bg-emerald-950/60 border-emerald-800 text-emerald-300"
+                      : "bg-red-950/60 border-red-800 text-red-300"
+                  }`}
+                >
+                  {resultadoTesteMapa.valid ? (
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
+                  )}
+                  <span>{resultadoTesteMapa.message}</span>
+                </div>
+              )}
+
+              {/* Botões de Ação */}
+              <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleTestarChaveMapa}
+                  disabled={testandoMapa}
+                  className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${testandoMapa ? "animate-spin" : ""}`} />
+                  {testandoMapa ? "Validando Chave..." : "Testar Conexão da API"}
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={salvandoMapa}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition cursor-pointer disabled:opacity-50 shadow-md flex items-center gap-1.5"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  {salvandoMapa ? "Salvando..." : "Salvar Configurações de Mapa"}
+                </button>
+              </div>
+            </form>
           </div>
 
           {/* BANCO DE DADOS & NUVEM DEDICADA DO FRANQUEADO */}

@@ -34,6 +34,7 @@ import {
   Copy,
   KeyRound,
   Share2,
+  Navigation,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GuardiaoAcesso } from "@/components/admin/GuardiaoAcesso";
@@ -132,6 +133,18 @@ function SuperAdminFranqueadosContent() {
   const [mostrarSenhaModal, setMostrarSenhaModal] = useState(false);
   const [senhasVisiveis, setSenhasVisiveis] = useState<Record<string, boolean>>({});
 
+  // Modal de APIs de Mapas do Franqueado
+  const [tenantParaMapa, setTenantParaMapa] = useState<WhiteLabelTenantRecord | null>(null);
+  const [mapProviderModal, setMapProviderModal] = useState<"mapbox" | "google" | "osm">("mapbox");
+  const [mapboxTokenModal, setMapboxTokenModal] = useState("");
+  const [googleKeyModal, setGoogleKeyModal] = useState("");
+  const [centerLatModal, setCenterLatModal] = useState<number>(-21.2054);
+  const [centerLngModal, setCenterLngModal] = useState<number>(-41.8892);
+  const [radiusKmModal, setRadiusKmModal] = useState<number>(15);
+  const [testandoMapaModal, setTestandoMapaModal] = useState(false);
+  const [resultadoTesteMapaModal, setResultadoTesteMapaModal] = useState<{ valid: boolean; message: string } | null>(null);
+  const [mostrarTokenModal, setMostrarTokenModal] = useState(false);
+
   const toggleVerSenhaCard = (tenantId: string) => {
     setSenhasVisiveis((prev) => ({ ...prev, [tenantId]: !prev[tenantId] }));
   };
@@ -140,7 +153,14 @@ function SuperAdminFranqueadosContent() {
     const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
     const url = `${origin}/app?tenant=${encodeURIComponent(tenant.tenantId)}`;
     navigator.clipboard.writeText(url);
-    toast.success(`Link do app de ${tenant.nomeOperacao} copiado!`);
+    toast.success(`Link de passageiros de ${tenant.nomeOperacao} copiado!`);
+  }
+
+  function handleCopiarLinkMotorista(tenant: WhiteLabelTenantRecord) {
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
+    const url = `${origin}/app/motorista?tenant=${encodeURIComponent(tenant.tenantId)}`;
+    navigator.clipboard.writeText(url);
+    toast.success(`Link do portal do motorista de ${tenant.nomeOperacao} copiado!`);
   }
 
   function handleAbrirApp(tenant: WhiteLabelTenantRecord) {
@@ -149,23 +169,91 @@ function SuperAdminFranqueadosContent() {
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
+  function handleAbrirMotorista(tenant: WhiteLabelTenantRecord) {
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
+    const url = `${origin}/app/motorista?tenant=${encodeURIComponent(tenant.tenantId)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  function abrirModalMapa(tenant: WhiteLabelTenantRecord) {
+    setTenantParaMapa(tenant);
+    const cfg = MapboxConfig.getTenantMapConfig(tenant.tenantId);
+    setMapProviderModal(cfg.provider);
+    setMapboxTokenModal(cfg.mapboxAccessToken);
+    setGoogleKeyModal(cfg.googleMapsApiKey);
+    setCenterLatModal(cfg.center[1]);
+    setCenterLngModal(cfg.center[0]);
+    setRadiusKmModal(tenant.configuracaoCompleta?.geo?.raioOperacaoPadraoKm || 15);
+    setResultadoTesteMapaModal(null);
+    setMostrarTokenModal(false);
+  }
+
+  async function handleTestarChaveMapaModal() {
+    setTestandoMapaModal(true);
+    setResultadoTesteMapaModal(null);
+    try {
+      if (mapProviderModal === "mapbox") {
+        const res = await MapboxConfig.testMapboxToken(mapboxTokenModal.trim());
+        setResultadoTesteMapaModal(res);
+        if (res.valid) toast.success(res.message);
+        else toast.error(res.message);
+      } else if (mapProviderModal === "google") {
+        const res = await MapboxConfig.testGoogleMapsApiKey(googleKeyModal.trim());
+        setResultadoTesteMapaModal(res);
+        if (res.valid) toast.success(res.message);
+        else toast.error(res.message);
+      } else {
+        const res = { valid: true, message: "OpenStreetMap / CARTO selecionado (camada pública sem custos de API)." };
+        setResultadoTesteMapaModal(res);
+        toast.success(res.message);
+      }
+    } catch (err: any) {
+      const res = { valid: false, message: err?.message || "Falha ao validar chave." };
+      setResultadoTesteMapaModal(res);
+      toast.error(res.message);
+    } finally {
+      setTestandoMapaModal(false);
+    }
+  }
+
+  function handleSalvarMapaModal(e: React.FormEvent) {
+    e.preventDefault();
+    if (!tenantParaMapa) return;
+    const prevGeo = tenantParaMapa.configuracaoCompleta?.geo || {};
+    const updatedGeo = {
+      ...prevGeo,
+      mapProvider: mapProviderModal,
+      mapboxAccessToken: mapboxTokenModal.trim(),
+      googleMapsApiKey: googleKeyModal.trim(),
+      coordenadasCentroLat: Number(centerLatModal),
+      coordenadasCentroLng: Number(centerLngModal),
+      raioOperacaoPadraoKm: Number(radiusKmModal),
+    };
+    whiteLabelEngine.updateTenantConfig(tenantParaMapa.tenantId, { geo: updatedGeo });
+    recarregarTenants();
+    toast.success(`APIs de Mapa da franquia ${tenantParaMapa.nomeOperacao} configuradas e ativadas!`);
+    setTenantParaMapa(null);
+  }
+
   function handleCopiarKitAcesso(tenant: WhiteLabelTenantRecord) {
     const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
     const email = tenant.adminEmail || tenant.responsavelEmail || `${tenant.tenantId.replace("tenant-", "")}@partiu.app`;
     const senha = tenant.adminSenha || "Franqueado2026!";
     const urlApp = `${origin}/app?tenant=${encodeURIComponent(tenant.tenantId)}`;
+    const urlMotorista = `${origin}/app/motorista?tenant=${encodeURIComponent(tenant.tenantId)}`;
     const urlPainel = `${origin}/app/admin/login`;
 
-    const texto = `🚗 ACESSO AO SEU APLICATIVO — ${tenant.nomeOperacao.toUpperCase()}\n\n` +
-      `📍 Praça: ${tenant.cidadeNome} — ${tenant.uf}\n` +
-      `🔗 Link do seu Aplicativo (Passageiros e Motoristas):\n${urlApp}\n\n` +
+    const texto = `🚗 KIT DE ACESSO EXCLUSIVO — ${tenant.nomeOperacao.toUpperCase()}\n\n` +
+      `📍 Praça: ${tenant.cidadeNome} — ${tenant.uf}\n\n` +
+      `📲 Link de Passageiros (Solicitar Corridas):\n${urlApp}\n\n` +
+      `🚘 Link do Portal do Motorista (Cadastro & Assinatura):\n${urlMotorista}\n\n` +
       `🔐 Painel Administrativo do Franqueado:\n${urlPainel}\n` +
       `📧 E-mail de Login: ${email}\n` +
       `🔑 Senha de Acesso: ${senha}\n\n` +
       `Guarde estas credenciais em segurança e acesse para gerenciar sua praça.`;
 
     navigator.clipboard.writeText(texto);
-    toast.success("Dados de acesso copiados para a área de transferência!");
+    toast.success("Kit completo de acesso copiado com links de passageiro e motorista!");
   }
 
   function handleSalvarCredenciais(e: React.FormEvent) {
@@ -511,7 +599,7 @@ function SuperAdminFranqueadosContent() {
 
           <div className="grid grid-cols-1 gap-4">
             {franqueadosFiltrados.map((tenant) => {
-              const isMatriz = tenant.tenantId === "default" || tenant.tenantId === "matriz-br" || tenant.tenantId === "tenant-itaperuna";
+              const isMatriz = MapboxConfig.isOfficialMatrizTenant(tenant.tenantId);
               const isAtivo = tenant.ativo !== false && tenant.statusPlano !== "SUSPENSO" && tenant.statusPlano !== "CANCELADO";
               const passageirosCount = passageirosPorTenant.get(tenant.tenantId)?.length || 0;
               const motoristasCount = motoristasPorTenant.get(tenant.tenantId)?.length || 0;
@@ -588,11 +676,11 @@ function SuperAdminFranqueadosContent() {
 
                         {/* Link Funcional do Aplicativo & Credenciais Administrativas */}
                         <div className="pt-2.5 mt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                          {/* Link do App */}
+                          {/* Link de Passageiros */}
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
                               <Globe className="w-3.5 h-3.5 text-primary-500" />
-                              Link do App:
+                              App Passageiros:
                             </span>
                             <code className="text-[11px] font-mono text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/40 px-2 py-0.5 rounded-md border border-primary-200/50 dark:border-primary-800/40 truncate max-w-[280px]">
                               {typeof window !== "undefined" ? `${window.location.origin}/app?tenant=${tenant.tenantId}` : `/app?tenant=${tenant.tenantId}`}
@@ -601,7 +689,7 @@ function SuperAdminFranqueadosContent() {
                               type="button"
                               onClick={() => handleCopiarLinkApp(tenant)}
                               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-300 transition cursor-pointer"
-                              title="Copiar Link do Aplicativo"
+                              title="Copiar Link de Passageiros"
                             >
                               <Copy className="w-3 h-3" />
                               Copiar Link
@@ -610,10 +698,39 @@ function SuperAdminFranqueadosContent() {
                               type="button"
                               onClick={() => handleAbrirApp(tenant)}
                               className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary-50 hover:bg-primary-100 dark:bg-primary-950/60 dark:hover:bg-primary-900/60 text-[10px] font-bold text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800 transition cursor-pointer"
-                              title="Abrir Aplicativo em Nova Aba"
+                              title="Abrir App de Passageiros em Nova Aba"
                             >
                               <ExternalLink className="w-3 h-3" />
-                              Abrir App
+                              Abrir
+                            </button>
+                          </div>
+
+                          {/* Link do Motorista */}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
+                              <Car className="w-3.5 h-3.5 text-emerald-500" />
+                              Portal Motoristas:
+                            </span>
+                            <code className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/50 dark:border-emerald-800/40 truncate max-w-[280px]">
+                              {typeof window !== "undefined" ? `${window.location.origin}/app/motorista?tenant=${tenant.tenantId}` : `/app/motorista?tenant=${tenant.tenantId}`}
+                            </code>
+                            <button
+                              type="button"
+                              onClick={() => handleCopiarLinkMotorista(tenant)}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-950/80 dark:hover:bg-emerald-900/80 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 transition cursor-pointer"
+                              title="Copiar Link do Portal do Motorista"
+                            >
+                              <Copy className="w-3 h-3" />
+                              Copiar Link Motorista
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleAbrirMotorista(tenant)}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer"
+                              title="Abrir Portal do Motorista em Nova Aba"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              Abrir
                             </button>
                           </div>
 
@@ -654,7 +771,7 @@ function SuperAdminFranqueadosContent() {
                     </div>
 
                     {/* Status de APIs e Compliance */}
-                    <div className="flex flex-wrap items-center gap-2 lg:max-w-[240px]">
+                    <div className="flex flex-wrap items-center gap-2 lg:max-w-[260px]">
                       {/* Badge Mapbox */}
                       {isMatriz ? (
                         <span className="text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800 flex items-center gap-1.5">
@@ -676,6 +793,19 @@ function SuperAdminFranqueadosContent() {
                           <AlertTriangle className="w-3 h-3 text-amber-600" />
                           Sem Chave de Mapa
                         </span>
+                      )}
+
+                      {/* Botão Configurar APIs de Mapa (Exclusivo Franqueados) */}
+                      {!isMatriz && (
+                        <button
+                          type="button"
+                          onClick={() => abrirModalMapa(tenant)}
+                          className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-primary-50 dark:bg-primary-950/70 hover:bg-primary-100 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800 flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+                          title="Conectar ou editar chave de API Google Maps / Mapbox"
+                        >
+                          <Navigation className="w-3 h-3" />
+                          Configurar Mapas
+                        </button>
                       )}
 
                       {/* Badge PIX */}
@@ -1264,7 +1394,237 @@ function SuperAdminFranqueadosContent() {
         </div>
       )}
 
-      {/* 10. MODAL: CLONAGEM / NOVA CIDADE FRANQUEADA */}
+      {/* 10. MODAL: CONFIGURAÇÃO DE APIS DE MAPAS DO FRANQUEADO */}
+      {tenantParaMapa && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-xl w-full space-y-5 shadow-2xl my-8">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-blue-950/70 text-blue-600 flex items-center justify-center">
+                  <Navigation className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-950 dark:text-white">
+                    Conectar APIs de Mapas Própria
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {tenantParaMapa.nomeOperacao} ({tenantParaMapa.cidadeNome} — {tenantParaMapa.uf})
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTenantParaMapa(null)}
+                className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 cursor-pointer"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Aviso de Isolamento de Cotas */}
+            <div className="p-3.5 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2.5">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+              <div>
+                <p className="font-bold">Isolamento Estrito de Cotas da Holding</p>
+                <p className="text-[11px] mt-0.5 leading-relaxed text-amber-700 dark:text-amber-400">
+                  A chave da Matriz é de uso exclusivo do Super Administrador. Cada franqueado deve conectar seu próprio Mapbox ou Google Maps para isolar seus custos. Se nenhuma chave for cadastrada, a praça operará na camada gratuita CARTO/OSM.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSalvarMapaModal} className="space-y-4">
+              {/* Provedor de Mapas */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  Provedor de Mapas Ativo
+                </label>
+                <select
+                  value={mapProviderModal}
+                  onChange={(e: any) => setMapProviderModal(e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white font-semibold outline-none"
+                >
+                  <option value="mapbox">Mapbox GL JS (Nativo)</option>
+                  <option value="google">Google Maps Platform</option>
+                  <option value="osm">OpenStreetMap / CARTO (Gratuito / Sem chave)</option>
+                </select>
+              </div>
+
+              {/* Chave Mapbox */}
+              {mapProviderModal === "mapbox" && (
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      Token Público Mapbox do Franqueado (pk.*)
+                    </label>
+                    <a
+                      href="https://account.mapbox.com/access-tokens/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1"
+                    >
+                      Obter token <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={mostrarTokenModal ? "text" : "password"}
+                      value={mapboxTokenModal}
+                      onChange={(e) => setMapboxTokenModal(e.target.value.trim())}
+                      placeholder="pk.eyJ1I..."
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-3 pr-10 py-2.5 text-xs font-mono text-slate-900 dark:text-white outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setMostrarTokenModal(!mostrarTokenModal)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                    >
+                      {mostrarTokenModal ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Chave Google Maps */}
+              {mapProviderModal === "google" && (
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      Chave API Google Maps Platform (AIzaSy...)
+                    </label>
+                    <a
+                      href="https://console.cloud.google.com/google/maps-apis/credentials"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1"
+                    >
+                      Console Google <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={mostrarTokenModal ? "text" : "password"}
+                      value={googleKeyModal}
+                      onChange={(e) => setGoogleKeyModal(e.target.value.trim())}
+                      placeholder="AIzaSy..."
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-3 pr-10 py-2.5 text-xs font-mono text-slate-900 dark:text-white outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setMostrarTokenModal(!mostrarTokenModal)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                    >
+                      {mostrarTokenModal ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Coordenadas e Raio */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Latitude Central
+                  </label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    required
+                    value={centerLatModal}
+                    onChange={(e) => setCenterLatModal(Number(e.target.value))}
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 dark:text-white outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Longitude Central
+                  </label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    required
+                    value={centerLngModal}
+                    onChange={(e) => setCenterLngModal(Number(e.target.value))}
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 dark:text-white outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Raio Operação (km)
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={200}
+                    required
+                    value={radiusKmModal}
+                    onChange={(e) => setRadiusKmModal(Number(e.target.value))}
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 dark:text-white outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Botão Testar Conexão */}
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={handleTestarChaveMapaModal}
+                  disabled={testandoMapaModal}
+                  className="w-full py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 transition cursor-pointer"
+                >
+                  {testandoMapaModal ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary-500" />
+                      <span>Validando Endpoint da Chave...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Testar Conexão com Servidor de Mapas</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Resultado do Teste */}
+              {resultadoTesteMapaModal && (
+                <div
+                  className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${
+                    resultadoTesteMapaModal.valid
+                      ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
+                      : "bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800"
+                  }`}
+                >
+                  {resultadoTesteMapaModal.valid ? (
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
+                  )}
+                  <span>{resultadoTesteMapaModal.message}</span>
+                </div>
+              )}
+
+              {/* Ações do Modal */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setTenantParaMapa(null)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-primary-600 hover:bg-primary-500 text-white transition shadow-xs cursor-pointer"
+                >
+                  Salvar e Ativar na Praça
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 11. MODAL: CLONAGEM / NOVA CIDADE FRANQUEADA */}
       <CloneTenantModal
         isOpen={modalClonarAberto}
         onClose={() => setModalClonarAberto(false)}

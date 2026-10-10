@@ -198,6 +198,39 @@ export class MapboxService {
   }
 
   /**
+   * 🗺️ Google Maps Raster Tile Style:
+   * Estilo de mapa baseado nos tiles oficiais da Google Maps Platform quando a chave do franqueado está configurada.
+   */
+  public getGoogleMapsTileStyle(apiKey?: string): any {
+    const keyParam = apiKey ? `&key=${encodeURIComponent(apiKey)}` : "";
+    return {
+      version: 8,
+      sources: {
+        "google-maps-tiles": {
+          type: "raster",
+          tiles: [
+            `https://mt0.google.com/vt/lyrs=m&x={x}&y={y}&z={z}${keyParam}`,
+            `https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}${keyParam}`,
+            `https://mt2.google.com/vt/lyrs=m&x={x}&y={y}&z={z}${keyParam}`,
+            `https://mt3.google.com/vt/lyrs=m&x={x}&y={y}&z={z}${keyParam}`,
+          ],
+          tileSize: 256,
+          attribution: "© Google Maps",
+        },
+      },
+      layers: [
+        {
+          id: "google-maps-tiles-layer",
+          type: "raster",
+          source: "google-maps-tiles",
+          minzoom: 0,
+          maxzoom: 21,
+        },
+      ],
+    };
+  }
+
+  /**
    * Retorna o estilo raster apropriado para cada modo de visualização quando operando sem token Mapbox
    */
   public getFallbackStyle(variant: "streets" | "traffic" | "satellite" | "night" = "streets"): any {
@@ -212,6 +245,32 @@ export class MapboxService {
       default:
         return this.getCartoPositronStyle();
     }
+  }
+
+  /**
+   * Resolve de forma inteligente o estilo correto para o tenant (Google, Mapbox ou Fallback CARTO)
+   */
+  public resolveMapStyleForTenant(
+    tenantId?: string,
+    variant: "streets" | "traffic" | "satellite" | "night" = "streets"
+  ): any {
+    const config = MapboxConfig.getTenantMapConfig(tenantId);
+
+    // 1. Franqueado optou por Google Maps e tem chave própria configurada
+    if (config.provider === "google" && config.hasOwnGoogleKey) {
+      return this.getGoogleMapsTileStyle(config.effectiveGoogleApiKey);
+    }
+
+    // 2. Franqueado com token próprio Mapbox ou Matriz Oficial
+    if (config.hasOwnMapboxKey || (config.isMatriz && config.effectiveMapboxToken)) {
+      if (variant === "satellite") return MapboxConfig.STYLES.satelliteStreets;
+      if (variant === "traffic") return MapboxConfig.STYLES.navigationTraffic;
+      if (variant === "night") return MapboxConfig.STYLES.cleanNight;
+      return MapboxConfig.STYLES.cleanDay;
+    }
+
+    // 3. Fallback seguro CARTO/OSM (zero consumo da Matriz)
+    return this.getFallbackStyle(variant);
   }
 
   /**

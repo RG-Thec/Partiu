@@ -17,16 +17,7 @@ import type { TelemetriaVeiculo } from "@/lib/superadmin-config";
 import { MapboxConfig } from "@/config/MapboxConfig";
 import { mapboxService } from "@/services/MapboxService";
 
-const MAPBOX_TOKEN =
-  (typeof import.meta !== "undefined" &&
-    (import.meta.env?.["VITE_MAPBOX_TOKEN"] ||
-      import.meta.env?.["VITE_MAPBOX_ACCESS_TOKEN"] ||
-      import.meta.env?.["MAPBOX_TOKEN"])) ||
-  (typeof process !== "undefined" &&
-    (process.env?.["VITE_MAPBOX_TOKEN"] ||
-      process.env?.["VITE_MAPBOX_ACCESS_TOKEN"] ||
-      process.env?.["MAPBOX_TOKEN"])) ||
-  "";
+
 
 interface VanLive {
   id: string;
@@ -119,24 +110,41 @@ export function MapboxLiveMap({
 
   useEffect(() => {
     if (!mapContainer.current) return;
-    const hasValidToken = MapboxConfig.hasValidToken();
-    if (hasValidToken && MAPBOX_TOKEN) {
-      mapboxgl.accessToken = MAPBOX_TOKEN;
+    const mapConfig = MapboxConfig.getTenantMapConfig();
+    const hasValidToken = Boolean(
+      mapConfig.effectiveMapboxToken &&
+      mapConfig.effectiveMapboxToken.startsWith("pk.") &&
+      mapConfig.effectiveMapboxToken.length > 20
+    );
+    const isGoogleTiles = Boolean(
+      mapConfig.provider === "google" &&
+      mapConfig.hasOwnGoogleKey
+    );
+
+    if (hasValidToken) {
+      mapboxgl.accessToken = mapConfig.effectiveMapboxToken;
     } else {
       mapboxgl.accessToken = "";
     }
 
     let mapInstance: mapboxgl.Map;
     try {
-      const fallbackStyle =
-        estiloMapa === "satellite"
-          ? mapboxService.getEsriSatelliteStyle()
-          : mapboxService.getCartoPositronStyle();
+      let initialStyle: any;
+      if (isGoogleTiles) {
+        initialStyle = mapboxService.getGoogleMapsTileStyle(mapConfig.effectiveGoogleApiKey);
+      } else if (hasValidToken) {
+        initialStyle = mapStyles[estiloMapa];
+      } else {
+        initialStyle =
+          estiloMapa === "satellite"
+            ? mapboxService.getEsriSatelliteStyle()
+            : mapboxService.getCartoPositronStyle();
+      }
 
       mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
-        style: hasValidToken ? mapStyles[estiloMapa] : fallbackStyle,
-        center: centroCoords || MapboxConfig.DEFAULT_CENTER,
+        style: initialStyle,
+        center: centroCoords || mapConfig.center || MapboxConfig.CANONICAL_FALLBACK_CENTER,
         zoom: zoom ?? 9.6,
         pitch: is3D ? 48 : 0,
         bearing: is3D ? -15 : 0,

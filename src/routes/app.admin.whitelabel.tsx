@@ -6,6 +6,7 @@ import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useBranding } from "@/hooks/useBranding";
 import { BRANDING_PRESETS } from "@/lib/branding";
 import type { MobilityLandingPageData } from "@/types/mobilityLanding";
+import { toast } from "sonner";
 
 import {
   Sparkles,
@@ -186,6 +187,22 @@ function WhiteLabelStudioContent() {
               </span>
             )}
           </div>
+
+          {/* Botão Copiar Link Oficial do App da Franquia */}
+          <button
+            type="button"
+            onClick={() => {
+              const origin = typeof window !== "undefined" ? window.location.origin : "";
+              const url = `${origin}/app?tenant=${encodeURIComponent(activeTenant?.tenantId || "default")}`;
+              navigator.clipboard.writeText(url);
+              toast.success(`Link oficial de ${activeTenant?.nomeOperacao || "App"} copiado!`);
+            }}
+            className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer"
+            title="Copiar Link PWA do Aplicativo da Franquia Selecionada"
+          >
+            <Globe className="w-3.5 h-3.5" style={{ color: primaryColor }} />
+            <span className="hidden sm:inline">Link do App</span>
+          </button>
 
           {/* Botão Clonar Cidade (Exclusivo SuperAdmin / Owner) */}
           {usuarioOwner && (

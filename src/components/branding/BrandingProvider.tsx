@@ -22,7 +22,9 @@ function getInitialTenantId(): string {
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const tenantParam = urlParams.get("tenant") || urlParams.get("tenant_id");
-    if (tenantParam) return tenantParam.trim();
+    if (tenantParam && tenantParam.trim()) {
+      return tenantParam.trim();
+    }
 
     // 1. Se estiver no admin autenticado como franqueado, o tenant dele tem autoridade máxima
     const authSessionRaw = localStorage.getItem("partiu_admin_session_auth");
@@ -47,15 +49,16 @@ function getInitialTenantId(): string {
     }
 
     const resolution = tenantDomainService.resolveTenantFromHost(window.location.hostname, urlParams);
-    if (resolution.tenantId && resolution.tenantId !== "default" && resolution.tenantId !== "tenant-campos") {
+    if (resolution.tenantId && resolution.tenantId !== "default") {
       return resolution.tenantId;
     }
 
-    const stored = localStorage.getItem(STORAGE_KEY_TENANT);
-    if (stored && stored !== "tenant-campos") return stored.trim();
+    const stored =
+      localStorage.getItem(STORAGE_KEY_TENANT) ||
+      localStorage.getItem("partiu_wl_active_tenant_v1") ||
+      localStorage.getItem("partiu_whitelabel_active_tenant_id_v1");
 
-    const storedWl = localStorage.getItem("partiu_wl_active_tenant_v1");
-    if (storedWl && storedWl !== "tenant-campos") return storedWl.trim();
+    if (stored && stored.trim()) return stored.trim();
   } catch {}
   return "default";
 }
@@ -335,6 +338,7 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem(STORAGE_KEY_TENANT, cleanId);
       localStorage.setItem("partiu_wl_active_tenant_v1", cleanId);
+      localStorage.setItem("partiu_whitelabel_active_tenant_id_v1", cleanId);
     } catch {}
     whiteLabelEngine.switchTenant(cleanId);
     await fetchTenantBranding(cleanId);

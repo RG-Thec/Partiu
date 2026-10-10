@@ -90,11 +90,37 @@ export function PainelFinanceiroUnificadoPage() {
   const adminRole = getAdminRole();
   const config = getSuperAdminConfig();
 
+  // Escopo Territorial e Isolamento por Franquia / Praça Ativa
+  const ridesFiltradas = useMemo(() => {
+    if (isNacional) return ridesBanco;
+    const nomeCidade = pracaAtiva.nome.toLowerCase();
+    const pracaId = pracaAtiva.id.toLowerCase();
+    return ridesBanco.filter((r: any) => {
+      const orig = (r.pickup_address || "").toLowerCase();
+      const dest = (r.destination_address || "").toLowerCase();
+      const city = (r.city || r.cidade || "").toLowerCase();
+      const tenant = (r.tenant_id || r.praca_id || "").toLowerCase();
+      return orig.includes(nomeCidade) || dest.includes(nomeCidade) || city.includes(nomeCidade) || tenant === pracaId;
+    });
+  }, [ridesBanco, isNacional, pracaAtiva]);
+
+  const caixasFiltrados = useMemo(() => {
+    if (isNacional) return caixasBanco;
+    const nomeCidade = pracaAtiva.nome.toLowerCase();
+    const pracaId = pracaAtiva.id.toLowerCase();
+    return caixasBanco.filter((c: any) => {
+      const desc = (c.descricao || "").toLowerCase();
+      const praca = (c.praca || c.cidade || "").toLowerCase();
+      const tenant = (c.tenant_id || "").toLowerCase();
+      return desc.includes(nomeCidade) || praca.includes(nomeCidade) || tenant === pracaId;
+    });
+  }, [caixasBanco, isNacional, pracaAtiva]);
+
   // 1. VISÃO CONSOLIDADA (CÁLCULO EM TEMPO REAL)
   const todayStr = new Date().toISOString().slice(0, 10);
   const ridesHoje = useMemo(() => {
-    return ridesBanco.filter((r) => r.created_at && r.created_at.startsWith(todayStr));
-  }, [ridesBanco, todayStr]);
+    return ridesFiltradas.filter((r) => r.created_at && r.created_at.startsWith(todayStr));
+  }, [ridesFiltradas, todayStr]);
 
   const receitaHoje = useMemo(() => {
     return ridesHoje
@@ -103,10 +129,10 @@ export function PainelFinanceiroUnificadoPage() {
   }, [ridesHoje]);
 
   const receitaMes = useMemo(() => {
-    return ridesBanco
+    return ridesFiltradas
       .filter((r) => r.status === "COMPLETED")
       .reduce((acc, r) => acc + (Number(r.fare_brl) || 0), 0);
-  }, [ridesBanco]);
+  }, [ridesFiltradas]);
 
   const pixProcessadosQtd = useMemo(() => {
     return ridesHoje.filter((r) => r.status === "COMPLETED" && r.payment_method === "pix").length;
@@ -120,10 +146,10 @@ export function PainelFinanceiroUnificadoPage() {
 
   // Faturamento SaaS de Diárias Pagas na Plataforma (Receita Real da Empresa)
   const faturamentoSaasHoje = useMemo(() => {
-    return caixasBanco
+    return caixasFiltrados
       .filter((c: any) => c.tipo === "diaria" || c.tipo === "entrada" || c.tipo === "recarga")
       .reduce((acc: number, c: any) => acc + (Number(c.valor) || 0), 0);
-  }, [caixasBanco]);
+  }, [caixasFiltrados]);
 
   // 2. GESTÃO DE MONETIZAÇÃO SAAS WHITE LABEL & CONFIGURAÇÕES PIX
   const [monetizacao, setMonetizacao] = useState<ConfigMonetizacaoWhiteLabel>(() => getMonetizacaoConfig());

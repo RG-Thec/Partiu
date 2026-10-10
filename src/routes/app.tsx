@@ -19,17 +19,32 @@ export const Route = createFileRoute("/app")({
     }
 
     try {
-      let effectiveTenantId = "tenant-itaperuna";
+      let effectiveTenantId = "default";
       try {
         const urlParams = new URLSearchParams(location.search as any);
         const paramTenant = urlParams.get("tenant") || urlParams.get("tenant_id");
         if (paramTenant && paramTenant.trim()) {
           effectiveTenantId = paramTenant.trim();
+          if (typeof localStorage !== "undefined") {
+            try {
+              localStorage.setItem("partiu_active_tenant_id_v2", effectiveTenantId);
+              localStorage.setItem("partiu_wl_active_tenant_v1", effectiveTenantId);
+              localStorage.setItem("partiu_whitelabel_active_tenant_id_v1", effectiveTenantId);
+            } catch {}
+          }
         } else if (typeof window !== "undefined") {
-          const { tenantDomainService } = await import("@/lib/white-label/tenant-domain-service");
-          const resolved = tenantDomainService.resolveTenantFromHost(window.location.hostname);
-          if (resolved?.tenantId) {
-            effectiveTenantId = resolved.tenantId;
+          const stored =
+            localStorage.getItem("partiu_active_tenant_id_v2") ||
+            localStorage.getItem("partiu_wl_active_tenant_v1") ||
+            localStorage.getItem("partiu_whitelabel_active_tenant_id_v1");
+          if (stored && stored.trim()) {
+            effectiveTenantId = stored.trim();
+          } else {
+            const { tenantDomainService } = await import("@/lib/white-label/tenant-domain-service");
+            const resolved = tenantDomainService.resolveTenantFromHost(window.location.hostname);
+            if (resolved?.tenantId) {
+              effectiveTenantId = resolved.tenantId;
+            }
           }
         }
       } catch {}

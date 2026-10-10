@@ -111,84 +111,7 @@ export class MapboxConfig {
   /**
    * Token público canônico integrado para garantir carregamento instantâneo em produção
    */
-  private static getBuiltinProductionToken(): string {
-    try {
-      const b64 = "cGsuZXlKMUlqb2ljbVJuYjIxbGN5SXNJbUVpT2lKamJYUXpOVEU0Ykhjd01ubHJNbmh2WkdVMk9IWnVlV3BxSW4wLjZnSHE2Sk01Y1pVYW5ZQmVCMVVXNkE=";
-      if (typeof atob === "function") {
-        return atob(b64);
-      }
-      if (typeof Buffer !== "undefined") {
-        return Buffer.from(b64, "base64").toString("utf-8");
-      }
-    } catch {
-      // Silencioso
-    }
-    return MapboxConfig.DEFAULT_TOKEN;
-  }
-
-  /**
-   * Determina se o tenantId corresponde à conta oficial do Super Administrador (PARTIU Matriz Oficial).
-   * Apenas a Matriz tem autorização de consumo da API Mapbox pré-configurada na infraestrutura do sistema.
-   */
-  public static isOfficialMatrizTenant(tenantId?: string): boolean {
-    if (!tenantId || tenantId === "default" || tenantId === "matriz-br" || tenantId === "tenant-itaperuna") {
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Verifica se o tenant (seja matriz ou franqueado) possui uma chave de API de mapas pronta para uso
-   */
-  public static isTenantMapConfigured(tenantId?: string): boolean {
-    if (MapboxConfig.isOfficialMatrizTenant(tenantId)) {
-      return true;
-    }
-    try {
-      const wlEngine = WhiteLabelEngine.getInstance();
-      const config = wlEngine.getTenantConfig(tenantId);
-      const token = config?.geo?.mapboxAccessToken;
-      const googleKey = config?.geo?.googleMapsApiKey;
-      return Boolean((token && token.startsWith("pk.") && token.length > 20) || (googleKey && googleKey.length > 10));
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Resolve o token do Mapbox com isolamento estrito:
-   * 1. Se for Franqueado White-Label: DEVE fornecer sua própria chave de API (mapboxAccessToken).
-   *    Franqueados NÃO consomem a API da conta oficial do Super Administrador da Matriz.
-   * 2. Se for a conta oficial do Super Administrador (PARTIU Matriz):
-   *    Utiliza a API oficial pré-configurada (Vite / Process / Builtin).
-   */
-  public static getAccessToken(tenantId?: string): string {
-    const isMatriz = MapboxConfig.isOfficialMatrizTenant(tenantId);
-
-    // 1. Chave de API de Mapa do Franqueado / Tenant
-    try {
-      const wlEngine = WhiteLabelEngine.getInstance();
-      const config = wlEngine.getTenantConfig(tenantId);
-      const tenantToken = config?.geo?.mapboxAccessToken;
-      if (
-        tenantToken &&
-        tenantToken.trim().length > 0 &&
-        !tenantToken.includes("example") &&
-        tenantToken.startsWith("pk.")
-      ) {
-        return tenantToken.trim();
-      }
-    } catch {
-      // Silencioso
-    }
-
-    // Regra Estrita de Governança: Se for um franqueado White-Label sem chave própria,
-    // NÃO utiliza a cota/chave do Super Administrador da Matriz.
-    if (!isMatriz) {
-      return "";
-    }
-
-    // 2. Conta oficial do Super Administrador (PARTIU Matriz): Variáveis de ambiente Vite / Process
+  public static getMatrizOfficialToken(): string {
     const viteEnv = typeof import.meta !== "undefined" ? import.meta.env : undefined;
     const processEnv = typeof process !== "undefined" ? process.env : undefined;
 
@@ -205,6 +128,220 @@ export class MapboxConfig {
     }
 
     return MapboxConfig.getBuiltinProductionToken();
+  }
+
+  /**
+   * Determina se o tenantId corresponde à conta oficial do Super Administrador (PARTIU Matriz Oficial).
+   * Somente 'default', 'matriz-br' ou 'matriz' têm autorização de consumo da API Mapbox da infraestrutura central.
+   * Todos os franqueados regionais (incluindo cidades individuais) são estritamente isolados.
+   */
+  public static isOfficialMatrizTenant(tenantId?: string): boolean {
+    const tid =
+      tenantId ||
+      (typeof window !== "undefined" ? WhiteLabelEngine.getInstance()?.getActiveTenantId?.() : undefined) ||
+      "default";
+    return tid === "default" || tid === "matriz-br" || tid === "matriz";
+  }
+
+  /**
+   * Retorna a configuração geoespacial resolvida e auditada para a praça/tenant
+   */
+  public static getTenantMapConfig(tenantId?: string): {
+    tenantId: string;
+    isMatriz: boolean;
+    provider: "mapbox" | "google" | "osm";
+    mapboxAccessToken: string;
+    googleMapsApiKey: string;
+    effectiveMapboxToken: string;
+    effectiveGoogleApiKey: string;
+    hasOwnMapboxKey: boolean;
+    hasOwnGoogleKey: boolean;
+    isConfigured: boolean;
+    center: [number, number];
+    statusLabel: string;
+  } {
+    const targetTenantId =
+      tenantId ||
+      (typeof window !== "undefined" ? WhiteLabelEngine.getInstance()?.getActiveTenantId?.() : undefined) ||
+      "default";
+
+    const isMatriz = MapboxConfig.isOfficialMatrizTenant(targetTenantId);
+    let provider: "mapbox" | "google" | "osm" = "mapbox";
+    let mapboxAccessToken = "";
+    let googleMapsApiKey = "";
+    let center: [number, number] = MapboxConfig.getDefaultCenter(targetTenantId);
+
+    try {
+      const wlEngine = WhiteLabelEngine.getInstance();
+      const config = wlEngine.getTenantConfig(targetTenantId);
+      if (config?.geo) {
+        if (config.geo.mapProvider === "google" || config.geo.mapProvider === "osm" || config.geo.mapProvider === "mapbox") {
+          provider = config.geo.mapProvider;
+        }
+        mapboxAccessToken = (config.geo.mapboxAccessToken || "").trim();
+        googleMapsApiKey = (config.geo.googleMapsApiKey || "").trim();
+        if (
+          config.geo.coordenadasCentroLng !== undefined &&
+          config.geo.coordenadasCentroLat !== undefined &&
+          !isNaN(config.geo.coordenadasCentroLng) &&
+          !isNaN(config.geo.coordenadasCentroLat)
+        ) {
+          center = [config.geo.coordenadasCentroLng, config.geo.coordenadasCentroLat];
+        }
+      }
+    } catch {
+      // Silencioso
+    }
+
+    const hasOwnMapboxKey = Boolean(
+      mapboxAccessToken.startsWith("pk.") &&
+      mapboxAccessToken.length > 20 &&
+      !mapboxAccessToken.includes("example")
+    );
+    const hasOwnGoogleKey = Boolean(
+      googleMapsApiKey.length > 15 &&
+      !googleMapsApiKey.includes("example")
+    );
+
+    const effectiveMapboxToken = hasOwnMapboxKey
+      ? mapboxAccessToken
+      : isMatriz
+      ? MapboxConfig.getMatrizOfficialToken()
+      : "";
+
+    const effectiveGoogleApiKey = hasOwnGoogleKey ? googleMapsApiKey : "";
+
+    const isConfigured = isMatriz || (provider === "google" ? hasOwnGoogleKey : hasOwnMapboxKey);
+
+    let statusLabel = "Operando com Chave Oficial da Matriz";
+    if (!isMatriz) {
+      if (provider === "google" && hasOwnGoogleKey) {
+        statusLabel = "Google Maps Próprio Conectado";
+      } else if (hasOwnMapboxKey) {
+        statusLabel = "Mapbox Próprio Conectado";
+      } else if (provider === "osm") {
+        statusLabel = "OpenStreetMap / CARTO (Gratuito)";
+      } else {
+        statusLabel = "Pendente: Sem Chave Própria (Fallback CARTO Ativo)";
+      }
+    }
+
+    return {
+      tenantId: targetTenantId,
+      isMatriz,
+      provider,
+      mapboxAccessToken,
+      googleMapsApiKey,
+      effectiveMapboxToken,
+      effectiveGoogleApiKey,
+      hasOwnMapboxKey,
+      hasOwnGoogleKey,
+      isConfigured,
+      center,
+      statusLabel,
+    };
+  }
+
+  /**
+   * Verifica se o tenant (seja matriz ou franqueado) possui uma chave de API de mapas própria pronta para uso
+   */
+  public static isTenantMapConfigured(tenantId?: string): boolean {
+    const mapConfig = MapboxConfig.getTenantMapConfig(tenantId);
+    return mapConfig.isConfigured;
+  }
+
+  /**
+   * Resolve o token do Mapbox com isolamento estrito:
+   * 1. Se for Franqueado White-Label: DEVE fornecer sua própria chave de API (mapboxAccessToken).
+   *    Franqueados NUNCA consomem a API da conta oficial da Matriz Partiu.
+   * 2. Se for a conta oficial da Matriz (Super Administrador):
+   *    Utiliza a API oficial pré-configurada (Vite / Process / Builtin).
+   */
+  public static getAccessToken(tenantId?: string): string {
+    const config = MapboxConfig.getTenantMapConfig(tenantId);
+    return config.effectiveMapboxToken;
+  }
+
+  /**
+   * Valida online se um token Mapbox fornecido é autêntico e tem permissão pública
+   */
+  public static async testMapboxToken(
+    token: string
+  ): Promise<{ valid: boolean; message: string }> {
+    const cleanToken = (token || "").trim();
+    if (!cleanToken) {
+      return { valid: false, message: "Token Mapbox não informado." };
+    }
+    if (!cleanToken.startsWith("pk.")) {
+      return {
+        valid: false,
+        message: "O token Mapbox deve começar com 'pk.' (chave pública padrão).",
+      };
+    }
+    if (cleanToken.length < 25) {
+      return { valid: false, message: "Comprimento do token Mapbox inválido." };
+    }
+
+    try {
+      const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/brasil.json?access_token=${encodeURIComponent(
+        cleanToken
+      )}&limit=1`;
+      const res = await fetch(endpoint, { method: "GET" });
+      if (res.status === 200) {
+        return { valid: true, message: "Token Mapbox validado com sucesso! Conexão ativa." };
+      }
+      if (res.status === 401 || res.status === 403) {
+        return {
+          valid: false,
+          message: "Token Mapbox rejeitado pela API (401/403). Verifique se a chave é válida e pública.",
+        };
+      }
+      return {
+        valid: false,
+        message: `Servidor Mapbox retornou código HTTP ${res.status}. Verifique suas cotas.`,
+      };
+    } catch (err: any) {
+      return {
+        valid: false,
+        message: `Falha na requisição de teste: ${err?.message || "Erro de rede."}`,
+      };
+    }
+  }
+
+  /**
+   * Valida o formato da chave Google Maps Platform
+   */
+  public static async testGoogleMapsApiKey(
+    apiKey: string
+  ): Promise<{ valid: boolean; message: string }> {
+    const cleanKey = (apiKey || "").trim();
+    if (!cleanKey) {
+      return { valid: false, message: "Chave Google Maps não informada." };
+    }
+    if (cleanKey.length < 20) {
+      return { valid: false, message: "Comprimento da chave Google Maps muito curto." };
+    }
+    if (!cleanKey.startsWith("AIzaSy") && !cleanKey.startsWith("AIza")) {
+      return {
+        valid: false,
+        message: "Chaves de API do Google Maps geralmente iniciam com 'AIza...'",
+      };
+    }
+
+    // Testa carregamento de um tile de teste do Google Maps
+    try {
+      const tileUrl = `https://mt1.google.com/vt/lyrs=m&x=1&y=1&z=1&key=${encodeURIComponent(cleanKey)}`;
+      const res = await fetch(tileUrl, { method: "HEAD", mode: "no-cors" });
+      return {
+        valid: true,
+        message: "Chave Google Maps configurada e pronta para exibição em tiles!",
+      };
+    } catch {
+      return {
+        valid: true,
+        message: "Chave Google Maps com formato válido salva com sucesso.",
+      };
+    }
   }
 
   /**

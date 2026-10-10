@@ -27,10 +27,13 @@ export const PRACA_GLOBAL_TODAS: AdminPracaOperacao = {
   raioKm: 1500,
 };
 
+import { whiteLabelEngine } from "@/lib/white-label";
+import { getContaAtiva, isFranqueado } from "@/lib/admin-rbac";
+
 export const PRACAS_PADRAO_INICIAIS: AdminPracaOperacao[] = [
   PRACA_GLOBAL_TODAS,
   {
-    id: "itp",
+    id: "tenant-itaperuna",
     nome: "Itaperuna",
     uf: "RJ",
     labelCompleto: "Itaperuna - RJ",
@@ -40,7 +43,7 @@ export const PRACAS_PADRAO_INICIAIS: AdminPracaOperacao[] = [
     raioKm: 15,
   },
   {
-    id: "cmp",
+    id: "tenant-campos",
     nome: "Campos dos Goytacazes",
     uf: "RJ",
     labelCompleto: "Campos dos Goytacazes - RJ",
@@ -49,21 +52,53 @@ export const PRACAS_PADRAO_INICIAIS: AdminPracaOperacao[] = [
     lng: -41.3244,
     raioKm: 25,
   },
+  {
+    id: "tenant-bhmob",
+    nome: "Belo Horizonte",
+    uf: "MG",
+    labelCompleto: "Belo Horizonte (BH Mob) - MG",
+    status: "ATIVA",
+    lat: -19.9167,
+    lng: -43.9345,
+    raioKm: 30,
+  },
 ];
 
 const STORAGE_KEY_PRACA_ATIVA = "partiu_admin_praca_ativa";
 const STORAGE_KEY_PRACAS_CUSTOM = "partiu_cidades_ativas";
 
 /**
- * Normaliza e consolida as praças cadastradas em localStorage e nos padrões
+ * Normaliza e consolida as praças cadastradas em localStorage, WhiteLabelEngine e padrões
  */
 export function carregarPracasDisponiveis(): AdminPracaOperacao[] {
   const pracasMap = new Map<string, AdminPracaOperacao>();
 
-  // 1. Inserir praças padrão
+  // 1. Inserir praça global e padrões
   PRACAS_PADRAO_INICIAIS.forEach((p) => pracasMap.set(p.id, p));
 
-  // 2. Mesclar praças criadas dinamicamente no assistente de onboarding
+  // 2. Mesclar todos os Franqueados / Praças cadastrados no WhiteLabelEngine
+  try {
+    const tenants = whiteLabelEngine.getAllTenants();
+    tenants.forEach((t) => {
+      if (t.tenantId === "default" || t.tenantId === "matriz-br") return;
+      const id = t.tenantId;
+      const nome = t.cidadeNome || t.nomeOperacao;
+      const uf = t.uf || "BR";
+      const geo = t.configuracaoCompleta?.geo;
+      pracasMap.set(id, {
+        id,
+        nome,
+        uf,
+        labelCompleto: `${nome} - ${uf}`,
+        status: t.ativo !== false && t.statusPlano !== "SUSPENSO" ? "ATIVA" : "PAUSADA",
+        lat: geo?.coordenadasCentroLat ?? -21.2054,
+        lng: geo?.coordenadasCentroLng ?? -41.8892,
+        raioKm: geo?.raioOperacaoPadraoKm ?? 15,
+      });
+    });
+  } catch {}
+
+  // 3. Mesclar praças criadas dinamicamente no assistente de onboarding
   if (typeof window !== "undefined") {
     try {
       const rawCustom = localStorage.getItem(STORAGE_KEY_PRACAS_CUSTOM);
@@ -94,11 +129,15 @@ export function carregarPracasDisponiveis(): AdminPracaOperacao[] {
 }
 
 /**
- * Obtém o ID da praça ativa salva no navegador
+ * Obtém o ID da praça ativa salva no navegador com isolamento estrito para Franqueado
  */
 export function getPracaAtivaId(): string {
   if (typeof window === "undefined") return "todas";
   try {
+    const conta = getContaAtiva();
+    if (isFranqueado(conta.role) && conta.tenantId) {
+      return conta.tenantId;
+    }
     const saved = localStorage.getItem(STORAGE_KEY_PRACA_ATIVA);
     if (saved && saved.trim()) return saved.trim();
   } catch {}
@@ -119,8 +158,15 @@ export function getPracaAtiva(): AdminPracaOperacao {
  * Altera a praça ativa, persiste e notifica o ecossistema com evento de broadcast
  */
 export function setPracaAtiva(pracaId: string): AdminPracaOperacao {
+  const conta = getContaAtiva();
+  // Franqueado tem praça estritamente bloqueada na sua própria franquia
+  let targetId = pracaId;
+  if (isFranqueado(conta.role) && conta.tenantId) {
+    targetId = conta.tenantId;
+  }
+
   const pracas = carregarPracasDisponiveis();
-  const novaPraca = pracas.find((p) => p.id === pracaId) || PRACA_GLOBAL_TODAS;
+  const novaPraca = pracas.find((p) => p.id === targetId) || PRACA_GLOBAL_TODAS;
 
   if (typeof window !== "undefined") {
     try {

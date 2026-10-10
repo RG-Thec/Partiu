@@ -20,6 +20,9 @@ import {
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useBranding } from "@/hooks/useBranding";
 import { updateBrowserFavicon, generateSvgFavicon } from "@/lib/branding/ThemeEngine";
+import { MapboxConfig } from "@/config/MapboxConfig";
+import { toast } from "sonner";
+import { ExternalLink, CheckCircle2, Share2, Key } from "lucide-react";
 
 interface GeoAppComplianceTabProps {
   onSaveFeedback: () => void;
@@ -30,13 +33,67 @@ export function GeoAppComplianceTab({
   onSaveFeedback,
   onRequestSimulatorMode,
 }: GeoAppComplianceTabProps) {
-  const { geo, appConfig, brand, updateConfig } = useBrandTheme();
+  const { geo, appConfig, brand, updateConfig, activeTenant } = useBrandTheme();
   const { branding, updateBranding, uploadAsset } = useBranding();
 
   const [geoAppSubTab, setGeoAppSubTab] = useState<"stores" | "legal" | "assets">("stores");
   const [uploadingField, setUploadingField] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [faviconTestFeedback, setFaviconTestFeedback] = useState(false);
+
+  // Estados de teste e visualização de chaves de mapas
+  const [testandoMapa, setTestandoMapa] = useState(false);
+  const [resultadoTesteMapa, setResultadoTesteMapa] = useState<{ valid: boolean; message: string } | null>(null);
+  const [mostrarToken, setMostrarToken] = useState(false);
+
+  const tenantId = activeTenant?.tenantId || "default";
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
+  const passengerUrl = `${origin}/app?tenant=${encodeURIComponent(tenantId)}`;
+  const driverUrl = `${origin}/app/motorista?tenant=${encodeURIComponent(tenantId)}`;
+
+  function handleCopiarLink(url: string, label: string) {
+    navigator.clipboard.writeText(url);
+    toast.success(`Link de ${label} copiado!`);
+  }
+
+  function handleCompartilharWhatsApp(url: string, tipo: "PASSAGEIRO" | "MOTORISTA") {
+    const nomeApp = appConfig?.nomeAppExibicao || branding?.app_name || "PARTIU";
+    const texto = tipo === "MOTORISTA"
+      ? `🚗 Venha dirigir no aplicativo ${nomeApp}! Repasse no PIX D+0 e suporte local. Cadastre-se: ${url}`
+      : `📲 Peça sua viagem no ${nomeApp}! Mais conforto, preço justo e segurança na cidade: ${url}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, "_blank", "noopener,noreferrer");
+  }
+
+  async function handleTestarChaveMapa() {
+    setTestandoMapa(true);
+    setResultadoTesteMapa(null);
+    try {
+      const prov = geo?.mapProvider || "mapbox";
+      if (prov === "mapbox") {
+        const token = (geo?.mapboxAccessToken || "").trim();
+        const res = await MapboxConfig.testMapboxToken(token);
+        setResultadoTesteMapa(res);
+        if (res.valid) toast.success(res.message);
+        else toast.error(res.message);
+      } else if (prov === "google") {
+        const key = (geo?.googleMapsApiKey || "").trim();
+        const res = await MapboxConfig.testGoogleMapsApiKey(key);
+        setResultadoTesteMapa(res);
+        if (res.valid) toast.success(res.message);
+        else toast.error(res.message);
+      } else {
+        const res = { valid: true, message: "Camada gratuita CARTO/OSM ativa (sem consumo de cota)." };
+        setResultadoTesteMapa(res);
+        toast.success(res.message);
+      }
+    } catch (err: any) {
+      const res = { valid: false, message: err?.message || "Falha ao validar chave de mapa." };
+      setResultadoTesteMapa(res);
+      toast.error(res.message);
+    } finally {
+      setTestandoMapa(false);
+    }
+  }
 
   function handleApplyCustomFavicon(url: string) {
     updateConfig({
@@ -182,6 +239,110 @@ export function GeoAppComplianceTab({
       {/* ------------------------------------------------------------- */}
       {geoAppSubTab === "stores" && (
         <div className="space-y-6 animate-in fade-in">
+          {/* PAINEL DE LINKS EXCLUSIVOS DA FRANQUIA / CIDADE */}
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-slate-50 border border-blue-200/80 shadow-2xs space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-xs font-black uppercase tracking-wider text-[#003366] flex items-center gap-1.5">
+                  <Globe className="w-4 h-4 text-[#0088FF]" />
+                  Links Personalizados do Aplicativo ({activeTenant?.cidadeNome || "Praça Regional"})
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  URLs com identificador exclusivo que travam a marca, cores, catálogo e tarifas desta praça para passageiros e motoristas.
+                </p>
+              </div>
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200 self-start sm:self-auto">
+                Isolamento Ativo
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+              {/* Card Link Passageiros */}
+              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <Smartphone className="w-3.5 h-3.5 text-primary-500" />
+                    Aplicativo de Passageiros
+                  </span>
+                  <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    PWA / Web App
+                  </span>
+                </div>
+                <code className="text-[11px] font-mono text-primary-700 bg-primary-50/70 p-2 rounded-lg border border-primary-200/60 block truncate select-all">
+                  {passengerUrl}
+                </code>
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => handleCopiarLink(passengerUrl, "passageiros")}
+                    className="flex-1 py-1.5 px-2.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center gap-1 transition cursor-pointer"
+                  >
+                    <Copy className="w-3 h-3" />
+                    <span>Copiar Link</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => window.open(passengerUrl, "_blank", "noopener,noreferrer")}
+                    className="py-1.5 px-2.5 rounded-lg text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 flex items-center gap-1 transition cursor-pointer"
+                    title="Abrir em Nova Aba"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleCompartilharWhatsApp(passengerUrl, "PASSAGEIRO")}
+                    className="py-1.5 px-2.5 rounded-lg text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center gap-1 transition cursor-pointer"
+                    title="Compartilhar no WhatsApp"
+                  >
+                    <Share2 className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Card Link Motoristas */}
+              <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <Smartphone className="w-3.5 h-3.5 text-emerald-500" />
+                    Portal do Motorista Parceiro
+                  </span>
+                  <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                    Cadastro &amp; Diárias
+                  </span>
+                </div>
+                <code className="text-[11px] font-mono text-emerald-700 bg-emerald-50/70 p-2 rounded-lg border border-emerald-200/60 block truncate select-all">
+                  {driverUrl}
+                </code>
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => handleCopiarLink(driverUrl, "motoristas")}
+                    className="flex-1 py-1.5 px-2.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center gap-1 transition cursor-pointer"
+                  >
+                    <Copy className="w-3 h-3" />
+                    <span>Copiar Link</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => window.open(driverUrl, "_blank", "noopener,noreferrer")}
+                    className="py-1.5 px-2.5 rounded-lg text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center gap-1 transition cursor-pointer"
+                    title="Abrir Portal do Motorista"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleCompartilharWhatsApp(driverUrl, "MOTORISTA")}
+                    className="py-1.5 px-2.5 rounded-lg text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center gap-1 transition cursor-pointer"
+                    title="Compartilhar no WhatsApp"
+                  >
+                    <Share2 className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div>
             <h3 className="text-xs font-black uppercase tracking-wider text-[#003366] mb-3 flex items-center gap-1.5">
               <Globe className="w-4 h-4 text-[#0088FF]" />
@@ -293,14 +454,29 @@ export function GeoAppComplianceTab({
             </div>
 
             {/* MOTOR GEOESPACIAL & CHAVES DE API DE MAPAS DO FRANQUEADO */}
-            <div className="mt-5 pt-5 border-t border-slate-100">
-              <h4 className="text-xs font-black uppercase tracking-wider text-[#003366] mb-3 flex items-center gap-1.5">
-                <Navigation className="w-4 h-4 text-[#0088FF]" />
-                Motor Geoespacial &amp; Chaves de API de Mapas da Franquia
-              </h4>
-              <p className="text-[11px] text-slate-500 mb-3">
-                Configure a chave de API de mapas e a ancoragem geográfica inicial exclusiva desta cidade para isolar custos e cotas de requisições.
-              </p>
+            <div className="mt-5 pt-5 border-t border-slate-100 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-[#003366] flex items-center gap-1.5">
+                    <Navigation className="w-4 h-4 text-[#0088FF]" />
+                    Conectar APIs de Mapas Própria (Isolamento de Cotas)
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Cada franqueado conecta sua própria chave Google Maps ou Mapbox para isolar faturamento e consumo da matriz.
+                  </p>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 self-start sm:self-auto">
+                  Chave Matriz Restrita ao Super Admin
+                </span>
+              </div>
+
+              {/* Aviso Explícito de Isolamento */}
+              <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-800 flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+                <p className="text-[11px] leading-relaxed">
+                  <strong>Política de Proteção de Cotas:</strong> A chave do sistema principal é restrita à Matriz do Super Administrador. Para habilitar mapas com alta precisão e rotas de tráfego na sua praça, insira seu Token Mapbox (<code className="font-mono text-[10px]">pk.*</code>) ou sua Chave Google Maps Platform (<code className="font-mono text-[10px]">AIzaSy*</code>). Caso não configure uma chave, seu aplicativo utilizará a camada gratuita pública OpenStreetMap/CARTO.
+                </p>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
@@ -315,20 +491,29 @@ export function GeoAppComplianceTab({
                       });
                       onSaveFeedback();
                     }}
-                    className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none"
+                    className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none font-semibold"
                   >
                     <option value="mapbox">Mapbox GL JS (Nativo)</option>
                     <option value="google">Google Maps Platform</option>
-                    <option value="osm">OpenStreetMap / CARTO (Gratuito)</option>
+                    <option value="osm">OpenStreetMap / CARTO (Gratuito / Sem Chave)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Token Mapbox do Franqueado (pk.*)
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-slate-700">
+                      Token Mapbox do Franqueado (pk.*)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setMostrarToken(!mostrarToken)}
+                      className="text-[10px] text-slate-400 hover:text-slate-600 flex items-center gap-0.5 cursor-pointer"
+                    >
+                      {mostrarToken ? "Ocultar" : "Exibir"}
+                    </button>
+                  </div>
                   <input
-                    type="password"
+                    type={mostrarToken ? "text" : "password"}
                     value={geo?.mapboxAccessToken || ""}
                     onChange={(e) => {
                       updateConfig({
@@ -342,11 +527,20 @@ export function GeoAppComplianceTab({
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Chave Google Maps (Opcional)
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-slate-700">
+                      Chave Google Maps (AIzaSy...)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setMostrarToken(!mostrarToken)}
+                      className="text-[10px] text-slate-400 hover:text-slate-600 flex items-center gap-0.5 cursor-pointer"
+                    >
+                      {mostrarToken ? "Ocultar" : "Exibir"}
+                    </button>
+                  </div>
                   <input
-                    type="password"
+                    type={mostrarToken ? "text" : "password"}
                     value={geo?.googleMapsApiKey || ""}
                     onChange={(e) => {
                       updateConfig({
@@ -398,7 +592,46 @@ export function GeoAppComplianceTab({
                     className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none font-mono"
                   />
                 </div>
+
+                {/* Botão de Teste */}
+                <div className="flex flex-col justify-end">
+                  <button
+                    type="button"
+                    onClick={handleTestarChaveMapa}
+                    disabled={testandoMapa}
+                    className="w-full h-9 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  >
+                    {testandoMapa ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-blue-600" />
+                        <span>Validando Chave...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Testar Conexão da API</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
+
+              {resultadoTesteMapa && (
+                <div
+                  className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${
+                    resultadoTesteMapa.valid
+                      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                      : "bg-rose-50 text-rose-800 border-rose-200"
+                  }`}
+                >
+                  {resultadoTesteMapa.valid ? (
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
+                  )}
+                  <span>{resultadoTesteMapa.message}</span>
+                </div>
+              )}
             </div>
           </div>
 

@@ -191,19 +191,33 @@ export class RoutingService {
 
     let metrics: RouteMetrics | null = null;
 
+    // 1.5. Resolução dinâmica de credenciais com isolamento estrito por Franquia / Matriz
+    const tenantMapConfig = MapboxConfig.getTenantMapConfig();
+    const effectiveGoogleKey = tenantMapConfig.hasOwnGoogleKey
+      ? tenantMapConfig.effectiveGoogleApiKey
+      : tenantMapConfig.isMatriz
+      ? this.googleApiKey
+      : "";
+
+    const effectiveMapboxToken = tenantMapConfig.hasOwnMapboxKey
+      ? tenantMapConfig.effectiveMapboxToken
+      : tenantMapConfig.isMatriz
+      ? (this.mapboxToken || MapboxConfig.getAccessToken())
+      : "";
+
     // 2. Provedor 1: Google Directions API (Live Traffic)
-    if (this.googleApiKey && this.googleApiKey.trim().length > 10) {
+    if (effectiveGoogleKey && effectiveGoogleKey.trim().length > 10) {
       try {
-        metrics = await this.fetchGoogleDirections(origin, destination, options);
+        metrics = await this.fetchGoogleDirections(origin, destination, options, effectiveGoogleKey);
       } catch (err) {
-        console.warn("[RoutingService] Google Directions API falhou, acionando fallback Mapbox:", err);
+        console.warn("[RoutingService] Google Directions API falhou, acionando fallback:", err);
       }
     }
 
     // 3. Provedor 2: Mapbox Directions API (Driving Traffic)
-    if (!metrics && this.mapboxToken && this.mapboxToken.trim().length > 10) {
+    if (!metrics && effectiveMapboxToken && effectiveMapboxToken.trim().length > 10) {
       try {
-        metrics = await this.fetchMapboxDirections(origin, destination, options);
+        metrics = await this.fetchMapboxDirections(origin, destination, options, effectiveMapboxToken);
       } catch (err) {
         console.warn("[RoutingService] Mapbox Directions API falhou, acionando fallback OSRM:", err);
       }
@@ -235,12 +249,14 @@ export class RoutingService {
   private async fetchGoogleDirections(
     origin: [number, number],
     destination: [number, number],
-    options: RouteRequestOptions
+    options: RouteRequestOptions,
+    customApiKey?: string
   ): Promise<RouteMetrics> {
+    const keyToUse = customApiKey || this.googleApiKey;
     const originStr = `${origin[1]},${origin[0]}`;
     const destStr = `${destination[1]},${destination[0]}`;
     const mode = options.vehicleType === "motorcycle" ? "two_wheeler" : "driving";
-    const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${originStr}&destination=${destStr}&mode=${mode}&departure_time=now&traffic_model=best_guess&key=${this.googleApiKey}`;
+    const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${originStr}&destination=${destStr}&mode=${mode}&departure_time=now&traffic_model=best_guess&key=${keyToUse}`;
 
     const res = await fetch(url);
     if (!res.ok) throw new Error(`Google HTTP ${res.status}`);
@@ -281,12 +297,14 @@ export class RoutingService {
   private async fetchMapboxDirections(
     origin: [number, number],
     destination: [number, number],
-    options: RouteRequestOptions
+    options: RouteRequestOptions,
+    customToken?: string
   ): Promise<RouteMetrics> {
+    const tokenToUse = customToken || this.mapboxToken;
     const profile = options.trafficAware ? "driving-traffic" : "driving";
     const allPoints: [number, number][] = [origin, ...(options.waypoints || []), destination];
     const coordsStr = allPoints.map((p) => `${p[0]},${p[1]}`).join(";");
-    const url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coordsStr}?geometries=geojson&overview=full&steps=true&annotations=duration,distance&access_token=${this.mapboxToken}`;
+    const url = `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coordsStr}?geometries=geojson&overview=full&steps=true&annotations=duration,distance&access_token=${tokenToUse}`;
 
     const res = await fetch(url);
     if (!res.ok) throw new Error(`Mapbox HTTP ${res.status}`);

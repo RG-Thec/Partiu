@@ -918,28 +918,14 @@ export class WhiteLabelEngine {
     }
 
     try {
-      const savedTenantId = localStorage.getItem(STORAGE_KEY_ACTIVE_TENANT);
-      if (savedTenantId && savedTenantId !== "tenant-campos") {
-        this.activeTenantId = savedTenantId;
-      } else if (savedTenantId === "tenant-campos") {
-        const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-        if (urlParams?.get("tenant") === "tenant-campos") {
-          this.activeTenantId = "tenant-campos";
-        } else {
-          this.activeTenantId = "tenant-itaperuna";
-          localStorage.setItem(STORAGE_KEY_ACTIVE_TENANT, "tenant-itaperuna");
-        }
-      } else {
-        this.activeTenantId = "tenant-itaperuna";
-      }
-
+      // 1. Carrega o registro de tenants primeiro
       const rawTenants = localStorage.getItem(STORAGE_KEY_TENANTS_MAP);
       if (rawTenants) {
         const parsed = JSON.parse(rawTenants) as WhiteLabelTenantRecord[];
         parsed.forEach((t) => this.tenantsMap.set(t.tenantId, t));
       }
 
-      // Expurga qualquer registro antigo de Macaé criado na sessão anterior
+      // Expurga qualquer registro antigo incorreto
       const keysToDelete: string[] = [];
       this.tenantsMap.forEach((t, k) => {
         const idLower = (k || "").toLowerCase();
@@ -964,6 +950,43 @@ export class WhiteLabelEngine {
         }
       });
 
+      // 2. Resolução do Tenant Ativo com Prioridade Estrita:
+      // Prioridade 1: Query param na URL (?tenant= ou ?tenant_id=) — Trava imediata da franquia
+      const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+      const urlTenant = (urlParams?.get("tenant") || urlParams?.get("tenant_id") || "").trim();
+
+      if (urlTenant) {
+        this.activeTenantId = urlTenant;
+      } else {
+        // Prioridade 2: Sessão de administrador franqueado autenticado
+        let sessionTenant = "";
+        try {
+          const authRaw = localStorage.getItem("partiu_admin_session_auth") || localStorage.getItem("partiu_admin_session");
+          if (authRaw) {
+            const parsed = JSON.parse(authRaw);
+            if (parsed?.role === "FRANQUEADO" && parsed?.tenantId) {
+              sessionTenant = parsed.tenantId.trim();
+            }
+          }
+        } catch {}
+
+        if (sessionTenant) {
+          this.activeTenantId = sessionTenant;
+        } else {
+          // Prioridade 3: Armazenamento persistido unificado
+          const savedTenantId =
+            localStorage.getItem(STORAGE_KEY_ACTIVE_TENANT) ||
+            localStorage.getItem("partiu_active_tenant_id_v2") ||
+            localStorage.getItem("partiu_wl_active_tenant_v1");
+
+          if (savedTenantId && savedTenantId.trim()) {
+            this.activeTenantId = savedTenantId.trim();
+          } else {
+            this.activeTenantId = "default";
+          }
+        }
+      }
+
       this.saveTenantsRegistry();
     } catch (err) { silentCatchWarn("white-label-engine", err); }
   }
@@ -976,6 +999,8 @@ export class WhiteLabelEngine {
         JSON.stringify(Array.from(this.tenantsMap.values()))
       );
       localStorage.setItem(STORAGE_KEY_ACTIVE_TENANT, this.activeTenantId);
+      localStorage.setItem("partiu_active_tenant_id_v2", this.activeTenantId);
+      localStorage.setItem("partiu_wl_active_tenant_v1", this.activeTenantId);
     } catch (err) { silentCatchWarn("white-label-engine", err); }
   }
 

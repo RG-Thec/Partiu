@@ -324,7 +324,7 @@ export class TenantDomainService {
           }
 
           const storedV2 = localStorage.getItem("partiu_active_tenant_id_v2");
-          if (storedV2 && storedV2 !== "tenant-campos") {
+          if (storedV2 && storedV2.trim()) {
             return {
               tenantId: storedV2.trim(),
               source: "STORAGE",
@@ -334,8 +334,10 @@ export class TenantDomainService {
             };
           }
 
-          const storedTenant = localStorage.getItem("partiu_whitelabel_active_tenant_id_v1");
-          if (storedTenant && storedTenant !== "tenant-campos") {
+          const storedTenant =
+            localStorage.getItem("partiu_whitelabel_active_tenant_id_v1") ||
+            localStorage.getItem("partiu_wl_active_tenant_v1");
+          if (storedTenant && storedTenant.trim()) {
             return {
               tenantId: storedTenant.trim(),
               source: "STORAGE",
