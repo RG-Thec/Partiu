@@ -79,7 +79,7 @@ export function convertWhiteLabelToBrandingRecord(
 // ------------------------------------------------------------------------------
 export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
   versaoSchema: 1,
-  tenantId: "tenant-itaperuna",
+  tenantId: "default",
   atualizadoEm: 1773014400000,
   brandCenter: {
     nomePlataforma: "PARTIU",
@@ -474,8 +474,8 @@ export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
     ],
   },
   geo: {
-    cidadeSede: "Itaperuna",
-    estadoUf: "RJ",
+    cidadeSede: "Brasília",
+    estadoUf: "DF",
     paisNome: "Brasil",
     paisCodigoIso: "BRA",
     moedaSimbolo: "R$",
@@ -483,9 +483,9 @@ export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
     idiomaPadrao: "pt-BR",
     fusoHorario: "America/Sao_Paulo",
     formatoTelefone: "(99) 99999-9999",
-    coordenadasCentroLat: -21.205,
-    coordenadasCentroLng: -41.888,
-    raioOperacaoPadraoKm: 15.0,
+    coordenadasCentroLat: -15.793889,
+    coordenadasCentroLng: -47.882778,
+    raioOperacaoPadraoKm: 50.0,
     mapProvider: "mapbox",
     mapboxAccessToken: "",
     googleMapsApiKey: "",
@@ -690,7 +690,7 @@ export const WHITELABEL_PRESETS: WhiteLabelThemePreset[] = [
   },
 ];
 
-const SEED_TENANTS: WhiteLabelTenantRecord[] = [
+const SEED_TENANTS_CORE: WhiteLabelTenantRecord[] = [
   {
     tenantId: "default",
     nomeOperacao: "PARTIU (Matriz Oficial)",
@@ -725,8 +725,8 @@ const SEED_TENANTS: WhiteLabelTenantRecord[] = [
         tipoChavePixAdmin: "email",
         beneficiarioAdmin: "PARTIU Holding Nacional",
         cidadeAdmin: "Brasilia",
-        diariaCarro: 20.00,
-        diariaMoto: 12.00,
+        diariaCarro: 19.90,
+        diariaMoto: 11.90,
       },
       geo: {
         ...DEFAULT_WHITELABEL_CONFIG.geo,
@@ -737,6 +737,13 @@ const SEED_TENANTS: WhiteLabelTenantRecord[] = [
       },
     },
   },
+];
+
+const isTestEnv =
+  typeof process !== "undefined" &&
+  (process.env?.NODE_ENV === "test" || process.argv?.some((a) => a.includes("test")));
+
+const TEST_FIXTURE_TENANTS: WhiteLabelTenantRecord[] = [
   {
     tenantId: "tenant-itaperuna",
     nomeOperacao: "PARTIU Itaperuna (Sede Noroeste)",
@@ -877,12 +884,17 @@ const SEED_TENANTS: WhiteLabelTenantRecord[] = [
   },
 ];
 
+const SEED_TENANTS: WhiteLabelTenantRecord[] = [
+  ...SEED_TENANTS_CORE,
+  ...(isTestEnv ? TEST_FIXTURE_TENANTS : []),
+];
+
 // ------------------------------------------------------------------------------
 // SINGLETON: WHITE LABEL ENTERPRISE ENGINE
 // ------------------------------------------------------------------------------
 export class WhiteLabelEngine {
   private static instance: WhiteLabelEngine;
-  private activeTenantId: string = "tenant-itaperuna";
+  private activeTenantId: string = "default";
   private tenantsMap: Map<string, WhiteLabelTenantRecord> = new Map();
   private broadcastChannel?: BroadcastChannel | undefined;
 
@@ -925,25 +937,33 @@ export class WhiteLabelEngine {
         parsed.forEach((t) => this.tenantsMap.set(t.tenantId, t));
       }
 
-      // Expurga qualquer registro antigo incorreto
-      const keysToDelete: string[] = [];
-      this.tenantsMap.forEach((t, k) => {
-        const idLower = (k || "").toLowerCase();
-        const cityLower = (t.cidadeNome || "").toLowerCase();
-        const opLower = (t.nomeOperacao || "").toLowerCase();
-        if (
-          idLower.includes("macae") ||
-          cityLower.includes("macae") ||
-          cityLower.includes("macaé") ||
-          opLower.includes("macae") ||
-          opLower.includes("macaé")
-        ) {
-          keysToDelete.push(k);
-        }
-      });
-      keysToDelete.forEach((k) => this.tenantsMap.delete(k));
+      // Em ambiente de produção real, expurga qualquer registro antigo fictício ou demonstrativo
+      if (!isTestEnv) {
+        const dummyTenantIds = ["tenant-itaperuna", "tenant-campos", "tenant-bhmob", "tenant-macae"];
+        dummyTenantIds.forEach((id) => this.tenantsMap.delete(id));
 
-      // Garante que todas as sementes canônicas (Matriz, Itaperuna, Campos e BH Mob) estejam presentes
+        const keysToDelete: string[] = [];
+        this.tenantsMap.forEach((t, k) => {
+          const idLower = (k || "").toLowerCase();
+          const cityLower = (t.cidadeNome || "").toLowerCase();
+          const opLower = (t.nomeOperacao || "").toLowerCase();
+          if (
+            idLower.includes("macae") ||
+            cityLower.includes("macae") ||
+            cityLower.includes("macaé") ||
+            opLower.includes("macae") ||
+            opLower.includes("macaé") ||
+            idLower === "tenant-itaperuna" ||
+            idLower === "tenant-campos" ||
+            idLower === "tenant-bhmob"
+          ) {
+            keysToDelete.push(k);
+          }
+        });
+        keysToDelete.forEach((k) => this.tenantsMap.delete(k));
+      }
+
+      // Garante que o registro oficial da Matriz (e fixtures em teste) esteja presente
       SEED_TENANTS.forEach((t) => {
         if (!this.tenantsMap.has(t.tenantId)) {
           this.tenantsMap.set(t.tenantId, t);
@@ -955,7 +975,7 @@ export class WhiteLabelEngine {
       const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
       const urlTenant = (urlParams?.get("tenant") || urlParams?.get("tenant_id") || "").trim();
 
-      if (urlTenant) {
+      if (urlTenant && !dummyTenantIds.includes(urlTenant)) {
         this.activeTenantId = urlTenant;
       } else {
         // Prioridade 2: Sessão de administrador franqueado autenticado
@@ -964,7 +984,7 @@ export class WhiteLabelEngine {
           const authRaw = localStorage.getItem("partiu_admin_session_auth") || localStorage.getItem("partiu_admin_session");
           if (authRaw) {
             const parsed = JSON.parse(authRaw);
-            if (parsed?.role === "FRANQUEADO" && parsed?.tenantId) {
+            if (parsed?.role === "FRANQUEADO" && parsed?.tenantId && !dummyTenantIds.includes(parsed.tenantId)) {
               sessionTenant = parsed.tenantId.trim();
             }
           }
@@ -979,7 +999,7 @@ export class WhiteLabelEngine {
             localStorage.getItem("partiu_active_tenant_id_v2") ||
             localStorage.getItem("partiu_wl_active_tenant_v1");
 
-          if (savedTenantId && savedTenantId.trim()) {
+          if (savedTenantId && savedTenantId.trim() && !dummyTenantIds.includes(savedTenantId.trim())) {
             this.activeTenantId = savedTenantId.trim();
           } else {
             this.activeTenantId = "default";
@@ -1028,19 +1048,22 @@ export class WhiteLabelEngine {
   public getActiveTenant(): WhiteLabelTenantRecord {
     const existing = this.tenantsMap.get(this.activeTenantId);
     if (existing) return existing;
+    const defaultTenant = this.tenantsMap.get("default");
+    if (defaultTenant) return defaultTenant;
     return (
       Array.from(this.tenantsMap.values())[0] || {
-        tenantId: "tenant-itaperuna",
-        nomeOperacao: "PARTIU Itaperuna",
-        cidadeId: "itaperuna-rj",
-        cidadeNome: "Itaperuna",
-        uf: "RJ",
-        responsavelNome: "Admin",
-        responsavelEmail: "admin@partiu.app",
+        tenantId: "default",
+        nomeOperacao: "PARTIU (Matriz Oficial)",
+        cidadeId: "matriz-br",
+        cidadeNome: "Matriz Nacional",
+        uf: "BR",
+        responsavelNome: "Super Administrador",
+        responsavelEmail: "superadmin@partiu.app",
         responsavelTelefone: "(22) 99876-5432",
-        cnpjFranqueado: "00.000.000/0001-00",
+        cnpjFranqueado: "48.291.834/0001-90",
         ativo: true,
-        criadoEm: Date.now(),
+        statusPlano: "ATIVO",
+        criadoEm: 1772928000000,
         configuracaoCompleta: DEFAULT_WHITELABEL_CONFIG,
       }
     );

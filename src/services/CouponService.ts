@@ -56,7 +56,7 @@ const DEFAULT_SEEDED_COUPONS: ActiveCoupon[] = [
     valor: 20,
     maxRedemptions: 500,
     redeemedCount: 184,
-    tenantId: "tenant-itaperuna",
+    tenantId: "default",
   },
   {
     id: "cup-partiu-10",
@@ -69,7 +69,7 @@ const DEFAULT_SEEDED_COUPONS: ActiveCoupon[] = [
     minTripCents: 1500,
     maxRedemptions: 1000,
     redeemedCount: 720,
-    tenantId: "tenant-itaperuna",
+    tenantId: "default",
   },
   {
     id: "cup-partiu-5",
@@ -81,7 +81,7 @@ const DEFAULT_SEEDED_COUPONS: ActiveCoupon[] = [
     valor: 5,
     maxRedemptions: 1000,
     redeemedCount: 310,
-    tenantId: "tenant-itaperuna",
+    tenantId: "default",
   },
 ];
 
@@ -128,7 +128,7 @@ export class CouponService {
     try {
       return WhiteLabelEngine.getInstance().getActiveTenantId();
     } catch {
-      return "tenant-itaperuna";
+      return "default";
     }
   }
 
@@ -152,7 +152,7 @@ export class CouponService {
       try {
         const store = typeof window !== "undefined" ? window.localStorage : localStorage;
         const tenantKey = `${STORAGE_ADMIN_CUPONS_KEY}_${effectiveTenantId}`;
-        const stored = store.getItem(tenantKey) || (effectiveTenantId === "tenant-itaperuna" ? store.getItem(STORAGE_ADMIN_CUPONS_KEY) : null);
+        const stored = store.getItem(tenantKey) || (effectiveTenantId === "default" || effectiveTenantId === "tenant-itaperuna" ? store.getItem(STORAGE_ADMIN_CUPONS_KEY) : null);
         if (stored) {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed)) {

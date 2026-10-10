@@ -143,8 +143,8 @@ export function SuperAdminDashboardExecutive() {
     const totalCanceladas = ridesFiltradas.filter((r) => r.status === "CANCELLED" || r.status === "TIMEOUT").length;
     const totalDecididas = totalConcluidas + totalCanceladas;
 
-    const txSucesso = totalDecididas > 0 ? (totalConcluidas / totalDecididas) * 100 : 96.5;
-    const tMedio = corridasFinalizadasHoje > 0 ? receitaHoje / corridasFinalizadasHoje : 24.5;
+    const txSucesso = totalDecididas > 0 ? (totalConcluidas / totalDecididas) * 100 : 0;
+    const tMedio = corridasFinalizadasHoje > 0 ? receitaHoje / corridasFinalizadasHoje : 0;
 
     return { taxaSucesso: txSucesso, ticketMedio: tMedio };
   }, [ridesFiltradas, receitaHoje, corridasFinalizadasHoje]);
@@ -210,7 +210,7 @@ export function SuperAdminDashboardExecutive() {
     };
   }, [ridesFiltradas]);
 
-  // Rankings
+  // Rankings Reais
   const { topMotoristas, topPassageiros } = useMemo(() => {
     const motoristasMap = new Map<string, { nome: string; corridas: number; gmv: number; rating: number }>();
     ridesFiltradas.forEach((r) => {
@@ -227,19 +227,6 @@ export function SuperAdminDashboardExecutive() {
         motoristasMap.set(id, current);
       }
     });
-
-    if (motoristasMap.size < 3 && motoristasBanco.length > 0) {
-      motoristasBanco.slice(0, 5).forEach((m: any, idx: number) => {
-        if (!motoristasMap.has(m.id)) {
-          motoristasMap.set(m.id, {
-            nome: m.nome_completo || m.nome || `Motorista ${idx + 1}`,
-            corridas: Math.max(14 - idx * 2, 3),
-            gmv: Math.max(420 - idx * 65, 85),
-            rating: Number(m.rating || 4.95),
-          });
-        }
-      });
-    }
 
     const passageirosMap = new Map<string, { nome: string; telefone: string; corridas: number; gastoTotal: number }>();
     ridesFiltradas.forEach((r) => {

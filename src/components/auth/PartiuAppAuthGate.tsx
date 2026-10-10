@@ -72,7 +72,7 @@ export function PartiuAppAuthGate({
         if (param && param.trim()) return param.trim();
       } catch {}
     }
-    return whiteLabelEngine.getActiveTenantId() || "tenant-itaperuna";
+    return whiteLabelEngine.getActiveTenantId() || "default";
   }, [initialTenantId]);
 
   // 1. Consumo do Tema White Label Global (Dados e Estilos Dinâmicos sem Hardcode)

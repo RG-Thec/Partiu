@@ -89,123 +89,7 @@ export interface ExecutiveSaaSMetrics {
 const SUBSCRIPTIONS_STORAGE_KEY = "partiu_driver_subscriptions_store";
 const DRIVER_ACCOUNTS_STORAGE_KEY = "partiu_driver_subscription_accounts_store";
 
-const INITIAL_DRIVER_ACCOUNTS: DriverSubscriptionAccount[] = [
-  {
-    driverId: "mot-001",
-    driverName: "Carlos Eduardo Silva",
-    phone: "(11) 98452-1099",
-    vehicleModel: "Fiat Cronos 1.3 Drive",
-    vehiclePlate: "ABC-1D23",
-    vehicleType: "CARRO",
-    currentPlanId: "plano-mensal-ilimitado",
-    currentPlanName: "Mensal Ilimitado (Zero Taxa)",
-    status: "ACTIVE",
-    startsAt: new Date(Date.now() - 7 * 86400000).toISOString(),
-    expiresAt: new Date(Date.now() + 23 * 86400000).toISOString(),
-    daysRemaining: 23,
-    lastPaymentBrl: 199.90,
-    lastPaymentDate: new Date(Date.now() - 7 * 86400000).toISOString(),
-    lastPaymentTxId: "PIX_SUB_78291024_CARLOS",
-    courtesyDaysGranted: 0,
-    documentsApproved: true,
-  },
-  {
-    driverId: "mot-002",
-    driverName: "Roberto Santos",
-    phone: "(11) 97120-3341",
-    vehicleModel: "Honda CG 160 Fan",
-    vehiclePlate: "KLP-9821",
-    vehicleType: "MOTO",
-    currentPlanId: "plano-diaria-moto",
-    currentPlanName: "Diária Flex Moto (24h)",
-    status: "ACTIVE",
-    startsAt: new Date(Date.now() - 8 * 3600000).toISOString(),
-    expiresAt: new Date(Date.now() + 16 * 3600000).toISOString(),
-    daysRemaining: 1,
-    lastPaymentBrl: 9.90,
-    lastPaymentDate: new Date(Date.now() - 8 * 3600000).toISOString(),
-    lastPaymentTxId: "PIX_SUB_88201944_ROBERTO",
-    courtesyDaysGranted: 0,
-    documentsApproved: true,
-  },
-  {
-    driverId: "mot-003",
-    driverName: "Juliana Alcântara",
-    phone: "(11) 99823-4554",
-    vehicleModel: "Chevrolet Onix Plus LTZ",
-    vehiclePlate: "XYZ-4E56",
-    vehicleType: "CARRO",
-    currentPlanId: "plano-trial-gratis",
-    currentPlanName: "Degustação Grátis (Trial 7 Dias)",
-    status: "TRIAL",
-    startsAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-    expiresAt: new Date(Date.now() + 4 * 86400000).toISOString(),
-    daysRemaining: 4,
-    lastPaymentBrl: 0.00,
-    lastPaymentDate: new Date(Date.now() - 3 * 86400000).toISOString(),
-    lastPaymentTxId: "TRIAL_CADASTRO_NOVO_JULIANA",
-    courtesyDaysGranted: 7,
-    documentsApproved: true,
-  },
-  {
-    driverId: "mot-004",
-    driverName: "Marcos Vinicius",
-    phone: "(11) 98765-4321",
-    vehicleModel: "Ford Ka 1.0 SE",
-    vehiclePlate: "BRA-2E19",
-    vehicleType: "CARRO",
-    currentPlanId: "plano-semanal-pro",
-    currentPlanName: "Semanal Pro (7 Dias)",
-    status: "GRACE_PERIOD",
-    startsAt: new Date(Date.now() - 9 * 86400000).toISOString(),
-    expiresAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-    daysRemaining: 0,
-    lastPaymentBrl: 69.90,
-    lastPaymentDate: new Date(Date.now() - 9 * 86400000).toISOString(),
-    lastPaymentTxId: "PIX_SUB_34902188_MARCOS",
-    courtesyDaysGranted: 0,
-    documentsApproved: true,
-  },
-  {
-    driverId: "mot-005",
-    driverName: "Rafael Silveira",
-    phone: "(11) 91234-5678",
-    vehicleModel: "Hyundai HB20 1.6",
-    vehiclePlate: "RIO-9J82",
-    vehicleType: "CARRO",
-    currentPlanId: "plano-mensal-ouro",
-    currentPlanName: "Mensal Ouro (30 Dias)",
-    status: "BLOCKED",
-    startsAt: new Date(Date.now() - 38 * 86400000).toISOString(),
-    expiresAt: new Date(Date.now() - 8 * 86400000).toISOString(),
-    daysRemaining: 0,
-    lastPaymentBrl: 199.90,
-    lastPaymentDate: new Date(Date.now() - 38 * 86400000).toISOString(),
-    lastPaymentTxId: "PIX_SUB_11903456_RAFAEL",
-    courtesyDaysGranted: 0,
-    blockedReason: "Inadimplência de mensalidade após expiração da carência de 3 dias.",
-    documentsApproved: true,
-  },
-  {
-    driverId: "mot-006",
-    driverName: "Fernando Guimarães",
-    phone: "(11) 97766-5544",
-    vehicleModel: "Toyota Yaris Sedan XLS",
-    vehiclePlate: "PET-4A33",
-    vehicleType: "CARRO",
-    currentPlanId: "plano-mensal-ilimitado",
-    currentPlanName: "Mensal Ilimitado (Zero Taxa)",
-    status: "ACTIVE",
-    startsAt: new Date(Date.now() - 12 * 86400000).toISOString(),
-    expiresAt: new Date(Date.now() + 18 * 86400000).toISOString(),
-    daysRemaining: 18,
-    lastPaymentBrl: 199.90,
-    lastPaymentDate: new Date(Date.now() - 12 * 86400000).toISOString(),
-    lastPaymentTxId: "PIX_SUB_99018423_FERNANDO",
-    courtesyDaysGranted: 0,
-    documentsApproved: true,
-  },
-];
+const INITIAL_DRIVER_ACCOUNTS: DriverSubscriptionAccount[] = [];
 
 class DriverSubscriptionService {
   private subscriptions: DriverSubscriptionRecord[] = [];
@@ -235,16 +119,20 @@ class DriverSubscriptionService {
   }
 
   private loadAccountsFromStorage(): DriverSubscriptionAccount[] {
-    if (typeof window === "undefined") return INITIAL_DRIVER_ACCOUNTS;
+    if (typeof window === "undefined") return [];
     try {
       const raw = localStorage.getItem(DRIVER_ACCOUNTS_STORAGE_KEY);
       if (raw) {
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          const dummyIds = ["mot-001", "mot-002", "mot-003", "mot-004", "mot-005", "mot-006"];
+          return parsed.filter((acc: DriverSubscriptionAccount) => !dummyIds.includes(acc.driverId));
+        }
       }
     } catch (e) {
       console.warn("[DriverSubscriptionService] Falha ao ler contas:", e);
     }
-    return INITIAL_DRIVER_ACCOUNTS;
+    return [];
   }
 
   private saveToStorage() {
@@ -357,7 +245,7 @@ class DriverSubscriptionService {
     try {
       return WhiteLabelEngine.getInstance().getActiveTenantId();
     } catch {
-      return "tenant-itaperuna";
+      return "default";
     }
   }
 

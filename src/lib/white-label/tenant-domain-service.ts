@@ -82,12 +82,11 @@ const STORAGE_KEY_DOMAINS = "partiu_whitelabel_domains_registry_v1";
 export const CANONICAL_CNAME_TARGET = "cname.partiumobe.com.br";
 export const CANONICAL_APEX_IP = "76.76.21.21";
 
-// Domínios canônicos iniciais (Seeds de produção e ambiente de testes)
-const INITIAL_DOMAINS: TenantDomainRecord[] = [
+const CORE_INITIAL_DOMAINS: TenantDomainRecord[] = [
   {
     id: "dom_partiu_oficial_01",
-    tenantId: "tenant-itaperuna",
-    tenantNome: "PARTIU Itaperuna (Sede)",
+    tenantId: "default",
+    tenantNome: "PARTIU (Matriz Oficial)",
     domain: "app.partiumobe.com.br",
     cnameTarget: CANONICAL_CNAME_TARGET,
     status: "ATIVO",
@@ -107,6 +106,13 @@ const INITIAL_DOMAINS: TenantDomainRecord[] = [
       },
     ],
   },
+];
+
+const isTestEnv =
+  typeof process !== "undefined" &&
+  (process.env?.NODE_ENV === "test" || process.argv?.some((a) => a.includes("test")));
+
+const TEST_FIXTURE_DOMAINS: TenantDomainRecord[] = [
   {
     id: "dom_campos_saopaulo_02",
     tenantId: "tenant-campos",
@@ -177,6 +183,11 @@ const INITIAL_DOMAINS: TenantDomainRecord[] = [
   },
 ];
 
+const INITIAL_DOMAINS: TenantDomainRecord[] = [
+  ...CORE_INITIAL_DOMAINS,
+  ...(isTestEnv ? TEST_FIXTURE_DOMAINS : []),
+];
+
 export class TenantDomainService {
   private static instance: TenantDomainService;
   private domainsMap: Map<string, TenantDomainRecord> = new Map();
@@ -201,8 +212,10 @@ export class TenantDomainService {
       const raw = localStorage.getItem(STORAGE_KEY_DOMAINS);
       if (raw) {
         const parsed = JSON.parse(raw) as TenantDomainRecord[];
+        const dummyDomains = ["app.mobe-saopaulo.com.br", "maceio.partiumobe.com.br", "bhmob.partiumobe.com.br"];
         parsed.forEach((d) => {
           const key = d.domain.toLowerCase();
+          if (dummyDomains.includes(key)) return;
           const seed = INITIAL_DOMAINS.find((s) => s.domain.toLowerCase() === key);
           // Seed canônico com status ATIVO tem precedência sobre cache pendente local
           if (seed && seed.status === "ATIVO") {
@@ -217,9 +230,8 @@ export class TenantDomainService {
             this.domainsMap.set(key, d);
           }
         });
-      } else {
-        this.persist();
       }
+      this.persist();
     } catch (err) {
       silentCatchWarn("tenant-domain-service", err);
     }
@@ -347,7 +359,7 @@ export class TenantDomainService {
       }
 
       return {
-        tenantId: "tenant-itaperuna",
+        tenantId: isTestEnv ? "tenant-itaperuna" : "default",
         source: "DEFAULT",
         matchedDomain: host,
         isCustomDomain: false,

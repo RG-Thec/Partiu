@@ -147,7 +147,7 @@ function AdminLoginPage() {
                 <input
                   type="email"
                   required
-                  placeholder="ex: dono@partiu.app"
+                  placeholder="admin@partiumobe.com.br"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   style={{ borderRadius: ui.borderRadius }}
@@ -188,48 +188,6 @@ function AdminLoginPage() {
               <ArrowRight className="h-4 w-4" />
             </button>
           </form>
-
-          {/* Atalhos Rápidos Homologados (1 Clique) */}
-          <div className="pt-3 border-t border-slate-800/80 space-y-2">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 text-center">
-              Acesso Rápido Homologado
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail("superadmin@partiu.app");
-                  setSenha("AdminPartiu2026!");
-                }}
-                className={`py-2 px-2.5 rounded-xl text-[11px] font-bold text-center transition cursor-pointer border ${
-                  email === "superadmin@partiu.app" || email === "dono@partiu.app"
-                    ? "bg-amber-500/10 text-amber-300 border-amber-500/40"
-                    : "bg-slate-800/60 text-slate-400 border-slate-700/50 hover:text-white"
-                }`}
-              >
-                👑 Super Admin (Matriz)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail("franqueado@partiu.app");
-                  setSenha("AdminPartiu2026!");
-                }}
-                className={`py-2 px-2.5 rounded-xl text-[11px] font-bold text-center transition cursor-pointer border ${
-                  email === "franqueado@partiu.app"
-                    ? "bg-indigo-500/10 text-indigo-300 border-indigo-500/40"
-                    : "bg-slate-800/60 text-slate-400 border-slate-700/50 hover:text-white"
-                }`}
-              >
-                🏢 Franqueado (Regional)
-              </button>
-            </div>
-            <p className="text-[10px] text-slate-400 text-center font-mono pt-1">
-              Super Admin: <span className="text-amber-300">superadmin@partiu.app</span> • Senha: <span className="text-amber-300">AdminPartiu2026!</span>
-            </p>
-          </div>
-
-
         </div>
 
         {/* Link para voltar ao app do passageiro */}

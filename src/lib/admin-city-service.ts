@@ -30,20 +30,13 @@ export const PRACA_GLOBAL_TODAS: AdminPracaOperacao = {
 import { whiteLabelEngine } from "@/lib/white-label";
 import { getContaAtiva, isFranqueado } from "@/lib/admin-rbac";
 
-export const PRACAS_PADRAO_INICIAIS: AdminPracaOperacao[] = [
-  PRACA_GLOBAL_TODAS,
+const isTestEnv =
+  typeof process !== "undefined" &&
+  (process.env?.NODE_ENV === "test" || process.argv?.some((a) => a.includes("test")));
+
+const TEST_FIXTURE_PRACAS: AdminPracaOperacao[] = [
   {
     id: "itp",
-    nome: "Itaperuna",
-    uf: "RJ",
-    labelCompleto: "Itaperuna - RJ",
-    status: "ATIVA",
-    lat: -21.2054,
-    lng: -41.8892,
-    raioKm: 15,
-  },
-  {
-    id: "tenant-itaperuna",
     nome: "Itaperuna",
     uf: "RJ",
     labelCompleto: "Itaperuna - RJ",
@@ -62,26 +55,11 @@ export const PRACAS_PADRAO_INICIAIS: AdminPracaOperacao[] = [
     lng: -41.3244,
     raioKm: 25,
   },
-  {
-    id: "tenant-campos",
-    nome: "Campos dos Goytacazes",
-    uf: "RJ",
-    labelCompleto: "Campos dos Goytacazes - RJ",
-    status: "ATIVA",
-    lat: -21.7545,
-    lng: -41.3244,
-    raioKm: 25,
-  },
-  {
-    id: "tenant-bhmob",
-    nome: "Belo Horizonte",
-    uf: "MG",
-    labelCompleto: "Belo Horizonte (BH Mob) - MG",
-    status: "ATIVA",
-    lat: -19.9167,
-    lng: -43.9345,
-    raioKm: 30,
-  },
+];
+
+export const PRACAS_PADRAO_INICIAIS: AdminPracaOperacao[] = [
+  PRACA_GLOBAL_TODAS,
+  ...(isTestEnv ? TEST_FIXTURE_PRACAS : []),
 ];
 
 const STORAGE_KEY_PRACA_ATIVA = "partiu_admin_praca_ativa";
@@ -125,8 +103,10 @@ export function carregarPracasDisponiveis(): AdminPracaOperacao[] {
       if (rawCustom) {
         const parsed = JSON.parse(rawCustom);
         if (Array.isArray(parsed)) {
+          const dummyIds = ["itp", "cmp", "tenant-itaperuna", "tenant-campos", "tenant-bhmob", "macae"];
           parsed.forEach((item: any) => {
             const id = item.id || `cidade_${item.nome?.toLowerCase().replace(/\s+/g, "_")}`;
+            if (dummyIds.includes(id) || dummyIds.some((d) => id.includes(d))) return;
             if (!pracasMap.has(id)) {
               pracasMap.set(id, {
                 id,

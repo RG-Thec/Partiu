@@ -135,18 +135,9 @@ export const CONTAS_ADMIN_PADRAO: AdminAccount[] = [
   {
     id: "acc_super_admin_01",
     role: "SUPER_ADMIN",
-    nome: "Diretoria Executiva (Holding)",
-    email: "dono@partiu.app",
-    cargo: "Super Administrador Geral",
-  },
-  {
-    id: "acc_franqueado_01",
-    role: "FRANQUEADO",
-    nome: "Operador Regional BH Mob",
-    email: "bhmob@partiu.app",
-    tenantId: "tenant-bhmob",
-    tenantNome: "BH Mob",
-    cargo: "Gestor de Franquia — Belo Horizonte",
+    nome: "Super Administrador Geral",
+    email: "superadmin@partiu.app",
+    cargo: "Super Administrador Geral (Matriz)",
   },
 ];
 
@@ -278,76 +269,58 @@ export async function loginAdmin(
         };
       }
 
-      // 2. Fallback seguro e resiliente para contas padrão homologadas
-      const senhasValidas = ["AdminPartiu2026!", "admin123", "superadmin123", "superadmin2026!"];
-      const isSenhaValida = senhasValidas.includes(senhaLimpa);
+      // 2. Autenticação oficial do Super Administrador Geral (Matriz)
+      const senhasSuperAdminValidas = ["AdminPartiu2026!", "admin123", "superadmin123", "superadmin2026!"];
+      const isSenhaValida = senhasSuperAdminValidas.includes(senhaLimpa);
       const isSuperAdminEmail =
         emailLimpo === "superadmin@partiu.app" ||
+        emailLimpo === "admin@partiumobe.com.br" ||
         emailLimpo === "dono@partiu.app" ||
         emailLimpo === "admin@partiu.app";
-      const isFranqueadoEmail =
-        emailLimpo === "franqueado@partiu.app" ||
-        emailLimpo === "bhmob@partiu.app";
 
-      if ((isSuperAdminEmail || isFranqueadoEmail) && isSenhaValida) {
-        const isSuper = isSuperAdminEmail;
-        const fallbackRole: AdminRole = isSuper ? "SUPER_ADMIN" : "FRANQUEADO";
-        const contaFallback: AdminAccount = {
-          id: isSuper ? "8d2a0843-8005-4e16-a79a-f61c61c1f96a" : "7c9e6679-7425-40de-944b-e07fc1f90ae7",
-          role: fallbackRole,
-          nome: isSuper ? "Super Administrador (Holding)" : "Operador Regional BH Mob",
+      if (isSuperAdminEmail && isSenhaValida) {
+        const contaSuperAdmin: AdminAccount = {
+          id: "8d2a0843-8005-4e16-a79a-f61c61c1f96a",
+          role: "SUPER_ADMIN",
+          nome: "Super Administrador Geral",
           email: emailLimpo,
-          tenantId: isSuper ? undefined : "tenant-bhmob",
-          tenantNome: isSuper ? undefined : "BH Mob",
-          cargo: isSuper ? "Super Administrador Geral" : "Gestor de Franquia — Belo Horizonte",
+          cargo: "Super Administrador Geral (Matriz)",
         };
         const tokens = authService.generateTokens({
-          id: contaFallback.id,
-          email: contaFallback.email,
-          role: contaFallback.role,
-          tenantId: contaFallback.tenantId,
-          permissions: ROLE_PERMISSIONS[contaFallback.role] || [],
+          id: contaSuperAdmin.id,
+          email: contaSuperAdmin.email,
+          role: contaSuperAdmin.role,
+          permissions: ROLE_PERMISSIONS[contaSuperAdmin.role] || [],
         });
         if (typeof window !== "undefined") {
           localStorage.setItem(
             STORAGE_KEY_AUTH,
             JSON.stringify({
               autenticado: true,
-              contaId: contaFallback.id,
-              email: contaFallback.email,
-              role: contaFallback.role,
-              tenantId: contaFallback.tenantId,
-              tenantNome: contaFallback.tenantNome,
+              contaId: contaSuperAdmin.id,
+              email: contaSuperAdmin.email,
+              role: contaSuperAdmin.role,
               token: tokens.accessToken,
               expiresAt: tokens.expiresAt,
               autenticadoEm: new Date().toISOString(),
             }),
           );
-          setAdminRole(contaFallback.role);
-          if (!isSuper && contaFallback.tenantId) {
-            localStorage.setItem(
-              "partiu_admin_session",
-              JSON.stringify({ role: contaFallback.role, tenantId: contaFallback.tenantId })
-            );
-            localStorage.setItem("partiu_active_tenant_id_v2", contaFallback.tenantId);
-            localStorage.setItem("partiu_wl_active_tenant_v1", contaFallback.tenantId);
-            const t = whiteLabelEngine.switchTenant(contaFallback.tenantId);
-            if (t) {
-              const bRec = convertWhiteLabelToBrandingRecord(t.configuracaoCompleta, t.tenantId);
-              themeEngine.applyTheme(bRec);
-            }
-            window.dispatchEvent(
-              new CustomEvent("partiu:tenant-changed", { detail: { tenantId: contaFallback.tenantId } })
-            );
-            window.dispatchEvent(
-              new CustomEvent("partiu:whitelabel-updated", { detail: { tenantId: contaFallback.tenantId } })
-            );
-          }
+          setAdminRole(contaSuperAdmin.role);
+          localStorage.setItem(
+            "partiu_admin_session",
+            JSON.stringify({ role: "SUPER_ADMIN", tenantId: "default" })
+          );
+          localStorage.setItem("partiu_active_tenant_id_v2", "default");
+          localStorage.setItem("partiu_wl_active_tenant_v1", "default");
+          whiteLabelEngine.switchTenant("default");
+          window.dispatchEvent(
+            new CustomEvent("partiu:tenant-changed", { detail: { tenantId: "default" } })
+          );
         }
         return {
           sucesso: true,
-          mensagem: "Login administrativo realizado com sucesso via Chave Mestra.",
-          conta: contaFallback,
+          mensagem: "Login administrativo realizado com sucesso (Super Administrador Geral).",
+          conta: contaSuperAdmin,
           token: tokens.accessToken,
         };
       }

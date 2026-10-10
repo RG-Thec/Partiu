@@ -354,9 +354,12 @@ function SuperAdminFranqueadosContent() {
     return mapa;
   }, [tenants, todosMotoristas]);
 
-  // Filtragem da Lista de Franqueados
+  // Filtragem da Lista de Franqueados Regionais
   const franqueadosFiltrados = useMemo(() => {
     return tenants.filter((t) => {
+      // O tenant "default" representa a Matriz Holding, não uma franquia regional
+      if (t.tenantId === "default") return false;
+
       const isAtivo = t.ativo !== false && t.statusPlano !== "SUSPENSO" && t.statusPlano !== "CANCELADO";
       if (filtroStatus === "ATIVOS" && !isAtivo) return false;
       if (filtroStatus === "SUSPENSOS" && isAtivo) return false;
@@ -370,10 +373,13 @@ function SuperAdminFranqueadosContent() {
     });
   }, [tenants, busca, filtroStatus]);
 
-  // Estatísticas Globais
+  // Estatísticas Globais de Franquias Regionais
   const stats = useMemo(() => {
-    const total = tenants.length;
-    const ativos = tenants.filter((t) => t.ativo !== false && t.statusPlano !== "SUSPENSO" && t.statusPlano !== "CANCELADO").length;
+    const franquiasRegionais = tenants.filter((t) => t.tenantId !== "default");
+    const total = franquiasRegionais.length;
+    const ativos = franquiasRegionais.filter(
+      (t) => t.ativo !== false && t.statusPlano !== "SUSPENSO" && t.statusPlano !== "CANCELADO"
+    ).length;
     const suspensos = total - ativos;
     const totalPassageirosRede = todosPassageiros.length;
     const totalMotoristasRede = todosMotoristas.length;
@@ -598,7 +604,30 @@ function SuperAdminFranqueadosContent() {
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-            {franqueadosFiltrados.map((tenant) => {
+            {franqueadosFiltrados.length === 0 ? (
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center space-y-4 shadow-2xs">
+                <div className="w-16 h-16 rounded-3xl bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 flex items-center justify-center mx-auto">
+                  <Building2 className="w-8 h-8 stroke-[1.8]" />
+                </div>
+                <div className="max-w-md mx-auto space-y-1">
+                  <h3 className="text-base font-black text-slate-950 dark:text-white">
+                    Nenhuma Franquia Regional Cadastrada
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    O ecossistema está operando no núcleo Matriz. Cadastre uma nova praça franqueada para gerar links personalizados de passageiro e motorista, credenciais de acesso exclusivas e APIs de mapas próprias.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setModalClonarAberto(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 text-xs font-bold transition shadow-xs cursor-pointer active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Cadastrar Nova Franquia</span>
+                </button>
+              </div>
+            ) : (
+              franqueadosFiltrados.map((tenant) => {
               const isMatriz = MapboxConfig.isOfficialMatrizTenant(tenant.tenantId);
               const isAtivo = tenant.ativo !== false && tenant.statusPlano !== "SUSPENSO" && tenant.statusPlano !== "CANCELADO";
               const passageirosCount = passageirosPorTenant.get(tenant.tenantId)?.length || 0;
@@ -933,7 +962,7 @@ function SuperAdminFranqueadosContent() {
                   </div>
                 </div>
               );
-            })}
+            }))}
           </div>
         </section>
       </main>
