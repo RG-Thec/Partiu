@@ -405,21 +405,16 @@ export interface CityHealthDashboardData {
   }[];
 }
 
-export function obterPainelSaudeCidade(): CityHealthDashboardData {
+export function obterPainelSaudeCidade(dadosReais?: Partial<CityHealthDashboardData>): CityHealthDashboardData {
   return {
-    motoristasOnline: 48,
-    motoristasEmViagem: 31,
-    corridasAtivas: 17,
-    tempoMedioEsperaMinutos: 3.4,
-    taxaAceitePercent: 94.2,
-    taxaCancelamentoPercent: 2.8,
-    receitaBrutaHojeBrl: 4892.4,
-    receitaLiquidaPlataformaBrl: 244.62, // Take-rate da plataforma (~5.0% base no modelo híbrido)
-    zonasHotspots: [
-      { zona: "Centro Urbano / Calçadão", intensidade: 0.92, status: "Alta Demanda", surgeMultiplier: 1.5 },
-      { zona: "Vinhosa / Supermercados", intensidade: 0.78, status: "Demanda Moderada", surgeMultiplier: 1.2 },
-      { zona: "Aeroporto / Rodoviária", intensidade: 0.85, status: "Pico de Chegada", surgeMultiplier: 1.2 },
-      { zona: "Cehab / Costa e Silva", intensidade: 0.35, status: "Normal", surgeMultiplier: 1.0 },
-    ],
+    motoristasOnline: dadosReais?.motoristasOnline ?? 0,
+    motoristasEmViagem: dadosReais?.motoristasEmViagem ?? 0,
+    corridasAtivas: dadosReais?.corridasAtivas ?? 0,
+    tempoMedioEsperaMinutos: dadosReais?.tempoMedioEsperaMinutos ?? 0,
+    taxaAceitePercent: dadosReais?.taxaAceitePercent ?? 0,
+    taxaCancelamentoPercent: dadosReais?.taxaCancelamentoPercent ?? 0,
+    receitaBrutaHojeBrl: dadosReais?.receitaBrutaHojeBrl ?? 0,
+    receitaLiquidaPlataformaBrl: dadosReais?.receitaLiquidaPlataformaBrl ?? 0,
+    zonasHotspots: dadosReais?.zonasHotspots ?? [],
   };
 }

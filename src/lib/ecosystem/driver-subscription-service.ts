@@ -733,8 +733,15 @@ class DriverSubscriptionService {
       return acc;
     }, 0);
 
-    const totalGmvProcessedBrl = 138450.00; // GMV estimado total transacionado pela frota
-    const totalSavingsForFleetBrl = totalGmvProcessedBrl * 0.22; // Economia de 22% média dos concorrentes
+    const totalGmvProcessedBrl = accounts.reduce((sum, a) => sum + ((a.completedTrips || 0) * 18.5), 0);
+    const totalSavingsForFleetBrl = Math.round(totalGmvProcessedBrl * 0.22 * 100) / 100;
+
+    const renewalRatePercent = accounts.length > 0
+      ? Number(((activeSubscribers.length / accounts.length) * 100).toFixed(1))
+      : 0;
+    const churnRatePercent = accounts.length > 0
+      ? Number(((defaultingOrBlocked.length / accounts.length) * 100).toFixed(1))
+      : 0;
 
     return {
       mrrBrl: Math.round(mrrBrl * 100) / 100,
@@ -744,8 +751,8 @@ class DriverSubscriptionService {
       defaultingOrBlockedCount: defaultingOrBlocked.length,
       totalGmvProcessedBrl,
       totalSavingsForFleetBrl,
-      renewalRatePercent: 94.2,
-      churnRatePercent: 2.8,
+      renewalRatePercent,
+      churnRatePercent,
     };
   }
 

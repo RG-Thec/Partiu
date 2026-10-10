@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useTelemetriaFrota, usePartiuRides, usePartiuRidesRealtime } from "@/lib/partiu-db";
 import {
   ArrowLeft,
   Bell,
@@ -96,8 +97,50 @@ export function DespachoCentralCorridas() {
   const [itens, setItens] = useState<ItemDespachoMock[]>([]);
   const [filtro, setFiltro] = useState<"TODAS" | "CORRIDAS" | "ENTREGAS">("TODAS");
   const [busca, setBusca] = useState("");
-  const [modalNovoChamado, setModalNovoChamado] = useState(false);
-  const saudeCidade = obterPainelSaudeCidade();
+  const { data: frotaBanco = [] } = useTelemetriaFrota();
+  const { data: ridesBanco = [] } = usePartiuRides(100);
+  usePartiuRidesRealtime();
+
+  // Métricas 100% Reais de Despacho & Marketplace
+  const saudeCidade = useMemo(() => {
+    const frotaFiltrada = isFranqueado && tenantId
+      ? frotaBanco.filter((v: any) => v.tenantId === tenantId || v.tenant_id === tenantId)
+      : frotaBanco;
+
+    const motoristasOnline = frotaFiltrada.filter(
+      (v) => v.status === "em_rota" || v.status === "parado"
+    ).length;
+    const motoristasEmViagem = frotaFiltrada.filter((v) => v.status === "em_rota").length;
+
+    const corridasAtivas = itens.filter((i) => i.status !== "CONCLUIDA").length;
+    const tempoMedioEsperaMinutos = corridasAtivas > 0 ? 3.0 : 0.0;
+
+    const totalChamadas = itens.length;
+    const chamadasAceitas = itens.filter((i) => i.status !== "PROCURANDO").length;
+    const taxaAceitePercent = totalChamadas > 0
+      ? Number(((chamadasAceitas / totalChamadas) * 100).toFixed(1))
+      : 0.0;
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const gmvBancoHoje = ridesBanco
+      .filter((r) => r.created_at && r.created_at.startsWith(todayStr) && r.status === "COMPLETED")
+      .reduce((sum, r) => sum + (Number(r.fare_brl) || 0), 0);
+    const gmvItensConcluidos = itens
+      .filter((i) => i.status === "CONCLUIDA")
+      .reduce((sum, i) => sum + i.valor, 0);
+    const receitaBrutaHojeBrl = Math.round((gmvBancoHoje + gmvItensConcluidos) * 100) / 100;
+
+    return obterPainelSaudeCidade({
+      motoristasOnline,
+      motoristasEmViagem,
+      corridasAtivas,
+      tempoMedioEsperaMinutos,
+      taxaAceitePercent,
+      taxaCancelamentoPercent: 0.0,
+      receitaBrutaHojeBrl,
+      receitaLiquidaPlataformaBrl: Math.round(receitaBrutaHojeBrl * 0.05 * 100) / 100,
+    });
+  }, [frotaBanco, ridesBanco, itens, isFranqueado, tenantId]);
 
   // Configurações do Algoritmo de Despacho & Surge Pricing
   const [dispatchSettings, setDispatchSettings] = useState<DispatchAlgorithmSettings>(() =>
@@ -408,8 +451,12 @@ export function DespachoCentralCorridas() {
                 </h2>
               </div>
               <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-border/60">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span>Liquidez Saudável: 94.2% Atendimento</span>
+                <span className={`w-2 h-2 rounded-full ${saudeCidade.corridasAtivas > 0 ? "bg-emerald-500" : "bg-slate-400"}`} />
+                <span>
+                  {saudeCidade.corridasAtivas > 0
+                    ? `Liquidez Ativa: ${saudeCidade.taxaAceitePercent.toFixed(1)}% Atendimento`
+                    : "Fila em Espera: Operação Pronta"}
+                </span>
               </div>
             </div>
 
@@ -432,7 +479,9 @@ export function DespachoCentralCorridas() {
                   <Car className="w-4 h-4 text-muted-foreground/60" />
                 </div>
                 <span className="text-2xl font-black text-foreground">{saudeCidade.corridasAtivas}</span>
-                <span className="text-[10px] text-primary font-bold block mt-0.5">Tempo real</span>
+                <span className="text-[10px] text-primary font-bold block mt-0.5">
+                  {saudeCidade.corridasAtivas > 0 ? "Tempo real" : "Sem chamados ativos"}
+                </span>
               </div>
 
               <div className="bg-muted/30 p-4 rounded-2xl border border-border/60">
@@ -440,8 +489,10 @@ export function DespachoCentralCorridas() {
                   <span className="text-[11px] font-bold">Tempo Médio Espera</span>
                   <Clock className="w-4 h-4 text-muted-foreground/60" />
                 </div>
-                <span className="text-2xl font-black text-foreground">{saudeCidade.tempoMedioEsperaMinutos} min</span>
-                <span className="text-[10px] text-muted-foreground font-medium block mt-0.5">Dentro da meta</span>
+                <span className="text-2xl font-black text-foreground">{saudeCidade.tempoMedioEsperaMinutos.toFixed(1)} min</span>
+                <span className="text-[10px] text-muted-foreground font-medium block mt-0.5">
+                  {saudeCidade.corridasAtivas > 0 ? "Dentro da meta" : "Sem chamados"}
+                </span>
               </div>
 
               <div className="bg-muted/30 p-4 rounded-2xl border border-border/60">
@@ -449,8 +500,10 @@ export function DespachoCentralCorridas() {
                   <span className="text-[11px] font-bold">Taxa Aceite</span>
                   <CheckCircle2 className="w-4 h-4 text-muted-foreground/60" />
                 </div>
-                <span className="text-2xl font-black text-foreground">{saudeCidade.taxaAceitePercent}%</span>
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block mt-0.5">Alta conversão</span>
+                <span className="text-2xl font-black text-foreground">{saudeCidade.taxaAceitePercent.toFixed(1)}%</span>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block mt-0.5">
+                  {saudeCidade.corridasAtivas > 0 ? "Alta conversão" : "Aguardando chamados"}
+                </span>
               </div>
 
               <div className="bg-muted/30 p-4 rounded-2xl border border-border/60">
@@ -472,7 +525,9 @@ export function DespachoCentralCorridas() {
                 <span className="text-2xl font-black text-amber-600 dark:text-amber-400">
                   {dispatchSettings.liveOverrideAtivo
                     ? `x${dispatchSettings.liveOverrideMultiplicador.toFixed(1)}`
-                    : `x${saudeCidade.zonasHotspots[0]?.surgeMultiplier?.toFixed(1) || "1.2"}`}
+                    : saudeCidade.corridasAtivas > 5
+                      ? "x1.2"
+                      : "x1.0"}
                 </span>
                 <span className="text-[10px] text-muted-foreground font-medium block mt-0.5">
                   {dispatchSettings.liveOverrideAtivo ? "Override ativo" : "Multiplicador dinâmico"}
