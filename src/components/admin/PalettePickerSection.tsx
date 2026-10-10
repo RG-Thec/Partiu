@@ -68,6 +68,7 @@ export function PalettePickerSection({
 
       // 2. Persistência na camada SaaS / Supabase
       await updateBranding({
+        tenant_id: targetTenantId,
         primary_color: palette.colors.primary,
         secondary_color: palette.colors.secondary,
         accent_color: palette.colors.accent,
@@ -80,7 +81,7 @@ export function PalettePickerSection({
         surface_color: palette.colors.surface,
         text_primary: palette.colors.textPrimary,
         text_secondary: palette.colors.textSecondary,
-      });
+      }, targetTenantId);
 
       // 3. Sincroniza WhiteLabelEngine de forma estritamente isolada por tenant
       try {
@@ -110,14 +111,16 @@ export function PalettePickerSection({
         });
       } catch {}
 
-      // 4. Sincroniza superadmin-config
+      // 4. Sincroniza superadmin-config apenas se for Matriz / default
       try {
-        const cfg = getSuperAdminConfig();
-        if (cfg.identidade) {
-          cfg.identidade.corPrimaria = palette.colors.primary;
-          cfg.identidade.corPrimariaHover = palette.colors.deep;
-          cfg.identidade.corSecundaria = palette.colors.secondary;
-          saveSuperAdminConfig(cfg);
+        if (targetTenantId === "default") {
+          const cfg = getSuperAdminConfig();
+          if (cfg.identidade) {
+            cfg.identidade.corPrimaria = palette.colors.primary;
+            cfg.identidade.corPrimariaHover = palette.colors.deep;
+            cfg.identidade.corSecundaria = palette.colors.secondary;
+            saveSuperAdminConfig(cfg);
+          }
         }
       } catch {}
 

@@ -151,6 +151,7 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     const cur = brandingRef.current;
     if (
       cur &&
+      cur.tenant_id === b.tenant_id &&
       cur.primary_color === b.primary_color &&
       cur.secondary_color === b.secondary_color &&
       cur.accent_color === b.accent_color &&
@@ -158,7 +159,9 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
       cur.surface_color === b.surface_color &&
       cur.text_primary === b.text_primary &&
       cur.app_name === b.app_name &&
-      cur.logo_url === b.logo_url
+      cur.logo_url === b.logo_url &&
+      cur.font_family === b.font_family &&
+      cur.border_radius === b.border_radius
     ) {
       return;
     }
@@ -166,12 +169,14 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     setBrandingState(b);
     themeEngine.applyTheme(b);
     try {
-      localStorage.setItem(STORAGE_KEY_BRANDING, JSON.stringify(b));
+      whiteLabelEngine.syncFromBrandingRecord(b);
+    } catch {}
+    try {
       if (b.tenant_id) {
         localStorage.setItem(`partiu_branding_tenant_${b.tenant_id}`, JSON.stringify(b));
       }
-      if (activeTenantRef.current && activeTenantRef.current !== b.tenant_id) {
-        localStorage.setItem(`partiu_branding_tenant_${activeTenantRef.current}`, JSON.stringify(b));
+      if (!b.tenant_id || b.tenant_id === "default") {
+        localStorage.setItem(STORAGE_KEY_BRANDING, JSON.stringify(b));
       }
     } catch {}
   }, []);
@@ -265,15 +270,26 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
             .upsert(localCurrent as any, { onConflict: "tenant_id" });
           setLastSyncedAt(new Date());
         } else if (tenantId !== "default") {
-          // Apenas se NÃO houver customização local, busca fallback do default
-          const { data: defaultData } = await supabase
-            .from("app_branding" as any)
-            .select("*")
-            .eq("tenant_id", "default")
-            .maybeSingle();
-          if (defaultData) {
-            applyBrandingTheme({ ...(defaultData as unknown as AppBrandingRecord), tenant_id: tenantId });
+          // Antes de recorrer ao default, verifica se existe configuração estruturada em white_label_tenant_configs
+          const wlConfig = await whiteLabelEngine.syncFromSupabase(tenantId);
+          if (wlConfig?.designSystem?.paletaPrimaria?.corPrincipal) {
+            const converted = convertWhiteLabelToBrandingRecord(wlConfig, tenantId);
+            applyBrandingTheme(converted);
+            void supabase
+              .from("app_branding" as any)
+              .upsert(converted as any, { onConflict: "tenant_id" });
             setLastSyncedAt(new Date());
+          } else {
+            // Apenas se NÃO houver customização remota ou local, busca fallback do default
+            const { data: defaultData } = await supabase
+              .from("app_branding" as any)
+              .select("*")
+              .eq("tenant_id", "default")
+              .maybeSingle();
+            if (defaultData) {
+              applyBrandingTheme({ ...(defaultData as unknown as AppBrandingRecord), tenant_id: tenantId });
+              setLastSyncedAt(new Date());
+            }
           }
         }
       }
@@ -370,12 +386,13 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
   }, [setTenantId]);
 
   // Atualizar branding no banco e localmente
-  const updateBranding = useCallback(async (partial: Partial<AppBrandingRecord>): Promise<boolean> => {
+  const updateBranding = useCallback(async (partial: Partial<AppBrandingRecord>, targetTenantOverride?: string): Promise<boolean> => {
     setIsSyncing(true);
+    const targetTenant = targetTenantOverride || partial.tenant_id || activeTenantRef.current || "default";
     const updated: AppBrandingRecord = {
       ...branding,
       ...partial,
-      tenant_id: activeTenantRef.current,
+      tenant_id: targetTenant,
       updated_at: new Date().toISOString(),
     };
 
@@ -384,8 +401,8 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
 
     // Mantém WhiteLabelEngine sincronizado silenciosamente sem loops de broadcast
     try {
-      const activeWl = whiteLabelEngine.getActiveConfig();
-      whiteLabelEngine.updateActiveConfig({
+      const activeWl = whiteLabelEngine.getTenantConfig(targetTenant);
+      whiteLabelEngine.updateTenantConfig(targetTenant, {
         brandCenter: {
           ...activeWl.brandCenter,
           nomePlataforma: updated.app_name || activeWl.brandCenter.nomePlataforma,
@@ -402,6 +419,10 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
             corSuperficieCard: updated.surface_color || activeWl.designSystem.paletaPrimaria.corSuperficieCard,
             corTextoPrincipal: updated.text_primary || activeWl.designSystem.paletaPrimaria.corTextoPrincipal,
           },
+        },
+        typography: {
+          ...activeWl.typography,
+          familiaPrincipal: (updated.font_family as any) || activeWl.typography.familiaPrincipal,
         },
       }, { silent: true, skipPersist: true });
     } catch {}

@@ -132,7 +132,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&family=Montserrat:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=Open+Sans:wght@400;500;600;700&display=swap",
       },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       { rel: "icon", href: "/favicon.ico", sizes: "any" },
@@ -179,7 +179,41 @@ function RootShell({ children }: { children: ReactNode }) {
     if (!tid) {
       tid = localStorage.getItem('partiu_active_tenant_id_v2') || localStorage.getItem('partiu_wl_active_tenant_v1') || localStorage.getItem('partiu_whitelabel_active_tenant_id_v1') || 'default';
     }
-    var raw = localStorage.getItem('partiu_branding_tenant_' + tid) || localStorage.getItem('partiu_active_branding_v2');
+
+    var raw = localStorage.getItem('partiu_branding_tenant_' + tid);
+    if (!raw && tid === 'default') {
+      raw = localStorage.getItem('partiu_active_branding_v2');
+    }
+    if (!raw) {
+      try {
+        var regRaw = localStorage.getItem('partiu_whitelabel_tenants_registry_v1');
+        if (regRaw) {
+          var reg = JSON.parse(regRaw);
+          if (Array.isArray(reg)) {
+            for (var i = 0; i < reg.length; i++) {
+              if (reg[i] && reg[i].tenantId === tid && reg[i].configuracaoCompleta) {
+                var ds = reg[i].configuracaoCompleta.designSystem;
+                var typo = reg[i].configuracaoCompleta.typography;
+                if (ds && ds.paletaPrimaria) {
+                  raw = JSON.stringify({
+                    tenant_id: tid,
+                    primary_color: ds.paletaPrimaria.corPrincipal,
+                    secondary_color: ds.paletaPrimaria.corSecundaria,
+                    background_color: ds.paletaPrimaria.corFundoApp,
+                    surface_color: ds.paletaPrimaria.corSuperficieCard,
+                    text_primary: ds.paletaPrimaria.corTextoPrincipal,
+                    font_family: typo ? typo.familiaPrincipal : undefined,
+                    border_radius: ds.raioBordas === 'full' ? '9999px' : (ds.raioBordas === 'sm' ? '6px' : (ds.raioBordas === 'md' ? '8px' : (ds.raioBordas === 'lg' ? '12px' : '16px')))
+                  });
+                  break;
+                }
+              }
+            }
+          }
+        }
+      } catch(e) {}
+    }
+
     if (raw) {
       var b = JSON.parse(raw);
       if (b && b.primary_color) {
@@ -188,14 +222,36 @@ function RootShell({ children }: { children: ReactNode }) {
         r.style.setProperty('--color-primary', b.primary_color);
         r.style.setProperty('--brand', b.primary_color);
         r.style.setProperty('--brand-primary', b.primary_color);
+        r.style.setProperty('--brand-primary-vibrant', b.primary_color);
+        r.style.setProperty('--wl-primary', b.primary_color);
         if (b.secondary_color) {
           r.style.setProperty('--secondary', b.secondary_color);
           r.style.setProperty('--color-secondary', b.secondary_color);
           r.style.setProperty('--brand-secondary', b.secondary_color);
+          r.style.setProperty('--brand-primary-accent', b.secondary_color);
+          r.style.setProperty('--wl-secondary', b.secondary_color);
         }
         if (b.background_color) {
           r.style.setProperty('--background', b.background_color);
           r.style.setProperty('--color-background', b.background_color);
+          r.style.setProperty('--wl-background', b.background_color);
+        }
+        if (b.surface_color) {
+          r.style.setProperty('--surface', b.surface_color);
+          r.style.setProperty('--card', b.surface_color);
+          r.style.setProperty('--color-card', b.surface_color);
+          r.style.setProperty('--wl-surface', b.surface_color);
+        }
+        if (b.border_radius) {
+          r.style.setProperty('--radius', b.border_radius);
+          r.style.setProperty('--app-border-radius', b.border_radius);
+          r.style.setProperty('--wl-border-radius', b.border_radius);
+        }
+        if (b.font_family) {
+          var fontStack = '"' + b.font_family + '", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+          r.style.setProperty('--font-sans', fontStack);
+          r.style.setProperty('--font-family', fontStack);
+          r.style.setProperty('--wl-font-family', fontStack);
         }
       }
     }

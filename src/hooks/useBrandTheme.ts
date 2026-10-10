@@ -64,7 +64,19 @@ export function useBrandTheme() {
       // Sincroniza em lockstep com o BrandingProvider e Supabase
       if (brandingCtx?.updateBranding) {
         const prim = updated.designSystem?.paletaPrimaria;
+        const radiusMap: Record<string, string> = {
+          sm: "6px",
+          md: "8px",
+          lg: "12px",
+          xl: "16px",
+          "2xl": "20px",
+          "3xl": "24px",
+          full: "9999px",
+        };
+        const br = radiusMap[updated.designSystem?.raioBordas] || "16px";
+        const currentActiveTenant = whiteLabelEngine.getActiveTenant();
         void brandingCtx.updateBranding({
+          tenant_id: currentActiveTenant.tenantId,
           app_name: updated.brandCenter?.nomePlataforma,
           company_name: updated.nativeApp?.razaoSocial || updated.brandCenter?.slogan,
           primary_color: prim?.corPrincipal,
@@ -78,7 +90,9 @@ export function useBrandTheme() {
           logo_url: updated.brandCenter?.logos?.logoPrincipalUrl,
           favicon_url: updated.brandCenter?.favicons?.faviconDesktopUrl,
           splash_logo_url: updated.brandCenter?.splash?.splashAndroidUrl || updated.nativeApp?.splashAndroidUrl,
-        });
+          font_family: updated.typography?.familiaPrincipal || "Plus Jakarta Sans",
+          border_radius: br,
+        }, currentActiveTenant.tenantId);
       }
 
       return updated;

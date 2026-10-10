@@ -977,6 +977,18 @@ export class WhiteLabelEngine {
 
       if (urlTenant && !dummyTenantIds.includes(urlTenant)) {
         this.activeTenantId = urlTenant;
+        if (!this.tenantsMap.has(urlTenant)) {
+          const cachedBranding = localStorage.getItem(`partiu_branding_tenant_${urlTenant}`);
+          if (cachedBranding) {
+            try {
+              const b = JSON.parse(cachedBranding);
+              if (b && b.primary_color) {
+                this.syncFromBrandingRecord(b);
+              }
+            } catch {}
+          }
+        }
+        void this.syncFromSupabase(urlTenant);
       } else {
         // Prioridade 2: Sessão de administrador franqueado autenticado
         let sessionTenant = "";
@@ -1529,6 +1541,97 @@ export class WhiteLabelEngine {
   }
 
   /**
+   * Sincroniza em tempo real o estado de um Tenant a partir de um registro AppBrandingRecord
+   * (vindo do Supabase ou do BrandingProvider), garantindo que useBrandTheme e todos
+   * os componentes dependentes reajam instantaneamente à nova identidade.
+   */
+  public syncFromBrandingRecord(record: AppBrandingRecord): void {
+    if (!record || !record.tenant_id) return;
+    const tid = record.tenant_id.trim();
+    const existing = this.tenantsMap.get(tid);
+
+    const radiusMapReverse: Record<string, BorderRadiusOption> = {
+      "6px": "sm",
+      "8px": "md",
+      "12px": "lg",
+      "16px": "xl",
+      "20px": "2xl",
+      "24px": "3xl",
+      "9999px": "full",
+    };
+    const mappedRadius: BorderRadiusOption = radiusMapReverse[record.border_radius || "16px"] || "xl";
+
+    const baseConfig = existing ? existing.configuracaoCompleta : this.getActiveConfig();
+    const updatedConfig: WhiteLabelFullConfig = {
+      ...baseConfig,
+      tenantId: tid,
+      atualizadoEm: Date.now(),
+      brandCenter: {
+        ...baseConfig.brandCenter,
+        nomePlataforma: record.app_name || baseConfig.brandCenter.nomePlataforma,
+        slogan: record.company_name || baseConfig.brandCenter.slogan,
+        logos: {
+          ...baseConfig.brandCenter.logos,
+          logoPrincipalUrl: record.logo_url || baseConfig.brandCenter.logos.logoPrincipalUrl,
+        },
+        favicons: {
+          ...baseConfig.brandCenter.favicons,
+          faviconDesktopUrl: record.favicon_url || baseConfig.brandCenter.favicons.faviconDesktopUrl,
+        },
+      },
+      designSystem: {
+        ...baseConfig.designSystem,
+        raioBordas: mappedRadius,
+        paletaPrimaria: {
+          ...baseConfig.designSystem.paletaPrimaria,
+          corPrincipal: record.primary_color || baseConfig.designSystem.paletaPrimaria.corPrincipal,
+          corSecundaria: record.secondary_color || baseConfig.designSystem.paletaPrimaria.corSecundaria,
+          corTerciaria: record.accent_color || baseConfig.designSystem.paletaPrimaria.corTerciaria,
+          corFundoApp: record.background_color || baseConfig.designSystem.paletaPrimaria.corFundoApp,
+          corSuperficieCard: record.surface_color || baseConfig.designSystem.paletaPrimaria.corSuperficieCard,
+          corTextoPrincipal: record.text_primary || baseConfig.designSystem.paletaPrimaria.corTextoPrincipal,
+        },
+        gradienteHero: {
+          ...baseConfig.designSystem.gradienteHero,
+          corInicio: record.header_gradient_start || record.primary_color || baseConfig.designSystem.gradienteHero.corInicio,
+          corFim: record.header_gradient_end || record.secondary_color || baseConfig.designSystem.gradienteHero.corFim,
+        },
+      },
+      typography: {
+        ...baseConfig.typography,
+        familiaPrincipal: (record.font_family as any) || baseConfig.typography.familiaPrincipal,
+        familiaTitulos: (record.font_family as any) || baseConfig.typography.familiaTitulos,
+      },
+    };
+
+    if (existing) {
+      existing.configuracaoCompleta = updatedConfig;
+      this.tenantsMap.set(tid, existing);
+    } else {
+      this.tenantsMap.set(tid, {
+        tenantId: tid,
+        nomeOperacao: record.app_name || `Franquia ${tid.replace("tenant-", "")}`,
+        cidadeId: `cidade-${tid}`,
+        cidadeNome: record.app_name || "Praça Regional",
+        uf: "BR",
+        responsavelNome: "Gestor Regional",
+        responsavelEmail: `${tid.replace("tenant-", "")}@partiu.app`,
+        responsavelTelefone: "(00) 00000-0000",
+        ativo: true,
+        statusPlano: "ATIVO",
+        criadoEm: Date.now(),
+        configuracaoCompleta: updatedConfig,
+      });
+    }
+
+    if (this.activeTenantId === tid) {
+      this.applyTheme(updatedConfig);
+    }
+    this.saveTenantsRegistry();
+    this.broadcastUpdate();
+  }
+
+  /**
    * Resolução contextual da Praça / Tenant mais próximo via Geofencing Haversine
    */
   public findTenantByCoordinates(
@@ -1657,6 +1760,10 @@ export class WhiteLabelEngine {
     this.tenantsMap.set(cleanId, newTenant);
     this.saveTenantsRegistry();
     this.broadcastUpdate();
+    try {
+      const bRecord = convertWhiteLabelToBrandingRecord(clonedConfig, cleanId);
+      localStorage.setItem(`partiu_branding_tenant_${cleanId}`, JSON.stringify(bRecord));
+    } catch {}
     void this.persistToSupabase(clonedConfig, cleanId);
 
     // Auto-registra o subdomínio oficial ativo da nova franquia

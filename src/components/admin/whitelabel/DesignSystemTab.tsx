@@ -10,7 +10,7 @@ interface DesignSystemTabProps {
 }
 
 export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
-  const { designSystem, updateConfig } = useBrandTheme();
+  const { designSystem, updateConfig, activeTenant } = useBrandTheme();
   const { branding, updateBranding, isSyncing, lastSyncedAt } = useBranding();
 
   return (
@@ -26,7 +26,7 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
       </div>
 
       {/* Seletor de Paletas Monocromáticas de 1-Clique */}
-      <PalettePickerSection className="pb-4" />
+      <PalettePickerSection className="pb-4" targetTenantId={activeTenant?.tenantId} />
 
       {/* Paleta Primária */}
       <div className="space-y-4">

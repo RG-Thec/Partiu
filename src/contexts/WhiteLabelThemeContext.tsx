@@ -8,7 +8,7 @@ import React, {
   type ReactNode,
 } from "react";
 import { useBranding } from "@/hooks/useBranding";
-import { themeEngine } from "@/lib/branding/ThemeEngine";
+import { themeEngine, ensureGoogleFontLoaded } from "@/lib/branding/ThemeEngine";
 
 // ==============================================================================
 // 🏷️ WHITE LABEL SAAS THEME CONTRACT (Conforme Especificação de Painel Admin)
@@ -155,7 +155,7 @@ function applyCssVariablesToRoot(config: AppConfig) {
     document.body.style.colorScheme = "light";
   }
 
-  // 2. Variáveis Scoped White Label específicas do contexto
+  // 1. Variáveis Scoped White Label específicas do contexto
   root.style.setProperty("--wl-primary", primary);
   root.style.setProperty("--wl-primary-hover", primaryHover);
   root.style.setProperty("--wl-secondary", secondary);
@@ -168,6 +168,34 @@ function applyCssVariablesToRoot(config: AppConfig) {
   root.style.setProperty("--wl-border-radius", borderRadius);
   root.style.setProperty("--wl-button-shadow", buttonShadow);
   root.style.setProperty("--wl-font-family", fontFamily);
+
+  // 2. Variáveis canônicas do Design System (Tailwind v4 e Shadcn)
+  root.style.setProperty("--primary", primary);
+  root.style.setProperty("--color-primary", primary);
+  root.style.setProperty("--brand", primary);
+  root.style.setProperty("--brand-primary", primary);
+  root.style.setProperty("--brand-primary-vibrant", primary);
+  root.style.setProperty("--secondary", secondary);
+  root.style.setProperty("--color-secondary", secondary);
+  root.style.setProperty("--brand-secondary", secondary);
+  root.style.setProperty("--brand-primary-accent", secondary);
+  root.style.setProperty("--background", background);
+  root.style.setProperty("--color-background", background);
+  root.style.setProperty("--surface", surface);
+  root.style.setProperty("--card", surface);
+  root.style.setProperty("--color-card", surface);
+  root.style.setProperty("--radius", borderRadius);
+  root.style.setProperty("--app-border-radius", borderRadius);
+
+  if (fontFamily) {
+    ensureGoogleFontLoaded(fontFamily);
+    const fontStack = `"${fontFamily}", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    root.style.setProperty("--font-sans", fontStack);
+    root.style.setProperty("--font-family", fontStack);
+    if (document.body) {
+      document.body.style.fontFamily = fontStack;
+    }
+  }
 }
 
 export function WhiteLabelThemeProvider({
@@ -184,8 +212,43 @@ export function WhiteLabelThemeProvider({
 
     if (typeof window !== "undefined") {
       try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tid = urlParams.get("tenant") || urlParams.get("tenant_id");
+        if (tid && tid.trim()) {
+          const tenantStored = localStorage.getItem(`partiu_branding_tenant_${tid.trim()}`);
+          if (tenantStored) {
+            const b = JSON.parse(tenantStored);
+            if (b && b.primary_color) {
+              return {
+                ...DEFAULT_APP_CONFIG,
+                branding: {
+                  appName: b.app_name || DEFAULT_APP_CONFIG.branding.appName,
+                  logoUrl: b.logo_url || DEFAULT_APP_CONFIG.branding.logoUrl,
+                  colors: {
+                    primary: b.primary_color,
+                    primaryHover: b.secondary_color || b.primary_color,
+                    secondary: b.secondary_color || DEFAULT_APP_CONFIG.branding.colors.secondary,
+                    background: b.background_color || DEFAULT_APP_CONFIG.branding.colors.background,
+                    surface: b.surface_color || DEFAULT_APP_CONFIG.branding.colors.surface,
+                    textPrimary: b.text_primary || DEFAULT_APP_CONFIG.branding.colors.textPrimary,
+                    textSecondary: b.text_secondary || DEFAULT_APP_CONFIG.branding.colors.textSecondary,
+                    inputBorder: DEFAULT_APP_CONFIG.branding.colors.inputBorder,
+                    inputBackground: DEFAULT_APP_CONFIG.branding.colors.inputBackground,
+                  },
+                  ui: {
+                    borderRadius: b.border_radius || DEFAULT_APP_CONFIG.branding.ui.borderRadius,
+                    buttonShadow: computeButtonShadow(b.primary_color),
+                    fontFamily: b.font_family || DEFAULT_APP_CONFIG.branding.ui.fontFamily,
+                  },
+                },
+                features: DEFAULT_APP_CONFIG.features,
+              };
+            }
+          }
+        }
+
         const storedBranding = localStorage.getItem("partiu_active_branding_v2");
-        if (storedBranding) {
+        if (storedBranding && (!tid || tid === "default")) {
           const b = JSON.parse(storedBranding);
           if (b && b.primary_color) {
             return {
@@ -274,7 +337,9 @@ export function WhiteLabelThemeProvider({
           prevColors.primary === primary &&
           prevColors.secondary === (b.secondary_color || prevColors.secondary) &&
           prevColors.background === (b.background_color || prevColors.background) &&
-          prevColors.surface === (b.surface_color || prevColors.surface)
+          prevColors.surface === (b.surface_color || prevColors.surface) &&
+          prevUi.fontFamily === (b.font_family || prevUi.fontFamily) &&
+          prevUi.borderRadius === (b.border_radius || prevUi.borderRadius)
         ) {
           return prev;
         }
@@ -313,7 +378,13 @@ export function WhiteLabelThemeProvider({
   useEffect(() => {
     applyCssVariablesToRoot(appConfig);
     try {
-      localStorage.setItem(STORAGE_KEY_WL_CONFIG, JSON.stringify(appConfig));
+      const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+      const tid = urlParams ? (urlParams.get("tenant") || urlParams.get("tenant_id")) : null;
+      if (!tid || tid === "default") {
+        localStorage.setItem(STORAGE_KEY_WL_CONFIG, JSON.stringify(appConfig));
+      } else {
+        localStorage.setItem(`partiu_wl_app_config_${tid.trim()}`, JSON.stringify(appConfig));
+      }
     } catch {}
   }, [appConfig]);
 

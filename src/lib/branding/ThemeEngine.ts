@@ -84,6 +84,28 @@ export function generateSvgFavicon(primaryColor: string, secondaryColor?: string
 }
 
 /**
+ * Garante que a fonte do Google Fonts solicitada pelo franqueado seja injetada
+ * dinamicamente no <head> sem exigir recarregamento da página.
+ */
+export function ensureGoogleFontLoaded(fontFamily: string): void {
+  if (typeof document === "undefined" || !fontFamily) return;
+  const cleanFont = fontFamily.trim().replace(/['"]/g, "");
+  if (["sans-serif", "serif", "monospace", "system-ui"].includes(cleanFont.toLowerCase())) return;
+
+  const fontId = `google-font-${cleanFont.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
+  if (document.getElementById(fontId)) return;
+
+  try {
+    const link = document.createElement("link");
+    link.id = fontId;
+    link.rel = "stylesheet";
+    const encodedFont = encodeURIComponent(cleanFont).replace(/%20/g, "+");
+    link.href = `https://fonts.googleapis.com/css2?family=${encodedFont}:wght@300;400;500;600;700;800;900&display=swap`;
+    document.head.appendChild(link);
+  } catch {}
+}
+
+/**
  * Atualiza todos os nós de ícone do documento (<head>) garantindo que o navegador
  * descarte o cache antigo imediatamente e renderize o novo favicon na aba.
  */
@@ -371,15 +393,30 @@ export class ThemeEngine {
       // 5. Raio de Bordas
       if (branding.border_radius) {
         root.style.setProperty("--radius", branding.border_radius);
+        root.style.setProperty("--app-border-radius", branding.border_radius);
+        root.style.setProperty("--wl-border-radius", branding.border_radius);
       }
 
-      // 6. Família Tipográfica
+      // 6. Família Tipográfica com Carregamento Dinâmico de Google Fonts
       if (branding.font_family) {
-        root.style.setProperty(
-          "--font-sans",
-          `"${branding.font_family}", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`
-        );
+        ensureGoogleFontLoaded(branding.font_family);
+        const fontStack = `"${branding.font_family}", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+        root.style.setProperty("--font-sans", fontStack);
+        root.style.setProperty("--font-family", fontStack);
+        root.style.setProperty("--wl-font-family", fontStack);
+        if (document.body) {
+          document.body.style.fontFamily = fontStack;
+        }
       }
+
+      // 7. Variáveis White Label Scoped Requeridas por Todo o Ecossistema
+      root.style.setProperty("--wl-primary", primaryColor);
+      root.style.setProperty("--wl-primary-hover", palette[600]);
+      root.style.setProperty("--wl-secondary", secondaryColor);
+      root.style.setProperty("--wl-background", branding.background_color || "#F8FAFC");
+      root.style.setProperty("--wl-surface", branding.surface_color || "#FFFFFF");
+      root.style.setProperty("--wl-text-primary", branding.text_primary || "#090D16");
+      root.style.setProperty("--wl-text-secondary", branding.text_secondary || "#64748B");
 
       // 7. Atualização Dinâmica do Document Title e Favicon
       if (branding.app_name) {
