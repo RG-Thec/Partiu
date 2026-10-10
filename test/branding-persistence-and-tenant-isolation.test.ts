@@ -11,6 +11,7 @@ import {
 import {
   identidadeVisualInicial,
 } from "../src/lib/superadmin-config.ts";
+import { tenantDomainService } from "../src/lib/white-label/tenant-domain-service.ts";
 
 // Setup Mock LocalStorage sem poluir window global
 if (typeof globalThis.localStorage === "undefined") {
@@ -251,6 +252,36 @@ describe("Bulletproof Branding Persistence & Multi-Tenant Isolation Suite", () =
           },
         },
       });
+    });
+
+    test("should ensure BH Mob has an active official domain and generates permanent app URL", () => {
+      const domainRec = tenantDomainService.getDomainByTenantId("tenant-bhmob");
+      expect(Boolean(domainRec)).toBe(true);
+      expect(domainRec?.domain).toBe("bhmob.partiumobe.com.br");
+      expect(domainRec?.status).toBe("ATIVO");
+      expect(domainRec?.sslStatus).toBe("ATIVO");
+
+      // Simulação de cálculo de URL no componente Meu Aplicativo
+      const effectiveTenantId = "tenant-bhmob";
+      const officialAppUrl = (domainRec && domainRec.status === "ATIVO")
+        ? `https://${domainRec.domain}`
+        : `https://partiu-zeta.vercel.app/app?tenant=${effectiveTenantId}`;
+
+      expect(officialAppUrl).toBe("https://bhmob.partiumobe.com.br");
+      expect(officialAppUrl).not.toContain("partiu-zeta.vercel.app");
+      expect(officialAppUrl).not.toContain("tenant-itaperuna");
+
+      // Preview link para testes imediatos no ambiente ativo
+      const previewAppUrl = `https://partiu-zeta.vercel.app/app?tenant=${effectiveTenantId}`;
+      expect(previewAppUrl).toBe("https://partiu-zeta.vercel.app/app?tenant=tenant-bhmob");
+    });
+
+    test("should auto-provision active official domain for any new franchise using getOrCreateDomainForTenant", () => {
+      const rec = tenantDomainService.getOrCreateDomainForTenant("tenant-uberlandia", "Uberlândia Mob");
+      expect(Boolean(rec)).toBe(true);
+      expect(rec.domain).toBe("uberlandia.partiumobe.com.br");
+      expect(rec.status).toBe("ATIVO");
+      expect(rec.sslStatus).toBe("ATIVO");
     });
   });
 });

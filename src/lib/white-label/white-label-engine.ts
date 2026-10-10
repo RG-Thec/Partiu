@@ -1602,6 +1602,14 @@ export class WhiteLabelEngine {
     this.saveTenantsRegistry();
     this.broadcastUpdate();
     void this.persistToSupabase(clonedConfig, cleanId);
+
+    // Auto-registra o subdomínio oficial ativo da nova franquia
+    try {
+      import("./tenant-domain-service").then((mod) => {
+        mod.tenantDomainService.getOrCreateDomainForTenant(cleanId, newTenant.nomeOperacao);
+      }).catch(() => {});
+    } catch {}
+
     return newTenant;
   }
 

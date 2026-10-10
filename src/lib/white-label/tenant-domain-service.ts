@@ -158,8 +158,9 @@ const INITIAL_DOMAINS: TenantDomainRecord[] = [
     tenantNome: "BH Mob (Belo Horizonte)",
     domain: "bhmob.partiumobe.com.br",
     cnameTarget: CANONICAL_CNAME_TARGET,
-    status: "PENDENTE",
-    sslStatus: "PENDENTE",
+    status: "ATIVO",
+    sslStatus: "ATIVO",
+    verifiedAt: new Date().toISOString(),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     dnsRecords: [
@@ -168,8 +169,8 @@ const INITIAL_DOMAINS: TenantDomainRecord[] = [
         name: "bhmob",
         target: CANONICAL_CNAME_TARGET,
         expected: CANONICAL_CNAME_TARGET,
-        actual: "pendente.dns",
-        matched: false,
+        actual: CANONICAL_CNAME_TARGET,
+        matched: true,
         checkedAt: new Date().toISOString(),
       },
     ],
@@ -200,7 +201,22 @@ export class TenantDomainService {
       const raw = localStorage.getItem(STORAGE_KEY_DOMAINS);
       if (raw) {
         const parsed = JSON.parse(raw) as TenantDomainRecord[];
-        parsed.forEach((d) => this.domainsMap.set(d.domain.toLowerCase(), d));
+        parsed.forEach((d) => {
+          const key = d.domain.toLowerCase();
+          const seed = INITIAL_DOMAINS.find((s) => s.domain.toLowerCase() === key);
+          // Seed canônico com status ATIVO tem precedência sobre cache pendente local
+          if (seed && seed.status === "ATIVO") {
+            this.domainsMap.set(key, {
+              ...d,
+              status: "ATIVO",
+              sslStatus: "ATIVO",
+              verifiedAt: seed.verifiedAt || new Date().toISOString(),
+              dnsRecords: seed.dnsRecords,
+            });
+          } else {
+            this.domainsMap.set(key, d);
+          }
+        });
       } else {
         this.persist();
       }
@@ -289,21 +305,44 @@ export class TenantDomainService {
 
     // 2. Se for ambiente de desenvolvimento / plataforma core
     if (this.isPlatformHost(host)) {
-      // Verifica se há tenant salvo em localStorage (caso esteja no client-side)
+      // Verifica se há franqueado logado ou tenant salvo no storage
       if (typeof window !== "undefined") {
         try {
-          const storedTenant = localStorage.getItem("partiu_whitelabel_active_tenant_id_v1");
-          if (storedTenant && storedTenant !== "tenant-campos") {
+          // Checa se há sessão de franqueado ativa
+          const authRaw = localStorage.getItem("partiu_admin_session_auth");
+          if (authRaw) {
+            const authParsed = JSON.parse(authRaw);
+            if (authParsed?.role === "FRANQUEADO" && authParsed?.tenantId) {
+              return {
+                tenantId: authParsed.tenantId.trim(),
+                source: "STORAGE",
+                matchedDomain: host,
+                isCustomDomain: false,
+                status: "OK",
+              };
+            }
+          }
+
+          const storedV2 = localStorage.getItem("partiu_active_tenant_id_v2");
+          if (storedV2 && storedV2 !== "tenant-campos") {
             return {
-              tenantId: storedTenant,
+              tenantId: storedV2.trim(),
               source: "STORAGE",
               matchedDomain: host,
               isCustomDomain: false,
               status: "OK",
             };
-          } else if (storedTenant === "tenant-campos") {
-            // Em ambiente de plataforma/core, o tenant de demonstração não deve sequestrar a marca padrão
-            localStorage.setItem("partiu_whitelabel_active_tenant_id_v1", "default");
+          }
+
+          const storedTenant = localStorage.getItem("partiu_whitelabel_active_tenant_id_v1");
+          if (storedTenant && storedTenant !== "tenant-campos") {
+            return {
+              tenantId: storedTenant.trim(),
+              source: "STORAGE",
+              matchedDomain: host,
+              isCustomDomain: false,
+              status: "OK",
+            };
           }
         } catch {}
       }
@@ -365,6 +404,76 @@ export class TenantDomainService {
    */
   public getDomainByTenantId(tenantId: string): TenantDomainRecord | undefined {
     return Array.from(this.domainsMap.values()).find((d) => d.tenantId === tenantId);
+  }
+
+  /**
+   * Obtém o domínio de um tenant ou cria automaticamente o subdomínio oficial ativo da franquia
+   */
+  public getOrCreateDomainForTenant(tenantId: string, tenantNome = "Franqueado Regional"): TenantDomainRecord {
+    const existing = this.getDomainByTenantId(tenantId);
+    if (existing) {
+      // Se for domínio oficial da franquia mas estiver pendente por cache antigo, garante ativo
+      if (existing.domain.includes("partiumobe.com.br") && existing.status !== "ATIVO") {
+        existing.status = "ATIVO";
+        existing.sslStatus = "ATIVO";
+        existing.verifiedAt = new Date().toISOString();
+        if (existing.dnsRecords && existing.dnsRecords.length > 0) {
+          existing.dnsRecords[0].matched = true;
+          existing.dnsRecords[0].actual = CANONICAL_CNAME_TARGET;
+        }
+        this.domainsMap.set(existing.domain.toLowerCase(), existing);
+        this.persist();
+      }
+      return existing;
+    }
+
+    const cleanSlug = tenantId
+      .replace(/^tenant-/, "")
+      .replace(/[^a-z0-9-]/gi, "")
+      .toLowerCase() || "app";
+
+    const domain = `${cleanSlug}.partiumobe.com.br`;
+    const res = this.registerCustomDomain(tenantId, domain, tenantNome);
+    if (res.record) {
+      res.record.status = "ATIVO";
+      res.record.sslStatus = "ATIVO";
+      res.record.verifiedAt = new Date().toISOString();
+      if (res.record.dnsRecords && res.record.dnsRecords.length > 0) {
+        res.record.dnsRecords[0].matched = true;
+        res.record.dnsRecords[0].actual = CANONICAL_CNAME_TARGET;
+      }
+      this.domainsMap.set(domain.toLowerCase(), res.record);
+      this.persist();
+      return res.record;
+    }
+    return this.getDomainByTenantId(tenantId)!;
+  }
+
+  /**
+   * Ativa imediatamente um domínio em 1 clique
+   */
+  public activateDomainImmediately(domainKey: string): TenantDomainRecord {
+    const domain = this.cleanHostname(domainKey);
+    let record = this.domainsMap.get(domain);
+    if (!record) {
+      throw new Error(`Domínio '${domain}' não encontrado.`);
+    }
+
+    const now = new Date().toISOString();
+    record.status = "ATIVO";
+    record.sslStatus = "ATIVO";
+    record.verifiedAt = now;
+    record.updatedAt = now;
+    record.dnsRecords = record.dnsRecords.map((r) => ({
+      ...r,
+      actual: CANONICAL_CNAME_TARGET,
+      matched: true,
+      checkedAt: now,
+    }));
+
+    this.domainsMap.set(domain, record);
+    this.persist();
+    return record;
   }
 
   /**

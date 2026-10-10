@@ -52,39 +52,56 @@ export default function MeuAplicativoPage() {
     }
   }, [conta.role, conta.tenantId, activeTenantId, setTenantId]);
 
-  const [dominioRecord, setDominioRecord] = useState<TenantDomainRecord | undefined>(() =>
-    tenantDomainService.getDomainByTenantId(effectiveTenantId)
-  );
+  const [dominioRecord, setDominioRecord] = useState<TenantDomainRecord | undefined>(() => {
+    const existing = tenantDomainService.getDomainByTenantId(effectiveTenantId);
+    if (existing) return existing;
+    if (effectiveTenantId && effectiveTenantId !== "default") {
+      return tenantDomainService.getOrCreateDomainForTenant(
+        effectiveTenantId,
+        conta.tenantNome || branding.app_name || "Franquia Regional"
+      );
+    }
+    return undefined;
+  });
 
   const [novoDominioInput, setNovoDominioInput] = useState(dominioRecord?.domain || "");
   const [salvandoDominio, setSalvandoDominio] = useState(false);
   const [testandoDns, setTestandoDns] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
+  const [qrCodeMode, setQrCodeMode] = useState<"OFICIAL" | "PREVIEW">("OFICIAL");
 
   // Recarregar registro de domínio quando tenant mudar
   useEffect(() => {
-    const found = tenantDomainService.getDomainByTenantId(effectiveTenantId);
+    let found = tenantDomainService.getDomainByTenantId(effectiveTenantId);
+    if (!found && effectiveTenantId && effectiveTenantId !== "default") {
+      found = tenantDomainService.getOrCreateDomainForTenant(
+        effectiveTenantId,
+        conta.tenantNome || branding.app_name || "Franquia Regional"
+      );
+    }
     setDominioRecord(found);
     if (found?.domain) {
       setNovoDominioInput(found.domain);
     }
+  }, [effectiveTenantId, conta.tenantNome, branding.app_name]);
+
+  // 1. Link Oficial Permanente do Aplicativo (Domínio Próprio do Franqueado)
+  const officialAppUrl = useMemo(() => {
+    if (dominioRecord && dominioRecord.status === "ATIVO") {
+      return `https://${dominioRecord.domain}`;
+    }
+    if (typeof window === "undefined") return "/app";
+    return `${window.location.origin}/app?tenant=${encodeURIComponent(effectiveTenantId)}`;
+  }, [dominioRecord, effectiveTenantId]);
+
+  // 2. Link de Teste Imediato / Web Preview (funciona 100% no ambiente atual: Vercel ou Localhost)
+  const previewAppUrl = useMemo(() => {
+    if (typeof window === "undefined") return `/app?tenant=${encodeURIComponent(effectiveTenantId)}`;
+    return `${window.location.origin}/app?tenant=${encodeURIComponent(effectiveTenantId)}`;
   }, [effectiveTenantId]);
 
-  // URL canônica do aplicativo deste franqueado (sempre abre no ambiente atual)
-  const appUrl = useMemo(() => {
-    if (typeof window === "undefined") return "/app";
-    const origin = window.location.origin;
-    const currentHost = window.location.hostname;
-    const tid = effectiveTenantId;
-
-    // Se o navegador já estiver acessando diretamente pelo domínio customizado oficial
-    if (dominioRecord && dominioRecord.status === "ATIVO" && currentHost === dominioRecord.domain) {
-      return `https://${dominioRecord.domain}/app`;
-    }
-
-    // Link direto e garantido para testes e uso no ambiente ativo (preview, localhost, etc.)
-    return `${origin}/app?tenant=${encodeURIComponent(tid)}`;
-  }, [dominioRecord, effectiveTenantId]);
+  // O link oficial permanente exibido no card principal e usado para distribuição/APK
+  const appUrl = officialAppUrl;
 
   // URL do manifesto dinâmico gerado pelo servidor
   const manifestUrl = useMemo(() => {
@@ -96,8 +113,9 @@ export default function MeuAplicativoPage() {
 
   // Gerar QR Code de alta resolução em DataURL
   useEffect(() => {
-    if (!appUrl) return;
-    QRCode.toDataURL(appUrl, {
+    const targetUrl = qrCodeMode === "OFICIAL" ? officialAppUrl : previewAppUrl;
+    if (!targetUrl) return;
+    QRCode.toDataURL(targetUrl, {
       width: 400,
       margin: 2,
       color: {
@@ -107,11 +125,11 @@ export default function MeuAplicativoPage() {
     })
       .then((url) => setQrCodeUrl(url))
       .catch((err) => console.error("Erro ao gerar QR Code:", err));
-  }, [appUrl]);
+  }, [officialAppUrl, previewAppUrl, qrCodeMode]);
 
   function handleCopiarLink() {
     navigator.clipboard.writeText(appUrl);
-    toast.success("Link do aplicativo copiado para a área de transferência!");
+    toast.success("Link oficial do aplicativo copiado para a área de transferência!");
   }
 
   function handleTestarNavegador() {
@@ -244,15 +262,15 @@ export default function MeuAplicativoPage() {
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-slate-950 font-bold text-xs hover:bg-primary/90 transition shadow cursor-pointer active:scale-95"
                 >
                   <Copy className="w-3.5 h-3.5" />
-                  Copiar Link
+                  Copiar Link Oficial
                 </button>
                 <button
                   onClick={handleTestarNavegador}
                   className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs transition cursor-pointer"
-                  title="Abrir em nova aba"
+                  title="Abrir endereço permanente do domínio em nova aba"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
-                  Abrir
+                  Abrir Domínio
                 </button>
                 <button
                   onClick={handleAbrirManifesto}
@@ -262,6 +280,51 @@ export default function MeuAplicativoPage() {
                   <FileCode className="w-3.5 h-3.5" />
                   Manifest
                 </button>
+              </div>
+            </div>
+
+            {/* SEÇÃO COMPLEMENTAR: LINK DE TESTE IMEDIATO / PREVIEW NO NAVEGADOR */}
+            <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-bold text-slate-300">
+                    Ambiente de Testes e Web Preview Instantâneo
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  Disponível Agora
+                </span>
+              </div>
+              <p className="text-xs text-slate-400">
+                Acesse o aplicativo imediatamente neste navegador com as cores ({branding.primary_color}), logomarca e catálogo da sua praça, sem aguardar propagação DNS externa.
+              </p>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
+                <input
+                  type="text"
+                  readOnly
+                  value={previewAppUrl}
+                  className="flex-1 bg-slate-900 px-3 py-2 text-xs text-slate-300 font-mono rounded-lg border border-slate-800 select-all"
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(previewAppUrl);
+                      toast.success("Link de testes copiado com sucesso!");
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold cursor-pointer transition active:scale-95"
+                  >
+                    <Copy className="w-3 h-3" />
+                    Copiar Preview
+                  </button>
+                  <button
+                    onClick={() => window.open(previewAppUrl, "_blank", "noopener,noreferrer")}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary hover:bg-primary/90 text-slate-950 text-xs font-bold cursor-pointer transition shadow active:scale-95"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Abrir Preview
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -491,13 +554,40 @@ export default function MeuAplicativoPage() {
         {/* CARD 3: QR CODE DE ACESSO RÁPIDO (1 COLUNA) */}
         <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-5 flex flex-col justify-between">
           <div>
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
-              QR Code do Aplicativo
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                QR Code do Aplicativo
+              </h2>
+            </div>
             <p className="text-sm text-slate-400 mt-1">
-              Escaneie com a câmera de qualquer smartphone para abrir o PWA imediatamente.
+              Escaneie com a câmera de qualquer smartphone para abrir o aplicativo.
             </p>
+
+            <div className="flex items-center gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 mt-3 text-xs">
+              <button
+                type="button"
+                onClick={() => setQrCodeMode("OFICIAL")}
+                className={`flex-1 py-1.5 px-2 rounded-lg font-bold transition cursor-pointer text-center ${
+                  qrCodeMode === "OFICIAL"
+                    ? "bg-primary text-slate-950 shadow"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Domínio Oficial
+              </button>
+              <button
+                type="button"
+                onClick={() => setQrCodeMode("PREVIEW")}
+                className={`flex-1 py-1.5 px-2 rounded-lg font-bold transition cursor-pointer text-center ${
+                  qrCodeMode === "PREVIEW"
+                    ? "bg-primary text-slate-950 shadow"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Link Preview
+              </button>
+            </div>
           </div>
 
           <div className="flex flex-col items-center justify-center p-6 bg-slate-950 rounded-2xl border border-slate-800">
@@ -513,7 +603,7 @@ export default function MeuAplicativoPage() {
               </div>
             )}
             <p className="text-xs text-slate-400 mt-3 font-mono text-center break-all max-w-xs">
-              {appUrl}
+              {qrCodeMode === "OFICIAL" ? officialAppUrl : previewAppUrl}
             </p>
           </div>
 
