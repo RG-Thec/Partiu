@@ -109,6 +109,25 @@ export class MapboxConfig {
   };
 
   /**
+   * Token público canônico integrado para garantir carregamento instantâneo em produção para o Super Admin
+   */
+  public static getBuiltinProductionToken(): string {
+    try {
+      const b64 =
+        "cGsuZXlKMUlqb2ljbVJuYjIxbGN5SXNJbUVpT2lKamJYUXpOVEU0Ykhjd01ubHJNbmh2WkdVMk9IWnVlV3BxSW4wLjZnSHE2Sk01Y1pVYW5ZQmVCMVVXNkE=";
+      if (typeof atob === "function") {
+        return atob(b64);
+      }
+      if (typeof Buffer !== "undefined") {
+        return Buffer.from(b64, "base64").toString("utf-8");
+      }
+    } catch {
+      // Silencioso
+    }
+    return MapboxConfig.DEFAULT_TOKEN;
+  }
+
+  /**
    * Token público canônico integrado para garantir carregamento instantâneo em produção
    */
   public static getMatrizOfficialToken(): string {

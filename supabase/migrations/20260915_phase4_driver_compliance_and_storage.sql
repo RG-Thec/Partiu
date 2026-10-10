@@ -1,7 +1,7 @@
 -- ==============================================================================
 -- 🚀 FASE 4: ONBOARDING COMPLIANCE (CNH/CRLV STORAGE) E OBSERVABILIDADE SRE
 -- Data de Criação: 2026-09-15
--- Compatibilidade: Supabase PostgreSQL 15+ / Lovable Sync
+-- Compatibilidade: Supabase PostgreSQL 15+
 -- ==============================================================================
 
 -- 1. Colunas para Armazenamento de Documentos Reais de Motoristas

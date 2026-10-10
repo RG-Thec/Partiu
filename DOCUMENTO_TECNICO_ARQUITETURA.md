@@ -308,9 +308,9 @@ Todos os módulos centrais foram submetidos a auditoria estrita de código, desi
 *   **Auditoria de Variáveis de Ambiente:** Totalmente isoladas em `.env.example` e referenciadas via `import.meta.env`, sem segredos versionados em repositório.
 
 ### 4.3. Protocolo de Deployment & Integração Contínua (CI/CD)
-*   **Sincronização com a Plataforma Lovable:**
+*   **Controle de Versão e Integridade do Repositório Git:**
     *   Preservação estrita do histórico de commits da branch `main`.
-    *   Proibição absoluta de comandos destrutivos (`git push --force`, `git rebase`, `git commit --amend` em commits publicados), garantindo a estabilidade e sincronização bi-direcional contínua com o editor da Lovable.
+    *   Boas práticas de CI/CD para deploy autônomo em nuvem (Vercel, Cloudflare Workers/Pages, VPS dedicada).
 *   **Pipeline de Compilação & Distribuição:**
     *   Build para Web/PWA gerado via Vite em sub-2 segundos com split de chunks otimizado.
     *   Empacotamento mobile multiplataforma (iOS e Android) viabilizado via Capacitor com acesso a recursos nativos de hardware (GPS de alta precisão, Push Notifications e Haptic Feedback).

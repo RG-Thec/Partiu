@@ -259,9 +259,6 @@ export class TenantDomainService {
       h.endsWith(".localhost") ||
       h.includes("vercel.app") ||
       h.includes("now.sh") ||
-      h.includes("lovable.app") ||
-      h.includes("lovable.dev") ||
-      h.includes("lovableproject.com") ||
       h.includes("netlify.app") ||
       h.includes("pages.dev") ||
       h.includes("workers.dev") ||

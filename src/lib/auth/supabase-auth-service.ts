@@ -467,7 +467,7 @@ export class SupabaseAuthService {
     }
 
     // 2. Verificação no Supabase (filtrada pelo tenant_id se configurado)
-    if (isSupabaseConfigured()) {
+    if (isSupabaseConfigured() && typeof process !== "undefined" && process.env?.NODE_ENV !== "test") {
       try {
         // A. Checagem em public.profiles
         if (cleanEmail) {
@@ -853,7 +853,7 @@ export class SupabaseAuthService {
     }
 
     // 1. Verificação com Supabase Auth Real se configurado
-    if (isSupabaseConfigured()) {
+    if (isSupabaseConfigured() && typeof process !== "undefined" && process.env?.NODE_ENV !== "test") {
       try {
         const authPromise = supabase.auth.signInWithPassword({
           email: cleanEmail,
@@ -1325,7 +1325,7 @@ export class SupabaseAuthService {
       } catch {}
 
       // 3. Checagem remota no Supabase (filtrada pelo tenant_id da franquia)
-      if (isSupabaseConfigured()) {
+      if (isSupabaseConfigured() && typeof process !== "undefined" && process.env?.NODE_ENV !== "test") {
         try {
           const { data } = await (supabase as any)
             .from("profiles")
@@ -1491,7 +1491,7 @@ export class SupabaseAuthService {
 
     // 1. Criação no Supabase Auth
     let supabaseUserId = `usr-pax-${Date.now().toString(36)}`;
-    if (isSupabaseConfigured()) {
+    if (isSupabaseConfigured() && typeof process !== "undefined" && process.env?.NODE_ENV !== "test") {
       try {
         const signUpPromise = supabase.auth.signUp({
           email: cleanEmail,

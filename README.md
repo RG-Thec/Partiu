@@ -13,7 +13,6 @@
 6. [FinOps & Ledger de Partidas Dobradas](#-finops--ledger-de-partidas-dobradas)
 7. [Suíte de Testes & Qualidade de Código](#-suíte-de-testes--qualidade-de-código)
 8. [Como Executar o Projeto](#-como-executar-o-projeto)
-9. [Diretrizes Lovable](#-diretrizes-lovable)
 
 ---
 
@@ -162,13 +161,3 @@ npm test
 ```
 
 O aplicativo estará acessível em `http://localhost:8080/`.
-
----
-
-## ⚠️ Diretrizes Lovable
-
-Este projeto está sincronizado com o editor [Lovable](https://lovable.dev).
-
-> **IMPORTANTE**: É proibido reescrever o histórico publicado do Git (`git push --force`, rebase ou squash de commits já enviados), sob risco de perda do histórico no editor Lovable. Mantenha os commits em estado funcional para sincronização contínua.
-
-

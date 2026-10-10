@@ -19,7 +19,7 @@ describe("🌐 WHITE-LABEL DOMAIN RESOLVER & DYNAMIC MANIFEST ENGINE", () => {
   test("1.2 Identificação de hosts de desenvolvimento e infraestrutura da plataforma", () => {
     expect(tenantDomainService.isPlatformHost("localhost")).toBe(true);
     expect(tenantDomainService.isPlatformHost("127.0.0.1")).toBe(true);
-    expect(tenantDomainService.isPlatformHost("novo-partiu-mobe.lovable.app")).toBe(true);
+    expect(tenantDomainService.isPlatformHost("novo-partiu-mobe.vercel.app")).toBe(true);
     expect(tenantDomainService.isPlatformHost("partiu-zeta.vercel.app")).toBe(true);
     expect(tenantDomainService.isPlatformHost("partiumobe.com.br")).toBe(true);
     expect(tenantDomainService.isPlatformHost("app.mobe-saopaulo.com.br")).toBe(false);
@@ -27,7 +27,7 @@ describe("🌐 WHITE-LABEL DOMAIN RESOLVER & DYNAMIC MANIFEST ENGINE", () => {
 
   test("1.3 Resolução com parâmetro explícito na URL (?tenant=...)", () => {
     const params = new URLSearchParams("tenant=praca_maceio_al");
-    const res = tenantDomainService.resolveTenantFromHost("novo-partiu-mobe.lovable.app", params);
+    const res = tenantDomainService.resolveTenantFromHost("novo-partiu-mobe.vercel.app", params);
     expect(res.status).toBe("OK");
     expect(res.tenantId).toBe("praca_maceio_al");
     expect(res.source).toBe("PARAM");

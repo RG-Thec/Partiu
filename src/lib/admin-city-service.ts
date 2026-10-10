@@ -33,6 +33,16 @@ import { getContaAtiva, isFranqueado } from "@/lib/admin-rbac";
 export const PRACAS_PADRAO_INICIAIS: AdminPracaOperacao[] = [
   PRACA_GLOBAL_TODAS,
   {
+    id: "itp",
+    nome: "Itaperuna",
+    uf: "RJ",
+    labelCompleto: "Itaperuna - RJ",
+    status: "ATIVA",
+    lat: -21.2054,
+    lng: -41.8892,
+    raioKm: 15,
+  },
+  {
     id: "tenant-itaperuna",
     nome: "Itaperuna",
     uf: "RJ",
@@ -41,6 +51,16 @@ export const PRACAS_PADRAO_INICIAIS: AdminPracaOperacao[] = [
     lat: -21.2054,
     lng: -41.8892,
     raioKm: 15,
+  },
+  {
+    id: "cmp",
+    nome: "Campos dos Goytacazes",
+    uf: "RJ",
+    labelCompleto: "Campos dos Goytacazes - RJ",
+    status: "ATIVA",
+    lat: -21.7545,
+    lng: -41.3244,
+    raioKm: 25,
   },
   {
     id: "tenant-campos",

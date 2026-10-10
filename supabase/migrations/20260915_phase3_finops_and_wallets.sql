@@ -1,7 +1,7 @@
 -- ==============================================================================
 -- 🚀 FASE 3: BLINDAGEM DE FINOPS, SPLIT D+0, BACEN CRC-16 E FILA DE SAQUES PIX
 -- Data de Criação: 2026-09-15
--- Compatibilidade: Supabase PostgreSQL 15+ / Lovable Sync
+-- Compatibilidade: Supabase PostgreSQL 15+
 -- ==============================================================================
 
 -- 1. Ampliação de restrição de status na tabela de saques do motorista (driver_pix_withdrawals)
