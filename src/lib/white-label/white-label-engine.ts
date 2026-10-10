@@ -18,6 +18,7 @@ import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import {
   type WhiteLabelFullConfig,
   type WhiteLabelTenantRecord,
+  type TenantPlanStatus,
   type BusinessVerticalId,
   type HomeBlockItem,
   type BorderRadiusOption,
@@ -430,6 +431,17 @@ export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
     diasCarenciaInadimplencia: 3,
     tetoDebitoMaximoBrl: 80.0,
     fundoProtecaoTetoBrl: 30.0,
+    chavePixAdmin: "financeiro.itaperuna@partiu.app",
+    tipoChavePixAdmin: "email",
+    beneficiarioAdmin: "PARTIU Mobilidade Urbana Ltda",
+    cidadeAdmin: "Itaperuna",
+    diariaCarro: 19.90,
+    diariaMoto: 11.90,
+    semanalCarro: 99.00,
+    semanalMoto: 59.00,
+    mensalCarro: 349.00,
+    mensalMoto: 199.00,
+    gatewayProvider: "mercadopago",
   },
   cms: {
     campanhas: [
@@ -471,9 +483,13 @@ export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
     idiomaPadrao: "pt-BR",
     fusoHorario: "America/Sao_Paulo",
     formatoTelefone: "(99) 99999-9999",
-    coordenadasCentroLat: -21.2054,
-    coordenadasCentroLng: -41.8892,
+    coordenadasCentroLat: -21.205,
+    coordenadasCentroLng: -41.888,
     raioOperacaoPadraoKm: 15.0,
+    mapProvider: "mapbox",
+    mapboxAccessToken: "",
+    googleMapsApiKey: "",
+    mapboxStyleId: "mapbox://styles/mapbox/navigation-day-v1",
   },
   nativeApp: {
     nomeAppExibicao: "PARTIU",
@@ -678,6 +694,7 @@ const SEED_TENANTS: WhiteLabelTenantRecord[] = [
     responsavelTelefone: "(22) 99876-5432",
     cnpjFranqueado: "48.291.834/0001-90",
     ativo: true,
+    statusPlano: "ATIVO",
     criadoEm: 1772928000000,
     configuracaoCompleta: {
       ...DEFAULT_WHITELABEL_CONFIG,
@@ -694,6 +711,22 @@ const SEED_TENANTS: WhiteLabelTenantRecord[] = [
           corTextoPrincipal: "#082F49",
         },
       },
+      monetization: {
+        ...DEFAULT_WHITELABEL_CONFIG.monetization,
+        chavePixAdmin: "financeiro.matriz@partiu.app",
+        tipoChavePixAdmin: "email",
+        beneficiarioAdmin: "PARTIU Holding Nacional",
+        cidadeAdmin: "Brasilia",
+        diariaCarro: 20.00,
+        diariaMoto: 12.00,
+      },
+      geo: {
+        ...DEFAULT_WHITELABEL_CONFIG.geo,
+        cidadeSede: "Brasília",
+        estadoUf: "DF",
+        coordenadasCentroLat: -15.793889,
+        coordenadasCentroLng: -47.882778,
+      },
     },
   },
   {
@@ -707,8 +740,28 @@ const SEED_TENANTS: WhiteLabelTenantRecord[] = [
     responsavelTelefone: "(22) 99876-5432",
     cnpjFranqueado: "34.567.890/0001-12",
     ativo: true,
+    statusPlano: "ATIVO",
     criadoEm: 1772928000000,
-    configuracaoCompleta: DEFAULT_WHITELABEL_CONFIG,
+    configuracaoCompleta: {
+      ...DEFAULT_WHITELABEL_CONFIG,
+      tenantId: "tenant-itaperuna",
+      monetization: {
+        ...DEFAULT_WHITELABEL_CONFIG.monetization,
+        chavePixAdmin: "pix.itaperuna@partiu.app",
+        tipoChavePixAdmin: "email",
+        beneficiarioAdmin: "PARTIU Noroeste Fluminense Ltda",
+        cidadeAdmin: "Itaperuna",
+        diariaCarro: 19.90,
+        diariaMoto: 11.90,
+      },
+      geo: {
+        ...DEFAULT_WHITELABEL_CONFIG.geo,
+        cidadeSede: "Itaperuna",
+        estadoUf: "RJ",
+        coordenadasCentroLat: -21.205,
+        coordenadasCentroLng: -41.888,
+      },
+    },
   },
   {
     tenantId: "tenant-campos",
@@ -721,6 +774,7 @@ const SEED_TENANTS: WhiteLabelTenantRecord[] = [
     responsavelTelefone: "(22) 99765-4321",
     cnpjFranqueado: "45.678.901/0001-23",
     ativo: true,
+    statusPlano: "ATIVO",
     criadoEm: 1772928000000,
     configuracaoCompleta: {
       ...DEFAULT_WHITELABEL_CONFIG,
@@ -740,9 +794,19 @@ const SEED_TENANTS: WhiteLabelTenantRecord[] = [
           corTextoPrincipal: "#FFFFFF",
         },
       },
+      monetization: {
+        ...DEFAULT_WHITELABEL_CONFIG.monetization,
+        chavePixAdmin: "financeiro@gomobilidade.com.br",
+        tipoChavePixAdmin: "email",
+        beneficiarioAdmin: "GO Mobilidade Campos Ltda",
+        cidadeAdmin: "Campos dos Goytacazes",
+        diariaCarro: 22.00,
+        diariaMoto: 14.00,
+      },
       geo: {
         ...DEFAULT_WHITELABEL_CONFIG.geo,
         cidadeSede: "Campos dos Goytacazes",
+        estadoUf: "RJ",
         coordenadasCentroLat: -21.7545,
         coordenadasCentroLng: -41.3244,
       },
@@ -877,8 +941,163 @@ export class WhiteLabelEngine {
     return this.getActiveTenant().configuracaoCompleta;
   }
 
+  public getTenantConfig(tenantId?: string): WhiteLabelFullConfig {
+    if (!tenantId) return this.getActiveConfig();
+    const tenant = this.tenantsMap.get(tenantId);
+    if (tenant) return tenant.configuracaoCompleta;
+    return this.getActiveConfig();
+  }
+
   public getAllTenants(): WhiteLabelTenantRecord[] {
     return Array.from(this.tenantsMap.values());
+  }
+
+  /**
+   * Verifica se o tenant está ativo (plano em dia e não suspenso)
+   */
+  public isTenantActive(tenantId?: string): boolean {
+    const targetId = tenantId || this.activeTenantId;
+    // Matriz Oficial é sempre ativa
+    if (targetId === "default" || targetId === "matriz-br") return true;
+    const tenant = this.tenantsMap.get(targetId);
+    if (!tenant) return true;
+    if (tenant.ativo === false || tenant.statusPlano === "SUSPENSO" || tenant.statusPlano === "CANCELADO") {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Verifica se o tenant está suspenso
+   */
+  public isTenantSuspended(tenantId?: string): boolean {
+    return !this.isTenantActive(tenantId);
+  }
+
+  /**
+   * Ativa ou desativa o plano de um franqueado a qualquer momento pelo Super Administrador
+   * (Kill Switch operacional: desativa o app e bloqueia acesso ao painel admin da franquia)
+   */
+  public async setTenantStatus(
+    tenantId: string,
+    status: "ATIVO" | "SUSPENSO",
+    motivo?: string
+  ): Promise<boolean> {
+    if (tenantId === "default" || tenantId === "matriz-br") {
+      throw new Error("A conta oficial da Matriz Partiu não pode ser suspensa.");
+    }
+
+    const tenant = this.tenantsMap.get(tenantId);
+    if (!tenant) {
+      throw new Error(`Franqueado com ID '${tenantId}' não foi encontrado.`);
+    }
+
+    const isAtivo = status === "ATIVO";
+    tenant.ativo = isAtivo;
+    tenant.statusPlano = status;
+    tenant.motivoBloqueio = isAtivo ? undefined : (motivo || "Plano temporariamente desativado pela administração central.");
+    tenant.suspensoEm = isAtivo ? undefined : Date.now();
+
+    this.tenantsMap.set(tenantId, tenant);
+    this.saveTenantsRegistry();
+    this.broadcastUpdate();
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("partiu:tenant-status-changed", {
+          detail: { tenantId, status, isAtivo, motivo: tenant.motivoBloqueio },
+        })
+      );
+    }
+
+    // Persiste no Supabase
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase
+          .from("white_label_tenants" as any)
+          .update({
+            is_active: isAtivo,
+            plan_status: status,
+            suspended_reason: tenant.motivoBloqueio || null,
+            suspended_at: isAtivo ? null : new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          } as any)
+          .eq("tenant_id", tenantId);
+      } catch (err) {
+        silentCatchWarn("WhiteLabelEngine:setTenantStatus", err);
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Exclui permanentemente a conta de um franqueado pelo Super Administrador
+   */
+  public async deleteTenant(tenantId: string): Promise<boolean> {
+    if (tenantId === "default" || tenantId === "matriz-br" || tenantId === "tenant-itaperuna") {
+      throw new Error("A conta oficial da Matriz PARTIU é protegida e não pode ser excluída.");
+    }
+
+    const exists = this.tenantsMap.has(tenantId);
+    if (!exists) {
+      throw new Error(`Franqueado '${tenantId}' não existe no registro.`);
+    }
+
+    this.tenantsMap.delete(tenantId);
+
+    // Se o tenant excluído era o ativo, reseta para a Matriz
+    if (this.activeTenantId === tenantId) {
+      this.activeTenantId = "default";
+      const defaultTenant = this.tenantsMap.get("default") || Array.from(this.tenantsMap.values())[0];
+      if (defaultTenant) {
+        this.applyTheme(defaultTenant.configuracaoCompleta);
+      }
+    }
+
+    this.saveTenantsRegistry();
+    this.broadcastUpdate();
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("partiu:tenant-deleted", { detail: { tenantId } })
+      );
+    }
+
+    // Deleta do Supabase
+    if (isSupabaseConfigured()) {
+      try {
+        await supabase
+          .from("white_label_tenants" as any)
+          .delete()
+          .eq("tenant_id", tenantId);
+      } catch (err) {
+        silentCatchWarn("WhiteLabelEngine:deleteTenant", err);
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Obtém métricas consolidadas dos franqueados para o dashboard do Super Administrador
+   */
+  public getFranchiseeStats(): {
+    total: number;
+    ativos: number;
+    suspensos: number;
+    franchisees: WhiteLabelTenantRecord[];
+  } {
+    const list = this.getAllTenants();
+    const total = list.length;
+    const ativos = list.filter((t) => t.ativo !== false && t.statusPlano !== "SUSPENSO" && t.statusPlano !== "CANCELADO").length;
+    const suspensos = total - ativos;
+    return {
+      total,
+      ativos,
+      suspensos,
+      franchisees: list,
+    };
   }
 
   public switchTenant(tenantId: string): WhiteLabelTenantRecord {
@@ -1220,6 +1439,7 @@ export class WhiteLabelEngine {
       responsavelTelefone: source.responsavelTelefone,
       cnpjFranqueado: source.cnpjFranqueado,
       ativo: true,
+      statusPlano: "ATIVO",
       criadoEm: Date.now(),
       configuracaoCompleta: clonedConfig,
     };
@@ -1227,6 +1447,7 @@ export class WhiteLabelEngine {
     this.tenantsMap.set(cleanId, newTenant);
     this.saveTenantsRegistry();
     this.broadcastUpdate();
+    void this.persistToSupabase(clonedConfig, cleanId);
     return newTenant;
   }
 

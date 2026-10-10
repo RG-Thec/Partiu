@@ -24,8 +24,8 @@ export class MapboxService {
     return MapboxService.instance;
   }
 
-  public getAccessToken(): string {
-    return MapboxConfig.getAccessToken();
+  public getAccessToken(tenantId?: string): string {
+    return MapboxConfig.getAccessToken(tenantId);
   }
 
   public getStyleUrl(

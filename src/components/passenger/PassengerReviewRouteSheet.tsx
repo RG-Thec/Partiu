@@ -153,16 +153,8 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
   const rawPop = rawPopBase + taxaCancelamentoPendente;
 
   const calculateDiscounted = (basePrice: number) => {
-    if (!cupomAtivo) return { discounted: basePrice, hasDiscount: false };
-    let discount = 0;
-    const cupomValor = Number(cupomAtivo.valor) || 0;
-    if (cupomAtivo.tipo === "porcentagem") {
-      discount = (basePrice * cupomValor) / 100;
-    } else {
-      discount = cupomValor;
-    }
-    const finalPrice = Math.max(2.0, Math.round((basePrice - discount) * 100) / 100);
-    return { discounted: finalPrice, hasDiscount: true };
+    const res = couponService.calculateFareDiscount(basePrice, cupomAtivo);
+    return { discounted: res.finalFare, hasDiscount: res.hasDiscount };
   };
 
   const motoCalc = calculateDiscounted(rawMoto);

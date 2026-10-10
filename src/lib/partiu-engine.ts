@@ -285,6 +285,9 @@ export interface CorridaPartiu {
   cancellationReasonLabel?: string | undefined;
   cancellationFeeApplied?: boolean | undefined;
   cancellationFeeCents?: number | undefined;
+  valorOriginal?: number | undefined;
+  descontoCupom?: number | undefined;
+  codigoCupom?: string | undefined;
   paradas?: Array<{ id: string; endereco: string; coords?: { lat: number; lng: number } }> | undefined;
   paradasConcluidas?: number | undefined;
   isDestinationMode?: boolean | undefined;
@@ -506,6 +509,9 @@ export function criarNovaCorrida(params: {
   otherPersonPhone?: string | undefined;
   solicitanteNome?: string | undefined;
   solicitanteTelefone?: string | undefined;
+  valorOriginal?: number | undefined;
+  descontoCupom?: number | undefined;
+  codigoCupom?: string | undefined;
   paradas?: Array<{ id: string; endereco: string; coords?: { lat: number; lng: number } }> | undefined;
   isDestinationMode?: boolean | undefined;
 }): CorridaPartiu {
@@ -539,6 +545,9 @@ export function criarNovaCorrida(params: {
     passageiroTelefone: params.passageiroTelefone || "",
     passageiroId: resolvedPassengerId,
     valor: finalValor,
+    valorOriginal: params.valorOriginal,
+    descontoCupom: params.descontoCupom,
+    codigoCupom: params.codigoCupom,
     distanciaKm: params.distanciaKm,
     duracaoMin: params.duracaoMin,
     formaPagamento: params.formaPagamento,

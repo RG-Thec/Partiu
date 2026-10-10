@@ -14,6 +14,8 @@ import {
   Bell,
   RefreshCw,
   AlertTriangle,
+  MapPin,
+  Navigation,
 } from "lucide-react";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useBranding } from "@/hooks/useBranding";
@@ -287,6 +289,115 @@ export function GeoAppComplianceTab({
                   placeholder="Ex: PARTIU Mobilidade"
                   className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
                 />
+              </div>
+            </div>
+
+            {/* MOTOR GEOESPACIAL & CHAVES DE API DE MAPAS DO FRANQUEADO */}
+            <div className="mt-5 pt-5 border-t border-slate-100">
+              <h4 className="text-xs font-black uppercase tracking-wider text-[#003366] mb-3 flex items-center gap-1.5">
+                <Navigation className="w-4 h-4 text-[#0088FF]" />
+                Motor Geoespacial &amp; Chaves de API de Mapas da Franquia
+              </h4>
+              <p className="text-[11px] text-slate-500 mb-3">
+                Configure a chave de API de mapas e a ancoragem geográfica inicial exclusiva desta cidade para isolar custos e cotas de requisições.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Provedor de Mapas Ativo
+                  </label>
+                  <select
+                    value={geo?.mapProvider || "mapbox"}
+                    onChange={(e: any) => {
+                      updateConfig({
+                        geo: { ...geo, mapProvider: e.target.value },
+                      });
+                      onSaveFeedback();
+                    }}
+                    className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none"
+                  >
+                    <option value="mapbox">Mapbox GL JS (Nativo)</option>
+                    <option value="google">Google Maps Platform</option>
+                    <option value="osm">OpenStreetMap / CARTO (Gratuito)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Token Mapbox do Franqueado (pk.*)
+                  </label>
+                  <input
+                    type="password"
+                    value={geo?.mapboxAccessToken || ""}
+                    onChange={(e) => {
+                      updateConfig({
+                        geo: { ...geo, mapboxAccessToken: e.target.value.trim() },
+                      });
+                      onSaveFeedback();
+                    }}
+                    placeholder="pk.eyJ1I..."
+                    className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Chave Google Maps (Opcional)
+                  </label>
+                  <input
+                    type="password"
+                    value={geo?.googleMapsApiKey || ""}
+                    onChange={(e) => {
+                      updateConfig({
+                        geo: { ...geo, googleMapsApiKey: e.target.value.trim() },
+                      });
+                      onSaveFeedback();
+                    }}
+                    placeholder="AIzaSy..."
+                    className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                    Latitude Central da Cidade
+                  </label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    value={geo?.coordenadasCentroLat ?? -21.2054}
+                    onChange={(e) => {
+                      updateConfig({
+                        geo: { ...geo, coordenadasCentroLat: Number(e.target.value) },
+                      });
+                      onSaveFeedback();
+                    }}
+                    placeholder="-21.2054"
+                    className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-blue-500" />
+                    Longitude Central da Cidade
+                  </label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    value={geo?.coordenadasCentroLng ?? -41.8892}
+                    onChange={(e) => {
+                      updateConfig({
+                        geo: { ...geo, coordenadasCentroLng: Number(e.target.value) },
+                      });
+                      onSaveFeedback();
+                    }}
+                    placeholder="-41.8892"
+                    className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none font-mono"
+                  />
+                </div>
               </div>
             </div>
           </div>

@@ -115,6 +115,9 @@ export async function criarCorridaDistribuida(params: {
   origemCoords?: { lat: number; lng: number } | undefined;
   destinoCoords?: { lat: number; lng: number } | undefined;
   passengerId?: string | undefined;
+  valorOriginal?: number | undefined;
+  descontoCupom?: number | undefined;
+  codigoCupom?: string | undefined;
 }): Promise<CorridaPartiu> {
   const pin = Math.floor(1000 + Math.random() * 9000).toString();
   const id = `COR-${Date.now().toString().slice(-6)}`;
@@ -185,6 +188,9 @@ export async function criarCorridaDistribuida(params: {
         descricaoPacote: params.descricaoPacote,
         origemCoords: { lat: origLat!, lng: origLng! },
         destinoCoords: { lat: destLat!, lng: destLng! },
+        valorOriginal: params.valorOriginal || params.valor,
+        descontoCupom: params.descontoCupom || 0,
+        codigoCupom: params.codigoCupom,
       };
 
       await broadcastEventoCorrida("TRIP_OFFERED", corridaRpc);
@@ -215,6 +221,9 @@ export async function criarCorridaDistribuida(params: {
         duration_minutes: params.duracaoMin,
         payment_method: params.formaPagamento,
         pin,
+        original_fare: params.valorOriginal || params.valor,
+        coupon_discount: params.descontoCupom || 0,
+        coupon_code: params.codigoCupom || null,
       }).then(({ error }: any) => {
         if (error) silentCatchWarn("criarCorridaDistribuida:insert_rides", error);
       });
@@ -233,6 +242,9 @@ export async function criarCorridaDistribuida(params: {
     passageiroNome: params.passageiroNome || "Passageiro",
     passageiroTelefone: params.passageiroTelefone || "",
     valor: params.valor,
+    valorOriginal: params.valorOriginal || params.valor,
+    descontoCupom: params.descontoCupom || 0,
+    codigoCupom: params.codigoCupom,
     distanciaKm: params.distanciaKm,
     duracaoMin: params.duracaoMin,
     formaPagamento: params.formaPagamento,

@@ -23,6 +23,7 @@ import {
   Package,
 } from "lucide-react";
 import { appSettingsService } from "@/services/AppSettingsService";
+import { couponService } from "@/services/CouponService";
 
 export const Route = createFileRoute("/app/admin/afiliados")({
   head: () => ({
@@ -245,20 +246,24 @@ export function AdminCuponsEVantagensPage() {
     setTimeout(() => setSalvoFeedback(false), 2500);
   }
 
-  function handleCriarCupom(e: FormEvent) {
+  async function handleCriarCupom(e: FormEvent) {
     e.preventDefault();
     if (!novoCodigo.trim() || !novaDescricao.trim()) return;
 
+    const codLimpo = novoCodigo.toUpperCase().replace(/\s+/g, "");
+    const valorNum = parseFloat(novoValor) || 0;
+    const limiteNum = parseInt(novoLimiteUsos) || 100;
+
     const novo: CupomDesconto = {
       id: `cup-${Date.now()}`,
-      codigo: novoCodigo.toUpperCase().replace(/\s+/g, ""),
+      codigo: codLimpo,
       descricao: novaDescricao,
       tipo: novoTipo,
-      valor: parseFloat(novoValor) || 0,
+      valor: valorNum,
       categoria: novaCategoria,
       valorMinimoCorrida: parseFloat(novoValorMinimo) || 0,
       usosTotais: 0,
-      limiteUsos: parseInt(novoLimiteUsos) || 100,
+      limiteUsos: limiteNum,
       expiraEm: novaDataExpira,
       ativo: true,
     };
@@ -267,6 +272,21 @@ export function AdminCuponsEVantagensPage() {
     setNovoCodigo("");
     setNovaDescricao("");
     setNovoValor("10");
+
+    // Sincroniza remotamente com a tabela campaigns_coupons do Supabase
+    try {
+      await couponService.saveAdminCoupon({
+        codigo: codLimpo,
+        descricao: novaDescricao,
+        tipo: novoTipo,
+        valor: valorNum,
+        maxRedemptions: limiteNum,
+        validoAte: novaDataExpira,
+        ativo: true,
+      });
+    } catch (err) {
+      console.warn("[Afiliados] Falha ao sincronizar cupom no Supabase:", err);
+    }
   }
 
   function handleCriarParceiro(e: FormEvent) {
@@ -291,13 +311,21 @@ export function AdminCuponsEVantagensPage() {
     setNovoParceiroContato("");
   }
 
-  function toggleAtivoCupom(id: string) {
+  async function toggleAtivoCupom(id: string) {
+    const cup = cupons.find((c) => c.id === id);
+    if (cup) {
+      void couponService.toggleAdminCoupon(cup.codigo, !cup.ativo);
+    }
     const atualizados = cupons.map((c) => (c.id === id ? { ...c, ativo: !c.ativo } : c));
     salvarCuponsStorage(atualizados);
   }
 
-  function removerCupom(id: string) {
+  async function removerCupom(id: string) {
     if (confirm("Deseja realmente remover este cupom de desconto?")) {
+      const cup = cupons.find((c) => c.id === id);
+      if (cup) {
+        void couponService.deleteAdminCoupon(cup.codigo);
+      }
       salvarCuponsStorage(cupons.filter((c) => c.id !== id));
     }
   }

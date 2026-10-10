@@ -17,6 +17,7 @@ import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { appSettingsService } from "./app-settings-service";
 import { computePixCrc16, buildStandardEmvPix, generateLocalQrCodeSvgSync } from "@/services/payment/PaymentProviderAdapter";
 import { getMonetizacaoConfig } from "@/lib/superadmin-config";
+import { WhiteLabelEngine } from "@/lib/white-label/white-label-engine";
 
 export type SubscriptionStatus = "ACTIVE" | "EXPIRED" | "PENDING" | "CANCELLED";
 
@@ -32,6 +33,7 @@ export interface DriverSubscriptionRecord {
   created_at: string;
   updated_at: string;
   cycle?: "DAILY" | "WEEKLY" | "MONTHLY" | "TRIAL";
+  tenant_id?: string;
 }
 
 export interface GeneratedPixPayment {
@@ -69,6 +71,7 @@ export interface DriverSubscriptionAccount {
   courtesyDaysGranted: number;
   blockedReason?: string;
   documentsApproved: boolean;
+  tenantId?: string;
 }
 
 export interface ExecutiveSaaSMetrics {
@@ -344,37 +347,95 @@ class DriverSubscriptionService {
   }
 
   /**
-   * Gera ordem de pagamento PIX dinâmico para a diária do motorista
+   * Obtém o tenant_id vinculado ao motorista ou da sessão ativa
+   */
+  public getDriverTenantId(driverId: string): string {
+    const acc = this.driverAccounts.find((a) => a.driverId === driverId);
+    if (acc?.tenantId) return acc.tenantId;
+    const sub = this.subscriptions.find((s) => s.driver_id === driverId);
+    if (sub?.tenant_id) return sub.tenant_id;
+    try {
+      return WhiteLabelEngine.getInstance().getActiveTenantId();
+    } catch {
+      return "tenant-itaperuna";
+    }
+  }
+
+  /**
+   * Gera ordem de pagamento PIX dinâmico para a diária do motorista isolada por Franqueado
    */
   public generateDailyFeePix(
     driverId: string,
     vehicleType: "MOTO" | "CARRO" = "CARRO",
-    cycle: "DAILY" | "WEEKLY" | "MONTHLY" = "DAILY"
+    cycle: "DAILY" | "WEEKLY" | "MONTHLY" = "DAILY",
+    tenantId?: string
   ): GeneratedPixPayment {
+    const effectiveTenantId = tenantId || this.getDriverTenantId(driverId);
+    let tenantMonetization: any = null;
+    let tenantGeo: any = null;
+    let tenantBrand: any = null;
+
+    try {
+      const wlEngine = WhiteLabelEngine.getInstance();
+      const tenantConfig = wlEngine.getTenantConfig(effectiveTenantId);
+      tenantMonetization = tenantConfig?.monetization;
+      tenantGeo = tenantConfig?.geo;
+      tenantBrand = tenantConfig?.brandCenter;
+    } catch {
+      // Silencioso
+    }
+
     const config = getMonetizacaoConfig();
     const settings = appSettingsService.getSettings();
 
-    // Prioriza a conta PIX recebedora do administrador configurada no Painel White Label
-    const pixKey = (config.chavePixAdmin && config.chavePixAdmin.trim()) || settings.pix_key || "financeiro@partiu.app";
-    const receiverName = (config.beneficiarioAdmin && config.beneficiarioAdmin.trim()) || settings.pix_receiver_name || "PARTIU Mobilidade";
-    const receiverCity = (config.cidadeAdmin && config.cidadeAdmin.trim()) || settings.pix_receiver_city || "ITAPERUNA";
+    // Prioriza a conta PIX recebedora do Franqueado / Tenant
+    const pixKey =
+      (tenantMonetization?.chavePixAdmin && tenantMonetization.chavePixAdmin.trim()) ||
+      (config.chavePixAdmin && config.chavePixAdmin.trim()) ||
+      settings.pix_key ||
+      "financeiro@partiu.app";
 
-    let amount = vehicleType === "MOTO" ? config.diariaMoto : config.diariaCarro;
+    const receiverName =
+      (tenantMonetization?.beneficiarioAdmin && tenantMonetization.beneficiarioAdmin.trim()) ||
+      tenantBrand?.nomePlataforma ||
+      (config.beneficiarioAdmin && config.beneficiarioAdmin.trim()) ||
+      settings.pix_receiver_name ||
+      "PARTIU Mobilidade";
+
+    const receiverCity =
+      (tenantMonetization?.cidadeAdmin && tenantMonetization.cidadeAdmin.trim()) ||
+      (tenantGeo?.cidadeSede && tenantGeo.cidadeSede.trim()) ||
+      (config.cidadeAdmin && config.cidadeAdmin.trim()) ||
+      settings.pix_receiver_city ||
+      "ITAPERUNA";
+
+    let amount = vehicleType === "MOTO"
+      ? (tenantMonetization?.diariaMoto ?? config.diariaMoto)
+      : (tenantMonetization?.diariaCarro ?? config.diariaCarro);
+
     if (cycle === "WEEKLY") {
-      amount = vehicleType === "MOTO" ? config.semanalMoto : config.semanalCarro;
+      amount = vehicleType === "MOTO"
+        ? (tenantMonetization?.semanalMoto ?? config.semanalMoto)
+        : (tenantMonetization?.semanalCarro ?? config.semanalCarro);
     } else if (cycle === "MONTHLY") {
-      amount = vehicleType === "MOTO" ? config.mensalMoto : config.mensalCarro;
+      amount = vehicleType === "MOTO"
+        ? (tenantMonetization?.mensalMoto ?? config.mensalMoto)
+        : (tenantMonetization?.mensalCarro ?? config.mensalCarro);
     }
 
-    // Abate créditos operacionais acumulados (ex: taxa de no-show / cancelamento)
-    if (typeof window !== "undefined") {
-      const creditsKey = `partiu_driver_daily_credits_${driverId}`;
-      const availableCredits = Number(
-        localStorage.getItem(creditsKey) || localStorage.getItem("partiu_driver_daily_credits") || 0
-      );
-      if (availableCredits > 0) {
-        amount = Math.max(1.0, Number((amount - availableCredits).toFixed(2)));
-      }
+    // Abate créditos operacionais acumulados (ex: taxa de no-show / cancelamento / cupons)
+    const hasStorage = typeof window !== "undefined" || typeof localStorage !== "undefined";
+    if (hasStorage) {
+      try {
+        const store = typeof window !== "undefined" ? window.localStorage : localStorage;
+        const creditsKey = `partiu_driver_daily_credits_${driverId}`;
+        const availableCredits = Number(
+          store.getItem(creditsKey) || store.getItem("partiu_driver_daily_credits") || 0
+        );
+        if (availableCredits > 0) {
+          amount = Math.max(1.0, Number((amount - availableCredits).toFixed(2)));
+        }
+      } catch {}
     }
 
     const txId = `PARTIU_${cycle}_${Date.now()}_${driverId.slice(-4)}`;
@@ -398,29 +459,84 @@ class DriverSubscriptionService {
   }
 
   /**
-   * Obtém os créditos operacionais disponíveis para o motorista
+   * Alias de conveniência para generateDailyFeePix
    */
-  public getOperationalCredits(driverId: string): number {
-    if (typeof window === "undefined") return 0;
-    return Number(
-      localStorage.getItem(`partiu_driver_daily_credits_${driverId}`) ||
-      localStorage.getItem("partiu_driver_daily_credits") ||
-      0
-    );
+  public generatePixDailyPayment(
+    driverId: string,
+    vehicleType: "MOTO" | "CARRO" = "CARRO",
+    cycle: "DAILY" | "WEEKLY" | "MONTHLY" = "DAILY",
+    tenantId?: string
+  ): GeneratedPixPayment {
+    return this.generateDailyFeePix(driverId, vehicleType, cycle, tenantId);
   }
 
   /**
-   * Confirma o pagamento da diária e libera o condutor pelo tempo do plano
+   * Obtém os créditos operacionais disponíveis para o motorista
+   */
+  public getOperationalCredits(driverId: string): number {
+    const hasStorage = typeof window !== "undefined" || typeof localStorage !== "undefined";
+    if (!hasStorage) return 0;
+    try {
+      const store = typeof window !== "undefined" ? window.localStorage : localStorage;
+      return Number(
+        store.getItem(`partiu_driver_daily_credits_${driverId}`) ||
+        store.getItem("partiu_driver_daily_credits") ||
+        0
+      );
+    } catch {
+      return 0;
+    }
+  }
+
+  /**
+   * Adiciona créditos operacionais ao motorista (ex: subsídio de cupom de desconto promocional)
+   */
+  public addOperationalCredit(driverId: string, creditAmount: number): number {
+    if (creditAmount <= 0) return 0;
+    const hasStorage = typeof window !== "undefined" || typeof localStorage !== "undefined";
+    if (!hasStorage) return 0;
+    try {
+      const store = typeof window !== "undefined" ? window.localStorage : localStorage;
+      const current = this.getOperationalCredits(driverId);
+      const updated = Number((current + creditAmount).toFixed(2));
+      store.setItem(`partiu_driver_daily_credits_${driverId}`, String(updated));
+      store.setItem("partiu_driver_daily_credits", String(updated));
+      this.notifyListeners();
+      return updated;
+    } catch {
+      return 0;
+    }
+  }
+
+  /**
+   * Confirma o pagamento da diária e libera o condutor pelo tempo do plano com tenant isolado
    */
   public async confirmDailyFeePayment(
     driverId: string,
     vehicleType: "MOTO" | "CARRO",
     txId?: string,
     amount?: number,
-    durationHours: number = 24
+    durationHours: number = 24,
+    tenantId?: string
   ): Promise<DriverSubscriptionRecord> {
-    const config = getMonetizacaoConfig();
-    const valorDiaria = amount !== undefined ? amount : (vehicleType === "MOTO" ? config.diariaMoto : config.diariaCarro);
+    const effectiveTenantId = tenantId || this.getDriverTenantId(driverId);
+    let valorDiaria = amount;
+
+    if (valorDiaria === undefined) {
+      try {
+        const wlEngine = WhiteLabelEngine.getInstance();
+        const tenantConfig = wlEngine.getTenantConfig(effectiveTenantId);
+        const tMon = tenantConfig?.monetization;
+        const config = getMonetizacaoConfig();
+        valorDiaria = vehicleType === "MOTO"
+          ? (tMon?.diariaMoto ?? config.diariaMoto)
+          : (tMon?.diariaCarro ?? config.diariaCarro);
+      } catch {
+        const config = getMonetizacaoConfig();
+        valorDiaria = vehicleType === "MOTO" ? config.diariaMoto : config.diariaCarro;
+      }
+    }
+
     const startsAt = new Date();
     const expiresAt = new Date(startsAt.getTime() + durationHours * 60 * 60 * 1000);
 
@@ -433,6 +549,7 @@ class DriverSubscriptionService {
       expires_at: expiresAt.toISOString(),
       pix_txid: txId || `TX_SIM_${Date.now()}`,
       amount_paid: valorDiaria,
+      tenant_id: effectiveTenantId,
       created_at: startsAt.toISOString(),
       updated_at: startsAt.toISOString(),
     };
@@ -442,9 +559,13 @@ class DriverSubscriptionService {
     this.saveToStorage();
 
     // Limpa créditos operacionais que foram consumidos no pagamento
-    if (typeof window !== "undefined") {
-      localStorage.removeItem(`partiu_driver_daily_credits_${driverId}`);
-      localStorage.removeItem("partiu_driver_daily_credits");
+    const hasStorage = typeof window !== "undefined" || typeof localStorage !== "undefined";
+    if (hasStorage) {
+      try {
+        const store = typeof window !== "undefined" ? window.localStorage : localStorage;
+        store.removeItem(`partiu_driver_daily_credits_${driverId}`);
+        store.removeItem("partiu_driver_daily_credits");
+      } catch {}
     }
 
     this.notifyListeners();
@@ -468,6 +589,7 @@ class DriverSubscriptionService {
           expires_at: newSub.expires_at,
           pix_txid: newSub.pix_txid,
           amount_paid: newSub.amount_paid,
+          tenant_id: effectiveTenantId,
           created_at: newSub.created_at,
           updated_at: newSub.updated_at,
         });

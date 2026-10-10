@@ -1,7 +1,8 @@
 import { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { ShieldAlert, ArrowLeft, Lock, Crown } from "lucide-react";
-import { temPermissao, getAdminRole, type AdminPermission } from "@/lib/admin-rbac";
+import { ShieldAlert, ArrowLeft, Lock, Crown, AlertOctagon } from "lucide-react";
+import { temPermissao, getAdminRole, getContaAtiva, type AdminPermission } from "@/lib/admin-rbac";
+import { whiteLabelEngine } from "@/lib/white-label";
 
 interface GuardiaoAcessoProps {
   permissao?: AdminPermission;
@@ -13,7 +14,8 @@ interface GuardiaoAcessoProps {
 /**
  * 🛡️ COMPONENTE GUARDIÃO DE ACESSO ADMINISTRATIVO (HTTP 403 INTERNO)
  * Bloqueia a renderização de componentes, abas ou páginas inteiras
- * quando o usuário ativo não tem a permissão ou é Franqueado tentando acessar área global.
+ * quando o usuário ativo não tem a permissão, é Franqueado tentando acessar área global,
+ * ou o plano do Franqueado foi desativado/suspenso pelo Super Administrador.
  */
 export function GuardiaoAcesso({
   permissao,
@@ -22,8 +24,45 @@ export function GuardiaoAcesso({
   children,
 }: GuardiaoAcessoProps) {
   const role = getAdminRole();
-  const exigeSuper = somenteSuperAdmin || somenteOwner;
+  const contaAtiva = getContaAtiva();
 
+  // 1. Bloqueio por Franquia Suspensa / Desativada (Kill Switch pelo Super Admin)
+  if (role === "FRANQUEADO" && contaAtiva.tenantId && whiteLabelEngine.isTenantSuspended(contaAtiva.tenantId)) {
+    return (
+      <div className="w-full min-h-[550px] flex items-center justify-center p-6 animate-in fade-in">
+        <div className="w-full max-w-md bg-white rounded-3xl p-8 border-2 border-rose-200 text-center shadow-xl space-y-5">
+          <div className="h-16 w-16 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center mx-auto shadow-inner">
+            <AlertOctagon className="h-8 w-8" />
+          </div>
+
+          <div className="space-y-1.5">
+            <span className="text-[10px] font-black uppercase tracking-widest text-rose-700 bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
+              Franquia Desativada
+            </span>
+            <h2 className="text-xl font-black text-slate-900 tracking-tight">
+              Acesso ao Painel Suspenso
+            </h2>
+            <p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
+              O plano de operação da sua franquia (<strong>{contaAtiva.tenantNome || contaAtiva.tenantId}</strong>) foi desativado pelo Super Administrador da holding.
+              O aplicativo da sua praça foi retirado do ar e as ferramentas administrativas estão temporariamente bloqueadas.
+            </p>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-rose-50/60 border border-rose-200 text-left text-xs text-rose-700 space-y-1">
+            <div className="flex items-center gap-1.5 font-bold">
+              <ShieldAlert className="h-4 w-4" />
+              <span>Contate a Diretoria Central</span>
+            </div>
+            <p className="text-[11px] text-rose-600">
+              Para reativar sua praça e restabelecer o aplicativo aos motoristas e passageiros, regularize sua situação com a administração central.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const exigeSuper = somenteSuperAdmin || somenteOwner;
   const negadoPorSuperAdmin = exigeSuper && role !== "SUPER_ADMIN";
   const negadoPorPermissao = permissao ? !temPermissao(permissao) : false;
 

@@ -9,7 +9,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { whiteLabelEngine } from "@/lib/white-label";
-import { Globe, Radio } from "lucide-react";
+import { Globe, Radio, AlertOctagon } from "lucide-react";
 import { tenantDomainService, type TenantDomainResolution } from "@/lib/white-label/tenant-domain-service";
 
 const STORAGE_KEY_BRANDING = "partiu_active_branding_v2";
@@ -434,9 +434,40 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     ]
   );
 
+  const isAppSuspended =
+    isMounted &&
+    whiteLabelEngine.isTenantSuspended(activeTenantId) &&
+    (typeof window !== "undefined" ? !window.location.pathname.startsWith("/app/admin") : false);
+
   return (
     <BrandingContext.Provider value={value}>
-      {isMounted && domainResolution.status === "DOMAIN_NOT_FOUND" ? (
+      {isAppSuspended ? (
+        <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-center">
+          <div className="max-w-md w-full p-8 rounded-2xl border border-rose-900/60 bg-slate-900/95 shadow-2xl backdrop-blur-xl">
+            <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto mb-4 text-rose-400">
+              <AlertOctagon className="w-8 h-8" />
+            </div>
+            <h1 className="text-2xl font-black text-white">Aplicativo Temporariamente Indisponível</h1>
+            <p className="mt-2 text-sm text-slate-400 leading-relaxed">
+              As operações do aplicativo nesta praça regional foram temporariamente suspensas pela administração central.
+            </p>
+            <div className="mt-4 p-3 rounded-xl bg-rose-950/40 border border-rose-800/40 text-xs text-rose-300">
+              Novas solicitações de corridas e envios estão pausadas no momento.
+            </div>
+            <div className="mt-6 flex flex-col gap-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setTenantId("default");
+                }}
+                className="w-full py-3 px-4 rounded-xl bg-rose-600 text-white font-bold text-sm shadow hover:bg-rose-500 transition cursor-pointer"
+              >
+                Acessar Matriz PARTIU
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : isMounted && domainResolution.status === "DOMAIN_NOT_FOUND" ? (
         <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-center">
           <div className="max-w-md w-full p-8 rounded-2xl border border-slate-800 bg-slate-900/90 shadow-2xl backdrop-blur-xl">
             <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto mb-4 text-amber-400">

@@ -294,6 +294,21 @@ export interface MonetizationManagerConfig {
   diasCarenciaInadimplencia: number;
   tetoDebitoMaximoBrl: number;
   fundoProtecaoTetoBrl: number;
+
+  // Isolamento Financeiro e PIX por Franqueado
+  chavePixAdmin?: string | undefined;
+  tipoChavePixAdmin?: "cnpj" | "cpf" | "email" | "telefone" | "aleatoria" | undefined;
+  beneficiarioAdmin?: string | undefined;
+  cidadeAdmin?: string | undefined;
+  diariaCarro?: number | undefined;
+  diariaMoto?: number | undefined;
+  semanalCarro?: number | undefined;
+  semanalMoto?: number | undefined;
+  mensalCarro?: number | undefined;
+  mensalMoto?: number | undefined;
+  gatewayProvider?: "mercadopago" | "asaas" | "efi" | "manual" | undefined;
+  gatewayApiKey?: string | undefined;
+  gatewayWebhookSecret?: string | undefined;
 }
 
 // ------------------------------------------------------------------------------
@@ -341,6 +356,12 @@ export interface GeoConfiguration {
   coordenadasCentroLat: number;
   coordenadasCentroLng: number;
   raioOperacaoPadraoKm: number;
+
+  // Isolamento de Mapas por Franqueado
+  mapProvider?: "mapbox" | "google" | "osm" | undefined;
+  mapboxAccessToken?: string | undefined;
+  googleMapsApiKey?: string | undefined;
+  mapboxStyleId?: string | undefined;
 }
 
 // ------------------------------------------------------------------------------
@@ -380,6 +401,8 @@ export interface AppConfigurationCenterConfig {
 // ------------------------------------------------------------------------------
 // MÓDULO 11: FRANQUIA E MULTI-TENANT
 // ------------------------------------------------------------------------------
+export type TenantPlanStatus = "ATIVO" | "SUSPENSO" | "CANCELADO";
+
 export interface WhiteLabelTenantRecord {
   tenantId: string; // ex: "tenant-itaperuna"
   nomeOperacao: string; // ex: "PARTIU Noroeste"
@@ -391,6 +414,9 @@ export interface WhiteLabelTenantRecord {
   responsavelTelefone: string;
   cnpjFranqueado: string;
   ativo: boolean;
+  statusPlano?: TenantPlanStatus | undefined;
+  motivoBloqueio?: string | undefined;
+  suspensoEm?: number | undefined;
   criadoEm: number;
   configuracaoCompleta: WhiteLabelFullConfig;
 }

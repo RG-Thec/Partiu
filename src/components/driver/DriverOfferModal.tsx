@@ -30,6 +30,9 @@ export interface DriverOfferData {
   distanciaAteEmbarqueKm?: number;
   tempoAteEmbarqueMin?: number;
   ganhoPorKm?: number;
+  descontoCupom?: number;
+  codigoCupom?: string;
+  valorOriginal?: number;
 }
 
 interface DriverOfferModalProps {
@@ -215,9 +218,16 @@ export const DriverOfferModal = memo(function DriverOfferModal({
             {oferta.valorLiquido.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
           </div>
           {/* Pill de R$/km (Padrão de Alta Conversão dos Top Condutores) */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-black text-xs mt-1 shadow-2xs">
-            <span>R$ {ganhoKmCalculado.toFixed(2).replace(".", ",")} / km</span>
-            <span className="text-[10px] opacity-80 font-bold">• Alta rentabilidade</span>
+          <div className="flex flex-wrap items-center justify-center gap-1.5 mt-1">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-black text-xs shadow-2xs">
+              <span>R$ {ganhoKmCalculado.toFixed(2).replace(".", ",")} / km</span>
+              <span className="text-[10px] opacity-80 font-bold">• Alta rentabilidade</span>
+            </div>
+            {oferta.descontoCupom && oferta.descontoCupom > 0 ? (
+              <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-400 font-bold text-xs shadow-2xs">
+                <span>🎁 + R$ {oferta.descontoCupom.toFixed(2).replace(".", ",")} de Cupom na sua diária</span>
+              </div>
+            ) : null}
           </div>
         </div>
 

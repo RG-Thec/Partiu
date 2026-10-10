@@ -14,6 +14,7 @@
  */
 
 import mapboxgl from "mapbox-gl";
+import { WhiteLabelEngine } from "@/lib/white-label/white-label-engine";
 
 export interface MapboxEnvironmentConfig {
   accessToken: string;
@@ -42,8 +43,35 @@ export class MapboxConfig {
   public static readonly DEFAULT_TOKEN =
     "pk.eyJ1IjoiZXhhbXBsZS11c2VyIiwiYSI6ImNsZXhhbXBsZTAwMDAwIn0.ZXhhbXBsZV90b2tlbl9mb3JfY2k";
 
-  // Coordenadas canônicas da cidade polo (Itaperuna - RJ)
-  public static readonly DEFAULT_CENTER: [number, number] = [-41.888, -21.205];
+  // Fallback canônico nacional caso nenhum centro esteja configurado
+  public static readonly CANONICAL_FALLBACK_CENTER: [number, number] = [-41.888, -21.205];
+
+  /**
+   * Obtém o centro geográfico configurado para a praça/franqueado especificado ou ativo
+   */
+  public static getDefaultCenter(tenantId?: string): [number, number] {
+    try {
+      const wlEngine = WhiteLabelEngine.getInstance();
+      const config = wlEngine.getTenantConfig(tenantId);
+      if (
+        config?.geo?.coordenadasCentroLng !== undefined &&
+        config?.geo?.coordenadasCentroLat !== undefined &&
+        !isNaN(config.geo.coordenadasCentroLng) &&
+        !isNaN(config.geo.coordenadasCentroLat)
+      ) {
+        return [config.geo.coordenadasCentroLng, config.geo.coordenadasCentroLat];
+      }
+    } catch {
+      // Fallback gracioso
+    }
+    return MapboxConfig.CANONICAL_FALLBACK_CENTER;
+  }
+
+  // Coordenadas canônicas dinâmicas da praça / franquia ativa (compatibilidade total)
+  public static get DEFAULT_CENTER(): [number, number] {
+    return MapboxConfig.getDefaultCenter();
+  }
+
   public static readonly DEFAULT_ZOOM = 16.5;
   public static readonly DEFAULT_PITCH = 45; // Perspectiva 3D dinâmica padrão Uber
   public static readonly DEFAULT_BEARING = 0;
@@ -99,9 +127,68 @@ export class MapboxConfig {
   }
 
   /**
-   * Resolve o token do Mapbox a partir das variáveis de ambiente disponíveis ou fallback integrado
+   * Determina se o tenantId corresponde à conta oficial do Super Administrador (PARTIU Matriz Oficial).
+   * Apenas a Matriz tem autorização de consumo da API Mapbox pré-configurada na infraestrutura do sistema.
    */
-  public static getAccessToken(): string {
+  public static isOfficialMatrizTenant(tenantId?: string): boolean {
+    if (!tenantId || tenantId === "default" || tenantId === "matriz-br" || tenantId === "tenant-itaperuna") {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Verifica se o tenant (seja matriz ou franqueado) possui uma chave de API de mapas pronta para uso
+   */
+  public static isTenantMapConfigured(tenantId?: string): boolean {
+    if (MapboxConfig.isOfficialMatrizTenant(tenantId)) {
+      return true;
+    }
+    try {
+      const wlEngine = WhiteLabelEngine.getInstance();
+      const config = wlEngine.getTenantConfig(tenantId);
+      const token = config?.geo?.mapboxAccessToken;
+      const googleKey = config?.geo?.googleMapsApiKey;
+      return Boolean((token && token.startsWith("pk.") && token.length > 20) || (googleKey && googleKey.length > 10));
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Resolve o token do Mapbox com isolamento estrito:
+   * 1. Se for Franqueado White-Label: DEVE fornecer sua própria chave de API (mapboxAccessToken).
+   *    Franqueados NÃO consomem a API da conta oficial do Super Administrador da Matriz.
+   * 2. Se for a conta oficial do Super Administrador (PARTIU Matriz):
+   *    Utiliza a API oficial pré-configurada (Vite / Process / Builtin).
+   */
+  public static getAccessToken(tenantId?: string): string {
+    const isMatriz = MapboxConfig.isOfficialMatrizTenant(tenantId);
+
+    // 1. Chave de API de Mapa do Franqueado / Tenant
+    try {
+      const wlEngine = WhiteLabelEngine.getInstance();
+      const config = wlEngine.getTenantConfig(tenantId);
+      const tenantToken = config?.geo?.mapboxAccessToken;
+      if (
+        tenantToken &&
+        tenantToken.trim().length > 0 &&
+        !tenantToken.includes("example") &&
+        tenantToken.startsWith("pk.")
+      ) {
+        return tenantToken.trim();
+      }
+    } catch {
+      // Silencioso
+    }
+
+    // Regra Estrita de Governança: Se for um franqueado White-Label sem chave própria,
+    // NÃO utiliza a cota/chave do Super Administrador da Matriz.
+    if (!isMatriz) {
+      return "";
+    }
+
+    // 2. Conta oficial do Super Administrador (PARTIU Matriz): Variáveis de ambiente Vite / Process
     const viteEnv = typeof import.meta !== "undefined" ? import.meta.env : undefined;
     const processEnv = typeof process !== "undefined" ? process.env : undefined;
 
@@ -121,28 +208,28 @@ export class MapboxConfig {
   }
 
   /**
-   * Verifica se o token configurado é um token de produção Mapbox válido (formato pk.*)
+   * Verifica se o token configurado para o tenant é um token de produção Mapbox válido (formato pk.*)
    */
-  public static hasValidToken(): boolean {
-    const token = MapboxConfig.getAccessToken();
+  public static hasValidToken(tenantId?: string): boolean {
+    const token = MapboxConfig.getAccessToken(tenantId);
     return Boolean(token && token.startsWith("pk.") && !token.includes("example") && token.length > 20);
   }
 
   /**
-   * Retorna a configuração consolidada do ambiente
+   * Retorna a configuração consolidada do ambiente para a praça/tenant
    */
-  public static getConfig(): MapboxEnvironmentConfig {
+  public static getConfig(tenantId?: string): MapboxEnvironmentConfig {
     const isProd =
       (typeof import.meta !== "undefined" && import.meta.env?.PROD) ||
       (typeof process !== "undefined" && process.env?.NODE_ENV === "production") ||
       false;
 
     return {
-      accessToken: MapboxConfig.getAccessToken(),
+      accessToken: MapboxConfig.getAccessToken(tenantId),
       isProduction: Boolean(isProd),
       debugMode: !isProd,
       telemetryEnabled: false,
-      defaultCenter: MapboxConfig.DEFAULT_CENTER,
+      defaultCenter: MapboxConfig.getDefaultCenter(tenantId),
       defaultZoom: MapboxConfig.DEFAULT_ZOOM,
       defaultPitch: MapboxConfig.DEFAULT_PITCH,
       defaultBearing: MapboxConfig.DEFAULT_BEARING,

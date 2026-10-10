@@ -37,6 +37,8 @@ import {
   salvarCmsLandingData,
   restaurarCmsLandingPadrao,
 } from "@/lib/cms-landing-service";
+import { couponService, type ActiveCoupon } from "@/services/CouponService";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/admin/marketing")({
   head: () => ({
@@ -67,17 +69,6 @@ interface BannerItem {
   ordem: number;
 }
 
-interface CupomItem {
-  id: string;
-  codigo: string;
-  tipo: "PERCENTUAL" | "VALOR_FIXO";
-  valor: number;
-  limiteUsos: number;
-  usosAtuais: number;
-  validoAte: string;
-  status: "ATIVO" | "EXPIRADO" | "ESGOTADO";
-}
-
 export function MarketingAdminPage() {
   const [abaAtiva, setAbaAtiva] = useState<AbaMarketing>("banners");
   const [banners, setBanners] = useState<EcosystemBannerItem[]>(() => bannerService.getAllBanners());
@@ -89,39 +80,28 @@ export function MarketingAdminPage() {
     return () => unsub();
   }, []);
 
-  // Cupons promocionais
-  const [cupons, setCupons] = useState<CupomItem[]>([
-    {
-      id: "cup_01",
-      codigo: "BEMVINDO20",
-      tipo: "PERCENTUAL",
-      valor: 20,
-      limiteUsos: 500,
-      usosAtuais: 184,
-      validoAte: "31/12/2026",
-      status: "ATIVO",
-    },
-    {
-      id: "cup_02",
-      codigo: "PARTIU5",
-      tipo: "VALOR_FIXO",
-      valor: 5,
-      limiteUsos: 1000,
-      usosAtuais: 720,
-      validoAte: "30/11/2026",
-      status: "ATIVO",
-    },
-    {
-      id: "cup_03",
-      codigo: "FLASHMOTO",
-      tipo: "PERCENTUAL",
-      valor: 15,
-      limiteUsos: 200,
-      usosAtuais: 200,
-      validoAte: "15/10/2026",
-      status: "ESGOTADO",
-    },
-  ]);
+  // Cupons promocionais sincronizados com Supabase e LocalStorage
+  const [cupons, setCupons] = useState<ActiveCoupon[]>([]);
+  const [carregandoCupons, setCarregandoCupons] = useState(false);
+
+  const carregarCupons = async () => {
+    setCarregandoCupons(true);
+    try {
+      const lista = await couponService.listAdminCoupons();
+      setCupons(lista);
+    } finally {
+      setCarregandoCupons(false);
+    }
+  };
+
+  useEffect(() => {
+    void carregarCupons();
+    const handleUpdate = () => {
+      void carregarCupons();
+    };
+    window.addEventListener("partiu:cupons-atualizados", handleUpdate);
+    return () => window.removeEventListener("partiu:cupons-atualizados", handleUpdate);
+  }, []);
 
   // Modal de Novo Banner e Validação Rígida Mobile
   const [modalBannerAberto, setModalBannerAberto] = useState(false);
@@ -141,10 +121,12 @@ export function MarketingAdminPage() {
   // Modal de Novo Cupom
   const [modalCupomAberto, setModalCupomAberto] = useState(false);
   const [novoCupomCodigo, setNovoCupomCodigo] = useState("");
-  const [novoCupomTipo, setNovoCupomTipo] = useState<"PERCENTUAL" | "VALOR_FIXO">("PERCENTUAL");
+  const [novoCupomDescricao, setNovoCupomDescricao] = useState("");
+  const [novoCupomTipo, setNovoCupomTipo] = useState<"porcentagem" | "fixo">("porcentagem");
   const [novoCupomValor, setNovoCupomValor] = useState("10");
   const [novoCupomLimite, setNovoCupomLimite] = useState("100");
   const [novoCupomValidade, setNovoCupomValidade] = useState(() => new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10));
+  const [salvandoCupom, setSalvandoCupom] = useState(false);
 
   // Estados da Notificação Push (Campanhas futuras)
   const [pushTitulo, setPushTitulo] = useState("Sua próxima corrida tem desconto especial!");
@@ -258,24 +240,58 @@ export function MarketingAdminPage() {
     setPreviewBannerUrl(null);
   }
 
-  function handleSalvarCupom(e: React.FormEvent) {
+  async function handleSalvarCupom(e: React.FormEvent) {
     e.preventDefault();
-    if (!novoCupomCodigo) return;
+    if (!novoCupomCodigo.trim()) return;
 
-    const cupom: CupomItem = {
-      id: "cup_" + Date.now(),
-      codigo: novoCupomCodigo.trim().toUpperCase(),
-      tipo: novoCupomTipo,
-      valor: Number(novoCupomValor) || 10,
-      limiteUsos: Number(novoCupomLimite) || 100,
-      usosAtuais: 0,
-      validoAte: novoCupomValidade,
-      status: "ATIVO",
-    };
+    setSalvandoCupom(true);
+    try {
+      await couponService.saveAdminCoupon({
+        codigo: novoCupomCodigo.trim().toUpperCase(),
+        descricao: novoCupomDescricao.trim() || undefined,
+        tipo: novoCupomTipo,
+        valor: Number(novoCupomValor) || 5,
+        maxRedemptions: Number(novoCupomLimite) || 100,
+        validoAte: novoCupomValidade,
+        ativo: true,
+      });
 
-    setCupons((prev) => [cupom, ...prev]);
-    setModalCupomAberto(false);
-    setNovoCupomCodigo("");
+      toast.success(`Cupom ${novoCupomCodigo.trim().toUpperCase()} cadastrado e sincronizado com sucesso!`);
+      setModalCupomAberto(false);
+      setNovoCupomCodigo("");
+      setNovoCupomDescricao("");
+      setNovoCupomValor("10");
+      setNovoCupomLimite("100");
+      void carregarCupons();
+    } catch (err: any) {
+      console.error("[Marketing] Erro ao salvar cupom:", err);
+      toast.error("Não foi possível salvar o cupom promocional.");
+    } finally {
+      setSalvandoCupom(false);
+    }
+  }
+
+  async function handleToggleCupom(codigo: string, statusAtual: boolean) {
+    try {
+      await couponService.toggleAdminCoupon(codigo, !statusAtual);
+      toast.success(`Cupom ${codigo} ${!statusAtual ? "ativado" : "desativado"} com sucesso.`);
+      void carregarCupons();
+    } catch {
+      toast.error("Erro ao alterar status do cupom.");
+    }
+  }
+
+  async function handleExcluirCupom(codigo: string) {
+    if (!confirm(`Deseja realmente remover o cupom ${codigo}? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+    try {
+      await couponService.deleteAdminCoupon(codigo);
+      toast.success(`Cupom ${codigo} removido com sucesso.`);
+      void carregarCupons();
+    } catch {
+      toast.error("Erro ao remover cupom.");
+    }
   }
 
   return (
@@ -473,67 +489,104 @@ export function MarketingAdminPage() {
                 <thead className="bg-slate-50 text-slate-500 uppercase font-black tracking-wider text-[10px] border-b border-slate-200">
                   <tr>
                     <th className="p-4">Código</th>
-                    <th className="p-4">Tipo &amp; Desconto</th>
-                    <th className="p-4">Limite de Usos</th>
+                    <th className="p-4">Descrição &amp; Desconto</th>
+                    <th className="p-4">Usos / Limite</th>
                     <th className="p-4">Validade</th>
                     <th className="p-4">Status</th>
                     <th className="p-4 text-center">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {cupons.map((c) => (
-                    <tr key={c.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="p-4">
-                        <span className="font-mono font-black text-sm px-2.5 py-1 bg-primary-50 text-yellow-950 border border-primary-500 rounded-lg">
-                          {c.codigo}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <span className="font-bold text-slate-900">
-                          {c.tipo === "PERCENTUAL" ? `${c.valor}% OFF` : `R$ ${c.valor.toFixed(2)} OFF`}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <div className="space-y-1 max-w-[120px]">
-                          <div className="flex justify-between text-[11px] font-bold text-slate-600">
-                            <span>{c.usosAtuais}</span>
-                            <span>{c.limiteUsos}</span>
-                          </div>
-                          <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-slate-900 rounded-full"
-                              style={{ width: `${Math.min(100, (c.usosAtuais / c.limiteUsos) * 100)}%` }}
-                            />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4 font-medium text-slate-600">{c.validoAte}</td>
-                      <td className="p-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                          c.status === "ATIVO"
-                            ? "bg-emerald-100 text-emerald-800"
-                            : c.status === "ESGOTADO"
-                            ? "bg-primary-50 text-amber-800"
-                            : "bg-red-100 text-red-700"
-                        }`}>
-                          {c.status}
-                        </span>
-                      </td>
-                      <td className="p-4 text-center">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigator.clipboard.writeText(c.codigo);
-                            alert(`Código ${c.codigo} copiado para a área de transferência!`);
-                          }}
-                          className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer"
-                          title="Copiar Código"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </button>
+                  {carregandoCupons ? (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-slate-500 font-bold">
+                        Carregando cupons promocionais...
                       </td>
                     </tr>
-                  ))}
+                  ) : cupons.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-slate-500">
+                        Nenhum cupom cadastrado no momento. Clique em <strong>Criar Novo Cupom</strong> para começar.
+                      </td>
+                    </tr>
+                  ) : (
+                    cupons.map((c) => {
+                      const limite = c.maxRedemptions || 1000;
+                      const usos = c.redeemedCount || 0;
+                      const percentUsado = Math.min(100, Math.round((usos / limite) * 100));
+
+                      return (
+                        <tr key={c.id || c.codigo} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="p-4">
+                            <span className="font-mono font-black text-sm px-2.5 py-1 bg-primary-50 text-yellow-950 border border-primary-500 rounded-lg">
+                              {c.codigo}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <div className="font-bold text-slate-900">
+                              {c.tipo === "porcentagem" ? `${c.valor}% OFF` : `R$ ${Number(c.valor).toFixed(2).replace(".", ",")} OFF`}
+                            </div>
+                            <div className="text-[11px] text-slate-500 font-medium truncate max-w-xs">
+                              {c.descontoDescricao}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="space-y-1 max-w-[120px]">
+                              <div className="flex justify-between text-[11px] font-bold text-slate-600">
+                                <span>{usos}</span>
+                                <span>{limite}</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-slate-900 rounded-full"
+                                  style={{ width: `${percentUsado}%` }}
+                                />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4 font-medium text-slate-600">{c.expiracao}</td>
+                          <td className="p-4">
+                            <button
+                              type="button"
+                              onClick={() => void handleToggleCupom(c.codigo, c.ativo)}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase cursor-pointer transition-all ${
+                                c.ativo
+                                  ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                              }`}
+                              title={c.ativo ? "Clique para desativar" : "Clique para ativar"}
+                            >
+                              <span className={`w-1.5 h-1.5 rounded-full ${c.ativo ? "bg-emerald-600 animate-pulse" : "bg-slate-400"}`} />
+                              <span>{c.ativo ? "Ativo" : "Inativo"}</span>
+                            </button>
+                          </td>
+                          <td className="p-4 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(c.codigo);
+                                  toast.success(`Código ${c.codigo} copiado!`);
+                                }}
+                                className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer"
+                                title="Copiar Código"
+                              >
+                                <Copy className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => void handleExcluirCupom(c.codigo)}
+                                className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
+                                title="Excluir Cupom"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1250,6 +1303,17 @@ export function MarketingAdminPage() {
                 />
               </div>
 
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Descrição Promocional (Opcional):</label>
+                <input
+                  type="text"
+                  placeholder="Ex: R$ 10 OFF em corridas urbanas"
+                  value={novoCupomDescricao}
+                  onChange={(e) => setNovoCupomDescricao(e.target.value)}
+                  className="w-full h-10 px-3 rounded-xl border border-slate-300 text-xs font-medium focus:ring-2 focus:ring-slate-950"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Tipo:</label>
@@ -1258,18 +1322,19 @@ export function MarketingAdminPage() {
                     onChange={(e: any) => setNovoCupomTipo(e.target.value)}
                     className="w-full h-10 px-3 rounded-xl border border-slate-300 text-xs font-bold bg-white"
                   >
-                    <option value="PERCENTUAL">Percentual (%)</option>
-                    <option value="VALOR_FIXO">Valor Fixo (R$)</option>
+                    <option value="porcentagem">Percentual (%)</option>
+                    <option value="fixo">Valor Fixo (R$)</option>
                   </select>
                 </div>
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">
-                    {novoCupomTipo === "PERCENTUAL" ? "Desconto (%)" : "Desconto (R$)"}:
+                    {novoCupomTipo === "porcentagem" ? "Desconto (%)" : "Desconto (R$)"}:
                   </label>
                   <input
                     type="number"
                     step="0.5"
                     required
+                    min="1"
                     value={novoCupomValor}
                     onChange={(e) => setNovoCupomValor(e.target.value)}
                     className="w-full h-10 px-3 rounded-xl border border-slate-300 text-xs font-bold"
@@ -1283,6 +1348,7 @@ export function MarketingAdminPage() {
                   <input
                     type="number"
                     required
+                    min="1"
                     value={novoCupomLimite}
                     onChange={(e) => setNovoCupomLimite(e.target.value)}
                     className="w-full h-10 px-3 rounded-xl border border-slate-300 text-xs font-bold"
@@ -1303,16 +1369,18 @@ export function MarketingAdminPage() {
               <div className="grid grid-cols-2 gap-2 pt-2">
                 <button
                   type="button"
+                  disabled={salvandoCupom}
                   onClick={() => setModalCupomAberto(false)}
-                  className="h-11 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200"
+                  className="h-11 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 cursor-pointer disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="h-11 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 shadow-xs cursor-pointer"
+                  disabled={salvandoCupom}
+                  className="h-11 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 shadow-xs cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  Ativar Cupom
+                  <span>{salvandoCupom ? "Salvando..." : "Salvar Cupom"}</span>
                 </button>
               </div>
             </form>

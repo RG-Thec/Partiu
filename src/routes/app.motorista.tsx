@@ -212,6 +212,9 @@ export function extrairOfertaDeCorrida(c: CorridaPartiu, nomeApp: string = "PART
     deliveryOtp: sess?.flashOrder.deliveryOtp,
     origemCoords: c.origemCoords,
     destinoCoords: c.destinoCoords,
+    descontoCupom: (c as any).descontoCupom || 0,
+    codigoCupom: (c as any).codigoCupom,
+    valorOriginal: (c as any).valorOriginal || c.valor,
   };
 }
 
@@ -270,6 +273,9 @@ export function extrairOfertaDeRideSupabase(r: any, nomeApp: string = "PARTIU") 
     deliveryOtp: r.delivery_otp || r.pin,
     origemCoords: (r.origin_lat && r.origin_lng) ? { lat: Number(r.origin_lat), lng: Number(r.origin_lng) } : r.origemCoords,
     destinoCoords: (r.destination_lat && r.destination_lng) ? { lat: Number(r.destination_lat), lng: Number(r.destination_lng) } : r.destinoCoords,
+    descontoCupom: Number(r.coupon_discount || r.descontoCupom || 0),
+    codigoCupom: r.coupon_code || r.codigoCupom,
+    valorOriginal: Number(r.original_fare || r.valorOriginal || valorBruto),
   };
 }
 
@@ -1407,6 +1413,16 @@ export function PartiuDriverCockpit() {
       }
     }
 
+    // Se a corrida teve desconto de cupom, a franquia credita o valor na próxima diária SaaS do condutor
+    if ((ofertaAtiva as any).descontoCupom && Number((ofertaAtiva as any).descontoCupom) > 0) {
+      const desconto = Number((ofertaAtiva as any).descontoCupom);
+      driverSubscriptionService.addOperationalCredit(perfilMotorista.id, desconto);
+      toast.success(
+        `🎁 Subsídio de Cupom: R$ ${desconto.toFixed(2).replace(".", ",")} creditado com sucesso para abater na sua próxima diária!`,
+        { duration: 6000 }
+      );
+    }
+
     if (somAtivo) {
       voiceAlerts.anunciarFimViagem(valorCorrida);
     }
@@ -1728,6 +1744,9 @@ export function PartiuDriverCockpit() {
               (ofertaAtiva.distanciaKm > 0
                 ? Number((ofertaAtiva.valorLiquido / ofertaAtiva.distanciaKm).toFixed(2))
                 : 3.85),
+            descontoCupom: (ofertaAtiva as any).descontoCupom || 0,
+            codigoCupom: (ofertaAtiva as any).codigoCupom,
+            valorOriginal: (ofertaAtiva as any).valorOriginal || ofertaAtiva.valorLiquido,
           }}
           onAceitar={handleAceitarOferta}
           onRecusar={handleRecusarOferta}
@@ -1824,7 +1843,10 @@ export function PartiuDriverCockpit() {
           rideId={ofertaAtiva.id}
           passengerName={ofertaAtiva.passageiro}
           destinationAddress={ofertaAtiva.destino}
-          amountBrl={Number(ofertaAtiva.valorBruto || ofertaAtiva.valorLiquido || 24.9)}
+          amountBrl={Number(ofertaAtiva.valorLiquido || ofertaAtiva.valorBruto || 24.9)}
+          descontoCupom={Number((ofertaAtiva as any).descontoCupom || 0)}
+          codigoCupom={(ofertaAtiva as any).codigoCupom}
+          valorOriginal={Number((ofertaAtiva as any).valorOriginal || ofertaAtiva.valorBruto || ofertaAtiva.valorLiquido)}
           driverName={perfilMotorista.nome}
           driverPixKey={perfilMotorista.chavePix || perfilMotorista.cpf || perfilMotorista.telefone || ""}
           driverCity={cidadeOperacional.toUpperCase()}

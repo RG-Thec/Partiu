@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import { useState, useEffect, useMemo } from "react";
 import {
   Activity,
+  Building2,
   Car,
   CheckCircle2,
   ChevronRight,
@@ -132,6 +133,13 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
         moduleId: "whitelabel",
       },
       {
+        to: "/app/admin/franqueados",
+        label: "Franquias & Multi-Tenant",
+        icon: Building2,
+        exact: false,
+        moduleId: "franqueados",
+      },
+      {
         to: "/app/admin/dominios",
         label: "Domínios & DNS",
         icon: Globe,
@@ -185,6 +193,7 @@ const TODOS_MODULOS_SISTEMA = [
   { to: "/app/admin/caixa", label: "Fechamento de Caixa", categoriaTitulo: "Finanças", icon: Layers },
   { to: "/app/admin/configuracoes", label: "Configurações Globais", categoriaTitulo: "Sistema", icon: Sliders },
   { to: "/app/admin/whitelabel", label: "White Label Studio", categoriaTitulo: "Sistema", icon: Palette },
+  { to: "/app/admin/franqueados", label: "Franquias & Multi-Tenant (Holding)", categoriaTitulo: "Sistema", icon: Building2 },
   { to: "/app/admin/governanca", label: "Governança & LGPD", categoriaTitulo: "Sistema", icon: ShieldCheck },
   { to: "/app/admin/banners", label: "Banners do Aplicativo", categoriaTitulo: "Marketing", icon: Megaphone },
   { to: "/app/admin/marketing", label: "Banners & Cupons", categoriaTitulo: "Marketing", icon: Megaphone },

@@ -54,6 +54,7 @@ import {
 } from "@/services/ProgressiveDispatchEngine";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
+import { couponService } from "@/services/CouponService";
 
 export interface PassengerPreferences {
   arCondicionado: boolean;
@@ -1121,15 +1122,22 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const valorCobrado = activeQuote.priceBrl;
+    // 1. Aplicação Real e Auditada de Cupom Promocional Ativo
+    const activeCoupon = couponService.getActiveRideCoupon();
+    const fareDiscount = couponService.calculateFareDiscount(activeQuote.priceBrl, activeCoupon);
 
-    // Blindagem Antifraude com auditoria in-process mandatória
+    const valorCobrado = fareDiscount.finalFare;
+    const valorOriginal = fareDiscount.originalFare;
+    const descontoCupom = fareDiscount.discountAmount;
+    const codigoCupom = fareDiscount.hasDiscount && activeCoupon ? activeCoupon.codigo : undefined;
+
+    // Blindagem Antifraude com auditoria in-process mandatória (baseada na tarifa calculada da rota)
     try {
       const audit = await antifraudService.verifyAndAuthorizeRide({
         pickupCoordinates: origemCoords,
         destinationCoordinates: destinoCoords,
         category: categoriaVeiculo,
-        clientClaimedFare: valorCobrado,
+        clientClaimedFare: valorOriginal,
       });
 
       if (!audit.isApproved) {
@@ -1181,7 +1189,9 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
             pickupAddress: origem,
             destinationAddress: destino,
             paymentMethod: formaPagamento === "pix" ? "pix" : "dinheiro",
-            clientClaimedFare: valorCobrado,
+            clientClaimedFare: valorOriginal,
+            discountBrl: descontoCupom,
+            couponCode: codigoCupom,
           },
         });
 
@@ -1193,7 +1203,8 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
         }
 
         if (verifyRes.data?.success && verifyRes.data?.verifiedFare) {
-          valorFinal = Number(verifyRes.data.verifiedFare);
+          const baseVerified = Number(verifyRes.data.verifiedFare);
+          valorFinal = Math.max(2.0, Number((baseVerified - descontoCupom).toFixed(2)));
           serverRideId = verifyRes.data.rideId || verifyRes.data.ride?.id;
         }
       } catch (err) {
@@ -1206,6 +1217,9 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       destino,
       modalidade: modalidadeEnvio as any,
       valor: valorFinal,
+      valorOriginal,
+      descontoCupom,
+      codigoCupom,
       distanciaKm,
       duracaoMin: activeQuote.tripDurationMinutes || duracaoMin,
       formaPagamento: formaPagamento === "pix" ? "pix" : "dinheiro",
@@ -1233,6 +1247,11 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
 
     setActiveRide(novaCorrida);
 
+    // Consome o cupom ativo da sessão para evitar reutilização
+    if (fareDiscount.hasDiscount) {
+      couponService.clearActiveRideCoupon();
+    }
+
     // Inicia Despacho em Ondas Progressivas PostGIS V4 com Coordenadas Reais do Hardware GPS (Janela de até 10 Minutos)
     void progressiveDispatchEngine.startProgressiveDispatch({
       rideId: novaCorrida.id,
@@ -1254,6 +1273,9 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
           dropoff_lat: destinoCoords[1],
           dropoff_lng: destinoCoords[0],
           fare_brl: valorFinal,
+          original_fare: valorOriginal,
+          coupon_discount: descontoCupom,
+          coupon_code: codigoCupom,
         },
       }).catch((err) => {
         console.warn("[PassengerRideContext] Falha ao invocar edge function dispatch-ride:", err);

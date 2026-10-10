@@ -15,6 +15,9 @@ interface RidePaymentSettlementModalProps {
   driverCity?: string;
   distanceKm?: number;
   durationMinutes?: number;
+  descontoCupom?: number;
+  codigoCupom?: string;
+  valorOriginal?: number;
   onClose: () => void;
   onConfirmSettlement: (paymentMethod: "PIX" | "DINHEIRO") => void;
 }
@@ -30,6 +33,9 @@ export const RidePaymentSettlementModal = memo(function RidePaymentSettlementMod
   driverCity = "ITAPERUNA",
   distanceKm = 4.2,
   durationMinutes = 12,
+  descontoCupom = 0,
+  codigoCupom,
+  valorOriginal,
   onClose,
   onConfirmSettlement,
 }: RidePaymentSettlementModalProps) {
@@ -128,6 +134,25 @@ export const RidePaymentSettlementModal = memo(function RidePaymentSettlementMod
             <span>•</span>
             <span>{distanceKm} km</span>
           </div>
+
+          {descontoCupom > 0 && (
+            <div className="mt-2.5 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 text-left text-xs space-y-1">
+              <div className="flex justify-between items-center text-[11px] font-semibold text-slate-600">
+                <span>Valor original da corrida:</span>
+                <span className="line-through">
+                  {(valorOriginal || (amountBrl + descontoCupom)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-xs font-bold text-amber-700">
+                <span>Desconto Cupom ({codigoCupom || "PROMO"}):</span>
+                <span>- {descontoCupom.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+              </div>
+              <div className="pt-1.5 border-t border-amber-500/20 text-[11px] font-bold text-emerald-700 flex items-center gap-1">
+                <span>🎁</span>
+                <span>Subsídio de {descontoCupom.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} creditado na sua diária do app!</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Escolha da Forma de Recebimento */}
