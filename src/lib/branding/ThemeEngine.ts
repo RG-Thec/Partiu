@@ -414,7 +414,7 @@ export class ThemeEngine {
    * atualizando todos os tokens CSS, persistindo no localStorage e disparando
    * eventos para atualização reativa de todos os componentes da aplicação.
    */
-  public applyMonochromaticPalette(palette: MonochromaticPalette, appName?: string): void {
+  public applyMonochromaticPalette(palette: MonochromaticPalette, appName?: string, tenantId?: string): void {
     if (typeof document === "undefined") return;
 
     try {
@@ -484,21 +484,30 @@ export class ThemeEngine {
       root.style.setProperty("--brand-border-active", c.borderActive);
       root.style.setProperty("--brand-surface-highlight", primaryPalette[100]);
 
-      // 5. Persistência no LocalStorage para retenção cross-session e reload
+      // 5. Persistência no LocalStorage com isolamento multi-tenant
+      const resolvedTenantId =
+        tenantId ||
+        (typeof window !== "undefined"
+          ? localStorage.getItem("partiu_active_tenant_id_v2") || localStorage.getItem("partiu_wl_active_tenant_v1")
+          : null) ||
+        "default";
+
       let updatedV2: AppBrandingRecord | null = null;
       try {
         localStorage.setItem("partiu_active_palette_id", palette.id);
+        localStorage.setItem(`partiu_active_palette_id_${resolvedTenantId}`, palette.id);
         localStorage.setItem("partiu_branding_primary", c.primary);
         localStorage.setItem("partiu_branding_secondary", c.secondary);
         localStorage.setItem("partiu_branding_header_start", c.headerGradientStart);
         localStorage.setItem("partiu_branding_header_end", c.headerGradientEnd);
 
         // Atualiza cache canônico v2 consumido pelo BrandingProvider
-        const currentBrandingV2Raw = localStorage.getItem("partiu_active_branding_v2");
+        const currentBrandingV2Raw = localStorage.getItem(`partiu_branding_tenant_${resolvedTenantId}`) ||
+          localStorage.getItem("partiu_active_branding_v2");
         const baseV2 = currentBrandingV2Raw ? JSON.parse(currentBrandingV2Raw) : {};
         updatedV2 = {
           ...baseV2,
-          tenant_id: baseV2.tenant_id || "default",
+          tenant_id: resolvedTenantId,
           app_name: appName || baseV2.app_name || "PARTIU",
           company_name: baseV2.company_name || "PARTIU Mobilidade Urbana",
           primary_color: c.primary,
@@ -512,30 +521,13 @@ export class ThemeEngine {
           header_gradient_end: c.headerGradientEnd,
           footer_gradient_start: c.headerGradientStart,
           footer_gradient_end: c.headerGradientEnd,
-          border_radius: "16px",
-          font_family: "Plus Jakarta Sans",
+          border_radius: baseV2.border_radius || "16px",
+          font_family: baseV2.font_family || "Plus Jakarta Sans",
           updated_at: new Date().toISOString(),
         };
-        localStorage.setItem("partiu_active_branding_v2", JSON.stringify(updatedV2));
 
-        // Atualiza cache de branding local legado
-        const currentBrandingRaw = localStorage.getItem("partiu_branding_tenant_default") || "{}";
-        const currentBranding = JSON.parse(currentBrandingRaw);
-        localStorage.setItem(
-          "partiu_branding_tenant_default",
-          JSON.stringify({
-            ...currentBranding,
-            primary_color: c.primary,
-            secondary_color: c.secondary,
-            accent_color: c.accent,
-            header_gradient_start: c.headerGradientStart,
-            header_gradient_end: c.headerGradientEnd,
-            background_color: c.background,
-            surface_color: c.surface,
-            text_primary: c.textPrimary,
-            text_secondary: c.textSecondary,
-          })
-        );
+        localStorage.setItem(`partiu_branding_tenant_${resolvedTenantId}`, JSON.stringify(updatedV2));
+        localStorage.setItem("partiu_active_branding_v2", JSON.stringify(updatedV2));
       } catch {}
 
       // 6. Atualização Dinâmica do Favicon da Aba do Navegador
@@ -557,12 +549,14 @@ export class ThemeEngine {
       }
 
       // 9. Notificação de sincronização global no DOM
-      window.dispatchEvent(
-        new CustomEvent("partiu:theme-palette-updated", {
-          detail: { palette, primaryColor: c.primary },
-        })
-      );
-      window.dispatchEvent(new Event("storage"));
+      if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+        window.dispatchEvent(
+          new CustomEvent("partiu:theme-palette-updated", {
+            detail: { palette, primaryColor: c.primary },
+          })
+        );
+        window.dispatchEvent(new Event("storage"));
+      }
     } catch (err) {
       silentCatchWarn("ThemeEngine:applyMonochromaticPalette", err);
     }

@@ -15,9 +15,13 @@ export interface PalettePickerSectionProps {
 }
 
 export function PalettePickerSection({ onPaletteSelect, className = "" }: PalettePickerSectionProps) {
-  const { branding, updateBranding } = useBranding();
+  const { branding, updateBranding, activeTenantId } = useBranding();
   const [activePaletteId, setActivePaletteId] = useState<string>(() => {
     if (typeof window !== "undefined") {
+      const tenantKey = activeTenantId ? `partiu_active_palette_id_${activeTenantId}` : null;
+      const savedTenant = tenantKey ? localStorage.getItem(tenantKey) : null;
+      if (savedTenant) return savedTenant;
+
       const saved = localStorage.getItem("partiu_active_palette_id");
       if (saved) return saved;
     }
@@ -48,8 +52,14 @@ export function PalettePickerSection({ onPaletteSelect, className = "" }: Palett
     setActivePaletteId(palette.id);
 
     try {
+      const targetTenantId = activeTenantId || "default";
+
       // 1. Aplicação imediata no DOM e CSS Variables via ThemeEngine
-      themeEngine.applyMonochromaticPalette(palette, branding?.app_name || "PARTIU");
+      themeEngine.applyMonochromaticPalette(palette, branding?.app_name || "PARTIU", targetTenantId);
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`partiu_active_palette_id_${targetTenantId}`, palette.id);
+        localStorage.setItem("partiu_active_palette_id", palette.id);
+      }
 
       // 2. Persistência na camada SaaS / Supabase
       await updateBranding({
@@ -58,6 +68,9 @@ export function PalettePickerSection({ onPaletteSelect, className = "" }: Palett
         accent_color: palette.colors.accent,
         header_gradient_start: palette.colors.headerGradientStart,
         header_gradient_end: palette.colors.headerGradientEnd,
+        footer_sync_with_header: true,
+        footer_gradient_start: palette.colors.headerGradientStart,
+        footer_gradient_end: palette.colors.headerGradientEnd,
         background_color: palette.colors.background,
         surface_color: palette.colors.surface,
         text_primary: palette.colors.textPrimary,

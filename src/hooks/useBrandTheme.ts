@@ -149,17 +149,17 @@ export function useBrandTheme() {
   // Mapeamentos unificados: Branding Supabase Realtime tem precedência máxima, seguido de WhiteLabel e legado
   const nomeApp = branding?.app_name || config.brandCenter?.nomePlataforma || identidade.nomeApp || "PARTIU";
   const sloganApp = branding?.company_name || config.brandCenter?.slogan || identidade.sloganApp || "Mobilidade inteligente para sua cidade";
-  const corPrimaria = branding?.primary_color || config.designSystem?.paletaPrimaria?.corPrincipal || identidade.corPrimaria || "#0284C7";
-  const corPrimariaHover = branding?.secondary_color || config.designSystem?.paletaPrimaria?.corPrincipalHover || identidade.corPrimariaHover || "#0369A1";
-  const corSecundaria = branding?.secondary_color || config.designSystem?.paletaPrimaria?.corSecundaria || identidade.corSecundaria || "#0369A1";
-  const corTextoPrimaria = branding?.text_primary || config.designSystem?.paletaPrimaria?.corTextoPrincipal || identidade.corTextoPrimaria || "#082F49";
-  const corFundoApp = branding?.background_color || config.designSystem?.paletaPrimaria?.corFundoApp || identidade.corFundoApp || "#F8FAFC";
+  const corPrimaria = branding?.primary_color || config.designSystem?.paletaPrimaria?.corPrincipal || identidade.corPrimaria || "#FF6B00";
+  const corPrimariaHover = config.designSystem?.paletaPrimaria?.corPrincipalHover || branding?.secondary_color || identidade.corPrimariaHover || "#EA580C";
+  const corSecundaria = branding?.secondary_color || config.designSystem?.paletaPrimaria?.corSecundaria || identidade.corSecundaria || "#FFB800";
+  const corTextoPrimaria = branding?.text_primary || config.designSystem?.paletaPrimaria?.corTextoPrincipal || identidade.corTextoPrimaria || "#0F172A";
+  const corFundoApp = branding?.background_color || config.designSystem?.paletaPrimaria?.corFundoApp || identidade.corFundoApp || "#FAFAFA";
   const nomeModuloPay = "99Pay";
   const nomeModuloEntrega = config.businessModels?.verticais?.DELIVERY_FLASH?.nomeExibicao || "Entrega";
 
   // Gradientes e Sincronização Cabeçalho ↔ Rodapé
-  const corCabecalhoInicio = branding?.header_gradient_start || "#0284C7";
-  const corCabecalhoFim = branding?.header_gradient_end || "#075985";
+  const corCabecalhoInicio = branding?.header_gradient_start || corPrimaria || "#FF6B00";
+  const corCabecalhoFim = branding?.header_gradient_end || corSecundaria || "#EA580C";
   const rodapeSincronizadoComCabecalho = branding?.footer_sync_with_header !== false;
   const corRodapeInicio = rodapeSincronizadoComCabecalho
     ? corCabecalhoInicio

@@ -121,8 +121,8 @@ export const Header = memo(function Header({
           size="sm"
           appName={appName || nomeApp || "PARTIU"}
           tagline={sloganApp || "MAIS MOBILIDADE PARA VOCÊ"}
-          primaryColor={corPrimaria || "#0284C7"}
-          secondaryColor={corSecundaria || "#0369A1"}
+          primaryColor={corPrimaria || "#FF6B00"}
+          secondaryColor={corSecundaria || "#FFB800"}
           className="transition-transform hover:scale-102"
         />
       </div>

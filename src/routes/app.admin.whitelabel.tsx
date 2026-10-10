@@ -122,7 +122,7 @@ function WhiteLabelStudioContent() {
     preset: p,
   }));
 
-  const primaryColor = corPrimaria || "#0088FF";
+  const primaryColor = corPrimaria || "#FF6B00";
 
   return (
     <div className="w-full min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans pb-24">

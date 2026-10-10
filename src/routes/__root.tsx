@@ -157,6 +157,50 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="pt-BR" className="light" style={{ colorScheme: "light" }}>
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+(function() {
+  try {
+    var urlParams = new URLSearchParams(window.location.search);
+    var tid = urlParams.get('tenant') || urlParams.get('tenant_id');
+    if (!tid) {
+      var sessionRaw = localStorage.getItem('partiu_admin_session');
+      if (sessionRaw) {
+        try {
+          var s = JSON.parse(sessionRaw);
+          if (s && s.role === 'FRANQUEADO' && s.tenantId) tid = s.tenantId;
+        } catch(e) {}
+      }
+    }
+    if (!tid) {
+      tid = localStorage.getItem('partiu_active_tenant_id_v2') || localStorage.getItem('partiu_wl_active_tenant_v1') || 'default';
+    }
+    var raw = localStorage.getItem('partiu_branding_tenant_' + tid) || localStorage.getItem('partiu_active_branding_v2');
+    if (raw) {
+      var b = JSON.parse(raw);
+      if (b && b.primary_color) {
+        var r = document.documentElement;
+        r.style.setProperty('--primary', b.primary_color);
+        r.style.setProperty('--color-primary', b.primary_color);
+        r.style.setProperty('--brand', b.primary_color);
+        r.style.setProperty('--brand-primary', b.primary_color);
+        if (b.secondary_color) {
+          r.style.setProperty('--secondary', b.secondary_color);
+          r.style.setProperty('--color-secondary', b.secondary_color);
+          r.style.setProperty('--brand-secondary', b.secondary_color);
+        }
+        if (b.background_color) {
+          r.style.setProperty('--background', b.background_color);
+          r.style.setProperty('--color-background', b.background_color);
+        }
+      }
+    }
+  } catch(e) {}
+})();
+`,
+          }}
+        />
       </head>
       <body className="light" style={{ colorScheme: "light" }}>
         {children}

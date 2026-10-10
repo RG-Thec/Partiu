@@ -458,7 +458,7 @@ function SuperAdminFranqueadosContent() {
                         className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white shrink-0 shadow-2xs text-lg"
                         style={{
                           backgroundColor:
-                            tenant.configuracaoCompleta?.designSystem?.paletaPrimaria?.corPrincipal || "#0284C7",
+                            tenant.configuracaoCompleta?.designSystem?.paletaPrimaria?.corPrincipal || "#FF6B00",
                         }}
                       >
                         {tenant.cidadeNome.slice(0, 2).toUpperCase()}

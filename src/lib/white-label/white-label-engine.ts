@@ -51,23 +51,23 @@ export function convertWhiteLabelToBrandingRecord(
     tenant_id: tenantId,
     app_name: config.brandCenter?.nomePlataforma || "PARTIU",
     company_name: config.nativeApp?.razaoSocial || config.brandCenter?.slogan || "PARTIU Mobilidade Urbana",
-    primary_color: prim?.corPrincipal || "#0284C7",
-    secondary_color: prim?.corSecundaria || "#0369A1",
-    accent_color: prim?.corTerciaria || prim?.corSecundaria || "#38BDF8",
-    background_color: prim?.corFundoApp || "#F8FAFC",
+    primary_color: prim?.corPrincipal || "#FF6B00",
+    secondary_color: prim?.corSecundaria || "#FFB800",
+    accent_color: prim?.corTerciaria || prim?.corSecundaria || "#EA580C",
+    background_color: prim?.corFundoApp || "#FAFAFA",
     surface_color: prim?.corSuperficieCard || "#FFFFFF",
-    text_primary: prim?.corTextoPrincipal || "#082F49",
+    text_primary: prim?.corTextoPrincipal || "#0F172A",
     text_secondary: "#475569",
     logo_url: config.brandCenter?.logos?.logoPrincipalUrl || null,
     splash_logo_url: config.brandCenter?.splash?.splashAndroidUrl || config.nativeApp?.splashAndroidUrl || null,
     favicon_url: config.brandCenter?.favicons?.faviconDesktopUrl || null,
     app_icon_url: config.nativeApp?.iconeAppUrl || null,
     push_icon_url: config.nativeApp?.iconeNotificacaoPushUrl || null,
-    header_gradient_start: prim?.corPrincipal || "#0284C7",
-    header_gradient_end: prim?.corSecundaria || "#075985",
+    header_gradient_start: prim?.corPrincipal || "#FF6B00",
+    header_gradient_end: prim?.corSecundaria || "#EA580C",
     footer_sync_with_header: true,
-    footer_gradient_start: prim?.corPrincipal || "#0284C7",
-    footer_gradient_end: prim?.corSecundaria || "#075985",
+    footer_gradient_start: prim?.corPrincipal || "#FF6B00",
+    footer_gradient_end: prim?.corSecundaria || "#EA580C",
     border_radius: br,
     font_family: config.typography?.familiaPrincipal || "Plus Jakarta Sans",
     updated_at: new Date().toISOString(),
@@ -703,12 +703,12 @@ const SEED_TENANTS: WhiteLabelTenantRecord[] = [
         ...DEFAULT_WHITELABEL_CONFIG.designSystem,
         paletaPrimaria: {
           ...DEFAULT_WHITELABEL_CONFIG.designSystem.paletaPrimaria,
-          corPrincipal: "#0284C7",
-          corPrincipalHover: "#0369A1",
-          corSecundaria: "#0369A1",
-          corSecundariaHover: "#0284C7",
-          corTerciaria: "#38BDF8",
-          corTextoPrincipal: "#082F49",
+          corPrincipal: "#FF6B00",
+          corPrincipalHover: "#EA580C",
+          corSecundaria: "#FFB800",
+          corSecundariaHover: "#F59E0B",
+          corTerciaria: "#EA580C",
+          corTextoPrincipal: "#0F172A",
         },
       },
       monetization: {
@@ -950,6 +950,10 @@ export class WhiteLabelEngine {
 
   public getAllTenants(): WhiteLabelTenantRecord[] {
     return Array.from(this.tenantsMap.values());
+  }
+
+  public getTenantById(tenantId: string): WhiteLabelTenantRecord | undefined {
+    return this.tenantsMap.get(tenantId);
   }
 
   /**
@@ -1473,15 +1477,15 @@ export class WhiteLabelEngine {
     root.style.setProperty("--brand-primary", prim.corPrincipal);
     root.style.setProperty("--brand-primary-hover", prim.corPrincipalHover);
     root.style.setProperty("--brand-secondary", prim.corSecundaria);
-    root.style.setProperty("--brand-accent", prim.corTerciaria || "#00C6FF");
+    root.style.setProperty("--brand-accent", prim.corTerciaria || "#EA580C");
     root.style.setProperty("--brand-text", prim.corTextoPrincipal);
-    root.style.setProperty("--brand-tertiary", prim.corTerciaria);
+    root.style.setProperty("--brand-tertiary", prim.corTerciaria || "#EA580C");
 
-    // Paleta Corporativa Oficial "Azul Tech" / White Label
-    root.style.setProperty("--brand-primary-deep", prim.corPrincipal || "#003366");
-    root.style.setProperty("--brand-primary-vibrant", prim.corSecundaria || "#0088FF");
-    root.style.setProperty("--brand-primary-accent", prim.corTerciaria || "#00C6FF");
-    root.style.setProperty("--brand-bg-neutral", prim.corFundoApp || "#F8FAFC");
+    // Paleta Corporativa Oficial White Label
+    root.style.setProperty("--brand-primary-deep", prim.corPrincipalHover || "#EA580C");
+    root.style.setProperty("--brand-primary-vibrant", prim.corPrincipal || "#FF6B00");
+    root.style.setProperty("--brand-primary-accent", prim.corSecundaria || "#FFB800");
+    root.style.setProperty("--brand-bg-neutral", prim.corFundoApp || "#FAFAFA");
     root.style.setProperty("--brand-surface-card", prim.corSuperficieCard || "#FFFFFF");
     root.style.setProperty("--brand-status-green", sem.sucesso || "#22C55E");
     root.style.setProperty("--brand-danger-red", sem.erro || "#EF4444");

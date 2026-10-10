@@ -42,7 +42,7 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
             <div className="flex items-center gap-3">
               <input
                 type="color"
-                value={designSystem?.paletaPrimaria?.corPrincipal || "#0088FF"}
+                value={designSystem?.paletaPrimaria?.corPrincipal || "#FF6B00"}
                 onChange={(e) => {
                   updateConfig({
                     designSystem: {
@@ -59,7 +59,7 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
               />
               <input
                 type="text"
-                value={designSystem?.paletaPrimaria?.corPrincipal || "#0088FF"}
+                value={designSystem?.paletaPrimaria?.corPrincipal || "#FF6B00"}
                 onChange={(e) => {
                   updateConfig({
                     designSystem: {
@@ -85,7 +85,7 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
             <div className="flex items-center gap-3">
               <input
                 type="color"
-                value={designSystem?.paletaPrimaria?.corPrincipalHover || "#006ACC"}
+                value={designSystem?.paletaPrimaria?.corPrincipalHover || "#EA580C"}
                 onChange={(e) => {
                   updateConfig({
                     designSystem: {
@@ -102,7 +102,7 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
               />
               <input
                 type="text"
-                value={designSystem?.paletaPrimaria?.corPrincipalHover || "#006ACC"}
+                value={designSystem?.paletaPrimaria?.corPrincipalHover || "#EA580C"}
                 onChange={(e) => {
                   updateConfig({
                     designSystem: {
@@ -128,7 +128,7 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
             <div className="flex items-center gap-3">
               <input
                 type="color"
-                value={designSystem?.paletaPrimaria?.corSecundaria || "#00C6FF"}
+                value={designSystem?.paletaPrimaria?.corSecundaria || "#FFB800"}
                 onChange={(e) => {
                   updateConfig({
                     designSystem: {
@@ -145,7 +145,7 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
               />
               <input
                 type="text"
-                value={designSystem?.paletaPrimaria?.corSecundaria || "#00C6FF"}
+                value={designSystem?.paletaPrimaria?.corSecundaria || "#FFB800"}
                 onChange={(e) => {
                   updateConfig({
                     designSystem: {
@@ -171,7 +171,7 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
             <div className="flex items-center gap-3">
               <input
                 type="color"
-                value={designSystem?.paletaPrimaria?.corTerciaria || "#00C6FF"}
+                value={designSystem?.paletaPrimaria?.corTerciaria || "#EA580C"}
                 onChange={(e) => {
                   updateConfig({
                     designSystem: {
@@ -188,7 +188,7 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
               />
               <input
                 type="text"
-                value={designSystem?.paletaPrimaria?.corTerciaria || "#00C6FF"}
+                value={designSystem?.paletaPrimaria?.corTerciaria || "#EA580C"}
                 onChange={(e) => {
                   updateConfig({
                     designSystem: {

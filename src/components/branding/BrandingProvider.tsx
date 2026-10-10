@@ -24,6 +24,17 @@ function getInitialTenantId(): string {
     const tenantParam = urlParams.get("tenant") || urlParams.get("tenant_id");
     if (tenantParam) return tenantParam.trim();
 
+    // Se estiver no admin autenticado como franqueado
+    const sessionRaw = localStorage.getItem("partiu_admin_session");
+    if (sessionRaw) {
+      try {
+        const parsed = JSON.parse(sessionRaw);
+        if (parsed?.role === "FRANQUEADO" && parsed?.tenantId) {
+          return parsed.tenantId.trim();
+        }
+      } catch {}
+    }
+
     const resolution = tenantDomainService.resolveTenantFromHost(window.location.hostname, urlParams);
     if (resolution.tenantId && resolution.tenantId !== "default" && resolution.tenantId !== "tenant-campos") {
       return resolution.tenantId;
@@ -31,6 +42,9 @@ function getInitialTenantId(): string {
 
     const stored = localStorage.getItem(STORAGE_KEY_TENANT);
     if (stored && stored !== "tenant-campos") return stored.trim();
+
+    const storedWl = localStorage.getItem("partiu_wl_active_tenant_v1");
+    if (storedWl && storedWl !== "tenant-campos") return storedWl.trim();
   } catch {}
   return "default";
 }
@@ -43,7 +57,7 @@ function getInitialBranding(tenantId: string): AppBrandingRecord {
     if (tenantStored) {
       const parsed = JSON.parse(tenantStored) as AppBrandingRecord;
       if (parsed && parsed.primary_color) {
-        return parsed;
+        return { ...parsed, tenant_id: tenantId };
       }
     }
 
@@ -182,7 +196,7 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("partiu:theme-palette-updated", handlePaletteUpdated);
   }, []);
 
-  // Busca do Supabase
+  // Busca do Supabase com resolução anti-regressão de timestamps
   const fetchTenantBranding = useCallback(async (tenantId: string) => {
     setIsLoading(true);
     setIsSyncing(true);
@@ -194,25 +208,53 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
 
       if (error) {
-        // Se a tabela não existir ou outro erro suave de rede
+        // Se houver erro de rede, mantém o cache local
         silentCatchWarn("BrandingProvider:fetchTenantBranding", error);
+        const localCurrent = getInitialBranding(tenantId);
+        if (localCurrent?.primary_color) {
+          applyBrandingTheme(localCurrent);
+        }
       } else if (data) {
         const loaded = data as unknown as AppBrandingRecord;
-        const savedPaletteId = typeof window !== "undefined" ? localStorage.getItem("partiu_active_palette_id") : null;
-        
-        // Aplica fielmente a identidade visual configurada no banco de dados
-        applyBrandingTheme(loaded);
+        const localCurrent = getInitialBranding(tenantId);
+        const localTimestamp = localCurrent?.updated_at ? new Date(localCurrent.updated_at).getTime() : 0;
+        const remoteTimestamp = loaded?.updated_at ? new Date(loaded.updated_at).getTime() : 0;
+
+        // Se o registro local for estritamente mais recente (ex: alteração recente no navegador não sincronizada),
+        // preservamos a escolha do usuário e curamos a nuvem (self-healing)
+        if (localTimestamp > remoteTimestamp && localCurrent?.primary_color) {
+          applyBrandingTheme(localCurrent);
+          void supabase
+            .from("app_branding" as any)
+            .upsert(localCurrent as any, { onConflict: "tenant_id" });
+        } else {
+          // O registro da nuvem é igual ou mais novo: adota fielmente
+          applyBrandingTheme(loaded);
+        }
         setLastSyncedAt(new Date());
-      } else if (tenantId !== "default") {
-        // Fallback para default
-        const { data: defaultData } = await supabase
-          .from("app_branding" as any)
-          .select("*")
-          .eq("tenant_id", "default")
-          .maybeSingle();
-        if (defaultData) {
-          applyBrandingTheme(defaultData as unknown as AppBrandingRecord);
+      } else {
+        // Tenant ainda não existe no Supabase
+        const localCurrent = getInitialBranding(tenantId);
+        const hasCustomLocal = localCurrent && localCurrent.primary_color && localCurrent.tenant_id === tenantId;
+
+        if (hasCustomLocal) {
+          // Preserva a customização local do franqueado/admin e cria no banco
+          applyBrandingTheme(localCurrent);
+          void supabase
+            .from("app_branding" as any)
+            .upsert(localCurrent as any, { onConflict: "tenant_id" });
           setLastSyncedAt(new Date());
+        } else if (tenantId !== "default") {
+          // Apenas se NÃO houver customização local, busca fallback do default
+          const { data: defaultData } = await supabase
+            .from("app_branding" as any)
+            .select("*")
+            .eq("tenant_id", "default")
+            .maybeSingle();
+          if (defaultData) {
+            applyBrandingTheme({ ...(defaultData as unknown as AppBrandingRecord), tenant_id: tenantId });
+            setLastSyncedAt(new Date());
+          }
         }
       }
     } catch (err) {
