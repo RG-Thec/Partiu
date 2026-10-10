@@ -152,6 +152,28 @@ const INITIAL_DOMAINS: TenantDomainRecord[] = [
       },
     ],
   },
+  {
+    id: "dom_bhmob_04",
+    tenantId: "tenant-bhmob",
+    tenantNome: "BH Mob (Belo Horizonte)",
+    domain: "bhmob.partiumobe.com.br",
+    cnameTarget: CANONICAL_CNAME_TARGET,
+    status: "PENDENTE",
+    sslStatus: "PENDENTE",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    dnsRecords: [
+      {
+        type: "CNAME",
+        name: "bhmob",
+        target: CANONICAL_CNAME_TARGET,
+        expected: CANONICAL_CNAME_TARGET,
+        actual: "pendente.dns",
+        matched: false,
+        checkedAt: new Date().toISOString(),
+      },
+    ],
+  },
 ];
 
 export class TenantDomainService {

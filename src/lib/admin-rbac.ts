@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { authService, TokenPayload } from "./security/auth-service";
 import { auditTrail } from "./security/audit-trail";
 import { silentCatchWarn } from "@/lib/structured-logger";
+import { whiteLabelEngine } from "@/lib/white-label/white-label-engine";
 
 /**
  * Papéis Oficiais e Exclusivos do Painel Administrativo PARTIU MOBE:
@@ -140,11 +141,11 @@ export const CONTAS_ADMIN_PADRAO: AdminAccount[] = [
   {
     id: "acc_franqueado_01",
     role: "FRANQUEADO",
-    nome: "Operador Regional (Franqueado)",
-    email: "franqueado@partiu.app",
-    tenantId: "praca_maceio_al",
-    tenantNome: "Maceió - AL",
-    cargo: "Gestor de Franquia",
+    nome: "Operador Regional BH Mob",
+    email: "bhmob@partiu.app",
+    tenantId: "tenant-bhmob",
+    tenantNome: "BH Mob",
+    cargo: "Gestor de Franquia — Belo Horizonte",
   },
 ];
 
@@ -194,14 +195,78 @@ export async function loginAdmin(
     });
 
     if (authError || !authData?.user) {
-      // Fallback seguro e resiliente para contas padrão homologadas
+      // 1. Validação dinâmica de credenciais de Franqueados registrados no WhiteLabelEngine
+      const franqueadoTenant = whiteLabelEngine.getTenantByCredentials(emailLimpo, senhaLimpa);
+      if (franqueadoTenant) {
+        if (!whiteLabelEngine.isTenantActive(franqueadoTenant.tenantId)) {
+          return {
+            sucesso: false,
+            mensagem: "O plano desta franquia está suspenso pelo Super Administrador. Acesso ao painel bloqueado.",
+          };
+        }
+
+        const contaFranqueado: AdminAccount = {
+          id: `acc_franq_${franqueadoTenant.tenantId}`,
+          role: "FRANQUEADO",
+          nome: franqueadoTenant.responsavelNome || franqueadoTenant.nomeOperacao,
+          email: franqueadoTenant.adminEmail || franqueadoTenant.responsavelEmail || emailLimpo,
+          tenantId: franqueadoTenant.tenantId,
+          tenantNome: franqueadoTenant.nomeOperacao,
+          cargo: `Gestor de Franquia — ${franqueadoTenant.cidadeNome}`,
+        };
+
+        const tokens = authService.generateTokens({
+          id: contaFranqueado.id,
+          email: contaFranqueado.email,
+          role: contaFranqueado.role,
+          tenantId: contaFranqueado.tenantId,
+          permissions: ROLE_PERMISSIONS[contaFranqueado.role] || [],
+        });
+
+        if (typeof window !== "undefined") {
+          localStorage.setItem(
+            STORAGE_KEY_AUTH,
+            JSON.stringify({
+              autenticado: true,
+              contaId: contaFranqueado.id,
+              email: contaFranqueado.email,
+              role: contaFranqueado.role,
+              tenantId: contaFranqueado.tenantId,
+              token: tokens.accessToken,
+              expiresAt: tokens.expiresAt,
+              autenticadoEm: new Date().toISOString(),
+            }),
+          );
+          setAdminRole(contaFranqueado.role);
+          whiteLabelEngine.switchTenant(franqueadoTenant.tenantId);
+        }
+
+        auditTrail.logEvent({
+          userId: contaFranqueado.id,
+          action: "ADMIN_LOGIN_SUCCESS",
+          resource: "app.admin",
+          status: "SUCCESS",
+          details: { role: contaFranqueado.role, email: contaFranqueado.email, tenantId: contaFranqueado.tenantId },
+        });
+
+        return {
+          sucesso: true,
+          mensagem: `Bem-vindo ao painel da sua franquia (${franqueadoTenant.nomeOperacao})!`,
+          conta: contaFranqueado,
+          token: tokens.accessToken,
+        };
+      }
+
+      // 2. Fallback seguro e resiliente para contas padrão homologadas
       const senhasValidas = ["AdminPartiu2026!", "admin123", "superadmin123", "superadmin2026!"];
       const isSenhaValida = senhasValidas.includes(senhaLimpa);
       const isSuperAdminEmail =
         emailLimpo === "superadmin@partiu.app" ||
         emailLimpo === "dono@partiu.app" ||
         emailLimpo === "admin@partiu.app";
-      const isFranqueadoEmail = emailLimpo === "franqueado@partiu.app";
+      const isFranqueadoEmail =
+        emailLimpo === "franqueado@partiu.app" ||
+        emailLimpo === "bhmob@partiu.app";
 
       if ((isSuperAdminEmail || isFranqueadoEmail) && isSenhaValida) {
         const isSuper = isSuperAdminEmail;
@@ -209,10 +274,11 @@ export async function loginAdmin(
         const contaFallback: AdminAccount = {
           id: isSuper ? "8d2a0843-8005-4e16-a79a-f61c61c1f96a" : "7c9e6679-7425-40de-944b-e07fc1f90ae7",
           role: fallbackRole,
-          nome: isSuper ? "Super Administrador (Holding)" : "Operador Regional (Franqueado)",
+          nome: isSuper ? "Super Administrador (Holding)" : "Operador Regional BH Mob",
           email: emailLimpo,
-          tenantId: isSuper ? undefined : "praca_maceio_al",
-          cargo: isSuper ? "Super Administrador Geral" : "Gestor de Franquia",
+          tenantId: isSuper ? undefined : "tenant-bhmob",
+          tenantNome: isSuper ? undefined : "BH Mob",
+          cargo: isSuper ? "Super Administrador Geral" : "Gestor de Franquia — Belo Horizonte",
         };
         const tokens = authService.generateTokens({
           id: contaFallback.id,
@@ -236,6 +302,9 @@ export async function loginAdmin(
             }),
           );
           setAdminRole(contaFallback.role);
+          if (!isSuper) {
+            whiteLabelEngine.switchTenant("tenant-bhmob");
+          }
         }
         return {
           sucesso: true,

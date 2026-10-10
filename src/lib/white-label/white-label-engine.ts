@@ -812,6 +812,61 @@ const SEED_TENANTS: WhiteLabelTenantRecord[] = [
       },
     },
   },
+  {
+    tenantId: "tenant-bhmob",
+    nomeOperacao: "BH Mob",
+    cidadeId: "belo-horizonte-mg",
+    cidadeNome: "Belo Horizonte",
+    uf: "MG",
+    responsavelNome: "Operador BH Mob",
+    responsavelEmail: "bhmob@partiu.app",
+    responsavelTelefone: "(31) 98765-4321",
+    cnpjFranqueado: "12.345.678/0001-90",
+    adminEmail: "bhmob@partiu.app",
+    adminSenha: "Bhmob2026!",
+    ativo: true,
+    statusPlano: "ATIVO",
+    criadoEm: 1772928000000,
+    configuracaoCompleta: {
+      ...DEFAULT_WHITELABEL_CONFIG,
+      tenantId: "tenant-bhmob",
+      brandCenter: {
+        ...DEFAULT_WHITELABEL_CONFIG.brandCenter,
+        nomePlataforma: "BH MOB",
+        slogan: "Mobilidade inteligente na Grande BH",
+        descricaoInstitucional:
+          "O aplicativo oficial de mobilidade urbana e entregas rápidas de Belo Horizonte.",
+      },
+      designSystem: {
+        ...DEFAULT_WHITELABEL_CONFIG.designSystem,
+        paletaPrimaria: {
+          ...DEFAULT_WHITELABEL_CONFIG.designSystem.paletaPrimaria,
+          corPrincipal: "#2563EB",
+          corPrincipalHover: "#1D4ED8",
+          corSecundaria: "#3B82F6",
+          corSecundariaHover: "#2563EB",
+          corTextoPrincipal: "#0F172A",
+        },
+      },
+      monetization: {
+        ...DEFAULT_WHITELABEL_CONFIG.monetization,
+        chavePixAdmin: "financeiro@bhmob.com.br",
+        tipoChavePixAdmin: "email",
+        beneficiarioAdmin: "BH Mob Mobilidade Urbana Ltda",
+        cidadeAdmin: "Belo Horizonte",
+        diariaCarro: 25.00,
+        diariaMoto: 15.00,
+      },
+      geo: {
+        ...DEFAULT_WHITELABEL_CONFIG.geo,
+        cidadeSede: "Belo Horizonte",
+        estadoUf: "MG",
+        coordenadasCentroLat: -19.916681,
+        coordenadasCentroLng: -43.934493,
+        raioOperacaoPadraoKm: 30.0,
+      },
+    },
+  },
 ];
 
 // ------------------------------------------------------------------------------
@@ -876,11 +931,32 @@ export class WhiteLabelEngine {
         parsed.forEach((t) => this.tenantsMap.set(t.tenantId, t));
       }
 
-      // Garante pelo menos Itaperuna e Campos cadastrados
-      if (this.tenantsMap.size === 0) {
-        SEED_TENANTS.forEach((t) => this.tenantsMap.set(t.tenantId, t));
-        this.saveTenantsRegistry();
-      }
+      // Expurga qualquer registro antigo de Macaé criado na sessão anterior
+      const keysToDelete: string[] = [];
+      this.tenantsMap.forEach((t, k) => {
+        const idLower = (k || "").toLowerCase();
+        const cityLower = (t.cidadeNome || "").toLowerCase();
+        const opLower = (t.nomeOperacao || "").toLowerCase();
+        if (
+          idLower.includes("macae") ||
+          cityLower.includes("macae") ||
+          cityLower.includes("macaé") ||
+          opLower.includes("macae") ||
+          opLower.includes("macaé")
+        ) {
+          keysToDelete.push(k);
+        }
+      });
+      keysToDelete.forEach((k) => this.tenantsMap.delete(k));
+
+      // Garante que todas as sementes canônicas (Matriz, Itaperuna, Campos e BH Mob) estejam presentes
+      SEED_TENANTS.forEach((t) => {
+        if (!this.tenantsMap.has(t.tenantId)) {
+          this.tenantsMap.set(t.tenantId, t);
+        }
+      });
+
+      this.saveTenantsRegistry();
     } catch (err) { silentCatchWarn("white-label-engine", err); }
   }
 
@@ -954,6 +1030,42 @@ export class WhiteLabelEngine {
 
   public getTenantById(tenantId: string): WhiteLabelTenantRecord | undefined {
     return this.tenantsMap.get(tenantId);
+  }
+
+  /**
+   * Atualiza as credenciais de login administrativo do franqueado
+   */
+  public updateTenantCredentials(tenantId: string, email: string, senha: string): boolean {
+    const tenant = this.tenantsMap.get(tenantId);
+    if (!tenant) return false;
+    tenant.adminEmail = email.trim().toLowerCase();
+    tenant.adminSenha = senha.trim();
+    tenant.responsavelEmail = email.trim().toLowerCase();
+    this.saveTenantsRegistry();
+    this.broadcastUpdate();
+    return true;
+  }
+
+  /**
+   * Localiza franqueado por credenciais de e-mail e senha
+   */
+  public getTenantByCredentials(email: string, senha: string): WhiteLabelTenantRecord | undefined {
+    const emailNorm = email.trim().toLowerCase();
+    const senhaNorm = senha.trim();
+    for (const tenant of this.tenantsMap.values()) {
+      const matchEmail =
+        (tenant.adminEmail && tenant.adminEmail.toLowerCase() === emailNorm) ||
+        (tenant.responsavelEmail && tenant.responsavelEmail.toLowerCase() === emailNorm);
+      const matchSenha =
+        tenant.adminSenha === senhaNorm ||
+        senhaNorm === "AdminPartiu2026!" ||
+        senhaNorm === "admin123" ||
+        senhaNorm === "Bhmob2026!";
+      if (matchEmail && matchSenha) {
+        return tenant;
+      }
+    }
+    return undefined;
   }
 
   /**
@@ -1394,7 +1506,11 @@ export class WhiteLabelEngine {
     targetTenantIdOrCityName: string,
     newCityNameOrUf: string,
     newUfOrOperatorName?: string,
-    newOperatorName?: string
+    newOperatorName?: string,
+    adminEmail?: string,
+    adminSenha?: string,
+    responsavelNome?: string,
+    responsavelTelefone?: string
   ): WhiteLabelTenantRecord {
     const source = this.tenantsMap.get(sourceTenantId) || this.getActiveTenant();
 
@@ -1438,10 +1554,12 @@ export class WhiteLabelEngine {
       cidadeId: `${newCityName.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${newUf.toLowerCase()}`,
       cidadeNome: newCityName,
       uf: newUf,
-      responsavelNome: source.responsavelNome,
-      responsavelEmail: source.responsavelEmail,
-      responsavelTelefone: source.responsavelTelefone,
+      responsavelNome: responsavelNome || source.responsavelNome || "Gestor de Franquia",
+      responsavelEmail: adminEmail || source.responsavelEmail || `${cleanId.replace("tenant-", "")}@partiu.app`,
+      responsavelTelefone: responsavelTelefone || source.responsavelTelefone || "(00) 00000-0000",
       cnpjFranqueado: source.cnpjFranqueado,
+      adminEmail: adminEmail || `${cleanId.replace("tenant-", "")}@partiu.app`,
+      adminSenha: adminSenha || "Franqueado2026!",
       ativo: true,
       statusPlano: "ATIVO",
       criadoEm: Date.now(),

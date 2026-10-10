@@ -413,6 +413,8 @@ export interface WhiteLabelTenantRecord {
   responsavelEmail: string;
   responsavelTelefone: string;
   cnpjFranqueado: string;
+  adminEmail?: string | undefined;
+  adminSenha?: string | undefined;
   ativo: boolean;
   statusPlano?: TenantPlanStatus | undefined;
   motivoBloqueio?: string | undefined;

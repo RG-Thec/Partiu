@@ -56,14 +56,19 @@ export default function MeuAplicativoPage() {
     }
   }, [activeTenantId, conta.tenantId]);
 
-  // URL canônica do aplicativo deste franqueado
+  // URL canônica do aplicativo deste franqueado (sempre abre no ambiente atual)
   const appUrl = useMemo(() => {
-    if (typeof window === "undefined") return "https://partiumobe.com.br/app";
-    if (dominioRecord && dominioRecord.status === "ATIVO") {
+    if (typeof window === "undefined") return "/app";
+    const origin = window.location.origin;
+    const currentHost = window.location.hostname;
+    const tid = activeTenantId || conta.tenantId || "default";
+
+    // Se o navegador já estiver acessando diretamente pelo domínio customizado oficial
+    if (dominioRecord && dominioRecord.status === "ATIVO" && currentHost === dominioRecord.domain) {
       return `https://${dominioRecord.domain}/app`;
     }
-    const origin = window.location.origin;
-    const tid = activeTenantId || conta.tenantId || "default";
+
+    // Link direto e garantido para testes e uso no ambiente ativo (preview, localhost, etc.)
     return `${origin}/app?tenant=${encodeURIComponent(tid)}`;
   }, [dominioRecord, activeTenantId, conta.tenantId]);
 

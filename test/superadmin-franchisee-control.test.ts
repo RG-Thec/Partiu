@@ -163,4 +163,82 @@ describe("SUITE: Super Admin Franchisee Governance, Kill Switch & Mapbox Isolati
       expect(stats.ativos + stats.suspensos).toBe(stats.total);
     });
   });
+
+  describe("5. Franchisee Credentials Governance & BH Mob Seed", () => {
+    test("should ensure Macae is completely purged from tenant registry", () => {
+      const allTenants = wlEngine.getAllTenants();
+      const macaeFound = allTenants.some(
+        (t) =>
+          t.tenantId.toLowerCase().includes("macae") ||
+          t.cidadeNome.toLowerCase().includes("macaé") ||
+          t.cidadeNome.toLowerCase().includes("macae")
+      );
+      expect(macaeFound).toBe(false);
+    });
+
+    test("should ensure BH Mob (Belo Horizonte - MG) is seeded with standard credentials", () => {
+      const bhMob = wlEngine.getAllTenants().find((t) => t.tenantId === "tenant-bhmob");
+      expect(bhMob).toBeDefined();
+      expect(bhMob?.cidadeNome).toBe("Belo Horizonte");
+      expect(bhMob?.uf).toBe("MG");
+      expect(bhMob?.nomeOperacao).toBe("BH Mob");
+      expect(bhMob?.adminEmail).toBe("bhmob@partiu.app");
+      expect(bhMob?.adminSenha).toBe("Bhmob2026!");
+      expect(bhMob?.ativo).toBe(true);
+      expect(bhMob?.statusPlano).toBe("ATIVO");
+    });
+
+    test("should locate tenant by credentials via getTenantByCredentials", () => {
+      const tenant = wlEngine.getTenantByCredentials("bhmob@partiu.app", "Bhmob2026!");
+      expect(tenant).toBeDefined();
+      expect(tenant?.tenantId).toBe("tenant-bhmob");
+
+      // Credenciais incorretas não devem autenticar
+      const incorreto = wlEngine.getTenantByCredentials("bhmob@partiu.app", "SenhaErrada!");
+      expect(incorreto).toBe(undefined);
+    });
+
+    test("should allow Super Admin to update franchisee credentials and persist them", () => {
+      const atualizado = wlEngine.updateTenantCredentials(
+        "tenant-bhmob",
+        "gestao@bhmob.com.br",
+        "NovaSenhaForte2026!"
+      );
+      expect(atualizado).toBe(true);
+
+      const tenantApos = wlEngine.getAllTenants().find((t) => t.tenantId === "tenant-bhmob");
+      expect(tenantApos?.adminEmail).toBe("gestao@bhmob.com.br");
+      expect(tenantApos?.adminSenha).toBe("NovaSenhaForte2026!");
+
+      // Agora autentica com as novas credenciais
+      const tenantNovo = wlEngine.getTenantByCredentials("gestao@bhmob.com.br", "NovaSenhaForte2026!");
+      expect(tenantNovo?.tenantId).toBe("tenant-bhmob");
+
+      // E restaura para padrão
+      wlEngine.updateTenantCredentials("tenant-bhmob", "bhmob@partiu.app", "Bhmob2026!");
+    });
+
+    test("should support setting custom adminEmail and adminSenha during cloneTenant", () => {
+      const novaFranquia = wlEngine.cloneTenant(
+        "default",
+        "tenant-uberlandia",
+        "Uberlândia",
+        "MG",
+        "Uberlândia Mob",
+        "contato@uberlandiamob.app",
+        "Uberlandia2026!"
+      );
+
+      expect(novaFranquia.tenantId).toBe("tenant-uberlandia");
+      expect(novaFranquia.adminEmail).toBe("contato@uberlandiamob.app");
+      expect(novaFranquia.adminSenha).toBe("Uberlandia2026!");
+
+      const authNovo = wlEngine.getTenantByCredentials("contato@uberlandiamob.app", "Uberlandia2026!");
+      expect(authNovo?.tenantId).toBe("tenant-uberlandia");
+
+      // Limpeza
+      wlEngine.deleteTenant("tenant-uberlandia");
+    });
+  });
 });
+

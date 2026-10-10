@@ -26,9 +26,16 @@ import {
   Key,
   DollarSign,
   Eye,
+  EyeOff,
+  Lock,
+  Globe,
+  Sparkles,
   RefreshCw,
   Copy,
+  KeyRound,
+  Share2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { GuardiaoAcesso } from "@/components/admin/GuardiaoAcesso";
 import { whiteLabelEngine } from "@/lib/white-label";
 import { type WhiteLabelTenantRecord } from "@/lib/white-label/white-label-types";
@@ -117,6 +124,76 @@ function SuperAdminFranqueadosContent() {
   const [tenantInspecaoPassageiros, setTenantInspecaoPassageiros] = useState<WhiteLabelTenantRecord | null>(null);
   const [tenantInspecaoMotoristas, setTenantInspecaoMotoristas] = useState<WhiteLabelTenantRecord | null>(null);
   const [buscaModalUsuario, setBuscaModalUsuario] = useState("");
+
+  // Modal de Credenciais do Franqueado
+  const [tenantParaCredenciais, setTenantParaCredenciais] = useState<WhiteLabelTenantRecord | null>(null);
+  const [credencialEmail, setCredencialEmail] = useState("");
+  const [credencialSenha, setCredencialSenha] = useState("");
+  const [mostrarSenhaModal, setMostrarSenhaModal] = useState(false);
+  const [senhasVisiveis, setSenhasVisiveis] = useState<Record<string, boolean>>({});
+
+  const toggleVerSenhaCard = (tenantId: string) => {
+    setSenhasVisiveis((prev) => ({ ...prev, [tenantId]: !prev[tenantId] }));
+  };
+
+  function handleCopiarLinkApp(tenant: WhiteLabelTenantRecord) {
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
+    const url = `${origin}/app?tenant=${encodeURIComponent(tenant.tenantId)}`;
+    navigator.clipboard.writeText(url);
+    toast.success(`Link do app de ${tenant.nomeOperacao} copiado!`);
+  }
+
+  function handleAbrirApp(tenant: WhiteLabelTenantRecord) {
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
+    const url = `${origin}/app?tenant=${encodeURIComponent(tenant.tenantId)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  function handleCopiarKitAcesso(tenant: WhiteLabelTenantRecord) {
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
+    const email = tenant.adminEmail || tenant.responsavelEmail || `${tenant.tenantId.replace("tenant-", "")}@partiu.app`;
+    const senha = tenant.adminSenha || "Franqueado2026!";
+    const urlApp = `${origin}/app?tenant=${encodeURIComponent(tenant.tenantId)}`;
+    const urlPainel = `${origin}/app/admin/login`;
+
+    const texto = `🚗 ACESSO AO SEU APLICATIVO — ${tenant.nomeOperacao.toUpperCase()}\n\n` +
+      `📍 Praça: ${tenant.cidadeNome} — ${tenant.uf}\n` +
+      `🔗 Link do seu Aplicativo (Passageiros e Motoristas):\n${urlApp}\n\n` +
+      `🔐 Painel Administrativo do Franqueado:\n${urlPainel}\n` +
+      `📧 E-mail de Login: ${email}\n` +
+      `🔑 Senha de Acesso: ${senha}\n\n` +
+      `Guarde estas credenciais em segurança e acesse para gerenciar sua praça.`;
+
+    navigator.clipboard.writeText(texto);
+    toast.success("Dados de acesso copiados para a área de transferência!");
+  }
+
+  function handleSalvarCredenciais(e: React.FormEvent) {
+    e.preventDefault();
+    if (!tenantParaCredenciais) return;
+    if (!credencialEmail.trim() || !credencialSenha.trim()) {
+      toast.error("Informe e-mail e senha válidos.");
+      return;
+    }
+    whiteLabelEngine.updateTenantCredentials(
+      tenantParaCredenciais.tenantId,
+      credencialEmail.trim(),
+      credencialSenha.trim()
+    );
+    recarregarTenants();
+    toast.success(`Credenciais de ${tenantParaCredenciais.nomeOperacao} atualizadas com sucesso!`);
+    setTenantParaCredenciais(null);
+  }
+
+  function handleGerarSenhaModal() {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
+    let pass = "";
+    for (let i = 0; i < 10; i++) {
+      pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setCredencialSenha(pass);
+    toast.success("Nova senha segura gerada!");
+  }
 
   // Associação de Passageiros por Franqueado
   const passageirosPorTenant = useMemo(() => {
@@ -499,7 +576,7 @@ function SuperAdminFranqueadosContent() {
                         <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 pt-0.5">
                           <span className="flex items-center gap-1">
                             <Mail className="w-3 h-3 text-slate-400" />
-                            {tenant.responsavelEmail}
+                            {tenant.adminEmail || tenant.responsavelEmail}
                           </span>
                           <span>•</span>
                           <span className="flex items-center gap-1">
@@ -507,6 +584,65 @@ function SuperAdminFranqueadosContent() {
                             {tenant.responsavelTelefone}
                           </span>
                           <span>({tenant.responsavelNome})</span>
+                        </div>
+
+                        {/* Link Funcional do Aplicativo & Credenciais Administrativas */}
+                        <div className="pt-2.5 mt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                          {/* Link do App */}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
+                              <Globe className="w-3.5 h-3.5 text-primary-500" />
+                              Link do App:
+                            </span>
+                            <code className="text-[11px] font-mono text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/40 px-2 py-0.5 rounded-md border border-primary-200/50 dark:border-primary-800/40 truncate max-w-[280px]">
+                              {typeof window !== "undefined" ? `${window.location.origin}/app?tenant=${tenant.tenantId}` : `/app?tenant=${tenant.tenantId}`}
+                            </code>
+                            <button
+                              type="button"
+                              onClick={() => handleCopiarLinkApp(tenant)}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-300 transition cursor-pointer"
+                              title="Copiar Link do Aplicativo"
+                            >
+                              <Copy className="w-3 h-3" />
+                              Copiar Link
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleAbrirApp(tenant)}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary-50 hover:bg-primary-100 dark:bg-primary-950/60 dark:hover:bg-primary-900/60 text-[10px] font-bold text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800 transition cursor-pointer"
+                              title="Abrir Aplicativo em Nova Aba"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              Abrir App
+                            </button>
+                          </div>
+
+                          {/* Credenciais de Acesso */}
+                          {!isMatriz && (
+                            <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                              <span className="font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
+                                <Lock className="w-3 h-3 text-amber-500" />
+                                Login Painel:
+                              </span>
+                              <span className="font-mono text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                                {tenant.adminEmail || tenant.responsavelEmail}
+                              </span>
+                              <span>•</span>
+                              <span className="font-mono text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                                {senhasVisiveis[tenant.tenantId]
+                                  ? (tenant.adminSenha || "Franqueado2026!")
+                                  : "••••••••"}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => toggleVerSenhaCard(tenant.tenantId)}
+                                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                                title={senhasVisiveis[tenant.tenantId] ? "Ocultar Senha" : "Ver Senha"}
+                              >
+                                {senhasVisiveis[tenant.tenantId] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                              </button>
+                            </div>
+                          )}
                         </div>
 
                         {!isAtivo && tenant.motivoBloqueio && (
@@ -620,6 +756,37 @@ function SuperAdminFranqueadosContent() {
                         <Palette className="w-3.5 h-3.5 text-primary-600" />
                         <span>Customizar</span>
                       </button>
+
+                      {/* Gerenciar Credenciais do Franqueado */}
+                      {!isMatriz && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTenantParaCredenciais(tenant);
+                            setCredencialEmail(tenant.adminEmail || tenant.responsavelEmail || `${tenant.tenantId.replace("tenant-", "")}@partiu.app`);
+                            setCredencialSenha(tenant.adminSenha || "Franqueado2026!");
+                            setMostrarSenhaModal(false);
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 text-xs font-semibold border border-amber-200 dark:border-amber-800 transition cursor-pointer"
+                          title="Gerenciar e-mail e senha de acesso ao painel do franqueado"
+                        >
+                          <KeyRound className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Credenciais</span>
+                        </button>
+                      )}
+
+                      {/* Copiar Kit de Acesso do Franqueado */}
+                      {!isMatriz && (
+                        <button
+                          type="button"
+                          onClick={() => handleCopiarKitAcesso(tenant)}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium transition cursor-pointer"
+                          title="Copiar dados completos de acesso (link do app, login e senha) para enviar ao franqueado"
+                        >
+                          <Share2 className="w-3.5 h-3.5 text-slate-500" />
+                          <span>Copiar Acesso</span>
+                        </button>
+                      )}
 
                       {/* Excluir Franqueado */}
                       {!isMatriz && (
@@ -984,7 +1151,120 @@ function SuperAdminFranqueadosContent() {
         </div>
       )}
 
-      {/* 9. MODAL: CLONAGEM / NOVA CIDADE FRANQUEADA */}
+      {/* 9. MODAL: GERENCIAMENTO DE CREDENCIAIS DO FRANQUEADO */}
+      {tenantParaCredenciais && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950/70 text-amber-600 flex items-center justify-center">
+                  <KeyRound className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-950 dark:text-white">
+                    Credenciais do Franqueado
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {tenantParaCredenciais.nomeOperacao} ({tenantParaCredenciais.cidadeNome} — {tenantParaCredenciais.uf})
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTenantParaCredenciais(null)}
+                className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 cursor-pointer"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSalvarCredenciais} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                  E-mail de Acesso ao Painel
+                </label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="email"
+                    required
+                    value={credencialEmail}
+                    onChange={(e) => setCredencialEmail(e.target.value)}
+                    placeholder="franqueado@suamarca.app"
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-primary-500 outline-none"
+                  />
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Este e-mail será usado para fazer login no painel administrativo desta franquia.
+                </p>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Senha de Acesso
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleGerarSenhaModal}
+                    className="text-[11px] font-semibold text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    Gerar senha forte
+                  </button>
+                </div>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type={mostrarSenhaModal ? "text" : "password"}
+                    required
+                    value={credencialSenha}
+                    onChange={(e) => setCredencialSenha(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    className="w-full pl-9 pr-10 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-primary-500 outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setMostrarSenhaModal(!mostrarSenhaModal)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                    tabIndex={-1}
+                  >
+                    {mostrarSenhaModal ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
+                <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                  Isolamento de Segurança Garantido
+                </div>
+                <p className="text-[11px] leading-relaxed">
+                  Ao salvar, o franqueado poderá acessar imediatamente o painel em <span className="font-mono text-slate-800 dark:text-slate-300">/app/admin/login</span> com estas credenciais e gerenciar apenas os dados de sua praça.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setTenantParaCredenciais(null)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-primary-600 hover:bg-primary-500 text-white transition shadow-xs cursor-pointer"
+                >
+                  Salvar Credenciais
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 10. MODAL: CLONAGEM / NOVA CIDADE FRANQUEADA */}
       <CloneTenantModal
         isOpen={modalClonarAberto}
         onClose={() => setModalClonarAberto(false)}

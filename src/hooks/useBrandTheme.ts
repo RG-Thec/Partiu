@@ -99,16 +99,44 @@ export function useBrandTheme() {
   }, [brandingCtx]);
 
   const cloneTenant = useCallback(
-    (targetTenantId: string, nomeCidade: string, estadoUf: string) => {
+    (
+      targetTenantId: string,
+      nomeCidade: string,
+      estadoUf: string,
+      nomeOperacao?: string,
+      adminEmail?: string,
+      adminSenha?: string,
+      responsavelNome?: string,
+      responsavelTelefone?: string
+    ) => {
       const cloned = whiteLabelEngine.cloneTenant(
         activeTenant.tenantId,
         targetTenantId,
         nomeCidade,
-        estadoUf
+        estadoUf,
+        nomeOperacao,
+        adminEmail,
+        adminSenha,
+        responsavelNome,
+        responsavelTelefone
       );
       return cloned;
     },
     [activeTenant.tenantId]
+  );
+
+  const updateTenantCredentials = useCallback(
+    (tenantId: string, email: string, senha: string) => {
+      return whiteLabelEngine.updateTenantCredentials(tenantId, email, senha);
+    },
+    []
+  );
+
+  const deleteTenant = useCallback(
+    async (tenantId: string) => {
+      return await whiteLabelEngine.deleteTenant(tenantId);
+    },
+    []
   );
 
   const toggleBusinessModel = useCallback(
@@ -213,6 +241,8 @@ export function useBrandTheme() {
     updateConfig,
     switchTenant,
     cloneTenant,
+    updateTenantCredentials,
+    deleteTenant,
     toggleBusinessModel,
     reorderHomeBlocks,
     applyPreset,
