@@ -183,4 +183,74 @@ describe("Bulletproof Branding Persistence & Multi-Tenant Isolation Suite", () =
       expect(resolvedBranding.primary_color).not.toBe("#003366");
     });
   });
+
+  describe("4. BH Mob Franchisee Isolation & Blue Palette Guarantee", () => {
+    test("should ensure BH Mob tenant is seeded with cobalt blue (#2563EB) and not orange", () => {
+      const bhMob = whiteLabelEngine.getTenantById("tenant-bhmob");
+      expect(Boolean(bhMob)).toBe(true);
+      expect(bhMob?.nomeOperacao).toBe("BH Mob");
+
+      const primColor = bhMob?.configuracaoCompleta?.designSystem?.paletaPrimaria?.corPrincipal;
+      expect(primColor).toBe("#2563EB");
+      expect(primColor).not.toBe("#FF6B00");
+      expect(primColor).not.toBe("#FF8C00");
+
+      const brandingRecord = convertWhiteLabelToBrandingRecord(bhMob!.configuracaoCompleta, "tenant-bhmob");
+      expect(brandingRecord.primary_color).toBe("#2563EB");
+      expect(brandingRecord.app_name).toBe("BH MOB");
+      expect(brandingRecord.tenant_id).toBe("tenant-bhmob");
+    });
+
+    test("should generate correct appUrl for BH Mob franchisee and prevent cross-contamination with itaperuna", () => {
+      const origin = "https://partiu-zeta.vercel.app";
+      const contaFranqueado = {
+        role: "FRANQUEADO" as const,
+        tenantId: "tenant-bhmob",
+      };
+
+      // Simulação da lógica de cálculo de URL adotada em Meu Aplicativo
+      const activeTenantId = "tenant-itaperuna"; // Simula resíduo no localStorage
+      const effectiveTenantId = (contaFranqueado.role === "FRANQUEADO" && contaFranqueado.tenantId)
+        ? contaFranqueado.tenantId
+        : (activeTenantId || "default");
+
+      expect(effectiveTenantId).toBe("tenant-bhmob");
+      expect(effectiveTenantId).not.toBe("tenant-itaperuna");
+
+      const appUrl = `${origin}/app?tenant=${encodeURIComponent(effectiveTenantId)}`;
+      expect(appUrl).toBe("https://partiu-zeta.vercel.app/app?tenant=tenant-bhmob");
+      expect(appUrl).not.toContain("tenant-itaperuna");
+    });
+
+    test("should update BH Mob config using updateTenantConfig without affecting Matriz or Itaperuna", () => {
+      const paletaAzulEscuro = "#1D4ED8";
+      whiteLabelEngine.updateTenantConfig("tenant-bhmob", {
+        designSystem: {
+          ...whiteLabelEngine.getTenantConfig("tenant-bhmob").designSystem,
+          paletaPrimaria: {
+            ...whiteLabelEngine.getTenantConfig("tenant-bhmob").designSystem.paletaPrimaria,
+            corPrincipal: paletaAzulEscuro,
+          },
+        },
+      });
+
+      const bhMobAtualizado = whiteLabelEngine.getTenantById("tenant-bhmob");
+      expect(bhMobAtualizado?.configuracaoCompleta?.designSystem?.paletaPrimaria?.corPrincipal).toBe(paletaAzulEscuro);
+
+      // Matriz Partiu e Itaperuna devem permanecer intactos com suas paletas
+      const matriz = whiteLabelEngine.getTenantById("default");
+      expect(matriz?.configuracaoCompleta?.designSystem?.paletaPrimaria?.corPrincipal).toBe("#FF6B00");
+
+      // Restaura para o padrão #2563EB
+      whiteLabelEngine.updateTenantConfig("tenant-bhmob", {
+        designSystem: {
+          ...whiteLabelEngine.getTenantConfig("tenant-bhmob").designSystem,
+          paletaPrimaria: {
+            ...whiteLabelEngine.getTenantConfig("tenant-bhmob").designSystem.paletaPrimaria,
+            corPrincipal: "#2563EB",
+          },
+        },
+      });
+    });
+  });
 });

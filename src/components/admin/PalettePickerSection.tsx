@@ -12,13 +12,20 @@ import { getSuperAdminConfig, saveSuperAdminConfig } from "@/lib/superadmin-conf
 export interface PalettePickerSectionProps {
   onPaletteSelect?: (palette: MonochromaticPalette) => void;
   className?: string;
+  targetTenantId?: string;
 }
 
-export function PalettePickerSection({ onPaletteSelect, className = "" }: PalettePickerSectionProps) {
+export function PalettePickerSection({
+  onPaletteSelect,
+  className = "",
+  targetTenantId: propTargetTenantId,
+}: PalettePickerSectionProps) {
   const { branding, updateBranding, activeTenantId } = useBranding();
+  const targetTenantId = propTargetTenantId || activeTenantId || "default";
+
   const [activePaletteId, setActivePaletteId] = useState<string>(() => {
     if (typeof window !== "undefined") {
-      const tenantKey = activeTenantId ? `partiu_active_palette_id_${activeTenantId}` : null;
+      const tenantKey = targetTenantId ? `partiu_active_palette_id_${targetTenantId}` : null;
       const savedTenant = tenantKey ? localStorage.getItem(tenantKey) : null;
       if (savedTenant) return savedTenant;
 
@@ -52,8 +59,6 @@ export function PalettePickerSection({ onPaletteSelect, className = "" }: Palett
     setActivePaletteId(palette.id);
 
     try {
-      const targetTenantId = activeTenantId || "default";
-
       // 1. Aplicação imediata no DOM e CSS Variables via ThemeEngine
       themeEngine.applyMonochromaticPalette(palette, branding?.app_name || "PARTIU", targetTenantId);
       if (typeof window !== "undefined") {
@@ -77,11 +82,11 @@ export function PalettePickerSection({ onPaletteSelect, className = "" }: Palett
         text_secondary: palette.colors.textSecondary,
       });
 
-      // 3. Sincroniza WhiteLabelEngine
+      // 3. Sincroniza WhiteLabelEngine de forma estritamente isolada por tenant
       try {
         const { whiteLabelEngine } = await import("@/lib/white-label");
-        const act = whiteLabelEngine.getActiveConfig();
-        whiteLabelEngine.updateActiveConfig({
+        const act = whiteLabelEngine.getTenantConfig(targetTenantId);
+        whiteLabelEngine.updateTenantConfig(targetTenantId, {
           designSystem: {
             ...act.designSystem,
             paletaPrimaria: {

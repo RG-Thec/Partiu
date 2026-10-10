@@ -8,7 +8,7 @@ import {
 } from "@/lib/branding";
 import { supabase } from "@/integrations/supabase/client";
 import { silentCatchWarn } from "@/lib/structured-logger";
-import { whiteLabelEngine } from "@/lib/white-label";
+import { whiteLabelEngine, convertWhiteLabelToBrandingRecord } from "@/lib/white-label";
 import { Globe, Radio, AlertOctagon } from "lucide-react";
 import { tenantDomainService, type TenantDomainResolution } from "@/lib/white-label/tenant-domain-service";
 
@@ -24,7 +24,18 @@ function getInitialTenantId(): string {
     const tenantParam = urlParams.get("tenant") || urlParams.get("tenant_id");
     if (tenantParam) return tenantParam.trim();
 
-    // Se estiver no admin autenticado como franqueado
+    // 1. Se estiver no admin autenticado como franqueado, o tenant dele tem autoridade máxima
+    const authSessionRaw = localStorage.getItem("partiu_admin_session_auth");
+    if (authSessionRaw) {
+      try {
+        const parsed = JSON.parse(authSessionRaw);
+        if (parsed?.role === "FRANQUEADO" && parsed?.tenantId) {
+          return parsed.tenantId.trim();
+        }
+      } catch {}
+    }
+
+    // Fallback para sessão legada
     const sessionRaw = localStorage.getItem("partiu_admin_session");
     if (sessionRaw) {
       try {
@@ -61,19 +72,25 @@ function getInitialBranding(tenantId: string): AppBrandingRecord {
       }
     }
 
-    // 2. Tenta carregar o branding ativo salvo globalmente
+    // 2. Consulta a configuração canônica oficial do tenant no WhiteLabelEngine
+    const wlTenant = whiteLabelEngine.getTenantById(tenantId);
+    if (wlTenant?.configuracaoCompleta) {
+      const converted = convertWhiteLabelToBrandingRecord(wlTenant.configuracaoCompleta, tenantId);
+      if (converted && converted.primary_color) {
+        return converted;
+      }
+    }
+
+    // 3. Tenta carregar o branding ativo salvo globalmente APENAS se pertencer ao mesmo tenant ou for matriz 'default' solicitando 'default'
     const stored = localStorage.getItem(STORAGE_KEY_BRANDING);
     if (stored) {
       const parsed = JSON.parse(stored) as AppBrandingRecord;
-      if (parsed && parsed.primary_color) {
-        if (
-          parsed.tenant_id === tenantId ||
-          parsed.tenant_id === "default" ||
-          tenantId === "default" ||
-          tenantId === "tenant-itaperuna"
-        ) {
-          return { ...parsed, tenant_id: tenantId };
-        }
+      if (
+        parsed &&
+        parsed.primary_color &&
+        (parsed.tenant_id === tenantId || (tenantId === "default" && parsed.tenant_id === "default"))
+      ) {
+        return { ...parsed, tenant_id: tenantId };
       }
     }
   } catch {}
@@ -312,10 +329,41 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
   // Alternar Tenant
   const setTenantId = useCallback(async (newTenantId: string) => {
     const cleanId = newTenantId.trim();
-    if (!cleanId || cleanId === activeTenantRef.current) return;
+    if (!cleanId) return;
     setActiveTenantIdState(cleanId);
+    activeTenantRef.current = cleanId;
+    try {
+      localStorage.setItem(STORAGE_KEY_TENANT, cleanId);
+      localStorage.setItem("partiu_wl_active_tenant_v1", cleanId);
+    } catch {}
+    whiteLabelEngine.switchTenant(cleanId);
     await fetchTenantBranding(cleanId);
   }, [fetchTenantBranding]);
+
+  // Escuta transições de tenant disparadas no login ou no seletor de cidades
+  useEffect(() => {
+    function handleTenantChange(e: Event) {
+      const customEvent = e as CustomEvent;
+      const tid = customEvent.detail?.tenantId;
+      if (tid && tid !== activeTenantRef.current) {
+        void setTenantId(tid);
+      }
+    }
+
+    function handleRoleChange() {
+      const nextTid = getInitialTenantId();
+      if (nextTid && nextTid !== activeTenantRef.current) {
+        void setTenantId(nextTid);
+      }
+    }
+
+    window.addEventListener("partiu:tenant-changed", handleTenantChange);
+    window.addEventListener("partiu:role-changed", handleRoleChange);
+    return () => {
+      window.removeEventListener("partiu:tenant-changed", handleTenantChange);
+      window.removeEventListener("partiu:role-changed", handleRoleChange);
+    };
+  }, [setTenantId]);
 
   // Atualizar branding no banco e localmente
   const updateBranding = useCallback(async (partial: Partial<AppBrandingRecord>): Promise<boolean> => {

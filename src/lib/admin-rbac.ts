@@ -9,7 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { authService, TokenPayload } from "./security/auth-service";
 import { auditTrail } from "./security/audit-trail";
 import { silentCatchWarn } from "@/lib/structured-logger";
-import { whiteLabelEngine } from "@/lib/white-label/white-label-engine";
+import { whiteLabelEngine, convertWhiteLabelToBrandingRecord } from "@/lib/white-label/white-label-engine";
+import { themeEngine } from "@/lib/branding/ThemeEngine";
 
 /**
  * Papéis Oficiais e Exclusivos do Painel Administrativo PARTIU MOBE:
@@ -232,13 +233,33 @@ export async function loginAdmin(
               email: contaFranqueado.email,
               role: contaFranqueado.role,
               tenantId: contaFranqueado.tenantId,
+              tenantNome: contaFranqueado.tenantNome,
               token: tokens.accessToken,
               expiresAt: tokens.expiresAt,
               autenticadoEm: new Date().toISOString(),
             }),
           );
+          localStorage.setItem(
+            "partiu_admin_session",
+            JSON.stringify({ role: contaFranqueado.role, tenantId: contaFranqueado.tenantId })
+          );
+          localStorage.setItem("partiu_active_tenant_id_v2", franqueadoTenant.tenantId);
+          localStorage.setItem("partiu_wl_active_tenant_v1", franqueadoTenant.tenantId);
           setAdminRole(contaFranqueado.role);
           whiteLabelEngine.switchTenant(franqueadoTenant.tenantId);
+          const brandingRec = convertWhiteLabelToBrandingRecord(
+            franqueadoTenant.configuracaoCompleta,
+            franqueadoTenant.tenantId
+          );
+          themeEngine.applyTheme(brandingRec);
+          window.dispatchEvent(
+            new CustomEvent("partiu:tenant-changed", { detail: { tenantId: franqueadoTenant.tenantId } })
+          );
+          window.dispatchEvent(
+            new CustomEvent("partiu:whitelabel-updated", {
+              detail: { tenantId: franqueadoTenant.tenantId, config: franqueadoTenant.configuracaoCompleta },
+            })
+          );
         }
 
         auditTrail.logEvent({
@@ -296,14 +317,31 @@ export async function loginAdmin(
               email: contaFallback.email,
               role: contaFallback.role,
               tenantId: contaFallback.tenantId,
+              tenantNome: contaFallback.tenantNome,
               token: tokens.accessToken,
               expiresAt: tokens.expiresAt,
               autenticadoEm: new Date().toISOString(),
             }),
           );
           setAdminRole(contaFallback.role);
-          if (!isSuper) {
-            whiteLabelEngine.switchTenant("tenant-bhmob");
+          if (!isSuper && contaFallback.tenantId) {
+            localStorage.setItem(
+              "partiu_admin_session",
+              JSON.stringify({ role: contaFallback.role, tenantId: contaFallback.tenantId })
+            );
+            localStorage.setItem("partiu_active_tenant_id_v2", contaFallback.tenantId);
+            localStorage.setItem("partiu_wl_active_tenant_v1", contaFallback.tenantId);
+            const t = whiteLabelEngine.switchTenant(contaFallback.tenantId);
+            if (t) {
+              const bRec = convertWhiteLabelToBrandingRecord(t.configuracaoCompleta, t.tenantId);
+              themeEngine.applyTheme(bRec);
+            }
+            window.dispatchEvent(
+              new CustomEvent("partiu:tenant-changed", { detail: { tenantId: contaFallback.tenantId } })
+            );
+            window.dispatchEvent(
+              new CustomEvent("partiu:whitelabel-updated", { detail: { tenantId: contaFallback.tenantId } })
+            );
           }
         }
         return {

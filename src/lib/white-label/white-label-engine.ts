@@ -1256,6 +1256,38 @@ export class WhiteLabelEngine {
     return updated;
   }
 
+  public updateTenantConfig(
+    tenantId: string,
+    partialConfig: Partial<WhiteLabelFullConfig>,
+    options?: { silent?: boolean; skipPersist?: boolean }
+  ): WhiteLabelFullConfig {
+    const tenant = this.tenantsMap.get(tenantId) || this.getActiveTenant();
+    const updated: WhiteLabelFullConfig = {
+      ...tenant.configuracaoCompleta,
+      ...partialConfig,
+      tenantId: tenant.tenantId,
+      atualizadoEm: Date.now(),
+    };
+
+    tenant.configuracaoCompleta = updated;
+    this.tenantsMap.set(tenant.tenantId, tenant);
+    this.saveTenantsRegistry();
+
+    if (this.activeTenantId === tenant.tenantId) {
+      this.applyTheme(updated);
+    }
+
+    if (!options?.silent) {
+      this.broadcastUpdate();
+    }
+
+    if (!options?.skipPersist) {
+      void this.persistToSupabase(updated, tenant.tenantId);
+    }
+
+    return updated;
+  }
+
   /**
    * Persiste atomicamente a configuração no banco de dados Supabase
    * Atualiza simultaneamente app_branding e white_label_tenant_configs

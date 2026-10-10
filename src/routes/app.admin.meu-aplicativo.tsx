@@ -35,10 +35,25 @@ export const Route = createFileRoute("/app/admin/meu-aplicativo")({
 
 export default function MeuAplicativoPage() {
   const conta = getContaAtiva();
-  const { branding, activeTenantId } = useBranding();
+  const { branding, activeTenantId, setTenantId } = useBranding();
+
+  // Para o FRANQUEADO autenticado, o seu tenantId tem prioridade máxima absoluta
+  const effectiveTenantId = useMemo(() => {
+    if (conta.role === "FRANQUEADO" && conta.tenantId) {
+      return conta.tenantId;
+    }
+    return activeTenantId || conta.tenantId || "default";
+  }, [conta.role, conta.tenantId, activeTenantId]);
+
+  // Se o franqueado estiver no painel e o activeTenantId ainda estiver diferente, sincroniza imediatamente
+  useEffect(() => {
+    if (conta.role === "FRANQUEADO" && conta.tenantId && activeTenantId !== conta.tenantId) {
+      void setTenantId(conta.tenantId);
+    }
+  }, [conta.role, conta.tenantId, activeTenantId, setTenantId]);
 
   const [dominioRecord, setDominioRecord] = useState<TenantDomainRecord | undefined>(() =>
-    tenantDomainService.getDomainByTenantId(activeTenantId || conta.tenantId || "default")
+    tenantDomainService.getDomainByTenantId(effectiveTenantId)
   );
 
   const [novoDominioInput, setNovoDominioInput] = useState(dominioRecord?.domain || "");
@@ -48,20 +63,19 @@ export default function MeuAplicativoPage() {
 
   // Recarregar registro de domínio quando tenant mudar
   useEffect(() => {
-    const tid = activeTenantId || conta.tenantId || "default";
-    const found = tenantDomainService.getDomainByTenantId(tid);
+    const found = tenantDomainService.getDomainByTenantId(effectiveTenantId);
     setDominioRecord(found);
     if (found?.domain) {
       setNovoDominioInput(found.domain);
     }
-  }, [activeTenantId, conta.tenantId]);
+  }, [effectiveTenantId]);
 
   // URL canônica do aplicativo deste franqueado (sempre abre no ambiente atual)
   const appUrl = useMemo(() => {
     if (typeof window === "undefined") return "/app";
     const origin = window.location.origin;
     const currentHost = window.location.hostname;
-    const tid = activeTenantId || conta.tenantId || "default";
+    const tid = effectiveTenantId;
 
     // Se o navegador já estiver acessando diretamente pelo domínio customizado oficial
     if (dominioRecord && dominioRecord.status === "ATIVO" && currentHost === dominioRecord.domain) {
@@ -70,15 +84,15 @@ export default function MeuAplicativoPage() {
 
     // Link direto e garantido para testes e uso no ambiente ativo (preview, localhost, etc.)
     return `${origin}/app?tenant=${encodeURIComponent(tid)}`;
-  }, [dominioRecord, activeTenantId, conta.tenantId]);
+  }, [dominioRecord, effectiveTenantId]);
 
   // URL do manifesto dinâmico gerado pelo servidor
   const manifestUrl = useMemo(() => {
     if (typeof window === "undefined") return "/manifest.webmanifest";
     const origin = window.location.origin;
-    const tid = activeTenantId || conta.tenantId || "default";
+    const tid = effectiveTenantId;
     return `${origin}/manifest.webmanifest?tenant=${encodeURIComponent(tid)}`;
-  }, [activeTenantId, conta.tenantId]);
+  }, [effectiveTenantId]);
 
   // Gerar QR Code de alta resolução em DataURL
   useEffect(() => {
@@ -125,7 +139,7 @@ export default function MeuAplicativoPage() {
     }
 
     setSalvandoDominio(true);
-    const tid = activeTenantId || conta.tenantId || "tenant-franquia";
+    const tid = effectiveTenantId;
     const nomePraca = conta.tenantNome || branding.app_name || "Franqueado Regional";
 
     const res = tenantDomainService.registerCustomDomain(tid, novoDominioInput.trim(), nomePraca);
@@ -380,7 +394,7 @@ export default function MeuAplicativoPage() {
                   Sincronização Instantânea
                 </span>
               </div>
-              <PalettePickerSection />
+              <PalettePickerSection targetTenantId={effectiveTenantId} />
             </div>
           </div>
 
