@@ -20,7 +20,6 @@ import { normalizarTelefoneBR } from "@/lib/passenger-cloud-sync";
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { googleAuthService } from "./google-auth-service";
 
-
 export type UserRole = "PASSAGEIRO" | "MOTORISTA" | "ADMIN";
 
 export interface AuthUserProfile {
@@ -30,6 +29,7 @@ export interface AuthUserProfile {
   phone?: string | undefined;
   cpf?: string | undefined;
   role: UserRole;
+  tenantId?: string | undefined;
   avatarUrl?: string | undefined;
   rating?: number | undefined;
   totalTrips?: number | undefined;
@@ -58,6 +58,71 @@ export interface SupabaseHealthStatus {
 }
 
 const STORAGE_SESSION_KEY = "partiu_active_user_session_v1";
+
+/**
+ * Resolve dinamicamente o tenantId do contexto ativo para isolamento estrito de usuários
+ */
+export function getActiveAuthTenantId(): string {
+  if (typeof window !== "undefined" && typeof window.location !== "undefined") {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const paramTenant = searchParams.get("tenant") || searchParams.get("tenant_id");
+      if (paramTenant && paramTenant.trim()) {
+        return paramTenant.trim();
+      }
+    } catch {}
+  }
+  if (typeof localStorage !== "undefined") {
+    try {
+      const adminAuthRaw = localStorage.getItem("partiu_admin_session_auth");
+      if (adminAuthRaw) {
+        const adminAuth = JSON.parse(adminAuthRaw);
+        if (adminAuth?.tenantId && adminAuth.role === "FRANQUEADO") {
+          return adminAuth.tenantId.trim();
+        }
+      }
+      const storedTenant = localStorage.getItem("partiu_whitelabel_active_tenant_id_v1");
+      if (storedTenant && storedTenant.trim() && storedTenant !== "tenant-campos") {
+        return storedTenant.trim();
+      }
+    } catch {}
+  }
+  return "tenant-itaperuna";
+}
+
+/**
+ * Retorna a chave de armazenamento de sessão escopada por tenant
+ */
+export function getTenantSessionStorageKey(tenantId?: string): string {
+  const clean = (tenantId || getActiveAuthTenantId()).trim();
+  return `partiu_active_user_session_${clean}`;
+}
+
+/**
+ * Retorna a chave do registro local de usuários escopado por tenant
+ */
+export function getTenantUsersStoreKey(tenantId?: string): string {
+  const clean = (tenantId || getActiveAuthTenantId()).trim();
+  return `partiu_registered_users_store_${clean}`;
+}
+
+/**
+ * Normaliza o tenantId para fins de comparação de acesso e banco de dados.
+ * Usuários legados ou sem tenant pertencem exclusivamente à matriz (tenant-itaperuna).
+ */
+export function normalizeUserTenantId(tenantId?: string | null): string {
+  if (tenantId && String(tenantId).trim() && String(tenantId).trim() !== "default") {
+    return String(tenantId).trim();
+  }
+  return "tenant-itaperuna";
+}
+
+/**
+ * Valida se o usuário pertence à praça/franquia solicitada de forma Zero-Trust.
+ */
+export function isMatchingTenant(userTenantId: string | null | undefined, targetTenantId: string): boolean {
+  return normalizeUserTenantId(userTenantId) === normalizeUserTenantId(targetTenantId);
+}
 
 // Perfis padrão para teste rápido em ambiente de homologação
 const DEMO_PROFILES: Record<UserRole, AuthUserProfile> = {
@@ -165,14 +230,42 @@ export class SupabaseAuthService {
   }
 
   /**
-   * Obtém o perfil da sessão ativa persistida
+   * Obtém o perfil da sessão ativa persistida para um tenant específico
    */
-  public getStoredSession(): AuthUserProfile | null {
-    if (typeof window === "undefined") return null;
+  public getStoredSession(targetTenantId?: string): AuthUserProfile | null {
+    if (typeof localStorage === "undefined") return null;
+    const effectiveTenantId = targetTenantId || getActiveAuthTenantId();
     try {
-      const raw = localStorage.getItem(STORAGE_SESSION_KEY);
-      if (!raw) return null;
-      return JSON.parse(raw) as AuthUserProfile;
+      // 1. Busca primeiro no storage isolado do tenant
+      const tenantKey = getTenantSessionStorageKey(effectiveTenantId);
+      const raw = localStorage.getItem(tenantKey);
+      if (raw) {
+        const parsed = JSON.parse(raw) as AuthUserProfile;
+        // Validação estrita: se a sessão for de outro tenant, rejeita imediatamente
+        if (!isMatchingTenant(parsed.tenantId, effectiveTenantId)) {
+          return null;
+        }
+        if (!parsed.tenantId) {
+          parsed.tenantId = effectiveTenantId;
+        }
+        return parsed;
+      }
+
+      // 2. Fallback de compatibilidade com chave legada apenas para o tenant padrão
+      const legacyRaw = localStorage.getItem(STORAGE_SESSION_KEY);
+      if (legacyRaw) {
+        const parsed = JSON.parse(legacyRaw) as AuthUserProfile;
+        if (
+          parsed.tenantId === effectiveTenantId ||
+          (!parsed.tenantId && (effectiveTenantId === "tenant-itaperuna" || effectiveTenantId === "default"))
+        ) {
+          parsed.tenantId = effectiveTenantId;
+          this.saveStoredSession(parsed, effectiveTenantId);
+          return parsed;
+        }
+      }
+
+      return null;
     } catch {
       return null;
     }
@@ -181,38 +274,52 @@ export class SupabaseAuthService {
   /**
    * Obtém o usuário ativo atual (alias para getStoredSession)
    */
-  public getCurrentUser(): AuthUserProfile | null {
-    return this.getStoredSession();
+  public getCurrentUser(targetTenantId?: string): AuthUserProfile | null {
+    return this.getStoredSession(targetTenantId);
   }
 
   /**
-   * Salva a sessão ativa localmente
+   * Salva a sessão ativa localmente escopada por tenant
    */
-  public saveStoredSession(user: AuthUserProfile): void {
-    if (typeof window === "undefined") return;
+  public saveStoredSession(user: AuthUserProfile, targetTenantId?: string): void {
+    if (typeof localStorage === "undefined") return;
     try {
-      localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(user));
+      const effectiveTenantId = targetTenantId || user.tenantId || getActiveAuthTenantId();
+      user.tenantId = effectiveTenantId;
+      const tenantKey = getTenantSessionStorageKey(effectiveTenantId);
+      localStorage.setItem(tenantKey, JSON.stringify(user));
+
+      // Mantém chave legada apenas se for o tenant principal para compatibilidade retroativa
+      if (effectiveTenantId === "tenant-itaperuna" || effectiveTenantId === "default") {
+        localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(user));
+      }
     } catch (err) { silentCatchWarn("supabase-auth-service", err); }
   }
 
   /**
    * Remove a sessão ativa localmente
    */
-  public clearStoredSession(): void {
-    if (typeof window === "undefined") return;
+  public clearStoredSession(targetTenantId?: string): void {
+    if (typeof localStorage === "undefined") return;
     try {
-      localStorage.removeItem(STORAGE_SESSION_KEY);
+      const effectiveTenantId = targetTenantId || getActiveAuthTenantId();
+      localStorage.removeItem(getTenantSessionStorageKey(effectiveTenantId));
+      if (effectiveTenantId === "tenant-itaperuna" || effectiveTenantId === "default") {
+        localStorage.removeItem(STORAGE_SESSION_KEY);
+      }
     } catch (err) { silentCatchWarn("supabase-auth-service", err); }
   }
 
   /**
    * Limpa integralmente todos os caches locais de histórico de viagens, destinos recentes,
-   * corridas ativas e dados de sessão para garantir isolamento estrito entre usuários.
+   * corridas ativas e dados de sessão para garantir isolamento estrito entre usuários e franquias.
    */
-  public clearUserSessionAndCaches(): void {
-    if (typeof window === "undefined") return;
+  public clearUserSessionAndCaches(targetTenantId?: string): void {
+    if (typeof localStorage === "undefined") return;
     try {
-      // 1. Limpa chaves de perfil e sessão
+      const effectiveTenantId = targetTenantId || getActiveAuthTenantId();
+
+      // 1. Limpa chaves de perfil e sessão gerais e escopadas
       localStorage.removeItem("partiu_demo_user");
       localStorage.removeItem("partiu_driver_demo");
       localStorage.removeItem("partiu_user_id");
@@ -236,9 +343,8 @@ export class SupabaseAuthService {
       localStorage.removeItem("partiu_active_ride");
       localStorage.removeItem("partiu_motorista_ativo");
       localStorage.removeItem("partiu_ganhos_motorista");
-      localStorage.removeItem("partiu_enderecos_salvos_v1");
 
-      // Limpa qualquer chave recente, frequência ou de endereço com prefixo de usuário
+      // Limpa chaves escopadas por tenant ou usuário
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -248,7 +354,8 @@ export class SupabaseAuthService {
             key.startsWith("partiu_user_destination_frequency_") ||
             key.startsWith("partiu_enderecos_salvos_v1_") ||
             key.startsWith("partiu_historico_viagens_") ||
-            key.startsWith("partiu_offline_rides_history_"))
+            key.startsWith("partiu_offline_rides_history_") ||
+            key.startsWith(`partiu_active_user_session_${effectiveTenantId}`))
         ) {
           keysToRemove.push(key);
         }
@@ -256,28 +363,36 @@ export class SupabaseAuthService {
       keysToRemove.forEach((k) => localStorage.removeItem(k));
 
       // 3. Dispara eventos de reatividade para limpar a interface
-      window.dispatchEvent(new CustomEvent("partiu:user-profile-updated", { detail: null }));
-      window.dispatchEvent(new CustomEvent("partiu:history-cleared"));
-      window.dispatchEvent(new CustomEvent("partiu:addresses_updated"));
+      if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+        window.dispatchEvent(new CustomEvent("partiu:user-profile-updated", { detail: null }));
+        window.dispatchEvent(new CustomEvent("partiu:history-cleared"));
+        window.dispatchEvent(new CustomEvent("partiu:addresses_updated"));
+      }
     } catch (err) {
       silentCatchWarn("clearUserSessionAndCaches", err);
     }
-    this.clearStoredSession();
+    this.clearStoredSession(targetTenantId);
   }
 
   /**
-   * Registra um usuário localmente para garantir consistência anti-duplicidade
-   * mesmo em contingência ou sem conexão Supabase imediata.
+   * Registra um usuário localmente de forma isolada por franquia para garantir
+   * consistência anti-duplicidade e isolamento multi-tenant intransigente.
    */
-  public recordRegisteredUserLocally(user: {
-    id: string;
-    email: string;
-    cpf?: string;
-    role: string;
-  }): void {
-    if (typeof window === "undefined") return;
+  public recordRegisteredUserLocally(
+    user: {
+      id: string;
+      email: string;
+      cpf?: string;
+      role: string;
+      tenantId?: string;
+    },
+    targetTenantId?: string
+  ): void {
+    if (typeof localStorage === "undefined") return;
     try {
-      const raw = localStorage.getItem("partiu_registered_users_store");
+      const effectiveTenantId = targetTenantId || user.tenantId || getActiveAuthTenantId();
+      const storeKey = getTenantUsersStoreKey(effectiveTenantId);
+      const raw = localStorage.getItem(storeKey);
       const list = raw ? JSON.parse(raw) : [];
       const cleanEmail = user.email.toLowerCase().trim();
       const cleanCpf = user.cpf ? user.cpf.replace(/\D/g, "") : "";
@@ -292,9 +407,10 @@ export class SupabaseAuthService {
           email: cleanEmail,
           cpf: user.cpf,
           role: user.role,
+          tenantId: effectiveTenantId,
           registeredAt: Date.now(),
         });
-        localStorage.setItem("partiu_registered_users_store", JSON.stringify(list));
+        localStorage.setItem(storeKey, JSON.stringify(list));
       }
     } catch (err) {
       silentCatchWarn("recordRegisteredUserLocally", err);
@@ -303,20 +419,22 @@ export class SupabaseAuthService {
 
   /**
    * Verifica proativamente se um e-mail ou CPF já está cadastrado no sistema
-   * (seja no Supabase Auth, nas tabelas public.profiles/partiu_passageiros/partiu_motoristas,
-   * ou no registro local persistido de usuários).
+   * estritamente para o tenant fornecido.
    */
   public async isEmailOrCpfRegistered(
     email: string,
-    cpf?: string
+    cpf?: string,
+    targetTenantId?: string
   ): Promise<{ registered: boolean; field?: "email" | "cpf"; message?: string }> {
     const cleanEmail = email.trim().toLowerCase();
     const cleanCpf = cpf ? cpf.replace(/\D/g, "") : "";
+    const effectiveTenantId = targetTenantId || getActiveAuthTenantId();
 
-    // 1. Verificação no registro local persistido
-    if (typeof window !== "undefined") {
+    // 1. Verificação no registro local persistido DO TENANT
+    if (typeof localStorage !== "undefined") {
       try {
-        const rawStore = localStorage.getItem("partiu_registered_users_store");
+        const storeKey = getTenantUsersStoreKey(effectiveTenantId);
+        const rawStore = localStorage.getItem(storeKey);
         if (rawStore) {
           const list = JSON.parse(rawStore);
           if (Array.isArray(list)) {
@@ -325,7 +443,7 @@ export class SupabaseAuthService {
               return {
                 registered: true,
                 field: "email",
-                message: "Este e-mail já está cadastrado no sistema. Faça login para acessar sua conta.",
+                message: "Este e-mail já está cadastrado nesta praça. Faça login para acessar sua conta.",
               };
             }
             if (cleanCpf && cleanCpf.length === 11) {
@@ -336,7 +454,7 @@ export class SupabaseAuthService {
                 return {
                   registered: true,
                   field: "cpf",
-                  message: "Este CPF já está cadastrado na plataforma. Cada usuário deve ter um CPF único.",
+                  message: "Este CPF já está cadastrado nesta praça. Cada usuário deve ter um CPF único.",
                 };
               }
             }
@@ -345,22 +463,23 @@ export class SupabaseAuthService {
       } catch {}
     }
 
-    // 2. Verificação no Supabase (se configurado)
+    // 2. Verificação no Supabase (filtrada pelo tenant_id se configurado)
     if (isSupabaseConfigured()) {
       try {
         // A. Checagem em public.profiles
         if (cleanEmail) {
           const { data: profileByEmail } = await (supabase as any)
             .from("profiles")
-            .select("id, email")
+            .select("id, email, tenant_id")
             .eq("email", cleanEmail)
+            .eq("tenant_id", effectiveTenantId)
             .maybeSingle();
 
           if (profileByEmail) {
             return {
               registered: true,
               field: "email",
-              message: "Este e-mail já está cadastrado no sistema. Faça login para acessar sua conta.",
+              message: "Este e-mail já está cadastrado nesta praça. Faça login para acessar sua conta.",
             };
           }
         }
@@ -368,15 +487,16 @@ export class SupabaseAuthService {
         if (cleanCpf && cleanCpf.length === 11) {
           const { data: profileByCpf } = await (supabase as any)
             .from("profiles")
-            .select("id, cpf")
+            .select("id, cpf, tenant_id")
             .eq("cpf", cpf)
+            .eq("tenant_id", effectiveTenantId)
             .maybeSingle();
 
           if (profileByCpf) {
             return {
               registered: true,
               field: "cpf",
-              message: "Este CPF já está cadastrado na plataforma.",
+              message: "Este CPF já está cadastrado nesta praça.",
             };
           }
         }
@@ -385,15 +505,16 @@ export class SupabaseAuthService {
         if (cleanEmail) {
           const { data: paxByEmail } = await (supabase as any)
             .from("partiu_passageiros")
-            .select("id, email")
+            .select("id, email, tenant_id")
             .eq("email", cleanEmail)
+            .eq("tenant_id", effectiveTenantId)
             .maybeSingle();
 
           if (paxByEmail) {
             return {
               registered: true,
               field: "email",
-              message: "Este e-mail já está cadastrado como passageiro. Faça login.",
+              message: "Este e-mail já está cadastrado como passageiro nesta praça. Faça login.",
             };
           }
         }
@@ -401,15 +522,16 @@ export class SupabaseAuthService {
         if (cleanCpf && cleanCpf.length === 11) {
           const { data: paxByCpf } = await (supabase as any)
             .from("partiu_passageiros")
-            .select("id, cpf")
+            .select("id, cpf, tenant_id")
             .eq("cpf", cpf)
+            .eq("tenant_id", effectiveTenantId)
             .maybeSingle();
 
           if (paxByCpf) {
             return {
               registered: true,
               field: "cpf",
-              message: "Este CPF já está cadastrado na plataforma.",
+              message: "Este CPF já está cadastrado nesta praça.",
             };
           }
         }
@@ -418,15 +540,16 @@ export class SupabaseAuthService {
         if (cleanEmail) {
           const { data: drvByEmail } = await (supabase as any)
             .from("partiu_motoristas")
-            .select("id, email")
+            .select("id, email, tenant_id")
             .eq("email", cleanEmail)
+            .eq("tenant_id", effectiveTenantId)
             .maybeSingle();
 
           if (drvByEmail) {
             return {
               registered: true,
               field: "email",
-              message: "Este e-mail já está cadastrado como motorista parceiro. Faça login.",
+              message: "Este e-mail já está cadastrado como motorista parceiro nesta praça. Faça login.",
             };
           }
         }
@@ -434,15 +557,16 @@ export class SupabaseAuthService {
         if (cleanCpf && cleanCpf.length === 11) {
           const { data: drvByCpf } = await (supabase as any)
             .from("partiu_motoristas")
-            .select("id, cpf")
+            .select("id, cpf, tenant_id")
             .eq("cpf", cleanCpf)
+            .eq("tenant_id", effectiveTenantId)
             .maybeSingle();
 
           if (drvByCpf) {
             return {
               registered: true,
               field: "cpf",
-              message: "Este CPF já está vinculado a um motorista cadastrado.",
+              message: "Este CPF já está vinculado a um motorista cadastrado nesta praça.",
             };
           }
         }
@@ -456,8 +580,11 @@ export class SupabaseAuthService {
 
   /**
    * Verifica a sessão ativa no Supabase e hidrata o perfil a partir de public.profiles
+   * validando estritamente se o usuário pertence à praça/tenant solicitado.
    */
-  public async checkAndHydrateSession(): Promise<AuthUserProfile | null> {
+  public async checkAndHydrateSession(targetTenantId?: string): Promise<AuthUserProfile | null> {
+    const effectiveTenantId = targetTenantId || getActiveAuthTenantId();
+
     if (isSupabaseConfigured()) {
       try {
         const { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
@@ -473,6 +600,12 @@ export class SupabaseAuthService {
             profileData = pData;
           } catch (err) {
             silentCatchWarn("checkAndHydrateSession:profiles", err);
+          }
+
+          // Verificação estrita de tenant: se a conta pertencer a outra praça, não hidrata como logada
+          const userTenantId = profileData?.tenant_id || user.user_metadata?.["tenant_id"];
+          if (!isMatchingTenant(userTenantId, effectiveTenantId)) {
+            return null;
           }
 
           let role: UserRole = "PASSAGEIRO";
@@ -527,7 +660,7 @@ export class SupabaseAuthService {
             }
           }
 
-          const existingStored = this.getStoredSession();
+          const existingStored = this.getStoredSession(effectiveTenantId);
           const isSameUser = Boolean(
             existingStored &&
               (existingStored.id === user.id ||
@@ -575,6 +708,7 @@ export class SupabaseAuthService {
             phone: resolvedPhone,
             cpf: resolvedCpf,
             role,
+            tenantId: effectiveTenantId,
             rating: profileData?.rating ? Number(profileData.rating) : 5.0,
             totalTrips: profileData?.total_trips || 0,
             avatarUrl: resolvedAvatar,
@@ -584,7 +718,7 @@ export class SupabaseAuthService {
             createdAt: profileData?.created_at ? new Date(profileData.created_at).getTime() : Date.now(),
           };
 
-          this.saveStoredSession(hydrated);
+          this.saveStoredSession(hydrated, effectiveTenantId);
 
           // Sincroniza cache local estritamente com os dados do usuário autenticado
           if (typeof window !== "undefined") {
@@ -614,7 +748,7 @@ export class SupabaseAuthService {
         silentCatchWarn("supabase-auth-service:checkAndHydrateSession", err);
       }
     }
-    return this.getStoredSession();
+    return this.getStoredSession(effectiveTenantId);
   }
 
   /**
@@ -696,15 +830,17 @@ export class SupabaseAuthService {
   }
 
   /**
-   * Login por E-mail e Senha (Supabase Auth em Produção)
+   * Login por E-mail e Senha (Supabase Auth em Produção com Isolamento Multi-Tenant)
    */
   public async signInWithEmail(params: {
     email: string;
     senha: string;
     role: UserRole;
+    tenantId?: string;
   }): Promise<AuthResult> {
-    const { email, senha, role } = params;
+    const { email, senha, role, tenantId } = params;
     const cleanEmail = email.trim().toLowerCase();
+    const effectiveTenantId = tenantId || getActiveAuthTenantId();
 
     if (!cleanEmail || !cleanEmail.includes("@")) {
       return { success: false, error: "Informe um endereço de e-mail válido." };
@@ -716,12 +852,16 @@ export class SupabaseAuthService {
     // 1. Verificação com Supabase Auth Real se configurado
     if (isSupabaseConfigured()) {
       try {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const authPromise = supabase.auth.signInWithPassword({
           email: cleanEmail,
           password: senha,
         });
+        const timeoutPromise = new Promise<any>((resolve) =>
+          setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 2500)
+        );
+        const { data, error } = await Promise.race([authPromise, timeoutPromise]);
 
-        if (error) {
+        if (error && error.message !== "timeout") {
           const msg = error.message;
           let traduzido = "Credenciais de acesso incorretas.";
           if (msg.includes("Invalid login credentials")) traduzido = "E-mail ou senha incorretos.";
@@ -741,6 +881,22 @@ export class SupabaseAuthService {
               .maybeSingle();
             profileData = pData;
           } catch {}
+
+          // ISOLAMENTO RIGOROSO MULTI-TENANT:
+          // Se a conta pertencer a outro tenant, desloga do Supabase e bloqueia o acesso
+          const userTenantId = profileData?.tenant_id || data.user.user_metadata?.["tenant_id"];
+          if (!isMatchingTenant(userTenantId, effectiveTenantId)) {
+            try {
+              await Promise.race([
+                supabase.auth.signOut({ scope: "local" }),
+                new Promise((resolve) => setTimeout(resolve, 500)),
+              ]);
+            } catch {}
+            return {
+              success: false,
+              error: "Esta conta de usuário pertence a outra franquia. Crie uma nova conta neste aplicativo para continuar.",
+            };
+          }
 
           let finalRole: UserRole = role;
           const rawRole = profileData?.role || data.user.user_metadata?.["role"] || "";
@@ -790,7 +946,7 @@ export class SupabaseAuthService {
             } catch {}
           }
 
-          const existingStored = this.getStoredSession();
+          const existingStored = this.getStoredSession(effectiveTenantId);
           const isSameUser = Boolean(
             existingStored &&
               (existingStored.id === data.user.id ||
@@ -835,6 +991,7 @@ export class SupabaseAuthService {
             phone: resolvedPhone,
             cpf: resolvedCpf,
             role: finalRole,
+            tenantId: effectiveTenantId,
             rating: profileData?.rating ? Number(profileData.rating) : 5.0,
             totalTrips: profileData?.total_trips || 0,
             avatarUrl: resolvedAvatar,
@@ -846,19 +1003,23 @@ export class SupabaseAuthService {
 
           // Se estiver trocando de conta no mesmo navegador, purga integralmente o cache do usuário anterior
           if (!isSameUser) {
-            this.clearUserSessionAndCaches();
+            this.clearUserSessionAndCaches(effectiveTenantId);
           }
 
-          this.saveStoredSession(authUser);
-          this.recordRegisteredUserLocally({
-            id: authUser.id,
-            email: cleanEmail,
-            cpf: resolvedCpf,
-            role: finalRole,
-          });
+          this.saveStoredSession(authUser, effectiveTenantId);
+          this.recordRegisteredUserLocally(
+            {
+              id: authUser.id,
+              email: cleanEmail,
+              cpf: resolvedCpf,
+              role: finalRole,
+              tenantId: effectiveTenantId,
+            },
+            effectiveTenantId
+          );
 
           // Sincroniza imediatamente o localStorage para o novo usuário autenticado
-          if (typeof window !== "undefined") {
+          if (typeof localStorage !== "undefined") {
             try {
               localStorage.setItem("partiu_user_id", authUser.id);
               localStorage.setItem("partiu_user_nome", resolvedName);
@@ -884,9 +1045,11 @@ export class SupabaseAuthService {
                 localStorage.removeItem("partiu_user_foto");
                 localStorage.removeItem("partiu_user_selfie");
               }
-              window.dispatchEvent(
-                new CustomEvent("partiu:user-profile-updated", { detail: authUser })
-              );
+              if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+                window.dispatchEvent(
+                  new CustomEvent("partiu:user-profile-updated", { detail: authUser })
+                );
+              }
             } catch {}
           }
 
@@ -903,22 +1066,56 @@ export class SupabaseAuthService {
       }
     }
 
-    // 2. Ambiente de Homologação / Offline
-    const demo = DEMO_PROFILES[role];
-    const isDemoEmail = cleanEmail === demo.email;
-    const isDefaultPass = senha === "123456" || senha === "partiu2026";
+    // 2. Ambiente de Homologação / Offline com Isolamento de Tenant Intransigente
+    const isDefaultTenant =
+      effectiveTenantId === "tenant-itaperuna" ||
+      effectiveTenantId === "default" ||
+      effectiveTenantId === "matriz-br";
 
-    if (!isDemoEmail && !isDefaultPass) {
-      return { success: false, error: "Credenciais de autenticação não encontradas." };
+    const demo = DEMO_PROFILES[role];
+    const isDemoEmail = isDefaultTenant && cleanEmail === demo.email;
+
+    // Busca usuário registrado no banco local isolado daquele tenant
+    let localTenantUser: any = null;
+    if (typeof localStorage !== "undefined") {
+      try {
+        const storeKey = getTenantUsersStoreKey(effectiveTenantId);
+        const rawStore = localStorage.getItem(storeKey);
+        if (rawStore) {
+          const list = JSON.parse(rawStore);
+          if (Array.isArray(list)) {
+            localTenantUser = list.find((u: any) => u.email?.toLowerCase() === cleanEmail);
+          }
+        }
+      } catch {}
+    }
+
+    // Se NÃO for conta demo da matriz E NÃO for usuário registrado nessa franquia, BLOQUEIA!
+    // (Impede terminantemente que contas de outras cidades como teste@gmail.com loguem aqui com 123456)
+    if (!isDemoEmail && !localTenantUser) {
+      return {
+        success: false,
+        error: "Conta de usuário não encontrada nesta praça. Crie sua conta no aplicativo para acessar.",
+      };
+    }
+
+    const isDefaultPass = senha === "123456" || senha === "partiu2026" || (localTenantUser && senha.length >= 4);
+    if (!isDefaultPass) {
+      return { success: false, error: "Senha incorreta. Verifique os dados digitados." };
     }
 
     const userProfile: AuthUserProfile = {
-      id: isDemoEmail ? demo.id : `usr-${role.toLowerCase()}-${Date.now().toString(36)}`,
-      name: isDemoEmail ? demo.name : (cleanEmail.split("@")[0] || "USUARIO").toUpperCase(),
+      id: isDemoEmail
+        ? demo.id
+        : localTenantUser?.id || `usr-${role.toLowerCase()}-${Date.now().toString(36)}`,
+      name: isDemoEmail
+        ? demo.name
+        : localTenantUser?.name || cleanEmail.split("@")[0].toUpperCase() || "USUÁRIO",
       email: cleanEmail,
-      phone: isDemoEmail ? demo.phone : "(82) 99841-0000",
-      cpf: isDemoEmail ? demo.cpf : "000.000.000-00",
+      phone: isDemoEmail ? demo.phone : localTenantUser?.phone || "(00) 90000-0000",
+      cpf: isDemoEmail ? demo.cpf : localTenantUser?.cpf || "000.000.000-00",
       role,
+      tenantId: effectiveTenantId,
       rating: demo.rating || 5.0,
       totalTrips: demo.totalTrips || 0,
       avatarUrl: demo.avatarUrl,
@@ -929,7 +1126,7 @@ export class SupabaseAuthService {
       createdAt: Date.now(),
     };
 
-    this.saveStoredSession(userProfile);
+    this.saveStoredSession(userProfile, effectiveTenantId);
 
     const redirectUrl =
       role === "MOTORISTA" ? "/app/motorista" : role === "ADMIN" ? "/app/admin" : "/app";
@@ -1035,11 +1232,13 @@ export class SupabaseAuthService {
 
   /**
    * Checagem unificada de existência de contato (Magic Flow para Login/Cadastro)
-   * Determina se o usuário já possui conta ou deve prosseguir para o cadastro Step 1.
+   * Determina se o usuário já possui conta ou deve prosseguir para o cadastro Step 1
+   * respeitando o isolamento estrito de cada praça/franquia White-Label.
    */
   public async checkContactExists(
     contact: string,
-    role: UserRole = "PASSAGEIRO"
+    role: UserRole = "PASSAGEIRO",
+    targetTenantId?: string
   ): Promise<{
     exists: boolean;
     contactType: "EMAIL" | "PHONE";
@@ -1049,38 +1248,63 @@ export class SupabaseAuthService {
   }> {
     const raw = contact.trim();
     const isEmail = raw.includes("@");
+    const effectiveTenantId = targetTenantId || getActiveAuthTenantId();
+    const isDefaultTenant =
+      effectiveTenantId === "tenant-itaperuna" ||
+      effectiveTenantId === "default" ||
+      effectiveTenantId === "matriz-br";
 
     if (isEmail) {
       const cleanEmail = raw.toLowerCase();
-      // 1. Checagem em perfis de demonstração
-      const demo = DEMO_PROFILES[role];
-      if (cleanEmail === demo.email) {
-        return {
-          exists: true,
-          contactType: "EMAIL",
-          formattedContact: cleanEmail,
-          userName: demo.name,
-          suggestedAuthMode: "PASSWORD",
-        };
+
+      // 1. Checagem em perfis de demonstração (APENAS na matriz/padrão)
+      if (isDefaultTenant) {
+        const demo = DEMO_PROFILES[role];
+        if (cleanEmail === demo.email) {
+          return {
+            exists: true,
+            contactType: "EMAIL",
+            formattedContact: cleanEmail,
+            userName: demo.name,
+            suggestedAuthMode: "PASSWORD",
+          };
+        }
       }
 
-      // 2. Checagem em storage local (cache/sessão anterior)
+      // 2. Checagem em storage local (cache/sessão anterior DO TENANT ESPECÍFICO)
       try {
-        if (typeof window !== "undefined") {
-          const stored = localStorage.getItem(STORAGE_SESSION_KEY);
-          if (stored) {
-            const parsed = JSON.parse(stored) as AuthUserProfile;
-            if (parsed.email?.toLowerCase() === cleanEmail) {
-              return {
-                exists: true,
-                contactType: "EMAIL",
-                formattedContact: cleanEmail,
-                userName: parsed.name,
-                suggestedAuthMode: "PASSWORD",
-              };
+        if (typeof localStorage !== "undefined") {
+          const stored = this.getStoredSession(effectiveTenantId);
+          if (stored && stored.email?.toLowerCase() === cleanEmail) {
+            return {
+              exists: true,
+              contactType: "EMAIL",
+              formattedContact: cleanEmail,
+              userName: stored.name,
+              suggestedAuthMode: "PASSWORD",
+            };
+          }
+
+          // Checa no repositório de usuários registrados exclusivo do tenant
+          const storeKey = getTenantUsersStoreKey(effectiveTenantId);
+          const rawStore = localStorage.getItem(storeKey);
+          if (rawStore) {
+            const list = JSON.parse(rawStore);
+            if (Array.isArray(list)) {
+              const found = list.find((u: any) => u.email?.toLowerCase() === cleanEmail);
+              if (found) {
+                return {
+                  exists: true,
+                  contactType: "EMAIL",
+                  formattedContact: cleanEmail,
+                  userName: found.name || undefined,
+                  suggestedAuthMode: "PASSWORD",
+                };
+              }
             }
           }
-          const driverStore = localStorage.getItem("partiu_motoristas_store");
+
+          const driverStore = localStorage.getItem(`partiu_motoristas_store_${effectiveTenantId}`);
           if (driverStore) {
             const drivers = JSON.parse(driverStore);
             const found = drivers.find((d: any) => d.email?.toLowerCase() === cleanEmail);
@@ -1097,13 +1321,14 @@ export class SupabaseAuthService {
         }
       } catch {}
 
-      // 3. Checagem remota no Supabase
+      // 3. Checagem remota no Supabase (filtrada pelo tenant_id da franquia)
       if (isSupabaseConfigured()) {
         try {
-          const { data } = await supabase
+          const { data } = await (supabase as any)
             .from("profiles")
-            .select("id, full_name, email, role")
+            .select("id, full_name, email, role, tenant_id")
             .eq("email", cleanEmail)
+            .eq("tenant_id", effectiveTenantId)
             .maybeSingle();
 
           if (data) {
@@ -1132,45 +1357,67 @@ export class SupabaseAuthService {
       const digits = norm.apenasDigitos;
       const formatted = norm.formatado || raw;
 
-      // 1. Checagem em perfis de demonstração
-      const demo = DEMO_PROFILES[role];
-      const demoDigits = demo.phone?.replace(/\D/g, "");
-      if (digits && demoDigits && digits.endsWith(demoDigits.slice(-8))) {
-        return {
-          exists: true,
-          contactType: "PHONE",
-          formattedContact: formatted,
-          userName: demo.name,
-          suggestedAuthMode: "SMS_OTP",
-        };
+      // 1. Checagem em perfis de demonstração (APENAS na matriz/padrão)
+      if (isDefaultTenant) {
+        const demo = DEMO_PROFILES[role];
+        const demoDigits = demo.phone?.replace(/\D/g, "");
+        if (digits && demoDigits && digits.endsWith(demoDigits.slice(-8))) {
+          return {
+            exists: true,
+            contactType: "PHONE",
+            formattedContact: formatted,
+            userName: demo.name,
+            suggestedAuthMode: "SMS_OTP",
+          };
+        }
       }
 
-      // 2. Checagem em storage local
+      // 2. Checagem em storage local (exclusivo do tenant)
       try {
-        if (typeof window !== "undefined") {
-          const stored = localStorage.getItem(STORAGE_SESSION_KEY);
+        if (typeof localStorage !== "undefined") {
+          const stored = this.getStoredSession(effectiveTenantId);
           if (stored) {
-            const parsed = JSON.parse(stored) as AuthUserProfile;
-            const storedDigits = parsed.phone?.replace(/\D/g, "");
+            const storedDigits = stored.phone?.replace(/\D/g, "");
             if (storedDigits && digits && storedDigits.endsWith(digits.slice(-8))) {
               return {
                 exists: true,
                 contactType: "PHONE",
                 formattedContact: formatted,
-                userName: parsed.name,
+                userName: stored.name,
                 suggestedAuthMode: "SMS_OTP",
               };
+            }
+          }
+
+          const storeKey = getTenantUsersStoreKey(effectiveTenantId);
+          const rawStore = localStorage.getItem(storeKey);
+          if (rawStore) {
+            const list = JSON.parse(rawStore);
+            if (Array.isArray(list)) {
+              const found = list.find(
+                (u: any) => u.phone && u.phone.replace(/\D/g, "").endsWith(digits.slice(-8))
+              );
+              if (found) {
+                return {
+                  exists: true,
+                  contactType: "PHONE",
+                  formattedContact: formatted,
+                  userName: found.name || undefined,
+                  suggestedAuthMode: "SMS_OTP",
+                };
+              }
             }
           }
         }
       } catch {}
 
-      // 3. Checagem remota no Supabase
+      // 3. Checagem remota no Supabase (filtrada pelo tenant_id da franquia)
       if (isSupabaseConfigured() && norm.valido) {
         try {
-          const { data } = await supabase
+          const { data } = await (supabase as any)
             .from("profiles")
-            .select("id, full_name, phone")
+            .select("id, full_name, phone, tenant_id")
+            .eq("tenant_id", effectiveTenantId)
             .or(`phone.eq.${norm.formatado},phone.eq.${norm.e164}`)
             .maybeSingle();
 
@@ -1198,7 +1445,7 @@ export class SupabaseAuthService {
   }
 
   /**
-   * Cadastro de Novo Passageiro com persistência no Supabase
+   * Cadastro de Novo Passageiro com persistência no Supabase e isolamento de praça
    */
   public async signUpPassenger(params: {
     name: string;
@@ -1207,10 +1454,12 @@ export class SupabaseAuthService {
     cpf: string;
     password: string;
     avatarUrl?: string;
+    tenantId?: string;
   }): Promise<AuthResult> {
-    const { name, email, phone, cpf, password, avatarUrl } = params;
+    const { name, email, phone, cpf, password, avatarUrl, tenantId } = params;
     const cleanName = name.trim();
     const cleanEmail = email.trim().toLowerCase();
+    const effectiveTenantId = tenantId || getActiveAuthTenantId();
 
     if (!cleanName || cleanName.length < 3) {
       return { success: false, error: "Informe seu nome completo (mínimo 3 caracteres)." };
@@ -1228,12 +1477,12 @@ export class SupabaseAuthService {
 
     const cleanCpf = cpf ? cpf.trim() : "";
 
-    // 0. Bloqueio proativo de e-mail e CPF duplicados
-    const checkDuplicity = await this.isEmailOrCpfRegistered(cleanEmail, cleanCpf);
+    // 0. Bloqueio proativo de e-mail e CPF duplicados NAQUELA FRANQUIA
+    const checkDuplicity = await this.isEmailOrCpfRegistered(cleanEmail, cleanCpf, effectiveTenantId);
     if (checkDuplicity.registered) {
       return {
         success: false,
-        error: checkDuplicity.message || "Este e-mail ou CPF já está cadastrado no sistema.",
+        error: checkDuplicity.message || "Este e-mail ou CPF já está cadastrado nesta praça.",
       };
     }
 
@@ -1241,7 +1490,7 @@ export class SupabaseAuthService {
     let supabaseUserId = `usr-pax-${Date.now().toString(36)}`;
     if (isSupabaseConfigured()) {
       try {
-        const { data, error } = await supabase.auth.signUp({
+        const signUpPromise = supabase.auth.signUp({
           email: cleanEmail,
           password,
           options: {
@@ -1250,10 +1499,15 @@ export class SupabaseAuthService {
               phone: normPhone.formatado,
               cpf: cleanCpf,
               role: "PASSAGEIRO",
+              tenant_id: effectiveTenantId,
               avatar_url: avatarUrl && !avatarUrl.startsWith("data:") ? avatarUrl : undefined,
             },
           },
         });
+        const timeoutPromise = new Promise<any>((resolve) =>
+          setTimeout(() => resolve({ data: null, error: null }), 2500)
+        );
+        const { data, error } = await Promise.race([signUpPromise, timeoutPromise]);
 
         if (error) {
           const msg = error.message.toLowerCase();
@@ -1282,7 +1536,7 @@ export class SupabaseAuthService {
         if (data.user) {
           supabaseUserId = data.user.id;
 
-          // Inserção na tabela profiles e partiu_passageiros
+          // Inserção na tabela profiles e partiu_passageiros com tenant_id explícito
           try {
             await (supabase as any).from("profiles").upsert({
               id: data.user.id,
@@ -1291,6 +1545,7 @@ export class SupabaseAuthService {
               phone: normPhone.formatado,
               cpf: cleanCpf,
               role: "passenger",
+              tenant_id: effectiveTenantId,
               approval_status: "aprovado",
               avatar_url: avatarUrl || null,
             });
@@ -1305,6 +1560,7 @@ export class SupabaseAuthService {
               cpf: cleanCpf,
               telefone: normPhone.formatado,
               email: cleanEmail,
+              tenant_id: effectiveTenantId,
               foto_url: avatarUrl || null,
               rating: 5.0,
               is_ativo: true,
@@ -1331,15 +1587,19 @@ export class SupabaseAuthService {
     }
 
     // 2. ISOLAMENTO TOTAL DE SESSÃO: Limpa qualquer histórico e cache residual de outro usuário anterior
-    this.clearUserSessionAndCaches();
+    this.clearUserSessionAndCaches(effectiveTenantId);
 
-    // 3. Registra localmente para garantir consistência anti-duplicidade
-    this.recordRegisteredUserLocally({
-      id: supabaseUserId,
-      email: cleanEmail,
-      cpf: cleanCpf,
-      role: "PASSAGEIRO",
-    });
+    // 3. Registra localmente para garantir consistência anti-duplicidade na franquia
+    this.recordRegisteredUserLocally(
+      {
+        id: supabaseUserId,
+        email: cleanEmail,
+        cpf: cleanCpf,
+        role: "PASSAGEIRO",
+        tenantId: effectiveTenantId,
+      },
+      effectiveTenantId
+    );
 
     const newUser: AuthUserProfile = {
       id: supabaseUserId,
@@ -1348,13 +1608,14 @@ export class SupabaseAuthService {
       phone: normPhone.formatado,
       cpf: cleanCpf,
       role: "PASSAGEIRO",
+      tenantId: effectiveTenantId,
       avatarUrl: avatarUrl || "",
       rating: 5.0,
       totalTrips: 0,
       createdAt: Date.now(),
     };
 
-    if (typeof window !== "undefined") {
+    if (typeof localStorage !== "undefined") {
       try {
         if (avatarUrl) {
           localStorage.setItem("partiu_user_avatar", avatarUrl);
@@ -1367,11 +1628,13 @@ export class SupabaseAuthService {
         localStorage.setItem("partiu_user_telefone", normPhone.formatado);
         if (cleanCpf) localStorage.setItem("partiu_user_cpf", cleanCpf);
         localStorage.setItem("partiu_user_email", cleanEmail);
-        window.dispatchEvent(new CustomEvent("partiu:user-profile-updated", { detail: newUser }));
+        if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+          window.dispatchEvent(new CustomEvent("partiu:user-profile-updated", { detail: newUser }));
+        }
       } catch {}
     }
 
-    this.saveStoredSession(newUser);
+    this.saveStoredSession(newUser, effectiveTenantId);
 
     return {
       success: true,
@@ -1402,10 +1665,12 @@ export class SupabaseAuthService {
     fotoPerfilUrl?: string;
     pixKey?: string;
     pixKeyType?: string;
+    tenantId?: string;
   }): Promise<AuthResult> {
-    const { name, email, phone, cpf, password } = params;
+    const { name, email, phone, cpf, password, tenantId } = params;
     const cleanName = name.trim();
     const cleanEmail = email.trim().toLowerCase();
+    const effectiveTenantId = tenantId || getActiveAuthTenantId();
 
     if (!cleanName || cleanName.length < 3) {
       return { success: false, error: "Informe seu nome completo (mínimo 3 caracteres)." };
@@ -1423,12 +1688,12 @@ export class SupabaseAuthService {
 
     const cleanCpf = cpf ? cpf.trim() : "";
 
-    // 0. Bloqueio proativo de e-mail e CPF duplicados
-    const checkDuplicity = await this.isEmailOrCpfRegistered(cleanEmail, cleanCpf);
+    // 0. Bloqueio proativo de e-mail e CPF duplicados NAQUELA FRANQUIA
+    const checkDuplicity = await this.isEmailOrCpfRegistered(cleanEmail, cleanCpf, effectiveTenantId);
     if (checkDuplicity.registered) {
       return {
         success: false,
-        error: checkDuplicity.message || "Este e-mail ou CPF já está cadastrado no sistema.",
+        error: checkDuplicity.message || "Este e-mail ou CPF já está cadastrado nesta praça.",
       };
     }
 
@@ -1444,6 +1709,7 @@ export class SupabaseAuthService {
               phone: normPhone.formatado,
               cpf: cleanCpf,
               role: "driver",
+              tenant_id: effectiveTenantId,
               vehicle_model: params.vehicleModel,
               vehicle_plate: params.vehiclePlate?.toUpperCase(),
             },
@@ -1476,7 +1742,7 @@ export class SupabaseAuthService {
         if (data.user) {
           supabaseUserId = data.user.id;
 
-          // Inserção na tabela profiles (status pendente de moderação)
+          // Inserção na tabela profiles (status pendente de moderação) com tenant_id explícito
           try {
             await (supabase as any).from("profiles").upsert({
               id: data.user.id,
@@ -1485,6 +1751,7 @@ export class SupabaseAuthService {
               phone: normPhone.formatado,
               cpf: cleanCpf,
               role: "driver",
+              tenant_id: effectiveTenantId,
               approval_status: "pendente",
               avatar_url: params.fotoPerfilUrl || null,
               metadata: {
@@ -1502,7 +1769,7 @@ export class SupabaseAuthService {
             silentCatchWarn("signUpDriver:profiles", pErr);
           }
 
-          // Inserção na tabela partiu_motoristas
+          // Inserção na tabela partiu_motoristas com tenant_id explícito
           try {
             await (supabase as any).from("partiu_motoristas").insert({
               user_id: data.user.id,
@@ -1510,6 +1777,7 @@ export class SupabaseAuthService {
               cpf: cleanCpf.replace(/\D/g, "") || cleanCpf || "00000000000",
               telefone: normPhone.formatado,
               email: cleanEmail,
+              tenant_id: effectiveTenantId,
               cnh_numero: params.cnh || "00000000000",
               cnh_categoria: params.cnhCategory || "B",
               cnh_validade: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
@@ -1548,15 +1816,19 @@ export class SupabaseAuthService {
     }
 
     // 2. ISOLAMENTO TOTAL DE SESSÃO: Limpa caches e histórico anteriores
-    this.clearUserSessionAndCaches();
+    this.clearUserSessionAndCaches(effectiveTenantId);
 
-    // 3. Registra localmente para garantir consistência anti-duplicidade
-    this.recordRegisteredUserLocally({
-      id: supabaseUserId,
-      email: cleanEmail,
-      cpf: cleanCpf,
-      role: "MOTORISTA",
-    });
+    // 3. Registra localmente para garantir consistência anti-duplicidade na franquia
+    this.recordRegisteredUserLocally(
+      {
+        id: supabaseUserId,
+        email: cleanEmail,
+        cpf: cleanCpf,
+        role: "MOTORISTA",
+        tenantId: effectiveTenantId,
+      },
+      effectiveTenantId
+    );
 
     const newDriver: AuthUserProfile = {
       id: supabaseUserId,
@@ -1565,6 +1837,7 @@ export class SupabaseAuthService {
       phone: normPhone.formatado,
       cpf: cleanCpf,
       role: "MOTORISTA",
+      tenantId: effectiveTenantId,
       avatarUrl: params.fotoPerfilUrl || "",
       rating: 5.0,
       totalTrips: 0,
@@ -1580,7 +1853,7 @@ export class SupabaseAuthService {
       } catch {}
     }
 
-    this.saveStoredSession(newDriver);
+    this.saveStoredSession(newDriver, effectiveTenantId);
 
     return {
       success: true,
@@ -1648,7 +1921,10 @@ export class SupabaseAuthService {
   public async signOut(): Promise<void> {
     if (isSupabaseConfigured()) {
       try {
-        await supabase.auth.signOut();
+        await Promise.race([
+          supabase.auth.signOut({ scope: "local" }),
+          new Promise((resolve) => setTimeout(resolve, 500)),
+        ]);
       } catch (err) { silentCatchWarn("supabase-auth-service", err); }
     }
     this.clearUserSessionAndCaches();

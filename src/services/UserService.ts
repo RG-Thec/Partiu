@@ -67,14 +67,15 @@ export class UserService {
 
   /**
    * Recupera o perfil completo do usuário atual mesclando sessão, banco e cache local
+   * com isolamento contextualizado por tenant.
    */
-  public async getCurrentUserProfile(): Promise<UserProfileData> {
-    let session = supabaseAuthService.getStoredSession();
+  public async getCurrentUserProfile(targetTenantId?: string): Promise<UserProfileData> {
+    let session = supabaseAuthService.getStoredSession(targetTenantId);
     if (!session && isSupabaseConfigured()) {
       try {
         const { data } = await supabase.auth.getSession();
         if (data?.session?.user) {
-          session = await supabaseAuthService.checkAndHydrateSession();
+          session = await supabaseAuthService.checkAndHydrateSession(targetTenantId);
         }
       } catch {}
     }

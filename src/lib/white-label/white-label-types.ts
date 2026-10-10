@@ -424,6 +424,20 @@ export interface WhiteLabelTenantRecord {
 }
 
 // ------------------------------------------------------------------------------
+// MÓDULO 12: ARQUITETURA DE BANCO DE DADOS E ISOLAMENTO MULTI-TENANT
+// ------------------------------------------------------------------------------
+export interface TenantDatabaseIsolationConfig {
+  modoIsolamento: "LOGICAL_ZERO_TRUST" | "DEDICATED_DATABASE";
+  bancoNome?: string | undefined;
+  supabaseUrl?: string | undefined;
+  supabaseAnonKey?: string | undefined;
+  schemaDedicado?: string | undefined;
+  isolamentoUsuariosAtivo: boolean;
+  isolamentoCorridasAtivo: boolean;
+  statusConexao: "CONECTADO_E_ISOLADO" | "INSTANCIA_DEDICADA_ATIVA" | "LOCAL_ISOLADO";
+}
+
+// ------------------------------------------------------------------------------
 // CONFIGURAÇÃO COMPLETA UNIFICADA (SNAPSHOT ATÔMICO)
 // ------------------------------------------------------------------------------
 export interface WhiteLabelFullConfig {
@@ -440,4 +454,5 @@ export interface WhiteLabelFullConfig {
   cms: BannerCmsEnterpriseConfig;
   geo: GeoConfiguration;
   nativeApp: AppConfigurationCenterConfig;
+  databaseIsolation?: TenantDatabaseIsolationConfig | undefined;
 }

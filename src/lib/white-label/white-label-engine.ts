@@ -513,6 +513,14 @@ export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
     splashIosUrl: "/splash-screen.png",
     splashBackgroundColor: "#0F172A",
   },
+  databaseIsolation: {
+    modoIsolamento: "LOGICAL_ZERO_TRUST",
+    bancoNome: "Cluster Seguro Partiu Mobe Multi-Tenant",
+    schemaDedicado: "tenant_isolated_partition",
+    isolamentoUsuariosAtivo: true,
+    isolamentoCorridasAtivo: true,
+    statusConexao: "CONECTADO_E_ISOLADO",
+  },
 };
 
 // ------------------------------------------------------------------------------

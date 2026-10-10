@@ -19,13 +19,35 @@ export const Route = createFileRoute("/app")({
     }
 
     try {
+      let effectiveTenantId = "tenant-itaperuna";
+      try {
+        const urlParams = new URLSearchParams(location.search as any);
+        const paramTenant = urlParams.get("tenant") || urlParams.get("tenant_id");
+        if (paramTenant && paramTenant.trim()) {
+          effectiveTenantId = paramTenant.trim();
+        } else if (typeof window !== "undefined") {
+          const { tenantDomainService } = await import("@/lib/white-label/tenant-domain-service");
+          const resolved = tenantDomainService.resolveTenantFromHost(window.location.hostname);
+          if (resolved?.tenantId) {
+            effectiveTenantId = resolved.tenantId;
+          }
+        }
+      } catch {}
+
       const { data: sessionData } = await supabase.auth.getSession();
       const session = sessionData?.session;
       const expired = !session || (session.expires_at ?? 0) * 1000 <= Date.now();
-      const storedUser = typeof window !== "undefined" ? supabaseAuthService.getStoredSession() : null;
+      const storedUser = typeof window !== "undefined" ? supabaseAuthService.getStoredSession(effectiveTenantId) : null;
 
-      // Todas as rotas do aplicativo (/app) exigem login ativo (Passageiro ou Motorista)
-      const isAuthenticated = (session && !expired) || !!storedUser;
+      // Validação de isolamento multi-tenant: usuário autenticado deve pertencer ao tenant da praça
+      const sessionTenantMatches =
+        session?.user?.user_metadata?.["tenant_id"]
+          ? session.user.user_metadata["tenant_id"] === effectiveTenantId
+          : true;
+
+      const userTenantMatches = storedUser && (!storedUser.tenantId || storedUser.tenantId === effectiveTenantId);
+
+      const isAuthenticated = (session && !expired && sessionTenantMatches) || Boolean(storedUser && userTenantMatches);
 
       if (!isAuthenticated) {
         const isMotorista = pathname.startsWith("/app/motorista");
@@ -34,12 +56,13 @@ export const Route = createFileRoute("/app")({
           search: {
             redirect: pathname,
             role: isMotorista ? ("MOTORISTA" as const) : ("PASSAGEIRO" as const),
+            tenant: effectiveTenantId,
             ...(session && expired ? { expirada: "1" as const } : {}),
           },
         });
       }
 
-      return { user: session?.user ?? (storedUser as any) ?? null };
+      return { user: session?.user ?? (storedUser as any) ?? null, tenantId: effectiveTenantId };
     } catch (err: any) {
       if (err && typeof err === "object" && ("options" in err || "status" in err)) {
         throw err;

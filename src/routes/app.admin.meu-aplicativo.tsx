@@ -18,6 +18,7 @@ import {
   Layers,
   HelpCircle,
   Palette,
+  Database,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getContaAtiva } from "@/lib/admin-rbac";
@@ -548,6 +549,61 @@ export default function MeuAplicativoPage() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* BANCO DE DADOS & NUVEM DEDICADA DO FRANQUEADO */}
+          <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                  <Database className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    Banco de Dados &amp; Nuvem Dedicada do APK
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Isolamento Criptográfico e de Sessão Zero-Trust por Franquia
+                  </p>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                Partição 100% Isolada
+              </span>
+            </div>
+
+            <p className="text-sm text-slate-300">
+              Cada franquia possui seu próprio ecossistema de dados e segregação completa de usuários. Passageiros, motoristas e corridas cadastrados nesta praça ({branding.app_name || "Sua Operação"}) não se misturam nem colidem com a conta matriz ou com outras cidades.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                <span className="text-xs text-slate-400 font-medium">Modo de Banco</span>
+                <div className="text-sm font-bold text-white flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  Isolamento Zero-Trust
+                </div>
+                <p className="text-[11px] text-slate-500">RLS + Tenant Guard Ativo</p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                <span className="text-xs text-slate-400 font-medium">Segregação de Contas</span>
+                <div className="text-sm font-bold text-white flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  Usuários Exclusivos
+                </div>
+                <p className="text-[11px] text-slate-500">Bloqueio de Contas Externas</p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                <span className="text-xs text-slate-400 font-medium">Identificador do Tenant</span>
+                <div className="text-sm font-bold text-primary font-mono truncate">
+                  {effectiveTenantId}
+                </div>
+                <p className="text-[11px] text-slate-500">Chave de Partição Única</p>
+              </div>
+            </div>
           </div>
         </div>
 

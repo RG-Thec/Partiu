@@ -41,10 +41,12 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { CameraPhotoCapture } from "@/components/common/CameraPhotoCapture";
+import { whiteLabelEngine } from "@/lib/white-label/white-label-engine";
 
 export interface PartiuAppAuthGateProps {
   redirectDestination?: string | undefined;
   initialRole?: "PASSAGEIRO" | "MOTORISTA";
+  initialTenantId?: string | undefined;
 }
 
 // Estados do fluxo de autenticação do Passageiro
@@ -56,8 +58,22 @@ type DriverView = "PORTAL" | "LOGIN";
 export function PartiuAppAuthGate({
   redirectDestination,
   initialRole,
+  initialTenantId,
 }: PartiuAppAuthGateProps = {}) {
   const navigate = useNavigate();
+
+  // Tenant ativo contextualizado para isolamento total entre franquias White-Label
+  const currentTenantId = useMemo(() => {
+    if (initialTenantId && initialTenantId.trim()) return initialTenantId.trim();
+    if (typeof window !== "undefined") {
+      try {
+        const param = new URLSearchParams(window.location.search).get("tenant") ||
+          new URLSearchParams(window.location.search).get("tenant_id");
+        if (param && param.trim()) return param.trim();
+      } catch {}
+    }
+    return whiteLabelEngine.getActiveTenantId() || "tenant-itaperuna";
+  }, [initialTenantId]);
 
   // 1. Consumo do Tema White Label Global (Dados e Estilos Dinâmicos sem Hardcode)
   const { appConfig } = useTheme();
@@ -133,15 +149,15 @@ export function PartiuAppAuthGate({
   useEffect(() => {
     async function initGate() {
       try {
-        const activeSession = await supabaseAuthService.checkAndHydrateSession();
+        const activeSession = await supabaseAuthService.checkAndHydrateSession(currentTenantId);
         if (activeSession) {
           const dest =
             redirectDestination ||
             (activeSession.role === "MOTORISTA"
-              ? "/app/motorista"
+              ? `/app/motorista?tenant=${encodeURIComponent(currentTenantId)}`
               : activeSession.role === "ADMIN"
               ? "/app/admin"
-              : "/app");
+              : `/app?tenant=${encodeURIComponent(currentTenantId)}`);
           void navigate({ to: dest, replace: true });
           return;
         }
@@ -152,7 +168,7 @@ export function PartiuAppAuthGate({
     }
 
     void initGate();
-  }, [navigate, redirectDestination, activeRole]);
+  }, [navigate, redirectDestination, activeRole, currentTenantId]);
 
   // Contagem regressiva de reenvio de OTP
   useEffect(() => {
@@ -233,7 +249,7 @@ export function PartiuAppAuthGate({
 
     setLoading(true);
     try {
-      const checkResult = await supabaseAuthService.checkContactExists(cleanInput, activeRole);
+      const checkResult = await supabaseAuthService.checkContactExists(cleanInput, activeRole, currentTenantId);
       setLoading(false);
 
       setDetectedContactType(checkResult.contactType);
@@ -260,7 +276,7 @@ export function PartiuAppAuthGate({
           setTelefone(checkResult.formattedContact);
         }
         setPassengerStep("SIGNUP_STEP_1");
-        setSuccessMessage("Conta não encontrada. Preencha seus dados para criar sua conta!");
+        setSuccessMessage("Conta não encontrada nesta praça. Preencha seus dados para criar sua conta!");
       }
     } catch (err: any) {
       setLoading(false);
@@ -296,7 +312,11 @@ export function PartiuAppAuthGate({
 
     setSuccessMessage("Acesso validado com sucesso! Entrando...");
     setTimeout(() => {
-      void navigate({ to: redirectDestination || res.redirectUrl || "/app", replace: true });
+      const target = redirectDestination || res.redirectUrl || "/app";
+      const scopedDest = target.includes("tenant=")
+        ? target
+        : `${target}${target.includes("?") ? "&" : "?"}tenant=${encodeURIComponent(currentTenantId)}`;
+      void navigate({ to: scopedDest, replace: true });
     }, 300);
   }
 
@@ -324,17 +344,25 @@ export function PartiuAppAuthGate({
       email: loginIdentifier,
       senha,
       role: activeRole,
+      tenantId: currentTenantId,
     });
     setLoading(false);
 
     if (!res.success) {
-      setErrorMessage(res.error || "Credenciais inválidas. Verifique os dados digitados.");
+      setErrorMessage(res.error || "Credenciais inválidas para esta praça. Verifique os dados.");
       return;
     }
 
     setSuccessMessage("Autenticado com sucesso! Redirecionando...");
     setTimeout(() => {
-      void navigate({ to: redirectDestination || res.redirectUrl || (activeRole === "MOTORISTA" ? "/app/motorista" : "/app"), replace: true });
+      const target =
+        redirectDestination ||
+        res.redirectUrl ||
+        (activeRole === "MOTORISTA" ? "/app/motorista" : "/app");
+      const scopedDest = target.includes("tenant=")
+        ? target
+        : `${target}${target.includes("?") ? "&" : "?"}tenant=${encodeURIComponent(currentTenantId)}`;
+      void navigate({ to: scopedDest, replace: true });
     }, 300);
   }
 
@@ -380,6 +408,7 @@ export function PartiuAppAuthGate({
       cpf,
       password: senha,
       avatarUrl: fotoPerfilUrl,
+      tenantId: currentTenantId,
     });
     setLoading(false);
 
@@ -390,7 +419,11 @@ export function PartiuAppAuthGate({
 
     setSuccessMessage("Conta criada com sucesso! Redirecionando...");
     setTimeout(() => {
-      void navigate({ to: redirectDestination || res.redirectUrl || "/app", replace: true });
+      const target = redirectDestination || res.redirectUrl || "/app";
+      const scopedDest = target.includes("tenant=")
+        ? target
+        : `${target}${target.includes("?") ? "&" : "?"}tenant=${encodeURIComponent(currentTenantId)}`;
+      void navigate({ to: scopedDest, replace: true });
     }, 400);
   }
 

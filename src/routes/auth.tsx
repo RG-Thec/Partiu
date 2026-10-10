@@ -13,9 +13,11 @@ export const Route = createFileRoute("/auth")({
       search["role"] === "MOTORISTA" || search["role"] === "PASSAGEIRO"
         ? (search["role"] as "PASSAGEIRO" | "MOTORISTA")
         : undefined;
+    const tenantParam = typeof search["tenant"] === "string" ? search["tenant"] : undefined;
     return {
       ...(redirect ? { redirect } : {}),
       ...(roleParam ? { role: roleParam } : {}),
+      ...(tenantParam ? { tenant: tenantParam } : {}),
       ...(search["expirada"] === "1" ? { expirada: "1" as const } : {}),
     };
   },
@@ -40,6 +42,6 @@ export const Route = createFileRoute("/auth")({
 });
 
 export function AuthPagePartiu() {
-  const { redirect, role } = Route.useSearch();
-  return <PartiuAppAuthGate redirectDestination={redirect} initialRole={role} />;
+  const { redirect, role, tenant } = Route.useSearch();
+  return <PartiuAppAuthGate redirectDestination={redirect} initialRole={role} initialTenantId={tenant} />;
 }

@@ -12,6 +12,7 @@ import {
   identidadeVisualInicial,
 } from "../src/lib/superadmin-config.ts";
 import { tenantDomainService } from "../src/lib/white-label/tenant-domain-service.ts";
+import { supabaseAuthService } from "../src/lib/auth/supabase-auth-service.ts";
 
 // Setup Mock LocalStorage sem poluir window global
 if (typeof globalThis.localStorage === "undefined") {
@@ -33,6 +34,7 @@ if (typeof globalThis.localStorage === "undefined") {
     },
   };
 }
+
 
 function createMockDocument(rootStyles: Map<string, string>) {
   return {
@@ -282,6 +284,159 @@ describe("Bulletproof Branding Persistence & Multi-Tenant Isolation Suite", () =
       expect(rec.domain).toBe("uberlandia.partiumobe.com.br");
       expect(rec.status).toBe("ATIVO");
       expect(rec.sslStatus).toBe("ATIVO");
+    });
+  });
+
+  describe("5. Strict Multi-Tenant User Database & Session Isolation (Zero-Trust APK Segregation)", () => {
+    test("should ensure contact does not exist on BH Mob when registered in Matriz or another franchise", async () => {
+      // 1. Registra usuário 'teste@gmail.com' apenas na praça de Itaperuna / Matriz
+      supabaseAuthService.recordRegisteredUserLocally(
+        {
+          id: "usr-itp-test-99",
+          email: "teste@gmail.com",
+          role: "PASSAGEIRO",
+          tenantId: "tenant-itaperuna",
+        },
+        "tenant-itaperuna"
+      );
+
+      // 2. Consulta no tenant-itaperuna: deve existir
+      const itaperunaContact = await supabaseAuthService.checkContactExists(
+        "teste@gmail.com",
+        "PASSAGEIRO",
+        "tenant-itaperuna"
+      );
+      expect(itaperunaContact.exists).toBe(true);
+
+      // 3. Consulta no BH Mob (tenant-bhmob): NÃO pode existir (Zero-Trust)
+      const bhMobContact = await supabaseAuthService.checkContactExists(
+        "teste@gmail.com",
+        "PASSAGEIRO",
+        "tenant-bhmob"
+      );
+      expect(bhMobContact.exists).toBe(false);
+    });
+
+    test("should reject login on BH Mob for user from another franchise even with default pass", async () => {
+      // Tentativa de login no BH Mob com credencial da matriz/outra praça deve ser terminantemente barrada
+      const loginAttempt = await supabaseAuthService.signInWithEmail({
+        email: "teste@gmail.com",
+        senha: "123456",
+        role: "PASSAGEIRO",
+        tenantId: "tenant-bhmob",
+      });
+
+      expect(loginAttempt.success).toBe(false);
+      const isExpectedError =
+        loginAttempt.error?.includes("pertence a outra franquia") ||
+        loginAttempt.error?.includes("não encontrada nesta praça");
+      expect(Boolean(isExpectedError)).toBe(true);
+    });
+
+    test("should register passenger exclusively in BH Mob and store session isolated by tenantId", async () => {
+      const uniqueSuffix = Date.now().toString(36);
+      const bhPaxEmail = `mineiro.bh.${uniqueSuffix}@gmail.com`;
+      const bhPaxPhone = `(31) 987${Math.floor(10 + Math.random() * 89)}-${Math.floor(1000 + Math.random() * 8999)}`;
+      const bhPaxCpf = `123.${Math.floor(100 + Math.random() * 899)}.${Math.floor(100 + Math.random() * 899)}-01`;
+
+      const signUpRes = await supabaseAuthService.signUpPassenger({
+        name: "Carlos Mineiro",
+        email: bhPaxEmail,
+        phone: bhPaxPhone,
+        cpf: bhPaxCpf,
+        password: "senhaSegura2026",
+        tenantId: "tenant-bhmob",
+      });
+
+      expect(signUpRes.success).toBe(true);
+      expect(signUpRes.user?.tenantId).toBe("tenant-bhmob");
+      expect(signUpRes.user?.email).toBe(bhPaxEmail);
+
+      // Verifica se a sessão ativa está salva sob a chave isolada do tenant BH Mob
+      const bhSession = supabaseAuthService.getStoredSession("tenant-bhmob");
+      expect(Boolean(bhSession)).toBe(true);
+      expect(bhSession?.tenantId).toBe("tenant-bhmob");
+      expect(bhSession?.email).toBe(bhPaxEmail);
+
+      // Verifica que a sessão de Itaperuna NÃO foi poluída ou substituída
+      const itpSession = supabaseAuthService.getStoredSession("tenant-itaperuna");
+      expect(itpSession?.email).not.toBe(bhPaxEmail);
+
+      // Agora, no BH Mob o contato existe
+      const bhCheck = await supabaseAuthService.checkContactExists(
+        bhPaxEmail,
+        "PASSAGEIRO",
+        "tenant-bhmob"
+      );
+      expect(bhCheck.exists).toBe(true);
+
+      // Mas em Itaperuna o contato NÃO existe
+      const itpCheck = await supabaseAuthService.checkContactExists(
+        bhPaxEmail,
+        "PASSAGEIRO",
+        "tenant-itaperuna"
+      );
+      expect(itpCheck.exists).toBe(false);
+    });
+
+    test("should maintain distinct user sessions simultaneously without cross-contamination", () => {
+      const bhUser = {
+        id: "usr-pax-bhmob-10",
+        name: "Usuário BH",
+        email: "usuario.bh@partiumobe.com.br",
+        role: "PASSAGEIRO" as const,
+        tenantId: "tenant-bhmob",
+        rating: 5.0,
+        totalTrips: 3,
+        createdAt: Date.now(),
+      };
+
+      const itpUser = {
+        id: "usr-pax-itp-20",
+        name: "Usuário Itaperuna",
+        email: "usuario.itp@partiumobe.com.br",
+        role: "PASSAGEIRO" as const,
+        tenantId: "tenant-itaperuna",
+        rating: 4.9,
+        totalTrips: 12,
+        createdAt: Date.now(),
+      };
+
+      // Salva ambas as sessões
+      supabaseAuthService.saveStoredSession(bhUser, "tenant-bhmob");
+      supabaseAuthService.saveStoredSession(itpUser, "tenant-itaperuna");
+
+      // Recupera individualmente
+      const sessionBH = supabaseAuthService.getStoredSession("tenant-bhmob");
+      const sessionITP = supabaseAuthService.getStoredSession("tenant-itaperuna");
+
+      expect(sessionBH?.id).toBe("usr-pax-bhmob-10");
+      expect(sessionBH?.tenantId).toBe("tenant-bhmob");
+
+      expect(sessionITP?.id).toBe("usr-pax-itp-20");
+      expect(sessionITP?.tenantId).toBe("tenant-itaperuna");
+
+      // Limpeza de sessão de um tenant não afeta o outro
+      supabaseAuthService.clearStoredSession("tenant-bhmob");
+      expect(supabaseAuthService.getStoredSession("tenant-bhmob")).toBe(null);
+      expect(supabaseAuthService.getStoredSession("tenant-itaperuna")?.id).toBe("usr-pax-itp-20");
+    });
+
+    test("should reject stored session when tenantId mismatches the requested tenant", () => {
+      const rawForeignSession = {
+        id: "usr-intruder",
+        name: "Intruso Cross Tenant",
+        email: "intruso@externo.com",
+        role: "PASSAGEIRO",
+        tenantId: "tenant-itaperuna", // Tenant diferente!
+      };
+
+      // Grava diretamente na chave do BH Mob uma sessão forjada de outro tenant
+      localStorage.setItem("partiu_active_user_session_tenant-bhmob", JSON.stringify(rawForeignSession));
+
+      // Ao consultar a sessão para tenant-bhmob, o guard deve detectar e rejeitar (retornar null)
+      const session = supabaseAuthService.getStoredSession("tenant-bhmob");
+      expect(session).toBe(null);
     });
   });
 });
