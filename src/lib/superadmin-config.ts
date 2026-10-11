@@ -647,8 +647,10 @@ export function getIdentidadeVisual(): ConfigIdentidadeVisual {
   return conf.identidade || identidadeVisualInicial;
 }
 
+let inMemoryAdminConfig: ConfigSuperAdmin | null = null;
+
 export function getSuperAdminConfig(): ConfigSuperAdmin {
-  if (typeof window === "undefined") return configSuperAdminInicial;
+  if (typeof window === "undefined") return inMemoryAdminConfig || configSuperAdminInicial;
   const saved = localStorage.getItem(STORAGE_KEY_ADMIN_CONFIG);
   if (saved) {
     try {
@@ -721,6 +723,7 @@ export function saveMonetizacaoConfig(novaConfig: Partial<ConfigMonetizacaoWhite
 }
 
 export function saveSuperAdminConfig(config: ConfigSuperAdmin) {
+  inMemoryAdminConfig = config;
   if (typeof window !== "undefined") {
     localStorage.setItem(STORAGE_KEY_ADMIN_CONFIG, JSON.stringify(config));
     if (config.identidade) {

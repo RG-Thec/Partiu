@@ -255,7 +255,7 @@ export class PixBillingService {
           p_tenant_id: tenantId || null,
         });
 
-        if (!error && data) {
+        if (!error && data && (data.status !== "PAYMENT_PENDING" || (!inMemorySubscriptions.has(driverId) && !driverSubscriptionService.getActiveSubscription(driverId)))) {
           return {
             is_eligible: Boolean(data.is_eligible),
             status: data.status,

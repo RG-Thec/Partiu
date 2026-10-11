@@ -309,6 +309,8 @@ export interface MonetizationManagerConfig {
   gatewayProvider?: "mercadopago" | "asaas" | "efi" | "manual" | undefined;
   gatewayApiKey?: string | undefined;
   gatewayWebhookSecret?: string | undefined;
+  trialAtivo?: boolean | undefined;
+  trialDias?: number | undefined;
 }
 
 // ------------------------------------------------------------------------------

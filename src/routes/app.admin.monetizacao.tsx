@@ -31,7 +31,18 @@ import {
   UserCheck,
   UserX,
   Gift,
+  ToggleLeft,
+  ToggleRight,
+  Sparkles,
+  CheckCircle2,
 } from "lucide-react";
+import {
+  getMonetizacaoConfig,
+  saveMonetizacaoConfig,
+  type ConfigMonetizacaoWhiteLabel,
+} from "@/lib/superadmin-config";
+import { WhiteLabelEngine } from "@/lib/white-label/white-label-engine";
+import { type WhiteLabelTenantRecord } from "@/lib/white-label/white-label-types";
 import {
   type PedidoRecargaPix,
   type GatewayConfig,
@@ -133,6 +144,20 @@ export function AdminMonetizacaoPage() {
   // Feedback Toast
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
+  // Estados do Configurador Visual de Trial (Degustação Gratuita)
+  const [monetizacaoGlobal, setMonetizacaoGlobal] = useState<ConfigMonetizacaoWhiteLabel>(() => getMonetizacaoConfig());
+  const [tenantsDisponiveis, setTenantsDisponiveis] = useState<WhiteLabelTenantRecord[]>(() => {
+    try {
+      return WhiteLabelEngine.getInstance().getAllTenants();
+    } catch {
+      return [];
+    }
+  });
+  const [tenantSelecionadoTrial, setTenantSelecionadoTrial] = useState<string>("global");
+  const [trialAtivoInput, setTrialAtivoInput] = useState<boolean>(() => monetizacaoGlobal.trialAtivo ?? true);
+  const [trialDiasInput, setTrialDiasInput] = useState<number>(() => monetizacaoGlobal.trialDias ?? 3);
+  const [isSalvandoTrial, setIsSalvandoTrial] = useState(false);
+
   function mostrarToast(msg: string) {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 3800);
@@ -147,9 +172,81 @@ export function AdminMonetizacaoPage() {
     setMetrics(revenueDashboardEngine.calculateMetrics());
     setPedidosRecarga(carregarPedidosRecarga());
     setGatewayConfig(carregarGatewayConfig());
+    const mConfig = getMonetizacaoConfig();
+    setMonetizacaoGlobal(mConfig);
+    try {
+      setTenantsDisponiveis(WhiteLabelEngine.getInstance().getAllTenants());
+    } catch {
+      // Silencioso
+    }
     void driverSubscriptionService.fetchServerSaaSMetrics().then((m) => {
       setExecutiveMetrics(m);
     });
+  }
+
+  useEffect(() => {
+    if (tenantSelecionadoTrial === "global") {
+      const globalCfg = getMonetizacaoConfig();
+      setTrialAtivoInput(globalCfg.trialAtivo ?? true);
+      setTrialDiasInput(globalCfg.trialDias ?? 3);
+    } else {
+      try {
+        const tConfig = WhiteLabelEngine.getInstance().getTenantConfig(tenantSelecionadoTrial);
+        const m = tConfig?.monetization;
+        const globalCfg = getMonetizacaoConfig();
+        setTrialAtivoInput(m?.trialAtivo ?? globalCfg.trialAtivo ?? true);
+        setTrialDiasInput(m?.trialDias ?? globalCfg.trialDias ?? 3);
+      } catch {
+        // Fallback
+      }
+    }
+  }, [tenantSelecionadoTrial]);
+
+  async function handleSalvarConfigTrial(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+    setIsSalvandoTrial(true);
+    const dias = Math.max(0, Math.min(365, Number(trialDiasInput)));
+
+    try {
+      if (tenantSelecionadoTrial === "global") {
+        const updated = saveMonetizacaoConfig({
+          trialAtivo: trialAtivoInput,
+          trialDias: dias,
+        });
+        setMonetizacaoGlobal(updated);
+        mostrarToast(
+          `Degustação Global salva com sucesso: ${
+            trialAtivoInput ? `${dias} dias grátis` : "Desativada"
+          }. Sincronizada no app do motorista!`
+        );
+      } else {
+        const wlEngine = WhiteLabelEngine.getInstance();
+        const currentTenant = wlEngine.getTenantById(tenantSelecionadoTrial);
+        const currentConfig = wlEngine.getTenantConfig(tenantSelecionadoTrial);
+        if (currentConfig) {
+          wlEngine.updateTenantConfig(tenantSelecionadoTrial, {
+            monetization: {
+              ...currentConfig.monetization,
+              trialAtivo: trialAtivoInput,
+              trialDias: dias,
+            },
+          });
+          const nomeFranquia = currentTenant?.nomeOperacao || tenantSelecionadoTrial;
+          mostrarToast(
+            `Degustação para "${nomeFranquia}" salva: ${
+              trialAtivoInput ? `${dias} dias grátis` : "Desativada"
+            }.`
+          );
+        }
+      }
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("partiu:monetizacao-atualizada"));
+        window.dispatchEvent(new CustomEvent("partiu:whitelabel-updated"));
+      }
+    } finally {
+      setIsSalvandoTrial(false);
+    }
   }
 
   useEffect(() => {
@@ -889,6 +986,207 @@ export function AdminMonetizacaoPage() {
                   </button>
                 </div>
               </form>
+            </div>
+
+            {/* ======================================================= */}
+            {/* CONFIGURADOR VISUAL DE TRIAL / DEGUSTAÇÃO GRATUITA      */}
+            {/* ======================================================= */}
+            <div className="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+                      <Gift className="w-5 h-5" />
+                    </span>
+                    <h3 className="text-base sm:text-lg font-black text-slate-950">
+                      Plano de Entrada & Degustação Gratuita (Trial)
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-500 max-w-2xl">
+                    Configure os dias de cortesia com 0% de comissão concedidos aos novos motoristas aprovados antes da primeira cobrança. Adapte livremente para lançamentos regionais ou campanhas de captação.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 bg-slate-50 p-2.5 rounded-2xl border border-slate-200 self-start sm:self-auto">
+                  <span className="text-xs font-bold text-slate-700">
+                    Status do Trial:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setTrialAtivoInput(!trialAtivoInput)}
+                    className="flex items-center gap-1.5 cursor-pointer font-black text-xs transition"
+                  >
+                    {trialAtivoInput ? (
+                      <>
+                        <ToggleRight className="w-7 h-7 text-emerald-600" />
+                        <span className="text-emerald-700">Ativado</span>
+                      </>
+                    ) : (
+                      <>
+                        <ToggleLeft className="w-7 h-7 text-slate-400" />
+                        <span className="text-slate-500">Pausado</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Seletor de Escopo de Tenant / Franquia */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1.5 md:col-span-1">
+                  <label className="text-xs font-black text-slate-700 block">
+                    Escopo de Aplicação:
+                  </label>
+                  <select
+                    value={tenantSelecionadoTrial}
+                    onChange={(e) => setTenantSelecionadoTrial(e.target.value)}
+                    className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:bg-white focus:border-emerald-500 focus:outline-hidden cursor-pointer"
+                  >
+                    <option value="global">🌐 Padrão Global (Todos os Franqueados)</option>
+                    {tenantsDisponiveis.map((t) => (
+                      <option key={t.tenantId} value={t.tenantId}>
+                        📍 {t.nomeOperacao || t.tenantId} ({t.cidadeNome || "Regional"})
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-[10.5px] text-slate-400 block">
+                    Defina se a regra vale para toda a plataforma ou apenas para uma praça específica.
+                  </span>
+                </div>
+
+                {/* Presets Rápidos */}
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-xs font-black text-slate-700 block">
+                    Atalhos Rápidos de Duração:
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { dias: 3, label: "3 Dias", tag: "Padrão" },
+                      { dias: 7, label: "7 Dias", tag: "Semana Grátis" },
+                      { dias: 15, label: "15 Dias", tag: "Incentivo" },
+                      { dias: 30, label: "30 Dias", tag: "Inauguração" },
+                    ].map((preset) => {
+                      const selecionado = trialDiasInput === preset.dias;
+                      return (
+                        <button
+                          key={preset.dias}
+                          type="button"
+                          onClick={() => {
+                            setTrialDiasInput(preset.dias);
+                            if (!trialAtivoInput) setTrialAtivoInput(true);
+                          }}
+                          className={`p-2.5 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between ${
+                            selecionado
+                              ? "bg-emerald-50 border-emerald-500 shadow-xs ring-1 ring-emerald-500"
+                              : "bg-slate-50 border-slate-200 hover:bg-slate-100 hover:border-slate-300"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black text-slate-900">
+                              {preset.label}
+                            </span>
+                            {selecionado && (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            )}
+                          </div>
+                          <span className="text-[10px] text-slate-500 font-medium mt-1">
+                            {preset.tag}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Ajuste Fino e Live Preview */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
+                {/* Campo Personalizado e Salvar */}
+                <form onSubmit={handleSalvarConfigTrial} className="space-y-4 bg-slate-50/70 p-4 rounded-2xl border border-slate-200/80">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-black text-slate-800 block">
+                      Dias Personalizados de Degustação:
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        max="90"
+                        value={trialDiasInput}
+                        onChange={(e) => setTrialDiasInput(Number(e.target.value))}
+                        disabled={!trialAtivoInput}
+                        className="w-full h-11 pl-3.5 pr-14 rounded-xl bg-white border border-slate-300 text-sm font-black text-slate-900 focus:border-emerald-500 focus:outline-hidden disabled:bg-slate-100 disabled:opacity-60"
+                      />
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                        dias
+                      </span>
+                    </div>
+                    <span className="text-[10.5px] text-slate-500 block">
+                      Equivalente a <strong>{trialDiasInput * 24} horas</strong> de liberação contínua sem bloqueio.
+                    </span>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSalvandoTrial}
+                    className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>
+                      {isSalvandoTrial
+                        ? "Salvando Configuração..."
+                        : `Salvar e Aplicar Degustação de ${trialDiasInput} Dias`}
+                    </span>
+                  </button>
+                </form>
+
+                {/* Prévia do Motorista */}
+                <div className="p-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                        <Sparkles className="w-3 h-3 text-amber-500" />
+                        Visualização em Tempo Real no App do Condutor
+                      </span>
+                      <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                        trialAtivoInput ? "bg-emerald-100 text-emerald-900" : "bg-slate-200 text-slate-600"
+                      }`}>
+                        {trialAtivoInput ? "Visível no App" : "Oculto no App"}
+                      </span>
+                    </div>
+
+                    {trialAtivoInput ? (
+                      <div className="p-3 bg-white rounded-xl border border-emerald-200 shadow-xs space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          <h4 className="text-xs font-black text-slate-900">
+                            Você tem {trialDiasInput} Dias Grátis de Acesso!
+                          </h4>
+                        </div>
+                        <p className="text-[11px] text-slate-600 leading-tight">
+                          Aproveite seu período de degustação com <strong>0% de taxa por corrida</strong>. Todos os ganhos das viagens são 100% seus.
+                        </p>
+                        <div className="pt-1.5 flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-emerald-700">
+                            Valor: R$ 0,00 (Gratuito)
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-400">
+                            Vigência: {trialDiasInput * 24}h
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 text-center text-xs text-slate-400 bg-white/60 rounded-xl border border-slate-200">
+                        O banner promocional de degustação está pausado. Novos motoristas serão direcionados diretamente para o catálogo de diárias pagas.
+                      </div>
+                    )}
+                  </div>
+
+                  <span className="text-[9.5px] text-slate-400 text-center mt-2 block">
+                    Ao salvar, o banner do app sincroniza imediatamente via eventos de tela e storage.
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Catálogo de Planos Periódicos */}
