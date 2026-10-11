@@ -1126,6 +1126,7 @@ import "./coupons-ecosystem-lifecycle.test.ts";
 import "./tenant-isolation-financial-maps-coupons.test.ts";
 import "./superadmin-franchisee-control.test.ts";
 import "./branding-persistence-and-tenant-isolation.test.ts";
+import "./map-provider-abstraction.test.ts";
 
 await waitForAllTests();
 const summary = getSummary();

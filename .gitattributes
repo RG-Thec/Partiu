@@ -1,0 +1,39 @@
+# ==============================================================================
+# ⚙️ GIT ATTRIBUTES — PARTIU ENTERPRISE
+# ==============================================================================
+# Padronização de quebra de linha (End of Line) para evitar poluição de diffs
+# entre desenvolvedores Windows, macOS e servidores Linux CI/CD.
+# ==============================================================================
+
+# Padrão geral para arquivos de texto
+* text=auto eol=lf
+
+# Código fonte e scripts
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.sql text eol=lf
+*.svg text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+
+# Arquivos binários intocáveis
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary

@@ -30,8 +30,8 @@ export const HomeBottomNav = memo(function HomeBottomNav({
   const { menuBuilder, corPrimaria, corSecundaria } = useBrandTheme();
 
   const customTabs = menuBuilder?.abasNavegacaoInferior?.filter((t) => t.ativo);
-  const primaryColor = corPrimaria || "#FF6B00";
-  const secondaryColor = corSecundaria || "#FFB800";
+  const primaryColor = corPrimaria || "var(--brand-primary, #FF6B00)";
+  const secondaryColor = corSecundaria || "var(--brand-secondary, #FFB800)";
 
   // === Renderização com White Label Custom Tabs ===
   if (customTabs && customTabs.length > 0) {

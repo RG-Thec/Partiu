@@ -10,6 +10,9 @@ async function run() {
   await pgClient.connect();
   console.log("--- TESTE COMPLETO DE AUDITORIA: CADASTRO PASSAGEIRO E MOTORISTA ---");
 
+  await pgClient.query("ALTER TABLE public.partiu_passageiros ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64);");
+  await pgClient.query("CREATE INDEX IF NOT EXISTS idx_partiu_passageiros_tenant ON public.partiu_passageiros(tenant_id);");
+
   const paxEmail = `pax_audit_${Date.now()}@partiu.com.br`;
   const drvEmail = `drv_audit_${Date.now()}@partiu.com.br`;
 

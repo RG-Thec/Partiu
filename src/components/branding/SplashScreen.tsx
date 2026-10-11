@@ -26,8 +26,8 @@ export function SplashScreen({ onFinish, minDurationMs = 550 }: SplashScreenProp
   // Mapeamento dinâmico estrito do White Label corporativo
   const appName = branding?.app_name || brandTheme.nomeApp || "PARTIU";
   const companyName = branding?.company_name || brandTheme.sloganApp || "Mobilidade urbana";
-  const primaryColor = branding?.primary_color || brandTheme.corPrimaria || "#FF6B00";
-  const secondaryColor = branding?.secondary_color || brandTheme.corSecundaria || "#FFB800";
+  const primaryColor = branding?.primary_color || brandTheme.corPrimaria || "var(--brand-primary, #FF6B00)";
+  const secondaryColor = branding?.secondary_color || brandTheme.corSecundaria || "var(--brand-secondary, #FFB800)";
   const logoSrc = branding?.splash_logo_url || branding?.logo_url || "/favicon.svg";
 
   useEffect(() => {

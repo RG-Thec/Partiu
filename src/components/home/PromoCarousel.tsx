@@ -167,7 +167,7 @@ export const PromoCarousel = memo(function PromoCarousel({
               style={{
                 backgroundColor:
                   activeSlide === index
-                    ? (corPrimaria || "#FF6B00")
+                    ? (corPrimaria || "var(--brand-primary, #FF6B00)")
                     : "rgba(255, 255, 255, 0.8)",
               }}
             />

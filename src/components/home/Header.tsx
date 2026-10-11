@@ -102,8 +102,10 @@ export const Header = memo(function Header({
             <div
               className="w-full h-full flex items-center justify-center font-bold text-[10px]"
               style={{
-                backgroundColor: `${corPrimaria || "#FF6B00"}18`,
-                color: corPrimaria || "#FF6B00",
+                backgroundColor: corPrimaria
+                  ? `${corPrimaria}18`
+                  : "color-mix(in srgb, var(--brand-primary, #FF6B00) 12%, transparent)",
+                color: corPrimaria || "var(--brand-primary, #FF6B00)",
               }}
             >
               {iniciais}
@@ -121,8 +123,8 @@ export const Header = memo(function Header({
           size="sm"
           appName={appName || nomeApp || "PARTIU"}
           tagline={sloganApp || "MAIS MOBILIDADE PARA VOCÊ"}
-          primaryColor={corPrimaria || "#FF6B00"}
-          secondaryColor={corSecundaria || "#FFB800"}
+          primaryColor={corPrimaria || "var(--brand-primary, #FF6B00)"}
+          secondaryColor={corSecundaria || "var(--brand-secondary, #FFB800)"}
           className="transition-transform hover:scale-102"
         />
       </div>

@@ -37,7 +37,8 @@ export type Database = {
           dispatch_wave: number | null;
           dispatch_attempt: number | null;
           dispatch_started_at: string | null;
-          accepted_at: string | null;
+          fare_brl: number | null;
+          fare_cents: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -70,6 +71,8 @@ export type Database = {
           dispatch_attempt?: number | null;
           dispatch_started_at?: string | null;
           accepted_at?: string | null;
+          fare_brl?: number | null;
+          fare_cents?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -102,6 +105,8 @@ export type Database = {
           dispatch_attempt?: number | null;
           dispatch_started_at?: string | null;
           accepted_at?: string | null;
+          fare_brl?: number | null;
+          fare_cents?: number | null;
           created_at?: string;
           updated_at?: string;
         };

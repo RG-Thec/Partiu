@@ -152,6 +152,9 @@ export function DespachoCentralCorridas() {
   const [liveOverrideMultiplicador, setLiveOverrideMultiplicador] = useState(1.4);
   const [liveOverrideDuracaoMinutos, setLiveOverrideDuracaoMinutos] = useState(30);
 
+  // Modal Novo Chamado (Central / Zap)
+  const [modalNovoChamado, setModalNovoChamado] = useState(false);
+
   // Modal Nova Regra Surge
   const [modalNovaRegra, setModalNovaRegra] = useState(false);
   const [formRegraNome, setFormRegraNome] = useState("");

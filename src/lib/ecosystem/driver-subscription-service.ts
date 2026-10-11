@@ -72,6 +72,7 @@ export interface DriverSubscriptionAccount {
   blockedReason?: string;
   documentsApproved: boolean;
   tenantId?: string;
+  completedTrips?: number;
 }
 
 export interface ExecutiveSaaSMetrics {

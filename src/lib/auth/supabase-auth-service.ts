@@ -1556,8 +1556,19 @@ export class SupabaseAuthService {
             silentCatchWarn("signUpPassenger:profiles", pErr);
           }
 
+          if (!data.session) {
+            try {
+              await supabase.auth.signInWithPassword({
+                email: cleanEmail,
+                password,
+              });
+            } catch (sErr) {
+              silentCatchWarn("signUpPassenger:autoSignIn", sErr);
+            }
+          }
+
           try {
-            await (supabase as any).from("partiu_passageiros").insert({
+            const { error: insErr } = await (supabase as any).from("partiu_passageiros").insert({
               user_id: data.user.id,
               nome: cleanName,
               cpf: cleanCpf,
@@ -1568,19 +1579,11 @@ export class SupabaseAuthService {
               rating: 5.0,
               is_ativo: true,
             });
+            if (insErr) {
+              silentCatchWarn("signUpPassenger:partiu_passageiros", insErr);
+            }
           } catch (dbErr) {
             silentCatchWarn("signUpPassenger:partiu_passageiros", dbErr);
-          }
-
-          if (!data.session) {
-            try {
-              await supabase.auth.signInWithPassword({
-                email: cleanEmail,
-                password,
-              });
-            } catch (sErr) {
-              silentCatchWarn("signUpPassenger:autoSignIn", sErr);
-            }
           }
         }
       } catch (err: any) {
@@ -1772,6 +1775,17 @@ export class SupabaseAuthService {
             silentCatchWarn("signUpDriver:profiles", pErr);
           }
 
+          if (!data.session) {
+            try {
+              await supabase.auth.signInWithPassword({
+                email: cleanEmail,
+                password,
+              });
+            } catch (sErr) {
+              silentCatchWarn("signUpDriver:autoSignIn", sErr);
+            }
+          }
+
           // Inserção na tabela partiu_motoristas com tenant_id explícito
           try {
             await (supabase as any).from("partiu_motoristas").insert({
@@ -1800,17 +1814,6 @@ export class SupabaseAuthService {
             });
           } catch (mErr) {
             silentCatchWarn("signUpDriver:partiu_motoristas", mErr);
-          }
-
-          if (!data.session) {
-            try {
-              await supabase.auth.signInWithPassword({
-                email: cleanEmail,
-                password,
-              });
-            } catch (sErr) {
-              silentCatchWarn("signUpDriver:autoSignIn", sErr);
-            }
           }
         }
       } catch (err: any) {

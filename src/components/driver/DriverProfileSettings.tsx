@@ -49,8 +49,8 @@ export function DriverProfileSettings({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const brandGradient = useMemo(() => {
-    const start = corCabecalhoInicio || corPrimaria || "#FF6B00";
-    const end = corCabecalhoFim || corSecundaria || "#FFB800";
+    const start = corCabecalhoInicio || corPrimaria || "var(--brand-primary, #FF6B00)";
+    const end = corCabecalhoFim || corSecundaria || "var(--brand-secondary, #FFB800)";
     return `linear-gradient(135deg, ${start} 0%, ${end} 100%)`;
   }, [corCabecalhoInicio, corCabecalhoFim, corPrimaria, corSecundaria]);
 
@@ -329,7 +329,7 @@ export function DriverProfileSettings({
                     }}
                   />
                 ) : (
-                  <span className="text-xl font-black" style={{ color: corPrimaria || "#FF6B00" }}>{iniciais}</span>
+                  <span className="text-xl font-black" style={{ color: corPrimaria || "var(--brand-primary, #FF6B00)" }}>{iniciais}</span>
                 )}
               </div>
 
@@ -339,7 +339,7 @@ export function DriverProfileSettings({
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploadingAvatar}
                 style={{
-                  backgroundColor: corPrimaria || "#FF6B00",
+                  backgroundColor: corPrimaria || "var(--brand-primary, #FF6B00)",
                   color: corTextoPrimaria || "#FFFFFF",
                 }}
                 className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition cursor-pointer border-2 border-white disabled:opacity-50"

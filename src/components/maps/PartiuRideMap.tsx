@@ -191,7 +191,7 @@ export const PartiuRideMap = memo(
     {
       status,
       modalidade = "POP",
-      origemCoords = DEFAULT_CENTER,
+      origemCoords = CANONICAL_FALLBACK_CENTER,
       destinoCoords,
       driverCoords,
       motorista,
@@ -713,7 +713,13 @@ export const PartiuRideMap = memo(
       if (isGoogleTiles) {
         initialStyle = mapboxService.getGoogleMapsTileStyle(mapConfig.effectiveGoogleApiKey);
       } else if (hasValidToken) {
-        initialStyle = mapboxService.getStyleUrl(activeMapStyle || "streets");
+        const mappedStyle =
+          activeMapStyle === "traffic"
+            ? "navigationTraffic"
+            : activeMapStyle === "satellite"
+              ? "satelliteStreets"
+              : "streets";
+        initialStyle = mapboxService.getStyleUrl(mappedStyle);
       } else {
         initialStyle = mapboxService.getFallbackStyle(
           activeMapStyle === "satellite" ? "satellite" : activeMapStyle === "traffic" ? "traffic" : "streets"

@@ -84,7 +84,7 @@ export async function registrarEntradaEscrow(
 
   const entries: LedgerEntry[] = [
     {
-      id: "ent_" + crypto.randomUUID(),
+      id: crypto.randomUUID(),
       transactionId,
       entryType: "DEBIT",
       accountId: CONTAS_CONTABEIS.CLEARING_PSP,
@@ -93,7 +93,7 @@ export async function registrarEntradaEscrow(
       createdAt: agora,
     },
     {
-      id: "ent_" + crypto.randomUUID(),
+      id: crypto.randomUUID(),
       transactionId,
       entryType: "CREDIT",
       accountId: CONTAS_CONTABEIS.ESCROW_PASSAGENS,
@@ -161,7 +161,7 @@ export async function liquidarSplitViagem(
   const entries: LedgerEntry[] = [
     // 1. Liberação do Escrow
     {
-      id: "ent_" + crypto.randomUUID(),
+      id: crypto.randomUUID(),
       transactionId,
       entryType: "DEBIT",
       accountId: CONTAS_CONTABEIS.ESCROW_PASSAGENS,
@@ -171,7 +171,7 @@ export async function liquidarSplitViagem(
     },
     // 2. Reconhecimento da obrigação com o motorista
     {
-      id: "ent_" + crypto.randomUUID(),
+      id: crypto.randomUUID(),
       transactionId,
       entryType: "CREDIT",
       accountId: CONTAS_CONTABEIS.REPASSE_MOTORISTAS,
@@ -181,7 +181,7 @@ export async function liquidarSplitViagem(
     },
     // 3. Receita da Cooperativa
     {
-      id: "ent_" + crypto.randomUUID(),
+      id: crypto.randomUUID(),
       transactionId,
       entryType: "CREDIT",
       accountId: CONTAS_CONTABEIS.TAXA_COOPERATIVA,
@@ -191,7 +191,7 @@ export async function liquidarSplitViagem(
     },
     // 4. Taxa do Processador de Pagamento
     {
-      id: "ent_" + crypto.randomUUID(),
+      id: crypto.randomUUID(),
       transactionId,
       entryType: "CREDIT",
       accountId: CONTAS_CONTABEIS.TAXAS_GATEWAY,

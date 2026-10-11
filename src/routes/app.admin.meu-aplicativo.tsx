@@ -253,7 +253,7 @@ export default function MeuAplicativoPage() {
     setSalvandoMapa(true);
     try {
       const tenant = whiteLabelEngine.getTenantById(effectiveTenantId);
-      const prevGeo = tenant?.configuracaoCompleta?.geo || {};
+      const prevGeo = tenant?.configuracaoCompleta?.geo || whiteLabelEngine.getActiveConfig().geo;
 
       const updatedGeo = {
         ...prevGeo,

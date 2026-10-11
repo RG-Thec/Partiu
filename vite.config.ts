@@ -40,6 +40,25 @@ export default defineConfig(({ command, mode }) => {
       host: "::",
       port: 8080,
     },
+    build: {
+      chunkSizeWarningLimit: 1200,
+      rollupOptions: {
+        output: {
+          manualChunks(id: string) {
+            if (id.includes("mapbox-gl")) {
+              return "mapbox-vendor";
+            }
+            if (id.includes("h3-js")) {
+              return "h3-vendor";
+            }
+            if (id.includes("@radix-ui")) {
+              return "radix-vendor";
+            }
+            return undefined;
+          },
+        },
+      },
+    },
     plugins: [
       tsConfigPaths({ projects: ["./tsconfig.json"] }),
       tailwindcss(),
