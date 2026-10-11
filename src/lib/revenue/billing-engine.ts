@@ -80,7 +80,7 @@ export const DEFAULT_GOVERNANCE_SETTINGS: GovernanceBillingSettings = {
   blockRadarOnSuspension: true,
   blockWithdrawalsOnSuspension: true,
   blockAllRidesOnSuspension: true,
-  autoDeductOnWithdrawal: true,
+  autoDeductOnWithdrawal: false,
 };
 
 const STORAGE_GOVERNANCE_KEY = "partiu_billing_governance_settings_v1";

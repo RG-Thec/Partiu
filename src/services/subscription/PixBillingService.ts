@@ -57,6 +57,7 @@ export interface DriverBillingRecord {
   status: "PENDING" | "PAID" | "EXPIRED" | "CANCELLED";
   expires_at: string;
   paid_at?: string;
+  tenant_id?: string;
   created_at: string;
 }
 
@@ -242,33 +243,19 @@ export class PixBillingService {
   }
 
   /**
-   * Avalia o acesso operacional do condutor via RPC Server-Side
+   * Avalia o acesso operacional do condutor via RPC Server-Side no PostgreSQL
+   * Autoridade exclusiva no servidor quando o Supabase estiver conectado.
    */
-  public async evaluateDriverAccess(driverId: string): Promise<DriverAccessDecision> {
-    // 1. Verificação prévia de assinatura ativa localmente
-    const activeLocalSub = driverSubscriptionService.getActiveSubscription(driverId);
-
-    if (activeLocalSub && activeLocalSub.status === "ACTIVE") {
-      const expiresAt = activeLocalSub.expires_at || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-      return {
-        is_eligible: true,
-        status: "ACTIVE",
-        plan_id: (activeLocalSub as any).plan_id || "plano-diaria-essencial",
-        plan_name: "Diária Operacional Ativa",
-        priority_weight: 1.0,
-        expires_at: expiresAt,
-        amount_paid: activeLocalSub.amount_paid || 14.90,
-        reasons: [],
-      };
-    }
-
+  public async evaluateDriverAccess(driverId: string, tenantId?: string): Promise<DriverAccessDecision> {
+    // 1. Autoridade Primária Server-Side (PostgreSQL RPC com horário oficial do banco)
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await (supabase as any).rpc("fn_driver_evaluate_access", {
           p_driver_id: driverId,
+          p_tenant_id: tenantId || null,
         });
 
-        if (!error && data && data.is_eligible) {
+        if (!error && data) {
           return {
             is_eligible: Boolean(data.is_eligible),
             status: data.status,
@@ -282,8 +269,24 @@ export class PixBillingService {
           };
         }
       } catch (err) {
-        console.warn("[PixBillingService] Falha na RPC remota, aplicando fallback in-process:", err);
+        console.warn("[PixBillingService] Falha na RPC remota, aplicando fallback in-process offline:", err);
       }
+    }
+
+    // 2. Contingência In-Process Offline / Modo de Testes Locais
+    const activeLocalSub = driverSubscriptionService.getActiveSubscription(driverId);
+    if (activeLocalSub && activeLocalSub.status === "ACTIVE") {
+      const expiresAt = activeLocalSub.expires_at || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      return {
+        is_eligible: true,
+        status: "ACTIVE",
+        plan_id: (activeLocalSub as any).plan_id || "plano-diaria-essencial",
+        plan_name: "Diária Operacional Ativa (Offline)",
+        priority_weight: 1.0,
+        expires_at: expiresAt,
+        amount_paid: activeLocalSub.amount_paid || 14.90,
+        reasons: [],
+      };
     }
 
     // Fallback in-process
@@ -333,7 +336,8 @@ export class PixBillingService {
     driverId: string,
     planId: string,
     cycleType: "DAILY" | "WEEKLY" | "MONTHLY" = "DAILY",
-    driverName = "Motorista Parceiro"
+    driverName = "Motorista Parceiro",
+    tenantId?: string
   ): Promise<DriverBillingRecord> {
     const plan = this.getPlanById(planId) || DEFAULT_MONETIZATION_PLANS[0]!;
     const amount = cycleType === "MONTHLY"
@@ -354,6 +358,7 @@ export class PixBillingService {
 
     const billingId = `bill_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const nowIso = new Date().toISOString();
+    const effectiveTenantId = tenantId || "tenant-itaperuna";
 
     const record: DriverBillingRecord = {
       id: billingId,
@@ -367,6 +372,7 @@ export class PixBillingService {
       qr_code_url: pixResult.qrCodeUrl,
       status: "PENDING",
       expires_at: pixResult.expiresAt,
+      tenant_id: effectiveTenantId,
       created_at: nowIso,
     };
 
@@ -386,6 +392,7 @@ export class PixBillingService {
           qr_code_url: record.qr_code_url,
           status: record.status,
           expires_at: record.expires_at,
+          tenant_id: effectiveTenantId,
           created_at: record.created_at,
         });
       } catch (err) {

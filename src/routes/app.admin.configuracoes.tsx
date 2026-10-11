@@ -412,7 +412,7 @@ export function ConfiguracoesAdminPage() {
   const [wlCorPrimaria, setWlCorPrimaria] = useState("#FF6B00");
   const [wlPreset, setWlPreset] = useState<"Moderno" | "Compacto" | "Arredondado">("Moderno");
   const [wlTarifaBase, setWlTarifaBase] = useState("5.00");
-  const [wlComissao, setWlComissao] = useState("10.0");
+  const [wlComissao, setWlComissao] = useState("0.0");
   const [wlPix, setWlPix] = useState("");
   const [wlWhatsapp, setWlWhatsapp] = useState("");
   const [cidadeAtivadaSucesso, setCidadeAtivadaSucesso] = useState(false);
@@ -534,7 +534,7 @@ export function ConfiguracoesAdminPage() {
       corPrimaria: wlCorPrimaria,
       preset: wlPreset,
       tarifaBase: Number(wlTarifaBase) || 5.0,
-      comissaoPercent: Number(wlComissao) || 10.0,
+      comissaoPercent: Number(wlComissao) || 0.0,
       chavePix: wlPix,
       whatsapp: wlWhatsapp,
       status: "ATIVA",
@@ -1387,7 +1387,7 @@ export function ConfiguracoesAdminPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Repasse da Franquia (% SaaS):</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Comissão por Corrida (% Taxa Zero):</label>
                     <input
                       type="number"
                       step="0.5"

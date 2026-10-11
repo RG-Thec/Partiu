@@ -147,12 +147,18 @@ export function AdminMonetizacaoPage() {
     setMetrics(revenueDashboardEngine.calculateMetrics());
     setPedidosRecarga(carregarPedidosRecarga());
     setGatewayConfig(carregarGatewayConfig());
+    void driverSubscriptionService.fetchServerSaaSMetrics().then((m) => {
+      setExecutiveMetrics(m);
+    });
   }
 
   useEffect(() => {
     const unsub = driverSubscriptionService.subscribeAccounts((accs) => {
       setDriverAccounts(accs);
       setExecutiveMetrics(driverSubscriptionService.getExecutiveSaaSMetrics());
+    });
+    void driverSubscriptionService.fetchServerSaaSMetrics().then((m) => {
+      setExecutiveMetrics(m);
     });
     return () => unsub();
   }, []);

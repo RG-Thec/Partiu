@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { GuardiaoAcesso } from "@/components/admin/GuardiaoAcesso";
 import { getAdminRole, getContaAtiva, isOwner, isSuperAdmin } from "@/lib/admin-rbac";
@@ -41,7 +41,7 @@ import { CloneTenantModal } from "@/components/admin/whitelabel/CloneTenantModal
 import { ImportThemeModal } from "@/components/admin/whitelabel/ImportThemeModal";
 
 export const Route = createFileRoute("/app/admin/whitelabel")({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): { tenant?: string; tab?: string } => ({
     tenant: typeof search.tenant === "string" ? search.tenant : undefined,
     tab: typeof search.tab === "string" ? search.tab : undefined,
   }),

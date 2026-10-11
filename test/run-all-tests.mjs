@@ -1128,6 +1128,7 @@ import "./superadmin-franchisee-control.test.ts";
 import "./branding-persistence-and-tenant-isolation.test.ts";
 import "./map-provider-abstraction.test.ts";
 import "./surge-automated-demand.test.ts";
+import "./monetization-ecosystem-consolidation.test.ts";
 
 await waitForAllTests();
 const summary = getSummary();

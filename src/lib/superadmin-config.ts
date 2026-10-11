@@ -204,6 +204,8 @@ export interface ConfigMonetizacaoWhiteLabel {
   tipoChavePixAdmin: "cnpj" | "cpf" | "email" | "telefone" | "aleatoria";
   beneficiarioAdmin: string;
   cidadeAdmin: string;
+  gateway?: string;
+  gatewayProvider?: string;
 }
 
 export const configMonetizacaoInicial: ConfigMonetizacaoWhiteLabel = {
@@ -555,11 +557,11 @@ export const configSuperAdminInicial: ConfigSuperAdmin = {
   nomeCooperativa: "PARTIU Tecnologia & Mobilidade Urbana",
   cnpj: "48.291.834/0001-90",
   telefoneCentral: "(22) 99605-1620",
-  taxaAdministrativaPercent: 12.0,
+  taxaAdministrativaPercent: 0.0,
   estrategicos: {
     splitPixAutomatico: true,
-    repasseMotoristaPercent: 88,
-    taxaCooperativaPercent: 12,
+    repasseMotoristaPercent: 100,
+    taxaCooperativaPercent: 0.0,
     clubeVipPassAtivo: true,
     descontoVipPassPercent: 10,
     whatsappSmartEtaAtivo: true,

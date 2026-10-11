@@ -652,6 +652,17 @@ class DriverSubscriptionService {
       days * 24
     );
 
+    if (isSupabaseConfigured()) {
+      void (supabase as any).rpc("fn_admin_monetization_override", {
+        p_tenant_id: currentAcc.tenantId || "tenant-itaperuna",
+        p_admin_id: adminName,
+        p_driver_id: driverId,
+        p_action: "GRANT_COURTESY",
+        p_reason: reason,
+        p_params: { days },
+      });
+    }
+
     return updatedAcc;
   }
 
@@ -694,6 +705,17 @@ class DriverSubscriptionService {
       durationDays * 24
     );
 
+    if (isSupabaseConfigured()) {
+      void (supabase as any).rpc("fn_admin_monetization_override", {
+        p_tenant_id: currentAcc.tenantId || "tenant-itaperuna",
+        p_admin_id: adminName,
+        p_driver_id: driverId,
+        p_action: "GRANT_COURTESY",
+        p_reason: `Renovação manual: ${planName} (${durationDays}d, R$ ${amount})`,
+        p_params: { days: durationDays, amount },
+      });
+    }
+
     return updatedAcc;
   }
 
@@ -723,6 +745,16 @@ class DriverSubscriptionService {
     this.saveToStorage();
     this.notifyListeners();
 
+    if (isSupabaseConfigured()) {
+      void (supabase as any).rpc("fn_admin_monetization_override", {
+        p_tenant_id: currentAcc.tenantId || "tenant-itaperuna",
+        p_admin_id: adminName,
+        p_driver_id: driverId,
+        p_action: "BLOCK_ACCESS",
+        p_reason: reason,
+      });
+    }
+
     return updatedAcc;
   }
 
@@ -743,7 +775,54 @@ class DriverSubscriptionService {
     this.saveAccountsToStorage();
     this.notifyAccountListeners();
 
+    if (isSupabaseConfigured()) {
+      void (supabase as any).rpc("fn_admin_monetization_override", {
+        p_tenant_id: currentAcc.tenantId || "tenant-itaperuna",
+        p_admin_id: "Super Admin",
+        p_driver_id: driverId,
+        p_action: "UNBLOCK_ACCESS",
+        p_reason: "Desbloqueio manual de acesso pelo suporte",
+      });
+    }
+
     return updatedAcc;
+  }
+
+  /**
+   * Consulta métricas SaaS diretamente calculadas e consolidadas no servidor PostgreSQL
+   */
+  public async fetchServerSaaSMetrics(tenantId?: string): Promise<ExecutiveSaaSMetrics> {
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await (supabase as any).rpc("fn_calculate_saas_metrics", {
+          p_tenant_id: tenantId || null,
+        });
+        if (!error && data) {
+          const mrr = Number(data.mrr_brl) || 0;
+          const arr = Number(data.arr_brl) || (mrr * 12);
+          const active = Number(data.active_subscribers_count) || 0;
+          const exp7d = Number(data.expiring_in_7_days_count) || 0;
+          const expired = Number(data.expired_count) || 0;
+          const suspended = Number(data.suspended_count) || 0;
+          const churn = Number(data.churn_rate_percent) || 0;
+
+          return {
+            mrrBrl: mrr,
+            arrBrl: arr,
+            activeSubscribersCount: active,
+            expiringIn7DaysCount: exp7d,
+            defaultingOrBlockedCount: expired + suspended,
+            totalGmvProcessedBrl: active * 1800,
+            totalSavingsForFleetBrl: Math.round(active * 1800 * 0.22 * 100) / 100,
+            renewalRatePercent: active + expired > 0 ? Number(((active / (active + expired)) * 100).toFixed(1)) : 100,
+            churnRatePercent: churn,
+          };
+        }
+      } catch (err) {
+        console.warn("[DriverSubscriptionService] Falha ao consultar fn_calculate_saas_metrics:", err);
+      }
+    }
+    return this.getExecutiveSaaSMetrics();
   }
 
   public getExecutiveSaaSMetrics(): ExecutiveSaaSMetrics {
