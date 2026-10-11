@@ -906,10 +906,46 @@ export class WhiteLabelEngine {
         this.broadcastChannel.onmessage = (event) => {
           if (event.data?.type === "TENANT_OR_THEME_UPDATED") {
             const incomingTenantId = event.data?.tenantId;
-            if (incomingTenantId && incomingTenantId !== this.activeTenantId) {
-              this.activeTenantId = incomingTenantId;
+            const incomingConfig = event.data?.config;
+            const incomingBranding = event.data?.branding;
+
+            // Recarrega mapa de tenants persistido
+            const raw = localStorage.getItem(STORAGE_KEY_TENANTS_MAP);
+            if (raw) {
+              try {
+                const parsed = JSON.parse(raw) as WhiteLabelTenantRecord[];
+                parsed.forEach((t) => this.tenantsMap.set(t.tenantId, t));
+              } catch {}
             }
-            this.applyTheme(this.getActiveConfig());
+
+            if (incomingTenantId && incomingConfig) {
+              const existing = this.tenantsMap.get(incomingTenantId);
+              if (existing) {
+                existing.configuracaoCompleta = incomingConfig;
+                this.tenantsMap.set(incomingTenantId, existing);
+              }
+            }
+
+            // Se o evento foi direcionado à praça atualmente em uso nesta aba/janela
+            if (incomingTenantId && incomingTenantId === this.activeTenantId) {
+              const targetConfig = incomingConfig || this.getActiveConfig();
+              this.applyTheme(targetConfig);
+              window.dispatchEvent(
+                new CustomEvent("partiu:whitelabel-updated", { detail: targetConfig })
+              );
+              if (incomingBranding) {
+                window.dispatchEvent(
+                  new CustomEvent("partiu:theme-palette-updated", {
+                    detail: { branding: incomingBranding, primaryColor: incomingBranding.primary_color },
+                  })
+                );
+              }
+              if (targetConfig.monetization) {
+                window.dispatchEvent(
+                  new CustomEvent("partiu:monetizacao-atualizada", { detail: targetConfig.monetization })
+                );
+              }
+            }
           }
         };
       } catch (err) { silentCatchWarn("white-label-engine", err); }
@@ -937,32 +973,6 @@ export class WhiteLabelEngine {
         parsed.forEach((t) => this.tenantsMap.set(t.tenantId, t));
       }
 
-      // Em ambiente de produção real, expurga qualquer registro antigo fictício ou demonstrativo
-      const dummyTenantIds = !isTestEnv ? ["tenant-itaperuna", "tenant-campos", "tenant-bhmob", "tenant-macae"] : [];
-      if (!isTestEnv) {
-        dummyTenantIds.forEach((id) => this.tenantsMap.delete(id));
-
-        const keysToDelete: string[] = [];
-        this.tenantsMap.forEach((t, k) => {
-          const idLower = (k || "").toLowerCase();
-          const cityLower = (t.cidadeNome || "").toLowerCase();
-          const opLower = (t.nomeOperacao || "").toLowerCase();
-          if (
-            idLower.includes("macae") ||
-            cityLower.includes("macae") ||
-            cityLower.includes("macaé") ||
-            opLower.includes("macae") ||
-            opLower.includes("macaé") ||
-            idLower === "tenant-itaperuna" ||
-            idLower === "tenant-campos" ||
-            idLower === "tenant-bhmob"
-          ) {
-            keysToDelete.push(k);
-          }
-        });
-        keysToDelete.forEach((k) => this.tenantsMap.delete(k));
-      }
-
       // Garante que o registro oficial da Matriz (e fixtures em teste) esteja presente
       SEED_TENANTS.forEach((t) => {
         if (!this.tenantsMap.has(t.tenantId)) {
@@ -975,7 +985,7 @@ export class WhiteLabelEngine {
       const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
       const urlTenant = (urlParams?.get("tenant") || urlParams?.get("tenant_id") || "").trim();
 
-      if (urlTenant && !dummyTenantIds.includes(urlTenant)) {
+      if (urlTenant) {
         this.activeTenantId = urlTenant;
         if (!this.tenantsMap.has(urlTenant)) {
           const cachedBranding = localStorage.getItem(`partiu_branding_tenant_${urlTenant}`);
@@ -996,7 +1006,7 @@ export class WhiteLabelEngine {
           const authRaw = localStorage.getItem("partiu_admin_session_auth") || localStorage.getItem("partiu_admin_session");
           if (authRaw) {
             const parsed = JSON.parse(authRaw);
-            if (parsed?.role === "FRANQUEADO" && parsed?.tenantId && !dummyTenantIds.includes(parsed.tenantId)) {
+            if (parsed?.role === "FRANQUEADO" && parsed?.tenantId) {
               sessionTenant = parsed.tenantId.trim();
             }
           }
@@ -1011,7 +1021,7 @@ export class WhiteLabelEngine {
             localStorage.getItem("partiu_active_tenant_id_v2") ||
             localStorage.getItem("partiu_wl_active_tenant_v1");
 
-          if (savedTenantId && savedTenantId.trim() && !dummyTenantIds.includes(savedTenantId.trim())) {
+          if (savedTenantId && savedTenantId.trim()) {
             this.activeTenantId = savedTenantId.trim();
           } else {
             this.activeTenantId = "default";
@@ -1036,15 +1046,59 @@ export class WhiteLabelEngine {
     } catch (err) { silentCatchWarn("white-label-engine", err); }
   }
 
-  private broadcastUpdate(): void {
+  public broadcastUpdate(targetTenantId?: string): void {
     if (typeof window === "undefined") return;
     try {
-      const config = this.getActiveConfig();
+      const tid = targetTenantId || this.activeTenantId;
+      const tenant = this.tenantsMap.get(tid);
+      const config = tenant ? tenant.configuracaoCompleta : this.getActiveConfig();
+      const brandingRecord = convertWhiteLabelToBrandingRecord(config, tid);
+
+      // 1. Eventos locais nesta aba/janela
       window.dispatchEvent(
         new CustomEvent("partiu:whitelabel-updated", { detail: config })
       );
+      window.dispatchEvent(
+        new CustomEvent("partiu:theme-palette-updated", {
+          detail: { branding: brandingRecord, primaryColor: brandingRecord.primary_color },
+        })
+      );
+      if (config.monetization) {
+        window.dispatchEvent(
+          new CustomEvent("partiu:monetizacao-atualizada", { detail: config.monetization })
+        );
+      }
+
+      // 2. BroadcastChannel para outras abas / janelas PWA
       if (this.broadcastChannel) {
-        this.broadcastChannel.postMessage({ type: "TENANT_OR_THEME_UPDATED", tenantId: this.activeTenantId });
+        this.broadcastChannel.postMessage({
+          type: "TENANT_OR_THEME_UPDATED",
+          tenantId: tid,
+          config,
+          branding: brandingRecord,
+        });
+      }
+
+      // 3. Atualiza cache local isolado específico do tenant
+      try {
+        localStorage.setItem(`partiu_branding_tenant_${tid}`, JSON.stringify(brandingRecord));
+      } catch {}
+
+      // 4. Supabase Realtime WebSocket Broadcast (Zero-Latency Multi-Device)
+      if (isSupabaseConfigured()) {
+        try {
+          const ch = supabase.channel(`realtime_branding_${tid}`);
+          void ch.send({
+            type: "broadcast",
+            event: "tenant-config-updated",
+            payload: {
+              tenantId: tid,
+              config,
+              branding: brandingRecord,
+              timestamp: Date.now(),
+            },
+          });
+        } catch {}
       }
     } catch (err) { silentCatchWarn("white-label-engine", err); }
   }
@@ -1394,7 +1448,7 @@ export class WhiteLabelEngine {
     this.applyTheme(updated);
 
     if (!options?.silent) {
-      this.broadcastUpdate();
+      this.broadcastUpdate(tenant.tenantId);
     }
 
     // Sincronização automática com Supabase (Nuvem como Fonte Única de Verdade)
@@ -1427,7 +1481,7 @@ export class WhiteLabelEngine {
     }
 
     if (!options?.silent) {
-      this.broadcastUpdate();
+      this.broadcastUpdate(tenant.tenantId);
     }
 
     if (!options?.skipPersist) {
@@ -1554,6 +1608,9 @@ export class WhiteLabelEngine {
         this.saveTenantsRegistry();
         if (tenantId === this.activeTenantId) {
           this.applyTheme(loadedConfig);
+          window.dispatchEvent(
+            new CustomEvent("partiu:whitelabel-updated", { detail: loadedConfig })
+          );
         }
         return loadedConfig;
       }
@@ -1610,6 +1667,9 @@ export class WhiteLabelEngine {
         this.saveTenantsRegistry();
         if (tenantId === this.activeTenantId) {
           this.applyTheme(merged);
+          window.dispatchEvent(
+            new CustomEvent("partiu:whitelabel-updated", { detail: merged })
+          );
         }
         return merged;
       }

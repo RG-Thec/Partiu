@@ -491,16 +491,36 @@ class DriverSubscriptionService {
   }
 
   /**
-   * Ativação de Degustação Grátis (Trial) para novos motoristas
+   * Ativação de Degustação Grátis (Trial) para novos motoristas isolada por Franqueado
    */
   public async activateTrial(
     driverId: string,
-    vehicleType: "MOTO" | "CARRO" = "CARRO"
+    vehicleType: "MOTO" | "CARRO" = "CARRO",
+    tenantId?: string
   ): Promise<DriverSubscriptionRecord | null> {
+    const effectiveTenantId = tenantId || this.getDriverTenantId(driverId);
+    let tenantMonetization: any = null;
+    try {
+      const wlEngine = WhiteLabelEngine.getInstance();
+      const tenantConfig = wlEngine.getTenantConfig(effectiveTenantId);
+      tenantMonetization = tenantConfig?.monetization;
+    } catch {
+      // Silencioso
+    }
+
     const config = getMonetizacaoConfig();
-    if (!config.trialAtivo || config.trialDias <= 0) return null;
-    const hours = config.trialDias * 24;
-    return this.confirmDailyFeePayment(driverId, vehicleType, `TRIAL_${Date.now()}`, 0, hours);
+    const trialAtivo = tenantMonetization?.trialAtivo ?? config.trialAtivo;
+    const trialDias = tenantMonetization?.trialDias ?? config.trialDias;
+    if (!trialAtivo || trialDias <= 0) return null;
+    const hours = trialDias * 24;
+    return this.confirmDailyFeePayment(
+      driverId,
+      vehicleType,
+      `TRIAL_${Date.now()}`,
+      0,
+      hours,
+      effectiveTenantId
+    );
   }
 
   /**
@@ -508,9 +528,18 @@ class DriverSubscriptionService {
    */
   public async simulateDailyFeePayment(
     driverId: string,
-    vehicleType: "MOTO" | "CARRO" = "CARRO"
+    vehicleType: "MOTO" | "CARRO" = "CARRO",
+    tenantId?: string
   ): Promise<DriverSubscriptionRecord> {
-    return this.confirmDailyFeePayment(driverId, vehicleType, `TX_TEST_${Date.now()}`);
+    const effectiveTenantId = tenantId || this.getDriverTenantId(driverId);
+    return this.confirmDailyFeePayment(
+      driverId,
+      vehicleType,
+      `TX_TEST_${Date.now()}`,
+      undefined,
+      24,
+      effectiveTenantId
+    );
   }
 
   /**

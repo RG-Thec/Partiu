@@ -348,17 +348,18 @@ whose code diverges from its record here is a "drifted" finding. -->
 
 ### SCR-21: Estúdio White Label
 - **Used by:** FLW-08 step 6
-- **Purpose:** Customização de cores, marcas, tipografia, verticais de negócio, monetização e preview com segregação estrita entre Super Admin e Franqueado
-- **Elements:** Seletor de paletas, Brand Center, Design System, Multi-Negócio, Planos e Chave PIX, Geo & App, gerador de favicon SVG, simulador responsivo ao vivo, banner regional de governança do franqueado
+- **Purpose:** Customização de cores, marcas, tipografia, verticais de negócio, monetização e preview com autonomia total do Super Admin para selecionar qualquer franquia e sincronizar em tempo real no app do franqueado
+- **Elements:** Seletor de praça ativa com banner de governança Super Admin, seletor de paletas com 1 clique, Brand Center, Design System, Multi-Negócio, Planos e Chave PIX, Geo & App, gerador de favicon SVG, simulador responsivo ao vivo com links diretos para testar Passageiro e Motorista
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |-------|---------|-------------|----------|
-  | success | alterações salvas | none — code first | Sincronização em tempo real de temas, categorias e tarifas em toda a aplicação |
+  | success | alterações salvas | none — code first | Sincronização em tempo real via BroadcastChannel e Supabase Realtime de temas, categorias e tarifas em toda a aplicação |
+  | superadmin | superadministrador seleciona franquia | none — code first | Banner de controle ativo com pré-visualização, teste rápido e propagação instantânea de white label para a praça selecionada |
   | regional | acesso com perfil franqueado | none — code first | Exibe 5 abas operacionais locais, oculta abas globais e bloqueia edição de identificadores nativos de compilação |
   | loading | compilando tema | none — code first | Indicador de persistência no Supabase |
-- **Coverage:** src/routes/app.admin.whitelabel.tsx:1-490, src/components/admin/whitelabel/MonetizationTab.tsx:1-260, src/components/admin/whitelabel/GeoAppComplianceTab.tsx:640-750
+- **Coverage:** src/routes/app.admin.whitelabel.tsx:1-550, src/components/admin/whitelabel/MonetizationTab.tsx:1-260, src/components/admin/whitelabel/GeoAppComplianceTab.tsx:640-750, src/lib/white-label/white-label-engine.ts:1-700, src/components/branding/BrandingProvider.tsx:1-720
 - **Scenarios:** SCN-010
-- **Resources:** ThemeEngine, LandingPageStore, whiteLabelEngine, saveMonetizacaoConfig
+- **Resources:** ThemeEngine, LandingPageStore, whiteLabelEngine, saveMonetizacaoConfig, BrandingProvider
 - **Status:** built
 
 ### SCR-22: Central de Incidentes SOS Admin

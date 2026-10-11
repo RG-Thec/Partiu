@@ -755,7 +755,10 @@ function SuperAdminFranqueadosContent() {
                           type="button"
                           onClick={() => {
                             switchTenant(tenant.tenantId);
-                            void navigate({ to: "/app/admin/whitelabel" });
+                            void navigate({
+                              to: "/app/admin/whitelabel",
+                              search: { tenant: tenant.tenantId },
+                            });
                           }}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
                           title="Personalizar identidade visual e configurações desta praça"
@@ -993,6 +996,22 @@ function SuperAdminFranqueadosContent() {
                           </div>
 
                           <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs space-y-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                switchTenant(tenant.tenantId);
+                                void navigate({
+                                  to: "/app/admin/whitelabel",
+                                  search: { tenant: tenant.tenantId },
+                                });
+                              }}
+                              className="w-full py-1.5 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-2xs"
+                              title="Personalizar identidade visual, cores e regras desta franquia"
+                            >
+                              <Palette className="w-3.5 h-3.5 text-primary-500" />
+                              <span>Personalizar White Label</span>
+                            </button>
+
                             {!isMatriz && (
                               <button
                                 type="button"
@@ -1169,7 +1188,10 @@ function SuperAdminFranqueadosContent() {
                                 type="button"
                                 onClick={() => {
                                   switchTenant(tenant.tenantId);
-                                  void navigate({ to: "/app/admin/whitelabel" });
+                                  void navigate({
+                                    to: "/app/admin/whitelabel",
+                                    search: { tenant: tenant.tenantId },
+                                  });
                                 }}
                                 className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 text-xs font-bold transition cursor-pointer"
                                 title="Customizar White Label"

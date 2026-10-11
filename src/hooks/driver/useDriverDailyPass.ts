@@ -5,6 +5,7 @@ import {
   type GeneratedPixPayment,
 } from "@/lib/ecosystem/driver-subscription-service";
 import { getMonetizacaoConfig } from "@/lib/superadmin-config";
+import { WhiteLabelEngine } from "@/lib/white-label";
 import { toast } from "sonner";
 
 export interface UseDriverDailyPassReturn {
@@ -39,8 +40,17 @@ export function useDriverDailyPass(
   });
   const [isExpired, setIsExpired] = useState<boolean>(false);
 
+  const tenantId = driverSubscriptionService.getDriverTenantId(driverId);
+  let tenantMon: any = null;
+  try {
+    const wlTenant = WhiteLabelEngine.getInstance().getTenantConfig(tenantId);
+    tenantMon = wlTenant?.monetization;
+  } catch {}
+
   const monetizacao = getMonetizacaoConfig();
-  const dailyFeeAmount = vehicleType === "MOTO" ? monetizacao.diariaMoto : monetizacao.diariaCarro;
+  const dailyFeeAmount = vehicleType === "MOTO"
+    ? (tenantMon?.diariaMoto ?? monetizacao.diariaMoto)
+    : (tenantMon?.diariaCarro ?? monetizacao.diariaCarro);
 
   const atualizarStatus = useCallback(() => {
     if (!driverId) return;

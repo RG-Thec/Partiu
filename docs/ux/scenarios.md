@@ -220,20 +220,22 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Persona:** P-03
 - **Feature:** Identidade & White Label Studio
 - **Traces:** ST-008, FLW-08 (JTBD-03, JRN-01/#2)
-- **Entry point:** Rota administrativa /app/admin/whitelabel
+- **Entry point:** Rota administrativa /app/admin/whitelabel e /app/admin/franqueados
 - **Preconditions:** Usuário administrador autenticado com papel Super Admin, Owner ou Franqueado
 - **Steps:**
-  1. O usuário acessa o White Label Studio: o sistema detecta o papel do usuário (Super Admin/Owner vs Franqueado) -> Para Franqueados, restringe a navegação às 5 abas operacionais locais (Brand Center, Design System, Multi-Negócio, Planos e Geo & App) e oculta as abas centrais da Matriz (Tipografia global, Landing Page corporativa, Home Builder e Menu Builder).
-  2. Na aba Multi-Negócio, o operador ativa ou desativa categorias de veículos (ex: Carro ou Moto) -> O modal de rota do passageiro reflete instantaneamente as categorias disponíveis e atualiza a seleção ativa sem recarregar a tela.
-  3. Na aba Planos, o operador configura a chave PIX, diárias (Carro e Moto) e planos de acesso -> As configurações são sincronizadas em tempo real com o serviço financeiro do motorista e o extrato da praça.
-  4. Na aba Geo & App, identificadores de compilação de código nativo (Package ID, Bundle ID e versão mínima) permanecem travados para Franqueados com aviso de governança da Matriz, mantendo editáveis os links oficiais de download e centrais de suporte.
-- **Expected result:** Isolamento estrito de praça com governança clara de papéis, garantindo que o Franqueado personalize sua identidade regional e receba diárias via PIX sem interferir na estabilidade global da plataforma.
-- **UI elements:** Barra de abas filtrada por perfil, Banner regional de governança do franqueado, Cards de categorias com switch imediato, Formulário de chave PIX e diárias com sincronização contábil, Bloqueio preventivo de identificadores nativos
-- **States covered:** success, loading, error
+  1. O usuário acessa o White Label Studio: quando autenticado como Super Admin ou Matriz, tem autonomia irrestrita para selecionar qualquer praça franqueada pelo seletor de topo ou pelo link direto da Central de Franqueados (`?tenant=...`). O estúdio exibe banner enterprise indicando a praça ativa sob edição e atalhos para testar instantaneamente o App do Passageiro e o Cockpit do Condutor.
+  2. O Super Admin personaliza cores, marcas, verticais de negócio, valores de diárias e chave PIX da franquia: as alterações disparam transmissão imediata via BroadcastChannel local e canal Supabase Realtime (`tenant-config-updated`), atualizando em tempo real os clientes de passageiro e motorista da praça sem necessidade de login do franqueado.
+  3. Quando autenticado com papel Franqueado, o sistema restringe a navegação às 5 abas operacionais locais (Brand Center, Design System, Multi-Negócio, Planos e Geo & App) e oculta as abas centrais da Matriz (Tipografia global, Landing Page corporativa, Home Builder e Menu Builder).
+  4. Na aba Multi-Negócio, o operador ativa ou desativa categorias de veículos (ex: Carro ou Moto): o modal de rota do passageiro reflete instantaneamente as categorias disponíveis e atualiza a seleção ativa sem recarregar a tela.
+  5. Na aba Planos, o operador configura a chave PIX, diárias (Carro e Moto) e planos de acesso: as configurações são sincronizadas em tempo real com o serviço financeiro do motorista e o extrato da praça.
+  6. Na aba Geo & App, identificadores de compilação de código nativo (Package ID, Bundle ID e versão mínima) permanecem travados para Franqueados com aviso de governança da Matriz, mantendo editáveis os links oficiais de download e centrais de suporte.
+- **Expected result:** Autonomia total do Super Admin para pré-configurar, homologar e entregar o aplicativo pronto para qualquer franquia com sincronização imediata em tempo real, aliada ao isolamento estrito de praça com governança clara de papéis.
+- **UI elements:** Barra de abas filtrada por perfil, Banner Super Admin de praça ativa, Banner regional de governança do franqueado, Cards de categorias com switch imediato, Formulário de chave PIX e diárias com sincronização contábil, Bloqueio preventivo de identificadores nativos
+- **States covered:** success, superadmin, regional, loading, error
 - **Errors & recovery:** Tentativas de acesso direto a abas restritas por URL são interceptadas pelo guardião de navegação e redirecionadas para a aba inicial permitida (Brand Center).
 - **Telemetry:** whitelabel_tenant_updated (tenant_id, role, updated_modules)
 - **Status:** implemented
-- **Coverage:** src/routes/app.admin.whitelabel.tsx:60-490, src/components/admin/whitelabel/MonetizationTab.tsx:1-260, src/components/admin/whitelabel/GeoAppComplianceTab.tsx:640-750, src/components/passenger/PassengerReviewRouteSheet.tsx:100-240
+- **Coverage:** src/routes/app.admin.whitelabel.tsx:60-550, src/routes/app.admin.franqueados.tsx:420-650, src/lib/white-label/white-label-engine.ts:1-700, src/components/branding/BrandingProvider.tsx:1-720, src/components/admin/whitelabel/MonetizationTab.tsx:1-260, src/components/admin/whitelabel/GeoAppComplianceTab.tsx:640-750, src/components/passenger/PassengerReviewRouteSheet.tsx:100-240
 - **Product:** unobserved
 
 ### SCN-011: Gestão Central de Franqueados e Multi-Tenant com Visualização Fluida e Ações Imediatas

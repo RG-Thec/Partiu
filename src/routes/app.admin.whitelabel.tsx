@@ -24,6 +24,7 @@ import {
   Building2,
   Copy,
   CheckCircle2,
+  ExternalLink,
 } from "lucide-react";
 
 import { BrandCenterTab } from "@/components/admin/whitelabel/BrandCenterTab";
@@ -40,6 +41,10 @@ import { CloneTenantModal } from "@/components/admin/whitelabel/CloneTenantModal
 import { ImportThemeModal } from "@/components/admin/whitelabel/ImportThemeModal";
 
 export const Route = createFileRoute("/app/admin/whitelabel")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    tenant: typeof search.tenant === "string" ? search.tenant : undefined,
+    tab: typeof search.tab === "string" ? search.tab : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "White Label Studio OS | PARTIU Enterprise" },
@@ -93,6 +98,8 @@ function WhiteLabelStudioPage() {
 }
 
 function WhiteLabelStudioContent() {
+  const navigate = Route.useNavigate();
+  const search = Route.useSearch();
   const role = getAdminRole();
   const contaAtiva = getContaAtiva();
   const isFranqueadoRole = role === "FRANQUEADO";
@@ -117,6 +124,23 @@ function WhiteLabelStudioContent() {
     isSyncing,
   } = useBranding();
 
+  const handleSelectTenant = useCallback(
+    (newTenantId: string) => {
+      switchTenant(newTenantId);
+      void navigate({
+        search: (prev: any) => ({ ...prev, tenant: newTenantId }),
+      });
+    },
+    [switchTenant, navigate]
+  );
+
+  // Super Admin / Matriz: Se a URL contiver ?tenant=, ativa e carrega essa franquia de imediato
+  useEffect(() => {
+    if (search.tenant && search.tenant.trim() && activeTenant?.tenantId !== search.tenant.trim()) {
+      switchTenant(search.tenant.trim());
+    }
+  }, [search.tenant, activeTenant?.tenantId, switchTenant]);
+
   // Franqueado: vincula automaticamente ao seu próprio tenant
   useEffect(() => {
     if (isFranqueadoRole && contaAtiva.tenantId && activeTenant?.tenantId !== contaAtiva.tenantId) {
@@ -125,6 +149,13 @@ function WhiteLabelStudioContent() {
   }, [isFranqueadoRole, contaAtiva.tenantId, activeTenant?.tenantId, switchTenant]);
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("brand");
+
+  // Se a URL contiver ?tab=, ativa essa aba
+  useEffect(() => {
+    if (search.tab && availableTabs.some((t) => t.id === search.tab)) {
+      setActiveTab(search.tab as ActiveTab);
+    }
+  }, [search.tab, availableTabs]);
 
   // Franqueado: se a aba ativa não for permitida, redireciona para "brand"
   useEffect(() => {
@@ -204,7 +235,7 @@ function WhiteLabelStudioContent() {
             {usuarioOwner ? (
               <select
                 value={activeTenant?.tenantId}
-                onChange={(e) => switchTenant(e.target.value)}
+                onChange={(e) => handleSelectTenant(e.target.value)}
                 className="bg-transparent font-semibold text-slate-800 dark:text-slate-200 focus:outline-hidden cursor-pointer"
               >
                 {allTenants.map((t) => (
@@ -367,6 +398,53 @@ function WhiteLabelStudioContent() {
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 flex flex-col lg:flex-row gap-6 items-start">
         {/* COLUNA ESQUERDA: NAVEGAÇÃO POR ABAS + FORMULÁRIOS DO STUDIO */}
         <div className={`w-full ${previewAberto ? "lg:w-7/12 xl:w-2/3" : "w-full"} space-y-6`}>
+          {/* BANNER DE AUTONOMIA TOTAL DO SUPER ADMINISTRADOR */}
+          {usuarioOwner && (
+            <div className="p-4 rounded-2xl bg-primary-500/10 border border-primary-500/30 text-xs text-primary-950 dark:text-primary-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs animate-in fade-in">
+              <div className="flex items-start gap-3">
+                <Building2 className="w-5 h-5 text-primary-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <div className="font-bold flex flex-wrap items-center gap-2">
+                    <span className="text-sm">
+                      {activeTenant?.tenantId === "default"
+                        ? "Matriz Oficial PARTIU (Nacional)"
+                        : `Configurando Franquia: ${activeTenant?.nomeOperacao}`}
+                    </span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-black bg-primary-100 dark:bg-primary-950 text-primary-800 dark:text-primary-200 uppercase border border-primary-300 dark:border-primary-800">
+                      {activeTenant?.cidadeNome} ({activeTenant?.uf})
+                    </span>
+                    <span className="font-mono text-[11px] text-slate-500">ID: {activeTenant?.tenantId}</span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                    Controle total da Matriz: todas as alterações em identidade visual, logotipo, modalidades ativas (Carro/Moto), chave PIX e diárias refletem em tempo real no aplicativo desta praça.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <a
+                  href={`/app?tenant=${encodeURIComponent(activeTenant?.tenantId || "default")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs text-slate-900 dark:text-white"
+                  title="Abrir o aplicativo do passageiro configurado para esta praça"
+                >
+                  <Smartphone className="w-3.5 h-3.5 text-primary-600" />
+                  <span>Testar Passageiro</span>
+                </a>
+                <a
+                  href={`/app/motorista?tenant=${encodeURIComponent(activeTenant?.tenantId || "default")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs text-slate-900 dark:text-white"
+                  title="Abrir o cockpit do motorista configurado para esta praça"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Portal Motorista</span>
+                </a>
+              </div>
+            </div>
+          )}
+
           {/* BANNER REGIONAL DO FRANQUEADO */}
           {isFranqueadoRole && (
             <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-3 shadow-xs">

@@ -69,25 +69,60 @@ export const DriverSubscriptionScreen: React.FC<DriverSubscriptionScreenProps> =
     corCabecalhoInicio,
     corCabecalhoFim,
     branding,
+    activeTenant,
+    monetization: tenantMonetization,
   } = useBrandTheme();
 
-  const [monetizacaoConfig, setMonetizacaoConfig] = useState(() => getMonetizacaoConfig());
+  const activeTenantId = branding?.tenant_id || activeTenant?.tenantId || "default";
+
+  // Mescla monetização do tenant (White Label) com fallback global
+  const getMergedMonetizacao = () => {
+    const globalMon = getMonetizacaoConfig();
+    return {
+      ...globalMon,
+      ...(tenantMonetization || {}),
+      chavePixAdmin: tenantMonetization?.chavePixAdmin || globalMon.chavePixAdmin,
+      beneficiarioAdmin: tenantMonetization?.beneficiarioAdmin || globalMon.beneficiarioAdmin,
+      cidadeAdmin: tenantMonetization?.cidadeAdmin || globalMon.cidadeAdmin,
+      diariaMoto: tenantMonetization?.diariaMoto ?? globalMon.diariaMoto,
+      diariaCarro: tenantMonetization?.diariaCarro ?? globalMon.diariaCarro,
+      semanalMoto: tenantMonetization?.semanalMoto ?? globalMon.semanalMoto,
+      semanalCarro: tenantMonetization?.semanalCarro ?? globalMon.semanalCarro,
+      mensalMoto: tenantMonetization?.mensalMoto ?? globalMon.mensalMoto,
+      mensalCarro: tenantMonetization?.mensalCarro ?? globalMon.mensalCarro,
+      trialAtivo: tenantMonetization?.trialAtivo ?? globalMon.trialAtivo,
+      trialDias: tenantMonetization?.trialDias ?? globalMon.trialDias,
+      diariaAtiva: tenantMonetization?.diariaAtiva ?? globalMon.diariaAtiva,
+      semanalAtivo: tenantMonetization?.semanalAtivo ?? globalMon.semanalAtivo,
+      mensalAtivo: tenantMonetization?.mensalAtivo ?? globalMon.mensalAtivo,
+    };
+  };
+
+  const [monetizacaoConfig, setMonetizacaoConfig] = useState(getMergedMonetizacao);
   const [copiado, setCopiado] = useState(false);
   const [tabPagamento, setTabPagamento] = useState<"copiacola" | "qrcode">("copiacola");
   const [isGerandoPix, setIsGerandoPix] = useState(false);
   const [isSimulando, setIsSimulando] = useState(false);
 
   const [generatedPix, setGeneratedPix] = useState(() =>
-    driverSubscriptionService.generateDailyFeePix(driverId || "mot-001", "CARRO", cycleType)
+    driverSubscriptionService.generateDailyFeePix(driverId || "mot-001", "CARRO", cycleType, activeTenantId)
   );
 
   useEffect(() => {
+    setMonetizacaoConfig(getMergedMonetizacao());
+  }, [tenantMonetization]);
+
+  useEffect(() => {
     const handleUpdate = () => {
-      setMonetizacaoConfig(getMonetizacaoConfig());
+      setMonetizacaoConfig(getMergedMonetizacao());
     };
     window.addEventListener("partiu:monetizacao-atualizada", handleUpdate);
-    return () => window.removeEventListener("partiu:monetizacao-atualizada", handleUpdate);
-  }, []);
+    window.addEventListener("partiu:whitelabel-updated", handleUpdate);
+    return () => {
+      window.removeEventListener("partiu:monetizacao-atualizada", handleUpdate);
+      window.removeEventListener("partiu:whitelabel-updated", handleUpdate);
+    };
+  }, [tenantMonetization]);
 
   // Ajusta o ciclo caso a modalidade selecionada tenha sido desativada pelo administrador
   useEffect(() => {
@@ -107,10 +142,11 @@ export const DriverSubscriptionScreen: React.FC<DriverSubscriptionScreenProps> =
     const pix = driverSubscriptionService.generateDailyFeePix(
       driverId || "mot-001",
       "CARRO",
-      cycleType
+      cycleType,
+      activeTenantId
     );
     setGeneratedPix(pix);
-  }, [driverId, cycleType, monetizacaoConfig]);
+  }, [driverId, cycleType, monetizacaoConfig, activeTenantId]);
 
   const accentColor = branding?.accent_color || corSecundaria || "#00C6FF";
   const surfaceColor = branding?.surface_color || "#1C2541";
@@ -148,7 +184,7 @@ export const DriverSubscriptionScreen: React.FC<DriverSubscriptionScreenProps> =
     setIsSimulando(true);
     try {
       const activeDriverId = driverId || "mot-001";
-      await driverSubscriptionService.activateTrial(activeDriverId, "CARRO");
+      await driverSubscriptionService.activateTrial(activeDriverId, "CARRO", activeTenantId);
       await refreshAccess();
       props?.onPaymentSuccess?.();
     } catch (err) {

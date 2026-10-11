@@ -309,7 +309,7 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
 
     fetchTenantBranding(activeTenantId);
 
-    // Canal Realtime Supabase
+    // 1. Canal Realtime Supabase (Postgres Changes + WebSockets Broadcast)
     const channel = supabase
       .channel(`realtime_branding_${activeTenantId}`)
       .on(
@@ -338,10 +338,73 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
           }
         }
       )
+      .on(
+        "broadcast",
+        { event: "tenant-config-updated" },
+        (event) => {
+          const payload = event.payload;
+          if (payload?.branding && (payload.tenantId === activeTenantRef.current || payload.tenantId === "default")) {
+            applyBrandingTheme(payload.branding);
+            setLastSyncedAt(new Date());
+          }
+        }
+      )
       .subscribe();
+
+    // 2. BroadcastChannel para sincronização instantânea entre abas e janelas PWA
+    let bc: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        bc = new BroadcastChannel("partiu_whitelabel_channel");
+        bc.onmessage = (event) => {
+          if (event.data?.type === "TENANT_OR_THEME_UPDATED") {
+            const incomingTenantId = event.data?.tenantId;
+            const incomingBranding = event.data?.branding;
+            if (incomingTenantId === activeTenantRef.current || incomingTenantId === "default") {
+              if (incomingBranding) {
+                applyBrandingTheme(incomingBranding);
+              } else if (event.data?.config) {
+                const converted = convertWhiteLabelToBrandingRecord(event.data.config, incomingTenantId);
+                applyBrandingTheme(converted);
+              }
+              setLastSyncedAt(new Date());
+            }
+          }
+        };
+      } catch {}
+    }
+
+    // 3. Listener local de partiu:whitelabel-updated
+    function handleLocalWhiteLabelUpdate(e: any) {
+      const cfg = e.detail;
+      if (cfg && (cfg.tenantId === activeTenantRef.current || !cfg.tenantId)) {
+        const converted = convertWhiteLabelToBrandingRecord(cfg, activeTenantRef.current);
+        applyBrandingTheme(converted);
+      }
+    }
+
+    // 4. Listener de storage para abas em segundo plano
+    function handleStorageEvent(e: StorageEvent) {
+      if (e.key === `partiu_branding_tenant_${activeTenantRef.current}` && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (parsed && parsed.primary_color) {
+            applyBrandingTheme(parsed);
+          }
+        } catch {}
+      }
+    }
+
+    window.addEventListener("partiu:whitelabel-updated", handleLocalWhiteLabelUpdate);
+    window.addEventListener("storage", handleStorageEvent);
 
     return () => {
       supabase.removeChannel(channel);
+      if (bc) {
+        try { bc.close(); } catch {}
+      }
+      window.removeEventListener("partiu:whitelabel-updated", handleLocalWhiteLabelUpdate);
+      window.removeEventListener("storage", handleStorageEvent);
     };
   }, [activeTenantId, fetchTenantBranding, applyBrandingTheme]);
 

@@ -32,6 +32,9 @@ Registro de decisões textuais da interface reconciliadas com a voz do produto.
 | action.tenant.view_table | Tabela | src/routes/app.admin.franqueados.tsx:328 | SCN-011 | agreed |
 | action.tenant.toggle_details | Detalhes & Links | src/routes/app.admin.franqueados.tsx:430 | SCN-011 | agreed |
 | action.tenant.copy_access | Copiar Acesso | src/routes/app.admin.franqueados.tsx:420 | SCN-011 | agreed |
+| action.whitelabel.edit_tenant | Personalizar White Label | src/routes/app.admin.franqueados.tsx:640 | SCN-010 | agreed |
+| whitelabel.test_passenger | Testar App Passageiro | src/routes/app.admin.whitelabel.tsx:180 | SCN-010 | agreed |
+| whitelabel.test_driver | Testar App Motorista | src/routes/app.admin.whitelabel.tsx:188 | SCN-010 | agreed |
 
 ## Columns
 

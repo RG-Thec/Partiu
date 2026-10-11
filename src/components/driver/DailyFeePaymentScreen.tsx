@@ -33,8 +33,9 @@ export const DailyFeePaymentScreen = memo(function DailyFeePaymentScreen({
   vehicleType = "CARRO",
   onPaymentSuccess,
 }: DailyFeePaymentScreenProps) {
-  const { nomeApp, corPrimaria, corTextoPrimaria, corCabecalhoInicio, corCabecalhoFim, branding } = useBrandTheme();
+  const { nomeApp, corPrimaria, corTextoPrimaria, corCabecalhoInicio, corCabecalhoFim, branding, activeTenant } = useBrandTheme();
   const accentColor = branding?.accent_color || corPrimaria || "#0088FF";
+  const activeTenantId = branding?.tenant_id || activeTenant?.tenantId;
   const [pixData, setPixData] = useState<GeneratedPixPayment | null>(null);
   const [copied, setCopied] = useState(false);
   const [verificando, setVerificando] = useState(false);
@@ -43,12 +44,12 @@ export const DailyFeePaymentScreen = memo(function DailyFeePaymentScreen({
   const [tabQr, setTabQr] = useState<"qrcode" | "copiacola">("copiacola");
 
   const settings = appSettingsService.getSettings();
-  const valorDiaria = vehicleType === "MOTO" ? settings.daily_fee_moto : settings.daily_fee_car;
+  const valorDiaria = pixData?.amount || (vehicleType === "MOTO" ? settings.daily_fee_moto : settings.daily_fee_car);
 
   useEffect(() => {
-    const pix = driverSubscriptionService.generateDailyFeePix(driverId, vehicleType);
+    const pix = driverSubscriptionService.generateDailyFeePix(driverId, vehicleType, "DAILY", activeTenantId);
     setPixData(pix);
-  }, [driverId, vehicleType]);
+  }, [driverId, vehicleType, activeTenantId]);
 
   function handleCopiarPix() {
     if (!pixData?.copiaECola) return;
