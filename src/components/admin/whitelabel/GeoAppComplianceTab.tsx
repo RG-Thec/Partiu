@@ -21,6 +21,7 @@ import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useBranding } from "@/hooks/useBranding";
 import { updateBrowserFavicon, generateSvgFavicon } from "@/lib/branding/ThemeEngine";
 import { MapboxConfig } from "@/config/MapboxConfig";
+import { getAdminRole } from "@/lib/admin-rbac";
 import { toast } from "sonner";
 import { ExternalLink, CheckCircle2, Share2, Key } from "lucide-react";
 
@@ -33,6 +34,8 @@ export function GeoAppComplianceTab({
   onSaveFeedback,
   onRequestSimulatorMode,
 }: GeoAppComplianceTabProps) {
+  const role = getAdminRole();
+  const isFranqueadoRole = role === "FRANQUEADO";
   const { geo, appConfig, brand, updateConfig, activeTenant } = useBrandTheme();
   const { branding, updateBranding, uploadAsset } = useBranding();
 
@@ -640,6 +643,16 @@ export function GeoAppComplianceTab({
               <Smartphone className="w-4 h-4 text-[#0088FF]" />
               Identificadores de Publicação &amp; App Stores
             </h3>
+
+            {isFranqueadoRole && (
+              <div className="mb-4 p-3.5 rounded-2xl bg-blue-50/80 border border-blue-200 text-xs text-blue-900 flex items-start gap-2.5">
+                <ShieldCheck className="w-4 h-4 shrink-0 text-[#0088FF] mt-0.5" />
+                <p className="text-[11px] leading-relaxed">
+                  <strong>Governança de Builds Nativos:</strong> Os identificadores de compilação (Package Android, Bundle iOS e Versão Mínima) são padronizados centralmente pelo Super Admin. Como operador regional, você tem liberdade para cadastrar os links das lojas e o canal de suporte da sua praça.
+                </p>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">
@@ -647,6 +660,7 @@ export function GeoAppComplianceTab({
                 </label>
                 <input
                   type="text"
+                  disabled={isFranqueadoRole}
                   value={appConfig?.pacoteAndroid || ""}
                   onChange={(e) => {
                     updateConfig({
@@ -655,11 +669,21 @@ export function GeoAppComplianceTab({
                     onSaveFeedback();
                   }}
                   placeholder="com.partiumobilidade.app"
-                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 font-mono outline-none transition"
+                  className={`w-full ${
+                    isFranqueadoRole
+                      ? "bg-slate-100 cursor-not-allowed text-slate-500"
+                      : "bg-slate-50 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] text-slate-800"
+                  } border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono outline-none transition`}
                 />
-                <span className="text-[10px] text-slate-400 mt-1 block">
-                  Identificador exclusivo do app no Google Play Console.
-                </span>
+                {isFranqueadoRole ? (
+                  <span className="text-[10px] text-amber-700 mt-1 block font-medium">
+                    🔒 Padronizado pela Matriz do Super Admin.
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-slate-400 mt-1 block">
+                    Identificador exclusivo do app no Google Play Console.
+                  </span>
+                )}
               </div>
 
               <div>
@@ -668,6 +692,7 @@ export function GeoAppComplianceTab({
                 </label>
                 <input
                   type="text"
+                  disabled={isFranqueadoRole}
                   value={appConfig?.bundleIos || ""}
                   onChange={(e) => {
                     updateConfig({
@@ -676,11 +701,21 @@ export function GeoAppComplianceTab({
                     onSaveFeedback();
                   }}
                   placeholder="com.partiumobilidade.ios"
-                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 font-mono outline-none transition"
+                  className={`w-full ${
+                    isFranqueadoRole
+                      ? "bg-slate-100 cursor-not-allowed text-slate-500"
+                      : "bg-slate-50 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] text-slate-800"
+                  } border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono outline-none transition`}
                 />
-                <span className="text-[10px] text-slate-400 mt-1 block">
-                  ID de aplicativo registrado no Apple Developer Account.
-                </span>
+                {isFranqueadoRole ? (
+                  <span className="text-[10px] text-amber-700 mt-1 block font-medium">
+                    🔒 Padronizado pela Matriz do Super Admin.
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-slate-400 mt-1 block">
+                    ID de aplicativo registrado no Apple Developer Account.
+                  </span>
+                )}
               </div>
 
               <div>
@@ -725,6 +760,7 @@ export function GeoAppComplianceTab({
                 </label>
                 <input
                   type="text"
+                  disabled={isFranqueadoRole}
                   value={appConfig?.versaoApp || "3.4.0"}
                   onChange={(e) => {
                     updateConfig({
@@ -733,11 +769,21 @@ export function GeoAppComplianceTab({
                     onSaveFeedback();
                   }}
                   placeholder="3.4.0"
-                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
+                  className={`w-full ${
+                    isFranqueadoRole
+                      ? "bg-slate-100 cursor-not-allowed text-slate-500"
+                      : "bg-slate-50 focus:bg-white focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] text-slate-800"
+                  } border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono outline-none transition`}
                 />
-                <span className="text-[10px] text-slate-400 mt-1 block">
-                  Dispara aviso de atualização forçada para versões inferiores.
-                </span>
+                {isFranqueadoRole ? (
+                  <span className="text-[10px] text-amber-700 mt-1 block font-medium">
+                    🔒 Definido centralmente para garantia de compatibilidade.
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-slate-400 mt-1 block">
+                    Dispara aviso de atualização forçada para versões inferiores.
+                  </span>
+                )}
               </div>
 
               <div>

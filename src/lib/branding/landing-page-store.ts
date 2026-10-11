@@ -4,15 +4,30 @@ import { defaultMobilityLandingData } from "@/data/defaultMobilityLandingData";
 export const STORAGE_KEY_LANDING_DATA = "partiu_custom_landing_page_data_v1";
 
 /**
+ * Retorna a chave isolada por tenant no localStorage
+ */
+export function getLandingStorageKey(tenantId?: string): string {
+  if (tenantId && tenantId.trim() && tenantId !== "default") {
+    return `partiu_custom_landing_page_data_${tenantId.trim()}`;
+  }
+  return STORAGE_KEY_LANDING_DATA;
+}
+
+/**
  * Obtém a configuração customizada da Landing Page persistida pelo painel administrativo
  * Faz fallback suave para os valores canônicos se nada foi salvo ainda.
  */
-export function getStoredLandingPageData(): MobilityLandingPageData {
+export function getStoredLandingPageData(tenantId?: string): MobilityLandingPageData {
   if (typeof window === "undefined") {
     return defaultMobilityLandingData;
   }
   try {
-    const raw = localStorage.getItem(STORAGE_KEY_LANDING_DATA);
+    const key = getLandingStorageKey(tenantId);
+    let raw = localStorage.getItem(key);
+    // Fallback gracioso para a chave global caso o tenant ainda não tenha customização isolada
+    if (!raw && key !== STORAGE_KEY_LANDING_DATA) {
+      raw = localStorage.getItem(STORAGE_KEY_LANDING_DATA);
+    }
     if (!raw) return defaultMobilityLandingData;
     const parsed = JSON.parse(raw);
     const cleanedCarImage =
@@ -71,13 +86,17 @@ export function getStoredLandingPageData(): MobilityLandingPageData {
 /**
  * Salva e propaga via CustomEvent a nova configuração da Landing Page
  */
-export function saveStoredLandingPageData(data: MobilityLandingPageData): void {
+export function saveStoredLandingPageData(data: MobilityLandingPageData, tenantId?: string): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(STORAGE_KEY_LANDING_DATA, JSON.stringify(data));
+    const key = getLandingStorageKey(tenantId);
+    localStorage.setItem(key, JSON.stringify(data));
+    if (!tenantId || tenantId === "default") {
+      localStorage.setItem(STORAGE_KEY_LANDING_DATA, JSON.stringify(data));
+    }
     window.dispatchEvent(
       new CustomEvent("partiu:landing-page-updated", {
-        detail: { data },
+        detail: { data, tenantId: tenantId || "default" },
       })
     );
   } catch (err) {
@@ -88,13 +107,17 @@ export function saveStoredLandingPageData(data: MobilityLandingPageData): void {
 /**
  * Restaura para os dados padrão de fábrica
  */
-export function resetStoredLandingPageData(): MobilityLandingPageData {
+export function resetStoredLandingPageData(tenantId?: string): MobilityLandingPageData {
   if (typeof window !== "undefined") {
     try {
-      localStorage.removeItem(STORAGE_KEY_LANDING_DATA);
+      const key = getLandingStorageKey(tenantId);
+      localStorage.removeItem(key);
+      if (!tenantId || tenantId === "default") {
+        localStorage.removeItem(STORAGE_KEY_LANDING_DATA);
+      }
       window.dispatchEvent(
         new CustomEvent("partiu:landing-page-updated", {
-          detail: { data: defaultMobilityLandingData },
+          detail: { data: defaultMobilityLandingData, tenantId: tenantId || "default" },
         })
       );
     } catch {}

@@ -64,6 +64,26 @@ type ActiveTab =
   | "monetization"
   | "geo_app";
 
+interface StudioTabItem {
+  id: ActiveTab;
+  numero: number;
+  label: string;
+  icone: React.ComponentType<{ className?: string }>;
+  superAdminOnly?: boolean;
+}
+
+const STUDIO_TABS: StudioTabItem[] = [
+  { id: "brand", numero: 1, label: "Brand Center", icone: Sparkles },
+  { id: "design", numero: 2, label: "Design System", icone: Palette },
+  { id: "typography", numero: 3, label: "Tipografia", icone: Type, superAdminOnly: true },
+  { id: "landing", numero: 4, label: "Landing Page", icone: Globe, superAdminOnly: true },
+  { id: "home", numero: 5, label: "Home Builder", icone: Layout, superAdminOnly: true },
+  { id: "menu", numero: 6, label: "Menu Builder", icone: Compass, superAdminOnly: true },
+  { id: "business", numero: 7, label: "Multi-Negócio", icone: Layers },
+  { id: "monetization", numero: 8, label: "Planos", icone: DollarSign },
+  { id: "geo_app", numero: 9, label: "Geo & App", icone: Globe },
+];
+
 function WhiteLabelStudioPage() {
   return (
     <GuardiaoAcesso permissao="whitelabel:manage">
@@ -77,6 +97,10 @@ function WhiteLabelStudioContent() {
   const contaAtiva = getContaAtiva();
   const isFranqueadoRole = role === "FRANQUEADO";
   const usuarioOwner = isSuperAdmin(role) || isOwner(role);
+
+  const availableTabs = isFranqueadoRole
+    ? STUDIO_TABS.filter((t) => !t.superAdminOnly)
+    : STUDIO_TABS;
 
   const {
     activeTenant,
@@ -101,6 +125,14 @@ function WhiteLabelStudioContent() {
   }, [isFranqueadoRole, contaAtiva.tenantId, activeTenant?.tenantId, switchTenant]);
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("brand");
+
+  // Franqueado: se a aba ativa não for permitida, redireciona para "brand"
+  useEffect(() => {
+    if (isFranqueadoRole && !availableTabs.some((t) => t.id === activeTab)) {
+      setActiveTab("brand");
+    }
+  }, [isFranqueadoRole, availableTabs, activeTab]);
+
   const [liveLandingData, setLiveLandingData] = useState<MobilityLandingPageData | null>(null);
   const [salvoFeedback, setSalvoFeedback] = useState(false);
   const [modalClonarAberto, setModalClonarAberto] = useState(false);
@@ -335,124 +367,48 @@ function WhiteLabelStudioContent() {
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 flex flex-col lg:flex-row gap-6 items-start">
         {/* COLUNA ESQUERDA: NAVEGAÇÃO POR ABAS + FORMULÁRIOS DO STUDIO */}
         <div className={`w-full ${previewAberto ? "lg:w-7/12 xl:w-2/3" : "w-full"} space-y-6`}>
+          {/* BANNER REGIONAL DO FRANQUEADO */}
+          {isFranqueadoRole && (
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-3 shadow-xs">
+              <Building2 className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <div className="font-bold flex flex-wrap items-center gap-2">
+                  <span>Painel de Governança Regional Franqueado — {activeTenant?.cidadeNome} ({activeTenant?.uf})</span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-black bg-amber-200 dark:bg-amber-900/60 text-amber-800 dark:text-amber-100 uppercase">
+                    Operação Regional
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                  Você possui autonomia direta sobre a identidade visual da sua praça (Brand Center, Design System), ativação das categorias de transporte (Multi-Negócio), configuração de diárias e chave PIX para repasse (Planos) e parametrizações locais de mapas e suporte (Geo &amp; App).
+                </p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 italic">
+                  * Os recursos globais de infraestrutura (Tipografia base, Landing Page corporativa central e compilação de pacotes nativos Android/iOS) são gerenciados pela Matriz.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* NAVEGAÇÃO POR ABAS */}
           <div className="flex items-center gap-1.5 p-1.5 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-x-auto">
-            <button
-              type="button"
-              onClick={() => setActiveTab("brand")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
-                activeTab === "brand"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
-              }`}
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>1. Brand Center</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab("design")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
-                activeTab === "design"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
-              }`}
-            >
-              <Palette className="w-4 h-4" />
-              <span>2. Design System</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab("typography")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
-                activeTab === "typography"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
-              }`}
-            >
-              <Type className="w-4 h-4" />
-              <span>3. Tipografia</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab("landing")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
-                activeTab === "landing"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
-              }`}
-            >
-              <Globe className="w-4 h-4" />
-              <span>4. Landing Page</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab("home")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
-                activeTab === "home"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
-              }`}
-            >
-              <Layout className="w-4 h-4" />
-              <span>5. Home Builder</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab("menu")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
-                activeTab === "menu"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
-              }`}
-            >
-              <Compass className="w-4 h-4" />
-              <span>6. Menu Builder</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab("business")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
-                activeTab === "business"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
-              }`}
-            >
-              <Layers className="w-4 h-4" />
-              <span>7. Multi-Negócio</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab("monetization")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
-                activeTab === "monetization"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
-              }`}
-            >
-              <DollarSign className="w-4 h-4" />
-              <span>8. Planos</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab("geo_app")}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
-                activeTab === "geo_app"
-                  ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
-              }`}
-            >
-              <Globe className="w-4 h-4" />
-              <span>9. Geo &amp; App</span>
-            </button>
+            {availableTabs.map((t) => {
+              const Icon = t.icone;
+              const isActive = activeTab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setActiveTab(t.id)}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shrink-0 ${
+                    isActive
+                      ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 font-black shadow-xs"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{t.numero}. {t.label}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* CONTEÚDO DAS ABAS MODULARIZADAS */}

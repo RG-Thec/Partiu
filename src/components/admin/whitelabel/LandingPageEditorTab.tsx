@@ -71,17 +71,23 @@ interface LandingPageEditorTabProps {
 export const LandingPageEditorTab: React.FC<LandingPageEditorTabProps> = ({
   onDataChange,
 }) => {
-  const { nomeApp, sloganApp, corPrimaria, corSecundaria } = useBrandTheme();
+  const { activeTenant, nomeApp, sloganApp, corPrimaria, corSecundaria } = useBrandTheme();
   const { uploadAsset } = useBranding();
+  const tenantId = activeTenant?.tenantId || "default";
 
   const [landingData, setLandingData] = useState<MobilityLandingPageData>(() =>
-    getStoredLandingPageData()
+    getStoredLandingPageData(tenantId)
   );
   const [salvoSucesso, setSalvoSucesso] = useState(false);
   const [uploadingCar, setUploadingCar] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [novoItemChecklist, setNovoItemChecklist] = useState("");
+
+  // Recarrega dados quando o tenant ativo mudar
+  useEffect(() => {
+    setLandingData(getStoredLandingPageData(tenantId));
+  }, [tenantId]);
 
   // Notifica o callback pai se fornecido (para live preview no simulador lateral)
   useEffect(() => {
@@ -153,14 +159,14 @@ export const LandingPageEditorTab: React.FC<LandingPageEditorTabProps> = ({
   };
 
   const handleSalvar = () => {
-    saveStoredLandingPageData(landingData);
+    saveStoredLandingPageData(landingData, tenantId);
     setSalvoSucesso(true);
     setTimeout(() => setSalvoSucesso(false), 3000);
   };
 
   const handleRestaurar = () => {
     if (confirm("Deseja restaurar todos os textos e imagens da Landing Page para o padrão?")) {
-      const reseted = resetStoredLandingPageData();
+      const reseted = resetStoredLandingPageData(tenantId);
       setLandingData(reseted);
       setSalvoSucesso(true);
       setTimeout(() => setSalvoSucesso(false), 3000);

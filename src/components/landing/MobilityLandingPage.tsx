@@ -59,6 +59,7 @@ export const MobilityLandingPage: React.FC<MobilityLandingPageProps> = ({
 }) => {
   // Consumo em tempo real do tema e identidade definidos no Painel Admin White Label
   const {
+    activeTenant,
     nomeApp,
     sloganApp,
     corPrimaria,
@@ -69,6 +70,8 @@ export const MobilityLandingPage: React.FC<MobilityLandingPageProps> = ({
     identidade,
   } = useBrandTheme();
 
+  const tenantId = activeTenant?.tenantId || "default";
+
   // Helper para gerar gradiente escuro de fundo alinhado à cor primária do tema ativo
   const darkGradientForTheme = useMemo(() => {
     return generateDarkGradientFromColors(corPrimaria || "#FF6B00", corSecundaria || "#FFB800");
@@ -76,20 +79,29 @@ export const MobilityLandingPage: React.FC<MobilityLandingPageProps> = ({
 
   // Carrega configuração persistida pelo painel administrativo
   const [storedData, setStoredData] = useState<MobilityLandingPageData>(() =>
-    initialData || getStoredLandingPageData()
+    initialData || getStoredLandingPageData(tenantId)
   );
+
+  // Recarrega quando mudar de tenant
+  useEffect(() => {
+    if (!initialData) {
+      setStoredData(getStoredLandingPageData(tenantId));
+    }
+  }, [tenantId, initialData]);
 
   // Escuta atualizações vindas do Painel Administrativo em tempo real
   useEffect(() => {
     function handleUpdate(e: Event) {
       const customEvent = e as CustomEvent;
       if (customEvent.detail?.data) {
-        setStoredData(customEvent.detail.data);
+        if (!customEvent.detail.tenantId || customEvent.detail.tenantId === tenantId) {
+          setStoredData(customEvent.detail.data);
+        }
       }
     }
     window.addEventListener("partiu:landing-page-updated", handleUpdate);
     return () => window.removeEventListener("partiu:landing-page-updated", handleUpdate);
-  }, []);
+  }, [tenantId]);
 
   // Montagem reativa dos dados conectando o schema armazenado às configurações de cor/marca do Admin
   const adminLinkedData = useMemo<MobilityLandingPageData>(() => {

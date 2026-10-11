@@ -214,3 +214,44 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Coverage:** src/services/SurgeEngine.ts:1-250, src/routes/app.admin.despacho.tsx:660-760, src/components/passenger/PassengerReviewRouteSheet.tsx:300-350
 - **Product:** unobserved
 
+## Identidade & White Label
+
+### SCN-010: Governança White Label com segregação regional e sincronização em tempo real
+- **Persona:** P-03
+- **Feature:** Identidade & White Label Studio
+- **Traces:** ST-008, FLW-08 (JTBD-03, JRN-01/#2)
+- **Entry point:** Rota administrativa /app/admin/whitelabel
+- **Preconditions:** Usuário administrador autenticado com papel Super Admin, Owner ou Franqueado
+- **Steps:**
+  1. O usuário acessa o White Label Studio: o sistema detecta o papel do usuário (Super Admin/Owner vs Franqueado) -> Para Franqueados, restringe a navegação às 5 abas operacionais locais (Brand Center, Design System, Multi-Negócio, Planos e Geo & App) e oculta as abas centrais da Matriz (Tipografia global, Landing Page corporativa, Home Builder e Menu Builder).
+  2. Na aba Multi-Negócio, o operador ativa ou desativa categorias de veículos (ex: Carro ou Moto) -> O modal de rota do passageiro reflete instantaneamente as categorias disponíveis e atualiza a seleção ativa sem recarregar a tela.
+  3. Na aba Planos, o operador configura a chave PIX, diárias (Carro e Moto) e planos de acesso -> As configurações são sincronizadas em tempo real com o serviço financeiro do motorista e o extrato da praça.
+  4. Na aba Geo & App, identificadores de compilação de código nativo (Package ID, Bundle ID e versão mínima) permanecem travados para Franqueados com aviso de governança da Matriz, mantendo editáveis os links oficiais de download e centrais de suporte.
+- **Expected result:** Isolamento estrito de praça com governança clara de papéis, garantindo que o Franqueado personalize sua identidade regional e receba diárias via PIX sem interferir na estabilidade global da plataforma.
+- **UI elements:** Barra de abas filtrada por perfil, Banner regional de governança do franqueado, Cards de categorias com switch imediato, Formulário de chave PIX e diárias com sincronização contábil, Bloqueio preventivo de identificadores nativos
+- **States covered:** success, loading, error
+- **Errors & recovery:** Tentativas de acesso direto a abas restritas por URL são interceptadas pelo guardião de navegação e redirecionadas para a aba inicial permitida (Brand Center).
+- **Telemetry:** whitelabel_tenant_updated (tenant_id, role, updated_modules)
+- **Status:** implemented
+- **Coverage:** src/routes/app.admin.whitelabel.tsx:60-490, src/components/admin/whitelabel/MonetizationTab.tsx:1-260, src/components/admin/whitelabel/GeoAppComplianceTab.tsx:640-750, src/components/passenger/PassengerReviewRouteSheet.tsx:100-240
+- **Product:** unobserved
+
+### SCN-011: Gestão Central de Franqueados e Multi-Tenant com Visualização Fluida e Ações Imediatas
+- **Persona:** P-03
+- **Feature:** Gestão Central de Franqueados & Multi-Tenant
+- **Traces:** ST-008, FLW-08 (JTBD-03, JRN-01/#2)
+- **Entry point:** Rota administrativa /app/admin/franqueados
+- **Preconditions:** Usuário autenticado como Super Admin ou Matriz
+- **Steps:**
+  1. O operador visualiza a lista de operações municipais com controle de densidade visual, alternando entre Cards Compactos e Tabela Executiva.
+  2. Cada cartão apresenta métricas chave condensadas (passageiros, condutores, status do servidor de mapas e PIX da praça), mantendo detalhes extensos recolhidos em gaveta expansível sob demanda.
+  3. O operador pode acionar cópia direta de links de distribuição, testar chaves de mapas, consultar passageiros e condutores com exportação de relatórios em CSV e executar suspensão de emergência sem sobrecarga visual.
+- **Expected result:** Interface fluida, hierarquizada e sem sobrecarga cognitiva para a gestão de dezenas de praças, preservando todos os controles operacionais e de governança.
+- **UI elements:** Seletor de visualização Cards vs Tabela, Cards compactos com drawer expansível, Tabela executiva de alta densidade, Modais de inspeção com exportação CSV, Modal de chaves de mapas
+- **States covered:** success, filtered, empty, table
+- **Errors & recovery:** Em caso de exclusão acidental ou suspensão indevida, a operação exige confirmação com digitação do nome da cidade ou pode ser reativada instantaneamente com o botão Reativar Praça.
+- **Telemetry:** tenant_management_action (tenant_id, action, status)
+- **Status:** implemented
+- **Coverage:** src/routes/app.admin.franqueados.tsx:1-1200
+- **Product:** unobserved
+

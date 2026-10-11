@@ -1,6 +1,7 @@
 import React from "react";
-import { DollarSign, QrCode, ShieldCheck, Building2, Wallet } from "lucide-react";
+import { DollarSign, QrCode, ShieldCheck, Building2, Wallet, CheckCircle2, XCircle } from "lucide-react";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
+import { saveMonetizacaoConfig } from "@/lib/superadmin-config";
 
 interface MonetizationTabProps {
   onSaveFeedback: () => void;
@@ -9,15 +10,42 @@ interface MonetizationTabProps {
 export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
   const { monetization, updateConfig } = useBrandTheme();
 
+  function handleUpdateMonetization(patch: Record<string, any>) {
+    const updated = {
+      ...monetization,
+      ...patch,
+    };
+    updateConfig({
+      monetization: updated,
+    });
+    saveMonetizacaoConfig({
+      chavePixAdmin: updated.chavePixAdmin,
+      tipoChavePixAdmin: updated.tipoChavePixAdmin,
+      beneficiarioAdmin: updated.beneficiarioAdmin,
+      cidadeAdmin: updated.cidadeAdmin,
+      diariaCarro: updated.diariaCarro,
+      diariaMoto: updated.diariaMoto,
+      gateway: updated.gatewayProvider,
+    });
+    onSaveFeedback();
+  }
+
+  function handleTogglePlano(planoId: string, ativo: boolean) {
+    const planosAtualizados = (monetization?.planos || []).map((p) =>
+      p.id === planoId ? { ...p, ativo } : p
+    );
+    handleUpdateMonetization({ planos: planosAtualizados });
+  }
+
   return (
     <div className="bg-white border border-slate-200/90 rounded-3xl p-6 space-y-6 shadow-xs text-slate-900 animate-in fade-in">
       <div className="border-b border-slate-100 pb-4">
         <h2 className="text-lg font-bold text-[#003366] flex items-center gap-2">
           <DollarSign className="w-5 h-5 text-primary-600" />
-          Módulo 7: Planos &amp; Monetização da Franquia
+          Módulo 8: Planos &amp; Monetização da Franquia
         </h2>
         <p className="text-xs text-slate-500 mt-1">
-          Configure a chave PIX exclusiva para recebimento das diárias SaaS dos motoristas e defina os planos de acesso da sua praça.
+          Configure a chave PIX exclusiva para recebimento das diárias SaaS dos motoristas e defina os planos de acesso da sua praça. Sincronização imediata no aplicativo do motorista.
         </p>
       </div>
 
@@ -40,13 +68,7 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
               type="text"
               value={monetization?.chavePixAdmin || ""}
               onChange={(e) => {
-                updateConfig({
-                  monetization: {
-                    ...monetization,
-                    chavePixAdmin: e.target.value.trim(),
-                  },
-                });
-                onSaveFeedback();
+                handleUpdateMonetization({ chavePixAdmin: e.target.value.trim() });
               }}
               placeholder="ex: financeiro@suacidade.com.br"
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition font-mono"
@@ -60,13 +82,7 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
             <select
               value={monetization?.tipoChavePixAdmin || "email"}
               onChange={(e: any) => {
-                updateConfig({
-                  monetization: {
-                    ...monetization,
-                    tipoChavePixAdmin: e.target.value,
-                  },
-                });
-                onSaveFeedback();
+                handleUpdateMonetization({ tipoChavePixAdmin: e.target.value });
               }}
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
             >
@@ -86,13 +102,7 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
               type="text"
               value={monetization?.beneficiarioAdmin || ""}
               onChange={(e) => {
-                updateConfig({
-                  monetization: {
-                    ...monetization,
-                    beneficiarioAdmin: e.target.value,
-                  },
-                });
-                onSaveFeedback();
+                handleUpdateMonetization({ beneficiarioAdmin: e.target.value });
               }}
               placeholder="Razão Social ou Titular"
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
@@ -107,13 +117,7 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
               type="text"
               value={monetization?.cidadeAdmin || ""}
               onChange={(e) => {
-                updateConfig({
-                  monetization: {
-                    ...monetization,
-                    cidadeAdmin: e.target.value,
-                  },
-                });
-                onSaveFeedback();
+                handleUpdateMonetization({ cidadeAdmin: e.target.value });
               }}
               placeholder="ex: Itaperuna"
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition uppercase"
@@ -131,13 +135,7 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
               step="0.10"
               value={monetization?.diariaCarro ?? 19.90}
               onChange={(e) => {
-                updateConfig({
-                  monetization: {
-                    ...monetization,
-                    diariaCarro: Number(e.target.value) || 19.90,
-                  },
-                });
-                onSaveFeedback();
+                handleUpdateMonetization({ diariaCarro: Number(e.target.value) || 19.90 });
               }}
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 font-mono outline-none"
             />
@@ -152,13 +150,7 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
               step="0.10"
               value={monetization?.diariaMoto ?? 11.90}
               onChange={(e) => {
-                updateConfig({
-                  monetization: {
-                    ...monetization,
-                    diariaMoto: Number(e.target.value) || 11.90,
-                  },
-                });
-                onSaveFeedback();
+                handleUpdateMonetization({ diariaMoto: Number(e.target.value) || 11.90 });
               }}
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 font-mono outline-none"
             />
@@ -171,13 +163,7 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
             <select
               value={monetization?.gatewayProvider || "mercadopago"}
               onChange={(e: any) => {
-                updateConfig({
-                  monetization: {
-                    ...monetization,
-                    gatewayProvider: e.target.value,
-                  },
-                });
-                onSaveFeedback();
+                handleUpdateMonetization({ gatewayProvider: e.target.value });
               }}
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none"
             >
@@ -197,46 +183,73 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
           <span>Planos de Acesso Cadastrados para a Frota</span>
         </div>
 
-        {monetization?.planos?.map((plano) => (
-          <div
-            key={plano.id}
-            className="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex flex-wrap items-center justify-between gap-4"
-          >
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm font-black text-white">{plano.nome}</span>
-                <span
-                  style={{ backgroundColor: plano.badgeCor }}
-                  className="text-slate-950 px-2 py-0.5 rounded text-[10px] font-black"
-                >
-                  {plano.comissaoPercentual === 0 ? "Taxa Zero" : `${plano.comissaoPercentual}%`}
-                </span>
+        {monetization?.planos?.map((plano) => {
+          const isAtivo = plano.ativo !== false;
+          return (
+            <div
+              key={plano.id}
+              className={`p-4 rounded-2xl border transition-all flex flex-wrap items-center justify-between gap-4 ${
+                isAtivo
+                  ? "bg-slate-900 border-slate-800"
+                  : "bg-slate-900/50 border-slate-800/60 opacity-60"
+              }`}
+            >
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-sm font-black text-white">{plano.nome}</span>
+                  <span
+                    style={{ backgroundColor: plano.badgeCor }}
+                    className="text-slate-950 px-2 py-0.5 rounded text-[10px] font-black"
+                  >
+                    {plano.comissaoPercentual === 0 ? "Taxa Zero" : `${plano.comissaoPercentual}%`}
+                  </span>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      isAtivo
+                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                        : "bg-slate-800 text-slate-400"
+                    }`}
+                  >
+                    {isAtivo ? "Ativo" : "Desativado"}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400">{plano.descricao}</p>
               </div>
-              <p className="text-xs text-slate-400">{plano.descricao}</p>
-            </div>
 
-            <div className="flex items-center gap-4 text-xs font-mono">
-              <div>
-                <span className="text-slate-500 block text-[10px]">Mensalidade</span>
-                <span className="font-bold text-emerald-400">
-                  R$ {plano.mensalidadeBrl.toFixed(2)}
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-500 block text-[10px]">Diária</span>
-                <span className="font-bold text-white">
-                  R$ {plano.diariaBrl.toFixed(2)}
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-500 block text-[10px]">Despacho VIP</span>
-                <span className="font-bold text-primary-600">
-                  {plano.pesoDespacho}x
-                </span>
+              <div className="flex items-center gap-4 text-xs font-mono">
+                <div>
+                  <span className="text-slate-500 block text-[10px]">Mensalidade</span>
+                  <span className="font-bold text-emerald-400">
+                    R$ {plano.mensalidadeBrl.toFixed(2)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block text-[10px]">Diária</span>
+                  <span className="font-bold text-white">
+                    R$ {plano.diariaBrl.toFixed(2)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block text-[10px]">Despacho VIP</span>
+                  <span className="font-bold text-primary-600">
+                    {plano.pesoDespacho}x
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleTogglePlano(plano.id, !isAtivo)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    isAtivo
+                      ? "bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30"
+                      : "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30"
+                  }`}
+                >
+                  {isAtivo ? "Desativar" : "Ativar"}
+                </button>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

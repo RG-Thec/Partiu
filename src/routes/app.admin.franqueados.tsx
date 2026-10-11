@@ -35,6 +35,11 @@ import {
   KeyRound,
   Share2,
   Navigation,
+  ChevronDown,
+  ChevronUp,
+  LayoutGrid,
+  Table,
+  MoreHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GuardiaoAcesso } from "@/components/admin/GuardiaoAcesso";
@@ -116,9 +121,15 @@ function SuperAdminFranqueadosContent() {
   // 4. Corridas Globais
   const { data: todasCorridas = [] } = usePartiuRides(500);
 
-  // Estados de Filtros e Busca
+  // Estados de Filtros, Busca e Layout
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<"TODOS" | "ATIVOS" | "SUSPENSOS">("TODOS");
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+  const [expandedTenantId, setExpandedTenantId] = useState<string | null>(null);
+
+  const toggleExpandirTenant = (id: string) => {
+    setExpandedTenantId((prev) => (prev === id ? null : id));
+  };
 
   // Modais de Controle
   const [modalClonarAberto, setModalClonarAberto] = useState(false);
@@ -548,7 +559,7 @@ function SuperAdminFranqueadosContent() {
           </div>
         </section>
 
-        {/* 3. BARRA DE BUSCA E FILTROS */}
+        {/* 3. BARRA DE BUSCA, FILTROS E MODO DE EXIBIÇÃO */}
         <section className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
           <div className="relative flex-1 min-w-[260px]">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -561,40 +572,73 @@ function SuperAdminFranqueadosContent() {
             />
           </div>
 
-          <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs">
-            <button
-              type="button"
-              onClick={() => setFiltroStatus("TODOS")}
-              className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                filtroStatus === "TODOS"
-                  ? "bg-white dark:bg-slate-900 text-slate-950 dark:text-white shadow-2xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-              }`}
-            >
-              Todos ({stats.total})
-            </button>
-            <button
-              type="button"
-              onClick={() => setFiltroStatus("ATIVOS")}
-              className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                filtroStatus === "ATIVOS"
-                  ? "bg-emerald-500 text-white shadow-2xs"
-                  : "text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
-              }`}
-            >
-              Ativos ({stats.ativos})
-            </button>
-            <button
-              type="button"
-              onClick={() => setFiltroStatus("SUSPENSOS")}
-              className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                filtroStatus === "SUSPENSOS"
-                  ? "bg-rose-500 text-white shadow-2xs"
-                  : "text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-              }`}
-            >
-              Suspensos ({stats.suspensos})
-            </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Filtros de Status */}
+            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs">
+              <button
+                type="button"
+                onClick={() => setFiltroStatus("TODOS")}
+                className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                  filtroStatus === "TODOS"
+                    ? "bg-white dark:bg-slate-900 text-slate-950 dark:text-white shadow-2xs"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
+              >
+                Todos ({stats.total})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFiltroStatus("ATIVOS")}
+                className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                  filtroStatus === "ATIVOS"
+                    ? "bg-emerald-500 text-white shadow-2xs"
+                    : "text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                }`}
+              >
+                Ativos ({stats.ativos})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFiltroStatus("SUSPENSOS")}
+                className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                  filtroStatus === "SUSPENSOS"
+                    ? "bg-rose-500 text-white shadow-2xs"
+                    : "text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                }`}
+              >
+                Suspensos ({stats.suspensos})
+              </button>
+            </div>
+
+            {/* Alternador de Modo de Exibição */}
+            <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs">
+              <button
+                type="button"
+                onClick={() => setViewMode("cards")}
+                className={`p-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 font-bold ${
+                  viewMode === "cards"
+                    ? "bg-white dark:bg-slate-900 text-slate-950 dark:text-white shadow-2xs"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
+                title="Visualização em Cards Estruturados"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Cards</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                className={`p-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 font-bold ${
+                  viewMode === "table"
+                    ? "bg-white dark:bg-slate-900 text-slate-950 dark:text-white shadow-2xs"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
+                title="Visualização em Tabela Executiva"
+              >
+                <Table className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Tabela</span>
+              </button>
+            </div>
           </div>
         </section>
 
@@ -609,367 +653,573 @@ function SuperAdminFranqueadosContent() {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
-            {franqueadosFiltrados.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center space-y-4 shadow-2xs">
-                <div className="w-16 h-16 rounded-3xl bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 flex items-center justify-center mx-auto">
-                  <Building2 className="w-8 h-8 stroke-[1.8]" />
-                </div>
-                <div className="max-w-md mx-auto space-y-1">
-                  <h3 className="text-base font-black text-slate-950 dark:text-white">
-                    Nenhuma Franquia Regional Cadastrada
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    O ecossistema está operando no núcleo Matriz. Cadastre uma nova praça franqueada para gerar links personalizados de passageiro e motorista, credenciais de acesso exclusivas e APIs de mapas próprias.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setModalClonarAberto(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 text-xs font-bold transition shadow-xs cursor-pointer active:scale-95"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Cadastrar Nova Franquia</span>
-                </button>
+          {franqueadosFiltrados.length === 0 ? (
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center space-y-4 shadow-2xs">
+              <div className="w-16 h-16 rounded-3xl bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 flex items-center justify-center mx-auto">
+                <Building2 className="w-8 h-8 stroke-[1.8]" />
               </div>
-            ) : (
-              franqueadosFiltrados.map((tenant) => {
-              const isMatriz = MapboxConfig.isOfficialMatrizTenant(tenant.tenantId);
-              const isAtivo = tenant.ativo !== false && tenant.statusPlano !== "SUSPENSO" && tenant.statusPlano !== "CANCELADO";
-              const passageirosCount = passageirosPorTenant.get(tenant.tenantId)?.length || 0;
-              const motoristasCount = motoristasPorTenant.get(tenant.tenantId)?.length || 0;
-              const hasMapboxKey = Boolean(tenant.configuracaoCompleta?.geo?.mapboxAccessToken?.startsWith("pk."));
-              const hasGoogleKey = Boolean(tenant.configuracaoCompleta?.geo?.googleMapsApiKey && tenant.configuracaoCompleta.geo.googleMapsApiKey.length > 10);
-              const hasPixKey = Boolean(tenant.configuracaoCompleta?.monetization?.chavePixAdmin);
+              <div className="max-w-md mx-auto space-y-1">
+                <h3 className="text-base font-black text-slate-950 dark:text-white">
+                  Nenhuma Franquia Regional Encontrada
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {busca
+                    ? "Nenhum resultado corresponde aos termos da busca informada."
+                    : "O ecossistema está operando no núcleo Matriz. Cadastre uma nova praça franqueada para gerar links personalizados e credenciais de acesso."}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalClonarAberto(true)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 text-xs font-bold transition shadow-xs cursor-pointer active:scale-95"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Cadastrar Nova Franquia</span>
+              </button>
+            </div>
+          ) : viewMode === "cards" ? (
+            /* ========================================================================= */
+            /* MODO 1: CARDS ESTRUTURADOS & LIMPOS (DESIGN MODERNO) */
+            /* ========================================================================= */
+            <div className="grid grid-cols-1 gap-4">
+              {franqueadosFiltrados.map((tenant) => {
+                const isMatriz = MapboxConfig.isOfficialMatrizTenant(tenant.tenantId);
+                const isAtivo = tenant.ativo !== false && tenant.statusPlano !== "SUSPENSO" && tenant.statusPlano !== "CANCELADO";
+                const isExpanded = expandedTenantId === tenant.tenantId;
+                const passageirosCount = passageirosPorTenant.get(tenant.tenantId)?.length || 0;
+                const motoristasCount = motoristasPorTenant.get(tenant.tenantId)?.length || 0;
+                const hasMapboxKey = Boolean(tenant.configuracaoCompleta?.geo?.mapboxAccessToken?.startsWith("pk."));
+                const hasGoogleKey = Boolean(tenant.configuracaoCompleta?.geo?.googleMapsApiKey && tenant.configuracaoCompleta.geo.googleMapsApiKey.length > 10);
+                const hasPixKey = Boolean(tenant.configuracaoCompleta?.monetization?.chavePixAdmin);
 
-              return (
-                <div
-                  key={tenant.tenantId}
-                  className={`bg-white dark:bg-slate-900 border rounded-2xl p-5 shadow-2xs transition-all ${
-                    !isAtivo
-                      ? "border-rose-300 dark:border-rose-900/60 bg-rose-50/20 dark:bg-rose-950/10"
-                      : "border-slate-200 dark:border-slate-800 hover:border-slate-300"
-                  }`}
-                >
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    {/* Identificação da Franquia */}
-                    <div className="flex items-start gap-3.5 min-w-[280px]">
-                      <div
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white shrink-0 shadow-2xs text-lg"
-                        style={{
-                          backgroundColor:
-                            tenant.configuracaoCompleta?.designSystem?.paletaPrimaria?.corPrincipal || "#FF6B00",
-                        }}
-                      >
-                        {tenant.cidadeNome.slice(0, 2).toUpperCase()}
+                return (
+                  <div
+                    key={tenant.tenantId}
+                    className={`bg-white dark:bg-slate-900 border rounded-2xl p-5 shadow-2xs transition-all ${
+                      !isAtivo
+                        ? "border-rose-300 dark:border-rose-900/60 bg-rose-50/20 dark:bg-rose-950/10"
+                        : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
+                    }`}
+                  >
+                    {/* LINHA 1: IDENTIFICAÇÃO E AÇÕES PRINCIPAIS */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-3.5">
+                        <div
+                          className="w-11 h-11 rounded-2xl flex items-center justify-center font-black text-white shrink-0 shadow-2xs text-base"
+                          style={{
+                            backgroundColor:
+                              tenant.configuracaoCompleta?.designSystem?.paletaPrimaria?.corPrincipal || "#FF6B00",
+                          }}
+                        >
+                          {tenant.cidadeNome.slice(0, 2).toUpperCase()}
+                        </div>
+
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-base font-black text-slate-950 dark:text-white">
+                              {tenant.nomeOperacao}
+                            </h3>
+                            {isMatriz && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary-100 text-primary-800 dark:bg-primary-950 dark:text-primary-300 border border-primary-200">
+                                Matriz Oficial
+                              </span>
+                            )}
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                                isAtivo
+                                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200"
+                                  : "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200"
+                              }`}
+                            >
+                              {isAtivo ? "PLANO ATIVO" : "SUSPENSO / OFFLINE"}
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            <span className="flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                              {tenant.cidadeNome} — {tenant.uf}
+                            </span>
+                            <span>•</span>
+                            <span>{tenant.responsavelNome || "Responsável não informado"}</span>
+                            <span>•</span>
+                            <span className="font-mono text-[11px] text-slate-400">{tenant.tenantId}</span>
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-base font-black text-slate-950 dark:text-white">
-                            {tenant.nomeOperacao}
-                          </h3>
-                          {isMatriz && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary-100 text-primary-800 dark:bg-primary-950 dark:text-primary-300 border border-primary-200">
-                              Matriz Oficial
-                            </span>
-                          )}
-                          <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                              isAtivo
-                                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200"
-                                : "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200 animate-pulse"
-                            }`}
-                          >
-                            {isAtivo ? "PLANO ATIVO" : "SUSPENSO / OFFLINE"}
-                          </span>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                            {tenant.cidadeNome} — {tenant.uf}
-                          </span>
-                          <span>•</span>
-                          <span>CNPJ: {tenant.cnpjFranqueado || "Não informado"}</span>
-                          <span>•</span>
-                          <span className="font-mono text-[11px] text-slate-400">id: {tenant.tenantId}</span>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500 pt-0.5">
-                          <span className="flex items-center gap-1">
-                            <Mail className="w-3 h-3 text-slate-400" />
-                            {tenant.adminEmail || tenant.responsavelEmail}
-                          </span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            <Phone className="w-3 h-3 text-slate-400" />
-                            {tenant.responsavelTelefone}
-                          </span>
-                          <span>({tenant.responsavelNome})</span>
-                        </div>
-
-                        {/* Link Funcional do Aplicativo & Credenciais Administrativas */}
-                        <div className="pt-2.5 mt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                          {/* Link de Passageiros */}
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
-                              <Globe className="w-3.5 h-3.5 text-primary-500" />
-                              App Passageiros:
-                            </span>
-                            <code className="text-[11px] font-mono text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/40 px-2 py-0.5 rounded-md border border-primary-200/50 dark:border-primary-800/40 truncate max-w-[280px]">
-                              {typeof window !== "undefined" ? `${window.location.origin}/app?tenant=${tenant.tenantId}` : `/app?tenant=${tenant.tenantId}`}
-                            </code>
-                            <button
-                              type="button"
-                              onClick={() => handleCopiarLinkApp(tenant)}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-300 transition cursor-pointer"
-                              title="Copiar Link de Passageiros"
-                            >
-                              <Copy className="w-3 h-3" />
-                              Copiar Link
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleAbrirApp(tenant)}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary-50 hover:bg-primary-100 dark:bg-primary-950/60 dark:hover:bg-primary-900/60 text-[10px] font-bold text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800 transition cursor-pointer"
-                              title="Abrir App de Passageiros em Nova Aba"
-                            >
-                              <ExternalLink className="w-3 h-3" />
-                              Abrir
-                            </button>
-                          </div>
-
-                          {/* Link do Motorista */}
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
-                              <Car className="w-3.5 h-3.5 text-emerald-500" />
-                              Portal Motoristas:
-                            </span>
-                            <code className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/50 dark:border-emerald-800/40 truncate max-w-[280px]">
-                              {typeof window !== "undefined" ? `${window.location.origin}/app/motorista?tenant=${tenant.tenantId}` : `/app/motorista?tenant=${tenant.tenantId}`}
-                            </code>
-                            <button
-                              type="button"
-                              onClick={() => handleCopiarLinkMotorista(tenant)}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-950/80 dark:hover:bg-emerald-900/80 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 transition cursor-pointer"
-                              title="Copiar Link do Portal do Motorista"
-                            >
-                              <Copy className="w-3 h-3" />
-                              Copiar Link Motorista
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleAbrirMotorista(tenant)}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer"
-                              title="Abrir Portal do Motorista em Nova Aba"
-                            >
-                              <ExternalLink className="w-3 h-3" />
-                              Abrir
-                            </button>
-                          </div>
-
-                          {/* Credenciais de Acesso */}
-                          {!isMatriz && (
-                            <div className="flex flex-wrap items-center gap-2 text-[11px]">
-                              <span className="font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1">
-                                <Lock className="w-3 h-3 text-amber-500" />
-                                Login Painel:
-                              </span>
-                              <span className="font-mono text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
-                                {tenant.adminEmail || tenant.responsavelEmail}
-                              </span>
-                              <span>•</span>
-                              <span className="font-mono text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
-                                {senhasVisiveis[tenant.tenantId]
-                                  ? (tenant.adminSenha || "Franqueado2026!")
-                                  : "••••••••"}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => toggleVerSenhaCard(tenant.tenantId)}
-                                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-                                title={senhasVisiveis[tenant.tenantId] ? "Ocultar Senha" : "Ver Senha"}
-                              >
-                                {senhasVisiveis[tenant.tenantId] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-
-                        {!isAtivo && tenant.motivoBloqueio && (
-                          <div className="mt-1.5 p-2 rounded-xl bg-rose-100/60 dark:bg-rose-950/40 text-[11px] text-rose-800 dark:text-rose-300 font-medium">
-                            Motivo do bloqueio: {tenant.motivoBloqueio}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Status de APIs e Compliance */}
-                    <div className="flex flex-wrap items-center gap-2 lg:max-w-[260px]">
-                      {/* Badge Mapbox */}
-                      {isMatriz ? (
-                        <span className="text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800 flex items-center gap-1.5">
-                          <Key className="w-3 h-3 text-blue-600" />
-                          API Oficial Matriz
-                        </span>
-                      ) : hasMapboxKey ? (
-                        <span className="text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1.5">
-                          <Key className="w-3 h-3 text-emerald-600" />
-                          Mapbox Próprio (OK)
-                        </span>
-                      ) : hasGoogleKey ? (
-                        <span className="text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1.5">
-                          <Key className="w-3 h-3 text-emerald-600" />
-                          Google Maps (OK)
-                        </span>
-                      ) : (
-                        <span className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800 flex items-center gap-1.5" title="Franqueado precisa cadastrar chave de mapa própria">
-                          <AlertTriangle className="w-3 h-3 text-amber-600" />
-                          Sem Chave de Mapa
-                        </span>
-                      )}
-
-                      {/* Botão Configurar APIs de Mapa (Exclusivo Franqueados) */}
-                      {!isMatriz && (
+                      {/* Botões de Ação Imediata */}
+                      <div className="flex flex-wrap items-center gap-2 shrink-0">
+                        {/* Botão Customizar White Label */}
                         <button
                           type="button"
-                          onClick={() => abrirModalMapa(tenant)}
-                          className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-primary-50 dark:bg-primary-950/70 hover:bg-primary-100 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800 flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
-                          title="Conectar ou editar chave de API Google Maps / Mapbox"
+                          onClick={() => {
+                            switchTenant(tenant.tenantId);
+                            void navigate({ to: "/app/admin/whitelabel" });
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
+                          title="Personalizar identidade visual e configurações desta praça"
                         >
-                          <Navigation className="w-3 h-3" />
-                          Configurar Mapas
+                          <Palette className="w-3.5 h-3.5 text-primary-500" />
+                          <span>White Label</span>
                         </button>
-                      )}
 
-                      {/* Badge PIX */}
-                      {hasPixKey ? (
-                        <span className="text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1.5">
-                          <DollarSign className="w-3 h-3 text-emerald-600" />
-                          PIX Configurado
-                        </span>
-                      ) : (
-                        <span className="text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                          PIX Pendente
-                        </span>
-                      )}
+                        {/* Botão Copiar Kit de Acesso */}
+                        {!isMatriz && (
+                          <button
+                            type="button"
+                            onClick={() => handleCopiarKitAcesso(tenant)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition cursor-pointer"
+                            title="Copiar link do app, login e senha em 1 clique"
+                          >
+                            <Share2 className="w-3.5 h-3.5 text-slate-500" />
+                            <span>Copiar Acesso</span>
+                          </button>
+                        )}
+
+                        {/* Botão Expandir / Recolher Detalhes */}
+                        <button
+                          type="button"
+                          onClick={() => toggleExpandirTenant(tenant.tenantId)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                            isExpanded
+                              ? "bg-primary-50 text-primary-700 dark:bg-primary-950/60 dark:text-primary-300 border border-primary-200 dark:border-primary-800"
+                              : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
+                          }`}
+                        >
+                          <span>{isExpanded ? "Ocultar Detalhes" : "Detalhes & Links"}</span>
+                          {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
                     </div>
 
-                    {/* Métricas e Listas Rápidas */}
-                    <div className="flex items-center gap-3">
+                    {/* LINHA 2: MÉTRICAS RÁPIDAS & STATUS OPERACIONAL */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3.5 items-center">
+                      {/* Passageiros */}
                       <button
                         type="button"
                         onClick={() => setTenantInspecaoPassageiros(tenant)}
-                        className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 text-left transition cursor-pointer"
+                        className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/60 text-left transition cursor-pointer"
                         title="Ver lista de passageiros cadastrados desta franquia"
                       >
-                        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider">
-                          <Users className="w-3 h-3" />
-                          Passageiros
+                        <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+                          <span className="flex items-center gap-1">
+                            <Users className="w-3 h-3 text-primary-600" /> Passageiros
+                          </span>
+                          <ExternalLink className="w-2.5 h-2.5 opacity-60" />
                         </div>
                         <div className="text-base font-black text-slate-950 dark:text-white mt-0.5">
                           {passageirosCount}
                         </div>
                       </button>
 
+                      {/* Motoristas */}
                       <button
                         type="button"
                         onClick={() => setTenantInspecaoMotoristas(tenant)}
-                        className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 text-left transition cursor-pointer"
+                        className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/60 text-left transition cursor-pointer"
                         title="Ver lista de motoristas cadastrados desta franquia"
                       >
-                        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider">
-                          <Car className="w-3 h-3" />
-                          Motoristas
+                        <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+                          <span className="flex items-center gap-1">
+                            <Car className="w-3 h-3 text-emerald-600" /> Motoristas
+                          </span>
+                          <ExternalLink className="w-2.5 h-2.5 opacity-60" />
                         </div>
                         <div className="text-base font-black text-slate-950 dark:text-white mt-0.5">
                           {motoristasCount}
                         </div>
                       </button>
+
+                      {/* Status de Mapas */}
+                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60">
+                        <div className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                          <Navigation className="w-3 h-3 text-blue-600" /> Servidor de Mapas
+                        </div>
+                        <div className="mt-1 flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                            {isMatriz ? "Matriz Oficial" : hasMapboxKey ? "Mapbox GL" : hasGoogleKey ? "Google Maps" : "CARTO / OSM"}
+                          </span>
+                          {!isMatriz && (
+                            <button
+                              type="button"
+                              onClick={() => abrirModalMapa(tenant)}
+                              className="text-[10px] text-primary-600 dark:text-primary-400 hover:underline font-semibold cursor-pointer"
+                            >
+                              Editar
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Status Financeiro / PIX */}
+                      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60">
+                        <div className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                          <DollarSign className="w-3 h-3 text-emerald-600" /> Chave PIX Praça
+                        </div>
+                        <div className="mt-1 flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                            {hasPixKey ? "Ativa & Pronta" : "Não cadastrada"}
+                          </span>
+                          <span
+                            className={`w-2 h-2 rounded-full ${hasPixKey ? "bg-emerald-500" : "bg-amber-500"}`}
+                            title={hasPixKey ? "PIX ativo" : "PIX pendente"}
+                          />
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Botões de Ação Imediata */}
-                    <div className="flex flex-wrap items-center gap-2">
-                      {/* Ativar/Desativar Plano (Kill Switch) */}
-                      {!isMatriz && (
-                        <button
-                          type="button"
-                          onClick={() => setTenantParaDesativar(tenant)}
-                          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer active:scale-95 ${
-                            isAtivo
-                              ? "bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800"
-                              : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs"
-                          }`}
-                          title={isAtivo ? "Suspender plano e tirar app do ar" : "Reativar plano e colocar app no ar"}
-                        >
-                          <Power className="w-3.5 h-3.5" />
-                          <span>{isAtivo ? "Suspender Plano" : "Reativar Plano"}</span>
-                        </button>
-                      )}
+                    {/* LINHA 3: GAVETA EXPANDÍVEL DE DETALHES, LINKS E GOVERNANÇA */}
+                    {isExpanded && (
+                      <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50/70 dark:bg-slate-800/40 p-4 rounded-2xl animate-in fade-in">
+                        {/* COLUNA 1: LINKS DO APLICATIVO */}
+                        <div className="space-y-2">
+                          <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <Globe className="w-3.5 h-3.5 text-primary-600" />
+                            <span>Links de Distribuição do App</span>
+                          </div>
 
-                      {/* Abrir White-Label Studio para esta franquia */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          switchTenant(tenant.tenantId);
-                          void navigate({ to: "/app/admin/whitelabel" });
-                        }}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium transition cursor-pointer"
-                        title="Personalizar identidade visual e configurações no White Label Studio"
-                      >
-                        <Palette className="w-3.5 h-3.5 text-primary-600" />
-                        <span>Customizar</span>
-                      </button>
+                          {/* Link Passageiro */}
+                          <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs space-y-1">
+                            <span className="text-[10px] font-bold text-slate-500 block uppercase">App do Passageiro</span>
+                            <div className="flex items-center gap-1">
+                              <code className="text-[11px] font-mono text-primary-600 dark:text-primary-400 truncate flex-1 select-all">
+                                /app?tenant={tenant.tenantId}
+                              </code>
+                              <button
+                                type="button"
+                                onClick={() => handleCopiarLinkApp(tenant)}
+                                className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
+                                title="Copiar Link de Passageiros"
+                              >
+                                <Copy className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleAbrirApp(tenant)}
+                                className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-primary-600"
+                                title="Abrir App de Passageiros"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
 
-                      {/* Gerenciar Credenciais do Franqueado */}
-                      {!isMatriz && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setTenantParaCredenciais(tenant);
-                            setCredencialEmail(tenant.adminEmail || tenant.responsavelEmail || `${tenant.tenantId.replace("tenant-", "")}@partiu.app`);
-                            setCredencialSenha(tenant.adminSenha || "Franqueado2026!");
-                            setMostrarSenhaModal(false);
-                          }}
-                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 text-xs font-semibold border border-amber-200 dark:border-amber-800 transition cursor-pointer"
-                          title="Gerenciar e-mail e senha de acesso ao painel do franqueado"
-                        >
-                          <KeyRound className="w-3.5 h-3.5 text-amber-600" />
-                          <span>Credenciais</span>
-                        </button>
-                      )}
+                          {/* Link Motorista */}
+                          <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs space-y-1">
+                            <span className="text-[10px] font-bold text-slate-500 block uppercase">Portal do Motorista</span>
+                            <div className="flex items-center gap-1">
+                              <code className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 truncate flex-1 select-all">
+                                /app/motorista?tenant={tenant.tenantId}
+                              </code>
+                              <button
+                                type="button"
+                                onClick={() => handleCopiarLinkMotorista(tenant)}
+                                className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
+                                title="Copiar Link de Motoristas"
+                              >
+                                <Copy className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleAbrirMotorista(tenant)}
+                                className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-emerald-600"
+                                title="Abrir Portal de Motoristas"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
 
-                      {/* Copiar Kit de Acesso do Franqueado */}
-                      {!isMatriz && (
-                        <button
-                          type="button"
-                          onClick={() => handleCopiarKitAcesso(tenant)}
-                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium transition cursor-pointer"
-                          title="Copiar dados completos de acesso (link do app, login e senha) para enviar ao franqueado"
-                        >
-                          <Share2 className="w-3.5 h-3.5 text-slate-500" />
-                          <span>Copiar Acesso</span>
-                        </button>
-                      )}
+                        {/* COLUNA 2: CREDENCIAIS ADMINISTRATIVAS */}
+                        <div className="space-y-2">
+                          <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <Lock className="w-3.5 h-3.5 text-amber-500" />
+                            <span>Acesso ao Painel da Franquia</span>
+                          </div>
 
-                      {/* Excluir Franqueado */}
-                      {!isMatriz && (
-                        <button
-                          type="button"
-                          onClick={() => setTenantParaExcluir(tenant)}
-                          className="p-2 rounded-xl bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950 text-slate-400 hover:text-rose-600 transition cursor-pointer"
-                          title="Excluir conta do franqueado permanentemente"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
+                          {!isMatriz ? (
+                            <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs space-y-2">
+                              <div>
+                                <span className="text-[10px] text-slate-400 block font-bold uppercase">E-mail de Login</span>
+                                <span className="font-mono text-slate-900 dark:text-white text-xs select-all">
+                                  {tenant.adminEmail || tenant.responsavelEmail}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-[10px] text-slate-400 block font-bold uppercase">Senha do Painel</span>
+                                <div className="flex items-center justify-between">
+                                  <span className="font-mono text-slate-900 dark:text-white text-xs">
+                                    {senhasVisiveis[tenant.tenantId]
+                                      ? (tenant.adminSenha || "Franqueado2026!")
+                                      : "••••••••••••"}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleVerSenhaCard(tenant.tenantId)}
+                                    className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                                  >
+                                    {senhasVisiveis[tenant.tenantId] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                  </button>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setTenantParaCredenciais(tenant);
+                                  setCredencialEmail(tenant.adminEmail || tenant.responsavelEmail || `${tenant.tenantId.replace("tenant-", "")}@partiu.app`);
+                                  setCredencialSenha(tenant.adminSenha || "Franqueado2026!");
+                                  setMostrarSenhaModal(false);
+                                }}
+                                className="w-full py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                              >
+                                <KeyRound className="w-3 h-3 text-amber-600" />
+                                <span>Alterar Credenciais</span>
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-500">
+                              Esta praça é a Matriz Oficial e utiliza as credenciais master do Super Administrador.
+                            </div>
+                          )}
+                        </div>
+
+                        {/* COLUNA 3: GOVERNANÇA & SEGURANÇA */}
+                        <div className="space-y-2">
+                          <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                            <span>Governança & Controles</span>
+                          </div>
+
+                          <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs space-y-2">
+                            {!isMatriz && (
+                              <button
+                                type="button"
+                                onClick={() => abrirModalMapa(tenant)}
+                                className="w-full py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-medium text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                              >
+                                <Navigation className="w-3 h-3 text-blue-600" />
+                                <span>Configurar APIs de Mapa</span>
+                              </button>
+                            )}
+
+                            {!isMatriz && (
+                              <button
+                                type="button"
+                                onClick={() => setTenantParaDesativar(tenant)}
+                                className={`w-full py-1.5 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                                  isAtivo
+                                    ? "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:border-rose-900"
+                                    : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs"
+                                }`}
+                              >
+                                <Power className="w-3.5 h-3.5" />
+                                <span>{isAtivo ? "Suspender Plano (Kill Switch)" : "Reativar Plano"}</span>
+                              </button>
+                            )}
+
+                            {!isMatriz && (
+                              <button
+                                type="button"
+                                onClick={() => setTenantParaExcluir(tenant)}
+                                className="w-full py-1.5 px-3 rounded-lg bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-600 dark:bg-slate-800/60 dark:hover:bg-rose-950/60 font-medium text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                                <span>Excluir Franquia</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              );
-            }))}
-          </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* ========================================================================= */
+            /* MODO 2: TABELA EXECUTIVA (CLEAN ENTERPRISE TABLE) */
+            /* ========================================================================= */
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-2xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px]">
+                      <th className="py-3 px-4">Franquia & Praça</th>
+                      <th className="py-3 px-3">Responsável</th>
+                      <th className="py-3 px-3 text-center">Passageiros</th>
+                      <th className="py-3 px-3 text-center">Motoristas</th>
+                      <th className="py-3 px-3">Servidor de Mapas</th>
+                      <th className="py-3 px-3">PIX Praça</th>
+                      <th className="py-3 px-3 text-center">Status</th>
+                      <th className="py-3 px-4 text-right">Ações Rápidas</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {franqueadosFiltrados.map((tenant) => {
+                      const isMatriz = MapboxConfig.isOfficialMatrizTenant(tenant.tenantId);
+                      const isAtivo = tenant.ativo !== false && tenant.statusPlano !== "SUSPENSO" && tenant.statusPlano !== "CANCELADO";
+                      const passageirosCount = passageirosPorTenant.get(tenant.tenantId)?.length || 0;
+                      const motoristasCount = motoristasPorTenant.get(tenant.tenantId)?.length || 0;
+                      const hasMapboxKey = Boolean(tenant.configuracaoCompleta?.geo?.mapboxAccessToken?.startsWith("pk."));
+                      const hasGoogleKey = Boolean(tenant.configuracaoCompleta?.geo?.googleMapsApiKey && tenant.configuracaoCompleta.geo.googleMapsApiKey.length > 10);
+                      const hasPixKey = Boolean(tenant.configuracaoCompleta?.monetization?.chavePixAdmin);
+
+                      return (
+                        <tr
+                          key={tenant.tenantId}
+                          className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition"
+                        >
+                          {/* Coluna 1: Franquia & Praça */}
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-white shrink-0 text-xs shadow-2xs"
+                                style={{
+                                  backgroundColor:
+                                    tenant.configuracaoCompleta?.designSystem?.paletaPrimaria?.corPrincipal || "#FF6B00",
+                                }}
+                              >
+                                {tenant.cidadeNome.slice(0, 2).toUpperCase()}
+                              </div>
+                              <div>
+                                <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                                  <span>{tenant.nomeOperacao}</span>
+                                  {isMatriz && (
+                                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-primary-100 text-primary-800 dark:bg-primary-950 dark:text-primary-300 border border-primary-200">
+                                      Matriz
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                                  {tenant.cidadeNome} — {tenant.uf}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Coluna 2: Responsável */}
+                          <td className="py-3 px-3 text-slate-700 dark:text-slate-300">
+                            <div className="font-medium">{tenant.responsavelNome || "-"}</div>
+                            <div className="text-[11px] text-slate-400">{tenant.adminEmail || tenant.responsavelEmail}</div>
+                          </td>
+
+                          {/* Coluna 3: Passageiros */}
+                          <td className="py-3 px-3 text-center">
+                            <button
+                              type="button"
+                              onClick={() => setTenantInspecaoPassageiros(tenant)}
+                              className="font-bold text-primary-600 dark:text-primary-400 hover:underline cursor-pointer"
+                              title="Ver lista de passageiros"
+                            >
+                              {passageirosCount}
+                            </button>
+                          </td>
+
+                          {/* Coluna 4: Motoristas */}
+                          <td className="py-3 px-3 text-center">
+                            <button
+                              type="button"
+                              onClick={() => setTenantInspecaoMotoristas(tenant)}
+                              className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                              title="Ver lista de motoristas"
+                            >
+                              {motoristasCount}
+                            </button>
+                          </td>
+
+                          {/* Coluna 5: Mapas */}
+                          <td className="py-3 px-3">
+                            <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                              <Navigation className="w-3 h-3 text-blue-500" />
+                              {isMatriz ? "Matriz Oficial" : hasMapboxKey ? "Mapbox GL" : hasGoogleKey ? "Google Maps" : "CARTO / OSM"}
+                            </span>
+                          </td>
+
+                          {/* Coluna 6: PIX */}
+                          <td className="py-3 px-3">
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              hasPixKey
+                                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                : "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300"
+                            }`}>
+                              <DollarSign className="w-2.5 h-2.5" />
+                              {hasPixKey ? "Ativa" : "Pendente"}
+                            </span>
+                          </td>
+
+                          {/* Coluna 7: Status */}
+                          <td className="py-3 px-3 text-center">
+                            <span
+                              className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                                isAtivo
+                                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200"
+                                  : "bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border-rose-200"
+                              }`}
+                            >
+                              {isAtivo ? "Ativo" : "Suspenso"}
+                            </span>
+                          </td>
+
+                          {/* Coluna 8: Ações Rápidas */}
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  switchTenant(tenant.tenantId);
+                                  void navigate({ to: "/app/admin/whitelabel" });
+                                }}
+                                className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 text-xs font-bold transition cursor-pointer"
+                                title="Customizar White Label"
+                              >
+                                White Label
+                              </button>
+                              {!isMatriz && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopiarKitAcesso(tenant)}
+                                  className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition cursor-pointer"
+                                  title="Copiar Kit de Acesso"
+                                >
+                                  <Share2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                              {!isMatriz && (
+                                <button
+                                  type="button"
+                                  onClick={() => abrirModalMapa(tenant)}
+                                  className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-blue-600 transition cursor-pointer"
+                                  title="Configurar Mapas"
+                                >
+                                  <Navigation className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                              {!isMatriz && (
+                                <button
+                                  type="button"
+                                  onClick={() => setTenantParaDesativar(tenant)}
+                                  className={`p-1.5 rounded-lg transition cursor-pointer ${
+                                    isAtivo
+                                      ? "bg-rose-50 hover:bg-rose-100 text-rose-600"
+                                      : "bg-emerald-50 hover:bg-emerald-100 text-emerald-600"
+                                  }`}
+                                  title={isAtivo ? "Suspender Plano" : "Reativar Plano"}
+                                >
+                                  <Power className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </section>
       </main>
 

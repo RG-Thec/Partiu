@@ -67,7 +67,7 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
     togglePreference,
   } = usePassengerRide();
 
-  const { corPrimaria, corSecundaria, nomeApp } = useBrandTheme();
+  const { corPrimaria, corSecundaria, nomeApp, businessModels } = useBrandTheme();
   const { appConfig } = useTheme();
   const { colors } = appConfig.branding;
 
@@ -139,6 +139,26 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
     resetToIdle();
   }, [resetToIdle]);
 
+  // Validação dinâmica de modalidades ativas na praça via White Label Business Models
+  const isCarroHabilitado = businessModels?.verticais?.MOBILITY_CAR?.ativo !== false;
+  const isMotoHabilitada = businessModels?.verticais?.MOBILITY_MOTO?.ativo !== false;
+
+  // Garante que pelo menos uma modalidade esteja ativa para resiliência do passageiro
+  const isCarroAtivoNaPraca = isCarroHabilitado || (!isCarroHabilitado && !isMotoHabilitada);
+  const isMotoAtivaNaPraca = isMotoHabilitada;
+
+  // Auto-ajuste de categoria caso a selecionada atualmente seja desativada na praça
+  useEffect(() => {
+    if (!isCarroAtivoNaPraca && categoriaVeiculo === "CARRO") {
+      selectVehicle("MOTO");
+    } else if (!isMotoAtivaNaPraca && categoriaVeiculo === "MOTO") {
+      selectVehicle("CARRO");
+    }
+  }, [isCarroAtivoNaPraca, isMotoAtivaNaPraca, categoriaVeiculo, selectVehicle]);
+
+  const nomeCarro = businessModels?.verticais?.MOBILITY_CAR?.nomeExibicao || "Carro Comum";
+  const nomeMoto = businessModels?.verticais?.MOBILITY_MOTO?.nomeExibicao || "Moto Comum";
+
   // Cotações e métricas oficiais das categorias homologadas (Carro Comum e Moto Comum)
   const isMoto = categoriaVeiculo === "MOTO";
   const isPop = !isMoto;
@@ -175,7 +195,7 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
   const pickupMinPop = quotePop?.driverPickupMinutes ?? 4;
 
   const precoAtivo = isMoto ? precoMoto : precoPop;
-  const nomeVeiculoAtivo = isMoto ? "Moto Comum" : "Carro Comum";
+  const nomeVeiculoAtivo = isMoto ? nomeMoto : nomeCarro;
 
   const currentSurgeMult = isMoto ? (quoteMoto?.surgeMultiplier ?? 1.0) : (quotePop?.surgeMultiplier ?? 1.0);
   const currentSurgeReason = isMoto ? quoteMoto?.surgeReason : quotePop?.surgeReason;
@@ -301,55 +321,59 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
 
           {/* 2. SELEÇÃO DE VEÍCULOS */}
           <div className="space-y-1.5 shrink-0">
-            <VehicleOptionCard
-              isSelected={isPop}
-              category="CARRO"
-              title="Carro Comum"
-              badgeText={
-                quotePop?.surgeMultiplier && quotePop.surgeMultiplier > 1.0
-                  ? `⚡ x${quotePop.surgeMultiplier.toFixed(1)} Dinâmica`
-                  : "Conforto"
-              }
-              badgeClass={
-                quotePop?.surgeMultiplier && quotePop.surgeMultiplier > 1.0
-                  ? "text-amber-800 bg-amber-100 border border-amber-300 font-extrabold"
-                  : "text-blue-700 bg-blue-50 border border-blue-200"
-              }
-              etaMinutes={pickupMinPop || 4}
-              capacityText="4 passageiros"
-              luggageText="2 malas"
-              price={precoPop}
-              originalPrice={precoPopOriginal}
-              vehicleGraphicCategory="POP"
-              onSelect={handleSelectCategory}
-              corPrimaria={corPrimaria}
-              corSecundaria={corSecundaria}
-            />
+            {isCarroAtivoNaPraca && (
+              <VehicleOptionCard
+                isSelected={isPop}
+                category="CARRO"
+                title={nomeCarro}
+                badgeText={
+                  quotePop?.surgeMultiplier && quotePop.surgeMultiplier > 1.0
+                    ? `⚡ x${quotePop.surgeMultiplier.toFixed(1)} Dinâmica`
+                    : "Conforto"
+                }
+                badgeClass={
+                  quotePop?.surgeMultiplier && quotePop.surgeMultiplier > 1.0
+                    ? "text-amber-800 bg-amber-100 border border-amber-300 font-extrabold"
+                    : "text-blue-700 bg-blue-50 border border-blue-200"
+                }
+                etaMinutes={pickupMinPop || 4}
+                capacityText="4 passageiros"
+                luggageText="2 malas"
+                price={precoPop}
+                originalPrice={precoPopOriginal}
+                vehicleGraphicCategory="POP"
+                onSelect={handleSelectCategory}
+                corPrimaria={corPrimaria}
+                corSecundaria={corSecundaria}
+              />
+            )}
 
-            <VehicleOptionCard
-              isSelected={isMoto}
-              category="MOTO"
-              title="Moto Comum"
-              badgeText={
-                quoteMoto?.surgeMultiplier && quoteMoto.surgeMultiplier > 1.0
-                  ? `⚡ x${quoteMoto.surgeMultiplier.toFixed(1)} Dinâmica`
-                  : "Mais Rápido"
-              }
-              badgeClass={
-                quoteMoto?.surgeMultiplier && quoteMoto.surgeMultiplier > 1.0
-                  ? "text-amber-800 bg-amber-100 border border-amber-300 font-extrabold"
-                  : "text-emerald-700 bg-emerald-50 border border-emerald-200"
-              }
-              etaMinutes={pickupMinMoto || 3}
-              capacityText="1 passageiro"
-              luggageText="Mochila"
-              price={precoMoto}
-              originalPrice={precoMotoOriginal}
-              vehicleGraphicCategory="MOTO"
-              onSelect={handleSelectCategory}
-              corPrimaria={corPrimaria}
-              corSecundaria={corSecundaria}
-            />
+            {isMotoAtivaNaPraca && (
+              <VehicleOptionCard
+                isSelected={isMoto}
+                category="MOTO"
+                title={nomeMoto}
+                badgeText={
+                  quoteMoto?.surgeMultiplier && quoteMoto.surgeMultiplier > 1.0
+                    ? `⚡ x${quoteMoto.surgeMultiplier.toFixed(1)} Dinâmica`
+                    : "Mais Rápido"
+                }
+                badgeClass={
+                  quoteMoto?.surgeMultiplier && quoteMoto.surgeMultiplier > 1.0
+                    ? "text-amber-800 bg-amber-100 border border-amber-300 font-extrabold"
+                    : "text-emerald-700 bg-emerald-50 border border-emerald-200"
+                }
+                etaMinutes={pickupMinMoto || 3}
+                capacityText="1 passageiro"
+                luggageText="Mochila"
+                price={precoMoto}
+                originalPrice={precoMotoOriginal}
+                vehicleGraphicCategory="MOTO"
+                onSelect={handleSelectCategory}
+                corPrimaria={corPrimaria}
+                corSecundaria={corSecundaria}
+              />
+            )}
           </div>
 
           {/* BANNER TRANSPARENTE DE ALTA DEMANDA / SOBRETAXA IMEDIATA (PADRÃO UBER / 99) */}

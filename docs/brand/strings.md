@@ -24,6 +24,14 @@ Registro de decisões textuais da interface reconciliadas com a voz do produto.
 | action.surge.disable_override | Desativar Sobretaxa Agora | src/routes/app.admin.despacho.tsx:740 | SCN-009 | agreed |
 | action.surge.toggle_auto | Tarifa Automática Ativa | src/routes/app.admin.despacho.tsx:750 | SCN-009 | agreed |
 | action.surge.toggle_auto_off | Tarifa Automática Desativada | src/routes/app.admin.despacho.tsx:750 | SCN-009 | agreed |
+| whitelabel.regional_panel | Painel de Governança Regional Franqueado | src/routes/app.admin.whitelabel.tsx:372 | SCN-010 | agreed |
+| whitelabel.copy_app_link | Link do App | src/routes/app.admin.whitelabel.tsx:204 | SCN-010 | agreed |
+| action.whitelabel.plan_active | Ativar | src/components/admin/whitelabel/MonetizationTab.tsx:265 | SCN-010 | agreed |
+| action.whitelabel.plan_deactivate | Desativar | src/components/admin/whitelabel/MonetizationTab.tsx:265 | SCN-010 | agreed |
+| action.tenant.view_cards | Cards | src/routes/app.admin.franqueados.tsx:320 | SCN-011 | agreed |
+| action.tenant.view_table | Tabela | src/routes/app.admin.franqueados.tsx:328 | SCN-011 | agreed |
+| action.tenant.toggle_details | Detalhes & Links | src/routes/app.admin.franqueados.tsx:430 | SCN-011 | agreed |
+| action.tenant.copy_access | Copiar Acesso | src/routes/app.admin.franqueados.tsx:420 | SCN-011 | agreed |
 
 ## Columns
 

@@ -348,16 +348,17 @@ whose code diverges from its record here is a "drifted" finding. -->
 
 ### SCR-21: Estúdio White Label
 - **Used by:** FLW-08 step 6
-- **Purpose:** Customização de cores, marcas, tipografia e preview da landing page municipal
-- **Elements:** Seletor de paletas, gerador de favicon SVG, editor de seções da landing, canvas de preview ao vivo
+- **Purpose:** Customização de cores, marcas, tipografia, verticais de negócio, monetização e preview com segregação estrita entre Super Admin e Franqueado
+- **Elements:** Seletor de paletas, Brand Center, Design System, Multi-Negócio, Planos e Chave PIX, Geo & App, gerador de favicon SVG, simulador responsivo ao vivo, banner regional de governança do franqueado
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |-------|---------|-------------|----------|
-  | success | alterações salvas | none — code first | Sincronização em tempo real de temas em toda a aplicação |
+  | success | alterações salvas | none — code first | Sincronização em tempo real de temas, categorias e tarifas em toda a aplicação |
+  | regional | acesso com perfil franqueado | none — code first | Exibe 5 abas operacionais locais, oculta abas globais e bloqueia edição de identificadores nativos de compilação |
   | loading | compilando tema | none — code first | Indicador de persistência no Supabase |
-- **Coverage:** src/routes/app.admin.whitelabel.tsx:1-200
+- **Coverage:** src/routes/app.admin.whitelabel.tsx:1-490, src/components/admin/whitelabel/MonetizationTab.tsx:1-260, src/components/admin/whitelabel/GeoAppComplianceTab.tsx:640-750
 - **Scenarios:** SCN-010
-- **Resources:** ThemeEngine, LandingPageStore
+- **Resources:** ThemeEngine, LandingPageStore, whiteLabelEngine, saveMonetizacaoConfig
 - **Status:** built
 
 ### SCR-22: Central de Incidentes SOS Admin
@@ -400,5 +401,21 @@ whose code diverges from its record here is a "drifted" finding. -->
 - **Coverage:** src/routes/app.admin.diagnostico.tsx:1-200
 - **Scenarios:** SCN-008
 - **Resources:** MapDiagnosticPanel, UniversalMapView, useTelemetriaFrota
+- **Status:** built
+
+### SCR-25: Gestão Central de Franqueados & Multi-Tenant
+- **Used by:** FLW-08 step 9
+- **Purpose:** Painel central de governança das operações municipais franqueadas, credenciamento, credenciais de acesso e distribuição de builds
+- **Elements:** Alternador de visualização (Cards vs Tabela Executiva), cards compactos com drawer expansível para detalhes operacionais, tabela corporativa de alta densidade, modais de inspeção de passageiros e condutores com exportação CSV, modal de troca de chaves de mapas e modal de suspensão emergencial (kill switch)
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  |-------|---------|-------------|----------|
+  | success | listagem de praças | none — code first | Apresenta métricas agregadas e controle de cada tenant com expansão sob demanda |
+  | filtered | busca textual ou status | none — code first | Filtra franqueados em tempo real por nome, cidade ou status operacional |
+  | empty | nenhuma praça cadastrada | none — code first | Estado vazio com botão para clonar ou provisionar novo franqueado |
+  | table | alternado para modo tabela | none — code first | Visualização condensada em tabela para escaneamento rápido de alta escala |
+- **Coverage:** src/routes/app.admin.franqueados.tsx:1-1200
+- **Scenarios:** SCN-010
+- **Resources:** multiTenantService, whiteLabelEngine, Mapbox/Google Maps API
 - **Status:** built
 
