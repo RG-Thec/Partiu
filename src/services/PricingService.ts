@@ -179,6 +179,9 @@ export interface ItemizedQuote {
   // Multiplicadores
   categoryMultiplier: number;
   surgeMultiplier: number;
+  surgeReason?: string;
+  isSurgeActive?: boolean;
+  isLiveOverride?: boolean;
   minimumFareApplied: boolean;
   minimumFare: number;
 
@@ -269,7 +272,14 @@ export class PricingService {
     pickupCoords?: [number, number]
   ): Record<SupportedVehicleCategory, ItemizedQuote> {
     const settings = this.getPricingSettings(pickupCoords);
-    const surgeResult = surgeEngine.calculateSurge(surgeContext);
+    const resolvedTenantId = settings.tenantId || "default";
+    const surgeResult = surgeEngine.calculateSurge(
+      {
+        ...surgeContext,
+        tenantId: surgeContext.tenantId || resolvedTenantId,
+      },
+      resolvedTenantId
+    );
     const surgeMultiplier = surgeResult.multiplier;
 
     const distanceKm = Math.max(0.5, routeMetrics.distanceKm);
@@ -333,6 +343,9 @@ export class PricingService {
         rawFare: Math.round(rawRouteCost * 100) / 100,
         categoryMultiplier,
         surgeMultiplier,
+        surgeReason: surgeResult.reason,
+        isSurgeActive: surgeResult.isSurgeActive,
+        isLiveOverride: surgeResult.isLiveOverride,
         minimumFareApplied,
         minimumFare: minimumFloor,
         stopsCount: validStopsCount,

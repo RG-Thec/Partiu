@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTelemetriaFrota, usePartiuRides, usePartiuRidesRealtime } from "@/lib/partiu-db";
 import {
   ArrowLeft,
@@ -39,12 +39,14 @@ import {
   Calendar,
   Sparkles,
   Percent,
+  TrendingUp,
 } from "lucide-react";
 import { getCorridaAtiva, obterPainelSaudeCidade, type CorridaPartiu, type CityHealthDashboardData } from "@/lib/partiu-engine";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { AdminManualDispatchModal } from "@/components/admin/AdminManualDispatchModal";
 import { useAdminCity } from "@/contexts/AdminCityContext";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { surgeEngine } from "@/services/SurgeEngine";
 import {
   type SurgeRule,
   type DispatchAlgorithmSettings,
@@ -91,6 +93,7 @@ interface ItemDespachoMock {
 export function DespachoCentralCorridas() {
   const { pracaAtiva, isNacional } = useAdminCity();
   const { isFranqueado, isSuperAdmin, tenantId } = useAdminAuth();
+  const tenantAlvo = isFranqueado && tenantId ? tenantId : pracaAtiva?.id || "default";
   const [abaAtiva, setAbaAtiva] = useState<"FILA_DESPACHO" | "REGRAS_SURGE">("FILA_DESPACHO");
   
   // Fila de Despacho
@@ -144,7 +147,7 @@ export function DespachoCentralCorridas() {
 
   // Configurações do Algoritmo de Despacho & Surge Pricing
   const [dispatchSettings, setDispatchSettings] = useState<DispatchAlgorithmSettings>(() =>
-    carregarConfiguracoesDespacho()
+    carregarConfiguracoesDespacho(tenantAlvo)
   );
   const [surgeRules, setSurgeRules] = useState<SurgeRule[]>(() => carregarRegrasSurge());
   
@@ -172,10 +175,35 @@ export function DespachoCentralCorridas() {
     setTimeout(() => setToastFeedback(null), 3500);
   };
 
-  const recarregarConfiguracoes = () => {
-    setDispatchSettings(carregarConfiguracoesDespacho());
+  const recarregarConfiguracoes = useCallback(() => {
+    setDispatchSettings(carregarConfiguracoesDespacho(tenantAlvo));
     setSurgeRules(carregarRegrasSurge());
-  };
+  }, [tenantAlvo]);
+
+  // Tempo restante do Live Override
+  const minutosRestantesOverride = useMemo(() => {
+    if (!dispatchSettings.liveOverrideAtivo || !dispatchSettings.liveOverrideExpiraEm) return 0;
+    const diff = dispatchSettings.liveOverrideExpiraEm - Date.now();
+    return Math.max(0, Math.ceil(diff / (60 * 1000)));
+  }, [dispatchSettings.liveOverrideAtivo, dispatchSettings.liveOverrideExpiraEm]);
+
+  // Inteligência de Mercado Automática (Padrão 99 / Uber)
+  const autoSurge = useMemo(() => {
+    const demandCount = Math.max(1, saudeCidade.corridasAtivas);
+    const availableDriversCount = Math.max(1, saudeCidade.motoristasOnline - saudeCidade.motoristasEmViagem);
+    surgeEngine.updateTenantMarketState(tenantAlvo, demandCount, availableDriversCount);
+    return surgeEngine.calculateSurge(
+      {
+        demandCount,
+        availableDriversCount,
+      },
+      tenantAlvo
+    );
+  }, [saudeCidade.corridasAtivas, saudeCidade.motoristasOnline, saudeCidade.motoristasEmViagem, tenantAlvo]);
+
+  useEffect(() => {
+    recarregarConfiguracoes();
+  }, [tenantAlvo, recarregarConfiguracoes]);
 
   useEffect(() => {
     const handleSettingsUpdate = () => recarregarConfiguracoes();
@@ -185,7 +213,7 @@ export function DespachoCentralCorridas() {
       window.removeEventListener("partiu:dispatch-settings-updated", handleSettingsUpdate);
       window.removeEventListener("partiu:surge-rules-updated", handleSettingsUpdate);
     };
-  }, []);
+  }, [recarregarConfiguracoes]);
 
   // Sincronizar corridas reais do Supabase e eventos distribuídos
   useEffect(() => {
@@ -301,21 +329,21 @@ export function DespachoCentralCorridas() {
   // Handlers de Parâmetros de Despacho
   const handleSalvarParametros = (e: React.FormEvent) => {
     e.preventDefault();
-    salvarConfiguracoesDespacho(dispatchSettings);
+    salvarConfiguracoesDespacho(dispatchSettings, tenantAlvo);
     showToast("Parâmetros do algoritmo de despacho salvos com sucesso!");
   };
 
   // Handlers de Live Override
   const handleAtivarLiveOverride = () => {
-    ativarLiveSurgeOverride(liveOverrideMultiplicador, liveOverrideDuracaoMinutos);
+    ativarLiveSurgeOverride(liveOverrideMultiplicador, liveOverrideDuracaoMinutos, tenantAlvo);
     recarregarConfiguracoes();
     showToast(`Sobretaxa de x${liveOverrideMultiplicador.toFixed(1)} aplicada por ${liveOverrideDuracaoMinutos} minutos!`);
   };
 
   const handleDesativarLiveOverride = () => {
-    desativarLiveSurgeOverride();
+    desativarLiveSurgeOverride(tenantAlvo);
     recarregarConfiguracoes();
-    showToast("Sobretaxa administrativa desativada. Retornado à tarifa padrão.");
+    showToast("Sobretaxa administrativa desativada. Retornado à inteligência automática de alta demanda.");
   };
 
   // Handlers de Regras de Surge
@@ -662,6 +690,87 @@ export function DespachoCentralCorridas() {
       {/* ========================================================================= */}
       {abaAtiva === "REGRAS_SURGE" && (
         <div className="space-y-6 animate-in fade-in duration-200">
+          {/* CARD DE INTELIGÊNCIA DINÂMICA AUTOMÁTICA DE MERCADO (UBER / 99 IA) */}
+          <div className="p-5 sm:p-6 rounded-3xl bg-card border border-border/80 shadow-2xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl flex items-center justify-center bg-blue-500/10 text-blue-500">
+                  <TrendingUp className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-lg font-black text-foreground">
+                      Inteligência de Demanda Automática (Padrão Uber / 99)
+                    </h3>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                      dispatchSettings.liveOverrideAtivo
+                        ? "bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                        : autoSurge.isSurgeActive
+                        ? "bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30 animate-pulse"
+                        : "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+                    }`}>
+                      {dispatchSettings.liveOverrideAtivo
+                        ? "SOBREPOSTO POR LIVE OVERRIDE"
+                        : autoSurge.isSurgeActive
+                        ? `ALTA DEMANDA AUTOMÁTICA x${autoSurge.multiplier.toFixed(1)}`
+                        : "EQUILÍBRIO NORMAL (1.0x)"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    O aplicativo calcula e aplica multiplicadores dinâmicos automaticamente conforme o volume de chamados de passageiros vs condutores livres na praça.
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-right flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-1">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  Multiplicador Vigente na Praça
+                </span>
+                <span className={`text-2xl font-black ${
+                  (dispatchSettings.liveOverrideAtivo ? dispatchSettings.liveOverrideMultiplicador : autoSurge.multiplier) > 1.0
+                    ? "text-amber-500"
+                    : "text-foreground"
+                }`}>
+                  x{(dispatchSettings.liveOverrideAtivo ? dispatchSettings.liveOverrideMultiplicador : autoSurge.multiplier).toFixed(1)}
+                </span>
+              </div>
+            </div>
+
+            {/* Grid de Métricas de Liquidez em Tempo Real */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-3.5 rounded-2xl bg-muted/50 border border-border/60">
+                <span className="text-[11px] font-bold text-muted-foreground block">Demanda da Praça</span>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="text-xl font-black text-foreground">{autoSurge.demandCount}</span>
+                  <span className="text-[11px] text-muted-foreground">chamados</span>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-muted/50 border border-border/60">
+                <span className="text-[11px] font-bold text-muted-foreground block">Motoristas Livres</span>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="text-xl font-black text-foreground">{autoSurge.availableDriversCount}</span>
+                  <span className="text-[11px] text-muted-foreground">disponíveis</span>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-muted/50 border border-border/60">
+                <span className="text-[11px] font-bold text-muted-foreground block">Razão Demanda/Oferta</span>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="text-xl font-black text-foreground">{autoSurge.supplyDemandRatio.toFixed(2)}</span>
+                  <span className="text-[11px] text-muted-foreground">procura/veículo</span>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-muted/50 border border-border/60">
+                <span className="text-[11px] font-bold text-muted-foreground block">Status do Algoritmo</span>
+                <span className="text-xs font-black text-foreground block mt-1.5 truncate" title={autoSurge.reason}>
+                  {autoSurge.reason}
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* CARD DE SOBRETAXA MANUAL IMEDIATA (LIVE OVERRIDE) */}
           <div className="p-5 sm:p-6 rounded-3xl bg-card border border-border/80 shadow-2xs space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-4">
@@ -674,13 +783,13 @@ export function DespachoCentralCorridas() {
                   <Zap className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-lg font-black text-foreground">
                       Sobretaxa Administrativa Imediata (Live Override)
                     </h3>
                     {dispatchSettings.liveOverrideAtivo && (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-slate-950 animate-pulse">
-                        SOBRETAXA ATIVA x{dispatchSettings.liveOverrideMultiplicador.toFixed(1)}
+                        SOBRETAXA ATIVA x{dispatchSettings.liveOverrideMultiplicador.toFixed(1)} {minutosRestantesOverride > 0 ? `(${minutosRestantesOverride}m restantes)` : ""}
                       </span>
                     )}
                   </div>

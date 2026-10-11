@@ -291,6 +291,7 @@ export interface CorridaPartiu {
   paradas?: Array<{ id: string; endereco: string; coords?: { lat: number; lng: number } }> | undefined;
   paradasConcluidas?: number | undefined;
   isDestinationMode?: boolean | undefined;
+  surgeMultiplier?: number | undefined;
 }
 
 const STORAGE_KEY_CORRIDA = "partiu_corrida_ativa";
@@ -514,6 +515,7 @@ export function criarNovaCorrida(params: {
   codigoCupom?: string | undefined;
   paradas?: Array<{ id: string; endereco: string; coords?: { lat: number; lng: number } }> | undefined;
   isDestinationMode?: boolean | undefined;
+  surgeMultiplier?: number | undefined;
 }): CorridaPartiu {
   const pin = Math.floor(1000 + Math.random() * 9000).toString();
   const id = `COR-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
@@ -527,6 +529,7 @@ export function criarNovaCorrida(params: {
       distanceKm: params.distanciaKm,
       durationMinutes: params.duracaoMin,
       stopsCount: params.paradas?.length || 0,
+      surgeMultiplier: params.surgeMultiplier,
     });
     finalValor = calc.totalBrl;
   }
@@ -570,6 +573,7 @@ export function criarNovaCorrida(params: {
     paradas: params.paradas || [],
     paradasConcluidas: 0,
     isDestinationMode: params.isDestinationMode || false,
+    surgeMultiplier: params.surgeMultiplier,
   };
 
   // Registra no motor de rastreamento público (Siga Minha Viagem)

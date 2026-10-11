@@ -20,6 +20,8 @@ Registro de decisões textuais da interface reconciliadas com a voz do produto.
 | action.ride.search_prompt_today | Para onde vamos hoje? | src/components/home/DestinationCard.tsx:148 | SCN-001 | agreed |
 | action.hero.pedir_agora | Pedir | src/components/landing/LandingHero.tsx:490 | SCN-001 | agreed |
 | action.reason.start_now | Começar agora | src/components/landing/LandingReasonSection.tsx:135 | SCN-001 | agreed |
+| action.surge.apply_override | Aplicar Sobretaxa Imediata | src/routes/app.admin.despacho.tsx:750 | SCN-009 | agreed |
+| action.surge.disable_override | Desativar Sobretaxa Agora | src/routes/app.admin.despacho.tsx:740 | SCN-009 | agreed |
 
 ## Columns
 

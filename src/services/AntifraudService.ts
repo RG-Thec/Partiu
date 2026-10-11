@@ -97,8 +97,8 @@ export class AntifraudService {
     else if (category === "PARTIU_TURISMO") officialCategory = "PARTIU_TURISMO";
     else if (category === "PARTIU_VAN") officialCategory = "PARTIU_VAN";
 
-    // 4. Recálculo Mandatório da Tarifa Dinâmica
-    const multiQuotes = pricingService.calculateMultiCategoryQuotes(verifiedRoute);
+    // 4. Recálculo Mandatório da Tarifa Dinâmica (com geofencing de praça e sobretaxa)
+    const multiQuotes = pricingService.calculateMultiCategoryQuotes(verifiedRoute, {}, 0, pickupCoordinates);
     const categoryQuote = multiQuotes[officialCategory];
     const verifiedFare = categoryQuote.priceBrl;
 

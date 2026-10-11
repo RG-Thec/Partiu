@@ -232,6 +232,23 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
     setIsGpsPermissionModalOpen(false);
   }, []);
 
+  // Versão reativa do multiplicador dinâmico de tarifa (Surge Pricing)
+  const [surgeVersion, setSurgeVersion] = useState(0);
+
+  useEffect(() => {
+    const handleSurgeEvent = () => {
+      setSurgeVersion((v) => v + 1);
+    };
+    window.addEventListener("partiu:dispatch-settings-updated", handleSurgeEvent);
+    window.addEventListener("partiu:surge-updated", handleSurgeEvent);
+    const interval = setInterval(handleSurgeEvent, 30_000);
+    return () => {
+      window.removeEventListener("partiu:dispatch-settings-updated", handleSurgeEvent);
+      window.removeEventListener("partiu:surge-updated", handleSurgeEvent);
+      clearInterval(interval);
+    };
+  }, []);
+
   // Validação estrita de coordenadas físicas terrestres (exclui 0,0 e anomalias)
   const isValidCoordinate = useCallback((lng: number, lat: number): boolean => {
     return (
@@ -649,7 +666,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       provider: "calibrated_urban_network",
     };
     return pricingService.calculateMultiCategoryQuotes(dummyMetrics, {}, paradas.length, origemCoords);
-  }, [routeMetrics, distanciaKm, duracaoMin, origem, destino, paradas.length, origemCoords]);
+  }, [routeMetrics, distanciaKm, duracaoMin, origem, destino, paradas.length, origemCoords, surgeVersion]);
 
   const activeQuote = useMemo(() => {
     let key: SupportedVehicleCategory = "PARTIU_CARRO";
@@ -1192,6 +1209,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
             clientClaimedFare: valorOriginal,
             discountBrl: descontoCupom,
             couponCode: codigoCupom,
+            surgeMultiplier: activeQuote.surgeMultiplier,
           },
         });
 
@@ -1220,6 +1238,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       valorOriginal,
       descontoCupom,
       codigoCupom,
+      surgeMultiplier: activeQuote.surgeMultiplier,
       distanciaKm,
       duracaoMin: activeQuote.tripDurationMinutes || duracaoMin,
       formaPagamento: formaPagamento === "pix" ? "pix" : "dinheiro",

@@ -24,6 +24,7 @@ interface RequestPayload {
   destinationAddress: string;
   paymentMethod: "pix" | "dinheiro" | "cartao";
   clientClaimedFare?: number;
+  surgeMultiplier?: number;
 }
 
 serve(async (req: Request) => {
@@ -142,7 +143,8 @@ serve(async (req: Request) => {
       minFloor = 35.0;
     }
 
-    const precoCalculado = Math.max(minFloor, rawCost * categoryMultiplier);
+    const surgeMultiplier = Math.max(1.0, Math.min(3.0, Number(payload.surgeMultiplier) || Number(settingsData?.surge_multiplier) || 1.0));
+    const precoCalculado = Math.max(minFloor, rawCost * categoryMultiplier * surgeMultiplier);
     const precoFinal = Math.round(precoCalculado * 100) / 100;
 
     // 4. Verificação Antifraude Server-Side Obrigatória

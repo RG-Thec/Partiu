@@ -102,10 +102,22 @@ export const REGRAS_SURGE_PADRAO: SurgeRule[] = [
   },
 ];
 
-export function carregarConfiguracoesDespacho(): DispatchAlgorithmSettings {
-  if (typeof window === "undefined") return DEFAULT_DISPATCH_SETTINGS;
+export function getStorageKeyDispatchSettings(tenantId?: string): string {
+  if (tenantId && tenantId !== "default" && tenantId !== "todas") {
+    return `${STORAGE_KEY_DISPATCH_SETTINGS}_${tenantId}`;
+  }
+  return STORAGE_KEY_DISPATCH_SETTINGS;
+}
+
+export function carregarConfiguracoesDespacho(tenantId?: string): DispatchAlgorithmSettings {
+  if (typeof window === "undefined" && typeof localStorage === "undefined") return DEFAULT_DISPATCH_SETTINGS;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY_DISPATCH_SETTINGS);
+    const key = getStorageKeyDispatchSettings(tenantId);
+    let raw = typeof localStorage !== "undefined" ? localStorage.getItem(key) : null;
+    // Se não encontrou para a praça específica, usa configuração padrão/global
+    if (!raw && tenantId && tenantId !== "default" && typeof localStorage !== "undefined") {
+      raw = localStorage.getItem(STORAGE_KEY_DISPATCH_SETTINGS);
+    }
     if (raw) {
       const parsed = JSON.parse(raw);
       // Checa se o live override expirou
@@ -113,6 +125,9 @@ export function carregarConfiguracoesDespacho(): DispatchAlgorithmSettings {
         parsed.liveOverrideAtivo = false;
         parsed.liveOverrideMultiplicador = 1.0;
         parsed.liveOverrideExpiraEm = null;
+        if (typeof localStorage !== "undefined") {
+          localStorage.setItem(key, JSON.stringify(parsed));
+        }
       }
       return { ...DEFAULT_DISPATCH_SETTINGS, ...parsed };
     }
@@ -121,21 +136,34 @@ export function carregarConfiguracoesDespacho(): DispatchAlgorithmSettings {
 }
 
 export function salvarConfiguracoesDespacho(
-  novas: Partial<DispatchAlgorithmSettings>
+  novas: Partial<DispatchAlgorithmSettings>,
+  tenantId?: string
 ): DispatchAlgorithmSettings {
-  const atuais = carregarConfiguracoesDespacho();
+  const atuais = carregarConfiguracoesDespacho(tenantId);
   const consolidadas = { ...atuais, ...novas };
+  const key = getStorageKeyDispatchSettings(tenantId);
 
-  if (typeof window !== "undefined") {
-    localStorage.setItem(STORAGE_KEY_DISPATCH_SETTINGS, JSON.stringify(consolidadas));
-    window.dispatchEvent(new CustomEvent("partiu:dispatch-settings-updated"));
+  if (typeof localStorage !== "undefined") {
+    localStorage.setItem(key, JSON.stringify(consolidadas));
+    // Se for tenant padrão, atualiza também a chave global
+    if (!tenantId || tenantId === "default") {
+      localStorage.setItem(STORAGE_KEY_DISPATCH_SETTINGS, JSON.stringify(consolidadas));
+    }
+  }
+
+  if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+    window.dispatchEvent(
+      new CustomEvent("partiu:dispatch-settings-updated", {
+        detail: { tenantId: tenantId || "default", settings: consolidadas },
+      })
+    );
   }
 
   return consolidadas;
 }
 
 export function carregarRegrasSurge(): SurgeRule[] {
-  if (typeof window === "undefined") return REGRAS_SURGE_PADRAO;
+  if (typeof localStorage === "undefined") return REGRAS_SURGE_PADRAO;
   try {
     const raw = localStorage.getItem(STORAGE_KEY_SURGE_RULES);
     if (raw) {
@@ -157,8 +185,10 @@ export function salvarRegraSurge(regra: Omit<SurgeRule, "id"> & { id?: string })
   const existentes = regras.filter((r) => r.id !== id);
   existentes.push(nova);
 
-  if (typeof window !== "undefined") {
+  if (typeof localStorage !== "undefined") {
     localStorage.setItem(STORAGE_KEY_SURGE_RULES, JSON.stringify(existentes));
+  }
+  if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
     window.dispatchEvent(new CustomEvent("partiu:surge-rules-updated"));
   }
 
@@ -172,8 +202,10 @@ export function alternarStatusRegraSurge(id: string): SurgeRule | null {
 
   regras[index].ativo = !regras[index].ativo;
 
-  if (typeof window !== "undefined") {
+  if (typeof localStorage !== "undefined") {
     localStorage.setItem(STORAGE_KEY_SURGE_RULES, JSON.stringify(regras));
+  }
+  if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
     window.dispatchEvent(new CustomEvent("partiu:surge-rules-updated"));
   }
 
@@ -184,8 +216,10 @@ export function excluirRegraSurge(id: string): boolean {
   const regras = carregarRegrasSurge();
   const filtradas = regras.filter((r) => r.id !== id);
 
-  if (typeof window !== "undefined") {
+  if (typeof localStorage !== "undefined") {
     localStorage.setItem(STORAGE_KEY_SURGE_RULES, JSON.stringify(filtradas));
+  }
+  if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
     window.dispatchEvent(new CustomEvent("partiu:surge-rules-updated"));
   }
 
@@ -194,26 +228,36 @@ export function excluirRegraSurge(id: string): boolean {
 
 export function ativarLiveSurgeOverride(
   multiplicador: number,
-  duracaoMinutos: number = 30
+  duracaoMinutos: number = 30,
+  tenantId?: string
 ): DispatchAlgorithmSettings {
   const clamped = Math.max(1.0, Math.min(3.0, multiplicador));
   const expiraEm = Date.now() + duracaoMinutos * 60 * 1000;
+  const tid = tenantId || "default";
 
-  // Atualiza o motor em tempo real
-  surgeEngine.setAdminOverride(clamped);
+  // Atualiza o motor em tempo real isolado por tenant
+  surgeEngine.setAdminOverride(clamped, duracaoMinutos, tid);
 
-  return salvarConfiguracoesDespacho({
-    liveOverrideAtivo: clamped > 1.0,
-    liveOverrideMultiplicador: clamped,
-    liveOverrideExpiraEm: expiraEm,
-  });
+  return salvarConfiguracoesDespacho(
+    {
+      liveOverrideAtivo: clamped > 1.0,
+      liveOverrideMultiplicador: clamped,
+      liveOverrideExpiraEm: expiraEm,
+    },
+    tid
+  );
 }
 
-export function desativarLiveSurgeOverride(): DispatchAlgorithmSettings {
-  surgeEngine.setAdminOverride(1.0);
-  return salvarConfiguracoesDespacho({
-    liveOverrideAtivo: false,
-    liveOverrideMultiplicador: 1.0,
-    liveOverrideExpiraEm: null,
-  });
+export function desativarLiveSurgeOverride(tenantId?: string): DispatchAlgorithmSettings {
+  const tid = tenantId || "default";
+  surgeEngine.clearAdminOverride(tid);
+
+  return salvarConfiguracoesDespacho(
+    {
+      liveOverrideAtivo: false,
+      liveOverrideMultiplicador: 1.0,
+      liveOverrideExpiraEm: null,
+    },
+    tid
+  );
 }

@@ -10,6 +10,7 @@ import {
   QrCode,
   CreditCard,
   Banknote,
+  Zap,
 } from "lucide-react";
 import { usePassengerRide } from "@/contexts/PassengerRideContext";
 import type { PassengerVehicleCategory } from "@/lib/passenger/passenger-ride-machine";
@@ -176,6 +177,11 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
   const precoAtivo = isMoto ? precoMoto : precoPop;
   const nomeVeiculoAtivo = isMoto ? "Moto Comum" : "Carro Comum";
 
+  const currentSurgeMult = isMoto ? (quoteMoto?.surgeMultiplier ?? 1.0) : (quotePop?.surgeMultiplier ?? 1.0);
+  const currentSurgeReason = isMoto ? quoteMoto?.surgeReason : quotePop?.surgeReason;
+  const isSurgeActive = currentSurgeMult > 1.0;
+  const isLiveOverride = Boolean(isMoto ? quoteMoto?.isLiveOverride : quotePop?.isLiveOverride);
+
   // Metadados visuais do pagamento atual
   function getPaymentInfo() {
     if (pagamentoNaMaquininha) {
@@ -299,8 +305,16 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
               isSelected={isPop}
               category="CARRO"
               title="Carro Comum"
-              badgeText="Conforto"
-              badgeClass="text-blue-700 bg-blue-50 border border-blue-200"
+              badgeText={
+                quotePop?.surgeMultiplier && quotePop.surgeMultiplier > 1.0
+                  ? `⚡ x${quotePop.surgeMultiplier.toFixed(1)} Dinâmica`
+                  : "Conforto"
+              }
+              badgeClass={
+                quotePop?.surgeMultiplier && quotePop.surgeMultiplier > 1.0
+                  ? "text-amber-800 bg-amber-100 border border-amber-300 font-extrabold"
+                  : "text-blue-700 bg-blue-50 border border-blue-200"
+              }
               etaMinutes={pickupMinPop || 4}
               capacityText="4 passageiros"
               luggageText="2 malas"
@@ -316,8 +330,16 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
               isSelected={isMoto}
               category="MOTO"
               title="Moto Comum"
-              badgeText="Mais Rápido"
-              badgeClass="text-emerald-700 bg-emerald-50 border border-emerald-200"
+              badgeText={
+                quoteMoto?.surgeMultiplier && quoteMoto.surgeMultiplier > 1.0
+                  ? `⚡ x${quoteMoto.surgeMultiplier.toFixed(1)} Dinâmica`
+                  : "Mais Rápido"
+              }
+              badgeClass={
+                quoteMoto?.surgeMultiplier && quoteMoto.surgeMultiplier > 1.0
+                  ? "text-amber-800 bg-amber-100 border border-amber-300 font-extrabold"
+                  : "text-emerald-700 bg-emerald-50 border border-emerald-200"
+              }
               etaMinutes={pickupMinMoto || 3}
               capacityText="1 passageiro"
               luggageText="Mochila"
@@ -329,6 +351,28 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
               corSecundaria={corSecundaria}
             />
           </div>
+
+          {/* BANNER TRANSPARENTE DE ALTA DEMANDA / SOBRETAXA IMEDIATA (PADRÃO UBER / 99) */}
+          {isSurgeActive && (
+            <div className="flex items-start gap-2.5 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-950 shrink-0 animate-in fade-in">
+              <div className="w-7 h-7 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center shrink-0 font-black text-xs shadow-xs mt-0.5">
+                <Zap className="w-4 h-4 fill-current" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-black text-amber-900">
+                    {isLiveOverride ? "Tarifa Especial da Praça" : "Alta Procura na Região"}
+                  </span>
+                  <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-amber-500/25 text-amber-900 border border-amber-500/30">
+                    x{currentSurgeMult.toFixed(1)} Dinâmica
+                  </span>
+                </div>
+                <p className="text-[11px] text-amber-800/90 leading-tight mt-0.5 font-medium">
+                  {currentSurgeReason || "Muitos passageiros solicitando viagens nesta área. O acréscimo incentiva mais condutores a atender a sua localização com rapidez."}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* BANNER DE PREÇO FIXO GARANTIDO */}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/90 text-slate-700 shrink-0">

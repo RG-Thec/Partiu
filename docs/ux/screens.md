@@ -291,16 +291,16 @@ whose code diverges from its record here is a "drifted" finding. -->
 
 ### SCR-17: Central de Despacho e Operação ao Vivo
 - **Used by:** FLW-08 step 3
-- **Purpose:** Monitoramento cartográfico das corridas em andamento e despacho manual em contingência
-- **Elements:** Lista de corridas em rota, mapa com rotas ativas, tabela de condutores disponíveis
+- **Purpose:** Monitoramento cartográfico das corridas em andamento, parâmetros do algoritmo de busca progressiva e tarifas dinâmicas com IA e Live Override
+- **Elements:** Lista de corridas em rota, mapa com rotas ativas, tabela de condutores disponíveis, Card de Inteligência de Demanda Automática (Uber/99), Card de Sobretaxa Administrativa Imediata (Live Override)
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |-------|---------|-------------|----------|
-  | success | operação ativa | none — code first | Rastreamento em lote das corridas ativas |
-  | empty | sem corridas no momento | none — code first | Indicador de tranquilidade operacional |
-- **Coverage:** src/routes/app.admin.despacho.tsx:1-150
-- **Scenarios:** SCN-010
-- **Resources:** PostGIS, Dispatch Engine
+  | success | operação ativa | none — code first | Rastreamento em lote das corridas ativas e governança de multiplicadores dinâmicos |
+  | empty | sem corridas no momento | none — code first | Indicador de tranquilidade operacional com tarifa padrão (1.0x) |
+- **Coverage:** src/routes/app.admin.despacho.tsx:1-850
+- **Scenarios:** SCN-008, SCN-009
+- **Resources:** PostGIS, Dispatch Engine, SurgeEngine
 - **Status:** built
 
 ### SCR-18: Gestão de Motoristas e Frota

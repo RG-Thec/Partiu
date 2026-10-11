@@ -14,6 +14,7 @@
 | SCN-006 | Resiliência offline e preservação de estado da corrida | Resiliência e Rede | P-01 | ST-006, FLW-06 (JTBD-01, JRN-01/#3) | implemented | 2026-10-02 |
 | SCN-007 | Consulta de histórico de viagens e envio de encomendas | Atividade e Encomendas | P-01 | ST-007, FLW-07 (JTBD-01, JRN-01/#5) | implemented | 2026-10-02 |
 | SCN-008 | Telemetria executiva e despacho operacional administrativo | Governança e Operação | P-03 | ST-008, FLW-08 (JTBD-03, JRN-01/#2) | implemented | 2026-10-02 |
+| SCN-009 | Tarifa dinâmica automática de alta demanda e sobretaxa administrativa imediata | Tarifa Dinâmica & Despacho | P-01, P-03 | ST-001, ST-008, FLW-01, FLW-08 | implemented | 2026-10-11 |
 
 ## Personas
 
@@ -191,3 +192,25 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Status:** implemented
 - **Coverage:** src/routes/app.admin.despacho.tsx:1-150, src/routes/app.admin.diagnostico.tsx:1-200, src/routes/app.admin.monitoramento.tsx:1-250
 - **Product:** unobserved
+
+## Tarifa Dinâmica & Despacho
+
+### SCN-009: Tarifa dinâmica automática de alta demanda e sobretaxa administrativa imediata
+- **Persona:** P-01, P-03
+- **Feature:** Tarifa Dinâmica & Despacho
+- **Traces:** ST-001, ST-008, FLW-01, FLW-08 (JTBD-01, JTBD-03)
+- **Entry point:** Tela de cotação do passageiro e Central de despacho administrativa (/app/admin/despacho)
+- **Preconditions:** Passageiro cotando corrida ou Administrador gerenciando a praça
+- **Steps:**
+  1. O sistema monitora a razão de chamados de passageiros vs motoristas livres na praça (padrão 99 e Uber) -> Quando a demanda supera a oferta, o multiplicador dinâmico é calculado e aplicado automaticamente nas cotações (x1.2, x1.4, x1.6, x1.8, x2.0).
+  2. O passageiro visualiza na tela de cotação o badge transparente com o multiplicador e o motivo claro do acréscimo para incentivar mais condutores a atender a região.
+  3. No painel de despacho, o gestor pode acompanhar a inteligência automática em tempo real ou forçar uma Sobretaxa Administrativa Imediata (Live Override) por 15m, 30m, 1h ou 2h, que sobrepõe temporariamente o cálculo automático e depois reverte com segurança.
+- **Expected result:** Tarifa dinâmica 100% justificada e transparente para o passageiro, com autonomia total de sobretaxa controlada no painel administrativo do franqueado e super admin.
+- **UI elements:** Badge de tarifa dinâmica, Banner de alta demanda transparente, Card de inteligência de mercado, Card de sobretaxa administrativa imediata
+- **States covered:** success, loading, empty, error
+- **Errors & recovery:** Em caso de perda de conexão com telemetria, o sistema utiliza o último estado válido com piso seguro de 1.0x e teto regulatório de 2.5x.
+- **Telemetry:** surge_multiplier_applied (tenant_id, multiplier, is_live_override, reason)
+- **Status:** implemented
+- **Coverage:** src/services/SurgeEngine.ts:1-250, src/routes/app.admin.despacho.tsx:660-760, src/components/passenger/PassengerReviewRouteSheet.tsx:300-350
+- **Product:** unobserved
+
