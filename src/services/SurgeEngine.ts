@@ -222,6 +222,31 @@ export class SurgeEngine {
     return null;
   }
 
+  /**
+   * Verifica se o cálculo automático de tarifa dinâmica está habilitado para o tenant
+   */
+  public isAutoSurgeEnabledForTenant(tenantId: string = "default"): boolean {
+    if (typeof localStorage !== "undefined") {
+      try {
+        const storageKeys = [
+          tenantId && tenantId !== "default" ? `partiu_dispatch_algorithm_settings_${tenantId}` : null,
+          "partiu_dispatch_algorithm_settings",
+        ].filter(Boolean) as string[];
+
+        for (const key of storageKeys) {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (typeof parsed.autoSurgeAtivo === "boolean") {
+              return parsed.autoSurgeAtivo;
+            }
+          }
+        }
+      } catch {}
+    }
+    return true;
+  }
+
   public setCeilings(min: number, max: number): void {
     this.minCeiling = Math.max(1.0, min);
     this.maxCeiling = Math.max(this.minCeiling, max);
@@ -292,6 +317,27 @@ export class SurgeEngine {
     // =========================================================================
     // PRIORIDADE 2: MOTOR DINÂMICO AUTOMÁTICO DE ALTA DEMANDA (UBER / 99 STANDARD)
     // =========================================================================
+    const autoSurgeHabilitado =
+      context.isAutoSurgeEnabled ?? this.isAutoSurgeEnabledForTenant(tenantId);
+
+    if (!autoSurgeHabilitado) {
+      return {
+        multiplier: 1.0,
+        reason: "Tarifa dinâmica automática desativada (Tarifa padrão fixa)",
+        isSurgeActive: false,
+        isLiveOverride: false,
+        supplyDemandRatio: 1.0,
+        demandCount: context.demandCount ?? 1,
+        availableDriversCount: context.availableDriversCount ?? 1,
+        tenantId,
+        breakdown: {
+          demandFactor: 1.0,
+          nightFactor: 1.0,
+          weatherFactor: 1.0,
+          eventFactor: 1.0,
+        },
+      };
+    }
     const stats = this.getTenantMarketStats(tenantId);
     const demand = Math.max(1, context.demandCount ?? context.activeRequestsCount ?? stats.demandCount);
     const supply = Math.max(1, context.availableDriversCount ?? stats.availableDriversCount);

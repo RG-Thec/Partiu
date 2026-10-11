@@ -44,6 +44,7 @@ import {
 import { getCorridaAtiva, obterPainelSaudeCidade, type CorridaPartiu, type CityHealthDashboardData } from "@/lib/partiu-engine";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { AdminManualDispatchModal } from "@/components/admin/AdminManualDispatchModal";
+import { Switch } from "@/components/ui/switch";
 import { useAdminCity } from "@/contexts/AdminCityContext";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { surgeEngine } from "@/services/SurgeEngine";
@@ -58,6 +59,7 @@ import {
   excluirRegraSurge,
   ativarLiveSurgeOverride,
   desativarLiveSurgeOverride,
+  alternarAutoSurge,
 } from "@/lib/surge-rules-service";
 
 export const Route = createFileRoute("/app/admin/despacho")({
@@ -196,10 +198,26 @@ export function DespachoCentralCorridas() {
       {
         demandCount,
         availableDriversCount,
+        isAutoSurgeEnabled: dispatchSettings.autoSurgeAtivo !== false,
       },
       tenantAlvo
     );
-  }, [saudeCidade.corridasAtivas, saudeCidade.motoristasOnline, saudeCidade.motoristasEmViagem, tenantAlvo]);
+  }, [
+    saudeCidade.corridasAtivas,
+    saudeCidade.motoristasOnline,
+    saudeCidade.motoristasEmViagem,
+    tenantAlvo,
+    dispatchSettings.autoSurgeAtivo,
+  ]);
+
+  const handleToggleAutoSurge = (checked: boolean) => {
+    salvarConfiguracoesDespacho({ autoSurgeAtivo: checked }, tenantAlvo);
+    showToast(
+      checked
+        ? "Tarifa dinâmica automática ativada na praça"
+        : "Tarifa dinâmica automática desativada na praça"
+    );
+  };
 
   useEffect(() => {
     recarregarConfiguracoes();
@@ -705,12 +723,16 @@ export function DespachoCentralCorridas() {
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
                       dispatchSettings.liveOverrideAtivo
                         ? "bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                        : dispatchSettings.autoSurgeAtivo === false
+                        ? "bg-muted text-muted-foreground border border-border"
                         : autoSurge.isSurgeActive
                         ? "bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30 animate-pulse"
                         : "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
                     }`}>
                       {dispatchSettings.liveOverrideAtivo
                         ? "SOBREPOSTO POR LIVE OVERRIDE"
+                        : dispatchSettings.autoSurgeAtivo === false
+                        ? "TARIFA AUTOMÁTICA DESATIVADA (FIXA 1.0x)"
                         : autoSurge.isSurgeActive
                         ? `ALTA DEMANDA AUTOMÁTICA x${autoSurge.multiplier.toFixed(1)}`
                         : "EQUILÍBRIO NORMAL (1.0x)"}
@@ -722,17 +744,33 @@ export function DespachoCentralCorridas() {
                 </div>
               </div>
 
-              <div className="text-right flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-1">
-                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                  Multiplicador Vigente na Praça
-                </span>
-                <span className={`text-2xl font-black ${
-                  (dispatchSettings.liveOverrideAtivo ? dispatchSettings.liveOverrideMultiplicador : autoSurge.multiplier) > 1.0
-                    ? "text-amber-500"
-                    : "text-foreground"
-                }`}>
-                  x{(dispatchSettings.liveOverrideAtivo ? dispatchSettings.liveOverrideMultiplicador : autoSurge.multiplier).toFixed(1)}
-                </span>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-5">
+                <div className="flex items-center gap-2.5 bg-muted/60 hover:bg-muted px-3.5 py-2 rounded-2xl border border-border/80 transition-colors">
+                  <Switch
+                    id="switch-auto-surge"
+                    checked={dispatchSettings.autoSurgeAtivo !== false}
+                    onCheckedChange={handleToggleAutoSurge}
+                  />
+                  <label
+                    htmlFor="switch-auto-surge"
+                    className="text-xs font-bold cursor-pointer text-foreground select-none"
+                  >
+                    {dispatchSettings.autoSurgeAtivo !== false ? "Tarifa Automática Ativa" : "Tarifa Automática Desativada"}
+                  </label>
+                </div>
+
+                <div className="text-right flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-1">
+                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                    Multiplicador Vigente na Praça
+                  </span>
+                  <span className={`text-2xl font-black ${
+                    (dispatchSettings.liveOverrideAtivo ? dispatchSettings.liveOverrideMultiplicador : autoSurge.multiplier) > 1.0
+                      ? "text-amber-500"
+                      : "text-foreground"
+                  }`}>
+                    x{(dispatchSettings.liveOverrideAtivo ? dispatchSettings.liveOverrideMultiplicador : autoSurge.multiplier).toFixed(1)}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -769,6 +807,15 @@ export function DespachoCentralCorridas() {
                 </span>
               </div>
             </div>
+
+            {dispatchSettings.autoSurgeAtivo === false && (
+              <div className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-muted/40 border border-border/80 text-xs text-muted-foreground">
+                <Sliders className="w-4 h-4 text-muted-foreground shrink-0" />
+                <span>
+                  O modo automático está <strong>desativado</strong> para esta praça. Todas as novas corridas estão sendo tarifadas com multiplicador base 1.0x (sem acréscimo dinâmico por alta procura). Para forçar uma sobretaxa momentânea, utilize a Sobretaxa Imediata abaixo.
+                </span>
+              </div>
+            )}
           </div>
 
           {/* CARD DE SOBRETAXA MANUAL IMEDIATA (LIVE OVERRIDE) */}

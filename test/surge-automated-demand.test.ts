@@ -5,6 +5,7 @@ import {
   salvarConfiguracoesDespacho,
   ativarLiveSurgeOverride,
   desativarLiveSurgeOverride,
+  alternarAutoSurge,
   DEFAULT_DISPATCH_SETTINGS,
 } from "../src/lib/surge-rules-service.ts";
 import { pricingService } from "../src/services/PricingService.ts";
@@ -388,6 +389,88 @@ describe("⚡ Inteligência de Demanda Automática & Sobretaxa Imediata (Padrão
       });
 
       expect(res.multiplier <= 2.5).toBe(true);
+    });
+  });
+
+  describe("7. Ativar e Desativar Modo de Tarifa Automática (autoSurgeAtivo)", () => {
+    test("Desativação do modo automático força tarifa padrão 1.0x mesmo com choque de demanda (R = 5.0)", () => {
+      // Desativa o auto surge na praça de Itaperuna
+      salvarConfiguracoesDespacho({ autoSurgeAtivo: false }, "tenant-itaperuna");
+
+      const res = surgeEngine.calculateSurge(
+        {
+          demandCount: 50,
+          availableDriversCount: 10, // R = 5.0 (seria 2.0x se ativo)
+          isNightTime: false,
+          isRaining: false,
+        },
+        "tenant-itaperuna"
+      );
+
+      expect(res.multiplier).toBe(1.0);
+      expect(res.isSurgeActive).toBe(false);
+      expect(res.isLiveOverride).toBe(false);
+      expect(res.reason).toContain("desativada");
+    });
+
+    test("Live Override manual ainda tem precedência se acionado com auto surge desligado", () => {
+      // Com auto surge desativado, gestor aciona Live Override manual x1.6
+      salvarConfiguracoesDespacho({ autoSurgeAtivo: false }, "tenant-itaperuna");
+      ativarLiveSurgeOverride(1.6, 30, "tenant-itaperuna");
+
+      const res = surgeEngine.calculateSurge({}, "tenant-itaperuna");
+
+      expect(res.multiplier).toBe(1.6);
+      expect(res.isSurgeActive).toBe(true);
+      expect(res.isLiveOverride).toBe(true);
+      expect(res.reason).toContain("Sobretaxa administrativa imediata");
+
+      desativarLiveSurgeOverride("tenant-itaperuna");
+    });
+
+    test("Reativação via alternarAutoSurge restaura imediatamente o cálculo dinâmico", () => {
+      // Reativa o auto surge na praça de Itaperuna
+      alternarAutoSurge("tenant-itaperuna", true);
+
+      const config = carregarConfiguracoesDespacho("tenant-itaperuna");
+      expect(config.autoSurgeAtivo).toBe(true);
+
+      const res = surgeEngine.calculateSurge(
+        {
+          demandCount: 20,
+          availableDriversCount: 10, // R = 2.0 -> 1.6x
+          isNightTime: false,
+          isRaining: false,
+        },
+        "tenant-itaperuna"
+      );
+
+      expect(res.multiplier).toBe(1.6);
+      expect(res.isSurgeActive).toBe(true);
+      expect(res.reason).toContain("escassez de veículos disponíveis");
+    });
+
+    test("Isolamento multi-tenant: desligar auto surge em BH não desliga em Itaperuna ou Default", () => {
+      salvarConfiguracoesDespacho({ autoSurgeAtivo: false }, "tenant-bh");
+      salvarConfiguracoesDespacho({ autoSurgeAtivo: true }, "tenant-itaperuna");
+      salvarConfiguracoesDespacho({ autoSurgeAtivo: true }, "default");
+
+      // BH desativado -> 1.0x
+      const resBH = surgeEngine.calculateSurge(
+        { demandCount: 30, availableDriversCount: 10, isNightTime: false, isRaining: false },
+        "tenant-bh"
+      );
+      expect(resBH.multiplier).toBe(1.0);
+
+      // Itaperuna ativado -> 1.8x (R = 3.0)
+      const resItaperuna = surgeEngine.calculateSurge(
+        { demandCount: 30, availableDriversCount: 10, isNightTime: false, isRaining: false },
+        "tenant-itaperuna"
+      );
+      expect(resItaperuna.multiplier).toBe(1.8);
+
+      // Limpeza
+      salvarConfiguracoesDespacho({ autoSurgeAtivo: true }, "tenant-bh");
     });
   });
 });

@@ -292,7 +292,7 @@ whose code diverges from its record here is a "drifted" finding. -->
 ### SCR-17: Central de Despacho e Operação ao Vivo
 - **Used by:** FLW-08 step 3
 - **Purpose:** Monitoramento cartográfico das corridas em andamento, parâmetros do algoritmo de busca progressiva e tarifas dinâmicas com IA e Live Override
-- **Elements:** Lista de corridas em rota, mapa com rotas ativas, tabela de condutores disponíveis, Card de Inteligência de Demanda Automática (Uber/99), Card de Sobretaxa Administrativa Imediata (Live Override)
+- **Elements:** Lista de corridas em rota, mapa com rotas ativas, tabela de condutores disponíveis, Card de Inteligência de Demanda Automática (Uber/99) com switch de ativação, Card de Sobretaxa Administrativa Imediata (Live Override)
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |-------|---------|-------------|----------|

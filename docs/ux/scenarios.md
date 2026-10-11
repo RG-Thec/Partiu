@@ -204,9 +204,9 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Steps:**
   1. O sistema monitora a razão de chamados de passageiros vs motoristas livres na praça (padrão 99 e Uber) -> Quando a demanda supera a oferta, o multiplicador dinâmico é calculado e aplicado automaticamente nas cotações (x1.2, x1.4, x1.6, x1.8, x2.0).
   2. O passageiro visualiza na tela de cotação o badge transparente com o multiplicador e o motivo claro do acréscimo para incentivar mais condutores a atender a região.
-  3. No painel de despacho, o gestor pode acompanhar a inteligência automática em tempo real ou forçar uma Sobretaxa Administrativa Imediata (Live Override) por 15m, 30m, 1h ou 2h, que sobrepõe temporariamente o cálculo automático e depois reverte com segurança.
-- **Expected result:** Tarifa dinâmica 100% justificada e transparente para o passageiro, com autonomia total de sobretaxa controlada no painel administrativo do franqueado e super admin.
-- **UI elements:** Badge de tarifa dinâmica, Banner de alta demanda transparente, Card de inteligência de mercado, Card de sobretaxa administrativa imediata
+  3. No painel de despacho, o gestor pode ativar ou desativar a inteligência de tarifa automática a qualquer momento através de controle switch dedicado, além de poder forçar uma Sobretaxa Administrativa Imediata (Live Override) por 15m, 30m, 1h ou 2h, que sobrepõe temporariamente o cálculo automático e depois reverte com segurança.
+- **Expected result:** Tarifa dinâmica 100% justificada e transparente para o passageiro, com autonomia total de ativar ou desativar o cálculo automático e aplicar sobretaxa controlada no painel administrativo do franqueado e super admin.
+- **UI elements:** Badge de tarifa dinâmica, Banner de alta demanda transparente, Card de inteligência de mercado com switch de ativação, Card de sobretaxa administrativa imediata
 - **States covered:** success, loading, empty, error
 - **Errors & recovery:** Em caso de perda de conexão com telemetria, o sistema utiliza o último estado válido com piso seguro de 1.0x e teto regulatório de 2.5x.
 - **Telemetry:** surge_multiplier_applied (tenant_id, multiplier, is_live_override, reason)

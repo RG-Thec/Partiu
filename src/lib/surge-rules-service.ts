@@ -27,6 +27,7 @@ export interface DispatchAlgorithmSettings {
   tarifaParadaAdicional: number;
   takeRateTipo: "PERCENTUAL" | "FIXO";
   takeRateValor: number;
+  autoSurgeAtivo: boolean;
   liveOverrideAtivo: boolean;
   liveOverrideMultiplicador: number;
   liveOverrideExpiraEm?: number | null;
@@ -45,6 +46,7 @@ export const DEFAULT_DISPATCH_SETTINGS: DispatchAlgorithmSettings = {
   tarifaParadaAdicional: 2.5,
   takeRateTipo: "PERCENTUAL",
   takeRateValor: 0.0, // 0% retido (Zero Comissão - Modelo Padrão PARTIU SaaS)
+  autoSurgeAtivo: true, // Inteligência Automática Uber/99 habilitada por padrão
   liveOverrideAtivo: false,
   liveOverrideMultiplicador: 1.0,
   liveOverrideExpiraEm: null,
@@ -261,3 +263,17 @@ export function desativarLiveSurgeOverride(tenantId?: string): DispatchAlgorithm
     tid
   );
 }
+
+export function alternarAutoSurge(tenantId?: string, ativo?: boolean): DispatchAlgorithmSettings {
+  const tid = tenantId || "default";
+  const atuais = carregarConfiguracoesDespacho(tid);
+  const novoStatus = ativo !== undefined ? ativo : !atuais.autoSurgeAtivo;
+
+  return salvarConfiguracoesDespacho(
+    {
+      autoSurgeAtivo: novoStatus,
+    },
+    tid
+  );
+}
+
