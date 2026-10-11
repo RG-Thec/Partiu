@@ -57,9 +57,9 @@ export const SEED_BANNERS: BannerItem[] = [
     link_url: "/cadastro-motorista",
     order_index: 3,
     is_active: true,
-    category: "DRIVER",
-    title: "Motorista Parceiro PARTIU",
-    subtitle: "Diária fixa pré-paga e 100% das corridas ficam com você",
+    category: "ALL",
+    title: "Seja Motorista Parceiro",
+    subtitle: "Diária fixa e 100% do ganho da corrida para você",
     badge: "0% COMISSÃO",
   },
 ];
@@ -132,10 +132,19 @@ class BannerService {
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-          const limpos = parsed.filter((b) => !isLegacyVanBanner(b));
-          if (limpos.length !== parsed.length) {
-            localStorage.setItem(BANNERS_STORAGE_KEY, JSON.stringify(limpos));
-          }
+          const limpos = parsed
+            .filter((b) => !isLegacyVanBanner(b))
+            .map((b) => {
+              if (b.id === "banner-motorista-saas" && b.category === "DRIVER") {
+                return {
+                  ...b,
+                  category: "ALL" as BannerCategory,
+                  title: "Seja Motorista Parceiro",
+                  subtitle: "Diária fixa e 100% do ganho da corrida para você",
+                };
+              }
+              return b;
+            });
           if (limpos.length > 0) {
             return limpos;
           }
@@ -240,7 +249,10 @@ class BannerService {
 
   public getActiveBanners(category: BannerCategory = "PASSENGER"): BannerItem[] {
     return this.getAllBanners().filter(
-      (b) => b.is_active && !isLegacyVanBanner(b) && (b.category === category || b.category === "ALL")
+      (b) =>
+        b.is_active &&
+        !isLegacyVanBanner(b) &&
+        (b.category === category || b.category === "ALL" || b.link_url === "/cadastro-motorista")
     );
   }
 

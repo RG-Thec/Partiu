@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { LocateFixed } from "lucide-react";
 import { PartiuLogo } from "@/components/common/PartiuLogo";
@@ -161,6 +161,8 @@ function PartiuPassengerHomeContent() {
     userAccuracyMeters,
     forcarCentralizarUsuario,
   } = usePassengerRide();
+
+  const navigate = useNavigate();
 
   const { corPrimaria, corSecundaria } = useBrandTheme();
   const { appConfig } = useTheme();
@@ -392,7 +394,9 @@ function PartiuPassengerHomeContent() {
     // Inscrição reativa para alterações de banners no Admin
     const handleBannersUpdate = (allBanners?: any[]) => {
       const all = allBanners || bannerService.getAllBanners();
-      const passengerBanners = all.filter((b) => b.is_active && (b.category === "PASSENGER" || b.category === "ALL"));
+      const passengerBanners = all.filter(
+        (b) => b.is_active && (b.category === "PASSENGER" || b.category === "ALL" || b.link_url === "/cadastro-motorista")
+      );
       if (passengerBanners.length > 0) {
         setActiveBanners(
           passengerBanners.map((b, idx) => ({
@@ -713,6 +717,16 @@ function PartiuPassengerHomeContent() {
                 <PromoCarousel
                   banners={activeBanners}
                   autoPlayIntervalMs={7000}
+                  onBannerClick={(banner) => {
+                    hapticFeedback.light();
+                    if (banner.acaoUrl) {
+                      if (banner.acaoUrl.startsWith("http")) {
+                        window.open(banner.acaoUrl, "_blank", "noopener,noreferrer");
+                      } else {
+                        void navigate({ to: banner.acaoUrl as any });
+                      }
+                    }
+                  }}
                 />
               </div>
             )}
