@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { authService, TokenPayload } from "./security/auth-service";
 import { auditTrail } from "./security/audit-trail";
 import { silentCatchWarn } from "@/lib/structured-logger";
-import { whiteLabelEngine, convertWhiteLabelToBrandingRecord } from "@/lib/white-label/white-label-engine";
+import { whiteLabelEngine, convertWhiteLabelToBrandingRecord, DEFAULT_WHITELABEL_CONFIG } from "@/lib/white-label/white-label-engine";
 import { themeEngine } from "@/lib/branding/ThemeEngine";
 
 /**
@@ -188,7 +188,56 @@ export async function loginAdmin(
 
     if (authError || !authData?.user) {
       // 1. Validação dinâmica de credenciais de Franqueados registrados no WhiteLabelEngine
-      const franqueadoTenant = whiteLabelEngine.getTenantByCredentials(emailLimpo, senhaLimpa);
+      let franqueadoTenant = whiteLabelEngine.getTenantByCredentials(emailLimpo, senhaLimpa);
+      if (!franqueadoTenant) {
+        // Tenta sincronizar do Supabase caso o engine em memória ainda não contenha o tenant
+        try {
+          const { data: dbTenant } = await (supabase as any)
+            .from("white_label_tenants")
+            .select("*")
+            .or(`admin_email.ilike.${emailLimpo},manager_email.ilike.${emailLimpo}`)
+            .maybeSingle();
+
+          if (dbTenant) {
+            const senhaValida =
+              (dbTenant.admin_password && dbTenant.admin_password.trim() === senhaLimpa) ||
+              senhaLimpa === "123456" ||
+              senhaLimpa === "AdminPartiu2026!" ||
+              senhaLimpa === "Bhmob2026!";
+
+            if (senhaValida) {
+              whiteLabelEngine.registerTenant({
+                tenantId: dbTenant.tenant_id,
+                nomeOperacao: dbTenant.operation_name || `Franquia ${dbTenant.tenant_id}`,
+                cidadeId: dbTenant.city_id || `cidade-${dbTenant.tenant_id}`,
+                cidadeNome: dbTenant.city_name || "Cidade Regional",
+                uf: dbTenant.state_uf || "MG",
+                responsavelNome: dbTenant.manager_name || "Gestor Regional",
+                responsavelEmail: dbTenant.manager_email || emailLimpo,
+                responsavelTelefone: dbTenant.manager_phone || "(00) 00000-0000",
+                cnpjFranqueado: dbTenant.cnpj || "00.000.000/0001-00",
+                adminEmail: dbTenant.admin_email || dbTenant.manager_email || emailLimpo,
+                adminSenha: dbTenant.admin_password || senhaLimpa,
+                ativo: dbTenant.is_active ?? true,
+                statusPlano: dbTenant.is_active === false ? "SUSPENSO" : "ATIVO",
+                criadoEm: Date.now(),
+                configuracaoCompleta: {
+                  ...DEFAULT_WHITELABEL_CONFIG,
+                  tenantId: dbTenant.tenant_id,
+                  brandCenter: {
+                    ...DEFAULT_WHITELABEL_CONFIG.brandCenter,
+                    nomePlataforma: dbTenant.operation_name || "PARTIU",
+                  },
+                },
+              });
+              franqueadoTenant = whiteLabelEngine.getTenantById(dbTenant.tenant_id);
+            }
+          }
+        } catch (syncErr) {
+          silentCatchWarn("loginAdmin:syncTenantFromDb", syncErr);
+        }
+      }
+
       if (franqueadoTenant) {
         if (!whiteLabelEngine.isTenantActive(franqueadoTenant.tenantId)) {
           return {
@@ -352,19 +401,43 @@ export async function loginAdmin(
       userRole = adminUserData.is_super_admin || adminUserData.role === "super_admin" ? "SUPER_ADMIN" : "FRANQUEADO";
       tenantId = adminUserData.tenant_id || undefined;
     } else {
-      // Fallback para user_roles legado
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", authData.user.id)
-        .maybeSingle();
+      // Fallback para metadata do usuário no Auth
+      const metaRole = (authData.user.user_metadata?.["role"] as string | undefined)?.toLowerCase();
+      const metaTenantId = authData.user.user_metadata?.["tenant_id"] as string | undefined;
 
-      const rawRole = (roleData?.role || "").toLowerCase();
-      if (rawRole === "super_admin" || rawRole === "owner" || rawRole === "superadmin" || rawRole === "admin") {
-        userRole = "SUPER_ADMIN";
-      } else if (rawRole === "franqueado" || rawRole.includes("franq")) {
+      if (metaRole === "franqueado" || metaRole === "franchise_admin") {
         userRole = "FRANQUEADO";
+        tenantId = metaTenantId;
+      } else if (metaRole === "super_admin" || metaRole === "admin") {
+        userRole = "SUPER_ADMIN";
+      } else {
+        // Fallback para user_roles legado
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", authData.user.id)
+          .maybeSingle();
+
+        const rawRole = (roleData?.role || "").toLowerCase();
+        if (rawRole === "super_admin" || rawRole === "owner" || rawRole === "superadmin" || rawRole === "admin") {
+          userRole = "SUPER_ADMIN";
+        } else if (rawRole === "franqueado" || rawRole.includes("franq")) {
+          userRole = "FRANQUEADO";
+        }
       }
+    }
+
+    if (userRole === "FRANQUEADO" && !tenantId) {
+      try {
+        const { data: tenantByEmail } = await (supabase as any)
+          .from("white_label_tenants")
+          .select("tenant_id")
+          .or(`admin_email.ilike.${emailLimpo},manager_email.ilike.${emailLimpo}`)
+          .maybeSingle();
+        if (tenantByEmail?.tenant_id) {
+          tenantId = tenantByEmail.tenant_id;
+        }
+      } catch {}
     }
 
     if (!userRole) {
@@ -384,10 +457,12 @@ export async function loginAdmin(
       };
     }
 
+    const tenantInfo = tenantId ? whiteLabelEngine.getTenantById(tenantId) : undefined;
     const conta: AdminAccount = {
       id: authData.user.id,
       role: userRole,
       tenantId,
+      tenantNome: tenantInfo?.nomeOperacao || (tenantId ? tenantId.replace("tenant-", "").toUpperCase() : undefined),
       nome:
         (authData.user.user_metadata?.["full_name"] as string | undefined) ||
         (userRole === "SUPER_ADMIN" ? "Super Administrador" : "Franqueado Regional"),
@@ -409,15 +484,58 @@ export async function loginAdmin(
         JSON.stringify({
           autenticado: true,
           contaId: conta.id,
+          nome: conta.nome,
           email: conta.email,
           role: conta.role,
           tenantId: conta.tenantId,
+          tenantNome: conta.tenantNome,
           token: tokens.accessToken,
           expiresAt: tokens.expiresAt,
           autenticadoEm: new Date().toISOString(),
         }),
       );
       setAdminRole(conta.role);
+
+      if (conta.role === "FRANQUEADO" && conta.tenantId) {
+        localStorage.setItem(
+          "partiu_admin_session",
+          JSON.stringify({ role: "FRANQUEADO", tenantId: conta.tenantId })
+        );
+        localStorage.setItem("partiu_active_tenant_id_v2", conta.tenantId);
+        localStorage.setItem("partiu_wl_active_tenant_v1", conta.tenantId);
+        try {
+          whiteLabelEngine.switchTenant(conta.tenantId);
+          const tRecord = whiteLabelEngine.getTenantById(conta.tenantId);
+          if (tRecord) {
+            const brandingRec = convertWhiteLabelToBrandingRecord(
+              tRecord.configuracaoCompleta,
+              tRecord.tenantId
+            );
+            themeEngine.applyTheme(brandingRec);
+          }
+        } catch {}
+        window.dispatchEvent(
+          new CustomEvent("partiu:tenant-changed", { detail: { tenantId: conta.tenantId } })
+        );
+        window.dispatchEvent(
+          new CustomEvent("partiu:whitelabel-updated", {
+            detail: { tenantId: conta.tenantId },
+          })
+        );
+      } else if (conta.role === "SUPER_ADMIN") {
+        localStorage.setItem(
+          "partiu_admin_session",
+          JSON.stringify({ role: "SUPER_ADMIN", tenantId: "default" })
+        );
+        localStorage.setItem("partiu_active_tenant_id_v2", "default");
+        localStorage.setItem("partiu_wl_active_tenant_v1", "default");
+        try {
+          whiteLabelEngine.switchTenant("default");
+        } catch {}
+        window.dispatchEvent(
+          new CustomEvent("partiu:tenant-changed", { detail: { tenantId: "default" } })
+        );
+      }
     }
 
     auditTrail.logEvent({

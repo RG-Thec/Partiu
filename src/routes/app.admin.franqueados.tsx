@@ -80,10 +80,16 @@ function SuperAdminFranqueadosContent() {
   );
 
   const recarregarTenants = () => {
-    setTenants(whiteLabelEngine.getAllTenants());
+    void whiteLabelEngine.loadTenantsFromSupabase().then((list) => {
+      setTenants(list);
+    });
   };
 
   useEffect(() => {
+    void whiteLabelEngine.loadTenantsFromSupabase().then((list) => {
+      setTenants(list);
+    });
+
     function onTenantUpdate() {
       recarregarTenants();
     }
