@@ -211,27 +211,27 @@ export function CadastroPassageiroPage() {
         </Link>
       </div>
 
-      <main className="w-full max-w-md mx-auto flex-1 flex flex-col justify-start py-2 sm:py-3 pb-6 sm:pb-8">
+      <main className="w-full max-w-md mx-auto flex-1 flex flex-col justify-start py-2 sm:py-3 pb-8 sm:pb-12">
         {!sucesso ? (
           <div
-            className="w-full p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 shadow-xl sm:shadow-2xl shadow-slate-200/50 space-y-4 transition-all duration-200"
+            className="w-full p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 shadow-xl sm:shadow-2xl shadow-slate-200/50 space-y-3 transition-all duration-200 relative"
             style={{ borderRadius: ui.borderRadius || "1.5rem" }}
           >
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
               {/* Cabeçalho do Card Padrão Design System */}
               <div className="text-center">
                 <h1
-                  className="text-xl sm:text-[22px] font-black tracking-tight"
+                  className="text-lg sm:text-xl font-black tracking-tight"
                   style={{ color: colors.textPrimary }}
                 >
                   Cadastro de Passageiro
                 </h1>
-                <p className="text-xs mt-1 font-normal" style={{ color: colors.textSecondary }}>
+                <p className="text-[11px] sm:text-xs mt-0.5 font-normal" style={{ color: colors.textSecondary }}>
                   Crie sua conta para solicitar corridas e entregas com segurança.
                 </p>
                 {/* Barra de destaque na cor primária do Franqueado */}
                 <div
-                  className="w-8 h-1 rounded-full mx-auto mt-2.5 mb-5 transition-colors"
+                  className="w-7 h-1 rounded-full mx-auto mt-1.5 mb-3 transition-colors"
                   style={{ backgroundColor: colors.primary }}
                 />
               </div>
@@ -241,7 +241,7 @@ export function CadastroPassageiroPage() {
                 currentStep={1}
                 totalSteps={2}
                 stepTitle="Dados Pessoais"
-                className="mb-1"
+                className="mb-0.5"
               />
 
               {erroCadastro && (
@@ -385,7 +385,7 @@ export function CadastroPassageiroPage() {
                 </label>
               </div>
 
-              <div className="pt-2 space-y-2">
+              <div className="sticky bottom-0 z-20 bg-white/95 backdrop-blur-md pt-2.5 pb-1 border-t border-slate-100 -mx-4 px-4 sm:-mx-6 sm:px-6 rounded-b-2xl sm:rounded-b-3xl space-y-2 mt-2 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
                 <button
                   type="submit"
                   disabled={carregando}
@@ -399,11 +399,11 @@ export function CadastroPassageiroPage() {
                   <span>{carregando ? "Cadastrando..." : "CONCLUIR CADASTRO"}</span>
                 </button>
 
-                <div className="text-center pt-1">
+                <div className="text-center pt-0.5">
                   <Link
                     to="/auth"
                     search={{ role: "PASSAGEIRO" }}
-                    className="inline-flex items-center justify-center text-xs font-semibold hover:underline py-1 transition-colors"
+                    className="inline-flex items-center justify-center text-xs font-semibold hover:underline py-0.5 transition-colors"
                     style={{ color: colors.textSecondary }}
                   >
                     Já tem uma conta?{" "}
@@ -415,7 +415,7 @@ export function CadastroPassageiroPage() {
               </div>
 
               {/* Rodapé Interno do Card */}
-              <div className="border-t border-slate-100 pt-3.5 mt-5">
+              <div className="border-t border-slate-100 pt-2.5 mt-2">
                 <p className="text-[11px] text-slate-400 text-center">
                   © {new Date().getFullYear()} {appName} · Mobilidade conectada
                 </p>

@@ -376,26 +376,26 @@ export function CadastroMotoristaPage() {
         </Link>
       </div>
 
-      <main className="flex-1 max-w-xl w-full mx-auto p-3.5 sm:p-5 flex flex-col justify-start pb-6 sm:pb-8">
+      <main className="flex-1 max-w-xl w-full mx-auto p-3.5 sm:p-5 flex flex-col justify-start pb-8 sm:pb-12">
         {!sucesso ? (
           <div
-            className="w-full p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 shadow-xl sm:shadow-2xl shadow-slate-200/50 space-y-4 transition-all duration-200"
+            className="w-full p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 shadow-xl sm:shadow-2xl shadow-slate-200/50 space-y-3 transition-all duration-200 relative"
             style={{ borderRadius: ui.borderRadius || "1.5rem" }}
           >
             {/* Cabeçalho do Card Padrão Design System */}
             <div className="text-center">
               <h1
-                className="text-xl sm:text-[22px] font-black tracking-tight"
+                className="text-lg sm:text-xl font-black tracking-tight"
                 style={{ color: colors.textPrimary }}
               >
                 Cadastro de Motorista Parceiro
               </h1>
-              <p className="text-xs mt-1 font-normal" style={{ color: colors.textSecondary }}>
+              <p className="text-[11px] sm:text-xs mt-0.5 font-normal" style={{ color: colors.textSecondary }}>
                 Cadastre-se para faturar com seu veículo com planos a partir de 0% de taxa.
               </p>
               {/* Barra de destaque na cor primária do Franqueado */}
               <div
-                className="w-8 h-1 rounded-full mx-auto mt-2.5 mb-4 transition-colors"
+                className="w-7 h-1 rounded-full mx-auto mt-1.5 mb-3 transition-colors"
                 style={{ backgroundColor: colors.primary }}
               />
             </div>
@@ -518,7 +518,7 @@ export function CadastroMotoristaPage() {
                   leftIcon={<ShieldCheck className="w-4 h-4 text-slate-400" />}
                 />
 
-                <div className="pt-2">
+                <div className="sticky bottom-0 z-20 bg-white/95 backdrop-blur-md pt-2.5 pb-1 border-t border-slate-100 -mx-4 px-4 sm:-mx-6 sm:px-6 rounded-b-2xl sm:rounded-b-3xl mt-2 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
                   <NativeButton
                     type="button"
                     variant="filled"
@@ -682,7 +682,7 @@ export function CadastroMotoristaPage() {
                   </div>
                 )}
 
-                <div className="pt-2 flex gap-2.5">
+                <div className="sticky bottom-0 z-20 bg-white/95 backdrop-blur-md pt-2.5 pb-1 border-t border-slate-100 -mx-4 px-4 sm:-mx-6 sm:px-6 rounded-b-2xl sm:rounded-b-3xl mt-2 flex gap-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
                   <div className="w-1/3">
                     <NativeButton
                       type="button"
@@ -887,7 +887,7 @@ export function CadastroMotoristaPage() {
                   </div>
                 </div>
 
-                <div className="pt-2 flex gap-2.5">
+                <div className="sticky bottom-0 z-20 bg-white/95 backdrop-blur-md pt-2.5 pb-1 border-t border-slate-100 -mx-4 px-4 sm:-mx-6 sm:px-6 rounded-b-2xl sm:rounded-b-3xl mt-2 flex gap-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
                   <div className="w-1/3">
                     <NativeButton
                       type="button"
@@ -1005,7 +1005,7 @@ export function CadastroMotoristaPage() {
                   </div>
                 )}
 
-                <div className="pt-2 flex gap-2.5">
+                <div className="sticky bottom-0 z-20 bg-white/95 backdrop-blur-md pt-2.5 pb-1 border-t border-slate-100 -mx-4 px-4 sm:-mx-6 sm:px-6 rounded-b-2xl sm:rounded-b-3xl mt-2 flex gap-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
                   <div className="w-1/3">
                     <NativeButton
                       type="button"
@@ -1038,7 +1038,7 @@ export function CadastroMotoristaPage() {
                 </div>
 
                 {/* Rodapé Interno do Card */}
-                <div className="border-t border-slate-100 pt-3.5 mt-5">
+                <div className="border-t border-slate-100 pt-2.5 mt-2">
                   <p className="text-[11px] text-slate-400 text-center">
                     © {new Date().getFullYear()} {nomeApp || "PARTIU"} · Mobilidade conectada
                   </p>
