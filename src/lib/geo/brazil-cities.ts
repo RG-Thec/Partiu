@@ -19,6 +19,8 @@ export interface CidadeBrasilGeo {
   populacaoAprox?: number;
 }
 
+export type CidadeBrasil = CidadeBrasilGeo;
+
 export const CIDADES_BRASIL_CANONICAS: CidadeBrasilGeo[] = [
   // DISTRITO FEDERAL
   { nome: "Brasília", uf: "DF", lat: -15.7975, lng: -47.8919, raioSugeridoKm: 35 },

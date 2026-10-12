@@ -2002,8 +2002,8 @@ export class WhiteLabelEngine {
       geo: {
         ...tenant.configuracaoCompleta?.geo,
         raioOperacaoPadraoKm: updatedTerritorio.raioMaximoKm,
-        coordenadasCentroLat: updatedTerritorio.latCentro,
-        coordenadasCentroLng: updatedTerritorio.lngCentro,
+        coordenadasCentroLat: updatedTerritorio.latCentro ?? updatedTerritorio.coordenadasCentroLat ?? -15.793889,
+        coordenadasCentroLng: updatedTerritorio.lngCentro ?? updatedTerritorio.coordenadasCentroLng ?? -47.882778,
         territorio: updatedTerritorio,
       },
     };

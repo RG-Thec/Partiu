@@ -354,21 +354,21 @@ export type ModoExclusividadeTerritorial =
 export interface TerritorioExclusivoConfig {
   modo: ModoExclusividadeTerritorial;
   isMatrizNacional: boolean;
-  cidadeBase: string;
+  cidadeBase?: string | undefined;
   cidadeSede?: string | undefined;
   estadoUf: string;
-  coordenadasCentroLat: number;
+  coordenadasCentroLat?: number | undefined;
   latCentro?: number | undefined;
-  coordenadasCentroLng: number;
+  coordenadasCentroLng?: number | undefined;
   lngCentro?: number | undefined;
-  raioOperacaoPadraoKm: number;
+  raioOperacaoPadraoKm?: number | undefined;
   raioMaximoKm: number;
   cidadesLicenciadas: string[];
   bloquearChamadasForaTerritorio: boolean;
   bloquearDespachoFrotaVizinha: boolean;
-  permiteExpansao: boolean;
+  permiteExpansao?: boolean | undefined;
   permitirExpansaoPaga?: boolean | undefined;
-  cidadesExpansaoContratadas: number;
+  cidadesExpansaoContratadas?: number | undefined;
   valorExpansaoPorCidadeBrl?: number | undefined;
   notasExclusividade?: string | undefined;
   mensagemBloqueioForaArea?: string | undefined;
@@ -450,6 +450,7 @@ export interface WhiteLabelTenantRecord {
   adminEmail?: string | undefined;
   adminSenha?: string | undefined;
   ativo: boolean;
+  isMatrizNacional?: boolean | undefined;
   statusPlano?: TenantPlanStatus | undefined;
   motivoBloqueio?: string | undefined;
   suspensoEm?: number | undefined;
