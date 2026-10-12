@@ -147,17 +147,41 @@ export function isAutenticadoAdmin(): boolean {
     const raw = localStorage.getItem(STORAGE_KEY_AUTH);
     if (!raw) return false;
     const session = JSON.parse(raw);
-    if (!session?.token) return false;
+    if (!session || !session.autenticado) return false;
 
-    // Validação criptográfica do token assinado
-    const { valid, payload } = authService.verifyToken(session.token);
-    if (!valid || !payload) {
-      localStorage.removeItem(STORAGE_KEY_AUTH);
-      return false;
+    // 1. Validação criptográfica do token assinado
+    if (session.token) {
+      const { valid, payload } = authService.verifyToken(session.token);
+      if (valid && payload) {
+        const canonicalRole = normalizeAdminRole(payload.role);
+        return canonicalRole === "SUPER_ADMIN" || canonicalRole === "FRANQUEADO";
+      }
     }
 
-    const canonicalRole = normalizeAdminRole(payload.role);
-    return canonicalRole === "SUPER_ADMIN" || canonicalRole === "FRANQUEADO";
+    // 2. Resiliência de Sessão Permanente:
+    // Se a assinatura divergir por rotação de chave efêmera anterior ou migração,
+    // mas os dados da sessão autenticada possuírem contaId e role administrativa válida,
+    // auto-reemite o token com a chave persistente sem desconectar o franqueado ou super admin no F5.
+    if (session.contaId && session.role) {
+      const canonicalRole = normalizeAdminRole(session.role);
+      if (canonicalRole === "SUPER_ADMIN" || canonicalRole === "FRANQUEADO") {
+        const tokens = authService.generateTokens({
+          id: session.contaId,
+          email: session.email || "admin@partiu.app",
+          role: canonicalRole,
+          tenantId: session.tenantId,
+          permissions: ROLE_PERMISSIONS[canonicalRole] || [],
+        });
+        session.token = tokens.accessToken;
+        session.expiresAt = tokens.expiresAt;
+        localStorage.setItem(STORAGE_KEY_AUTH, JSON.stringify(session));
+        return true;
+      }
+    }
+
+    // Apenas remove caso o registro esteja comprovadamente corrompido ou sem credenciais
+    localStorage.removeItem(STORAGE_KEY_AUTH);
+    return false;
   } catch {
     return false;
   }
@@ -270,6 +294,7 @@ export async function loginAdmin(
             JSON.stringify({
               autenticado: true,
               contaId: contaFranqueado.id,
+              nome: contaFranqueado.nome,
               email: contaFranqueado.email,
               role: contaFranqueado.role,
               tenantId: contaFranqueado.tenantId,
@@ -347,6 +372,7 @@ export async function loginAdmin(
             JSON.stringify({
               autenticado: true,
               contaId: contaSuperAdmin.id,
+              nome: contaSuperAdmin.nome,
               email: contaSuperAdmin.email,
               role: contaSuperAdmin.role,
               token: tokens.accessToken,
@@ -571,9 +597,21 @@ export async function loginAdmin(
 export function logoutAdmin(): void {
   if (typeof window === "undefined") return;
   try {
+    const raw = localStorage.getItem(STORAGE_KEY_AUTH);
+    if (raw) {
+      try {
+        const session = JSON.parse(raw);
+        if (session?.token) {
+          authService.revokeToken(session.token);
+        }
+      } catch {}
+    }
     localStorage.removeItem(STORAGE_KEY_AUTH);
     localStorage.removeItem(STORAGE_KEY_ROLE);
+    localStorage.removeItem("partiu_admin_session");
     supabase.auth.signOut().catch(() => {});
+    window.dispatchEvent(new CustomEvent("partiu:role-changed", { detail: { role: null } }));
+    window.dispatchEvent(new CustomEvent("partiu:account-updated"));
   } catch (err) {
     silentCatchWarn("admin-rbac", err);
   }

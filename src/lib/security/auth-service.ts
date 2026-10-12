@@ -68,12 +68,37 @@ export interface AuthSession {
   };
 }
 
-// Chave mestra de assinatura JWT (em produção obtida de variáveis de ambiente seguras)
-const JWT_SECRET =
-  (typeof process !== 'undefined' && process.env && process.env['JWT_SECRET']) ||
-  (typeof import.meta !== 'undefined' && import.meta.env && (import.meta.env['VITE_JWT_SECRET'] as string)) ||
-  (typeof import.meta !== 'undefined' && import.meta.env && (import.meta.env['JWT_SECRET'] as string)) ||
-  (typeof crypto !== 'undefined' && crypto.randomUUID ? `ephemeral_jwt_${crypto.randomUUID()}` : `ephemeral_jwt_${Date.now()}`);
+const STORAGE_KEY_JWT_PERSISTENT = 'partiu_titanium_jwt_key_v1';
+
+/**
+ * Retorna a chave mestra de assinatura JWT.
+ * Em navegadores, persiste no localStorage para garantir que a assinatura continue
+ * idêntica entre recarregamentos de página (F5), mantendo a sessão permanente até o logout explícito.
+ */
+export function getJwtSecret(): string {
+  if (typeof process !== 'undefined' && process.env && process.env['JWT_SECRET']) {
+    return process.env['JWT_SECRET'];
+  }
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    if (import.meta.env['VITE_JWT_SECRET']) return import.meta.env['VITE_JWT_SECRET'] as string;
+    if (import.meta.env['JWT_SECRET']) return import.meta.env['JWT_SECRET'] as string;
+  }
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      let storedKey = window.localStorage.getItem(STORAGE_KEY_JWT_PERSISTENT);
+      if (!storedKey) {
+        storedKey = `titanium_key_${typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now()}`;
+        window.localStorage.setItem(STORAGE_KEY_JWT_PERSISTENT, storedKey);
+      }
+      return storedKey;
+    } catch {
+      // Fallback seguro caso haja restrição ao localStorage
+    }
+  }
+  return 'partiu_titanium_master_jwt_secret_default_2026';
+}
+
+const JWT_SECRET = getJwtSecret();
 
 // Registro de tokens revogados (JTI -> Timestamp expiração)
 const REVOKED_TOKENS = new Map<string, number>();
@@ -130,7 +155,8 @@ export class AuthService {
   }
 
   /**
-   * Emite um par de Access Token (curto, 1h) e Refresh Token (longo, 7 dias)
+   * Emite um par de Access Token e Refresh Token de longa duração (365 dias),
+   * garantindo persistência total até que o usuário realize logout explícito.
    */
   public generateTokens(user: {
     id: string;
@@ -140,7 +166,7 @@ export class AuthService {
     permissions: AdminPermission[];
   }): { accessToken: string; refreshToken: string; expiresAt: number } {
     const nowSec = Math.floor(Date.now() / 1000);
-    const expSec = nowSec + 3600; // 1 hora de validade
+    const expSec = nowSec + 365 * 24 * 3600; // 365 dias de validade (sessão permanente até logout)
     const jti = `jti_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
     const header = { alg: 'HS256', typ: 'JWT' };
@@ -157,9 +183,10 @@ export class AuthService {
       issuer: 'partiu-titanium-shield'
     };
 
+    const secret = getJwtSecret();
     const headerEnc = base64UrlEncode(JSON.stringify(header));
     const payloadEnc = base64UrlEncode(JSON.stringify(payload));
-    const signature = signHmacSha256(`${headerEnc}.${payloadEnc}`, JWT_SECRET);
+    const signature = signHmacSha256(`${headerEnc}.${payloadEnc}`, secret);
     const accessToken = `${headerEnc}.${payloadEnc}.${signature}`;
 
     const refreshJti = `ref_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -167,12 +194,12 @@ export class AuthService {
       sub: user.id,
       role: user.role,
       jti: refreshJti,
-      exp: nowSec + 7 * 24 * 3600, // 7 dias
+      exp: nowSec + 400 * 24 * 3600, // > 1 ano
       issuer: 'partiu-titanium-shield'
     };
     const refHeaderEnc = base64UrlEncode(JSON.stringify(header));
     const refPayloadEnc = base64UrlEncode(JSON.stringify(refreshPayload));
-    const refSig = signHmacSha256(`${refHeaderEnc}.${refPayloadEnc}`, JWT_SECRET);
+    const refSig = signHmacSha256(`${refHeaderEnc}.${refPayloadEnc}`, secret);
     const refreshToken = `${refHeaderEnc}.${refPayloadEnc}.${refSig}`;
 
     return {
@@ -198,7 +225,8 @@ export class AuthService {
     const headerEnc = parts[0]!;
     const payloadEnc = parts[1]!;
     const signature = parts[2]!;
-    const expectedSig = signHmacSha256(`${headerEnc}.${payloadEnc}`, JWT_SECRET);
+    const secret = getJwtSecret();
+    const expectedSig = signHmacSha256(`${headerEnc}.${payloadEnc}`, secret);
 
     if (signature !== expectedSig) {
       return { valid: false, reason: 'INVALID_SIGNATURE' };

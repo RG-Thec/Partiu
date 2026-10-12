@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -11,7 +11,7 @@ import {
   ShieldAlert,
   X,
 } from "lucide-react";
-import { loginAdmin } from "@/lib/admin-rbac";
+import { loginAdmin, isAutenticadoAdmin } from "@/lib/admin-rbac";
 import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 
 export const Route = createFileRoute("/app/admin/login")({
@@ -41,6 +41,12 @@ function AdminLoginPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState(false);
   const [modalEsqueciSenha, setModalEsqueciSenha] = useState(false);
+
+  useEffect(() => {
+    if (isAutenticadoAdmin()) {
+      void navigate({ to: "/app/admin" });
+    }
+  }, [navigate]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
