@@ -40,11 +40,12 @@ import {
   LayoutGrid,
   Table,
   MoreHorizontal,
+  Radio,
 } from "lucide-react";
 import { toast } from "sonner";
 import { GuardiaoAcesso } from "@/components/admin/GuardiaoAcesso";
 import { whiteLabelEngine } from "@/lib/white-label";
-import { type WhiteLabelTenantRecord } from "@/lib/white-label/white-label-types";
+import { type WhiteLabelTenantRecord, type ModoExclusividadeTerritorial } from "@/lib/white-label/white-label-types";
 import { MapboxConfig } from "@/config/MapboxConfig";
 import { listarPassageiros, type PassageiroAdmin } from "@/lib/passageiros.functions";
 import { useMotoristas } from "@/lib/partiu-db";
@@ -161,6 +162,86 @@ function SuperAdminFranqueadosContent() {
   const [testandoMapaModal, setTestandoMapaModal] = useState(false);
   const [resultadoTesteMapaModal, setResultadoTesteMapaModal] = useState<{ valid: boolean; message: string } | null>(null);
   const [mostrarTokenModal, setMostrarTokenModal] = useState(false);
+
+  // Modal de Território & Exclusividade da Franquia
+  const [tenantParaTerritorio, setTenantParaTerritorio] = useState<WhiteLabelTenantRecord | null>(null);
+  const [modoTerritorioModal, setModoTerritorioModal] = useState<ModoExclusividadeTerritorial>("CIDADE_ESTRITA");
+  const [cidadeSedeModal, setCidadeSedeModal] = useState("");
+  const [estadoUfModal, setEstadoUfModal] = useState("");
+  const [latCentroModal, setLatCentroModal] = useState<number>(-15.793889);
+  const [lngCentroModal, setLngCentroModal] = useState<number>(-47.882778);
+  const [raioKmTerritorioModal, setRaioKmTerritorioModal] = useState<number>(30);
+  const [bloquearChamadasForaModal, setBloquearChamadasForaModal] = useState(true);
+  const [bloquearFrotaVizinhaModal, setBloquearFrotaVizinhaModal] = useState(true);
+  const [cidadesLicenciadasModal, setCidadesLicenciadasModal] = useState<string[]>([]);
+  const [novaCidadeExpansaoInput, setNovaCidadeExpansaoInput] = useState("");
+
+  function abrirModalTerritorio(tenant: WhiteLabelTenantRecord) {
+    setTenantParaTerritorio(tenant);
+    const terr = tenant.territorio || tenant.configuracaoCompleta?.geo?.territorio;
+    const isMatriz = tenant.tenantId === "default" || tenant.isMatrizNacional === true;
+    setModoTerritorioModal(isMatriz ? "NACIONAL_IRRESTRITO" : (terr?.modo || "CIDADE_ESTRITA"));
+    setCidadeSedeModal(terr?.cidadeSede || tenant.cidadeNome);
+    setEstadoUfModal(terr?.estadoUf || tenant.uf);
+    setLatCentroModal(terr?.latCentro ?? tenant.configuracaoCompleta?.geo?.coordenadasCentroLat ?? -15.793889);
+    setLngCentroModal(terr?.lngCentro ?? tenant.configuracaoCompleta?.geo?.coordenadasCentroLng ?? -47.882778);
+    setRaioKmTerritorioModal(isMatriz ? 9999 : (terr?.raioMaximoKm ?? tenant.configuracaoCompleta?.geo?.raioOperacaoPadraoKm ?? 30));
+    setBloquearChamadasForaModal(terr?.bloquearChamadasForaTerritorio ?? true);
+    setBloquearFrotaVizinhaModal(terr?.bloquearDespachoFrotaVizinha ?? true);
+    setCidadesLicenciadasModal(terr?.cidadesLicenciadas || [tenant.cidadeNome]);
+    setNovaCidadeExpansaoInput("");
+  }
+
+  function handleSalvarTerritorio(e: React.FormEvent) {
+    e.preventDefault();
+    if (!tenantParaTerritorio) return;
+
+    const isMatriz = tenantParaTerritorio.tenantId === "default" || tenantParaTerritorio.isMatrizNacional === true;
+
+    whiteLabelEngine.updateTenantTerritory(tenantParaTerritorio.tenantId, {
+      modo: isMatriz ? "NACIONAL_IRRESTRITO" : modoTerritorioModal,
+      isMatrizNacional: isMatriz,
+      cidadeSede: cidadeSedeModal.trim(),
+      estadoUf: estadoUfModal.trim().toUpperCase(),
+      latCentro: Number(latCentroModal),
+      lngCentro: Number(lngCentroModal),
+      raioMaximoKm: isMatriz ? 9999 : Number(raioKmTerritorioModal),
+      bloquearChamadasForaTerritorio: isMatriz ? false : bloquearChamadasForaModal,
+      bloquearDespachoFrotaVizinha: isMatriz ? false : bloquearFrotaVizinhaModal,
+      cidadesLicenciadas: isMatriz ? ["*"] : cidadesLicenciadasModal,
+    });
+
+    recarregarTenants();
+    toast.success(`Território exclusivo da franquia ${tenantParaTerritorio.nomeOperacao} atualizado com sucesso!`);
+    setTenantParaTerritorio(null);
+  }
+
+  function adicionarCidadeExpansao() {
+    const nome = novaCidadeExpansaoInput.trim();
+    if (!nome) return;
+    if (cidadesLicenciadasModal.includes(nome)) {
+      toast.error("Esta cidade já está na lista de expansão.");
+      return;
+    }
+    const atualizada = [...cidadesLicenciadasModal, nome];
+    setCidadesLicenciadasModal(atualizada);
+    setModoTerritorioModal("MULTI_CIDADES_EXPANSAO");
+    setNovaCidadeExpansaoInput("");
+    toast.success(`Cidade ${nome} adicionada ao território expandido!`);
+  }
+
+  function removerCidadeExpansao(cidade: string) {
+    if (cidade === cidadeSedeModal) {
+      toast.error("A cidade sede principal não pode ser removida.");
+      return;
+    }
+    const filtrada = cidadesLicenciadasModal.filter((c) => c !== cidade);
+    setCidadesLicenciadasModal(filtrada);
+    if (filtrada.length <= 1) {
+      setModoTerritorioModal("CIDADE_ESTRITA");
+    }
+    toast.success(`Cidade ${cidade} removida.`);
+  }
 
   const toggleVerSenhaCard = (tenantId: string) => {
     setSenhasVisiveis((prev) => ({ ...prev, [tenantId]: !prev[tenantId] }));
@@ -719,9 +800,16 @@ function SuperAdminFranqueadosContent() {
                             <h3 className="text-base font-black text-slate-950 dark:text-white">
                               {tenant.nomeOperacao}
                             </h3>
-                            {isMatriz && (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary-100 text-primary-800 dark:bg-primary-950 dark:text-primary-300 border border-primary-200">
-                                Matriz Oficial
+                            {isMatriz ? (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border border-blue-200">
+                                🇧🇷 Matriz Nacional (Irrestrita)
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 flex items-center gap-1">
+                                <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                                {tenant.territorio?.modo === "MULTI_CIDADES_EXPANSAO"
+                                  ? `Expansão (${tenant.territorio?.cidadesLicenciadas?.length || 1} Cidades)`
+                                  : `Exclusiva: ${tenant.cidadeNome} (${tenant.territorio?.raioMaximoKm || tenant.configuracaoCompleta?.geo?.raioOperacaoPadraoKm || 30}km)`}
                               </span>
                             )}
                             <span
@@ -750,6 +838,17 @@ function SuperAdminFranqueadosContent() {
 
                       {/* Botões de Ação Imediata */}
                       <div className="flex flex-wrap items-center gap-2 shrink-0">
+                        {/* Botão Território & Exclusividade */}
+                        <button
+                          type="button"
+                          onClick={() => abrirModalTerritorio(tenant)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold transition cursor-pointer"
+                          title="Configurar delimitação geográfica, raio e exclusividade desta praça"
+                        >
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                          <span>Território</span>
+                        </button>
+
                         {/* Botão Customizar White Label */}
                         <button
                           type="button"
@@ -1931,7 +2030,244 @@ function SuperAdminFranqueadosContent() {
         </div>
       )}
 
-      {/* 11. MODAL: CLONAGEM / NOVA CIDADE FRANQUEADA */}
+      {/* 11. MODAL: TERRITÓRIO, EXCLUSIVIDADE & EXPANSÃO */}
+      {tenantParaTerritorio && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-xl w-full space-y-5 shadow-2xl my-8">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-950 dark:text-white">
+                    Prioridade Territorial & Exclusividade
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {tenantParaTerritorio.nomeOperacao} ({tenantParaTerritorio.cidadeNome} — {tenantParaTerritorio.uf})
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTenantParaTerritorio(null)}
+                className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 cursor-pointer"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Aviso de Matriz Nacional ou Franquia Regional */}
+            {tenantParaTerritorio.tenantId === "default" || tenantParaTerritorio.isMatrizNacional ? (
+              <div className="p-3.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/60 text-xs text-blue-800 dark:text-blue-300 flex items-start gap-2.5">
+                <ShieldCheck className="w-4 h-4 shrink-0 text-blue-600 mt-0.5" />
+                <div>
+                  <p className="font-bold">Franquia Matriz Nacional (Super Administrador)</p>
+                  <p className="text-[11px] mt-0.5 leading-relaxed text-blue-700 dark:text-blue-400">
+                    A Franquia Mãe opera com cobertura irrestrita em 100% do território nacional brasileiro, atendendo e roteando em todas as regiões, sem restrições de fronteira municipal.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3.5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 text-xs text-emerald-800 dark:text-emerald-300 flex items-start gap-2.5">
+                <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-600 mt-0.5" />
+                <div>
+                  <p className="font-bold">Garantia de Exclusividade e Não-Canibalização</p>
+                  <p className="text-[11px] mt-0.5 leading-relaxed text-emerald-700 dark:text-emerald-400">
+                    O aplicativo desta franquia só operará dentro do território e raio definidos, bloqueando invasão de corridas e motoristas de cidades vizinhas. Expansões adicionais requerem licenciamento formal.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <form onSubmit={handleSalvarTerritorio} className="space-y-4">
+              {/* Modo de Exclusividade */}
+              {!(tenantParaTerritorio.tenantId === "default" || tenantParaTerritorio.isMatrizNacional) && (
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Regime de Operação Territorial
+                  </label>
+                  <select
+                    value={modoTerritorioModal}
+                    onChange={(e: any) => setModoTerritorioModal(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white font-semibold outline-none"
+                  >
+                    <option value="CIDADE_ESTRITA">Cidade Estrita (Apenas município sede)</option>
+                    <option value="MULTI_CIDADES_EXPANSAO">Multi-Cidades (Expansão Territorial Licenciada)</option>
+                    <option value="RAIO_KM_LIVRE">Raio KM Livre (A partir do centro)</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Coordenadas Centrais e Raio */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Latitude Central
+                  </label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    required
+                    value={latCentroModal}
+                    onChange={(e) => setLatCentroModal(Number(e.target.value))}
+                    disabled={tenantParaTerritorio.tenantId === "default"}
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 dark:text-white outline-none disabled:opacity-50"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Longitude Central
+                  </label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    required
+                    value={lngCentroModal}
+                    onChange={(e) => setLngCentroModal(Number(e.target.value))}
+                    disabled={tenantParaTerritorio.tenantId === "default"}
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 dark:text-white outline-none disabled:opacity-50"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Raio de Atuação (km)
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={9999}
+                    required
+                    value={raioKmTerritorioModal}
+                    onChange={(e) => setRaioKmTerritorioModal(Number(e.target.value))}
+                    disabled={tenantParaTerritorio.tenantId === "default"}
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 dark:text-white outline-none font-bold text-center disabled:opacity-50"
+                  />
+                </div>
+              </div>
+
+              {/* Travas de Blindagem e Não-Canibalização */}
+              {!(tenantParaTerritorio.tenantId === "default" || tenantParaTerritorio.isMatrizNacional) && (
+                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 space-y-2.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
+                    Travas Automáticas de Fronteira
+                  </span>
+
+                  <label className="flex items-center gap-2.5 text-xs text-slate-800 dark:text-slate-200 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={bloquearChamadasForaModal}
+                      onChange={(e) => setBloquearChamadasForaModal(e.target.checked)}
+                      className="rounded border-slate-300 text-primary-600 focus:ring-0"
+                    />
+                    <span className="font-medium">
+                      Bloquear chamadas fora da área autorizada (Geofence estrito)
+                    </span>
+                  </label>
+
+                  <label className="flex items-center gap-2.5 text-xs text-slate-800 dark:text-slate-200 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={bloquearFrotaVizinhaModal}
+                      onChange={(e) => setBloquearFrotaVizinhaModal(e.target.checked)}
+                      className="rounded border-slate-300 text-primary-600 focus:ring-0"
+                    />
+                    <span className="font-medium">
+                      Bloquear despacho de frota de cidades vizinhas (Blindagem anti-canibalização)
+                    </span>
+                  </label>
+                </div>
+              )}
+
+              {/* Gestão de Cidades Licenciadas / Expansão */}
+              {!(tenantParaTerritorio.tenantId === "default" || tenantParaTerritorio.isMatrizNacional) && (
+                <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+                    Cidades Licenciadas para Esta Franquia
+                  </label>
+
+                  {/* Pills de Cidades */}
+                  <div className="flex flex-wrap gap-1.5 min-h-[32px] p-2 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700/60">
+                    {cidadesLicenciadasModal.map((cid) => {
+                      const isSede = cid === cidadeSedeModal;
+                      return (
+                        <span
+                          key={cid}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${
+                            isSede
+                              ? "bg-primary-100 text-primary-800 dark:bg-primary-950 dark:text-primary-300 border border-primary-200"
+                              : "bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-200"
+                          }`}
+                        >
+                          <MapPin className="w-3 h-3 text-slate-500" />
+                          <span>{cid}</span>
+                          {isSede && <span className="text-[9px] uppercase opacity-75 font-black">(Sede)</span>}
+                          {!isSede && (
+                            <button
+                              type="button"
+                              onClick={() => removerCidadeExpansao(cid)}
+                              className="text-slate-400 hover:text-rose-500 cursor-pointer ml-0.5"
+                              title="Remover cidade licenciada"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </span>
+                      );
+                    })}
+                  </div>
+
+                  {/* Input de Adicionar Nova Cidade de Expansão */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="text"
+                      placeholder="Nome de nova cidade expandida (ex: Betim, Contagem)..."
+                      value={novaCidadeExpansaoInput}
+                      onChange={(e) => setNovaCidadeExpansaoInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          adicionarCidadeExpansao();
+                        }
+                      }}
+                      className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={adicionarCidadeExpansao}
+                      className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 text-xs font-bold transition cursor-pointer"
+                    >
+                      + Licenciar Expansão
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-400">
+                    O Super Administrador pode adicionar municípios quando o franqueado adquirir direitos de expansão territorial.
+                  </p>
+                </div>
+              )}
+
+              {/* Botões do Modal */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setTenantParaTerritorio(null)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-primary-600 hover:bg-primary-500 text-white transition shadow-xs cursor-pointer"
+                >
+                  Salvar Delimitação Territorial
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 12. MODAL: CLONAGEM / NOVA CIDADE FRANQUEADA */}
       <CloneTenantModal
         isOpen={modalClonarAberto}
         onClose={() => setModalClonarAberto(false)}

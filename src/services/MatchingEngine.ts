@@ -26,6 +26,8 @@ import {
   type WaveDispatchResult,
 } from "@/lib/spatial";
 import { driverSubscriptionService } from "@/lib/ecosystem/driver-subscription-service";
+import { whiteLabelEngine } from "@/lib/white-label";
+import { validarAcessoTerritorial } from "@/lib/geo/territory-guard";
 
 export interface CandidateDriverProfile {
   driverId: string;
@@ -230,7 +232,21 @@ export class MatchingEngine {
     const tenantId = request.tenantId || "00000000-0000-0000-0000-000000000000";
     const limit = request.limit || 10;
 
-    // 0. Consulta L1 de Ultra-Baixa Latência no Índice Espacial H3 / Redis
+    // 0. Validação de Fronteira Territorial e Não-Canibalização da Franquia
+    const targetTenant =
+      request.tenantId && request.tenantId !== "00000000-0000-0000-0000-000000000000"
+        ? (whiteLabelEngine.getTenantById(request.tenantId) || whiteLabelEngine.getActiveTenant())
+        : whiteLabelEngine.getActiveTenant();
+
+    if (targetTenant) {
+      const checagemTerritorial = validarAcessoTerritorial(targetTenant, passengerLat, passengerLng);
+      if (!checagemTerritorial.permitido) {
+        console.warn(`[MatchingEngine] Chamada de corrida fora da área autorizada: ${checagemTerritorial.motivo}`);
+        return [];
+      }
+    }
+
+    // 1. Consulta L1 de Ultra-Baixa Latência no Índice Espacial H3 / Redis
     try {
       let h3Candidates = await h3DispatchEngine.fetchCandidatesInH3Rings({
         pickupLat: passengerLat,

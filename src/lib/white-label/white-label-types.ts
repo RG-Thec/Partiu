@@ -345,6 +345,35 @@ export interface BannerCmsEnterpriseConfig {
 // ------------------------------------------------------------------------------
 // MÓDULO 9: GEO CONFIGURATION
 // ------------------------------------------------------------------------------
+export type ModoExclusividadeTerritorial =
+  | "NACIONAL_IRRESTRITO" // Exclusivo da Matriz Mãe (Super Admin / default)
+  | "CIDADE_ESTRITA" // Cidade-sede exclusiva e raio delimitado
+  | "MULTI_CIDADES_EXPANSAO" // Cidade-sede + cidades extras licenciadas
+  | "RAIO_KM_LIVRE"; // Delimitação estrita por raio circular a partir do centro
+
+export interface TerritorioExclusivoConfig {
+  modo: ModoExclusividadeTerritorial;
+  isMatrizNacional: boolean;
+  cidadeBase: string;
+  cidadeSede?: string | undefined;
+  estadoUf: string;
+  coordenadasCentroLat: number;
+  latCentro?: number | undefined;
+  coordenadasCentroLng: number;
+  lngCentro?: number | undefined;
+  raioOperacaoPadraoKm: number;
+  raioMaximoKm: number;
+  cidadesLicenciadas: string[];
+  bloquearChamadasForaTerritorio: boolean;
+  bloquearDespachoFrotaVizinha: boolean;
+  permiteExpansao: boolean;
+  permitirExpansaoPaga?: boolean | undefined;
+  cidadesExpansaoContratadas: number;
+  valorExpansaoPorCidadeBrl?: number | undefined;
+  notasExclusividade?: string | undefined;
+  mensagemBloqueioForaArea?: string | undefined;
+}
+
 export interface GeoConfiguration {
   cidadeSede: string;
   estadoUf: string;
@@ -364,6 +393,9 @@ export interface GeoConfiguration {
   mapboxAccessToken?: string | undefined;
   googleMapsApiKey?: string | undefined;
   mapboxStyleId?: string | undefined;
+
+  // Exclusividade Territorial & Expansão de Praça
+  territorio?: TerritorioExclusivoConfig | undefined;
 }
 
 // ------------------------------------------------------------------------------
@@ -423,6 +455,7 @@ export interface WhiteLabelTenantRecord {
   suspensoEm?: number | undefined;
   criadoEm: number;
   configuracaoCompleta: WhiteLabelFullConfig;
+  territorio?: TerritorioExclusivoConfig | undefined;
 }
 
 // ------------------------------------------------------------------------------

@@ -22,7 +22,10 @@ import {
   type BusinessVerticalId,
   type HomeBlockItem,
   type BorderRadiusOption,
+  type TerritorioExclusivoConfig,
 } from "./white-label-types";
+import { resolverCidadeBrasil } from "@/lib/geo/brazil-cities";
+import { criarTerritorioPadrao } from "@/lib/geo/territory-guard";
 
 const STORAGE_KEY_ACTIVE_TENANT = "partiu_whitelabel_active_tenant_id_v1";
 const STORAGE_KEY_TENANTS_MAP = "partiu_whitelabel_tenants_registry_v1";
@@ -490,6 +493,21 @@ export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
     mapboxAccessToken: "",
     googleMapsApiKey: "",
     mapboxStyleId: "mapbox://styles/mapbox/navigation-day-v1",
+    territorio: {
+      modo: "NACIONAL_IRRESTRITO",
+      isMatrizNacional: true,
+      cidadeSede: "Brasília",
+      estadoUf: "DF",
+      latCentro: -15.793889,
+      lngCentro: -47.882778,
+      raioMaximoKm: 9999,
+      cidadesLicenciadas: ["*"],
+      bloquearChamadasForaTerritorio: false,
+      bloquearDespachoFrotaVizinha: false,
+      permitirExpansaoPaga: true,
+      valorExpansaoPorCidadeBrl: 0,
+      notasExclusividade: "Franquia Matriz Nacional: atuação irrestrita em 100% do território nacional brasileiro.",
+    },
   },
   nativeApp: {
     nomeAppExibicao: "PARTIU",
@@ -704,6 +722,8 @@ const SEED_TENANTS_CORE: WhiteLabelTenantRecord[] = [
     ativo: true,
     statusPlano: "ATIVO",
     criadoEm: 1772928000000,
+    isMatrizNacional: true,
+    territorio: DEFAULT_WHITELABEL_CONFIG.geo.territorio,
     configuracaoCompleta: {
       ...DEFAULT_WHITELABEL_CONFIG,
       tenantId: "default",
@@ -1843,7 +1863,8 @@ export class WhiteLabelEngine {
     adminEmail?: string,
     adminSenha?: string,
     responsavelNome?: string,
-    responsavelTelefone?: string
+    responsavelTelefone?: string,
+    territorioOptions?: Partial<TerritorioExclusivoConfig>
   ): WhiteLabelTenantRecord {
     const source = this.tenantsMap.get(sourceTenantId) || this.getActiveTenant();
 
@@ -1866,27 +1887,51 @@ export class WhiteLabelEngine {
       operatorName = newUfOrOperatorName;
     }
 
+    // Resolução de Geolocalização e Geofence Automático da Cidade Brasileira
+    const resolvida = resolverCidadeBrasil(newCityName, newUf);
+    const latCentro = territorioOptions?.latCentro ?? resolvida?.lat ?? source.configuracaoCompleta?.geo?.coordenadasCentroLat ?? -15.793889;
+    const lngCentro = territorioOptions?.lngCentro ?? resolvida?.lng ?? source.configuracaoCompleta?.geo?.coordenadasCentroLng ?? -47.882778;
+    const raioPadraoKm = territorioOptions?.raioMaximoKm ?? resolvida?.raioSugeridoKm ?? 30;
+    const cidadeFormatada = resolvida?.nome || newCityName;
+    const ufFormatada = resolvida?.uf || newUf;
+
+    const territorioInicial: TerritorioExclusivoConfig = {
+      ...criarTerritorioPadrao({
+        cidadeNome: cidadeFormatada,
+        estadoUf: ufFormatada,
+        lat: latCentro,
+        lng: lngCentro,
+        raioKm: raioPadraoKm,
+        isMatriz: cleanId === "default",
+      }),
+      ...territorioOptions,
+    };
+
     const clonedConfig: WhiteLabelFullConfig = {
       ...JSON.parse(JSON.stringify(source.configuracaoCompleta)),
       tenantId: cleanId,
       atualizadoEm: Date.now(),
       geo: {
         ...source.configuracaoCompleta.geo,
-        cidadeSede: newCityName,
-        estadoUf: newUf,
+        cidadeSede: cidadeFormatada,
+        estadoUf: ufFormatada,
+        coordenadasCentroLat: latCentro,
+        coordenadasCentroLng: lngCentro,
+        raioOperacaoPadraoKm: raioPadraoKm,
+        territorio: territorioInicial,
       },
       brandCenter: {
         ...source.configuracaoCompleta.brandCenter,
-        slogan: `Mobilidade inteligente em ${newCityName}`,
+        slogan: `Mobilidade inteligente em ${cidadeFormatada}`,
       },
     };
 
     const newTenant: WhiteLabelTenantRecord = {
       tenantId: cleanId,
-      nomeOperacao: operatorName || `${source.configuracaoCompleta.brandCenter.nomePlataforma} ${newCityName}`,
-      cidadeId: `${newCityName.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${newUf.toLowerCase()}`,
-      cidadeNome: newCityName,
-      uf: newUf,
+      nomeOperacao: operatorName || `${source.configuracaoCompleta.brandCenter.nomePlataforma} ${cidadeFormatada}`,
+      cidadeId: `${cidadeFormatada.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${ufFormatada.toLowerCase()}`,
+      cidadeNome: cidadeFormatada,
+      uf: ufFormatada,
       responsavelNome: responsavelNome || source.responsavelNome || "Gestor de Franquia",
       responsavelEmail: adminEmail || source.responsavelEmail || `${cleanId.replace("tenant-", "")}@partiu.app`,
       responsavelTelefone: responsavelTelefone || source.responsavelTelefone || "(00) 00000-0000",
@@ -1896,6 +1941,8 @@ export class WhiteLabelEngine {
       ativo: true,
       statusPlano: "ATIVO",
       criadoEm: Date.now(),
+      isMatrizNacional: cleanId === "default",
+      territorio: territorioInicial,
       configuracaoCompleta: clonedConfig,
     };
 
@@ -1916,6 +1963,65 @@ export class WhiteLabelEngine {
     } catch {}
 
     return newTenant;
+  }
+
+  /**
+   * Atualiza a configuração de prioridade e exclusividade territorial de um franqueado
+   */
+  public updateTenantTerritory(
+    tenantId: string,
+    partial: Partial<TerritorioExclusivoConfig>
+  ): WhiteLabelTenantRecord {
+    const tenant = this.tenantsMap.get(tenantId);
+    if (!tenant) throw new Error(`Franqueado '${tenantId}' não encontrado.`);
+
+    const isMatriz = tenant.tenantId === "default" || tenant.isMatrizNacional === true;
+    const currentTerritorio: TerritorioExclusivoConfig =
+      tenant.territorio ||
+      tenant.configuracaoCompleta?.geo?.territorio ||
+      criarTerritorioPadrao({
+        cidadeNome: tenant.cidadeNome,
+        estadoUf: tenant.uf,
+        lat: tenant.configuracaoCompleta?.geo?.coordenadasCentroLat ?? -15.793889,
+        lng: tenant.configuracaoCompleta?.geo?.coordenadasCentroLng ?? -47.882778,
+        raioKm: tenant.configuracaoCompleta?.geo?.raioOperacaoPadraoKm ?? 30,
+        isMatriz,
+      });
+
+    const updatedTerritorio: TerritorioExclusivoConfig = {
+      ...currentTerritorio,
+      ...partial,
+      isMatrizNacional: isMatriz,
+      modo: isMatriz ? "NACIONAL_IRRESTRITO" : (partial.modo || currentTerritorio.modo),
+      raioMaximoKm: isMatriz ? 9999 : (partial.raioMaximoKm ?? currentTerritorio.raioMaximoKm),
+    };
+
+    tenant.territorio = updatedTerritorio;
+    tenant.configuracaoCompleta = {
+      ...tenant.configuracaoCompleta,
+      geo: {
+        ...tenant.configuracaoCompleta?.geo,
+        raioOperacaoPadraoKm: updatedTerritorio.raioMaximoKm,
+        coordenadasCentroLat: updatedTerritorio.latCentro,
+        coordenadasCentroLng: updatedTerritorio.lngCentro,
+        territorio: updatedTerritorio,
+      },
+    };
+
+    this.tenantsMap.set(tenantId, tenant);
+    this.saveTenantsRegistry();
+    this.broadcastUpdate(tenantId);
+    void this.persistToSupabase(tenant.configuracaoCompleta, tenantId);
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("partiu:territorio-updated", {
+          detail: { tenantId, territorio: updatedTerritorio },
+        })
+      );
+    }
+
+    return tenant;
   }
 
   // ============================================================================

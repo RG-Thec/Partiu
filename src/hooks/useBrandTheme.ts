@@ -9,6 +9,7 @@ import {
   type WhiteLabelTenantRecord,
   type BusinessVerticalId,
   type HomeBlockItem,
+  type TerritorioExclusivoConfig,
 } from "@/lib/white-label";
 
 import { useBranding } from "@/hooks/useBranding";
@@ -121,7 +122,8 @@ export function useBrandTheme() {
       adminEmail?: string,
       adminSenha?: string,
       responsavelNome?: string,
-      responsavelTelefone?: string
+      responsavelTelefone?: string,
+      territorioOptions?: Partial<TerritorioExclusivoConfig>
     ) => {
       const cloned = whiteLabelEngine.cloneTenant(
         activeTenant.tenantId,
@@ -132,11 +134,21 @@ export function useBrandTheme() {
         adminEmail,
         adminSenha,
         responsavelNome,
-        responsavelTelefone
+        responsavelTelefone,
+        territorioOptions
       );
       return cloned;
     },
     [activeTenant.tenantId]
+  );
+
+  const updateTenantTerritory = useCallback(
+    (tenantId: string, partial: Partial<TerritorioExclusivoConfig>) => {
+      const updated = whiteLabelEngine.updateTenantTerritory(tenantId, partial);
+      setActiveTenant(whiteLabelEngine.getActiveTenant());
+      return updated;
+    },
+    []
   );
 
   const updateTenantCredentials = useCallback(
@@ -255,6 +267,7 @@ export function useBrandTheme() {
     updateConfig,
     switchTenant,
     cloneTenant,
+    updateTenantTerritory,
     updateTenantCredentials,
     deleteTenant,
     toggleBusinessModel,
