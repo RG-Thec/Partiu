@@ -249,89 +249,27 @@ export class RideRatingService {
     };
   }
 
-  private ensureSeedRatings(): void {
-    if (this.localRatings.size > 0) return;
-    const seeds: RideRating[] = [
-      {
-        id: "rate-001",
-        rideId: "ride_8921",
-        fromUserId: "Juliana Peixoto",
-        toUserId: "Motorista Parceiro",
-        role: "PASSENGER_TO_DRIVER",
-        score: 1,
-        tags: ["Direção brusca", "Não ligou o ar"],
-        comment: "Motorista acelerou além do limite na Av. Fernandes Lima e recusou ligar o ar-condicionado.",
-        tenantId: "default",
-        createdAt: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
-      },
-      {
-        id: "rate-002",
-        rideId: "ride_8920",
-        fromUserId: "Rodrigo Vasconcelos",
-        toUserId: "Marcos Lima",
-        role: "PASSENGER_TO_DRIVER",
-        score: 5,
-        tags: ["Carro limpo", "Direção segura", "Gentil e educado"],
-        comment: "Excelente corrida! Motorista muito atencioso, veículo impecável e direção suave.",
-        tenantId: "default",
-        createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
-      },
-      {
-        id: "rate-003",
-        rideId: "ride_8919",
-        fromUserId: "Motorista Parceiro",
-        toUserId: "Helena Castro",
-        role: "DRIVER_TO_PASSENGER",
-        score: 2,
-        tags: ["Local de difícil parada"],
-        comment: "Passageiro demorou quase 8 minutos para embarcar em vaga de trânsito intenso proibida.",
-        tenantId: "default",
-        createdAt: new Date(Date.now() - 1000 * 60 * 140).toISOString(),
-      },
-      {
-        id: "rate-004",
-        rideId: "ride_8918",
-        fromUserId: "Lucas Prado",
-        toUserId: "Renato Santos",
-        role: "PASSENGER_TO_DRIVER",
-        score: 2,
-        tags: ["Desvio de trajeto"],
-        comment: "Fez um retorno desnecessário que aumentou o tempo da viagem em 12 minutos.",
-        tenantId: "default",
-        createdAt: new Date(Date.now() - 1000 * 60 * 200).toISOString(),
-      },
-      {
-        id: "rate-005",
-        rideId: "ride_8917",
-        fromUserId: "Marcos Lima",
-        toUserId: "Mariana Alencar",
-        role: "DRIVER_TO_PASSENGER",
-        score: 5,
-        tags: ["Pontual no embarque", "Excelente passageiro"],
-        comment: "Passageiro nota 10, aguardava no ponto exato e foi muito gentil.",
-        tenantId: "default",
-        createdAt: new Date(Date.now() - 1000 * 60 * 280).toISOString(),
-      },
-      {
-        id: "rate-006",
-        rideId: "ride_8916",
-        fromUserId: "Camila Duarte",
-        toUserId: "Fabio Henrique",
-        role: "PASSENGER_TO_DRIVER",
-        score: 5,
-        tags: ["Veículo cheiroso", "Música agradável", "Ar-condicionado ligado"],
-        comment: "Melhor experiência de corrida na cidade. Super recomendo!",
-        tenantId: "default",
-        createdAt: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
-      },
-    ];
-    for (const r of seeds) {
-      this.localRatings.set(r.id, r);
+  public async deleteRating(id: string): Promise<boolean> {
+    this.localRatings.delete(id);
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { error } = await (supabase as any)
+          .from("ride_ratings")
+          .delete()
+          .eq("id", id);
+        if (error) {
+          silentCatchWarn("RideRatingService.deleteRating", error);
+          return false;
+        }
+      } catch (err) {
+        silentCatchWarn("RideRatingService.deleteRating", err);
+        return false;
+      }
     }
+    return true;
   }
 
   public async getAllRatings(limit = 100): Promise<RideRating[]> {
-    this.ensureSeedRatings();
     let list: RideRating[] = [];
 
     if (isSupabaseConfigured() && supabase) {
@@ -350,8 +288,10 @@ export class RideRatingService {
       }
     }
 
-    if (list.length === 0) {
-      list = Array.from(this.localRatings.values());
+    if (list.length === 0 && this.localRatings.size > 0) {
+      list = Array.from(this.localRatings.values()).sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
     }
 
     return list.slice(0, limit);

@@ -38,6 +38,8 @@ import {
   MapPin,
   Receipt,
   Columns3,
+  List,
+  LayoutGrid,
 } from "lucide-react";
 import {
   useMotoristas,
@@ -48,7 +50,8 @@ import {
   useAtualizarCategoriaMotorista,
 } from "@/lib/partiu-db";
 import { driverSubscriptionService, type DriverSubscriptionRecord } from "@/lib/ecosystem/driver-subscription-service";
-import { useRideRatings, type RideRating } from "@/services/RideRatingService";
+import { useRideRatings, rideRatingService, type RideRating } from "@/services/RideRatingService";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { exportarParaCSV } from "@/lib/export-csv";
 import { getAdminRole, isFranqueado } from "@/lib/admin-rbac";
 import { useAdminCity } from "@/contexts/AdminCityContext";
@@ -157,23 +160,68 @@ export function QuadroMotoristasAdminPage() {
       }
     }
   }, []);
-  const { data: avaliacoesBanco = [], refetch: recarregarAvaliacoes } = useRideRatings(100);
+  const { data: avaliacoesBanco = [], refetch: recarregarAvaliacoes, isFetching: recarregandoAvaliacoes } = useRideRatings(100);
   const [filtroEstrelas, setFiltroEstrelas] = useState<"TODAS" | "CRITICAS" | "EXCELENTES" | "MEDIAS">("TODAS");
   const [filtroDirecao, setFiltroDirecao] = useState<"TODAS" | "PASSENGER_TO_DRIVER" | "DRIVER_TO_PASSENGER">("TODAS");
   const [buscaAvaliacao, setBuscaAvaliacao] = useState("");
+  const [modoVisualizacaoAvaliacao, setModoVisualizacaoAvaliacao] = useState<"fila" | "cards">("fila");
+  const [excluindoAvaliacaoId, setExcluindoAvaliacaoId] = useState<string | null>(null);
 
-  // KPIs de Moderação de Avaliações
+  // Escuta em tempo real para novas avaliações no Supabase
+  useEffect(() => {
+    if (!isSupabaseConfigured() || !supabase) return;
+
+    const channel = (supabase as any)
+      .channel("admin_ride_ratings_realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "ride_ratings" },
+        () => {
+          void recarregarAvaliacoes();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      try {
+        channel.unsubscribe();
+      } catch {}
+    };
+  }, [recarregarAvaliacoes]);
+
+  // Ação de moderação: Exclusão de avaliação imprópria / abusiva
+  async function handleExcluirAvaliacao(id: string) {
+    if (!confirm("Tem certeza que deseja excluir esta avaliação? Esta ação removerá o registro permanentemente.")) {
+      return;
+    }
+    setExcluindoAvaliacaoId(id);
+    try {
+      const ok = await rideRatingService.deleteRating(id);
+      if (ok) {
+        await recarregarAvaliacoes();
+      } else {
+        alert("Não foi possível excluir a avaliação no momento.");
+      }
+    } catch (err: any) {
+      alert("Erro ao excluir avaliação: " + (err?.message || "Erro desconhecido"));
+    } finally {
+      setExcluindoAvaliacaoId(null);
+    }
+  }
+
+  // KPIs de Moderação de Avaliações (100% dados reais - sem valores fictícios quando vazio)
   const kpisAvaliacoes = useMemo(() => {
     const total = avaliacoesBanco.length;
     if (total === 0) {
-      return { total: 0, media: "5.0", criticas: 0, excelentes: 0, taxaPositiva: "100%" };
+      return { total: 0, media: "—", criticas: 0, excelentes: 0, medias: 0, taxaPositiva: "—" };
     }
     const soma = avaliacoesBanco.reduce((acc, a) => acc + a.score, 0);
-    const media = (soma / total).toFixed(2);
+    const media = (soma / total).toFixed(1);
     const criticas = avaliacoesBanco.filter((a) => a.score <= 2).length;
+    const medias = avaliacoesBanco.filter((a) => a.score === 3).length;
     const excelentes = avaliacoesBanco.filter((a) => a.score >= 4).length;
-    const taxaPositiva = ((excelentes / total) * 100).toFixed(0) + "%";
-    return { total, media, criticas, excelentes, taxaPositiva };
+    const taxaPositiva = Math.round((excelentes / total) * 100) + "%";
+    return { total, media, criticas, medias, excelentes, taxaPositiva };
   }, [avaliacoesBanco]);
 
   // Lista filtrada de avaliações
@@ -969,81 +1017,105 @@ export function QuadroMotoristasAdminPage() {
         />
       ) : (
         /* VISÃO DE MODERAÇÃO DE AVALIAÇÕES (RATING 1-5★ BIDIRECIONAL) */
-        <div className="space-y-6 sm:space-y-8 animate-in fade-in-50 duration-200">
-          {/* Top Cards de Reputação e Qualidade */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm">
+        <div className="space-y-4 animate-in fade-in-50 duration-200">
+          {/* Top Cards de Reputação e Qualidade - 100% Dados Reais */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs">
               <div className="flex items-center justify-between">
-                <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Média Geral da Rede</span>
-                <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center">
-                  <Star className="w-5 h-5 fill-amber-400" />
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Média da Rede
+                </span>
+                <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-500 flex items-center justify-center">
+                  <Star className="w-4 h-4 fill-amber-400" />
                 </div>
               </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-black text-slate-900">{kpisAvaliacoes.media}</span>
-                <span className="text-xs font-bold text-amber-600">de 5.0 estrelas</span>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                  {kpisAvaliacoes.media}
+                </span>
+                <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                  {kpisAvaliacoes.total > 0 ? "de 5.0 estrelas" : "sem dados"}
+                </span>
               </div>
             </div>
 
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs">
               <div className="flex items-center justify-between">
-                <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Total de Avaliações</span>
-                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-[#0088FF] flex items-center justify-center">
-                  <MessageSquare className="w-5 h-5" />
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Total Avaliações
+                </span>
+                <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#0088FF] flex items-center justify-center">
+                  <MessageSquare className="w-4 h-4" />
                 </div>
               </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-black text-slate-900">{kpisAvaliacoes.total}</span>
-                <span className="text-xs font-bold text-slate-500">registradas</span>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                  {kpisAvaliacoes.total}
+                </span>
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                  {kpisAvaliacoes.total > 0 ? "registradas" : "nenhuma"}
+                </span>
               </div>
             </div>
 
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs">
               <div className="flex items-center justify-between">
-                <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Críticas (1-2★)</span>
-                <div className="w-10 h-10 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center">
-                  <ShieldAlert className="w-5 h-5" />
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Críticas (1-2★)
+                </span>
+                <div className="w-8 h-8 rounded-xl bg-red-50 dark:bg-red-950/40 text-red-600 flex items-center justify-center">
+                  <ShieldAlert className="w-4 h-4" />
                 </div>
               </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-black text-red-600">{kpisAvaliacoes.criticas}</span>
-                <span className="text-xs font-bold text-red-600">requer atenção</span>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-xl sm:text-2xl font-black text-red-600 dark:text-red-400">
+                  {kpisAvaliacoes.criticas}
+                </span>
+                <span className="text-[11px] font-bold text-red-600 dark:text-red-400">
+                  {kpisAvaliacoes.criticas > 0 ? "requer atenção" : "nenhuma"}
+                </span>
               </div>
             </div>
 
-            <div className="bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm">
+            <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs">
               <div className="flex items-center justify-between">
-                <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-500">Excelentes (4-5★)</span>
-                <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <ThumbsUp className="w-5 h-5" />
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Excelentes (4-5★)
+                </span>
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center">
+                  <ThumbsUp className="w-4 h-4" />
                 </div>
               </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-black text-emerald-700">{kpisAvaliacoes.excelentes}</span>
-                <span className="text-xs font-bold text-emerald-600">{kpisAvaliacoes.taxaPositiva} satisfação</span>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span className="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-400">
+                  {kpisAvaliacoes.excelentes}
+                </span>
+                <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                  {kpisAvaliacoes.total > 0 ? `${kpisAvaliacoes.taxaPositiva} satisfação` : "aguardando dados"}
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Barra de Filtros, Direção e Exportação */}
-          <div className="bg-white p-3 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 no-scrollbar">
+          {/* Barra de Filtros, Visualização e Exportação */}
+          <div className="bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 no-scrollbar">
               {(
                 [
-                  { key: "TODAS", label: "Todas" },
-                  { key: "CRITICAS", label: "🚨 Críticas (1-2★)" },
-                  { key: "EXCELENTES", label: "⭐ Excelentes (4-5★)" },
-                  { key: "MEDIAS", label: "Médias (3★)" },
+                  { key: "TODAS", label: `Todas (${kpisAvaliacoes.total})` },
+                  { key: "CRITICAS", label: `🚨 Críticas (${kpisAvaliacoes.criticas})` },
+                  { key: "MEDIAS", label: `Médias (${kpisAvaliacoes.medias})` },
+                  { key: "EXCELENTES", label: `⭐ Excelentes (${kpisAvaliacoes.excelentes})` },
                 ] as const
               ).map(({ key, label }) => (
                 <button
                   key={key}
                   type="button"
                   onClick={() => setFiltroEstrelas(key)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
                     filtroEstrelas === key
-                      ? "bg-slate-900 text-white shadow-xs"
-                      : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                      : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                   }`}
                 >
                   {label}
@@ -1053,7 +1125,7 @@ export function QuadroMotoristasAdminPage() {
               <select
                 value={filtroDirecao}
                 onChange={(e) => setFiltroDirecao(e.target.value as any)}
-                className="h-8 px-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-hidden"
+                className="h-8 px-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-hidden"
               >
                 <option value="TODAS">Todas as Direções</option>
                 <option value="PASSENGER_TO_DRIVER">Passageiro → Motorista</option>
@@ -1062,19 +1134,69 @@ export function QuadroMotoristasAdminPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="relative flex-1 md:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+              <div className="relative flex-1 md:w-56">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Buscar corrida, tags ou texto..."
                   value={buscaAvaliacao}
                   onChange={(e) => setBuscaAvaliacao(e.target.value)}
-                  className="w-full h-8 pl-8 pr-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                  className="w-full h-8 pl-8 pr-7 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-hidden focus:border-[#0088FF]"
                 />
+                {buscaAvaliacao && (
+                  <button
+                    type="button"
+                    onClick={() => setBuscaAvaliacao("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
               </div>
 
+              {/* Seletor Fila vs Cards */}
+              <div className="flex items-center p-0.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setModoVisualizacaoAvaliacao("fila")}
+                  className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    modoVisualizacaoAvaliacao === "fila"
+                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs"
+                      : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                  }`}
+                  title="Modo Fila Compacta"
+                >
+                  <List className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModoVisualizacaoAvaliacao("cards")}
+                  className={`p-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    modoVisualizacaoAvaliacao === "cards"
+                      ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs"
+                      : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                  }`}
+                  title="Modo Grade de Cards"
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              {/* Botão Sincronizar */}
               <button
                 type="button"
+                onClick={() => void recarregarAvaliacoes()}
+                disabled={recarregandoAvaliacoes}
+                className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer shrink-0 disabled:opacity-50"
+                title="Sincronizar com banco de dados"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${recarregandoAvaliacoes ? "animate-spin text-[#0088FF]" : ""}`} />
+              </button>
+
+              {/* Exportar CSV */}
+              <button
+                type="button"
+                disabled={avaliacoesFiltradas.length === 0}
                 onClick={() => {
                   exportarParaCSV(
                     `avaliacoes_partiu_${new Date().toISOString().slice(0, 10)}`,
@@ -1092,131 +1214,305 @@ export function QuadroMotoristasAdminPage() {
                     ])
                   );
                 }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 transition cursor-pointer shrink-0"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-300 dark:border-emerald-800 transition cursor-pointer shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600" />
-                <span>Exportar CSV</span>
+                <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span className="hidden sm:inline">CSV</span>
               </button>
             </div>
           </div>
 
-          {/* Lista de Avaliações Moderadas */}
-          <div className="space-y-3">
-            {avaliacoesFiltradas.length === 0 ? (
-              <div className="bg-white p-10 rounded-3xl border border-slate-200 text-center text-slate-400 text-sm">
-                Nenhuma avaliação encontrada para os filtros selecionados.
+          {/* Container Delimitado com Rolagem Interna (Não sobrecarrega a página) */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs overflow-hidden">
+            {/* Header da Fila com status em tempo real */}
+            <div className="px-4 py-2.5 bg-slate-50/80 dark:bg-slate-800/60 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="font-bold text-slate-700 dark:text-slate-300">
+                  Moderação em Tempo Real
+                </span>
+                <span className="text-[10px] text-slate-400 font-medium hidden sm:inline">
+                  • Supabase Realtime (ride_ratings)
+                </span>
               </div>
-            ) : (
-              avaliacoesFiltradas.map((a) => {
-                const isCritica = a.score <= 2;
-                const isPassageiroParaMotorista = a.role === "PASSENGER_TO_DRIVER";
-                return (
-                  <div
-                    key={a.id}
-                    className={`p-5 rounded-3xl border bg-white shadow-xs transition-all space-y-3 ${
-                      isCritica ? "border-red-200 bg-red-50/20" : "border-slate-200/90"
-                    }`}
+              <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                {avaliacoesFiltradas.length} de {avaliacoesBanco.length} exibidas
+              </div>
+            </div>
+
+            {/* Viewport com Rolagem Interna max-h-[580px] */}
+            <div className="max-h-[580px] overflow-y-auto p-3 space-y-2.5 custom-scrollbar">
+              {avaliacoesBanco.length === 0 ? (
+                /* Estado Vazio 100% Real: Nenhum registro no banco de dados */
+                <div className="py-14 px-6 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-500 flex items-center justify-center mx-auto border border-amber-200/50">
+                    <Star className="w-6 h-6 stroke-1 text-amber-400" />
+                  </div>
+                  <div className="space-y-1 max-w-sm mx-auto">
+                    <h3 className="text-sm font-black text-slate-800 dark:text-slate-200">
+                      Nenhuma avaliação registrada
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                      As notas mútuas (1 a 5 estrelas) e tags de qualidade enviadas por passageiros e motoristas aparecerão aqui automaticamente.
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>Realtime Ativo • Aguardando corridas avaliadas</span>
+                  </div>
+                </div>
+              ) : avaliacoesFiltradas.length === 0 ? (
+                /* Estado Vazio de Filtro */
+                <div className="py-10 px-6 text-center space-y-2.5">
+                  <Filter className="w-6 h-6 text-slate-300 dark:text-slate-600 mx-auto" />
+                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                    Nenhuma avaliação encontrada para os filtros selecionados.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFiltroEstrelas("TODAS");
+                      setFiltroDirecao("TODAS");
+                      setBuscaAvaliacao("");
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 transition cursor-pointer"
                   >
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                      <div className="flex items-center gap-3">
-                        {/* Estrelas */}
-                        <div className="flex items-center gap-0.5">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={`h-4 w-4 ${
-                                star <= a.score
-                                  ? "text-amber-400 fill-amber-400"
-                                  : "text-slate-200 fill-slate-200"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <span className="font-black text-sm text-slate-900">{a.score}.0</span>
+                    Limpar Filtros
+                  </button>
+                </div>
+              ) : modoVisualizacaoAvaliacao === "fila" ? (
+                /* MODO FILA COMPACTA (Linha elegante que não consome espaço) */
+                <div className="space-y-2">
+                  {avaliacoesFiltradas.map((a) => {
+                    const isCritica = a.score <= 2;
+                    const isPassageiroParaMotorista = a.role === "PASSENGER_TO_DRIVER";
+                    const isExcluindo = excluindoAvaliacaoId === a.id;
 
-                        {/* Badge de Direção */}
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-black uppercase ${
-                            isPassageiroParaMotorista
-                              ? "bg-blue-50 text-blue-700 border border-blue-200"
-                              : "bg-purple-50 text-purple-700 border border-purple-200"
-                          }`}
-                        >
-                          {isPassageiroParaMotorista ? <Car className="h-3 w-3" /> : <Users className="h-3 w-3" />}
-                          {isPassageiroParaMotorista ? "Passageiro → Motorista" : "Motorista → Passageiro"}
-                        </span>
-
-                        {isCritica && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black uppercase bg-red-100 text-red-700 border border-red-300">
-                            <ShieldAlert className="h-3 w-3" />
-                            Crítica
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
-                        <Link
-                          to="/app/admin/operacao"
-                          className="font-mono text-[#0088FF] hover:underline font-bold"
-                          title="Auditar corrida na central de operação"
-                        >
-                          Corrida #{a.rideId}
-                        </Link>
-                        <span>•</span>
-                        <span>{new Date(a.createdAt).toLocaleString("pt-BR")}</span>
-                      </div>
-                    </div>
-
-                    {/* Autor e Destinatário */}
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
-                      <span className="font-bold text-slate-900">De: {a.fromUserId}</span>
-                      <span>→</span>
-                      <span className="font-bold text-slate-900">Para: {a.toUserId}</span>
-                    </div>
-
-                    {/* Chips de Tags Qualitativas */}
-                    {a.tags && a.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5">
-                        {a.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className={`px-2.5 py-1 rounded-xl text-xs font-bold ${
+                    return (
+                      <div
+                        key={a.id}
+                        className={`p-3 rounded-xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 ${
+                          isCritica
+                            ? "bg-red-50/30 dark:bg-red-950/20 border-red-200 dark:border-red-900/50"
+                            : "bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
+                        }`}
+                      >
+                        {/* Bloco 1: Estrelas + Direção + Partes */}
+                        <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                          {/* Nota em badge */}
+                          <div
+                            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-black shrink-0 ${
                               isCritica
-                                ? "bg-red-50 text-red-800 border border-red-200"
-                                : "bg-slate-100 text-slate-700 border border-slate-200/80"
+                                ? "bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300"
+                                : a.score >= 4
+                                ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300"
+                                : "bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300"
                             }`}
                           >
-                            #{tag}
+                            <Star className="h-3 w-3 fill-current" />
+                            <span>{a.score}.0</span>
+                          </div>
+
+                          {/* Direção */}
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase shrink-0 ${
+                              isPassageiroParaMotorista
+                                ? "bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+                                : "bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800"
+                            }`}
+                          >
+                            {isPassageiroParaMotorista ? <Car className="h-2.5 w-2.5" /> : <Users className="h-2.5 w-2.5" />}
+                            <span className="hidden sm:inline">
+                              {isPassageiroParaMotorista ? "Passageiro → Motorista" : "Motorista → Passageiro"}
+                            </span>
                           </span>
-                        ))}
-                      </div>
-                    )}
 
-                    {/* Comentário do Usuário */}
-                    {a.comment && (
-                      <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs sm:text-sm text-slate-800 italic">
-                        "{a.comment}"
-                      </div>
-                    )}
+                          {/* Usuários De -> Para */}
+                          <div className="text-xs min-w-0">
+                            <div className="flex items-center gap-1.5 truncate">
+                              <span className="font-bold text-slate-900 dark:text-white truncate">{a.fromUserId}</span>
+                              <span className="text-slate-400">→</span>
+                              <span className="font-bold text-slate-900 dark:text-white truncate">{a.toUserId}</span>
+                            </div>
+                            <div className="text-[11px] text-slate-400 flex items-center gap-2">
+                              <Link
+                                to="/app/admin/operacao"
+                                search={{ corridaId: a.rideId } as any}
+                                className="font-mono text-[#0088FF] hover:underline font-bold"
+                              >
+                                #{a.rideId}
+                              </Link>
+                              <span>•</span>
+                              <span>{new Date(a.createdAt).toLocaleString("pt-BR")}</span>
+                            </div>
+                          </div>
+                        </div>
 
-                    {/* Ações Rápidas do Atendimento */}
-                    <div className="flex items-center justify-between gap-2 pt-1">
-                      <div className="text-[11px] text-slate-400">
-                        Auditoria de qualidade em conformidade com diretrizes do app
+                        {/* Bloco 2: Tags & Comentário */}
+                        <div className="flex-1 min-w-0 text-xs">
+                          {a.tags && a.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-1">
+                              {a.tags.map((t) => (
+                                <span
+                                  key={t}
+                                  className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
+                                    isCritica
+                                      ? "bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300"
+                                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                                  }`}
+                                >
+                                  #{t}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {a.comment ? (
+                            <p className="text-xs text-slate-700 dark:text-slate-300 italic truncate" title={a.comment}>
+                              "{a.comment}"
+                            </p>
+                          ) : (
+                            <span className="text-[11px] text-slate-400">Sem comentário em texto</span>
+                          )}
+                        </div>
+
+                        {/* Bloco 3: Ações de Moderação */}
+                        <div className="flex items-center gap-1.5 shrink-0 self-end md:self-center">
+                          <Link
+                            to="/app/admin/operacao"
+                            search={{ corridaId: a.rideId } as any}
+                            className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all"
+                            title="Auditar corrida na central operacional"
+                          >
+                            Operação
+                          </Link>
+
+                          <button
+                            type="button"
+                            onClick={() => void handleExcluirAvaliacao(a.id)}
+                            disabled={isExcluindo}
+                            className="p-1.5 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 transition cursor-pointer disabled:opacity-40"
+                            title="Excluir/Moderar avaliação abusiva"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Link
-                          to="/app/admin/operacao"
-                          className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-2xs"
-                        >
-                          Ver na Operação
-                        </Link>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* MODO GRADE DE CARDS (Contido na rolagem) */
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {avaliacoesFiltradas.map((a) => {
+                    const isCritica = a.score <= 2;
+                    const isPassageiroParaMotorista = a.role === "PASSENGER_TO_DRIVER";
+                    const isExcluindo = excluindoAvaliacaoId === a.id;
+
+                    return (
+                      <div
+                        key={a.id}
+                        className={`p-4 rounded-2xl border space-y-2.5 transition-all ${
+                          isCritica
+                            ? "bg-red-50/30 dark:bg-red-950/20 border-red-200 dark:border-red-900/50"
+                            : "bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-0.5">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                  key={star}
+                                  className={`h-3.5 w-3.5 ${
+                                    star <= a.score
+                                      ? "text-amber-400 fill-amber-400"
+                                      : "text-slate-200 dark:text-slate-700 fill-slate-200 dark:fill-slate-700"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="font-black text-xs text-slate-900 dark:text-white">{a.score}.0</span>
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                                isPassageiroParaMotorista
+                                  ? "bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+                                  : "bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800"
+                              }`}
+                            >
+                              {isPassageiroParaMotorista ? <Car className="h-2.5 w-2.5" /> : <Users className="h-2.5 w-2.5" />}
+                              {isPassageiroParaMotorista ? "Passageiro → Motorista" : "Motorista → Passageiro"}
+                            </span>
+                          </div>
+
+                          <div className="text-[11px] text-slate-400 flex items-center gap-1.5 font-mono">
+                            <Link
+                              to="/app/admin/operacao"
+                              search={{ corridaId: a.rideId } as any}
+                              className="text-[#0088FF] hover:underline font-bold"
+                            >
+                              #{a.rideId}
+                            </Link>
+                          </div>
+                        </div>
+
+                        <div className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                          <span className="font-bold text-slate-900 dark:text-white truncate">De: {a.fromUserId}</span>
+                          <span>→</span>
+                          <span className="font-bold text-slate-900 dark:text-white truncate">Para: {a.toUserId}</span>
+                        </div>
+
+                        {a.tags && a.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {a.tags.map((t) => (
+                              <span
+                                key={t}
+                                className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${
+                                  isCritica
+                                    ? "bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300"
+                                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                                }`}
+                              >
+                                #{t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {a.comment && (
+                          <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 italic">
+                            "{a.comment}"
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+                          <span className="text-[10px] text-slate-400">
+                            {new Date(a.createdAt).toLocaleString("pt-BR")}
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <Link
+                              to="/app/admin/operacao"
+                              search={{ corridaId: a.rideId } as any}
+                              className="px-2.5 py-1 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold transition shadow-2xs"
+                            >
+                              Operação
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => void handleExcluirAvaliacao(a.id)}
+                              disabled={isExcluindo}
+                              className="p-1 rounded-lg text-slate-400 hover:text-red-600 transition cursor-pointer"
+                              title="Excluir avaliação"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
