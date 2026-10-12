@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { Bell } from "lucide-react";
+import { Bell, User } from "lucide-react";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { PartiuLogo } from "@/components/common/PartiuLogo";
 
@@ -29,7 +29,7 @@ export interface HeaderProps {
 /**
  * Header Slim-Balanced — PARTIU Mobilidade Urbana
  * Alinhado com 100% de fidelidade aos requisitos da interface:
- * 1. Esquerda: Símbolo "P" do PARTIU translúcido como marca d'água discreta e interativa (abre menu lateral).
+ * 1. Esquerda: Ícone com foto do usuário (ou avatar com iniciais/ícone) com clique para abrir menu lateral e perfil.
  * 2. Centro: Nome do aplicativo e slogan 100% centralizados e personalizados por franquia/white-label.
  * 3. Direita: Sino de notificações com badge numérico em tempo real.
  */
@@ -78,22 +78,43 @@ export const Header = memo(function Header({
         className="w-full max-w-lg mx-auto flex items-center justify-between px-3.5 py-2 rounded-2xl bg-white/92 backdrop-blur-xl border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.04)] pointer-events-auto"
       >
       {/* ===================================================================== */}
-      {/* 1. SEÇÃO ESQUERDA: SÍMBOLO "P" DO PARTIU COMO MARCA D'ÁGUA             */}
+      {/* 1. SEÇÃO ESQUERDA: ÍCONE COM FOTO DO USUÁRIO (ABRE MENU LATERAL)      */}
       {/* ===================================================================== */}
       <div className="w-10 flex items-center justify-start shrink-0">
         <button
           type="button"
           onClick={onOpenDrawer}
-          className="w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer active:scale-95 transition-all text-slate-700 hover:bg-slate-100/70 group"
+          className="w-9 h-9 rounded-full border border-slate-200/90 bg-slate-100 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer shadow-xs active:scale-95 transition-all hover:ring-2 hover:ring-slate-300"
+          style={{
+            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+          }}
           aria-label="Abrir Menu Lateral e Perfil"
           title={`Perfil de ${nomeExibicao}`}
         >
-          <PartiuLogo
-            variant="icon"
-            size="sm"
-            primaryColor={corPrimaria || "var(--brand-primary, #FF6B00)"}
-            className="opacity-30 group-hover:opacity-75 transition-opacity drop-shadow-none"
-          />
+          {effectiveAvatar ? (
+            <img
+              src={effectiveAvatar}
+              alt={nomeExibicao}
+              className="w-full h-full object-cover rounded-full"
+              onError={() => setImgFailed(true)}
+            />
+          ) : (
+            <div
+              className="w-full h-full flex items-center justify-center font-bold text-[10.5px] rounded-full transition-colors"
+              style={{
+                backgroundColor: corPrimaria
+                  ? `${corPrimaria}18`
+                  : "rgba(2, 132, 199, 0.12)",
+                color: corPrimaria || "#0284c7",
+              }}
+            >
+              {iniciais ? (
+                <span>{iniciais}</span>
+              ) : (
+                <User className="w-4 h-4 stroke-[2]" />
+              )}
+            </div>
+          )}
         </button>
       </div>
 
