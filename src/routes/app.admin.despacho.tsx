@@ -14,6 +14,7 @@ import {
   Send,
   Star,
   Car,
+  Bike,
   Package,
   KeyRound,
   ShieldCheck,
@@ -40,6 +41,11 @@ import {
   Sparkles,
   Percent,
   TrendingUp,
+  List,
+  LayoutGrid,
+  Copy,
+  Check,
+  RefreshCw,
 } from "lucide-react";
 import { getCorridaAtiva, obterPainelSaudeCidade, type CorridaPartiu, type CityHealthDashboardData } from "@/lib/partiu-engine";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
@@ -88,8 +94,33 @@ interface ItemDespachoMock {
   placa: string;
   valor: number;
   pin: string;
-  status: "PROCURANDO" | "A_CAMINHO" | "EM_VIAGEM" | "CONCLUIDA";
+  status: "PROCURANDO" | "A_CAMINHO" | "EM_VIAGEM" | "CONCLUIDA" | "CANCELADA";
   tempoDecorrido: string;
+  criadoEmIso?: string;
+  horarioFormatado?: string;
+}
+
+function formatarTempoDecorrido(created_at?: string): { relativo: string; hora: string } {
+  if (!created_at) return { relativo: "Ao vivo", hora: "--:--" };
+  try {
+    const d = new Date(created_at);
+    const hora = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    const dataCurta = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+    const diffMs = Date.now() - d.getTime();
+    const diffMin = Math.floor(diffMs / (60 * 1000));
+    const diffHoras = Math.floor(diffMin / 60);
+    const diffDias = Math.floor(diffHoras / 24);
+
+    let relativo = "agora";
+    if (diffMin < 1) relativo = "agora";
+    else if (diffMin < 60) relativo = `${diffMin}m atrás`;
+    else if (diffHoras < 24) relativo = `${diffHoras}h atrás`;
+    else relativo = `${diffDias}d atrás (${dataCurta})`;
+
+    return { relativo, hora: `${dataCurta} ${hora}` };
+  } catch {
+    return { relativo: "Recente", hora: "--:--" };
+  }
 }
 
 export function DespachoCentralCorridas() {
@@ -98,10 +129,14 @@ export function DespachoCentralCorridas() {
   const tenantAlvo = isFranqueado && tenantId ? tenantId : pracaAtiva?.id || "default";
   const [abaAtiva, setAbaAtiva] = useState<"FILA_DESPACHO" | "REGRAS_SURGE">("FILA_DESPACHO");
   
-  // Fila de Despacho
+  // Fila de Despacho & Monitoramento
   const [itens, setItens] = useState<ItemDespachoMock[]>([]);
   const [filtro, setFiltro] = useState<"TODAS" | "CORRIDAS" | "ENTREGAS">("TODAS");
+  const [statusFiltro, setStatusFiltro] = useState<"TODAS" | "PROCURANDO" | "EM_ROTA" | "FINALIZADAS">("TODAS");
+  const [modoExibicao, setModoExibicao] = useState<"FILA_COMPACTA" | "GRADE_CARTOES">("FILA_COMPACTA");
   const [busca, setBusca] = useState("");
+  const [carregandoCorridas, setCarregandoCorridas] = useState(false);
+  const [copiadoId, setCopiadoId] = useState<string | null>(null);
   const { data: frotaBanco = [] } = useTelemetriaFrota();
   const { data: ridesBanco = [] } = usePartiuRides(100);
   usePartiuRidesRealtime();
@@ -233,71 +268,80 @@ export function DespachoCentralCorridas() {
     };
   }, [recarregarConfiguracoes]);
 
-  // Sincronizar corridas reais do Supabase e eventos distribuídos
-  useEffect(() => {
-    async function carregarCorridasDoBanco() {
-      if (isSupabaseConfigured()) {
-        try {
-          let query = (supabase as any)
-            .from("partiu_corridas")
-            .select("*, partiu_motoristas(nome, veiculo_marca_modelo, veiculo_placa)")
-            .in("status", ["PROCURANDO", "OFERTADA", "A_CAMINHO", "CHEGOU", "EM_VIAGEM"]);
+  // Sincronizar corridas reais do Supabase com canal Realtime e eventos distribuídos
+  const carregarCorridasDoBanco = useCallback(async () => {
+    if (!isSupabaseConfigured()) return;
+    setCarregandoCorridas(true);
+    try {
+      let query = (supabase as any)
+        .from("partiu_corridas")
+        .select("*, partiu_motoristas(nome, veiculo_marca_modelo, veiculo_placa)");
 
-          // Isolamento estrito de praça / tenant para franqueado
-          if (isFranqueado) {
-            const tenantAlvo = tenantId || pracaAtiva?.id;
-            if (tenantAlvo) {
-              query = query.or(`praca_id.eq.${tenantAlvo},tenant_id.eq.${tenantAlvo}`);
-            }
-          } else if (!isNacional && pracaAtiva?.id) {
-            query = query.or(`praca_id.eq.${pracaAtiva.id},tenant_id.eq.${pracaAtiva.id}`);
-          }
+      // Isolamento estrito de praça / tenant para franqueado
+      if (isFranqueado) {
+        const tenantAlvo = tenantId || pracaAtiva?.id;
+        if (tenantAlvo) {
+          query = query.or(`praca_id.eq.${tenantAlvo},tenant_id.eq.${tenantAlvo}`);
+        }
+      } else if (!isNacional && pracaAtiva?.id) {
+        query = query.or(`praca_id.eq.${pracaAtiva.id},tenant_id.eq.${pracaAtiva.id}`);
+      }
 
-          const { data, error } = await query
-            .order("created_at", { ascending: false })
-            .limit(20);
+      const { data, error } = await query
+        .order("created_at", { ascending: false })
+        .limit(100);
 
-          if (!error && data && data.length > 0) {
-            const reais: ItemDespachoMock[] = data.map((c: any) => ({
-              id: c.codigo_viagem || c.id,
-              tipo: c.is_entrega || c.modalidade?.startsWith("ENTREGA")
-                ? "ENTREGA_FLASH"
-                : c.modalidade === "MOTO"
-                  ? "CORRIDA_MOTO"
-                  : c.modalidade === "PLUS"
-                    ? "CORRIDA_PLUS"
-                    : c.modalidade === "MULHER"
-                      ? "CORRIDA_MULHER"
-                      : "CORRIDA_POP",
-              passageiro: c.passageiro_nome || "Passageiro",
-              telefone: c.passageiro_telefone || "(22) 99999-0000",
-              origem: c.origem_endereco || "Origem em rota",
-              destino: c.destino_endereco || "Destino em rota",
-              motorista: c.partiu_motoristas?.nome || "Buscando parceiro...",
-              veiculo: c.partiu_motoristas?.veiculo_marca_modelo || "Aguardando aceite",
-              placa: c.partiu_motoristas?.veiculo_placa || "---",
-              valor: (c.valor_bruto_cents || 1600) / 100,
-              pin: c.pin_seguranca || "----",
-              status: c.status === "EM_VIAGEM" || c.status === "CHEGOU"
+      if (!error && data && data.length > 0) {
+        const reais: ItemDespachoMock[] = data.map((c: any) => {
+          const { relativo, hora } = formatarTempoDecorrido(c.created_at);
+          return {
+            id: c.codigo_viagem || c.id,
+            tipo: c.is_entrega || c.modalidade?.startsWith("ENTREGA")
+              ? "ENTREGA_FLASH"
+              : c.modalidade === "MOTO"
+                ? "CORRIDA_MOTO"
+                : c.modalidade === "PLUS"
+                  ? "CORRIDA_PLUS"
+                  : c.modalidade === "MULHER"
+                    ? "CORRIDA_MULHER"
+                    : "CORRIDA_POP",
+            passageiro: c.passageiro_nome || "Passageiro",
+            telefone: c.passageiro_telefone || "(22) 99999-0000",
+            origem: c.origem_endereco || "Origem em rota",
+            destino: c.destino_endereco || "Destino em rota",
+            motorista: c.partiu_motoristas?.nome || "Buscando parceiro...",
+            veiculo: c.partiu_motoristas?.veiculo_marca_modelo || "Aguardando aceite",
+            placa: c.partiu_motoristas?.veiculo_placa || "---",
+            valor: (c.valor_bruto_cents || 1600) / 100,
+            pin: c.pin_seguranca || "----",
+            status:
+              c.status === "EM_VIAGEM" || c.status === "CHEGOU"
                 ? "EM_VIAGEM"
                 : c.status === "A_CAMINHO"
                   ? "A_CAMINHO"
                   : c.status === "CONCLUIDA"
                     ? "CONCLUIDA"
-                    : "PROCURANDO",
-              tempoDecorrido: "Ao vivo",
-            }));
+                    : c.status === "CANCELADA"
+                      ? "CANCELADA"
+                      : "PROCURANDO",
+            tempoDecorrido: relativo,
+            criadoEmIso: c.created_at,
+            horarioFormatado: hora,
+          };
+        });
 
-            setItens(reais);
-          } else if (!error) {
-            setItens([]);
-          }
-        } catch (err) {
-          console.warn("[AdminDespacho] Falha ao consultar corridas:", err);
-        }
+        setItens(reais);
+      } else if (!error) {
+        setItens([]);
       }
+    } catch (err) {
+      console.warn("[AdminDespacho] Falha ao consultar corridas:", err);
+    } finally {
+      setCarregandoCorridas(false);
     }
+  }, [isFranqueado, isNacional, tenantId, pracaAtiva?.id]);
 
+  useEffect(() => {
     void carregarCorridasDoBanco();
 
     function verificarCorridaAtiva() {
@@ -340,9 +384,70 @@ export function DespachoCentralCorridas() {
     }
 
     verificarCorridaAtiva();
-    const interval = setInterval(verificarCorridaAtiva, 4000);
-    return () => clearInterval(interval);
-  }, []);
+
+    if (!isSupabaseConfigured()) return;
+
+    // Subscrição em Tempo Real (Supabase Realtime)
+    const channel = supabase
+      .channel(`admin-despacho-realtime-${Date.now()}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "partiu_corridas" },
+        () => {
+          void carregarCorridasDoBanco();
+        }
+      )
+      .subscribe();
+
+    const interval = setInterval(() => {
+      verificarCorridaAtiva();
+      void carregarCorridasDoBanco();
+    }, 15000);
+
+    return () => {
+      clearInterval(interval);
+      void supabase.removeChannel(channel);
+    };
+  }, [carregarCorridasDoBanco]);
+
+  const handleCancelarCorrida = async (codigoViagem: string) => {
+    if (!window.confirm(`Deseja realmente cancelar a chamada ${codigoViagem}? Isso atualizará o status no banco de dados e liberará a fila operacional.`)) return;
+    try {
+      if (isSupabaseConfigured()) {
+        const { error } = await (supabase as any)
+          .from("partiu_corridas")
+          .update({
+            status: "CANCELADA",
+            cancelado_por: "ADMINISTRADOR",
+            motivo_cancelamento: "Cancelado pela central de despacho (Super Admin)",
+            cancelada_em: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .or(`codigo_viagem.eq.${codigoViagem},id.eq.${codigoViagem}`);
+
+        if (error) {
+          console.warn("[AdminDespacho] Erro ao atualizar status:", error.message);
+        }
+      }
+      setItens((prev) =>
+        prev.map((item) =>
+          item.id === codigoViagem ? { ...item, status: "CANCELADA" } : item
+        )
+      );
+      showToast(`Chamada ${codigoViagem} cancelada com sucesso.`);
+    } catch {
+      showToast(`Erro ao cancelar chamada.`);
+    }
+  };
+
+  const handleCopiarId = (id: string) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      void navigator.clipboard.writeText(id);
+      setCopiadoId(id);
+      setTimeout(() => setCopiadoId(null), 2000);
+      showToast(`Código ${id} copiado para a área de transferência.`);
+    }
+  };
 
   // Handlers de Parâmetros de Despacho
   const handleSalvarParametros = (e: React.FormEvent) => {
@@ -401,19 +506,44 @@ export function DespachoCentralCorridas() {
     showToast(`Regra "${formRegraNome}" criada com sucesso!`);
   };
 
-  const listaFiltrada = itens.filter((item) => {
-    if (filtro === "CORRIDAS" && item.tipo === "ENTREGA_FLASH") return false;
-    if (filtro === "ENTREGAS" && item.tipo !== "ENTREGA_FLASH") return false;
-    if (busca.trim()) {
-      const termo = busca.toLowerCase();
-      const matchPassageiro = item.passageiro.toLowerCase().includes(termo);
-      const matchMotorista = item.motorista.toLowerCase().includes(termo);
-      const matchPlaca = item.placa.toLowerCase().includes(termo);
-      const matchPin = item.pin.includes(termo);
-      if (!matchPassageiro && !matchMotorista && !matchPlaca && !matchPin) return false;
-    }
-    return true;
-  });
+  const listaFiltrada = useMemo(() => {
+    return itens.filter((item) => {
+      // Filtro por Modalidade (Corridas vs Entregas)
+      if (filtro === "CORRIDAS" && item.tipo === "ENTREGA_FLASH") return false;
+      if (filtro === "ENTREGAS" && item.tipo !== "ENTREGA_FLASH") return false;
+
+      // Filtro por Ciclo Operacional / Status
+      if (statusFiltro === "PROCURANDO" && item.status !== "PROCURANDO") return false;
+      if (statusFiltro === "EM_ROTA" && item.status !== "A_CAMINHO" && item.status !== "EM_VIAGEM") return false;
+      if (statusFiltro === "FINALIZADAS" && item.status !== "CONCLUIDA" && item.status !== "CANCELADA") return false;
+
+      // Busca textual ampla
+      if (busca.trim()) {
+        const termo = busca.toLowerCase();
+        const matchId = item.id.toLowerCase().includes(termo);
+        const matchPassageiro = item.passageiro.toLowerCase().includes(termo);
+        const matchMotorista = item.motorista.toLowerCase().includes(termo);
+        const matchPlaca = item.placa.toLowerCase().includes(termo);
+        const matchPin = item.pin.includes(termo);
+        const matchOrigem = item.origem.toLowerCase().includes(termo);
+        const matchDestino = item.destino.toLowerCase().includes(termo);
+        if (!matchId && !matchPassageiro && !matchMotorista && !matchPlaca && !matchPin && !matchOrigem && !matchDestino) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [itens, filtro, statusFiltro, busca]);
+
+  const contadoresFila = useMemo(() => {
+    return {
+      total: itens.length,
+      procurando: itens.filter((i) => i.status === "PROCURANDO").length,
+      emRota: itens.filter((i) => i.status === "A_CAMINHO" || i.status === "EM_VIAGEM").length,
+      concluidas: itens.filter((i) => i.status === "CONCLUIDA").length,
+      canceladas: itens.filter((i) => i.status === "CANCELADA").length,
+    };
+  }, [itens]);
 
   return (
     <div className="w-full space-y-6 pb-16">
@@ -585,119 +715,460 @@ export function DespachoCentralCorridas() {
             </div>
           </div>
 
-          {/* Filtros e Busca de Chamadas */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card p-3 sm:p-4 rounded-2xl border border-border/60 shadow-2xs">
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Buscar por passageiro, motorista, placa ou código PIN..."
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                className="w-full min-h-11 h-11 pl-10 pr-4 rounded-xl bg-background border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              />
+          {/* Barra de Ferramentas, Métricas Rápidas e Filtros de Fila */}
+          <div className="space-y-3 bg-card p-4 sm:p-5 rounded-3xl border border-border/80 shadow-2xs">
+            {/* Linha Superior: Busca, Alternador de Visão e Ações de Fila */}
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+              {/* Campo de Busca Rápida */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Buscar por código (COR-...), passageiro, motorista, rota ou PIN..."
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  className="w-full min-h-10 h-10 pl-10 pr-9 rounded-xl bg-background border border-border text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
+                />
+                {busca && (
+                  <button
+                    type="button"
+                    onClick={() => setBusca("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 cursor-pointer"
+                    title="Limpar busca"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Controles de Visão e Atualização */}
+              <div className="flex items-center gap-2 flex-wrap justify-between sm:justify-end">
+                {/* Filtro por Modalidade */}
+                <div className="flex items-center p-1 bg-muted/60 rounded-xl border border-border/60">
+                  {(["TODAS", "CORRIDAS", "ENTREGAS"] as const).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setFiltro(t)}
+                      className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                        filtro === t
+                          ? "bg-background text-foreground shadow-2xs"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {t === "TODAS" && "Todos os Tipos"}
+                      {t === "CORRIDAS" && "Carro & Moto"}
+                      {t === "ENTREGAS" && "Entregas"}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Alternador de Modo: Fila em Linhas vs Grade */}
+                <div className="flex items-center p-1 bg-muted/60 rounded-xl border border-border/60">
+                  <button
+                    type="button"
+                    onClick={() => setModoExibicao("FILA_COMPACTA")}
+                    className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      modoExibicao === "FILA_COMPACTA"
+                        ? "bg-primary text-primary-foreground shadow-2xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    title="Visualizar como Fila em Linhas (Mais compacto e organizado)"
+                  >
+                    <List className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Fila</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModoExibicao("GRADE_CARTOES")}
+                    className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      modoExibicao === "GRADE_CARTOES"
+                        ? "bg-primary text-primary-foreground shadow-2xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    title="Visualizar em Cartões"
+                  >
+                    <LayoutGrid className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Cards</span>
+                  </button>
+                </div>
+
+                {/* Botão de Atualizar Sincronização */}
+                <button
+                  type="button"
+                  onClick={() => void carregarCorridasDoBanco()}
+                  disabled={carregandoCorridas}
+                  className="p-2 rounded-xl bg-muted/60 hover:bg-muted border border-border/60 text-muted-foreground hover:text-foreground transition cursor-pointer disabled:opacity-50"
+                  title="Atualizar lista agora"
+                >
+                  <RefreshCw className={`w-4 h-4 ${carregandoCorridas ? "animate-spin text-primary" : ""}`} />
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-              {(["TODAS", "CORRIDAS", "ENTREGAS"] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setFiltro(t)}
-                  className={`min-h-10 px-4 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
-                    filtro === t
-                      ? "bg-primary text-primary-foreground shadow-2xs"
-                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  {t === "TODAS" && "Todas as Chamadas"}
-                  {t === "CORRIDAS" && "Apenas Corridas"}
-                  {t === "ENTREGAS" && "Apenas Entregas Flash"}
-                </button>
-              ))}
+            {/* Linha Inferior: Badges de Ciclo Operacional / Filtro por Status */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 no-scrollbar">
+              <button
+                type="button"
+                onClick={() => setStatusFiltro("TODAS")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                  statusFiltro === "TODAS"
+                    ? "bg-foreground text-background"
+                    : "bg-muted/40 text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <span>Todas as Chamadas</span>
+                <span className="px-1.5 py-0.2 rounded-md bg-background/20 text-[10px] font-mono font-black">
+                  {contadoresFila.total}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStatusFiltro("PROCURANDO")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                  statusFiltro === "PROCURANDO"
+                    ? "bg-amber-500 text-slate-950 font-black"
+                    : "bg-amber-500/10 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20"
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                <span>Buscando Parceiro</span>
+                <span className="px-1.5 py-0.2 rounded-md bg-black/10 dark:bg-white/10 text-[10px] font-mono font-black">
+                  {contadoresFila.procurando}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStatusFiltro("EM_ROTA")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                  statusFiltro === "EM_ROTA"
+                    ? "bg-blue-600 text-white font-black"
+                    : "bg-blue-500/10 text-blue-700 dark:text-blue-400 hover:bg-blue-500/20"
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                <span>Em Rota / Viagem</span>
+                <span className="px-1.5 py-0.2 rounded-md bg-black/10 dark:bg-white/10 text-[10px] font-mono font-black">
+                  {contadoresFila.emRota}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStatusFiltro("FINALIZADAS")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                  statusFiltro === "FINALIZADAS"
+                    ? "bg-emerald-600 text-white font-black"
+                    : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20"
+                }`}
+              >
+                <span>Finalizadas / Canceladas</span>
+                <span className="px-1.5 py-0.2 rounded-md bg-black/10 dark:bg-white/10 text-[10px] font-mono font-black">
+                  {contadoresFila.concluidas + contadoresFila.canceladas}
+                </span>
+              </button>
             </div>
           </div>
 
-          {/* Grade de Cartões de Despacho ao Vivo */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* ========================================================================= */}
+          {/* CONTAINER DA FILA OPERACIONAL COM ROLAGEM LIMITADA (NÃO SOBRECARREGA A PÁGINA) */}
+          {/* ========================================================================= */}
+          <div className="bg-card rounded-3xl border border-border/80 shadow-2xs overflow-hidden">
+            {/* Barra de Status do Feed com Indicador ao Vivo */}
+            <div className="px-5 py-3 border-b border-border/60 bg-muted/20 flex items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2 font-semibold text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Feed em Tempo Real
+                </span>
+                <span>•</span>
+                <span>
+                  Exibindo <strong>{listaFiltrada.length}</strong> de <strong>{itens.length}</strong> chamados
+                </span>
+              </div>
+
+              <div className="text-[11px] text-muted-foreground hidden sm:block">
+                Rolagem interna ativa • {modoExibicao === "FILA_COMPACTA" ? "Visão em Fila Rápida" : "Visão em Grade"}
+              </div>
+            </div>
+
+            {/* Visualização de Vazio */}
             {listaFiltrada.length === 0 ? (
-              <div className="col-span-full py-12 text-center text-muted-foreground bg-card rounded-3xl border border-border/60">
-                <Radio className="w-8 h-8 mx-auto text-muted-foreground/40 mb-2 animate-pulse" />
-                <p className="font-semibold text-sm">Nenhuma corrida em andamento no momento</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Aguardando novas solicitações de passageiros ou chamados manuais da central.
+              <div className="py-16 text-center text-muted-foreground space-y-2">
+                <Radio className="w-8 h-8 mx-auto text-muted-foreground/30 animate-pulse" />
+                <p className="font-bold text-sm text-foreground">Nenhuma corrida encontrada na fila</p>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                  {busca
+                    ? "Nenhum resultado corresponde aos termos da pesquisa. Tente limpar os filtros."
+                    : "Aguardando novos chamados de passageiros ou despachos manuais da central."}
                 </p>
               </div>
-            ) : (
-              listaFiltrada.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-card rounded-2xl p-4 sm:p-5 border border-border/80 shadow-2xs hover:border-primary/40 transition-all space-y-3.5"
-                >
-                  <div className="flex items-center justify-between pb-2 border-b border-border/60">
-                    <span className="font-mono text-xs font-bold text-muted-foreground">{item.id}</span>
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                        item.status === "EM_VIAGEM"
-                          ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+            ) : modoExibicao === "FILA_COMPACTA" ? (
+              /* ========================================================================= */
+              /* MODO 1: FILA EM LINHAS COMPACTAS COM ROLAGEM VERTICAL SUAVE */
+              /* ========================================================================= */
+              <div className="max-h-[580px] overflow-y-auto divide-y divide-border/60">
+                {listaFiltrada.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-3.5 sm:p-4 hover:bg-muted/30 transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 group"
+                  >
+                    {/* Bloco 1: Código, Modalidade & Status */}
+                    <div className="flex items-center gap-3 shrink-0 lg:w-48">
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-muted border border-border/80">
+                        {item.tipo === "CORRIDA_MOTO" ? (
+                          <Bike className="w-4 h-4 text-amber-500" />
+                        ) : item.tipo === "ENTREGA_FLASH" ? (
+                          <Package className="w-4 h-4 text-blue-500" />
+                        ) : (
+                          <Car className="w-4 h-4 text-emerald-500" />
+                        )}
+                      </div>
+
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-xs font-black text-foreground">{item.id}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopiarId(item.id)}
+                            className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition p-0.5 cursor-pointer"
+                            title="Copiar código da corrida"
+                          >
+                            {copiadoId === item.id ? (
+                              <Check className="w-3 h-3 text-emerald-500" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                          </button>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                          <span>
+                            {item.tipo === "CORRIDA_MOTO"
+                              ? "Moto"
+                              : item.tipo === "ENTREGA_FLASH"
+                              ? "Entrega"
+                              : "Carro Pop"}
+                          </span>
+                          <span>•</span>
+                          <span title={item.horarioFormatado}>{item.tempoDecorrido}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bloco 2: Badge de Status */}
+                    <div className="shrink-0 lg:w-36">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black ${
+                          item.status === "EM_VIAGEM"
+                            ? "bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20"
+                            : item.status === "A_CAMINHO"
+                            ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20"
+                            : item.status === "CONCLUIDA"
+                            ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
+                            : item.status === "CANCELADA"
+                            ? "bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20"
+                            : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20"
+                        }`}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                        {item.status === "PROCURANDO"
+                          ? "Buscando parceiro"
                           : item.status === "A_CAMINHO"
-                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
-                            : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                      }`}
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-                      {item.status.replace("_", " ")}
-                    </span>
-                  </div>
+                          ? "A caminho"
+                          : item.status === "EM_VIAGEM"
+                          ? "Em viagem"
+                          : item.status === "CONCLUIDA"
+                          ? "Concluída"
+                          : "Cancelada"}
+                      </span>
+                    </div>
 
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex items-start gap-2">
-                      <MapPin className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
-                      <div className="min-w-0">
-                        <span className="text-[10px] text-muted-foreground uppercase font-bold block">Origem</span>
-                        <span className="text-foreground font-medium truncate block">{item.origem}</span>
+                    {/* Bloco 3: Itinerário Origem ➔ Destino */}
+                    <div className="flex-1 min-w-0 space-y-1 text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                        <span className="text-muted-foreground truncate" title={item.origem}>
+                          {item.origem}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                        <span className="text-foreground font-medium truncate" title={item.destino}>
+                          {item.destino}
+                        </span>
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-2">
-                      <MapPin className="w-3.5 h-3.5 text-blue-500 mt-0.5 shrink-0" />
-                      <div className="min-w-0">
-                        <span className="text-[10px] text-muted-foreground uppercase font-bold block">Destino</span>
-                        <span className="text-foreground font-medium truncate block">{item.destino}</span>
+                    {/* Bloco 4: Passageiro & PIN */}
+                    <div className="shrink-0 lg:w-44 text-xs">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="font-bold text-foreground truncate">{item.passageiro}</span>
+                        <span className="px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground text-[10px] font-mono font-black shrink-0">
+                          PIN {item.pin}
+                        </span>
                       </div>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-muted/40 rounded-xl border border-border/50 flex items-center justify-between">
-                    <div>
-                      <span className="text-xs font-bold text-foreground block">{item.passageiro}</span>
-                      <span className="text-[10px] text-muted-foreground">{item.telefone}</span>
+                      <span className="text-[10px] text-muted-foreground block">{item.telefone}</span>
                     </div>
 
-                    <div className="text-center px-3 py-1 bg-primary text-primary-foreground rounded-lg shadow-2xs">
-                      <span className="text-[8px] font-black uppercase block">PIN</span>
-                      <span className="text-sm font-mono font-black">{item.pin}</span>
-                    </div>
-                  </div>
-
-                  <div className="text-xs pt-1 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] text-muted-foreground font-bold block">Condutor Parceiro</span>
-                      <span className="font-bold text-foreground">{item.motorista}</span>
-                      <span className="text-[10px] text-muted-foreground block">
+                    {/* Bloco 5: Motorista Parceiro */}
+                    <div className="shrink-0 lg:w-48 text-xs">
+                      <span className="text-[10px] text-muted-foreground block">Condutor Parceiro:</span>
+                      <span
+                        className={`font-bold truncate block ${
+                          item.motorista === "Buscando parceiro..."
+                            ? "text-amber-600 dark:text-amber-400 italic font-medium"
+                            : "text-foreground"
+                        }`}
+                      >
+                        {item.motorista}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground block truncate">
                         {item.veiculo} • <strong>{item.placa}</strong>
                       </span>
                     </div>
 
-                    <div className="text-right">
-                      <span className="text-[10px] text-muted-foreground block">Valor</span>
-                      <strong className="text-emerald-600 dark:text-emerald-400 font-mono text-sm">
-                        R$ {item.valor.toFixed(2).replace(".", ",")}
-                      </strong>
+                    {/* Bloco 6: Valor e Ações */}
+                    <div className="flex items-center justify-between lg:justify-end gap-3 shrink-0 lg:w-40 pt-1 lg:pt-0 border-t lg:border-t-0 border-border/40">
+                      <div className="text-left lg:text-right">
+                        <span className="text-[9px] uppercase font-bold text-muted-foreground block">Valor</span>
+                        <strong className="text-sm font-mono font-black text-emerald-600 dark:text-emerald-400">
+                          R$ {item.valor.toFixed(2).replace(".", ",")}
+                        </strong>
+                      </div>
+
+                      {/* Botões de Ação na Fila */}
+                      <div className="flex items-center gap-1">
+                        {item.status === "PROCURANDO" && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => setModalNovoChamado(true)}
+                              className="p-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary transition cursor-pointer"
+                              title="Despachar motorista manualmente"
+                            >
+                              <Send className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void handleCancelarCorrida(item.id)}
+                              className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 transition cursor-pointer"
+                              title="Cancelar chamada"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
+            ) : (
+              /* ========================================================================= */
+              /* MODO 2: GRADE EM CARTÕES COMPACTOS DENTRO DO MESMO SCROLL CONTAINER */
+              /* ========================================================================= */
+              <div className="max-h-[580px] overflow-y-auto p-4 sm:p-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                  {listaFiltrada.map((item) => (
+                    <div
+                      key={item.id}
+                      className="bg-card rounded-2xl p-4 border border-border/80 shadow-2xs hover:border-primary/40 transition-all space-y-3 relative group"
+                    >
+                      <div className="flex items-center justify-between pb-2 border-b border-border/60">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-xs font-black text-foreground">{item.id}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopiarId(item.id)}
+                            className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition p-0.5 cursor-pointer"
+                            title="Copiar ID"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                        </div>
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black ${
+                            item.status === "EM_VIAGEM"
+                              ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                              : item.status === "A_CAMINHO"
+                              ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
+                              : item.status === "CONCLUIDA"
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                              : item.status === "CANCELADA"
+                              ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                              : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                          }`}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                          {item.status.replace("_", " ")}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5 text-xs">
+                        <div className="flex items-start gap-2">
+                          <MapPin className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                          <div className="min-w-0">
+                            <span className="text-[9px] text-muted-foreground uppercase font-bold block">Origem</span>
+                            <span className="text-foreground font-medium truncate block" title={item.origem}>
+                              {item.origem}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-2">
+                          <MapPin className="w-3.5 h-3.5 text-blue-500 mt-0.5 shrink-0" />
+                          <div className="min-w-0">
+                            <span className="text-[9px] text-muted-foreground uppercase font-bold block">Destino</span>
+                            <span className="text-foreground font-medium truncate block" title={item.destino}>
+                              {item.destino}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 bg-muted/40 rounded-xl border border-border/50 flex items-center justify-between">
+                        <div>
+                          <span className="text-xs font-bold text-foreground block">{item.passageiro}</span>
+                          <span className="text-[10px] text-muted-foreground">{item.telefone}</span>
+                        </div>
+
+                        <div className="text-center px-2.5 py-1 bg-primary text-primary-foreground rounded-lg shadow-2xs">
+                          <span className="text-[8px] font-black uppercase block">PIN</span>
+                          <span className="text-xs font-mono font-black">{item.pin}</span>
+                        </div>
+                      </div>
+
+                      <div className="text-xs pt-1 flex items-center justify-between border-t border-border/40">
+                        <div>
+                          <span className="text-[9px] text-muted-foreground font-bold block">Condutor Parceiro</span>
+                          <span className="font-bold text-foreground truncate block max-w-[130px]">{item.motorista}</span>
+                          <span className="text-[10px] text-muted-foreground block">
+                            {item.veiculo} • <strong>{item.placa}</strong>
+                          </span>
+                        </div>
+
+                        <div className="text-right">
+                          <span className="text-[9px] text-muted-foreground block">Valor</span>
+                          <strong className="text-emerald-600 dark:text-emerald-400 font-mono text-sm block">
+                            R$ {item.valor.toFixed(2).replace(".", ",")}
+                          </strong>
+                          {item.status === "PROCURANDO" && (
+                            <button
+                              type="button"
+                              onClick={() => void handleCancelarCorrida(item.id)}
+                              className="text-[10px] text-rose-500 hover:underline mt-1 block cursor-pointer"
+                            >
+                              Cancelar
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))
+              </div>
             )}
           </div>
         </div>
