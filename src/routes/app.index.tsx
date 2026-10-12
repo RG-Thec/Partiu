@@ -665,12 +665,12 @@ function PartiuPassengerHomeContent() {
             className="absolute inset-x-0 bottom-0 z-20 pointer-events-none flex flex-col justify-end w-full max-w-lg mx-auto px-3 sm:px-4 pb-[max(0.4rem,env(safe-area-inset-bottom))] space-y-1.5 sm:space-y-2 select-none"
           >
             {/* LINHA SUPERIOR FLUTUANTE: Seletor de Modalidade Centralizado + Botão Recentralizar GPS à Direita */}
-            <div className="w-full relative flex items-center justify-center pointer-events-none pr-1 -mb-1">
-              <div className="pointer-events-auto animate-in fade-in duration-200">
+            <div className="w-full relative z-30 flex items-center justify-center pointer-events-none pr-1 mb-1.5">
+              <div className="pointer-events-auto relative z-30 animate-in fade-in duration-200">
                 <ModeTabSelector className="shadow-md" />
               </div>
 
-              <div className="absolute right-1 bottom-0 pointer-events-auto">
+              <div className="absolute right-1 bottom-0 pointer-events-auto z-30">
                 <button
                   type="button"
                   onClick={handleRecenterMap}

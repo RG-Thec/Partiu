@@ -5,7 +5,7 @@ import { PushNotificationPrompt } from "@/components/notifications/PushNotificat
 import { BroadcastNotificationListener } from "@/components/notifications/BroadcastNotificationListener";
 import { registrarServiceWorker } from "@/lib/push-notifications";
 import { supabase } from "@/integrations/supabase/client";
-import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
+import { supabaseAuthService, isMatchingTenant } from "@/lib/auth/supabase-auth-service";
 
 export const Route = createFileRoute("/app")({
   ssr: false,
@@ -57,10 +57,10 @@ export const Route = createFileRoute("/app")({
       // Validação de isolamento multi-tenant: usuário autenticado deve pertencer ao tenant da praça
       const sessionTenantMatches =
         session?.user?.user_metadata?.["tenant_id"]
-          ? session.user.user_metadata["tenant_id"] === effectiveTenantId
+          ? isMatchingTenant(session.user.user_metadata["tenant_id"], effectiveTenantId)
           : true;
 
-      const userTenantMatches = storedUser && (!storedUser.tenantId || storedUser.tenantId === effectiveTenantId);
+      const userTenantMatches = storedUser && (!storedUser.tenantId || isMatchingTenant(storedUser.tenantId, effectiveTenantId));
 
       const isAuthenticated = (session && !expired && sessionTenantMatches) || Boolean(storedUser && userTenantMatches);
 

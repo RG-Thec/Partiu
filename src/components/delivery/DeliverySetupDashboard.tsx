@@ -15,6 +15,7 @@ import {
 import { useDelivery } from "@/contexts/DeliveryContext";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { DeliveryVehicleIllustrations } from "./DeliveryVehicleIllustrations";
+import { ModeTabSelector } from "@/components/navigation/ModeTabSelector";
 
 interface DeliverySetupDashboardProps {
   onOpenNotifications: () => void;
@@ -131,6 +132,11 @@ export function DeliverySetupDashboard({
               {appName} Entregas
             </h1>
           </div>
+        </div>
+
+        {/* SELETOR DE MODALIDADE (CORRIDA / ENTREGA) */}
+        <div className="flex items-center justify-center pt-1 pb-0.5">
+          <ModeTabSelector className="shadow-xs" />
         </div>
 
         {/* ILUSTRAÇÕES VETORIAIS DE MOTO E CARRO COM PACOTES */}

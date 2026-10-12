@@ -241,7 +241,17 @@ export class SupabaseAuthService {
     try {
       // 1. Busca primeiro no storage isolado do tenant
       const tenantKey = getTenantSessionStorageKey(effectiveTenantId);
-      const raw = localStorage.getItem(tenantKey);
+      let raw = localStorage.getItem(tenantKey);
+
+      // Fallback inteligente para tenant matriz: se busca por 'default' e não acha, tenta 'tenant-itaperuna' e vice-versa
+      if (!raw) {
+        const norm = normalizeUserTenantId(effectiveTenantId);
+        if (norm === "tenant-itaperuna") {
+          const altTenant = effectiveTenantId === "default" ? "tenant-itaperuna" : "default";
+          raw = localStorage.getItem(getTenantSessionStorageKey(altTenant));
+        }
+      }
+
       if (raw) {
         const parsed = JSON.parse(raw) as AuthUserProfile;
         // Validação estrita: se a sessão for de outro tenant, rejeita imediatamente
@@ -258,10 +268,7 @@ export class SupabaseAuthService {
       const legacyRaw = localStorage.getItem(STORAGE_SESSION_KEY);
       if (legacyRaw) {
         const parsed = JSON.parse(legacyRaw) as AuthUserProfile;
-        if (
-          parsed.tenantId === effectiveTenantId ||
-          (!parsed.tenantId && (effectiveTenantId === "tenant-itaperuna" || effectiveTenantId === "default"))
-        ) {
+        if (isMatchingTenant(parsed.tenantId, effectiveTenantId)) {
           parsed.tenantId = effectiveTenantId;
           this.saveStoredSession(parsed, effectiveTenantId);
           return parsed;
@@ -292,9 +299,12 @@ export class SupabaseAuthService {
       const tenantKey = getTenantSessionStorageKey(effectiveTenantId);
       localStorage.setItem(tenantKey, JSON.stringify(user));
 
-      // Mantém chave legada apenas se for o tenant principal para compatibilidade retroativa
-      if (effectiveTenantId === "tenant-itaperuna" || effectiveTenantId === "default") {
+      // Mantém chave legada e alias do tenant matriz para compatibilidade retroativa absoluta
+      const isMatriz = isMatchingTenant(effectiveTenantId, "tenant-itaperuna");
+      if (isMatriz) {
         localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(user));
+        localStorage.setItem(getTenantSessionStorageKey("default"), JSON.stringify(user));
+        localStorage.setItem(getTenantSessionStorageKey("tenant-itaperuna"), JSON.stringify(user));
       }
     } catch (err) { silentCatchWarn("supabase-auth-service", err); }
   }

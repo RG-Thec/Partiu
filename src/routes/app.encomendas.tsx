@@ -158,6 +158,7 @@ function PartiuEncomendasContent() {
 
           <Link
             to="/app"
+            search={(prev: any) => prev}
             className="w-8.5 h-8.5 rounded-xl bg-white/95 backdrop-blur-md shadow-md text-slate-900 flex items-center justify-center pointer-events-auto active:scale-95 transition cursor-pointer"
             title="Voltar para Corridas"
           >
