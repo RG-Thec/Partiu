@@ -696,7 +696,7 @@ export function CadastroMotoristaPage() {
                   </div>
                 )}
 
-                <div className="sticky bottom-0 z-20 bg-white/95 backdrop-blur-md pt-2.5 pb-1 border-t border-slate-100 -mx-4 px-4 sm:-mx-6 sm:px-6 rounded-b-2xl sm:rounded-b-3xl mt-2 flex gap-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+                <div className="pt-2.5 flex gap-2.5 mt-2">
                   <div className="w-1/3">
                     <NativeButton
                       type="button"
@@ -901,7 +901,7 @@ export function CadastroMotoristaPage() {
                   </div>
                 </div>
 
-                <div className="sticky bottom-0 z-20 bg-white/95 backdrop-blur-md pt-2.5 pb-1 border-t border-slate-100 -mx-4 px-4 sm:-mx-6 sm:px-6 rounded-b-2xl sm:rounded-b-3xl mt-2 flex gap-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+                <div className="pt-2.5 flex gap-2.5 mt-2">
                   <div className="w-1/3">
                     <NativeButton
                       type="button"
@@ -951,65 +951,32 @@ export function CadastroMotoristaPage() {
                   </p>
                 </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-xs font-semibold uppercase" style={{ color: colors.textPrimary }}>
-                      Chave PIX (CPF do Titular)
-                    </label>
-                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 border border-emerald-500/30">
-                      Exclusivo CPF
-                    </span>
-                  </div>
-
-                  <div
-                    style={{
-                      borderRadius: ui.borderRadius,
-                      backgroundColor: colors.inputBackground,
-                      borderColor: colors.inputBorder,
-                    }}
-                    className="p-3 border space-y-1.5"
-                  >
-                    <div className="flex items-center justify-between pb-1.5 border-b border-border">
-                      <span className="text-xs text-muted-foreground font-medium">CPF do Titular:</span>
-                      <span className="text-xs sm:text-sm font-mono font-bold" style={{ color: colors.primary }}>
-                        {cpf || "Preencha o CPF na Etapa 1"}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground leading-snug">
-                      Por exigência do Banco Central, repasses PIX são efetuados para a conta vinculada ao CPF cadastrado.
-                    </p>
-                  </div>
-                </div>
-
+                {/* Resumo Consolidado: PIX D+0 & Modelo de Repasse */}
                 <div
                   style={{
                     borderRadius: ui.borderRadius,
                     backgroundColor: `${colors.primary}0D`,
                     borderColor: `${colors.primary}33`,
                   }}
-                  className="p-3 border space-y-1.5"
+                  className="p-3 border space-y-2"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-black" style={{ color: colors.primary }}>Modelo Híbrido {nomeApp}</span>
-                    <span className="text-xs font-black text-emerald-600">Até 100% Líquido</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold uppercase" style={{ color: colors.textPrimary }}>
+                        Chave PIX (CPF):
+                      </span>
+                      <span className="text-xs sm:text-sm font-mono font-black" style={{ color: colors.primary }}>
+                        {cpf || "Preencha o CPF na Etapa 1"}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 border border-emerald-500/30">
+                      Repasse D+0
+                    </span>
                   </div>
-                  <div className="text-foreground text-[11px] space-y-0.5">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">• Plano Free (Gratuito)</span>
-                      <span className="font-bold">5% taxa por corrida</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">• Plano Bronze</span>
-                      <span className="font-bold">3% taxa por corrida</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">• Plano Ouro</span>
-                      <span className="font-black text-emerald-600">0% taxa (100% seu)</span>
-                    </div>
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 text-[11px]">
+                    <span className="text-muted-foreground">Repasse automático na conta do titular</span>
+                    <span className="font-extrabold text-emerald-600">Taxas a partir de 0%</span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground pt-0.5">
-                    ⚡ Sem surpresas ou taxas escondidas. Você começa no Free e pode evoluir quando quiser!
-                  </p>
                 </div>
 
                 {erroCadastro && (
@@ -1019,68 +986,57 @@ export function CadastroMotoristaPage() {
                   </div>
                 )}
 
-                <div className="pt-2 space-y-2.5 mt-2">
-                  <div className="flex gap-2.5">
-                    <div className="w-1/3">
-                      <NativeButton
-                        type="button"
-                        variant="outlined"
-                        size="lg"
-                        fullWidth
-                        disabled={carregando}
-                        onClick={() => {
-                          setErroValidacao(null);
-                          setEtapa(3);
-                        }}
-                      >
-                        Voltar
-                      </NativeButton>
-                    </div>
-                    <div className="w-2/3">
-                      <button
-                        type="submit"
-                        disabled={carregando}
-                        style={{
-                          backgroundColor: colors.primary,
-                          borderRadius: ui.borderRadius || "0.75rem",
-                        }}
-                        className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50"
-                      >
-                        {carregando ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>Cadastrando...</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>➔</span>
-                            <span>CONFIRMAR CRIAÇÃO DE CONTA</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
+                <div className="pt-2 space-y-2 mt-2">
+                  <button
+                    type="submit"
+                    id="btn-confirmar-cadastro-motorista"
+                    disabled={carregando}
+                    style={{
+                      backgroundColor: colors.primary,
+                      borderRadius: ui.borderRadius || "0.75rem",
+                    }}
+                    className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50"
+                  >
+                    {carregando ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Cadastrando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>➔</span>
+                        <span>CONFIRMAR CRIAÇÃO DE CONTA</span>
+                      </>
+                    )}
+                  </button>
 
-                  <div className="text-center pt-1">
+                  <div className="flex items-center justify-between pt-1 text-xs">
+                    <button
+                      type="button"
+                      disabled={carregando}
+                      onClick={() => {
+                        setErroValidacao(null);
+                        setEtapa(3);
+                      }}
+                      className="inline-flex items-center gap-1 font-semibold hover:underline py-1 transition-colors cursor-pointer"
+                      style={{ color: colors.textSecondary }}
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Voltar para CNH</span>
+                    </button>
+
                     <Link
                       to="/auth"
                       search={{ role: "MOTORISTA" }}
-                      className="inline-flex items-center justify-center text-xs font-semibold hover:underline py-1 transition-colors"
+                      className="inline-flex items-center font-semibold hover:underline py-1 transition-colors"
                       style={{ color: colors.textSecondary }}
                     >
-                      Já tem uma conta de parceiro?{" "}
+                      Já tem conta?{" "}
                       <span className="font-extrabold underline ml-1" style={{ color: colors.primary }}>
                         Ir para o login
                       </span>
                     </Link>
                   </div>
-                </div>
-
-                {/* Rodapé Interno do Card */}
-                <div className="border-t border-slate-100 pt-2.5 mt-2">
-                  <p className="text-[11px] text-slate-400 text-center">
-                    © {new Date().getFullYear()} {nomeApp || "PARTIU"} · Mobilidade conectada
-                  </p>
                 </div>
               </form>
             )}

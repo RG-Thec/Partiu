@@ -132,7 +132,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | success | documentos enviados | none — code first | Confirmação com status em análise e opções "Ir para o login" e "Acessar cockpit" |
   | error | documento ilegível ou inválido | none — code first | Alerta no campo com orientação de novo envio |
   | loading | fazendo upload de fotos ou salvando | none — code first | Barra de progresso e spinner no botão de confirmação |
-- **Coverage:** src/routes/cadastro-motorista.tsx:1-1150
+- **Coverage:** src/routes/cadastro-motorista.tsx:1-1110
 - **Scenarios:** SCN-005
 - **Resources:** driverFleetService, Supabase Storage
 - **Status:** built

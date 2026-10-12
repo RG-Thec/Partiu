@@ -177,6 +177,18 @@ export function PartiuAppAuthGate({
     return () => clearInterval(interval);
   }, [otpCountdown]);
 
+  // Garante que ao entrar na etapa de cadastro o botão de ação fique visível e acessível
+  useEffect(() => {
+    if (passengerStep !== "SIGNUP_STEP_1") return undefined;
+    const timer = setTimeout(() => {
+      const btn = document.getElementById("btn-confirmar-cadastro");
+      if (btn) {
+        btn.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [passengerStep]);
+
   // Tratamento Inteligente de Entrada do Contato (Celular ou E-mail)
   function handleContactInputChange(val: string) {
     setErrorMessage(null);
@@ -525,18 +537,60 @@ export function PartiuAppAuthGate({
           />
         </div>
 
-        {/* Feedback Messages (Alto Contraste) */}
+        {/* Feedback Messages (Alto Contraste com Ação Direta para Criar Conta) */}
         {errorMessage && (
-          <div className="mb-3.5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm font-semibold flex items-start gap-2.5 animate-in fade-in">
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-rose-600" />
-            <span className="leading-snug">{errorMessage}</span>
+          <div className="mb-3.5 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm font-semibold flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in">
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-rose-600" />
+              <span className="leading-snug">{errorMessage}</span>
+            </div>
+            {(errorMessage.toLowerCase().includes("não encontrada") ||
+              errorMessage.toLowerCase().includes("crie") ||
+              errorMessage.toLowerCase().includes("outra franquia") ||
+              errorMessage.toLowerCase().includes("não encontrado") ||
+              errorMessage.toLowerCase().includes("credenciais")) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setErrorMessage(null);
+                  if (activeRole === "PASSAGEIRO") {
+                    setPassengerStep("SIGNUP_STEP_1");
+                  } else {
+                    void navigate({ to: "/cadastro-motorista" });
+                  }
+                }}
+                className="w-full sm:w-auto shrink-0 px-3.5 py-2 rounded-xl text-xs font-black text-white shadow-md flex items-center justify-center gap-1.5 transition hover:brightness-105 active:scale-95 cursor-pointer"
+                style={{ backgroundColor: colors.primary }}
+              >
+                <span>➔</span>
+                <span>CONFIRMAR CRIAÇÃO DE CONTA</span>
+              </button>
+            )}
           </div>
         )}
 
         {successMessage && (
-          <div className="mb-3.5 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-semibold flex items-start gap-2.5 animate-in fade-in">
-            <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-emerald-600" />
-            <span className="leading-snug">{successMessage}</span>
+          <div className="mb-3.5 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-semibold flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in">
+            <div className="flex items-start gap-2.5">
+              <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-emerald-600" />
+              <span className="leading-snug">{successMessage}</span>
+            </div>
+            {passengerStep === "SIGNUP_STEP_1" && (
+              <button
+                type="button"
+                onClick={() => {
+                  const targetBtn = document.getElementById("btn-confirmar-cadastro");
+                  if (targetBtn) {
+                    targetBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }
+                }}
+                className="w-full sm:w-auto shrink-0 px-3.5 py-2 rounded-xl text-xs font-black text-white shadow-md flex items-center justify-center gap-1.5 transition hover:brightness-105 active:scale-95 cursor-pointer"
+                style={{ backgroundColor: colors.primary }}
+              >
+                <span>➔</span>
+                <span>CONFIRMAR CRIAÇÃO DE CONTA</span>
+              </button>
+            )}
           </div>
         )}
 
@@ -607,23 +661,50 @@ export function PartiuAppAuthGate({
                       backgroundColor: colors.primary,
                       borderRadius: ui.borderRadius || "0.75rem",
                     }}
-                    className="w-full py-3 px-4 text-white text-xs font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+                    className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-4"
                   >
                     <span>➔</span>
                     <span>{loading ? "Verificando..." : "CONTINUAR"}</span>
                   </button>
 
-                  <div className="text-center pt-2">
-                    <Link
-                      to="/escolher-tipo-cadastro"
-                      className="inline-flex items-center justify-center text-xs font-medium hover:underline cursor-pointer transition-colors"
-                      style={{ color: colors.textSecondary }}
+                  {/* Ação Direta para Confirmar Criação de Conta */}
+                  <div className="pt-1.5 space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const cleanInput = contactInput.trim();
+                        if (cleanInput.includes("@")) {
+                          setEmail(cleanInput);
+                        } else if (cleanInput) {
+                          setTelefone(cleanInput);
+                        }
+                        setErrorMessage(null);
+                        setSuccessMessage(null);
+                        setPassengerStep("SIGNUP_STEP_1");
+                      }}
+                      style={{
+                        borderColor: colors.primary,
+                        color: colors.primary,
+                        borderRadius: ui.borderRadius || "0.75rem",
+                      }}
+                      className="w-full py-2.5 px-4 border-2 text-xs font-black tracking-wide shadow-xs flex items-center justify-center gap-2 transition hover:bg-slate-50 active:scale-[0.98] cursor-pointer"
                     >
-                      Não tem uma conta?{" "}
-                      <span className="ml-1 font-bold underline" style={{ color: colors.primary }}>
-                        Cadastre-se
-                      </span>
-                    </Link>
+                      <span>➔</span>
+                      <span>CONFIRMAR CRIAÇÃO DE CONTA</span>
+                    </button>
+
+                    <div className="text-center pt-0.5">
+                      <Link
+                        to="/escolher-tipo-cadastro"
+                        className="inline-flex items-center justify-center text-xs font-medium hover:underline cursor-pointer transition-colors"
+                        style={{ color: colors.textSecondary }}
+                      >
+                        Não tem uma conta?{" "}
+                        <span className="ml-1 font-bold underline" style={{ color: colors.primary }}>
+                          Cadastre-se
+                        </span>
+                      </Link>
+                    </div>
                   </div>
 
                   {/* Rodapé Interno do Card */}
@@ -812,21 +893,42 @@ export function PartiuAppAuthGate({
                       backgroundColor: colors.primary,
                       borderRadius: ui.borderRadius || "0.75rem",
                     }}
-                    className="w-full py-3 px-4 text-white text-xs font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 mt-4"
+                    className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 mt-4"
                   >
                     <span>➔</span>
                     <span>{loading ? "Autenticando..." : "ENTRAR"}</span>
                   </button>
 
-                  <div className="text-center pt-2">
+                  {/* Ação Alternativa: Confirmar Criação de Conta se não possuir senha/conta */}
+                  <div className="pt-1.5 space-y-2">
                     <button
                       type="button"
-                      onClick={handleForgotPassword}
-                      className="text-xs font-semibold hover:underline cursor-pointer transition-colors"
-                      style={{ color: colors.primary }}
+                      onClick={() => {
+                        setErrorMessage(null);
+                        setSuccessMessage(null);
+                        setPassengerStep("SIGNUP_STEP_1");
+                      }}
+                      style={{
+                        borderColor: colors.primary,
+                        color: colors.primary,
+                        borderRadius: ui.borderRadius || "0.75rem",
+                      }}
+                      className="w-full py-2.5 px-4 border-2 text-xs font-black tracking-wide shadow-xs flex items-center justify-center gap-2 transition hover:bg-slate-50 active:scale-[0.98] cursor-pointer"
                     >
-                      Esqueceu sua senha?
+                      <span>➔</span>
+                      <span>CONFIRMAR CRIAÇÃO DE CONTA</span>
                     </button>
+
+                    <div className="text-center pt-0.5">
+                      <button
+                        type="button"
+                        onClick={handleForgotPassword}
+                        className="text-xs font-semibold hover:underline cursor-pointer transition-colors"
+                        style={{ color: colors.primary }}
+                      >
+                        Esqueceu sua senha?
+                      </button>
+                    </div>
                   </div>
 
                   {/* Rodapé Interno do Card */}
@@ -948,6 +1050,7 @@ export function PartiuAppAuthGate({
                   {/* Bloco de Ação: Confirmar Criação de Conta e Ir para o Login */}
                   <div className="pt-2 space-y-2.5">
                     <button
+                      id="btn-confirmar-cadastro"
                       type="submit"
                       disabled={loading}
                       style={{
@@ -1210,32 +1313,50 @@ export function PartiuAppAuthGate({
                       backgroundColor: colors.primary,
                       borderRadius: ui.borderRadius || "0.75rem",
                     }}
-                    className="w-full py-3 px-4 text-white text-xs font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 mt-4"
+                    className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 mt-4"
                   >
                     <span>➔</span>
                     <span>{loading ? "Autenticando..." : "ENTRAR NO COCKPIT"}</span>
                   </button>
 
-                  <div className="space-y-1.5 text-center pt-2">
-                    <div>
+                  {/* Ação Alternativa: Confirmar Criação de Conta de Parceiro */}
+                  <div className="pt-1.5 space-y-2">
+                    <Link to="/cadastro-motorista" className="block w-full">
                       <button
                         type="button"
-                        onClick={handleForgotPassword}
-                        className="text-xs font-semibold hover:underline cursor-pointer transition-colors"
-                        style={{ color: colors.primary }}
+                        style={{
+                          borderColor: colors.primary,
+                          color: colors.primary,
+                          borderRadius: ui.borderRadius || "0.75rem",
+                        }}
+                        className="w-full py-2.5 px-4 border-2 text-xs font-black tracking-wide shadow-xs flex items-center justify-center gap-2 transition hover:bg-slate-50 active:scale-[0.98] cursor-pointer"
                       >
-                        Esqueceu sua senha?
+                        <span>➔</span>
+                        <span>CONFIRMAR CRIAÇÃO DE CONTA</span>
                       </button>
-                    </div>
-                    <div>
-                      <button
-                        type="button"
-                        onClick={() => setDriverView("PORTAL")}
-                        className="text-xs font-medium hover:underline cursor-pointer transition-colors"
-                        style={{ color: colors.textSecondary }}
-                      >
-                        Ainda não é cadastrado? Quero me cadastrar
-                      </button>
+                    </Link>
+
+                    <div className="space-y-1.5 text-center pt-0.5">
+                      <div>
+                        <button
+                          type="button"
+                          onClick={handleForgotPassword}
+                          className="text-xs font-semibold hover:underline cursor-pointer transition-colors"
+                          style={{ color: colors.primary }}
+                        >
+                          Esqueceu sua senha?
+                        </button>
+                      </div>
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => setDriverView("PORTAL")}
+                          className="text-xs font-medium hover:underline cursor-pointer transition-colors"
+                          style={{ color: colors.textSecondary }}
+                        >
+                          Voltar ao Portal do Parceiro
+                        </button>
+                      </div>
                     </div>
                   </div>
 
