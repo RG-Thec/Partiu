@@ -657,11 +657,6 @@ function PartiuPassengerHomeContent() {
             isScrolled={isScrolled}
           />
 
-          {/* SELETOR DE MODALIDADE (CORRIDA / ENTREGA) NO TOPO DO MAPA */}
-          <div className="absolute top-[max(4.4rem,calc(env(safe-area-inset-top,0px)+68px))] inset-x-0 z-20 flex justify-center pointer-events-none px-4 select-none animate-in fade-in duration-300">
-            <ModeTabSelector className="shadow-sm" />
-          </div>
-
           {/* ========================================================================= */}
           {/* PAINEL INFERIOR FLUTUANTE SOBRE O MAPA (HALF-MAP COMFORT ZONE)           */}
           {/* ========================================================================= */}
@@ -669,17 +664,23 @@ function PartiuPassengerHomeContent() {
             ref={idlePanelCallbackRef}
             className="absolute inset-x-0 bottom-0 z-20 pointer-events-none flex flex-col justify-end w-full max-w-lg mx-auto px-3 sm:px-4 pb-[max(0.4rem,env(safe-area-inset-bottom))] space-y-1.5 sm:space-y-2 select-none"
           >
-            {/* BOTÃO RECENTRALIZAR GPS: Flutuando com precisão alinhado à direita logo acima do DestinationCard */}
-            <div className="w-full flex justify-end pointer-events-auto pr-1 -mb-1">
-              <button
-                type="button"
-                onClick={handleRecenterMap}
-                className="w-12 h-12 rounded-full bg-white/95 backdrop-blur-md text-slate-800 shadow-md border border-slate-200/80 flex items-center justify-center hover:bg-white hover:scale-105 active:scale-95 transition-all cursor-pointer ring-2 ring-black/5"
-                title="Centralizar no meu local exato"
-                aria-label="Centralizar no meu local exato"
-              >
-                <LocateFixed className="w-5.5 h-5.5 text-blue-600" />
-              </button>
+            {/* LINHA SUPERIOR FLUTUANTE: Seletor de Modalidade Centralizado + Botão Recentralizar GPS à Direita */}
+            <div className="w-full relative flex items-center justify-center pointer-events-none pr-1 -mb-1">
+              <div className="pointer-events-auto animate-in fade-in duration-200">
+                <ModeTabSelector className="shadow-md" />
+              </div>
+
+              <div className="absolute right-1 bottom-0 pointer-events-auto">
+                <button
+                  type="button"
+                  onClick={handleRecenterMap}
+                  className="w-12 h-12 rounded-full bg-white/95 backdrop-blur-md text-slate-800 shadow-md border border-slate-200/80 flex items-center justify-center hover:bg-white hover:scale-105 active:scale-95 transition-all cursor-pointer ring-2 ring-black/5"
+                  title="Centralizar no meu local exato"
+                  aria-label="Centralizar no meu local exato"
+                >
+                  <LocateFixed className="w-5.5 h-5.5 text-blue-600" />
+                </button>
+              </div>
             </div>
 
             {/* BLOCO 1 (DESTINO): Card flutuante "Para onde vamos?" + Histórico + Seleção no Mapa */}
