@@ -28,9 +28,9 @@ export interface HeaderProps {
 
 /**
  * Header Slim-Balanced — PARTIU Mobilidade Urbana
- * Alinhado com 100% de fidelidade com Lealt Recomendado/2.png:
- * 1. Esquerda: Avatar circular (40x40) com borda e sombra sutil.
- * 2. Centro: Logotipo vetorial oficial PartiuLogo com símbolo aerodinâmico e wordmark.
+ * Alinhado com 100% de fidelidade aos requisitos da interface:
+ * 1. Esquerda: Símbolo "P" do PARTIU translúcido como marca d'água discreta e interativa (abre menu lateral).
+ * 2. Centro: Nome do aplicativo e slogan 100% centralizados e personalizados por franquia/white-label.
  * 3. Direita: Sino de notificações com badge numérico em tempo real.
  */
 export const Header = memo(function Header({
@@ -78,61 +78,46 @@ export const Header = memo(function Header({
         className="w-full max-w-lg mx-auto flex items-center justify-between px-3.5 py-2 rounded-2xl bg-white/92 backdrop-blur-xl border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.04)] pointer-events-auto"
       >
       {/* ===================================================================== */}
-      {/* 1. SEÇÃO ESQUERDA: AVATAR CIRCULAR COM FOTO DO PASSAGEIRO            */}
+      {/* 1. SEÇÃO ESQUERDA: SÍMBOLO "P" DO PARTIU COMO MARCA D'ÁGUA             */}
       {/* ===================================================================== */}
-      <div className="flex items-center">
+      <div className="w-10 flex items-center justify-start shrink-0">
         <button
           type="button"
           onClick={onOpenDrawer}
-          className="w-9 h-9 rounded-full border border-slate-200/90 bg-slate-100 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer shadow-xs active:scale-95 transition-all"
-          style={{
-            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-          }}
+          className="w-9 h-9 rounded-xl flex items-center justify-center cursor-pointer active:scale-95 transition-all text-slate-700 hover:bg-slate-100/70 group"
           aria-label="Abrir Menu Lateral e Perfil"
           title={`Perfil de ${nomeExibicao}`}
         >
-          {effectiveAvatar ? (
-            <img
-              src={effectiveAvatar}
-              alt={nomeExibicao}
-              className="w-full h-full object-cover rounded-full"
-              onError={() => setImgFailed(true)}
-            />
-          ) : (
-            <div
-              className="w-full h-full flex items-center justify-center font-bold text-[10px]"
-              style={{
-                backgroundColor: corPrimaria
-                  ? `${corPrimaria}18`
-                  : "color-mix(in srgb, var(--brand-primary, #FF6B00) 12%, transparent)",
-                color: corPrimaria || "var(--brand-primary, #FF6B00)",
-              }}
-            >
-              {iniciais}
-            </div>
-          )}
+          <PartiuLogo
+            variant="icon"
+            size="sm"
+            primaryColor={corPrimaria || "var(--brand-primary, #FF6B00)"}
+            className="opacity-30 group-hover:opacity-75 transition-opacity drop-shadow-none"
+          />
         </button>
       </div>
 
       {/* ===================================================================== */}
-      {/* 2. SEÇÃO CENTRAL: LOGOTIPO VETORIAL MODERNO SEGUINDO O PAINEL ADMIN    */}
+      {/* 2. SEÇÃO CENTRAL: NOME E SLOGAN PERSONALIZADOS CENTRALIZADOS           */}
       {/* ===================================================================== */}
-      <div className="flex-1 flex items-center justify-center px-2">
+      <div className="flex-1 flex items-center justify-center px-1 min-w-0">
         <PartiuLogo
-          variant="full"
+          variant="centered"
           size="sm"
           appName={appName || nomeApp || "PARTIU"}
           tagline={sloganApp || "MAIS MOBILIDADE PARA VOCÊ"}
           primaryColor={corPrimaria || "var(--brand-primary, #FF6B00)"}
-          secondaryColor={corSecundaria || "var(--brand-secondary, #FFB800)"}
-          className="transition-transform hover:scale-102"
+          secondaryColor={corSecundaria || corPrimaria || "var(--brand-primary-accent, #FFB800)"}
+          textColor={corPrimaria || "#0f172a"}
+          taglineColor={corSecundaria || corPrimaria || "#64748b"}
+          className="max-w-full"
         />
       </div>
 
       {/* ===================================================================== */}
       {/* 3. SEÇÃO DIREITA: ÍCONE DE NOTIFICAÇÃO COM BADGE NUMÉRICO VERMELHO     */}
       {/* ===================================================================== */}
-      <div className="flex items-center">
+      <div className="w-10 flex items-center justify-end shrink-0">
         <button
           type="button"
           onClick={onOpenNotifications}

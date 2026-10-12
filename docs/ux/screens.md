@@ -154,7 +154,7 @@ whose code diverges from its record here is a "drifted" finding. -->
 ### SCR-08: Mapa e Solicitação de Viagem
 - **Used by:** FLW-01 step 1, FLW-06 step 2
 - **Purpose:** Permitir ao passageiro escolher destino, categoria e confirmar a corrida com valor garantido prévio e foco máximo no mapa
-- **Elements:** Mapa interativo Mapbox GL com 70%+ de visibilidade contínua, seletor de modalidade (Corrida / Entrega) centralizado logo acima da seção de destino, botão circular de recentralizar GPS, card flutuante arredondado rounded-3xl com input minimalista "Para onde vamos?", pílula de embarque com alteração instantânea e atalhos rápidos
+- **Elements:** Header superior translúcido com símbolo "P" do Partiu como marca d'água interativa à esquerda para abertura de menu lateral, nome e slogan personalizados centralizados dinamicamente pelo White Label no centro, e sino de notificações à direita; Mapa interativo Mapbox GL com 70%+ de visibilidade contínua, seletor de modalidade (Corrida / Entrega) centralizado logo acima da seção de destino, botão circular de recentralizar GPS, card flutuante arredondado rounded-3xl com input minimalista "Para onde vamos?", pílula de embarque com alteração instantânea e atalhos rápidos
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |-------|---------|-------------|----------|
@@ -162,7 +162,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | empty | nenhum motorista online | none — code first | Informa ausência temporária de veículos no raio e sugere aguardar |
   | error | falha de geocodificação ou rede | none — code first | Mensagem de erro amigável com botão de tentar novamente |
   | loading | calculando rotas e tarifas | none — code first | Skeleton nos cards de categoria e traçado animado no mapa |
-- **Coverage:** src/routes/app.index.tsx:1-834, src/components/home/DestinationCard.tsx:1-280, src/components/navigation/ModeTabSelector.tsx:1-65
+- **Coverage:** src/routes/app.index.tsx:1-835, src/components/home/Header.tsx:1-155, src/components/common/PartiuLogo.tsx:1-240, src/components/home/DestinationCard.tsx:1-280, src/components/navigation/ModeTabSelector.tsx:1-65
 - **Scenarios:** SCN-001
 - **Resources:** src/components/map/, Mapbox GL, Supabase
 - **Status:** built

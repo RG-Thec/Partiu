@@ -2,13 +2,15 @@ import React, { memo } from "react";
 
 export interface PartiuLogoProps {
   className?: string;
-  variant?: "full" | "compact" | "icon";
+  variant?: "full" | "compact" | "icon" | "centered";
   size?: "sm" | "md" | "lg" | "xl";
   appName?: string;       // Nome da marca configurado no painel admin (padrão PARTIU)
   tagline?: string;       // Slogan/tagline configurado no painel admin (padrão MAIS MOBILIDADE PARA VOCÊ)
   primaryColor?: string;  // Cor primária do símbolo aerodinâmico (padrão #FF6B00 Laranja)
   secondaryColor?: string;// Cor secundária do texto da marca (padrão #FFB800 Amarelo)
   accentColor?: string;   // Suporte retrocompatível
+  textColor?: string;     // Cor explícita para o texto do appName
+  taglineColor?: string;  // Cor explícita para o texto do slogan/tagline
 }
 
 /**
@@ -32,6 +34,8 @@ export const PartiuLogo = memo(function PartiuLogo({
   primaryColor,
   secondaryColor,
   accentColor,
+  textColor,
+  taglineColor,
 }: PartiuLogoProps) {
   // Configuração de altura base conforme tamanho
   const heightMap = {
@@ -45,8 +49,8 @@ export const PartiuLogo = memo(function PartiuLogo({
 
   // Resolução de cores dinâmicas da marca (Padrão Oficial: #FF6B00 e #FFB800)
   const symbolColor = primaryColor || "var(--brand-primary-vibrant, var(--color-primary, #FF6B00))";
-  const textColor = secondaryColor || accentColor || "var(--brand-primary-accent, var(--color-secondary, #FFB800))";
-  const taglineColor = secondaryColor || accentColor || "var(--brand-primary-accent, var(--color-secondary, #FFB800))";
+  const resolvedTextColor = textColor || secondaryColor || accentColor || "var(--brand-primary-accent, var(--color-secondary, #FFB800))";
+  const resolvedTaglineColor = taglineColor || secondaryColor || accentColor || "var(--brand-primary-accent, var(--color-secondary, #FFB800))";
 
   // Textos dinâmicos que seguem o Painel Administrativo
   const displayAppName = (appName || "PARTIU").trim();
@@ -112,7 +116,7 @@ export const PartiuLogo = memo(function PartiuLogo({
 
         <span
           style={{
-            color: textColor,
+            color: resolvedTextColor,
             fontSize: targetHeight * 0.68,
             fontWeight: 900,
             letterSpacing: "-0.02em",
@@ -127,7 +131,50 @@ export const PartiuLogo = memo(function PartiuLogo({
     );
   }
 
-  // 3. Variante COMPLETA (Símbolo + Nome configurado + Tagline configurada — 100% Sem Imagem)
+  // 3. Variante CENTRALIZADA (Nome do App + Slogan perfeitamente centralizados sem o símbolo lateral)
+  if (variant === "centered") {
+    return (
+      <div
+        className={`flex flex-col items-center justify-center text-center select-none ${className}`}
+        role="banner"
+        aria-label={`${displayAppName} — ${displayTagline}`}
+      >
+        <span
+          style={{
+            color: resolvedTextColor,
+            fontSize: targetHeight * 0.65,
+            fontWeight: 900,
+            letterSpacing: "-0.02em",
+            lineHeight: 1.1,
+            fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+          }}
+          className="font-black uppercase tracking-tight truncate max-w-full"
+        >
+          {displayAppName}
+        </span>
+
+        {displayTagline && (
+          <span
+            style={{
+              color: resolvedTaglineColor,
+              fontSize: Math.max(7.5, targetHeight * 0.24),
+              fontWeight: 800,
+              letterSpacing: "0.14em",
+              lineHeight: 1.1,
+              marginTop: 2,
+              fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+              opacity: 0.88,
+            }}
+            className="uppercase font-bold tracking-widest whitespace-nowrap truncate max-w-full"
+          >
+            {displayTagline}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  // 4. Variante COMPLETA (Símbolo + Nome configurado + Tagline configurada — 100% Sem Imagem)
   return (
     <div
       className={`inline-flex items-center gap-2 select-none ${className}`}
@@ -162,7 +209,7 @@ export const PartiuLogo = memo(function PartiuLogo({
       <div className="flex flex-col justify-center leading-none text-left">
         <span
           style={{
-            color: textColor,
+            color: resolvedTextColor,
             fontSize: targetHeight * 0.65,
             fontWeight: 900,
             letterSpacing: "-0.015em",
@@ -177,7 +224,7 @@ export const PartiuLogo = memo(function PartiuLogo({
         {displayTagline && (
           <span
             style={{
-              color: taglineColor,
+              color: resolvedTaglineColor,
               fontSize: Math.max(6.5, targetHeight * 0.19),
               fontWeight: 800,
               letterSpacing: "0.16em",
