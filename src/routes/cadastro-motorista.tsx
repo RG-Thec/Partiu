@@ -518,7 +518,7 @@ export function CadastroMotoristaPage() {
                   leftIcon={<ShieldCheck className="w-4 h-4 text-slate-400" />}
                 />
 
-                <div className="sticky bottom-0 z-20 bg-white/95 backdrop-blur-md pt-2.5 pb-1 border-t border-slate-100 -mx-4 px-4 sm:-mx-6 sm:px-6 rounded-b-2xl sm:rounded-b-3xl mt-2 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+                <div className="pt-2 space-y-2 mt-2">
                   <NativeButton
                     type="button"
                     variant="filled"
@@ -553,6 +553,20 @@ export function CadastroMotoristaPage() {
                   >
                     Avançar para veículo
                   </NativeButton>
+
+                  <div className="text-center pt-1">
+                    <Link
+                      to="/auth"
+                      search={{ role: "MOTORISTA" }}
+                      className="inline-flex items-center justify-center text-xs font-semibold hover:underline py-1 transition-colors"
+                      style={{ color: colors.textSecondary }}
+                    >
+                      Já tem uma conta de parceiro?{" "}
+                      <span className="font-extrabold underline ml-1" style={{ color: colors.primary }}>
+                        Ir para o login
+                      </span>
+                    </Link>
+                  </div>
                 </div>
               </div>
             )}
@@ -1005,35 +1019,60 @@ export function CadastroMotoristaPage() {
                   </div>
                 )}
 
-                <div className="sticky bottom-0 z-20 bg-white/95 backdrop-blur-md pt-2.5 pb-1 border-t border-slate-100 -mx-4 px-4 sm:-mx-6 sm:px-6 rounded-b-2xl sm:rounded-b-3xl mt-2 flex gap-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
-                  <div className="w-1/3">
-                    <NativeButton
-                      type="button"
-                      variant="outlined"
-                      size="lg"
-                      fullWidth
-                      disabled={carregando}
-                      onClick={() => {
-                        setErroValidacao(null);
-                        setEtapa(3);
-                      }}
-                    >
-                      Voltar
-                    </NativeButton>
+                <div className="pt-2 space-y-2.5 mt-2">
+                  <div className="flex gap-2.5">
+                    <div className="w-1/3">
+                      <NativeButton
+                        type="button"
+                        variant="outlined"
+                        size="lg"
+                        fullWidth
+                        disabled={carregando}
+                        onClick={() => {
+                          setErroValidacao(null);
+                          setEtapa(3);
+                        }}
+                      >
+                        Voltar
+                      </NativeButton>
+                    </div>
+                    <div className="w-2/3">
+                      <button
+                        type="submit"
+                        disabled={carregando}
+                        style={{
+                          backgroundColor: colors.primary,
+                          borderRadius: ui.borderRadius || "0.75rem",
+                        }}
+                        className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50"
+                      >
+                        {carregando ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Cadastrando...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>➔</span>
+                            <span>CONFIRMAR CRIAÇÃO DE CONTA</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
-                  <div className="w-2/3">
-                    <button
-                      type="submit"
-                      disabled={carregando}
-                      style={{
-                        backgroundColor: colors.primary,
-                        borderRadius: ui.borderRadius || "0.75rem",
-                      }}
-                      className="w-full py-3 px-4 text-white text-xs font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50"
+
+                  <div className="text-center pt-1">
+                    <Link
+                      to="/auth"
+                      search={{ role: "MOTORISTA" }}
+                      className="inline-flex items-center justify-center text-xs font-semibold hover:underline py-1 transition-colors"
+                      style={{ color: colors.textSecondary }}
                     >
-                      <span>➔</span>
-                      <span>{carregando ? "Cadastrando..." : "CONCLUIR CADASTRO"}</span>
-                    </button>
+                      Já tem uma conta de parceiro?{" "}
+                      <span className="font-extrabold underline ml-1" style={{ color: colors.primary }}>
+                        Ir para o login
+                      </span>
+                    </Link>
                   </div>
                 </div>
 
@@ -1089,14 +1128,14 @@ export function CadastroMotoristaPage() {
             </div>
 
             <div className="pt-3 space-y-2.5">
-              <Link to="/app/motorista" className="block w-full">
+              <Link to="/auth" search={{ role: "MOTORISTA" }} className="block w-full">
                 <NativeButton variant="filled" size="md" fullWidth>
-                  Acessar cockpit
+                  Ir para o login
                 </NativeButton>
               </Link>
-              <Link to="/app" className="block w-full">
+              <Link to="/app/motorista" className="block w-full">
                 <NativeButton variant="outlined" size="md" fullWidth>
-                  Ir para o início
+                  Acessar cockpit
                 </NativeButton>
               </Link>
             </div>

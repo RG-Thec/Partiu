@@ -109,31 +109,31 @@ whose code diverges from its record here is a "drifted" finding. -->
 
 ### SCR-05: Cadastro de Passageiro
 - **Used by:** FLW-05 step 5
-- **Purpose:** Coleta de nome, telefone, e-mail e senha para passageiros
-- **Elements:** Campos de formulário com máscaras automáticas, checkbox de WhatsApp, botão Criar Conta
+- **Purpose:** Coleta de nome, telefone, e-mail e senha para passageiros com garantia de visibilidade de ações
+- **Elements:** Campos de formulário com máscaras automáticas, checkbox de termos/WhatsApp, bloco de ações de alta visibilidade com botão de ação primária "CONFIRMAR CRIAÇÃO DE CONTA" e ação secundária "Ir para o login", tela de sucesso com opções "Ir para o login" e "Acessar aplicativo"
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |-------|---------|-------------|----------|
-  | success | conta criada | none — code first | Confirmação e entrada imediata no mapa |
+  | success | conta criada | none — code first | Confirmação exibindo opções "Ir para o login" e "Acessar aplicativo" |
   | error | CPF ou telefone já cadastrado | none — code first | Alerta explicativo com link para recuperação |
-  | loading | processando cadastro | none — code first | Indicador de envio de dados seguro |
-- **Coverage:** src/routes/cadastro-passageiro.tsx:1-150
-- **Scenarios:** SCN-006
+  | loading | processando cadastro | none — code first | Indicador de envio com spinner no botão de confirmação |
+- **Coverage:** src/routes/cadastro-passageiro.tsx:1-475, src/components/auth/PartiuAppAuthGate.tsx:1-1400
+- **Scenarios:** SCN-005
 - **Resources:** supabaseAuthService, useGeolocation
 - **Status:** built
 
 ### SCR-06: Cadastro de Motorista Parceiro
 - **Used by:** FLW-05 step 6
-- **Purpose:** Onboarding em 4 etapas para envio de CNH com EAR, CRLV e dados Pix
-- **Elements:** Stepper de progresso, dropzone de documentos, formulário do veículo, resumo de aprovação
+- **Purpose:** Onboarding em 4 etapas para envio de CNH com EAR, CRLV e dados Pix com bloco de ações sempre visível
+- **Elements:** Stepper de progresso em 4 etapas, dropzone de documentos, formulário do veículo e dados PIX, bloco de ações de alta visibilidade sem overflow com botão primário "CONFIRMAR CRIAÇÃO DE CONTA" e link secundário "Ir para o login", tela de sucesso com opções "Ir para o login" e "Acessar cockpit"
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |-------|---------|-------------|----------|
-  | success | documentos enviados | none — code first | Tela de confirmação com status "Em análise operacional" |
+  | success | documentos enviados | none — code first | Confirmação com status em análise e opções "Ir para o login" e "Acessar cockpit" |
   | error | documento ilegível ou inválido | none — code first | Alerta no campo com orientação de novo envio |
-  | loading | fazendo upload de fotos | none — code first | Barra de progresso com porcentagem de envio |
-- **Coverage:** src/routes/cadastro-motorista.tsx:1-200
-- **Scenarios:** SCN-007
+  | loading | fazendo upload de fotos ou salvando | none — code first | Barra de progresso e spinner no botão de confirmação |
+- **Coverage:** src/routes/cadastro-motorista.tsx:1-1150
+- **Scenarios:** SCN-005
 - **Resources:** driverFleetService, Supabase Storage
 - **Status:** built
 

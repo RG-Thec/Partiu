@@ -163,7 +163,7 @@ export function EscolherTipoCadastroPage() {
                 className="font-bold hover:underline ml-1"
                 style={{ color: colors.primary }}
               >
-                Fazer login
+                Ir para o login
               </Link>
             </p>
           </div>

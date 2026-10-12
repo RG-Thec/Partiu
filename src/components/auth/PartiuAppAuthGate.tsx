@@ -945,28 +945,58 @@ export function PartiuAppAuthGate({
                     </div>
                   </div>
 
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    style={{
-                      backgroundColor: colors.primary,
-                      borderRadius: ui.borderRadius || "0.75rem",
-                    }}
-                    className="w-full py-3 px-4 text-white text-xs font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 mt-4"
-                  >
-                    <span>➔</span>
-                    <span>{loading ? "Cadastrando..." : "CRIAR CONTA E COMEÇAR"}</span>
-                  </button>
-
-                  <div className="text-center pt-2">
+                  {/* Bloco de Ação: Confirmar Criação de Conta e Ir para o Login */}
+                  <div className="pt-2 space-y-2.5">
                     <button
-                      type="button"
-                      onClick={() => setPassengerStep("MAGIC_ENTRY")}
-                      className="text-xs font-semibold hover:underline cursor-pointer transition-colors"
-                      style={{ color: colors.textSecondary }}
+                      type="submit"
+                      disabled={loading}
+                      style={{
+                        backgroundColor: colors.primary,
+                        borderRadius: ui.borderRadius || "0.75rem",
+                      }}
+                      className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50"
                     >
-                      Voltar e trocar contato
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Cadastrando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>➔</span>
+                          <span>CONFIRMAR CRIAÇÃO DE CONTA</span>
+                        </>
+                      )}
                     </button>
+
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1 text-center">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPassengerStep("MAGIC_ENTRY");
+                          setErrorMessage(null);
+                        }}
+                        className="text-xs font-semibold hover:underline cursor-pointer py-1 transition-colors"
+                        style={{ color: colors.textSecondary }}
+                      >
+                        Já tem uma conta?{" "}
+                        <span className="font-extrabold underline ml-1" style={{ color: colors.primary }}>
+                          Ir para o login
+                        </span>
+                      </button>
+                      <span className="hidden sm:inline text-slate-300">•</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPassengerStep("MAGIC_ENTRY");
+                          setErrorMessage(null);
+                        }}
+                        className="text-xs font-medium hover:underline cursor-pointer py-1 transition-colors"
+                        style={{ color: colors.textSecondary }}
+                      >
+                        Trocar contato
+                      </button>
+                    </div>
                   </div>
 
                   {/* Rodapé Interno do Card */}

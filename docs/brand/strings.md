@@ -35,6 +35,8 @@ Registro de decisões textuais da interface reconciliadas com a voz do produto.
 | action.whitelabel.edit_tenant | Personalizar White Label | src/routes/app.admin.franqueados.tsx:640 | SCN-010 | agreed |
 | whitelabel.test_passenger | Testar App Passageiro | src/routes/app.admin.whitelabel.tsx:180 | SCN-010 | agreed |
 | whitelabel.test_driver | Testar App Motorista | src/routes/app.admin.whitelabel.tsx:188 | SCN-010 | agreed |
+| action.auth.confirm_signup | CONFIRMAR CRIAÇÃO DE CONTA | src/routes/cadastro-passageiro.tsx:406 | SCN-005 | agreed |
+| action.auth.go_to_login | Ir para o login | src/routes/cadastro-passageiro.tsx:420 | SCN-005 | agreed |
 
 ## Columns
 

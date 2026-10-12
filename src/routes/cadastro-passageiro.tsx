@@ -385,7 +385,7 @@ export function CadastroPassageiroPage() {
                 </label>
               </div>
 
-              <div className="sticky bottom-0 z-20 bg-white/95 backdrop-blur-md pt-2.5 pb-1 border-t border-slate-100 -mx-4 px-4 sm:-mx-6 sm:px-6 rounded-b-2xl sm:rounded-b-3xl space-y-2 mt-2 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
+              <div className="pt-2 space-y-2.5 mt-2">
                 <button
                   type="submit"
                   disabled={carregando}
@@ -393,22 +393,31 @@ export function CadastroPassageiroPage() {
                     backgroundColor: colors.primary,
                     borderRadius: ui.borderRadius || "0.75rem",
                   }}
-                  className="w-full py-3 px-4 text-white text-xs font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50"
+                  className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50"
                 >
-                  <span>➔</span>
-                  <span>{carregando ? "Cadastrando..." : "CONCLUIR CADASTRO"}</span>
+                  {carregando ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Cadastrando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>➔</span>
+                      <span>CONFIRMAR CRIAÇÃO DE CONTA</span>
+                    </>
+                  )}
                 </button>
 
-                <div className="text-center pt-0.5">
+                <div className="text-center pt-1">
                   <Link
                     to="/auth"
                     search={{ role: "PASSAGEIRO" }}
-                    className="inline-flex items-center justify-center text-xs font-semibold hover:underline py-0.5 transition-colors"
+                    className="inline-flex items-center justify-center text-xs font-semibold hover:underline py-1 transition-colors"
                     style={{ color: colors.textSecondary }}
                   >
                     Já tem uma conta?{" "}
                     <span className="font-extrabold underline ml-1" style={{ color: colors.primary }}>
-                      Fazer login
+                      Ir para o login
                     </span>
                   </Link>
                 </div>
@@ -443,13 +452,18 @@ export function CadastroPassageiroPage() {
             </h2>
             <p className="text-xs leading-relaxed" style={{ color: colors.textSecondary }}>
               Bem-vindo ao {appName}, <span className="font-bold" style={{ color: colors.textPrimary }}>{nome}</span>! Seu
-              cadastro está pronto e conectado para você solicitar corridas e entregas agora mesmo.
+              cadastro foi confirmado com sucesso.
             </p>
 
-            <div className="pt-3">
-              <Link to="/app" className="block w-full">
+            <div className="pt-3 space-y-2.5">
+              <Link to="/auth" search={{ role: "PASSAGEIRO" }} className="block w-full">
                 <NativeButton variant="filled" size="md" fullWidth>
-                  Pedir corrida
+                  Ir para o login
+                </NativeButton>
+              </Link>
+              <Link to="/app" className="block w-full">
+                <NativeButton variant="outlined" size="md" fullWidth>
+                  Acessar aplicativo
                 </NativeButton>
               </Link>
             </div>
