@@ -60,113 +60,120 @@ export function EscolherTipoCadastroPage() {
       </div>
 
       <div className="w-full max-w-md mx-auto flex-1 flex flex-col justify-start sm:justify-center py-3 sm:py-5">
-        {/* Logo e Título */}
-        <div className="text-center mb-5">
-          <div
-            className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-md mb-2.5"
-            style={{ backgroundColor: colors.primary }}
-          >
-            <Zap className="h-6 w-6 stroke-[2.5]" />
+        {/* Card Elevado do Design System */}
+        <div
+          className="w-full p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 shadow-xl sm:shadow-2xl shadow-slate-200/50 space-y-5 transition-all duration-200"
+          style={{ borderRadius: ui.borderRadius || "1.5rem" }}
+        >
+          {/* Cabeçalho do Card Padrão Design System */}
+          <div className="text-center">
+            <h1
+              className="text-xl sm:text-[22px] font-black tracking-tight"
+              style={{ color: colors.textPrimary }}
+            >
+              Criar Nova Conta
+            </h1>
+            <p className="text-xs mt-1 font-normal" style={{ color: colors.textSecondary }}>
+              Como você deseja utilizar o aplicativo {appName}?
+            </p>
+            {/* Barra de destaque na cor primária do Franqueado */}
+            <div
+              className="w-8 h-1 rounded-full mx-auto mt-2.5 mb-5 transition-colors"
+              style={{ backgroundColor: colors.primary }}
+            />
           </div>
-          <h1
-            className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900"
-          >
-            Como deseja usar o {appName}?
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Selecione uma opção para continuar seu cadastro com e-mail ou celular
-          </p>
-        </div>
 
-        {/* Cards de Opção Proporcionais e Fluidos */}
-        <div className="space-y-2">
-          {/* Opção 1: Sou Passageiro */}
-          <Link to="/cadastro-passageiro" className="block w-full">
-            <NativeSurface
-              elevation={1}
-              padding="none"
-              className="group relative overflow-hidden flex items-center gap-3 p-2.5 sm:p-3 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all active:scale-[0.98] cursor-pointer shadow-2xs hover:shadow-xs"
-            >
-              <NativeRipple color={colors.primary} />
+          {/* Opções de Perfil com Design Moderno */}
+          <div className="space-y-3">
+            {/* Opção 1: Sou Passageiro */}
+            <Link to="/cadastro-passageiro" className="block w-full">
               <div
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white font-bold shadow-2xs group-hover:scale-105 transition-transform"
-                style={{ backgroundColor: colors.primary }}
+                className="group relative overflow-hidden flex items-center gap-3.5 p-3.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all active:scale-[0.98] cursor-pointer shadow-xs hover:shadow-md"
               >
-                <Car className="h-4.5 w-4.5 stroke-[2.2]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-xs sm:text-[13px] font-bold text-slate-900 leading-tight">
-                    Quero ser Passageiro
-                  </p>
-                  <span
-                    className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md border"
-                    style={{
-                      backgroundColor: `${colors.primary}12`,
-                      color: colors.primary,
-                      borderColor: `${colors.primary}30`,
-                    }}
-                  >
-                    Viagens
-                  </span>
+                <div
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white font-bold shadow-xs group-hover:scale-105 transition-transform"
+                  style={{ backgroundColor: colors.primary }}
+                >
+                  <Car className="h-5 w-5 stroke-[2.2]" />
                 </div>
-                <p className="text-[11px] text-slate-500 font-normal mt-0.5 truncate">
-                  Chame carros e motos com preço justo e PIN seguro.
-                </p>
-              </div>
-              <ArrowRight
-                className="h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-0.5 text-slate-400 group-hover:text-slate-800"
-              />
-            </NativeSurface>
-          </Link>
-
-          {/* Opção 2: Sou Motorista ou Entregador */}
-          <Link to="/cadastro-motorista" className="block w-full">
-            <NativeSurface
-              elevation={1}
-              padding="none"
-              className="group relative overflow-hidden flex items-center gap-3 p-2.5 sm:p-3 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all active:scale-[0.98] cursor-pointer shadow-2xs hover:shadow-xs"
-            >
-              <NativeRipple color={colors.primary} />
-              <div
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg font-bold shadow-2xs group-hover:scale-105 transition-transform bg-slate-100 text-slate-800 border border-slate-200"
-              >
-                <Bike className="h-4.5 w-4.5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-xs sm:text-[13px] font-bold text-slate-900 leading-tight">
-                    Motorista ou Entregador Parceiro
+                <div className="flex-1 min-w-0 text-left">
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs sm:text-[13px] font-bold text-slate-900 leading-tight">
+                      Quero ser Passageiro
+                    </p>
+                    <span
+                      className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md border"
+                      style={{
+                        backgroundColor: `${colors.primary}12`,
+                        color: colors.primary,
+                        borderColor: `${colors.primary}30`,
+                      }}
+                    >
+                      Viagens
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-normal mt-0.5 truncate">
+                    Chame carros e motos com preço justo e PIN seguro.
                   </p>
-                  <span
-                    className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md border bg-emerald-50 text-emerald-600 border-emerald-200"
-                  >
-                    PIX D+0
-                  </span>
                 </div>
-                <p className="text-[11px] text-slate-500 font-normal mt-0.5 truncate">
-                  Cadastre seu carro ou moto e fature com até 100% líquido.
-                </p>
+                <span className="text-slate-400 group-hover:text-slate-800 transition-transform group-hover:translate-x-0.5 font-bold text-sm">
+                  ➔
+                </span>
               </div>
-              <ArrowRight
-                className="h-3.5 w-3.5 shrink-0 transition-transform group-hover:translate-x-0.5 text-slate-400 group-hover:text-slate-800"
-              />
-            </NativeSurface>
-          </Link>
-        </div>
-
-        {/* Link para Login */}
-        <div className="mt-6 text-center">
-          <p className="text-xs text-slate-500">
-            Já possui uma conta ativa no {appName}?{" "}
-            <Link
-              to="/auth"
-              className="font-bold hover:underline ml-1"
-              style={{ color: colors.primary }}
-            >
-              Fazer Login
             </Link>
-          </p>
+
+            {/* Opção 2: Sou Motorista ou Entregador */}
+            <Link to="/cadastro-motorista" className="block w-full">
+              <div
+                className="group relative overflow-hidden flex items-center gap-3.5 p-3.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all active:scale-[0.98] cursor-pointer shadow-xs hover:shadow-md"
+              >
+                <div
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-bold shadow-xs group-hover:scale-105 transition-transform bg-slate-100 text-slate-800 border border-slate-200"
+                >
+                  <Bike className="h-5 w-5" />
+                </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs sm:text-[13px] font-bold text-slate-900 leading-tight">
+                      Motorista ou Entregador
+                    </p>
+                    <span
+                      className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md border bg-emerald-50 text-emerald-600 border-emerald-200"
+                    >
+                      0% Taxa
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-normal mt-0.5 truncate">
+                    Cadastre seu carro ou moto e fature até 100% líquido.
+                  </p>
+                </div>
+                <span className="text-slate-400 group-hover:text-slate-800 transition-transform group-hover:translate-x-0.5 font-bold text-sm">
+                  ➔
+                </span>
+              </div>
+            </Link>
+          </div>
+
+          {/* Link para Login */}
+          <div className="pt-2 text-center">
+            <p className="text-xs text-slate-500">
+              Já possui uma conta ativa?{" "}
+              <Link
+                to="/auth"
+                className="font-bold hover:underline ml-1"
+                style={{ color: colors.primary }}
+              >
+                Fazer login
+              </Link>
+            </p>
+          </div>
+
+          {/* Rodapé Interno do Card */}
+          <div className="border-t border-slate-100 pt-3.5 mt-5">
+            <p className="text-[11px] text-slate-400 text-center">
+              © {new Date().getFullYear()} {appName} · Mobilidade conectada
+            </p>
+          </div>
         </div>
       </div>
 

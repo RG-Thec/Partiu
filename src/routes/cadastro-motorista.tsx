@@ -378,11 +378,28 @@ export function CadastroMotoristaPage() {
 
       <main className="flex-1 max-w-xl w-full mx-auto p-3.5 sm:p-5 flex flex-col justify-start pb-6 sm:pb-8">
         {!sucesso ? (
-          <NativeSurface
-            elevation={1}
-            padding="none"
-            className="w-full p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_8px_30px_rgba(0,0,0,0.04)] space-y-3.5 transition-all duration-200"
+          <div
+            className="w-full p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 shadow-xl sm:shadow-2xl shadow-slate-200/50 space-y-4 transition-all duration-200"
+            style={{ borderRadius: ui.borderRadius || "1.5rem" }}
           >
+            {/* Cabeçalho do Card Padrão Design System */}
+            <div className="text-center">
+              <h1
+                className="text-xl sm:text-[22px] font-black tracking-tight"
+                style={{ color: colors.textPrimary }}
+              >
+                Cadastro de Motorista Parceiro
+              </h1>
+              <p className="text-xs mt-1 font-normal" style={{ color: colors.textSecondary }}>
+                Cadastre-se para faturar com seu veículo com planos a partir de 0% de taxa.
+              </p>
+              {/* Barra de destaque na cor primária do Franqueado */}
+              <div
+                className="w-8 h-1 rounded-full mx-auto mt-2.5 mb-4 transition-colors"
+                style={{ backgroundColor: colors.primary }}
+              />
+            </div>
+
             {/* Error Banner */}
             {erroValidacao && (
               <div className="mb-2 p-3 rounded-xl bg-destructive/15 border border-destructive/30 text-destructive text-xs font-bold flex items-center justify-between gap-2 animate-in fade-in">
@@ -422,7 +439,7 @@ export function CadastroMotoristaPage() {
               <div className="space-y-3 animate-in fade-in-50 duration-200 text-left">
                 <div className="border-b pb-2" style={{ borderColor: colors.inputBorder }}>
                   <h2
-                    className="text-lg sm:text-xl font-black tracking-tight"
+                    className="text-base sm:text-lg font-black tracking-tight"
                     style={{ color: colors.textPrimary }}
                   >
                     Informações Pessoais
@@ -1005,21 +1022,30 @@ export function CadastroMotoristaPage() {
                     </NativeButton>
                   </div>
                   <div className="w-2/3">
-                    <NativeButton
+                    <button
                       type="submit"
-                      variant="filled"
-                      size="lg"
-                      fullWidth
-                      isLoading={carregando}
-                      leftIcon={<CheckCircle2 className="h-4 w-4" />}
+                      disabled={carregando}
+                      style={{
+                        backgroundColor: colors.primary,
+                        borderRadius: ui.borderRadius || "0.75rem",
+                      }}
+                      className="w-full py-3 px-4 text-white text-xs font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50"
                     >
-                      Concluir cadastro
-                    </NativeButton>
+                      <span>➔</span>
+                      <span>{carregando ? "Cadastrando..." : "CONCLUIR CADASTRO"}</span>
+                    </button>
                   </div>
+                </div>
+
+                {/* Rodapé Interno do Card */}
+                <div className="border-t border-slate-100 pt-3.5 mt-5">
+                  <p className="text-[11px] text-slate-400 text-center">
+                    © {new Date().getFullYear()} {nomeApp || "PARTIU"} · Mobilidade conectada
+                  </p>
                 </div>
               </form>
             )}
-          </NativeSurface>
+          </div>
         ) : (
           <NativeSurface
             elevation={2}

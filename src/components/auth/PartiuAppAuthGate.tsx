@@ -540,11 +540,10 @@ export function PartiuAppAuthGate({
           </div>
         )}
 
-        {/* SUPERFÍCIE NATIVA ANDROID: FLUIDA EDGE-TO-EDGE NO MOBILE, ELEVAÇÃO SUAVE NO DESKTOP */}
-        <NativeSurface
-          elevation={1}
-          padding="none"
-          className="w-full p-4 sm:p-7 rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_12px_40px_rgba(0,0,0,0.05)] transition-all duration-300"
+        {/* SUPERFÍCIE DO DESIGN SYSTEM: CARD BRANCO FLUTUANTE ELEVADO COM CUSTOMIZAÇÃO DO FRANQUEADO */}
+        <div
+          className="w-full p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 shadow-xl sm:shadow-2xl shadow-slate-200/50 space-y-5 transition-all duration-300"
+          style={{ borderRadius: ui.borderRadius || "1.5rem" }}
         >
           {/* =================================================================== */}
           {/* FLUXO DO PASSAGEIRO                                                 */}
@@ -553,23 +552,29 @@ export function PartiuAppAuthGate({
             <>
               {/* ETAPA 1 DO PASSAGEIRO: FLUXO UNIFICADO (MAGIC FLOW) */}
               {passengerStep === "MAGIC_ENTRY" && (
-                <form onSubmit={handleMagicFlowSubmit} className="space-y-3.5">
-                  <div className="space-y-1 text-left">
+                <form onSubmit={handleMagicFlowSubmit} className="space-y-4">
+                  {/* Cabeçalho do Card Padrão Design System */}
+                  <div className="text-center">
                     <h1
-                      className="text-xl sm:text-2xl font-black tracking-tight leading-tight"
+                      className="text-xl sm:text-[22px] font-black tracking-tight"
                       style={{ color: colors.textPrimary }}
                     >
-                      Qual é o seu celular ou e-mail?
+                      Acesso do Passageiro
                     </h1>
                     <p
-                      className="text-[11px] sm:text-xs font-normal leading-relaxed"
+                      className="text-xs mt-1 font-normal"
                       style={{ color: colors.textSecondary }}
                     >
-                      Informe seu número de celular ou e-mail para acessar ou criar sua conta.
+                      Informe seu celular ou e-mail para acessar ou criar sua conta.
                     </p>
+                    {/* Barra de destaque na cor primária do Franqueado */}
+                    <div
+                      className="w-8 h-1 rounded-full mx-auto mt-2.5 mb-5 transition-colors"
+                      style={{ backgroundColor: colors.primary }}
+                    />
                   </div>
 
-                  {/* Input Nativo com Clear Button */}
+                  {/* Input com Ícone Nativo e Botão de Limpar */}
                   <NativeInput
                     label="Celular ou E-mail"
                     value={contactInput}
@@ -594,22 +599,24 @@ export function PartiuAppAuthGate({
                     }
                   />
 
-                  {/* Botão Primário Proporcional com Ripple Nativo */}
-                  <NativeButton
+                  {/* Botão Primário Estilo Design System */}
+                  <button
                     type="submit"
-                    variant="filled"
-                    size="lg"
-                    fullWidth
-                    isLoading={loading}
-                    rightIcon={<ArrowRight className="w-4 h-4" />}
+                    disabled={loading}
+                    style={{
+                      backgroundColor: colors.primary,
+                      borderRadius: ui.borderRadius || "0.75rem",
+                    }}
+                    className="w-full py-3 px-4 text-white text-xs font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-4"
                   >
-                    Continuar
-                  </NativeButton>
+                    <span>➔</span>
+                    <span>{loading ? "Verificando..." : "CONTINUAR"}</span>
+                  </button>
 
-                  <div className="text-center pt-1">
+                  <div className="text-center pt-2">
                     <Link
                       to="/escolher-tipo-cadastro"
-                      className="inline-flex items-center justify-center py-1 text-xs font-medium hover:underline cursor-pointer"
+                      className="inline-flex items-center justify-center text-xs font-medium hover:underline cursor-pointer transition-colors"
                       style={{ color: colors.textSecondary }}
                     >
                       Não tem uma conta?{" "}
@@ -618,50 +625,57 @@ export function PartiuAppAuthGate({
                       </span>
                     </Link>
                   </div>
+
+                  {/* Rodapé Interno do Card */}
+                  <div className="border-t border-slate-100 pt-3.5 mt-5">
+                    <p className="text-[11px] text-slate-400 text-center">
+                      © {new Date().getFullYear()} {appName} · Mobilidade conectada
+                    </p>
+                  </div>
                 </form>
               )}
 
-              {/* ETAPA 2A: LOGIN COM CÓDIGO SMS (SE CONTATO EXISTIR E FOR CELULAR) */}
+              {/* ETAPA 2A: LOGIN COM CÓDIGO SMS */}
               {passengerStep === "LOGIN_OTP" && (
-                <form onSubmit={handleVerifyOtp} className="space-y-5 animate-in fade-in duration-200">
-                  <div className="space-y-2 text-left">
-                    <div className="flex items-center justify-between">
-                      <span
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
-                        style={{
-                          backgroundColor: colors.inputBackground,
-                          color: colors.textPrimary,
-                        }}
-                      >
-                        <Smartphone className="w-3.5 h-3.5" />
-                        {contactInput}
-                      </span>
+                <form onSubmit={handleVerifyOtp} className="space-y-4 animate-in fade-in duration-200">
+                  <div className="text-center">
+                    <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-2"
+                      style={{
+                        backgroundColor: colors.inputBackground,
+                        color: colors.textPrimary,
+                      }}
+                    >
+                      <Smartphone className="w-3.5 h-3.5" />
+                      <span>{contactInput}</span>
                       <button
                         type="button"
                         onClick={() => {
                           setPassengerStep("MAGIC_ENTRY");
                           setErrorMessage(null);
                         }}
-                        className="px-1.5 py-0.5 text-xs font-semibold hover:underline cursor-pointer flex items-center gap-1"
+                        className="ml-1.5 text-xs font-semibold hover:underline cursor-pointer"
                         style={{ color: colors.primary }}
                       >
-                        <Edit2 className="w-3.5 h-3.5" />
-                        Alterar
+                        Trocar
                       </button>
                     </div>
 
                     <h2
-                      className="text-2xl font-extrabold tracking-tight pt-1"
+                      className="text-xl sm:text-[22px] font-black tracking-tight"
                       style={{ color: colors.textPrimary }}
                     >
-                      Código de confirmação
+                      Código de Confirmação
                     </h2>
-                    <p className="text-xs sm:text-sm font-normal" style={{ color: colors.textSecondary }}>
+                    <p className="text-xs mt-1 font-normal" style={{ color: colors.textSecondary }}>
                       Digite o código de 6 dígitos enviado por SMS.
                     </p>
+                    <div
+                      className="w-8 h-1 rounded-full mx-auto mt-2.5 mb-5 transition-colors"
+                      style={{ backgroundColor: colors.primary }}
+                    />
                   </div>
 
-                  {/* INPUT OTP SEGMENTADO DE 6 DÍGITOS (PADRÃO FIGMA CABER LOGIN OTP 2) */}
+                  {/* INPUT OTP */}
                   <div className="flex flex-col items-center justify-center py-2 space-y-2">
                     <InputOTP
                       maxLength={6}
@@ -680,18 +694,20 @@ export function PartiuAppAuthGate({
                     </InputOTP>
                   </div>
 
-                  <NativeButton
+                  <button
                     type="submit"
-                    variant="filled"
-                    size="md"
-                    fullWidth
-                    isLoading={loading}
-                    leftIcon={<UserCheck className="w-4 h-4" />}
+                    disabled={loading}
+                    style={{
+                      backgroundColor: colors.primary,
+                      borderRadius: ui.borderRadius || "0.75rem",
+                    }}
+                    className="w-full py-3 px-4 text-white text-xs font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 mt-4"
                   >
-                    Confirmar e Entrar
-                  </NativeButton>
+                    <span>➔</span>
+                    <span>{loading ? "Validando..." : "CONFIRMAR E ENTRAR"}</span>
+                  </button>
 
-                  <div className="flex items-center justify-between text-xs pt-1">
+                  <div className="flex items-center justify-between text-xs pt-2">
                     <button
                       type="button"
                       disabled={otpCountdown > 0}
@@ -711,120 +727,144 @@ export function PartiuAppAuthGate({
                       Entrar com senha
                     </button>
                   </div>
+
+                  {/* Rodapé Interno do Card */}
+                  <div className="border-t border-slate-100 pt-3.5 mt-5">
+                    <p className="text-[11px] text-slate-400 text-center">
+                      © {new Date().getFullYear()} {appName} · Mobilidade conectada
+                    </p>
+                  </div>
                 </form>
               )}
 
               {/* ETAPA 2B: LOGIN COM SENHA */}
               {passengerStep === "LOGIN_PASSWORD" && (
                 <form onSubmit={handlePasswordLogin} className="space-y-4 animate-in fade-in duration-200">
-                  <div className="space-y-1.5 text-left">
-                    <div className="flex items-center justify-between">
-                      <span
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
-                        style={{
-                          backgroundColor: colors.inputBackground,
-                          color: colors.textPrimary,
-                        }}
-                      >
-                        <Mail className="w-3.5 h-3.5" />
-                        {contactInput}
-                      </span>
+                  <div className="text-center">
+                    <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-2"
+                      style={{
+                        backgroundColor: colors.inputBackground,
+                        color: colors.textPrimary,
+                      }}
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>{contactInput}</span>
                       <button
                         type="button"
                         onClick={() => {
                           setPassengerStep("MAGIC_ENTRY");
                           setErrorMessage(null);
                         }}
-                        className="px-1.5 py-0.5 text-xs font-semibold hover:underline cursor-pointer flex items-center gap-1"
+                        className="ml-1.5 text-xs font-semibold hover:underline cursor-pointer"
                         style={{ color: colors.primary }}
                       >
-                        <Edit2 className="w-3.5 h-3.5" />
-                        Alterar
+                        Trocar
                       </button>
                     </div>
 
                     <h2
-                      className="text-xl sm:text-2xl font-black tracking-tight pt-0.5"
+                      className="text-xl sm:text-[22px] font-black tracking-tight"
                       style={{ color: colors.textPrimary }}
                     >
-                      {recognizedUserName ? `Olá, ${recognizedUserName.split(" ")[0]}!` : "Bem-vindo de volta!"}
+                      {recognizedUserName ? `Olá, ${recognizedUserName.split(" ")[0]}!` : "Bem-vindo de Volta"}
                     </h2>
-                    <p className="text-[11px] sm:text-xs font-normal" style={{ color: colors.textSecondary }}>
-                      Digite sua senha para acessar sua conta.
+                    <p className="text-xs mt-1 font-normal" style={{ color: colors.textSecondary }}>
+                      Digite sua senha para acessar sua conta de passageiro.
                     </p>
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-semibold" style={{ color: colors.textPrimary }}>
-                        Sua Senha
-                      </label>
-                      <button
-                        type="button"
-                        onClick={handleForgotPassword}
-                        className="py-0.5 text-xs font-medium hover:underline cursor-pointer"
-                        style={{ color: colors.textSecondary }}
-                      >
-                        Esqueci a senha
-                      </button>
-                    </div>
-
-                    <NativeInput
-                      type={showPassword ? "text" : "password"}
-                      value={senha}
-                      onChange={(e) => setSenha(e.target.value)}
-                      placeholder="Digite sua senha"
-                      autoFocus
-                      required
-                      rightIcon={
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
-                          className="min-h-[40px] min-w-[40px] -mr-2 flex items-center justify-center text-slate-400 hover:text-slate-600 cursor-pointer"
-                        >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      }
+                    <div
+                      className="w-8 h-1 rounded-full mx-auto mt-2.5 mb-5 transition-colors"
+                      style={{ backgroundColor: colors.primary }}
                     />
                   </div>
 
-                  <NativeButton
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5 text-left">
+                      Senha
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        placeholder="Sua senha"
+                        value={senha}
+                        onChange={(e) => setSenha(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-lg pl-10 pr-10 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 transition"
+                        style={{
+                          borderRadius: ui.borderRadius || "0.5rem",
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer p-0.5"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
                     type="submit"
-                    variant="filled"
-                    size="lg"
-                    fullWidth
-                    isLoading={loading}
-                    rightIcon={<ArrowRight className="w-4 h-4" />}
+                    disabled={loading}
+                    style={{
+                      backgroundColor: colors.primary,
+                      borderRadius: ui.borderRadius || "0.75rem",
+                    }}
+                    className="w-full py-3 px-4 text-white text-xs font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 mt-4"
                   >
-                    Entrar na Conta
-                  </NativeButton>
+                    <span>➔</span>
+                    <span>{loading ? "Autenticando..." : "ENTRAR"}</span>
+                  </button>
+
+                  <div className="text-center pt-2">
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      className="text-xs font-semibold hover:underline cursor-pointer transition-colors"
+                      style={{ color: colors.primary }}
+                    >
+                      Esqueceu sua senha?
+                    </button>
+                  </div>
+
+                  {/* Rodapé Interno do Card */}
+                  <div className="border-t border-slate-100 pt-3.5 mt-5">
+                    <p className="text-[11px] text-slate-400 text-center">
+                      © {new Date().getFullYear()} {appName} · Mobilidade conectada
+                    </p>
+                  </div>
                 </form>
               )}
 
               {/* ETAPA 2C: CADASTRO STEP 1 (DADOS PESSOAIS) */}
               {passengerStep === "SIGNUP_STEP_1" && (
-                <form onSubmit={handlePassengerSignUp} className="space-y-3 animate-in fade-in duration-200">
+                <form onSubmit={handlePassengerSignUp} className="space-y-3.5 animate-in fade-in duration-200">
+                  <div className="text-center">
+                    <h2
+                      className="text-xl sm:text-[22px] font-black tracking-tight"
+                      style={{ color: colors.textPrimary }}
+                    >
+                      Criar Nova Conta
+                    </h2>
+                    <p className="text-xs mt-1 font-normal" style={{ color: colors.textSecondary }}>
+                      Preencha seus dados para começar a pedir corridas.
+                    </p>
+                    <div
+                      className="w-8 h-1 rounded-full mx-auto mt-2.5 mb-4 transition-colors"
+                      style={{ backgroundColor: colors.primary }}
+                    />
+                  </div>
+
                   <WhiteLabelProgressBar
                     currentStep={1}
                     totalSteps={2}
                     stepTitle="Dados Pessoais"
-                    className="mb-1"
+                    className="mb-2"
                   />
 
-                  <div className="text-left border-b pb-2" style={{ borderColor: colors.inputBorder }}>
-                    <h2
-                      className="text-lg sm:text-xl font-black tracking-tight"
-                      style={{ color: colors.textPrimary }}
-                    >
-                      Criar sua conta
-                    </h2>
-                    <p className="text-[11px] sm:text-xs font-normal" style={{ color: colors.textSecondary }}>
-                      Preencha seus dados para pedir corridas com rapidez e segurança.
-                    </p>
-                  </div>
-
-                  {/* Foto Oficial de Identificação (Obrigatória via Câmera/Galeria) */}
+                  {/* Foto Oficial de Identificação */}
                   <CameraPhotoCapture
                     label="Foto Oficial de Identificação"
                     sublabel="Tire uma selfie nítida pela câmera para identificação oficial"
@@ -843,7 +883,7 @@ export function PartiuAppAuthGate({
                     leftIcon={<User className="w-4 h-4 text-slate-400" />}
                   />
 
-                  {/* CPF e Celular em Grid de 2 Colunas */}
+                  {/* CPF e Celular em Grid */}
                   <div className="grid grid-cols-2 gap-2">
                     {features.requireCpfOnSignup && (
                       <NativeInput
@@ -876,48 +916,64 @@ export function PartiuAppAuthGate({
                     leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
                   />
 
-                  {/* Criar Senha */}
-                  <NativeInput
-                    label="Criar Senha de Acesso"
-                    type={showPassword ? "text" : "password"}
-                    value={senha}
-                    onChange={(e) => setSenha(e.target.value)}
-                    placeholder="Mínimo 6 caracteres"
-                    required
-                    helperText="Crie uma senha segura para entrar no app."
-                    leftIcon={<KeyRound className="w-4 h-4 text-slate-400" />}
-                    rightIcon={
+                  {/* Senha */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5 text-left">
+                      Criar Senha de Acesso
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        placeholder="Mínimo 6 dígitos"
+                        value={senha}
+                        onChange={(e) => setSenha(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-lg pl-10 pr-10 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 transition"
+                        style={{
+                          borderRadius: ui.borderRadius || "0.5rem",
+                        }}
+                      />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
-                        className="min-h-[40px] min-w-[40px] -mr-2 flex items-center justify-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer p-0.5"
                       >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
-                    }
-                  />
+                    </div>
+                  </div>
 
-                  <NativeButton
+                  <button
                     type="submit"
-                    variant="filled"
-                    size="lg"
-                    fullWidth
-                    isLoading={loading}
-                    rightIcon={<ArrowRight className="w-4 h-4" />}
+                    disabled={loading}
+                    style={{
+                      backgroundColor: colors.primary,
+                      borderRadius: ui.borderRadius || "0.75rem",
+                    }}
+                    className="w-full py-3 px-4 text-white text-xs font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 mt-4"
                   >
-                    Criar Conta e Começar
-                  </NativeButton>
+                    <span>➔</span>
+                    <span>{loading ? "Cadastrando..." : "CRIAR CONTA E COMEÇAR"}</span>
+                  </button>
 
-                  <div className="text-center pt-1.5">
+                  <div className="text-center pt-2">
                     <button
                       type="button"
                       onClick={() => setPassengerStep("MAGIC_ENTRY")}
-                      className="min-h-[40px] inline-flex items-center justify-center text-xs font-semibold hover:underline cursor-pointer"
+                      className="text-xs font-semibold hover:underline cursor-pointer transition-colors"
                       style={{ color: colors.textSecondary }}
                     >
                       Voltar e trocar contato
                     </button>
+                  </div>
+
+                  {/* Rodapé Interno do Card */}
+                  <div className="border-t border-slate-100 pt-3.5 mt-5">
+                    <p className="text-[11px] text-slate-400 text-center">
+                      © {new Date().getFullYear()} {appName} · Mobilidade conectada
+                    </p>
                   </div>
                 </form>
               )}
@@ -931,10 +987,10 @@ export function PartiuAppAuthGate({
             <>
               {/* VISÃO 1: PORTAL DO MOTORISTA */}
               {driverView === "PORTAL" && (
-                <div className="space-y-4 text-left animate-in fade-in duration-200">
-                  <div className="space-y-1.5">
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="text-center">
                     <span
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-2"
                       style={{
                         backgroundColor: colors.inputBackground,
                         color: colors.primary,
@@ -945,26 +1001,28 @@ export function PartiuAppAuthGate({
                     </span>
 
                     <h1
-                      className="text-xl sm:text-2xl font-black tracking-tight leading-tight"
+                      className="text-xl sm:text-[22px] font-black tracking-tight"
                       style={{ color: colors.textPrimary }}
                     >
                       Dirija com a {appName}
                     </h1>
 
                     <p
-                      className="text-[11px] sm:text-xs font-normal leading-relaxed"
+                      className="text-xs mt-1 font-normal"
                       style={{ color: colors.textSecondary }}
                     >
-                      Planos a partir de 0% de taxa e repasse imediato de até 100% via PIX D+0.
+                      Planos a partir de 0% de taxa e repasse imediato via PIX D+0.
                     </p>
+                    <div
+                      className="w-8 h-1 rounded-full mx-auto mt-2.5 mb-5 transition-colors"
+                      style={{ backgroundColor: colors.primary }}
+                    />
                   </div>
 
                   {/* Benefícios Rápidos em Grid Compacta */}
-                  <div className="grid grid-cols-2 gap-2 pt-0.5">
-                    <NativeSurface
-                      elevation={1}
-                      padding="sm"
-                      className="flex flex-col items-start gap-1 p-2.5 rounded-xl border border-slate-200/80"
+                  <div className="grid grid-cols-2 gap-2 text-left">
+                    <div
+                      className="flex flex-col items-start gap-1 p-3 rounded-xl border border-slate-200/80 bg-slate-50/50"
                     >
                       <span
                         className="px-1.5 py-0.5 rounded font-black text-[10px] inline-block"
@@ -978,15 +1036,13 @@ export function PartiuAppAuthGate({
                       <h4 className="text-xs font-bold leading-tight" style={{ color: colors.textPrimary }}>
                         Plano Diário
                       </h4>
-                      <p className="text-[10px] leading-tight" style={{ color: colors.textSecondary }}>
+                      <p className="text-[10px] leading-tight text-slate-500">
                         100% do valor da corrida é seu.
                       </p>
-                    </NativeSurface>
+                    </div>
 
-                    <NativeSurface
-                      elevation={1}
-                      padding="sm"
-                      className="flex flex-col items-start gap-1 p-2.5 rounded-xl border border-slate-200/80"
+                    <div
+                      className="flex flex-col items-start gap-1 p-3 rounded-xl border border-slate-200/80 bg-slate-50/50"
                     >
                       <span
                         className="px-1.5 py-0.5 rounded font-black text-[10px] inline-block"
@@ -1000,132 +1056,170 @@ export function PartiuAppAuthGate({
                       <h4 className="text-xs font-bold leading-tight" style={{ color: colors.textPrimary }}>
                         Repasse Imediato
                       </h4>
-                      <p className="text-[10px] leading-tight" style={{ color: colors.textSecondary }}>
+                      <p className="text-[10px] leading-tight text-slate-500">
                         Direto na sua conta bancária.
                       </p>
-                    </NativeSurface>
+                    </div>
                   </div>
 
                   {/* BOTÃO PRINCIPAL: CADASTRO DE VEÍCULO */}
-                  <div className="space-y-2 pt-1">
+                  <div className="space-y-2 pt-2">
                     <Link
                       to="/cadastro-motorista"
-                      className="w-full flex items-center justify-center"
+                      className="w-full block"
                     >
-                      <NativeButton
-                        variant="filled"
-                        size="lg"
-                        fullWidth
-                        rightIcon={<ArrowRight className="w-4 h-4" />}
+                      <button
+                        type="button"
+                        style={{
+                          backgroundColor: colors.primary,
+                          borderRadius: ui.borderRadius || "0.75rem",
+                        }}
+                        className="w-full py-3 px-4 text-white text-xs font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer"
                       >
-                        Cadastrar meu veículo
-                      </NativeButton>
+                        <span>➔</span>
+                        <span>CADASTRAR MEU VEÍCULO</span>
+                      </button>
                     </Link>
 
-                    {/* LINK SECUNDÁRIO LIMPO: "JÁ TENHO CONTA DE MOTORISTA" */}
-                    <div className="text-center pt-0.5">
+                    {/* LINK SECUNDÁRIO: "JÁ TENHO CONTA DE MOTORISTA" */}
+                    <div className="text-center pt-2">
                       <button
                         type="button"
                         onClick={() => {
                           setDriverView("LOGIN");
                           setErrorMessage(null);
                         }}
-                        className="inline-flex items-center justify-center py-1 text-xs font-semibold hover:underline cursor-pointer"
-                        style={{ color: colors.textSecondary }}
+                        className="text-xs font-semibold hover:underline cursor-pointer transition-colors"
+                        style={{ color: colors.primary }}
                       >
                         Já sou parceiro (Entrar com e-mail/celular e senha)
                       </button>
                     </div>
+                  </div>
+
+                  {/* Rodapé Interno do Card */}
+                  <div className="border-t border-slate-100 pt-3.5 mt-5">
+                    <p className="text-[11px] text-slate-400 text-center">
+                      © {new Date().getFullYear()} {appName} · Mobilidade conectada
+                    </p>
                   </div>
                 </div>
               )}
 
               {/* VISÃO 2: LOGIN DO MOTORISTA PARCEIRO */}
               {driverView === "LOGIN" && (
-                <form onSubmit={handlePasswordLogin} className="space-y-3.5 text-left animate-in fade-in duration-200">
-                  <div className="space-y-1 border-b pb-2" style={{ borderColor: colors.inputBorder }}>
+                <form onSubmit={handlePasswordLogin} className="space-y-4 animate-in fade-in duration-200">
+                  <div className="text-center">
                     <h2
-                      className="text-lg sm:text-xl font-black tracking-tight"
+                      className="text-xl sm:text-[22px] font-black tracking-tight"
                       style={{ color: colors.textPrimary }}
                     >
                       Cockpit do Motorista
                     </h2>
-                    <p className="text-[11px] sm:text-xs font-normal" style={{ color: colors.textSecondary }}>
-                      Informe seu e-mail ou celular cadastrado e sua senha.
+                    <p className="text-xs mt-1 font-normal" style={{ color: colors.textSecondary }}>
+                      Informe suas credenciais para gerenciar suas corridas.
                     </p>
-                  </div>
-
-                  <NativeInput
-                    label="E-mail ou Celular Cadastrado"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="motorista@exemplo.com"
-                    autoFocus
-                    required
-                    leftIcon={<User className="w-4 h-4 text-slate-400" />}
-                  />
-
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-semibold" style={{ color: colors.textPrimary }}>
-                        Senha de Acesso
-                      </label>
-                      <button
-                        type="button"
-                        onClick={handleForgotPassword}
-                        className="py-0.5 text-xs font-medium hover:underline cursor-pointer"
-                        style={{ color: colors.textSecondary }}
-                      >
-                        Esqueci a senha
-                      </button>
-                    </div>
-
-                    <NativeInput
-                      type={showPassword ? "text" : "password"}
-                      value={senha}
-                      onChange={(e) => setSenha(e.target.value)}
-                      placeholder="Sua senha de motorista"
-                      required
-                      leftIcon={<KeyRound className="w-4 h-4 text-slate-400" />}
-                      rightIcon={
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
-                          className="min-h-[40px] min-w-[40px] -mr-2 flex items-center justify-center text-slate-400 hover:text-slate-600 cursor-pointer"
-                        >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      }
+                    <div
+                      className="w-8 h-1 rounded-full mx-auto mt-2.5 mb-5 transition-colors"
+                      style={{ backgroundColor: colors.primary }}
                     />
                   </div>
 
-                  <NativeButton
-                    type="submit"
-                    variant="filled"
-                    size="lg"
-                    fullWidth
-                    isLoading={loading}
-                    rightIcon={<ArrowRight className="w-4 h-4" />}
-                  >
-                    Entrar no Cockpit
-                  </NativeButton>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5 text-left">
+                      E-mail ou Celular Cadastrado
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                      <input
+                        type="text"
+                        required
+                        placeholder="motorista@exemplo.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-lg pl-10 pr-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 transition"
+                        style={{
+                          borderRadius: ui.borderRadius || "0.5rem",
+                        }}
+                      />
+                    </div>
+                  </div>
 
-                  <div className="text-center pt-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setDriverView("PORTAL")}
-                      className="min-h-[40px] inline-flex items-center justify-center text-xs font-semibold hover:underline cursor-pointer"
-                      style={{ color: colors.textSecondary }}
-                    >
-                      Ainda não é cadastrado? Quero me cadastrar
-                    </button>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5 text-left">
+                      Senha de Acesso
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        placeholder="Sua senha de motorista"
+                        value={senha}
+                        onChange={(e) => setSenha(e.target.value)}
+                        className="w-full bg-white border border-slate-300 rounded-lg pl-10 pr-10 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 transition"
+                        style={{
+                          borderRadius: ui.borderRadius || "0.5rem",
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer p-0.5"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    style={{
+                      backgroundColor: colors.primary,
+                      borderRadius: ui.borderRadius || "0.75rem",
+                    }}
+                    className="w-full py-3 px-4 text-white text-xs font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 mt-4"
+                  >
+                    <span>➔</span>
+                    <span>{loading ? "Autenticando..." : "ENTRAR NO COCKPIT"}</span>
+                  </button>
+
+                  <div className="space-y-1.5 text-center pt-2">
+                    <div>
+                      <button
+                        type="button"
+                        onClick={handleForgotPassword}
+                        className="text-xs font-semibold hover:underline cursor-pointer transition-colors"
+                        style={{ color: colors.primary }}
+                      >
+                        Esqueceu sua senha?
+                      </button>
+                    </div>
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => setDriverView("PORTAL")}
+                        className="text-xs font-medium hover:underline cursor-pointer transition-colors"
+                        style={{ color: colors.textSecondary }}
+                      >
+                        Ainda não é cadastrado? Quero me cadastrar
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Rodapé Interno do Card */}
+                  <div className="border-t border-slate-100 pt-3.5 mt-5">
+                    <p className="text-[11px] text-slate-400 text-center">
+                      © {new Date().getFullYear()} {appName} · Mobilidade conectada
+                    </p>
                   </div>
                 </form>
               )}
             </>
           )}
-        </NativeSurface>
+        </div>
 
         {/* =================================================================== */}
         {/* BADGES DE CONFIANÇA DO ECOSSISTEMA                                  */}

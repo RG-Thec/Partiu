@@ -213,36 +213,41 @@ export function CadastroPassageiroPage() {
 
       <main className="w-full max-w-md mx-auto flex-1 flex flex-col justify-start py-2 sm:py-3 pb-6 sm:pb-8">
         {!sucesso ? (
-          <NativeSurface
-            elevation={1}
-            padding="none"
-            className="w-full p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-[0_8px_30px_rgba(0,0,0,0.04)] space-y-2.5 transition-all duration-200"
+          <div
+            className="w-full p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 shadow-xl sm:shadow-2xl shadow-slate-200/50 space-y-4 transition-all duration-200"
+            style={{ borderRadius: ui.borderRadius || "1.5rem" }}
           >
-            <form onSubmit={handleSubmit} className="space-y-2.5">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Cabeçalho do Card Padrão Design System */}
+              <div className="text-center">
+                <h1
+                  className="text-xl sm:text-[22px] font-black tracking-tight"
+                  style={{ color: colors.textPrimary }}
+                >
+                  Cadastro de Passageiro
+                </h1>
+                <p className="text-xs mt-1 font-normal" style={{ color: colors.textSecondary }}>
+                  Crie sua conta para solicitar corridas e entregas com segurança.
+                </p>
+                {/* Barra de destaque na cor primária do Franqueado */}
+                <div
+                  className="w-8 h-1 rounded-full mx-auto mt-2.5 mb-5 transition-colors"
+                  style={{ backgroundColor: colors.primary }}
+                />
+              </div>
+
               {/* Indicador de Progresso Conectado à Cor Primária */}
               <WhiteLabelProgressBar
                 currentStep={1}
                 totalSteps={2}
                 stepTitle="Dados Pessoais"
-                className="mb-0.5"
+                className="mb-1"
               />
-
-              <div className="text-left border-b pb-1.5" style={{ borderColor: colors.inputBorder }}>
-                <h1
-                  className="text-base sm:text-lg font-black tracking-tight"
-                  style={{ color: colors.textPrimary }}
-                >
-                  Cadastro de passageiro
-                </h1>
-                <p className="text-[11px] font-normal" style={{ color: colors.textSecondary }}>
-                  Crie sua conta para solicitar corridas e entregas com segurança.
-                </p>
-              </div>
 
               {erroCadastro && (
                 <div
                   role="alert"
-                  className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 font-semibold flex items-center gap-2 animate-in fade-in"
+                  className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 font-semibold flex items-center gap-2 animate-in fade-in"
                 >
                   <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
                   <span>{erroCadastro}</span>
@@ -334,25 +339,33 @@ export function CadastroPassageiroPage() {
                 leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
               />
 
-              <NativeInput
-                label="Senha de acesso"
-                required
-                type={showPassword ? "text" : "password"}
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                placeholder="Mínimo 6 dígitos"
-                leftIcon={<Lock className="w-4 h-4 text-slate-400" />}
-                rightIcon={
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5 text-left">
+                  Senha de acesso
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    placeholder="Mínimo 6 dígitos"
+                    value={senha}
+                    onChange={(e) => setSenha(e.target.value)}
+                    className="w-full bg-white border border-slate-300 rounded-lg pl-10 pr-10 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 transition"
+                    style={{
+                      borderRadius: ui.borderRadius || "0.5rem",
+                    }}
+                  />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="min-h-[38px] min-w-[38px] -mr-2 flex items-center justify-center text-slate-400 hover:text-slate-600 cursor-pointer"
                     aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer p-0.5"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
-                }
-              />
+                </div>
+              </div>
 
               <div className="flex items-center gap-2 pt-0.5">
                 <input
@@ -365,7 +378,7 @@ export function CadastroPassageiroPage() {
                 />
                 <label
                   htmlFor="wppUpdates"
-                  className="text-[11px] font-medium cursor-pointer leading-tight select-none"
+                  className="text-[11px] font-medium cursor-pointer leading-tight select-none text-left"
                   style={{ color: colors.textSecondary }}
                 >
                   Receber comprovantes de corridas e código PIN no WhatsApp
@@ -373,22 +386,24 @@ export function CadastroPassageiroPage() {
               </div>
 
               <div className="pt-2 space-y-2">
-                <NativeButton
+                <button
                   type="submit"
-                  variant="filled"
-                  size="lg"
-                  fullWidth
-                  isLoading={carregando}
-                  rightIcon={<CheckCircle2 className="h-4 w-4" />}
+                  disabled={carregando}
+                  style={{
+                    backgroundColor: colors.primary,
+                    borderRadius: ui.borderRadius || "0.75rem",
+                  }}
+                  className="w-full py-3 px-4 text-white text-xs font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50"
                 >
-                  Concluir cadastro
-                </NativeButton>
+                  <span>➔</span>
+                  <span>{carregando ? "Cadastrando..." : "CONCLUIR CADASTRO"}</span>
+                </button>
 
-                <div className="text-center">
+                <div className="text-center pt-1">
                   <Link
                     to="/auth"
                     search={{ role: "PASSAGEIRO" }}
-                    className="inline-flex items-center justify-center text-xs font-semibold hover:underline py-1"
+                    className="inline-flex items-center justify-center text-xs font-semibold hover:underline py-1 transition-colors"
                     style={{ color: colors.textSecondary }}
                   >
                     Já tem uma conta?{" "}
@@ -398,8 +413,15 @@ export function CadastroPassageiroPage() {
                   </Link>
                 </div>
               </div>
+
+              {/* Rodapé Interno do Card */}
+              <div className="border-t border-slate-100 pt-3.5 mt-5">
+                <p className="text-[11px] text-slate-400 text-center">
+                  © {new Date().getFullYear()} {appName} · Mobilidade conectada
+                </p>
+              </div>
             </form>
-          </NativeSurface>
+          </div>
         ) : (
           <NativeSurface
             elevation={2}
