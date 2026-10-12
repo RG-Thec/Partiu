@@ -416,7 +416,7 @@ export function DespachoCentralCorridas() {
   });
 
   return (
-    <div className="w-full space-y-6 pb-16 max-w-7xl mx-auto px-4 sm:px-6 pt-5">
+    <div className="w-full space-y-6 pb-16">
       {/* Header com Identidade PARTIU */}
       <header className="w-full bg-slate-950 p-6 sm:p-7 rounded-3xl text-white shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 border border-slate-800">
         <div className="space-y-2">

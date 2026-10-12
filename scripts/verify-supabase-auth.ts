@@ -2,8 +2,18 @@ import { supabaseAuthService } from "../src/lib/auth/supabase-auth-service";
 import pg from "pg";
 
 const { Client } = pg;
+const connectionString =
+  process.env.DATABASE_URL ||
+  process.env.SUPABASE_DB_URL;
+
+if (!connectionString) {
+  console.log("ℹ️ DATABASE_URL ou SUPABASE_DB_URL não configurada no ambiente. Execute com DATABASE_URL configurada.");
+  process.exit(0);
+}
+
 const pgClient = new Client({
-  connectionString: "postgresql://postgres:Presbitero%402026@db.wlmnwazdntayhrsndfor.supabase.co:5432/postgres"
+  connectionString,
+  ssl: { rejectUnauthorized: false },
 });
 
 async function run() {

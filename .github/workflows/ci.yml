@@ -1,4 +1,4 @@
-name: UniVans TOS — CI/CD Production Readiness Pipeline
+name: PARTIU — CI/CD Production Readiness Pipeline
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
         run: npm test
 
       - name: 3. Dependency Vulnerability Audit (High/Critical)
-        run: npm audit --audit-level=high || true
+        run: npm audit --audit-level=high
 
       - name: 4. Nitro SSR Production Build (npm run build)
         run: npm run build

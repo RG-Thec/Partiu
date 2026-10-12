@@ -28,13 +28,12 @@ async function createFranchisee() {
   await client.query(`
     UPDATE public.white_label_tenants
     SET admin_email = 'franquiateste@gmail.com',
-        admin_password = '123456',
         manager_email = 'franquiateste@gmail.com',
         is_active = true,
         updated_at = NOW()
     WHERE tenant_id = 'tenant-bh';
   `);
-  console.log("✅ Franquia tenant-bh atualizada com credenciais admin_email e admin_password.");
+  console.log("✅ Franquia tenant-bh atualizada com admin_email verificado.");
 
   // 3. Verifica se o usuário já existe em auth.users
   const email = "franquiateste@gmail.com";

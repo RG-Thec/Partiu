@@ -297,7 +297,7 @@ export function AdminAprovacoesPage() {
   ];
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto pb-20">
+    <div className="w-full space-y-6 pb-20">
       {/* 1. Header Oficial do Painel */}
       <AdminPageHeader
         title="Pipeline de Aprovação de Motoristas"

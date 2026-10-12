@@ -37,6 +37,7 @@ import {
   ThumbsDown,
   MapPin,
   Receipt,
+  Columns3,
 } from "lucide-react";
 import {
   useMotoristas,
@@ -51,6 +52,7 @@ import { useRideRatings, type RideRating } from "@/services/RideRatingService";
 import { exportarParaCSV } from "@/lib/export-csv";
 import { getAdminRole, isFranqueado } from "@/lib/admin-rbac";
 import { useAdminCity } from "@/contexts/AdminCityContext";
+import { DriverCrmKanban, type ItemCrmCondutor, type EstagioCrmKanban } from "@/components/admin/crm/DriverCrmKanban";
 
 export const Route = createFileRoute("/app/admin/motoristas")({
   head: () => ({
@@ -135,8 +137,26 @@ export function QuadroMotoristasAdminPage() {
   const [modalOcrAberto, setModalOcrAberto] = useState(false);
   const [processandoOcr, setProcessandoOcr] = useState(false);
 
-  // Abas principais: Frota Urbana vs Moderação de Avaliações (Rating 1-5★)
-  const [abaPrincipal, setAbaPrincipal] = useState<"frota" | "avaliacoes">("frota");
+  // Abas principais: Frota Urbana vs CRM Kanban de Ciclo de Vida vs Moderação de Avaliações
+  const [abaPrincipal, setAbaPrincipal] = useState<"frota" | "crm_kanban" | "avaliacoes">(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      const aba = sp.get("aba");
+      if (aba === "crm" || aba === "crm_kanban" || aba === "kanban") return "crm_kanban";
+      if (aba === "avaliacoes") return "avaliacoes";
+    }
+    return "frota";
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      const aba = sp.get("aba");
+      if (aba === "crm" || aba === "crm_kanban" || aba === "kanban") {
+        setAbaPrincipal("crm_kanban");
+      }
+    }
+  }, []);
   const { data: avaliacoesBanco = [], refetch: recarregarAvaliacoes } = useRideRatings(100);
   const [filtroEstrelas, setFiltroEstrelas] = useState<"TODAS" | "CRITICAS" | "EXCELENTES" | "MEDIAS">("TODAS");
   const [filtroDirecao, setFiltroDirecao] = useState<"TODAS" | "PASSENGER_TO_DRIVER" | "DRIVER_TO_PASSENGER">("TODAS");
@@ -273,6 +293,50 @@ export function QuadroMotoristasAdminPage() {
     const nomeCidade = pracaAtiva.nome.toLowerCase();
     return motoristas.filter((m) => m.cidade.toLowerCase().includes(nomeCidade));
   }, [motoristas, isNacional, pracaAtiva.nome]);
+
+  // Mapeamento estruturado para o CRM Kanban de Ciclo de Vida
+  const condutoresCrm: ItemCrmCondutor[] = useMemo(() => {
+    return motoristasDaPraca.map((m) => {
+      let estagio: EstagioCrmKanban = "4_ativo";
+      if (m.status === "PENDENTE") {
+        estagio = m.cnh && m.cnh.includes("Validação OCR") ? "1_lead" : "2_validacao";
+      } else if (m.status === "SUSPENSO" || (!m.planoAtivo && m.planoTipo === "NENHUM" && m.totalViagens > 0)) {
+        estagio = "6_inadimplente";
+      } else if (!m.planoAtivo) {
+        estagio = "3_aprovado";
+      } else if (m.planoAtivo) {
+        const sub = assinaturas.find((s) => s.driver_id === m.id);
+        const diffMs = sub ? new Date(sub.expires_at).getTime() - Date.now() : 0;
+        const diffHours = diffMs / 3600000;
+        if (diffHours <= 48 && diffHours > 0) {
+          estagio = "5_alerta";
+        } else {
+          estagio = "4_ativo";
+        }
+      }
+
+      return {
+        id: m.id,
+        nome: m.nome,
+        telefone: m.telefone,
+        cidade: m.cidade,
+        cnh: m.cnh,
+        modal: m.modal,
+        veiculoModelo: m.veiculoModelo,
+        veiculoPlaca: m.veiculoPlaca,
+        rating: m.rating,
+        totalViagens: m.totalViagens,
+        fotoUrl: m.fotoUrl,
+        estagio,
+        planoTipo: m.planoTipo,
+        planoAtivo: m.planoAtivo,
+        diasRestantes: m.planoAtivo ? 7 : 0,
+        diasVencido: !m.planoAtivo && m.status === "SUSPENSO" ? 3 : 0,
+        valorPlano: m.valorPlano || 199.9,
+        bloqueado: m.status === "SUSPENSO",
+      };
+    });
+  }, [motoristasDaPraca, assinaturas]);
 
   // CÁLCULO DOS INDICADORES DO DASHBOARD DA FROTA
   const totalCadastrados = motoristasDaPraca.length;
@@ -418,23 +482,39 @@ export function QuadroMotoristasAdminPage() {
         </div>
       )}
 
-      {/* 2. Seletor de Sub-Abas do Módulo: Frota Urbana vs. Moderação de Avaliações */}
-      <div className="flex items-center gap-1.5 p-1 bg-white rounded-2xl w-fit border border-slate-200/90 shadow-xs">
+      {/* 2. Seletor de Sub-Abas do Módulo: Frota Urbana vs. CRM Kanban vs. Moderação de Avaliações */}
+      <div className="flex flex-wrap items-center gap-1.5 p-1 bg-white dark:bg-slate-900 rounded-2xl w-fit border border-slate-200/90 dark:border-slate-800 shadow-xs">
         <button
           type="button"
           onClick={() => setAbaPrincipal("frota")}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
             abaPrincipal === "frota"
-              ? "bg-slate-950 text-white shadow-xs"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950 shadow-xs"
+              : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
           <Car className="h-3.5 w-3.5 text-[#0088FF]" />
           <span>Frota Urbana &amp; Condutores</span>
           <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
-            abaPrincipal === "frota" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+            abaPrincipal === "frota" ? "bg-white/20 text-white dark:bg-slate-900/40 dark:text-slate-900" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
           }`}>
             {motoristasDaPraca.length}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setAbaPrincipal("crm_kanban")}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+            abaPrincipal === "crm_kanban"
+              ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950 shadow-xs"
+              : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+          }`}
+        >
+          <Columns3 className="h-3.5 w-3.5 text-emerald-500" />
+          <span>CRM Kanban de Ciclo de Vida</span>
+          <span className="rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 text-[10px] font-black">
+            Pipeline
           </span>
         </button>
 
@@ -443,8 +523,8 @@ export function QuadroMotoristasAdminPage() {
           onClick={() => setAbaPrincipal("avaliacoes")}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
             abaPrincipal === "avaliacoes"
-              ? "bg-slate-950 text-white shadow-xs"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950 shadow-xs"
+              : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
           <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
@@ -455,7 +535,7 @@ export function QuadroMotoristasAdminPage() {
             </span>
           ) : (
             <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
-              abaPrincipal === "avaliacoes" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+              abaPrincipal === "avaliacoes" ? "bg-white/20 text-white dark:bg-slate-900/40 dark:text-slate-900" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
             }`}>
               {avaliacoesBanco.length}
             </span>
@@ -868,6 +948,25 @@ export function QuadroMotoristasAdminPage() {
         </div>
       </div>
         </>
+      ) : abaPrincipal === "crm_kanban" ? (
+        /* VISÃO DE CRM KANBAN DE CICLO DE VIDA (PIPELINE DE ASSINATURAS E RETENÇÃO) */
+        <DriverCrmKanban
+          condutoresIniciais={condutoresCrm}
+          pracaNome={isNacional ? "Todas as Praças" : pracaAtiva.nome}
+          isNacional={isNacional}
+          onVerDetalhes={(id) => {
+            const found = motoristasDaPraca.find((m) => m.id === id);
+            if (found) {
+              setMotoristaSelecionado(found);
+              setCategoriaEdicao(found.modal);
+              setModalDetalhesAberto(true);
+            }
+          }}
+          onRecarregar={() => {
+            recarregarMotoristas();
+            recarregarPendentes();
+          }}
+        />
       ) : (
         /* VISÃO DE MODERAÇÃO DE AVALIAÇÕES (RATING 1-5★ BIDIRECIONAL) */
         <div className="space-y-6 sm:space-y-8 animate-in fade-in-50 duration-200">

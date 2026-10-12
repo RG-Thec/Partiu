@@ -496,7 +496,7 @@ export function AdminMonetizacaoPage() {
 
   return (
     <GuardiaoAcesso permissao="financial:configure_fees" somenteSuperAdmin={true}>
-      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 text-slate-900 animate-in fade-in duration-200">
+      <div className="w-full space-y-6 text-slate-900 animate-in fade-in duration-200">
         {/* TOAST FLUTUANTE */}
         {toastMsg && (
           <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 text-xs font-bold border border-slate-700 animate-in slide-in-from-top-2">

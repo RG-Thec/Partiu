@@ -505,7 +505,7 @@ function SuperAdminFranqueadosContent() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-8">
+      <div className="w-full space-y-6">
         {/* 2. CARDS DE KPIS GLOBAIS EM TEMPO REAL */}
         <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
           <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
@@ -1243,7 +1243,7 @@ function SuperAdminFranqueadosContent() {
             </div>
           )}
         </section>
-      </main>
+      </div>
 
       {/* 5. MODAL: INSPEÇÃO & DOWNLOAD DE PASSAGEIROS DA FRANQUIA */}
       {tenantInspecaoPassageiros && (

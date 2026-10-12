@@ -62,7 +62,12 @@ export const Route = createFileRoute("/app")({
 
       const userTenantMatches = storedUser && (!storedUser.tenantId || isMatchingTenant(storedUser.tenantId, effectiveTenantId));
 
-      const isAuthenticated = (session && !expired && sessionTenantMatches) || Boolean(storedUser && userTenantMatches);
+      const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
+      const isDev = Boolean(typeof import.meta !== "undefined" && import.meta.env?.DEV);
+
+      const hasValidSession = Boolean(session && !expired && sessionTenantMatches);
+      const hasOfflineFallback = Boolean((!isOnline || isDev) && storedUser && userTenantMatches);
+      const isAuthenticated = hasValidSession || hasOfflineFallback;
 
       if (!isAuthenticated) {
         const isMotorista = pathname.startsWith("/app/motorista");

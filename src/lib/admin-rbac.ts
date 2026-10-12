@@ -223,11 +223,13 @@ export async function loginAdmin(
             .maybeSingle();
 
           if (dbTenant) {
+            const isDevEnv =
+              (typeof import.meta !== "undefined" && Boolean(import.meta.env?.DEV)) ||
+              (typeof process !== "undefined" && process.env?.NODE_ENV === "test");
+
             const senhaValida =
-              (dbTenant.admin_password && dbTenant.admin_password.trim() === senhaLimpa) ||
-              senhaLimpa === "123456" ||
-              senhaLimpa === "AdminPartiu2026!" ||
-              senhaLimpa === "Bhmob2026!";
+              Boolean(dbTenant.admin_password && dbTenant.admin_password.trim() === senhaLimpa) ||
+              (isDevEnv && senhaLimpa === "123456");
 
             if (senhaValida) {
               whiteLabelEngine.registerTenant({
@@ -343,16 +345,28 @@ export async function loginAdmin(
         };
       }
 
-      // 2. Autenticação oficial do Super Administrador Geral (Matriz)
-      const senhasSuperAdminValidas = ["AdminPartiu2026!", "admin123", "superadmin123", "superadmin2026!"];
-      const isSenhaValida = senhasSuperAdminValidas.includes(senhaLimpa);
+      // 2. Autenticação de contingência/Dev para Super Administrador Geral (Matriz)
+      // Em produção, o Super Admin autentica estritamente via Supabase Auth (linhas 207-213 e 416-435)
+      const isDevOrTest =
+        (typeof import.meta !== "undefined" && Boolean(import.meta.env?.DEV)) ||
+        (typeof process !== "undefined" && process.env?.NODE_ENV === "test");
+
+      const devSuperAdminPass =
+        typeof process !== "undefined" && process.env?.SUPERADMIN_DEV_PASSWORD
+          ? process.env.SUPERADMIN_DEV_PASSWORD
+          : null;
+
+      const isDevSuperAdminValid =
+        isDevOrTest &&
+        Boolean(devSuperAdminPass && senhaLimpa === devSuperAdminPass);
+
       const isSuperAdminEmail =
         emailLimpo === "superadmin@partiu.app" ||
         emailLimpo === "admin@partiumobe.com.br" ||
         emailLimpo === "dono@partiu.app" ||
         emailLimpo === "admin@partiu.app";
 
-      if (isSuperAdminEmail && isSenhaValida) {
+      if (isDevSuperAdminValid && isSuperAdminEmail) {
         const contaSuperAdmin: AdminAccount = {
           id: "8d2a0843-8005-4e16-a79a-f61c61c1f96a",
           role: "SUPER_ADMIN",

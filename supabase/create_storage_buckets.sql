@@ -25,20 +25,58 @@ DROP POLICY IF EXISTS "Avatares upload liberado" ON storage.objects;
 CREATE POLICY "Avatares upload liberado" ON storage.objects
 FOR INSERT WITH CHECK (bucket_id = 'avatares');
 
--- CNH: Documento sensível (upload e leitura)
+-- CNH: Documento sensível (upload e leitura estritamente protegidos - LGPD)
 DROP POLICY IF EXISTS "CNH upload liberado" ON storage.objects;
-CREATE POLICY "CNH upload liberado" ON storage.objects
-FOR INSERT WITH CHECK (bucket_id = 'cnh');
-
 DROP POLICY IF EXISTS "CNH leitura liberada" ON storage.objects;
-CREATE POLICY "CNH leitura liberada" ON storage.objects
-FOR SELECT USING (bucket_id = 'cnh');
+DROP POLICY IF EXISTS "CNH upload seguro" ON storage.objects;
+DROP POLICY IF EXISTS "CNH leitura restrita" ON storage.objects;
 
--- CRLV: Documento do veículo
+CREATE POLICY "CNH upload seguro" ON storage.objects
+FOR INSERT TO authenticated
+WITH CHECK (
+  bucket_id = 'cnh' AND (
+    (storage.foldername(name))[1] = auth.uid()::text
+    OR auth.role() = 'service_role'
+  )
+);
+
+CREATE POLICY "CNH leitura restrita" ON storage.objects
+FOR SELECT TO authenticated
+USING (
+  bucket_id = 'cnh' AND (
+    (storage.foldername(name))[1] = auth.uid()::text
+    OR EXISTS (
+      SELECT 1 FROM public.profiles 
+      WHERE id = auth.uid() AND role IN ('admin', 'gestor', 'SUPER_ADMIN')
+    )
+    OR auth.role() = 'service_role'
+  )
+);
+
+-- CRLV: Documento do veículo (upload e leitura estritamente protegidos - LGPD)
 DROP POLICY IF EXISTS "CRLV upload liberado" ON storage.objects;
-CREATE POLICY "CRLV upload liberado" ON storage.objects
-FOR INSERT WITH CHECK (bucket_id = 'crlv');
-
 DROP POLICY IF EXISTS "CRLV leitura liberada" ON storage.objects;
-CREATE POLICY "CRLV leitura liberada" ON storage.objects
-FOR SELECT USING (bucket_id = 'crlv');
+DROP POLICY IF EXISTS "CRLV upload seguro" ON storage.objects;
+DROP POLICY IF EXISTS "CRLV leitura restrita" ON storage.objects;
+
+CREATE POLICY "CRLV upload seguro" ON storage.objects
+FOR INSERT TO authenticated
+WITH CHECK (
+  bucket_id = 'crlv' AND (
+    (storage.foldername(name))[1] = auth.uid()::text
+    OR auth.role() = 'service_role'
+  )
+);
+
+CREATE POLICY "CRLV leitura restrita" ON storage.objects
+FOR SELECT TO authenticated
+USING (
+  bucket_id = 'crlv' AND (
+    (storage.foldername(name))[1] = auth.uid()::text
+    OR EXISTS (
+      SELECT 1 FROM public.profiles 
+      WHERE id = auth.uid() AND role IN ('admin', 'gestor', 'SUPER_ADMIN')
+    )
+    OR auth.role() = 'service_role'
+  )
+);

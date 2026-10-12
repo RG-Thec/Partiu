@@ -17,8 +17,10 @@ import {
   LogOut,
   Mail,
   MapPin,
+  Maximize2,
   Megaphone,
   Menu,
+  Minimize2,
   Palette,
   PanelLeftClose,
   PanelLeftOpen,
@@ -36,6 +38,7 @@ import {
   Users,
   X,
   Zap,
+  Columns3,
 } from "lucide-react";
 import {
   useAlertasSOS,
@@ -55,18 +58,26 @@ import {
   type AdminAccount,
   type AdminModuleId,
 } from "@/lib/admin-rbac";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, redirect } from "@tanstack/react-router";
 import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 import { AdminCityProvider } from "@/contexts/AdminCityContext";
 import { AdminCitySelector } from "@/components/admin/AdminCitySelector";
 
 export const Route = createFileRoute("/app/admin")({
   ssr: false,
+  beforeLoad: ({ location }) => {
+    const isLogin =
+      location.pathname === "/app/admin/login" || location.pathname.startsWith("/app/admin/login");
+    if (!isLogin && !isAutenticadoAdmin()) {
+      throw redirect({ to: "/app/admin/login" });
+    }
+  },
   component: SuperAdminLayout,
 });
 
 export interface ItemMenuAdmin {
   to: string;
+  search?: Record<string, any>;
   label: string;
   icon: any;
   exact: boolean;
@@ -82,83 +93,32 @@ export interface CategoriaMenuAdmin {
 }
 
 /**
- * 🏛️ CENTRAL DE OPERAÇÕES NACIONAL PARTIU — ESTRUTURA OFICIAL ENXUTA
- * Menu principal consolidado nos 5-6 módulos essenciais de alta produtividade.
+ * 🏛️ CENTRAL DE OPERAÇÕES NACIONAL PARTIU — ESTRUTURA ESTRATÉGICA SAAS
+ * Menu organizado em 5 pilares estratégicos de alta produtividade e monetização:
+ * 1. Operação & Despacho
+ * 2. Motoristas & Rede
+ * 3. Monetização SaaS (Planos 0% Taxa, Diárias, Receita)
+ * 4. Marca & Aplicativo (PWA/APK, White-Label, Banners)
+ * 5. Configuração & Praças
  */
 const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
   {
-    id: "operacao_saas",
-    titulo: "Navegação Principal",
+    id: "operacao",
+    titulo: "Operação & Despacho",
     itens: [
       {
         to: "/app/admin",
-        label: "Dashboard",
+        label: "Dashboard Geral",
         icon: LayoutDashboard,
         exact: true,
         moduleId: "dashboard",
       },
       {
-        to: "/app/admin/motoristas",
-        label: "Motoristas & Assinaturas",
-        icon: Users,
-        exact: false,
-        moduleId: "motoristas",
-      },
-      {
         to: "/app/admin/despacho",
-        label: "Corridas & Radar",
+        label: "Corridas & Radar ao Vivo",
         icon: Radio,
         exact: false,
         moduleId: "operacao",
-      },
-      {
-        to: "/app/admin/meu-aplicativo",
-        label: "Meu Aplicativo / APK",
-        icon: Smartphone,
-        exact: false,
-        moduleId: "aplicativo",
-      },
-      {
-        to: "/app/admin/banners",
-        label: "Banners do App",
-        icon: Megaphone,
-        exact: false,
-        moduleId: "marketing",
-      },
-      {
-        to: "/app/admin/whitelabel",
-        label: "Identidade & White Label",
-        icon: Palette,
-        exact: false,
-        moduleId: "whitelabel",
-      },
-      {
-        to: "/app/admin/franqueados",
-        label: "Franquias & Multi-Tenant",
-        icon: Building2,
-        exact: false,
-        moduleId: "franqueados",
-      },
-      {
-        to: "/app/admin/dominios",
-        label: "Domínios & DNS",
-        icon: Globe,
-        exact: false,
-        moduleId: "dominios",
-      },
-      {
-        to: "/app/admin/financeiro",
-        label: "Financeiro & SaaS",
-        icon: DollarSign,
-        exact: false,
-        moduleId: "financeiro",
-      },
-      {
-        to: "/app/admin/configuracoes",
-        label: "Configurações",
-        icon: Sliders,
-        exact: false,
-        moduleId: "configuracoes",
       },
       {
         to: "/app/admin/sos",
@@ -170,37 +130,156 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
       },
     ],
   },
+  {
+    id: "rede",
+    titulo: "Motoristas & Rede",
+    itens: [
+      {
+        to: "/app/admin/motoristas",
+        label: "Frota & Condutores",
+        icon: Users,
+        exact: true,
+        moduleId: "motoristas",
+      },
+      {
+        to: "/app/admin/motoristas",
+        search: { aba: "crm" },
+        label: "Pipeline CRM Kanban",
+        icon: Columns3,
+        exact: false,
+        badge: "Funil",
+        moduleId: "motoristas",
+      },
+      {
+        to: "/app/admin/aprovacoes",
+        label: "Aprovações CNH/CRLV",
+        icon: UserCheck,
+        exact: false,
+        badgeVariant: "warning",
+        moduleId: "motoristas",
+      },
+      {
+        to: "/app/admin/passageiros",
+        label: "Passageiros Cadastrados",
+        icon: User,
+        exact: false,
+        moduleId: "motoristas",
+      },
+      {
+        to: "/app/admin/veiculo",
+        label: "Categorias & Veículos",
+        icon: Car,
+        exact: false,
+        moduleId: "operacao",
+      },
+    ],
+  },
+  {
+    id: "monetizacao",
+    titulo: "Monetização SaaS",
+    itens: [
+      {
+        to: "/app/admin/monetizacao",
+        label: "Planos SaaS & Diárias Pix",
+        icon: CreditCard,
+        exact: false,
+        badge: "0% Taxa",
+        moduleId: "financeiro",
+      },
+      {
+        to: "/app/admin/financeiro",
+        label: "Cockpit Financeiro & Receita",
+        icon: DollarSign,
+        exact: false,
+        moduleId: "financeiro",
+      },
+      {
+        to: "/app/admin/franqueados",
+        label: "Franquias & Multi-Tenant",
+        icon: Building2,
+        exact: false,
+        moduleId: "franqueados",
+      },
+    ],
+  },
+  {
+    id: "marca",
+    titulo: "Marca & Aplicativo",
+    itens: [
+      {
+        to: "/app/admin/meu-aplicativo",
+        label: "Meu Aplicativo (PWA/APK)",
+        icon: Smartphone,
+        exact: false,
+        moduleId: "aplicativo",
+      },
+      {
+        to: "/app/admin/whitelabel",
+        label: "Identidade & White Label",
+        icon: Palette,
+        exact: false,
+        moduleId: "whitelabel",
+      },
+      {
+        to: "/app/admin/banners",
+        label: "Banners & Campanhas",
+        icon: Megaphone,
+        exact: false,
+        moduleId: "marketing",
+      },
+      {
+        to: "/app/admin/dominios",
+        label: "Domínios & DNS",
+        icon: Globe,
+        exact: false,
+        moduleId: "dominios",
+      },
+    ],
+  },
+  {
+    id: "gestao",
+    titulo: "Configuração & Praças",
+    itens: [
+      {
+        to: "/app/admin/locais",
+        label: "Cidades & Praças",
+        icon: MapPin,
+        exact: false,
+        moduleId: "operacao",
+      },
+      {
+        to: "/app/admin/configuracoes",
+        label: "Configurações Globais",
+        icon: Sliders,
+        exact: false,
+        moduleId: "configuracoes",
+      },
+    ],
+  },
 ];
 
 /**
- * Catálogo completo de módulos do sistema indexados na Command Palette (Ctrl+K)
+ * Catálogo completo de módulos corporativos na Command Palette (Ctrl+K)
  */
 const TODOS_MODULOS_SISTEMA = [
-  { to: "/app/admin", label: "Dashboard Geral", categoriaTitulo: "Comando", icon: LayoutDashboard },
-  { to: "/app/admin/motoristas", label: "Motoristas & Assinaturas", categoriaTitulo: "Cadastros", icon: Users },
-  { to: "/app/admin/aprovacoes", label: "Fila de Aprovações (CNH/OCR)", categoriaTitulo: "Cadastros", icon: UserCheck },
-  { to: "/app/admin/passageiros", label: "Passageiros Cadastrados", categoriaTitulo: "Cadastros", icon: User },
-  { to: "/app/admin/despacho", label: "Corridas & Despacho", categoriaTitulo: "Operação", icon: PhoneCall },
-  { to: "/app/admin/operacao", label: "Cockpit Operacional ao Vivo", categoriaTitulo: "Operação", icon: Radio },
-  { to: "/app/admin/meu-aplicativo", label: "Meu Aplicativo & PWA / APK", categoriaTitulo: "Aplicativo", icon: Smartphone },
-  { to: "/app/admin/dominios", label: "Domínios & DNS (White-Label)", categoriaTitulo: "Sistema", icon: Globe },
+  { to: "/app/admin", label: "Dashboard Geral", categoriaTitulo: "Operação", icon: LayoutDashboard },
+  { to: "/app/admin/despacho", label: "Corridas & Radar ao Vivo", categoriaTitulo: "Operação", icon: Radio },
   { to: "/app/admin/sos", label: "Central SOS 190 (Emergências)", categoriaTitulo: "Operação", icon: ShieldAlert },
-  { to: "/app/admin/veiculo", label: "Categorias & Veículos", categoriaTitulo: "Operação", icon: Car },
-  { to: "/app/admin/frota", label: "Vistorias de Frota", categoriaTitulo: "Operação", icon: UserCheck },
-  { to: "/app/admin/locais", label: "Cidades & Praças", categoriaTitulo: "Operação", icon: MapPin },
-  { to: "/app/admin/financeiro", label: "Cockpit Financeiro", categoriaTitulo: "Finanças", icon: DollarSign },
-  { to: "/app/admin/monetizacao", label: "Planos SaaS & Diárias", categoriaTitulo: "Finanças", icon: CreditCard },
-  { to: "/app/admin/caixa", label: "Fechamento de Caixa", categoriaTitulo: "Finanças", icon: Layers },
-  { to: "/app/admin/configuracoes", label: "Configurações Globais", categoriaTitulo: "Sistema", icon: Sliders },
-  { to: "/app/admin/whitelabel", label: "White Label Studio", categoriaTitulo: "Sistema", icon: Palette },
-  { to: "/app/admin/franqueados", label: "Franquias & Multi-Tenant (Holding)", categoriaTitulo: "Sistema", icon: Building2 },
-  { to: "/app/admin/governanca", label: "Governança & LGPD", categoriaTitulo: "Sistema", icon: ShieldCheck },
+  { to: "/app/admin/motoristas", label: "Frota & Condutores", categoriaTitulo: "Motoristas", icon: Users },
+  { to: "/app/admin/motoristas?aba=crm", label: "Pipeline CRM Kanban (Ciclo de Vida)", categoriaTitulo: "Motoristas", icon: Columns3 },
+  { to: "/app/admin/aprovacoes", label: "Fila de Aprovações (CNH/CRLV)", categoriaTitulo: "Motoristas", icon: UserCheck },
+  { to: "/app/admin/passageiros", label: "Passageiros Cadastrados", categoriaTitulo: "Passageiros", icon: User },
+  { to: "/app/admin/veiculo", label: "Categorias & Frota", categoriaTitulo: "Motoristas", icon: Car },
+  { to: "/app/admin/monetizacao", label: "Planos SaaS & Diárias Pix (0% Taxa)", categoriaTitulo: "Monetização", icon: CreditCard },
+  { to: "/app/admin/financeiro", label: "Cockpit Financeiro & Receita", categoriaTitulo: "Monetização", icon: DollarSign },
+  { to: "/app/admin/franqueados", label: "Franquias & Multi-Tenant", categoriaTitulo: "Monetização", icon: Building2 },
+  { to: "/app/admin/meu-aplicativo", label: "Meu Aplicativo & PWA / APK", categoriaTitulo: "Aplicativo", icon: Smartphone },
+  { to: "/app/admin/whitelabel", label: "White Label Studio", categoriaTitulo: "Marca", icon: Palette },
   { to: "/app/admin/banners", label: "Banners do Aplicativo", categoriaTitulo: "Marketing", icon: Megaphone },
-  { to: "/app/admin/marketing", label: "Banners & Cupons", categoriaTitulo: "Marketing", icon: Megaphone },
-  { to: "/app/admin/afiliados", label: "Clube & B2B", categoriaTitulo: "Marketing", icon: Layers },
-  { to: "/app/admin/growth", label: "Indique & Ganhe", categoriaTitulo: "Marketing", icon: TrendingUp },
-  { to: "/app/admin/diagnostico", label: "Diagnóstico GNSS", categoriaTitulo: "Comando", icon: Activity },
-  { to: "/app/admin/api-finops", label: "FinOps de APIs", categoriaTitulo: "Operação", icon: Compass },
+  { to: "/app/admin/dominios", label: "Domínios & DNS (White-Label)", categoriaTitulo: "Sistema", icon: Globe },
+  { to: "/app/admin/locais", label: "Cidades & Praças", categoriaTitulo: "Operação", icon: MapPin },
+  { to: "/app/admin/configuracoes", label: "Configurações Globais", categoriaTitulo: "Sistema", icon: Sliders },
+  { to: "/app/admin/governanca", label: "Governança & LGPD", categoriaTitulo: "Sistema", icon: ShieldCheck },
 ];
 
 const ROLES_DISPONIVEIS: { id: AdminRole; label: string; badge: string }[] = [
@@ -245,6 +324,25 @@ function SuperAdminLayout() {
   const [buscaRapidaAberta, setBuscaRapidaAberta] = useState(false);
   const [termoBuscaRapida, setTermoBuscaRapida] = useState("");
 
+  const [isTelaCheia, setIsTelaCheia] = useState(false);
+
+  // Monitora alterações de fullscreen (F11 ou tecla Escape)
+  useEffect(() => {
+    function onFsChange() {
+      setIsTelaCheia(Boolean(document.fullscreenElement));
+    }
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
+
+  function toggleTelaCheia() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => setIsTelaCheia(true)).catch(() => {});
+    } else {
+      document.exitFullscreen().then(() => setIsTelaCheia(false)).catch(() => {});
+    }
+  }
+
   // Atalho Global de Teclado (Ctrl+K ou Cmd+K para abrir; Escape para fechar)
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -272,7 +370,9 @@ function SuperAdminLayout() {
     return motoristasBanco.filter((m: any) => m.status_aprovacao === "pendente" || m.status === "pendente").length;
   }, [motoristasBanco]);
 
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const locationState = useRouterState({ select: (s) => s.location });
+  const pathname = locationState.pathname;
+  const searchStr = locationState.searchStr || "";
   const href = pathname;
   const isLoginRoute = pathname === "/app/admin/login" || pathname.startsWith("/app/admin/login");
 
@@ -425,33 +525,39 @@ function SuperAdminLayout() {
         className="admin-scope h-screen max-h-screen overflow-hidden w-full flex flex-col md:flex-row text-slate-900 font-sans"
         style={{ backgroundColor: colors.background }}
       >
-        {/* 1. Sidebar Fixa no Desktop (Estende 100% até o Rodapé) */}
+        {/* 1. Sidebar Fixa no Desktop (Estende 100% até o Rodapé com transição fluida) */}
         <aside
-          className={`hidden md:flex flex-col justify-between bg-slate-950 text-white border-r border-slate-800/80 shrink-0 sticky top-0 h-screen max-h-screen h-[100dvh] transition-all duration-300 z-40 select-none ${
-            recolhido ? "w-16 p-2" : "w-56 lg:w-60 p-3"
+          className={`hidden md:flex flex-col justify-between bg-slate-950 text-white border-r border-slate-800/80 shrink-0 sticky top-0 h-screen max-h-screen h-[100dvh] transition-all duration-300 z-40 select-none shadow-xl ${
+            recolhido ? "w-18 p-2.5" : "w-64 p-3.5"
           }`}
         >
           {/* Topo da Sidebar: Brand & Collapse */}
-          <div className="shrink-0 space-y-2 pb-2.5 border-b border-slate-800/80">
-            <div className="flex items-center justify-between">
+          <div className="shrink-0 space-y-2.5 pb-3 border-b border-slate-800/80">
+            <div className="flex items-center justify-between gap-1.5">
               {!recolhido ? (
-                <Link to="/app/admin" className="flex items-center gap-2 min-w-0 group">
+                <Link to="/app/admin" className="flex items-center gap-2.5 min-w-0 group">
                   <div
-                    className="flex h-8 w-8 items-center justify-center shadow-xs shrink-0 font-black rounded-lg transition-transform group-hover:scale-105"
+                    className="flex h-9 w-9 items-center justify-center shadow-md shrink-0 font-black rounded-xl transition-transform group-hover:scale-105"
                     style={{
                       backgroundColor: colors.primary,
                       borderRadius: ui.borderRadius,
                       boxShadow: ui.buttonShadow,
                     }}
                   >
-                    <Zap className="h-4 w-4 stroke-[2.5]" style={{ fill: primaryContrastColor, stroke: primaryContrastColor }} />
+                    <Zap className="h-5 w-5 stroke-[2.5]" style={{ fill: primaryContrastColor, stroke: primaryContrastColor }} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-black tracking-tight leading-none text-white truncate">
-                      {branding.appName.toUpperCase()} <span style={{ color: colors.primary }}>OPS</span>
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-xs font-black tracking-tight leading-none text-white truncate">
+                        {branding.appName.toUpperCase()} <span style={{ color: colors.primary }}>OPS</span>
+                      </p>
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9px] font-bold text-emerald-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        SaaS
+                      </span>
+                    </div>
                     <span
-                      className="text-[10px] font-bold tracking-wider uppercase mt-0.5 block truncate"
+                      className="text-[10px] font-bold tracking-wider uppercase mt-1 block truncate"
                       style={{ color: colors.primary }}
                     >
                       {roleMeta.titulo}
@@ -461,14 +567,15 @@ function SuperAdminLayout() {
               ) : (
                 <div className="mx-auto">
                   <div
-                    className="flex h-8 w-8 items-center justify-center shadow-xs rounded-lg"
+                    className="flex h-9 w-9 items-center justify-center shadow-md rounded-xl"
                     style={{
                       backgroundColor: colors.primary,
                       borderRadius: ui.borderRadius,
                       boxShadow: ui.buttonShadow,
                     }}
+                    title={`${branding.appName} OPS • ${roleMeta.titulo}`}
                   >
-                    <Zap className="h-4 w-4 stroke-[2.5]" style={{ fill: primaryContrastColor, stroke: primaryContrastColor }} />
+                    <Zap className="h-5 w-5 stroke-[2.5]" style={{ fill: primaryContrastColor, stroke: primaryContrastColor }} />
                   </div>
                 </div>
               )}
@@ -476,20 +583,20 @@ function SuperAdminLayout() {
               <button
                 type="button"
                 onClick={() => setRecolhido(!recolhido)}
-                className={`flex h-7.5 w-7.5 items-center justify-center rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-slate-800 cursor-pointer ${
-                  recolhido ? "mx-auto mt-0.5" : ""
+                className={`flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 transition-all border border-slate-800 cursor-pointer shrink-0 ${
+                  recolhido ? "mx-auto mt-1" : ""
                 }`}
                 title={recolhido ? "Expandir Menu" : "Recolher Menu"}
               >
-                {recolhido ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
+                {recolhido ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
               </button>
             </div>
 
             {/* Seletor de Perfil RBAC */}
             {!recolhido && (
-              <div className="px-2 py-1.5 rounded-lg bg-slate-900 border border-slate-800/90 flex items-center justify-between gap-1.5 shadow-2xs">
+              <div className="px-2.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800/90 flex items-center justify-between gap-1.5 shadow-2xs">
                 <div className="flex items-center gap-1 shrink-0 text-slate-400">
-                  <ShieldCheck className="h-3 w-3 text-emerald-400 shrink-0" />
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
                   <span className="text-[10px] font-bold uppercase tracking-wider">
                     Perfil:
                   </span>
@@ -497,7 +604,7 @@ function SuperAdminLayout() {
                 <select
                   value={roleAtiva}
                   onChange={(e) => handleTrocarRole(e.target.value as AdminRole)}
-                  className="w-full bg-slate-950 border border-slate-800 text-[10px] font-bold text-slate-200 rounded-md px-1.5 py-0.5 h-6.5 focus:ring-1 focus:ring-amber-400 focus:outline-hidden cursor-pointer truncate"
+                  className="w-full bg-slate-950 border border-slate-800 text-[10px] font-bold text-slate-200 rounded-lg px-2 py-1 h-7 focus:ring-1 focus:ring-amber-400 focus:outline-hidden cursor-pointer truncate"
                   title="Alternar perfil de visualização RBAC"
                 >
                   {ROLES_DISPONIVEIS.map((r) => (
@@ -510,12 +617,12 @@ function SuperAdminLayout() {
             )}
           </div>
 
-          {/* Navegação Categorizada Limpa (Sem duplicações e sem textões) */}
-          <nav className="flex-1 overflow-y-auto space-y-3 custom-admin-scrollbar pr-0.5 py-2 min-h-0">
+          {/* Navegação Categorizada Limpa (5 Pilares Estratégicos SaaS) */}
+          <nav className="flex-1 overflow-y-auto space-y-3.5 custom-admin-scrollbar pr-0.5 py-2.5 min-h-0">
             {categoriasFiltradas.map((cat) => (
-              <div key={cat.id} className="space-y-0.5">
+              <div key={cat.id} className="space-y-1">
                 {!recolhido && (
-                  <p className="px-2 pt-1 pb-0.5 text-[9px] font-black uppercase tracking-widest text-slate-500">
+                  <p className="px-2.5 pt-1 pb-0.5 text-[9px] font-black uppercase tracking-widest text-slate-400/90">
                     {cat.titulo}
                   </p>
                 )}
@@ -523,14 +630,17 @@ function SuperAdminLayout() {
                 <div className="space-y-0.5">
                   {cat.itens.map((item) => {
                     const Icon = item.icon;
-                    const isAtivo = item.exact
-                      ? href === item.to || href === item.to + "/"
-                      : href.startsWith(item.to);
+                    const isAtivo = item.search?.aba
+                      ? href === item.to && searchStr.includes(`aba=${item.search.aba}`)
+                      : item.exact
+                      ? (href === item.to || href === item.to + "/") && !searchStr.includes("aba=")
+                      : href.startsWith(item.to) && !searchStr.includes("aba=");
 
                     return (
                       <Link
-                        key={item.to}
+                        key={item.search?.aba ? `${item.to}-${item.search.aba}` : item.to}
                         to={item.to}
+                        search={item.search as any}
                         style={
                           isAtivo
                             ? {
@@ -541,23 +651,23 @@ function SuperAdminLayout() {
                               }
                             : { borderRadius: ui.borderRadius }
                         }
-                        className={`group flex items-center justify-between px-2.5 py-1.5 text-xs font-semibold transition-all relative rounded-lg ${
+                        className={`group flex items-center justify-between px-3 py-2 text-xs font-semibold transition-all relative rounded-xl ${
                           isAtivo
-                            ? "font-black shadow-xs"
+                            ? "font-black shadow-sm"
                             : "text-slate-300 hover:bg-slate-900/90 hover:text-white"
                         } ${recolhido ? "justify-center px-1" : ""}`}
                         title={recolhido ? item.label : undefined}
                       >
-                        <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex items-center gap-2.5 min-w-0">
                           <Icon
-                            className={`h-4 w-4 shrink-0 transition-transform group-hover:scale-105 ${
+                            className={`h-4 w-4 shrink-0 transition-transform group-hover:scale-110 ${
                               isAtivo ? "stroke-[2.5]" : "text-slate-400 group-hover:text-slate-200"
                             }`}
                             style={isAtivo ? { color: primaryContrastColor } : undefined}
                           />
                           {!recolhido && (
                             <span
-                              className="truncate text-[11px] leading-tight font-medium"
+                              className="truncate text-[11.5px] leading-tight font-medium"
                               style={isAtivo ? { color: primaryContrastColor } : undefined}
                             >
                               {item.label}
@@ -571,14 +681,21 @@ function SuperAdminLayout() {
                         {recolhido && item.badgeVariant === "warning" && (
                           <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-amber-400 border-2 border-slate-950" />
                         )}
+                        {recolhido && item.badge && !item.badgeVariant && (
+                          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-emerald-400 border-2 border-slate-950" />
+                        )}
 
                         {!recolhido && item.badge && (
                           <span
-                            className={`ml-1 px-1.5 py-0.2 rounded-md text-[9px] font-bold uppercase tracking-wider shrink-0 ${
+                            className={`ml-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider shrink-0 ${
                               item.badgeVariant === "critical"
                                 ? "bg-red-600 text-white animate-pulse"
                                 : item.badgeVariant === "warning"
                                 ? "bg-amber-400 text-slate-950 font-black"
+                                : item.badge === "0% Taxa"
+                                ? isAtivo
+                                  ? "bg-slate-950/80 text-emerald-300 font-extrabold"
+                                  : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-extrabold"
                                 : isAtivo
                                 ? "bg-slate-950/70 text-white"
                                 : "bg-slate-800 text-slate-300"
@@ -596,15 +713,15 @@ function SuperAdminLayout() {
           </nav>
 
           {/* Rodapé da Sidebar: Status Realtime & Conta do Administrador */}
-          <div className="shrink-0 border-t border-slate-800/80 pt-2 mt-auto space-y-1.5">
+          <div className="shrink-0 border-t border-slate-800/80 pt-2.5 mt-auto space-y-1.5">
             {!recolhido ? (
-              <div className="flex items-center justify-between bg-slate-900/90 p-1.5 rounded-lg border border-slate-800/80 gap-1.5">
+              <div className="flex items-center justify-between bg-slate-900/90 p-2 rounded-xl border border-slate-800/80 gap-2">
                 <div
                   onClick={abrirModalConta}
                   className="flex items-center gap-2 min-w-0 flex-1 cursor-pointer hover:opacity-85 transition"
                   title="Configurar perfil e credenciais"
                 >
-                  <div className="h-6.5 w-6.5 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 font-black text-[11px] flex items-center justify-center shrink-0 shadow-xs">
+                  <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
                     {contaAtiva.nome ? contaAtiva.nome.charAt(0).toUpperCase() : "A"}
                   </div>
                   <div className="min-w-0">
@@ -616,76 +733,76 @@ function SuperAdminLayout() {
                   <button
                     type="button"
                     onClick={abrirModalConta}
-                    className="h-6.5 w-6.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer"
+                    className="h-7 w-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer"
                     title="Editar Credenciais"
                   >
-                    <Key className="h-3 w-3" />
+                    <Key className="h-3.5 w-3.5" />
                   </button>
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="h-6.5 w-6.5 rounded-md bg-slate-800 hover:bg-red-950 text-slate-300 hover:text-red-300 flex items-center justify-center transition cursor-pointer"
+                    className="h-7 w-7 rounded-lg bg-slate-800 hover:bg-red-950 text-slate-300 hover:text-red-300 flex items-center justify-center transition cursor-pointer"
                     title="Sair do Painel"
                   >
-                    <LogOut className="h-3 w-3" />
+                    <LogOut className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <button
                   type="button"
                   onClick={abrirModalConta}
-                  className="mx-auto h-7.5 w-7.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer"
+                  className="mx-auto h-8 w-8 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer"
                   title={`Conta: ${contaAtiva.nome} (${contaAtiva.email})`}
                 >
-                  <Key className="h-3.5 w-3.5" />
+                  <Key className="h-4 w-4" />
                 </button>
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="mx-auto h-7.5 w-7.5 rounded-lg bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-300 flex items-center justify-center transition cursor-pointer"
+                  className="mx-auto h-8 w-8 rounded-lg bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-300 flex items-center justify-center transition cursor-pointer"
                   title="Sair"
                 >
-                  <LogOut className="h-3.5 w-3.5" />
+                  <LogOut className="h-4 w-4" />
                 </button>
               </div>
             )}
           </div>
         </aside>
 
-        {/* 2. Container Principal & Topbar Executiva */}
-        <div className="flex-1 h-screen max-h-screen overflow-hidden flex flex-col min-w-0 bg-slate-50">
-          <header className="shrink-0 h-14 bg-white border-b border-slate-200/80 px-2.5 sm:px-5 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
-            <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 mr-2 h-full">
+        {/* 2. Container Principal & Topbar Executiva (Aproveitamento Máximo de Tela) */}
+        <div className="flex-1 h-screen max-h-screen overflow-hidden flex flex-col min-w-0 bg-[#F8FAFC]">
+          <header className="shrink-0 h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 mr-2 h-full">
               <button
                 type="button"
                 onClick={() => setMenuAbertoMobile(true)}
-                className="flex md:hidden h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-95 transition cursor-pointer shrink-0"
+                className="flex md:hidden h-8.5 w-8.5 items-center justify-center rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-95 transition cursor-pointer shrink-0"
                 aria-label="Abrir Menu de Navegação"
               >
                 <Menu className="h-4 w-4" />
               </button>
 
-              {/* Breadcrumb visual contextual */}
+              {/* Breadcrumb contextual e Seletor de Praça */}
               <div className="hidden lg:flex items-center gap-1.5 text-xs font-semibold text-slate-500 mr-1 shrink-0">
-                <span className="text-slate-400 font-bold tracking-wider uppercase text-[10px]">PARTIU OPS</span>
+                <span className="text-slate-400 font-extrabold tracking-wider uppercase text-[10px]">PARTIU OPS</span>
                 <ChevronRight className="h-3 w-3 text-slate-300 shrink-0" />
-                <span className="text-slate-800 font-bold max-w-[150px] truncate">{roleMeta.titulo}</span>
+                <span className="text-slate-800 font-bold max-w-[140px] truncate">{roleMeta.titulo}</span>
               </div>
 
               {/* Seletor Global Interativo de Cidade / Praça de Operação */}
               <AdminCitySelector />
 
-              {/* Botão de Busca Rápida / Command Palette (Ctrl+K) */}
+              {/* Barra de Busca Rápida / Command Palette (Ctrl+K) */}
               <button
                 type="button"
                 onClick={() => setBuscaRapidaAberta(true)}
-                className="hidden sm:flex items-center gap-2 h-8 px-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 hover:text-slate-900 text-[11px] font-medium transition cursor-pointer"
+                className="hidden sm:flex items-center gap-2 h-8.5 px-3 rounded-lg bg-slate-100/80 hover:bg-slate-200/80 border border-slate-200 text-slate-600 hover:text-slate-900 text-xs font-medium transition cursor-pointer shadow-2xs"
                 title="Acesso Rápido a Módulos (Ctrl+K)"
               >
                 <Search className="h-3.5 w-3.5 text-slate-400" />
-                <span className="hidden md:inline">Navegar...</span>
+                <span className="hidden md:inline text-[11.5px]">Navegar no painel...</span>
                 <kbd className="px-1.5 py-0.5 rounded bg-white text-[9px] font-mono text-slate-500 border border-slate-200 shadow-2xs">
                   Ctrl K
                 </kbd>
@@ -700,7 +817,7 @@ function SuperAdminLayout() {
               </button>
             </div>
 
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 h-full">
+            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 h-full">
               {/* Alerta SOS em tempo real (Apenas se houver chamado ativo) */}
               {chamadosSOSAtivos > 0 && (
                 <Link
@@ -723,15 +840,25 @@ function SuperAdminLayout() {
                 </Link>
               )}
 
-              {/* Atalho Rápido para Operação ao Vivo */}
+              {/* Atalho Rápido para Radar ao Vivo */}
               <Link
-                to="/app/admin/operacao"
+                to="/app/admin/despacho"
                 className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1 h-8 rounded-lg bg-emerald-50 text-emerald-900 text-[11px] font-bold border border-emerald-300/80 hover:bg-emerald-100 active:scale-95 transition-all shadow-xs"
-                title="Operação ao Vivo"
+                title="Corridas e Radar ao Vivo"
               >
                 <Radio className="h-3.5 w-3.5 animate-pulse text-emerald-600 shrink-0" />
-                <span className="hidden sm:inline">Ao Vivo</span>
+                <span className="hidden sm:inline">Radar</span>
               </Link>
+
+              {/* Botão de Tela Cheia / Maximizar Workspace */}
+              <button
+                type="button"
+                onClick={toggleTelaCheia}
+                className="hidden md:flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-600 hover:text-slate-900 transition-all border border-slate-200 cursor-pointer shadow-2xs"
+                title={isTelaCheia ? "Restaurar Tela (ESC)" : "Maximizar Painel em Tela Cheia"}
+              >
+                {isTelaCheia ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+              </button>
 
               {/* Conta / Perfil */}
               <button
@@ -757,8 +884,11 @@ function SuperAdminLayout() {
             </div>
           </header>
 
-          <main className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 w-full min-w-0 pb-safe custom-admin-scrollbar">
-            <Outlet />
+          {/* Área de Trabalho Fluida (Workspace com aproveitamento integral da largura) */}
+          <main className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-6 w-full min-w-0 pb-safe custom-admin-scrollbar">
+            <div className="w-full max-w-[1920px] mx-auto min-h-full flex flex-col">
+              <Outlet />
+            </div>
           </main>
         </div>
 
@@ -819,14 +949,17 @@ function SuperAdminLayout() {
                       <div className="space-y-0.5">
                         {cat.itens.map((item) => {
                           const Icon = item.icon;
-                          const isAtivo = item.exact
-                            ? href === item.to || href === item.to + "/"
-                            : href.startsWith(item.to);
+                          const isAtivo = item.search?.aba
+                            ? href === item.to && searchStr.includes(`aba=${item.search.aba}`)
+                            : item.exact
+                            ? (href === item.to || href === item.to + "/") && !searchStr.includes("aba=")
+                            : href.startsWith(item.to) && !searchStr.includes("aba=");
 
                           return (
                             <Link
-                              key={item.to}
+                              key={item.search?.aba ? `${item.to}-${item.search.aba}` : item.to}
                               to={item.to}
+                              search={item.search as any}
                               onClick={() => setMenuAbertoMobile(false)}
                               style={
                                 isAtivo
@@ -851,11 +984,13 @@ function SuperAdminLayout() {
                                 <span style={isAtivo ? { color: primaryContrastColor } : undefined}>{item.label}</span>
                               </div>
                               {item.badge && (
-                                <span className={`text-[9px] px-1.5 py-0.2 rounded-md font-bold uppercase tracking-wider ${
+                                <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider ${
                                   item.badgeVariant === "critical"
                                     ? "bg-red-600 text-white animate-pulse"
                                     : item.badgeVariant === "warning"
                                     ? "bg-amber-400 text-slate-950 font-black"
+                                    : item.badge === "0% Taxa"
+                                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-extrabold"
                                     : "bg-slate-900 text-primary-500"
                                 }`}>
                                   {item.badge}

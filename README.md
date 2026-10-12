@@ -44,12 +44,12 @@ O **PARTIU** foi construído sob os princípios de **Clean Architecture**, **Dom
 
 ## 💻 Stack Tecnológica
 
-* **Frontend Web/PWA**: React 18, Vite 5, TanStack Router (`@tanstack/react-router`), Tailwind CSS v4, Lucide React, Radix UI.
-* **Mobile Runtime**: React Native (`@rnmapbox/maps`), Animated API nativa a 60 FPS com `useNativeDriver: true`.
+* **Frontend Web/PWA & SSR**: React 19.2.0, Vite 8.1.5, TanStack Router (`@tanstack/react-router` 1.170), TanStack Start com Nitro 3 (`nitro`), Tailwind CSS v4, Lucide React, Radix UI.
+* **Mobile Runtime**: PWA Standalone com Service Worker offline cache, Push Notifications, suporte a empacotamento Android/APK.
 * **Motor Cartográfico**: Mapbox GL JS v3, `@types/mapbox-gl`.
-* **Backend as a Service**: Supabase (`@supabase/supabase-js`), PostgreSQL 15+ com extensão espacial PostGIS.
+* **Backend as a Service**: Supabase (`@supabase/supabase-js` v2), PostgreSQL 15+ com extensão espacial PostGIS, Edge Functions e RLS Zero-Trust.
 * **Criptografia & Assinaturas**: Ed25519 (RFC 8032), HMAC-SHA256 para webhooks financeiros.
-* **Test Runner & Benchmarks**: Vitest v5, TSX (`tsx test/run-all-tests.mjs`).
+* **Test Runner & Benchmarks**: Test Harness Assíncrono com TSX (`npm test` / `tsx test/run-all-tests.mjs`) — 405 testes cobrindo FSMs, FinOps, despacho H3 e segurança.
 
 ---
 

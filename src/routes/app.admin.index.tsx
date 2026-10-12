@@ -261,7 +261,7 @@ export function SuperAdminDashboardExecutive() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="w-full space-y-6">
       {/* 1. Header Oficial do Dashboard */}
       <AdminPageHeader
         title={isSuperAdmin ? "Central de Operações & Comando" : `Cockpit da Franquia — ${pracaAtiva?.nome || "Regional"}`}
@@ -383,7 +383,7 @@ export function SuperAdminDashboardExecutive() {
         </div>
       ) : (
         /* Visão Mapa Cartográfico ao Vivo */
-        <div className="h-[650px] rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-md">
+        <div className="h-[calc(100vh-210px)] min-h-[600px] w-full rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-md">
           <UniversalMapView />
         </div>
       )}

@@ -85,3 +85,56 @@ self.addEventListener("notificationclick", (event) => {
     }),
   );
 });
+
+// Interceptador Fetch para contingência offline de navegação PWA
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") return;
+  const url = new URL(event.request.url);
+
+  // Ignora chamadas diretas ao Supabase, Mapbox ou rotas de API/Webhook
+  if (
+    url.hostname.includes("supabase.co") ||
+    url.hostname.includes("mapbox.com") ||
+    url.pathname.startsWith("/api/")
+  ) {
+    return;
+  }
+
+  // Estratégia Network-First com Fallback de Cache para navegação
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request).catch(async () => {
+        const cache = await caches.open(CACHE_NAME);
+        const cached = await cache.match(event.request);
+        return cached || (await cache.match("/manifest.json"));
+      }),
+    );
+    return;
+  }
+
+  // Estratégia Stale-While-Revalidate para recursos estáticos do próprio domínio
+  if (
+    url.origin === self.location.origin &&
+    (url.pathname.endsWith(".js") ||
+      url.pathname.endsWith(".css") ||
+      url.pathname.endsWith(".png") ||
+      url.pathname.endsWith(".svg") ||
+      url.pathname.endsWith(".ico") ||
+      url.pathname.endsWith(".woff2"))
+  ) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(async (cache) => {
+        const cached = await cache.match(event.request);
+        const fetchPromise = fetch(event.request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              cache.put(event.request, networkResponse.clone());
+            }
+            return networkResponse;
+          })
+          .catch(() => cached);
+        return cached || fetchPromise;
+      }),
+    );
+  }
+});

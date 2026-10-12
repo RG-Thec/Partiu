@@ -167,7 +167,7 @@ export default function DominiosPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16">
+    <div className="w-full space-y-6 pb-16">
       {/* CABEÇALHO */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-700/80 shadow-xl">
         <div>
