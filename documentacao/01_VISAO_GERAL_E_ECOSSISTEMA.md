@@ -1,4 +1,4 @@
-# 01. Visão Geral e Ecossistema PARTIU MOBE
+# 01. Visão Geral e Ecossistema PARTIU MOBE (Enterprise V6.0)
 
 ---
 
@@ -46,7 +46,7 @@ graph LR
 | **Monetização da Plataforma** | Confisco fracionado de corridas | **Mensalidades / Assinaturas periódicas** |
 | **Taxa de Aceite de Viagens** | Baixa (muitas recusas por taxa predatória) | **Alta (motorista lucra com cada km rodado)** |
 | **Relacionamento Local** | Distante, suporte automatizado e impessoal | **Franquias e cooperativas locais com atendimento humano** |
-| **Expansão e Regionalização** | Centralizada e monolítica | **Modelo White-Label com soberania municipal** |
+| **Expansão e Regionalização** | Centralizada e monolítica | **Modelo White-Label com soberania municipal e geofencing** |
 
 ---
 
@@ -58,7 +58,7 @@ O ecossistema PARTIU é composto por quatro papéis principais com responsabilid
 - **Interface:** Web App Mobile / PWA instalável com geolocalização e mapas em tempo real.
 - **Objetivo:** Solicitar corridas urbanas ou envios de encomendas com rapidez, segurança e tarifas justas.
 - **Pagamento:** Paga o valor integral da corrida diretamente ao motorista (dinheiro físico, chave Pix do condutor ou maquininha de cartão no carro).
-- **Recursos:** Estimativa prévia de trajeto e preço, mapa ao vivo com rastreamento do condutor, botão de emergência SOS, avaliação bilateral e suporte operacional.
+- **Recursos:** Estimativa prévia de trajeto e preço, mapa ao vivo com renderização 3D, botão de emergência SOS 190, avaliação bilateral e chat em tempo real.
 
 ### 2. Motorista Parceiro (Condutor / Operador da Frota)
 - **Interface:** Web App Mobile / PWA otimizado com modo escuro/claro, botões de alta ergonomia e comandos por voz.
@@ -76,13 +76,62 @@ O ecossistema PARTIU é composto por quatro papéis principais com responsabilid
 - **Interface:** Painel Web Administrativo Central (Nacional / Master).
 - **Objetivo:** Gestão global de escalabilidade, saúde financeira da holding, tecnologia e segurança.
 - **Métricas:** Dashboard executivo com MRR, ARR, LTV, CAC, Taxa de Churn de assinantes e GMV total transacionado na plataforma.
-- **Recursos:** Catálogo global de planos de assinatura, auditoria contábil FinOps (Ledger de dupla entrada), monitoramento de infraestrutura em tempo real, gestão de gateways Pix e modo avançado com proteção biométrica/confirmação explícita.
+- **Recursos:** Catálogo global de planos de assinatura, auditoria contábil FinOps (Ledger de dupla entrada), monitoramento de infraestrutura em tempo real, gestão de gateways Pix e modo avançado com proteção por confirmação explícita.
 
 ---
 
-## 4. Governança Multi-Tenant e Soberania Regional
+## 4. Modalidades Operacionais Multicategoria
+
+A plataforma PARTIU atende a quatro verticais de mobilidade urbana e logística sob a mesma infraestrutura unificada:
+
+1. **Carro Particular (Partiu Pop / Premium):**
+   - Viagens individuais sob demanda em veículos de 4 portas com ar-condicionado.
+   - Cálculo dinâmico de tarifa estimada por km/minuto e despacho em ondas concêntricas de 2km, 4km e 6km via PostGIS.
+2. **Moto-Táxi (Partiu Moto):**
+   - Deslocamento urbano de alta agilidade e baixo custo para passageiros individuais.
+   - Ícones 3D otimizados com piloto e capacete renderizados via GPU.
+3. **Entregas Expressas (Partiu Flash / Delivery):**
+   - Transporte fracionado de documentos e encomendas urbanas.
+   - Protocolo de segurança com **duplo PIN de autenticação**: PIN de Coleta (fornecido pelo remetente ao motorista) e PIN de Entrega (fornecido pelo destinatário ao motorista).
+4. **Transporte Complementar (Vans / Lotação):**
+   - Linhas e rotas semi-fixas intermunicipais ou interbairros.
+   - Emissão de bilhetes eletrônicos com assinatura assimétrica Ed25519, validação offline em totens veiculares e gestão de passes universitários/estudantis.
+
+---
+
+## 5. Governança Territorial de Franquias & Geofencing (Suíte 39)
+
+O PARTIU implementa um motor rigoroso de prioridade e soberania geográfica:
+
+```mermaid
+flowchart TD
+    ChamadaOrigem["Chamada de Corrida Iniciada na Cidade X"]
+    VerificaFranquia{"Existe Franquia Regional Licenciada para a Cidade X?"}
+    
+    VerificaFranquia -- Sim --> VerificaPerimetro{"Motorista / Corrida dentro do Perímetro Autorizado?"}
+    VerificaPerimetro -- Sim --> DespachoRegional["Despacho Aprovado pela Franquia Regional"]
+    VerificaPerimetro -- Não --> BloqueioAntiInvasao["Bloqueio Estrito: FORA_DO_PERIMETRO"]
+
+    VerificaFranquia -- Não --> FallbackMatriz["Matriz Nacional (Franquia Mãe): Cobertura Irrestrita"]
+    FallbackMatriz --> DespachoNacional["Despacho Aprovado pela Matriz"]
+```
+
+1. **Base Canônica de Municípios Brasileiros:**
+   - Base de dados geográfica contendo municípios brasileiros, estados (UF), coordenadas geodésicas centrais e autocomplete instantâneo para onboarding de praças.
+2. **Matriz Nacional (Franquia Mãe):**
+   - Possui cobertura irrestrita em todo o território nacional (`cobertura_nacional = true`).
+   - Atua automaticamente em qualquer cidade que ainda não possua uma franquia regional constituída.
+3. **Franquias Regionais & Bloqueio Anti-Invasão:**
+   - Uma franquia regional possui licenciamento para municípios específicos.
+   - O algoritmo de despacho bloqueia categoricamente corridas originadas fora dos limites licenciados (`FORA_DO_PERIMETRO`).
+4. **Direito de Expansão Territorial:**
+   - O Super Administrador pode licenciar municípios limítrofes/vizinhos a um franqueado existente, anexando cidades ao seu raio operacional com rateio de royalties unificado.
+
+---
+
+## 6. Governança Multi-Tenant e Soberania Regional
 
 O PARTIU foi arquitetado como uma plataforma **Multi-Tenant Nativa**:
 1. **Isolamento Lógico:** Cada praça ou franqueado opera sob um `tenant_id` específico, garantindo que condutores, frotas e dados financeiros de uma cidade não se misturem aos de outra praça.
 2. **Políticas de RLS (Row Level Security):** O banco de dados PostgreSQL bloqueia categoricamente acessos cruzados entre franquias no nível de kernel SQL.
-3. **Customização Visual (White-Label Studio):** Cada operador pode definir nome do aplicativo, logotipo, paleta de cores primárias, domínio próprio e termos de uso municipais sem alterar uma única linha do código-fonte central.
+3. **Customização Visual (White-Label Studio):** Cada operador pode definir nome do aplicativo, logotipo, paleta de cores primárias, domínio próprio e termos de uso municipais sem alterar o código-fonte central.

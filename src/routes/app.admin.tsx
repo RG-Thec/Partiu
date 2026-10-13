@@ -47,7 +47,6 @@ import {
 } from "@/lib/partiu-db";
 import {
   getAdminRole,
-  setAdminRole,
   getRoleMetadata,
   isAutenticadoAdmin,
   logoutAdmin,
@@ -282,10 +281,6 @@ const TODOS_MODULOS_SISTEMA = [
   { to: "/app/admin/governanca", label: "Governança & LGPD", categoriaTitulo: "Sistema", icon: ShieldCheck },
 ];
 
-const ROLES_DISPONIVEIS: { id: AdminRole; label: string; badge: string }[] = [
-  { id: "SUPER_ADMIN", label: "Super Administrador (Acesso Total)", badge: "bg-primary-600 text-slate-950" },
-  { id: "FRANQUEADO", label: "Franqueado (Acesso Local)", badge: "bg-indigo-600 text-white" },
-];
 
 function getContrastTextColor(hexColor: string): string {
   if (!hexColor || !hexColor.startsWith("#")) return "#FFFFFF";
@@ -402,11 +397,6 @@ function SuperAdminLayout() {
     };
   }, []);
 
-  function handleTrocarRole(novaRole: AdminRole) {
-    setAdminRole(novaRole);
-    setRoleAtiva(novaRole);
-    setContaAtiva(getContaAtiva());
-  }
 
   function handleLogout() {
     logoutAdmin();
@@ -592,27 +582,29 @@ function SuperAdminLayout() {
               </button>
             </div>
 
-            {/* Seletor de Perfil RBAC */}
+            {/* Perfil Autenticado (Somente Leitura) */}
             {!recolhido && (
-              <div className="px-2.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800/90 flex items-center justify-between gap-1.5 shadow-2xs">
-                <div className="flex items-center gap-1 shrink-0 text-slate-400">
+              <div className="px-2.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800/90 flex items-center justify-between gap-1.5 shadow-2xs select-none">
+                <div className="flex items-center gap-1.5 shrink-0 text-slate-400">
                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Perfil:
                   </span>
                 </div>
-                <select
-                  value={roleAtiva}
-                  onChange={(e) => handleTrocarRole(e.target.value as AdminRole)}
-                  className="w-full bg-slate-950 border border-slate-800 text-[10px] font-bold text-slate-200 rounded-lg px-2 py-1 h-7 focus:ring-1 focus:ring-amber-400 focus:outline-hidden cursor-pointer truncate"
-                  title="Alternar perfil de visualização RBAC"
+                <span
+                  className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md truncate ${
+                    roleAtiva === "SUPER_ADMIN"
+                      ? "bg-amber-400/10 text-amber-300 border border-amber-400/20"
+                      : "bg-indigo-500/10 text-indigo-300 border border-indigo-500/20"
+                  }`}
+                  title={
+                    roleAtiva === "SUPER_ADMIN"
+                      ? "Super Administrador (Acesso Total)"
+                      : `Franqueado: ${contaAtiva.tenantNome || "Acesso Local"}`
+                  }
                 >
-                  {ROLES_DISPONIVEIS.map((r) => (
-                    <option key={r.id} value={r.id} className="bg-slate-950 text-white font-medium text-xs py-1">
-                      {r.label}
-                    </option>
-                  ))}
-                </select>
+                  {roleAtiva === "SUPER_ADMIN" ? "Super Admin" : "Franqueado"}
+                </span>
               </div>
             )}
           </div>

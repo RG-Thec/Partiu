@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   getAdminRole,
-  setAdminRole,
   getContaAtiva,
   isSuperAdmin as checkIsSuperAdmin,
   isFranqueado as checkIsFranqueado,
@@ -16,7 +15,6 @@ export interface UseAdminAuthResult {
   isFranqueado: boolean;
   tenantId?: string | undefined;
   contaAtiva: AdminAccount;
-  trocarRole: (novaRole: AdminRole) => void;
   logout: () => void;
 }
 
@@ -25,6 +23,7 @@ export interface UseAdminAuthResult {
  * Fornece de forma limpa e binária:
  * - isSuperAdmin (Holding / Matriz: Acesso Total)
  * - isFranqueado (Operador Regional: Acesso restrito ao seu próprio tenant)
+ * O perfil é estritamente derivado da sessão autenticada do usuário (Super Admin ou Franqueado).
  */
 export function useAdminAuth(): UseAdminAuthResult {
   const [role, setRoleState] = useState<AdminRole>(() => getAdminRole());
@@ -38,16 +37,17 @@ export function useAdminAuth(): UseAdminAuthResult {
       }
     }
 
+    function handleAccountUpdated() {
+      setRoleState(getAdminRole());
+      setContaAtiva(getContaAtiva());
+    }
+
     window.addEventListener("partiu:role-changed", handleRoleChanged);
+    window.addEventListener("partiu:account-updated", handleAccountUpdated);
     return () => {
       window.removeEventListener("partiu:role-changed", handleRoleChanged);
+      window.removeEventListener("partiu:account-updated", handleAccountUpdated);
     };
-  }, []);
-
-  const trocarRole = useCallback((novaRole: AdminRole) => {
-    setAdminRole(novaRole);
-    setRoleState(novaRole);
-    setContaAtiva(getContaAtiva());
   }, []);
 
   const logout = useCallback(() => {
@@ -63,7 +63,6 @@ export function useAdminAuth(): UseAdminAuthResult {
     isFranqueado,
     tenantId: contaAtiva.tenantId,
     contaAtiva,
-    trocarRole,
     logout,
   };
 }

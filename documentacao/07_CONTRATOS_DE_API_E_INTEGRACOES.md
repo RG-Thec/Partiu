@@ -193,3 +193,59 @@ A aplicação conecta-se aos seguintes canais pub/sub para sincronização de ev
 | `realtime:driver_offers:${driver_id}` | `NEW_OFFER`, `OFFER_EXPIRED`, `OFFER_CANCELLED` | Despacho PostGIS $\to$ Motorista |
 | `realtime:subscription:${driver_id}` | `SUBSCRIPTION_ACTIVATED`, `ACCESS_UNBLOCKED` | Gateway Webhook $\to$ Motorista |
 | `realtime:admin_fleet:${tenant_id}` | `DRIVER_ONLINE`, `DRIVER_OFFLINE`, `SOS_ALERT` | Telemetria $\to$ Painel Operador |
+
+---
+
+## 5. Supabase Edge Functions & APIs Territoriais
+
+### A. Edge Function: `verify-and-create-ride`
+Valida integridade espacial e precifica a corrida antes da persistência:
+- **Rota:** `POST /functions/v1/verify-and-create-ride`
+- **Cabeçalhos:** `Authorization`, `apikey`, `Content-Type: application/json`
+- **Payload:**
+```json
+{
+  "pickup_lat": -9.649832,
+  "pickup_lng": -35.708945,
+  "dropoff_lat": -9.658210,
+  "dropoff_lng": -35.698420,
+  "category_id": "economico",
+  "passenger_id": "uuid-passageiro",
+  "tenant_id": "uuid-franquia"
+}
+```
+- **Processamento:**
+  1. Tenta roteamento via Mapbox Directions API para obter rota viária e tempo exato de percurso.
+  2. Caso o Mapbox falhe ou esgote o tempo limite, ativa fallback automático com distância geodésica Haversine ponderada.
+  3. Aplica a tabela tarifária da praça, gravando a corrida atômica no banco de dados.
+- **Resposta (200 OK):**
+```json
+{
+  "success": true,
+  "ride_id": "uuid-da-corrida",
+  "distance_km": 4.35,
+  "duration_min": 12,
+  "fare_cents": 2850,
+  "routing_source": "mapbox" 
+}
+```
+
+### B. Gestão de Franquias & Expansão Territorial (Super Admin)
+- **Licenciar Cidade para Franquia:** `POST /api/admin/franchises/:id/territories`
+- **Payload:**
+```json
+{
+  "city_id": 1420,
+  "radius_km": 20.0
+}
+```
+- **Resposta (201 Created):**
+```json
+{
+  "franchise_id": "uuid-franquia",
+  "city_name": "Marechal Deodoro",
+  "state_code": "AL",
+  "licensed": true,
+  "status": "AUTHORIZED"
+}
+```

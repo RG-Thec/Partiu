@@ -639,6 +639,20 @@ export function logoutAdmin(): void {
 export function getAdminRole(): AdminRole {
   if (typeof window === "undefined") return "SUPER_ADMIN";
   try {
+    const auth = localStorage.getItem(STORAGE_KEY_AUTH);
+    if (auth) {
+      const parsed = JSON.parse(auth);
+      if (parsed?.autenticado && parsed?.role) {
+        return normalizeAdminRole(parsed.role);
+      }
+    }
+    const session = localStorage.getItem("partiu_admin_session");
+    if (session) {
+      const parsedSession = JSON.parse(session);
+      if (parsedSession?.role) {
+        return normalizeAdminRole(parsedSession.role);
+      }
+    }
     const rawRole = localStorage.getItem(STORAGE_KEY_ROLE);
     if (!rawRole) return "SUPER_ADMIN";
     return normalizeAdminRole(rawRole);

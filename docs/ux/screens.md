@@ -265,7 +265,7 @@ whose code diverges from its record here is a "drifted" finding. -->
 ### SCR-15: Painel Administrativo Geral e Layout
 - **Used by:** FLW-08 step 1
 - **Purpose:** Navegação entre os 6 módulos centrais de gestão regional e login administrativo
-- **Elements:** Sidebar com RBAC, seletor de perfil ativo, notificações de sistema, botão de logout admin
+- **Elements:** Sidebar com RBAC, badge de perfil autenticado (somente leitura), notificações de sistema, botão de logout admin
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |-------|---------|-------------|----------|

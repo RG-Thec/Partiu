@@ -1,4 +1,4 @@
-# 04. Modelo de Negócio e Estratégia de Monetização (SaaS Puro)
+# 04. Modelo de Negócio e Estratégia de Monetização SaaS (Enterprise V6.0)
 
 ---
 
@@ -13,20 +13,20 @@ A monetização da plataforma decorre **exclusivamente de assinaturas de acesso 
 
 ```mermaid
 flowchart TD
-    subgraph FluxoCorrida ["🚗 Fluxo da Corrida (100% Repasse)"]
-        PassageiroPaga["Passageiro Paga R$ 45,00 (Dinheiro/Pix/Cartão)"]
+    subgraph FluxoCorrida ["🚗 Fluxo da Corrida (100% Repasse Líquido)"]
+        PassageiroPaga["Passageiro Paga R$ 45,00 (Dinheiro / Pix Direto / Maquininha)"]
         RecebimentoDireto["Motorista Recebe R$ 45,00 Direto (D+0)"]
-        RetencaoPlataforma["Taxa Plataforma = R$ 0,00 (0%)"]
+        RetencaoPlataforma["Taxa Plataforma = R$ 0,00 (0% Take Rate)"]
         PassageiroPaga --> RecebimentoDireto
         PassageiroPaga -.-> RetencaoPlataforma
     end
 
     subgraph FluxoMonetizacao ["💳 Fluxo de Monetização da Plataforma (SaaS)"]
         MotoristaAssina["Motorista Assina Plano Periódico"]
-        PixAutomatico["Pix Dinâmico Copia e Cola / Cartão"]
-        ConfirmacaoWebhook["Webhook do Gateway (Mercado Pago / Asaas)"]
+        PixAutomatico["Pix Dinâmico Copia e Cola / QR Code EMV"]
+        ConfirmacaoWebhook["Webhook Seguro do Gateway (HMAC + Idempotência)"]
         LiberacaoImediata["Liberação Instantânea no App (Ficar Online)"]
-        FaturamentoSaaS["Receita Recorrente Previsível (MRR)"]
+        FaturamentoSaaS["Receita Recorrente Previsível (MRR da Franquia & Matriz)"]
         
         MotoristaAssina --> PixAutomatico
         PixAutomatico --> ConfirmacaoWebhook
@@ -41,74 +41,90 @@ flowchart TD
 
 Os planos são parametrizáveis no Painel Administrativo (`/app/admin/monetizacao`) e contemplam diferentes perfis de trabalho (motoristas em tempo integral, condutores de fins de semana e iniciantes em teste):
 
-| Identificador | Nome do Plano | Periodicidade | Preço Sugerido (BRL) | Dias de Carência | Dias de Teste (*Trial*) | Take Rate por Corrida |
+| Identificador | Nome do Plano | Periodicidade | Preço Sugerido (BRL) | Dias de Carência | Período de Degustação (*Trial*) | Take Rate por Corrida |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `plano_diario_24h` | **Diária Express (24h)** | Diário (1 dia) | R$ 12,00 | 0 dias | 0 dias | **0,0%** |
 | `plano_semanal` | **Semanal Flex** | Semanal (7 dias) | R$ 45,00 | 1 dia | 0 dias | **0,0%** |
-| `plano_mensal_pro` | **Mensal Pro (Recomendado)** | Mensal (30 dias) | R$ 149,90 | 3 dias | 7 dias (primeiro cadastro) | **0,0%** |
+| `plano_mensal_pro` | **Mensal Pro (Recomendado)** | Mensal (30 dias) | R$ 149,90 | 3 dias | 3, 7 ou 30 dias (configurável) | **0,0%** |
 | `plano_trimestral` | **Trimestral Fidelidade** | Trimestral (90 dias) | R$ 389,00 | 5 dias | 0 dias | **0,0%** |
 | `plano_anual_vip` | **Anual VIP Platinum** | Anual (365 dias) | R$ 1.290,00 | 7 dias | 0 dias | **0,0%** |
 
-### Vantagens do Plano Diário (24h)
-Permite que motoristas casuais (que dirigem apenas sextas ou sábados) trabalhem sem o compromisso de pagar a mensalidade cheia, maximizando a adesão e o volume de veículos disponíveis nos horários de pico.
+### Configurador Visual de Trial (Degustação):
+O administrador pode selecionar a política de degustação para novos motoristas aprovados:
+- **Desativado (0 dias):** Exige contratação de plano imediatamente após aprovação documental.
+- **Trial Rápido (3 dias):** Ideal para onboarding agressivo com conversão rápida.
+- **Trial Padrão (7 dias):** Recomendado para maturação da praça e adesão inicial da frota.
+- **Trial Expansão (30 dias):** Utilizado no lançamento de novas cidades ou franquias para povoar a base de condutores.
 
 ---
 
-## 3. Ciclo de Vida da Assinatura do Condutor
+## 3. Ciclo de Vida da Assinatura e Avaliação de Acesso
 
 A conta de cada motorista transita por quatro estados finitos rigorosamente controlados pelo `DriverSubscriptionService`:
 
 ```mermaid
 stateDiagram-v2
-    [*] --> TRIAL: Novo Cadastro Aprovado
+    [*] --> TRIAL: Novo Cadastro Aprovado com Degustação
+    [*] --> PAYMENT_PENDING: Novo Cadastro sem Trial Ativo
     TRIAL --> ACTIVE: Pagamento da Primeira Fatura
-    TRIAL --> BLOCKED: Fim do Teste sem Pagamento
-    ACTIVE --> PAST_DUE: Data de Vencimento Atingida
+    TRIAL --> PAYMENT_PENDING: Expiração do Período de Teste
+    ACTIVE --> PAST_DUE: Data de Vigência Atingida (Em Carência)
     PAST_DUE --> ACTIVE: Pagamento Confirmado via Pix
-    PAST_DUE --> BLOCKED: Fim dos Dias de Carência sem Pagamento
-    BLOCKED --> ACTIVE: Regularização / Pagamento Confirmado
+    PAST_DUE --> PAYMENT_PENDING: Carência Expirada sem Quitação
+    PAYMENT_PENDING --> ACTIVE: Pagamento Pix Liquidado
     ACTIVE --> [*]: Cancelamento Voluntário
 ```
 
-### Detalhamento dos Estados:
+### Detalhamento dos Estados de Acesso:
 
-1. **`TRIAL` (Em Período de Teste Grátis):**
-   - Concedido automaticamente na aprovação inicial do cadastro documental (geralmente 7 dias).
-   - Motorista tem acesso pleno ao recebimento de chamados com 0% de comissão.
+1. **`TRIAL` (Em Período de Degustação Grátis):**
+   - Concedido automaticamente na aprovação documental conforme configuração da praça.
+   - Motorista tem acesso pleno e irrestrito ao recebimento de chamados com 0% de comissão.
 2. **`ACTIVE` (Assinatura Ativa e Regular):**
    - Mensalidade quitada e dentro do prazo de vigência (`validade_assinatura >= NOW()`).
-   - Elegibilidade total na esteira de despacho geográfico.
-3. **`PAST_DUE` (Vencida / Aguardando Pagamento em Período de Carência):**
-   - Assinatura venceu, mas o condutor está dentro dos dias de tolerância/carência (ex: 3 dias).
-   - No app, o motorista visualiza banner amarelo de aviso com botão de pagamento imediato, mas ainda pode realizar viagens durante a carência.
-4. **`BLOCKED` (Bloqueada por Inadimplência):**
-   - Carência expirou sem quitação da fatura.
-   - O aplicativo exibe tela de bloqueio com chave Pix Copia e Cola. O botão "Ficar Online" é desativado.
-   - O motor de despacho exclui o condutor imediatamente das buscas PostGIS.
+   - Elegibilidade total no motor de despacho geográfico (`MatchingEngine`).
+3. **`PAST_DUE` (Em Período de Tolerância / Carência):**
+   - Assinatura venceu, mas o condutor está dentro dos dias de tolerância configurados para o plano.
+   - O aplicativo exibe banner amarelo de aviso, mantendo o botão "Ficar Online" ativo para não interromper viagens no meio da jornada.
+4. **`PAYMENT_PENDING` (Inadimplente / Bloqueado para Chamadas):**
+   - Prazo de carência encerrado sem pagamento.
+   - O aplicativo desabilita o toggle "Ficar Online" e exibe tela de cobrança com Pix Copia e Cola.
+   - O `MatchingEngine` exclui o condutor imediatamente de qualquer busca de despacho.
 
 ---
 
-## 4. Integração de Pagamentos Pix e Desbloqueio Instantâneo
+## 4. Ciclo de Cobrança PIX & Idempotência Transacional
 
-A plataforma integra-se diretamente a gateways de pagamento autorizados pelo Banco Central (Mercado Pago, Asaas, PicPay e EFI Bank):
+A plataforma integra-se a múltiplos provedores Pix autorizados pelo BACEN (Mercado Pago, Asaas, PicPay e EFI Bank):
 
-1. **Geração Dinâmica de Pix:**
-   - Ao clicar em "Renovar Assinatura", o app solicita à Edge Function `/api/subscription/checkout-pix`.
-   - Um payload Pix dinâmico com chave EMV e QR Code é retornado com tempo de expiração de 15 a 30 minutos.
-2. **Confirmação via Webhook Seguro (HMAC-SHA256):**
-   - O gateway envia notificação de pagamento para o endpoint `/api/webhooks/pix-subscription`.
-   - O sistema valida a assinatura HMAC e o segredo do tenant.
-3. **Ativação Reativa em Menos de 2 Segundos:**
-   - A fatura transita para `paid`.
-   - O campo `validade_assinatura` do motorista é estendido por `+X dias`.
-   - O status é atualizado para `ACTIVE`.
-   - Um evento via canal WebSocket do Supabase Realtime é emitido para o aplicativo do condutor, desbloqueando instantaneamente o botão "Ficar Online" na tela do motorista sem necessidade de recarregar a página.
+1. **Criação de Cobrança com Metadados Preservados:**
+   - Ao gerar o Pix, o sistema registra identificador único, plano, ciclo de vigência e `tenant_id` da franquia.
+   - É gerado um payload EMV padrão BACEN com QR Code em tempo real.
+2. **Idempotência Estrita na Confirmação:**
+   - Webhooks recebidos contêm `Idempotency-Key` ou `payment_id` único do gateway.
+   - Retentativas do mesmo webhook confirmam o pagamento com sucesso sem duplicar prazos ou conceder dias adicionais indevidos.
+3. **Liberação Reativa em Milissegundos:**
+   - O banco atualiza a vigência (`validade_assinatura += periodo_dias`).
+   - Um evento via WebSocket do Supabase Realtime é transmitido para o app do motorista, desbloqueando a interface instantaneamente.
 
 ---
 
-## 5. Regra de Negócio no Motor de Despacho (Matching Engine)
+## 5. Auditoria Administrativa, Cortesia & Separação Contábil
 
-A regra de ouro da monetização está embutida no algoritmo de busca de condutores no arquivo [`src/services/MatchingEngine.ts`](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/src/services/MatchingEngine.ts) e na view de proximidade do PostgreSQL:
+### Concessão de Dias de Cortesia:
+Operadores autorizados no painel executivo podem conceder dias adicionais de bonificação para um motorista (por exemplo, 3 a 30 dias em caso de premiação ou resolução de suporte):
+- A ação registra um evento imutável de auditoria contendo: ID do administrador, justificativa operacional, data/hora e saldo de dias estendido.
+
+### Separação Contábil Estrita (Zero Confisco de Ganhos):
+- Os saques e repasses relativos às corridas concluídas pelos motoristas são **100% isolados** do sistema de cobrança de mensalidades.
+- A plataforma **NÃO realiza débitos automáticos** de mensalidades sobre os ganhos de corridas dos motoristas.
+- O motorista possui soberania total sobre seus rendimentos de transporte.
+
+---
+
+## 6. Regra de Ouro no Motor de Despacho (Matching Engine)
+
+A regra de ouro da monetização está embutida diretamente na cláusula de consulta espacial do PostgreSQL:
 
 ```sql
 -- Cláusula Mandatória de Despacho no PostgreSQL:
@@ -122,26 +138,25 @@ ORDER BY distancia ASC
 LIMIT 10;
 ```
 
-> **Garantia Arquitetural:** Motoristas inadimplentes ou com validade expirada sequer entram na fila de avaliação ou na onda de ofertas (*wave dispatch*). A integridade do modelo de negócio é garantida no nível de banco de dados e serviço.
+> **Blindagem de Domínio:** Se o motorista não estiver com assinatura válida (`ACTIVE` ou `TRIAL`), ele é categoricamente desconsiderado no cálculo espacial, garantindo a sustentabilidade financeira da operação.
 
 ---
 
-## 6. Modelo de Franquias e Repasse de Royalties
+## 7. Repasse de Royalties entre Matriz e Franquias Regionais
 
-Para praças operadas por parceiros regionais ou franqueados:
-- **Repasse das Assinaturas:** O franqueado recebe entre **70% e 90%** do valor das assinaturas pagas pelos condutores de sua cidade.
-- **Taxa de Tecnologia da Matriz:** A matriz da plataforma retém entre **10% e 30%** para custear servidores, infraestrutura em nuvem, mapas, suporte e melhorias de software.
-- **Corridas 100% dos Condutores:** Nem a matriz nem o franqueado descontam qualquer percentual das corridas realizadas na cidade.
+Nas praças operadas por franqueados:
+- **Royalties das Assinaturas:** O franqueado regional retém entre **70% e 90%** do valor líquido das assinaturas pagas pelos motoristas cadastrados em sua praça.
+- **Taxa Tecnológica da Matriz:** A matriz da plataforma retém entre **10% e 30%** para cobrir custos de infraestrutura em nuvem, servidores PostGIS, CDN, mapas e desenvolvimento contínuo.
+- **Corridas:** Nenhuma taxa é deduzida das corridas (0% de take rate em qualquer nível da organização).
 
 ---
 
-## 7. Métricas Executivas do Modelo SaaS (Painel de Gestão)
+## 8. Métricas Executivas SaaS
 
-O Painel Administrativo monitora a saúde financeira do negócio através das seguintes métricas SaaS:
-
-- **MRR (Monthly Recurring Revenue):** Faturamento mensal recorrente em assinaturas.
-- **ARR (Annual Run Rate):** Projeção de faturamento anual (`MRR * 12`).
-- **LTV (Lifetime Value):** Tempo médio de permanência do motorista multiplicado pela mensalidade média.
-- **CAC (Customer Acquisition Cost):** Custo de marketing/indicação por novo motorista ativo.
-- **Taxa de Churn:** Percentual de motoristas que cancelaram ou deixaram de renovar no período.
-- **GMV Total Transacionado:** Volume bruto movimentado pelos motoristas (métrica de impacto econômico mostrando quanto os motoristas faturaram livre de taxas abusivas).
+O painel de gestão executiva (`/app/admin/monetizacao`) acompanha em tempo real:
+- **MRR (Monthly Recurring Revenue):** Receita recorrente mensal acumulada.
+- **ARR (Annual Recurring Revenue):** Faturamento anual projetado (`MRR * 12`).
+- **LTV (Lifetime Value):** Tempo médio de retenção multiplicado pela mensalidade média.
+- **CAC (Customer Acquisition Cost):** Custo de aquisição por novo motorista ativo.
+- **Taxa de Churn:** Percentual de cancelamento ou não renovação de assinaturas.
+- **Economia Gerada para a Frota:** Valor total que os motoristas deixaram de pagar para Uber/99 graças ao modelo Taxa Zero do PARTIU.

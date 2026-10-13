@@ -1,6 +1,6 @@
 # 🏛️ PARTIU — Mobilidade Urbana: Arquitetura Técnica Oficial (Enterprise V6.0)
 
-> Especificação de Arquitetura de Software, Engenharia Cartográfica, Despacho Espacial, FinOps Ledger e Segurança Zero-Trust para a plataforma **PARTIU — Mobilidade Urbana**.
+> Especificação de Arquitetura de Software, Engenharia Cartográfica, Despacho Espacial, Monetização SaaS (Taxa Zero 0%), Governança Territorial de Franquias, FinOps Ledger e Segurança Zero-Trust para a plataforma **PARTIU — Mobilidade Urbana**.
 
 ---
 
@@ -12,7 +12,7 @@
   1. **Carro Particular (Partiu Pop / Premium)**: Viagens urbanas individuais sob demanda.
   2. **Moto-Táxi (Partiu Moto)**: Mobilidade ágil de baixo custo e alta capilaridade.
   3. **Entregas Expressas (Partiu Flash / Delivery)**: Encomendas com autenticação por duplo PIN (Coleta e Entrega).
-  4. **Transporte Complementar (Vans / Lotação)**: Linhas fixas, bilhetagem eletrônica offline e passe estudantil/universitário.
+  4. **Transporte Complementar (Vans / Lotação)**: Linhas fixas, bilhetagem eletrônica offline com assinatura Ed25519 e passe estudantil/universitário.
 
 ---
 
@@ -21,7 +21,8 @@
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                     1. EXPERIENCE & PRESENTATION LAYER                          │
-│  - Web / PWA: React 18, Vite 5, TanStack Router, Tailwind CSS v4, Lucide React │
+│  - Web / PWA / SSR: React 19, Vite 8, TanStack Router & Start (Nitro SSR),      │
+│    Tailwind CSS v4.2, Lucide React, Radix UI                                    │
 │  - Mobile Engine: React Native (@rnmapbox/maps), Reanimated & Animated 60 FPS   │
 │  - Cockpits: Passageiro, Motorista Parceiro, Lojista/Remetente, Admin Nacional  │
 └────────────────────────────────────────┬────────────────────────────────────────┘
@@ -31,12 +32,15 @@
 │  - Autenticação e Gestão de Sessão (Supabase Auth / JWT / MFA)                  │
 │  - Gateway de Idempotência Global (Idempotency-Key com SHA-256 Hash Chain)      │
 │  - Rate Limiting e Circuit Breaker (Token Bucket + Fault Isolation)             │
-│  - Sanitização de PII (Proteção automática de cartões de crédito e senhas)     │
+│  - Sanitização P0: Uso estrito de DATABASE_URL em variáveis de ambiente         │
+│  - Sanitização de PII (Proteção automática de dados sensíveis e senhas)         │
 └────────────────────────────────────────┬────────────────────────────────────────┘
                                          │
 ┌────────────────────────────────────────▼────────────────────────────────────────┐
 │                         3. DOMAIN & LOGISTICS CORE                              │
 │  - Dispatch Engine: ST_DWithin PostGIS, Ondas de 2km/4km/6km, DispatchScore     │
+│  - Territorial Geofencing: Matriz Nacional vs Franquias Regionais (Anti-Invasão)│
+│  - SaaS Subscription Service: Taxa Zero (0% Take Rate) & Controle de Vigência   │
 │  - En Route Experience: Tolerância de 2min, Smart Camera Padding (320px), SOS   │
 │  - Telemetry Pipeline: Continuous GPS, Snap to Route, Deadband e Heartbeat      │
 │  - Chat Engine: Supabase Realtime, Outbox Offline, Anti-Flood e Smart Replies   │
@@ -53,6 +57,7 @@
 │                         5. FINOPS LEDGER & SECURITY                             │
 │  - Strict Double-Entry Bookkeeping: SUM(Débitos) === SUM(Créditos)              │
 │  - Minor Units Precision: Contabilidade estrita em centavos inteiros            │
+│  - Separação Contábil Estrita: Saques de corridas isolados de mensalidades SaaS │
 │  - Webhook Engine: Assinatura HMAC-SHA256 e janela de tolerância de 5 minutos   │
 │  - Criptografia Ed25519: Emissão e validação offline de bilhetes                │
 │  - PostgreSQL 15+ com PostGIS e RLS Multi-Tenant Zero-Trust                     │
@@ -61,7 +66,7 @@
 
 ---
 
-## 3. Engenharia Cartográfica & Mapbox (Padrão Uber/99)
+## 3. Engenharia Cartográfica & Mapbox 3D (Padrão Uber/99)
 
 A camada cartográfica do **PARTIU** foi projetada para alto contraste, zero ruído visual e renderização em 60 FPS direta na GPU.
 
@@ -70,9 +75,9 @@ A camada cartográfica do **PARTIU** foi projetada para alto contraste, zero ru�
 * **Estética**: Asfalto e quarteirões em tons suaves de cinza, branco e gelo, eliminando a poluição cromática de mapas convencionais.
 * **Supressão Ativa de POIs**:
   No carregamento do mapa (`onDidFinishLoadingStyle`), as camadas de ruído visual são ocultadas em tempo de execução:
-  - `poi-label`: Remove ícones de restaurantes, lojas e pontos turísticos.
-  - `transit-label`: Remove ícones e rótulos de estações e paradas.
-  - `settlement-subdivision-label`: Remove nomes densos de pequenos bairros.
+  - `poi-label`: Remove ícones de estabelecimentos comerciais.
+  - `transit-label`: Remove ícones e rótulos de estações e paradas de transporte público.
+  - `settlement-subdivision-label`: Remove rótulos densos de pequenas divisões.
 * **Prédios 3D Volumétricos (`FillExtrusionLayer`)**:
   Ativados a partir do zoom 15 para dar tridimensionalidade sem obstruir as vias (`fillExtrusionColor: '#E2E8F0'`, `fillExtrusionOpacity: 0.3`).
 
@@ -81,9 +86,8 @@ A camada cartográfica do **PARTIU** foi projetada para alto contraste, zero ru�
   - `lineColor: '#FFFFFF'` (Branco puro)
   - `lineWidth: 7.5px`
   - `lineCap: 'round'`, `lineJoin: 'round'`
-  - Cria um contorno sólido que destaca a rota em qualquer piso.
 * **Linha Principal (`partiu-route-line`)**:
-  - `lineColor: '#1A1A1A'` (Preto profundo / chumbo escuro Uber)
+  - `lineColor: '#1A1A1A'` (Preto profundo)
   - `lineWidth: 4.8px`
   - `lineCap: 'round'`, `lineJoin: 'round'`
 
@@ -104,17 +108,17 @@ A camada cartográfica do **PARTIU** foi projetada para alto contraste, zero ru�
   - `iconSize`: Interpolação de `0.08` (zoom 10) até `0.25` (zoom 18).
 
 ### 3.4 Marcador de Passageiro em Tempo Real (`PulsingUserDot`)
-* Passado como componente filho dentro de `<MapboxGL.UserLocation>`.
+* Passado como componente nativo dentro de `<MapboxGL.UserLocation>`.
 * **Motor de Animação**: Loop infinito de 1800ms executado no thread de UI nativo a 60 FPS (`useNativeDriver: true`).
 * **Radar Expansivo**: Escala cresce de 1.0x para 2.8x enquanto a opacidade dissipa de 0.65 para 0.0.
-* **Ponto Central**: Círculo preto/grafite com borda branca de 3px e sombra de elevação (3.5px).
+* **Ponto Central**: Círculo grafite escuro com borda branca de 3px e sombra de elevação.
 
 ---
 
-## 4. Motor de Despacho & Logística (PostGIS ST_DWithin)
+## 4. Motor de Despacho & Logística Territorial
 
-### 4.1 Ondas Expansivas de Despacho
-O matching de motoristas parceiros opera em 3 ondas concêntricas para garantir menor tempo de espera (ETA) e economia de combustível:
+### 4.1 Ondas Expansivas de Despacho (PostGIS)
+O matching de motoristas parceiros opera em 3 ondas concêntricas:
 1. **Onda 1**: Raio de **2.000 metros** (prioridade máxima).
 2. **Onda 2**: Raio de **4.000 metros** (expansão aos 15 segundos).
 3. **Onda 3**: Raio de **6.000 metros** (expansão aos 30 segundos).
@@ -123,9 +127,14 @@ O matching de motoristas parceiros opera em 3 ondas concêntricas para garantir 
 Os motoristas dentro do raio são ordenados pela fórmula:
 $$\text{Score} = (\text{Distância} \times 0.40) + (\text{ETA} \times 0.25) + (\text{Plano/Fidelidade} \times 0.15) + (\text{Avaliação} \times 0.20)$$
 
+### 4.3 Geofencing & Prioridade Territorial de Franquias
+- **Matriz Nacional:** Atua com cobertura irrestrita em todo o território nacional.
+- **Franquias Regionais:** Possuem perímetro restrito às cidades licenciadas. Chamadas de fora do perímetro são bloqueadas com `FORA_DO_PERIMETRO`.
+- **Direito de Expansão:** O Super Admin pode licenciar cidades vizinhas para uma franquia regional já estabelecida.
+
 ---
 
-## 5. FinOps & Ledger de Partidas Dobradas
+## 5. FinOps & Monetização SaaS (Taxa Zero 0%)
 
 ### 5.1 Regra Fundamental da Contabilidade
 Nenhuma transação financeira pode ser criada sem balanceamento contábil rigoroso:
@@ -135,34 +144,33 @@ $$\sum \text{Débitos} \equiv \sum \text{Créditos}$$
 Todos os valores monetários no banco de dados e na memória do sistema são expressos em centavos inteiros (tipo `integer` ou `bigint`), eliminando imprecisões de arredondamento IEEE 754 de ponto flutuante:
 * Exemplo: Uma corrida de **R$ 38,00** é processada estritamente como **`3800` centavos**.
 
-### 5.3 Split Financeiro Automático
-Na conclusão da corrida, o montante em garantia (escrow) é liquidado atomicamente:
-* **Motorista Parceiro**: 85% a 91.5%
-* **Cooperativa / Franquia Local**: 7% a 10%
-* **Taxa de Gateway / PSP**: 1.5% a 2.5%
-* **Taxa da Plataforma Partiu**: Margem configurável por tenant.
+### 5.3 Modelo SaaS com Repasse Líquido Integral
+- **Corridas:** 100% repassado diretamente ao motorista (0% de comissão retida pela plataforma).
+- **Assinaturas Periódicas:** Planos Diário, Semanal, Mensal, Trimestral e Anual com ativação via Pix dinâmico e webhook HMAC com idempotência estrita.
+- **Isolamento de Contas:** Rendimentos de corridas nunca são debitados para pagamento compulsório de planos.
 
 ---
 
 ## 6. Segurança, Criptografia & RLS Multi-Tenant
 
-* **Row Level Security (RLS)**: Cada tabela do banco possui políticas ativas com cláusula `tenant_id = current_setting('app.current_tenant_id')`. Tentativas de acesso cross-tenant são bloqueadas pelo próprio kernel do PostgreSQL.
+* **Sanitização de Credenciais (P0):** Nenhuma credencial estática em scripts ou funções. Uso estrito de `process.env.DATABASE_URL`.
+* **Row Level Security (RLS)**: Cada tabela do banco possui políticas ativas com cláusula `tenant_id`. Tentativas de acesso cross-tenant são bloqueadas pelo kernel do PostgreSQL.
 * **Criptografia Assimétrica Ed25519 (RFC 8032)**:
   - Chaves privadas mantidas exclusivamente em variáveis de ambiente protegidas no servidor.
   - Validação de bilhetes de passagem em totens offline utilizando apenas a chave pública.
 * **Assinatura HMAC-SHA256**:
-  - Todos os webhooks de pagamento (Pix / Cartão) exigem cabeçalho `X-Partiu-Signature`.
+  - Todos os webhooks de pagamento (Pix / Cartão) exigem cabeçalho de assinatura criptográfica.
   - Payloads com timestamp superior a 5 minutos são descartados para prevenir ataques de replay.
 
 ---
 
-## 7. Qualidade de Software & Suíte de Testes
+## 7. Qualidade de Software & Suíte de Testes (39 Suítes / 411 Testes)
 
 O repositório inclui suíte automatizada de testes corporativos executada via `npm test` (`npx tsx test/run-all-tests.mjs`):
 
 ```text
 ================================================================================
-📊 RESULTADO FINAL V6.0 ENTERPRISE: 167/167 TESTES PASSARAM (0 FALHAS)
+📊 RESULTADO FINAL V6.0 ENTERPRISE: 411/411 TESTES PASSARAM (0 FALHAS)
 ================================================================================
 📂 Suíte 1:  Domain State Machines & Guard Invariants
 📂 Suíte 2:  Zero-Trust Multi-Tenancy & Adversarial RLS Guards
@@ -174,7 +182,7 @@ O repositório inclui suíte automatizada de testes corporativos executada via `
 📂 Suíte 8:  Cryptographic Key Lifecycle & Multi-Version Rotation
 📂 Suíte 9:  Offline Queue Sequence Gaps & Hash Chain
 📂 Suíte 10: Multi-Variable Telemetry & Anomaly Scoring Engine
-📂 Suíte 11: Real In-Process Concurrency Benchmark (1,000 iterations em 2ms)
+📂 Suíte 11: Real In-Process Concurrency Benchmark (1,000 ops em 3ms, p95 < 0.003ms)
 📂 Suíte 12: Authentic Ed25519 Cryptography (RFC 8032)
 📂 Suíte 13: Financial Webhook HMAC-SHA256 Anti-Tamper & Anti-Replay
 📂 Suíte 14: Strict Double-Entry Bookkeeping Ledger
@@ -182,10 +190,18 @@ O repositório inclui suíte automatizada de testes corporativos executada via `
 📂 Suíte 16: Atomic Seat Reservation & Concurrency Overbooking Preventor
 📂 Suíte 17: Outbox Worker Engine, Exponential Backoff & DLQ Dispatch
 📂 Suíte 18: SOS Security Hardening & Tenant Anti-Flood Guards
-📂 Suíte 19: GPS Geographic Deadband & Database Write Throttle
+📂 Suíte 19: GPS Geographic Deadband & Database Write Throttle (34% suprimido)
 📂 Suíte 20: Continuous GPS Engine & Resilient Background Telemetry
 📂 Suíte 21: Cloud Ticket Persistence & Phone Identity Normalization
 📂 Suíte 22: Broadcast Notifications & Multi-Category Routing Engine
+📂 Suíte 23: Fare Pricing Engine & Ride Cost Estimation
+📂 Suíte 24: Driver Acceptance Queue & Atomic Ride Claim
+📂 Suíte 25 a 33: Frotas Corporativas & Módulos Logísticos
+📂 Suíte 34: Monetização SaaS — Módulo 1: Catálogo de Planos & Trial Configurável
+📂 Suíte 35: Monetização SaaS — Módulo 2: Ciclo de Cobrança PIX & Idempotência
+📂 Suíte 36: Monetização SaaS — Módulo 3: Avaliação de Acesso & Controle de Vigência
+📂 Suíte 37: Monetização SaaS — Módulo 4: Auditoria Administrativa & Cortesia
+📂 Suíte 38: Monetização SaaS — Módulo 5: Métricas Financeiras Executivas
+📂 Suíte 39: Geofencing & Prioridade Territorial de Franquias (Super Admin)
 ================================================================================
 ```
-

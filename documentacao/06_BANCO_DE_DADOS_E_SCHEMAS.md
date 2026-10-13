@@ -262,4 +262,50 @@ CREATE POLICY "admin_select_tenant_rides"
               AND (au.is_super_admin = true OR au.tenant_id = rides.tenant_id)
         )
     );
+
+---
+
+## 6. Schemas de Governança Territorial de Franquias (Suíte 39)
+
+Para viabilizar a prioridade territorial entre Matriz Nacional e Franquias Regionais:
+
+```sql
+-- Base Canônica de Cidades Brasileiras:
+CREATE TABLE IF NOT EXISTS public.canonical_cities (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(120) NOT NULL,
+    state_code CHAR(2) NOT NULL,
+    ibge_code VARCHAR(10) UNIQUE,
+    latitude DOUBLE PRECISION NOT NULL,
+    longitude DOUBLE PRECISION NOT NULL,
+    center_geom geometry(Point, 4326),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_canonical_cities_state ON public.canonical_cities (state_code);
+CREATE INDEX IF NOT EXISTS idx_canonical_cities_geom ON public.canonical_cities USING GIST (center_geom);
+
+-- Cadastro de Franquias e Soberania Territorial:
+CREATE TABLE IF NOT EXISTS public.franchises (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID REFERENCES public.tenants(id) ON DELETE CASCADE,
+    name VARCHAR(150) NOT NULL,
+    slug VARCHAR(80) UNIQUE NOT NULL,
+    is_national_headquarters BOOLEAN DEFAULT false, -- Matriz Nacional
+    active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Territórios e Cidades Licenciadas por Franquia:
+CREATE TABLE IF NOT EXISTS public.franchise_territories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    franchise_id UUID REFERENCES public.franchises(id) ON DELETE CASCADE,
+    city_id INTEGER REFERENCES public.canonical_cities(id) ON DELETE RESTRICT,
+    radius_km DOUBLE PRECISION DEFAULT 15.0,
+    licensed_by UUID REFERENCES auth.users(id),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(franchise_id, city_id)
+);
+```
 ```

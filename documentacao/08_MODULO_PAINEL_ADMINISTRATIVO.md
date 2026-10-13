@@ -96,7 +96,16 @@ graph LR
 
 ---
 
-### F. Modo Avançado com Proteção por Confirmação
+### F. Gestão Territorial de Franquias (`/app/admin/franqueados`)
+Módulo exclusivo do Super Administrador para orquestração da rede nacional de franquias:
+- **Matriz Nacional (Franquia Mãe):** Identificada com badge permanente de soberania, cobrindo todo o Brasil e preenchendo vazios operacionais.
+- **Franquias Regionais:** Exibição da lista de cidades autorizadas por praça com raio de atuação em quilômetros.
+- **Licenciamento de Expansão Territorial:** Ação para vincular cidades vizinhas a uma franquia existente via busca canônica com autocomplete geodésico, ativando imediatamente o perímetro de despacho.
+- **Bloqueio Anti-Invasão:** Painel de auditoria de chamadas fora do perímetro, indicando tentativas de corrida bloqueadas com sucesso.
+
+---
+
+### G. Modo Avançado com Proteção por Confirmação
 Para evitar incidentes de indisponibilidade decorrentes de erros humanos:
 - A aba de configurações de infraestrutura (chaves secretas do Supabase, URLs de Webhook, DNS e certificados) é protegida por **tela de confirmação explícita**.
 - Modificações nesta área exigem digitação de código de segurança e geram logs imutáveis de auditoria com IP e timestamp.
