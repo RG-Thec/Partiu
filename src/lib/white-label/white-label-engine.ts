@@ -919,6 +919,7 @@ export class WhiteLabelEngine {
   private activeTenantId: string = "default";
   private tenantsMap: Map<string, WhiteLabelTenantRecord> = new Map();
   private broadcastChannel?: BroadcastChannel | undefined;
+  private isBroadcasting: boolean = false;
 
   private constructor() {
     this.initStorage();
@@ -1070,6 +1071,8 @@ export class WhiteLabelEngine {
 
   public broadcastUpdate(targetTenantId?: string): void {
     if (typeof window === "undefined") return;
+    if (this.isBroadcasting) return;
+    this.isBroadcasting = true;
     try {
       const tid = targetTenantId || this.activeTenantId;
       const tenant = this.tenantsMap.get(tid);
@@ -1122,7 +1125,11 @@ export class WhiteLabelEngine {
           });
         } catch {}
       }
-    } catch (err) { silentCatchWarn("white-label-engine", err); }
+    } catch (err) {
+      silentCatchWarn("white-label-engine", err);
+    } finally {
+      this.isBroadcasting = false;
+    }
   }
 
   // ============================================================================
@@ -1713,7 +1720,7 @@ export class WhiteLabelEngine {
    * (vindo do Supabase ou do BrandingProvider), garantindo que useBrandTheme e todos
    * os componentes dependentes reajam instantaneamente à nova identidade.
    */
-  public syncFromBrandingRecord(record: AppBrandingRecord): void {
+  public syncFromBrandingRecord(record: AppBrandingRecord, options?: { broadcast?: boolean }): void {
     if (!record || !record.tenant_id) return;
     const tid = record.tenant_id.trim();
     const existing = this.tenantsMap.get(tid);
@@ -1797,7 +1804,9 @@ export class WhiteLabelEngine {
       this.applyTheme(updatedConfig);
     }
     this.saveTenantsRegistry();
-    this.broadcastUpdate();
+    if (options?.broadcast) {
+      this.broadcastUpdate();
+    }
   }
 
   /**

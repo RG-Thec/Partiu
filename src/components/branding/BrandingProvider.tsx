@@ -145,40 +145,50 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
 
   const brandingRef = useRef<AppBrandingRecord>(branding);
   brandingRef.current = branding;
+  const isApplyingThemeRef = useRef(false);
 
-  // Aplicação de tema síncrona com deduplicação atômica
-  const applyBrandingTheme = useCallback((b: AppBrandingRecord) => {
-    const cur = brandingRef.current;
-    if (
-      cur &&
-      cur.tenant_id === b.tenant_id &&
-      cur.primary_color === b.primary_color &&
-      cur.secondary_color === b.secondary_color &&
-      cur.accent_color === b.accent_color &&
-      cur.background_color === b.background_color &&
-      cur.surface_color === b.surface_color &&
-      cur.text_primary === b.text_primary &&
-      cur.app_name === b.app_name &&
-      cur.logo_url === b.logo_url &&
-      cur.font_family === b.font_family &&
-      cur.border_radius === b.border_radius
-    ) {
-      return;
+  // Aplicação de tema síncrona com deduplicação atômica e proteção anti-reentrância
+  const applyBrandingTheme = useCallback((b: AppBrandingRecord, options?: { skipWhiteLabelSync?: boolean }) => {
+    if (isApplyingThemeRef.current) return;
+    isApplyingThemeRef.current = true;
+    try {
+      const cur = brandingRef.current;
+      if (
+        cur &&
+        cur.tenant_id === b.tenant_id &&
+        cur.primary_color === b.primary_color &&
+        cur.secondary_color === b.secondary_color &&
+        cur.accent_color === b.accent_color &&
+        cur.background_color === b.background_color &&
+        cur.surface_color === b.surface_color &&
+        cur.text_primary === b.text_primary &&
+        cur.app_name === b.app_name &&
+        cur.company_name === b.company_name &&
+        cur.logo_url === b.logo_url &&
+        cur.font_family === b.font_family &&
+        cur.border_radius === b.border_radius
+      ) {
+        return;
+      }
+
+      setBrandingState(b);
+      themeEngine.applyTheme(b);
+      if (!options?.skipWhiteLabelSync) {
+        try {
+          whiteLabelEngine.syncFromBrandingRecord(b, { broadcast: false });
+        } catch {}
+      }
+      try {
+        if (b.tenant_id) {
+          localStorage.setItem(`partiu_branding_tenant_${b.tenant_id}`, JSON.stringify(b));
+        }
+        if (!b.tenant_id || b.tenant_id === "default") {
+          localStorage.setItem(STORAGE_KEY_BRANDING, JSON.stringify(b));
+        }
+      } catch {}
+    } finally {
+      isApplyingThemeRef.current = false;
     }
-
-    setBrandingState(b);
-    themeEngine.applyTheme(b);
-    try {
-      whiteLabelEngine.syncFromBrandingRecord(b);
-    } catch {}
-    try {
-      if (b.tenant_id) {
-        localStorage.setItem(`partiu_branding_tenant_${b.tenant_id}`, JSON.stringify(b));
-      }
-      if (!b.tenant_id || b.tenant_id === "default") {
-        localStorage.setItem(STORAGE_KEY_BRANDING, JSON.stringify(b));
-      }
-    } catch {}
   }, []);
 
   // Escuta seleção dinâmica de paletas monocromáticas
@@ -333,7 +343,7 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
             ) {
               return;
             }
-            applyBrandingTheme(newRec);
+            applyBrandingTheme(newRec, { skipWhiteLabelSync: true });
             setLastSyncedAt(new Date());
           }
         }
@@ -344,7 +354,7 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
         (event) => {
           const payload = event.payload;
           if (payload?.branding && (payload.tenantId === activeTenantRef.current || payload.tenantId === "default")) {
-            applyBrandingTheme(payload.branding);
+            applyBrandingTheme(payload.branding, { skipWhiteLabelSync: true });
             setLastSyncedAt(new Date());
           }
         }
@@ -362,10 +372,10 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
             const incomingBranding = event.data?.branding;
             if (incomingTenantId === activeTenantRef.current || incomingTenantId === "default") {
               if (incomingBranding) {
-                applyBrandingTheme(incomingBranding);
+                applyBrandingTheme(incomingBranding, { skipWhiteLabelSync: true });
               } else if (event.data?.config) {
                 const converted = convertWhiteLabelToBrandingRecord(event.data.config, incomingTenantId);
-                applyBrandingTheme(converted);
+                applyBrandingTheme(converted, { skipWhiteLabelSync: true });
               }
               setLastSyncedAt(new Date());
             }
@@ -379,7 +389,7 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
       const cfg = e.detail;
       if (cfg && (cfg.tenantId === activeTenantRef.current || !cfg.tenantId)) {
         const converted = convertWhiteLabelToBrandingRecord(cfg, activeTenantRef.current);
-        applyBrandingTheme(converted);
+        applyBrandingTheme(converted, { skipWhiteLabelSync: true });
       }
     }
 
@@ -460,7 +470,7 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     };
 
     // Aplica imediatamente na UI (Zero Latency)
-    applyBrandingTheme(updated);
+    applyBrandingTheme(updated, { skipWhiteLabelSync: true });
 
     // Mantém WhiteLabelEngine sincronizado silenciosamente sem loops de broadcast
     try {

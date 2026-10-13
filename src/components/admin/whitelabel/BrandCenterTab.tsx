@@ -59,6 +59,24 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
     isTypingRef.current = false;
     const current = dataToSave || pendingDataRef.current;
 
+    const isUnchanged =
+      current.nomePlataforma === (brand?.nomePlataforma || "") &&
+      current.slogan === (brand?.slogan || "") &&
+      current.descricaoInstitucional === (brand?.descricaoInstitucional || "") &&
+      current.logoPrincipalUrl === (brand?.logos?.logoPrincipalUrl || "") &&
+      current.logoReduzidaUrl === (brand?.logos?.logoReduzidaUrl || "") &&
+      current.logoBrancaUrl === (brand?.logos?.logoBrancaUrl || "") &&
+      current.logoEscuraUrl === (brand?.logos?.logoEscuraUrl || "") &&
+      current.faviconDesktopUrl === (brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || "") &&
+      current.appleTouchIconUrl === (brand?.favicons?.appleTouchIconUrl || "") &&
+      current.emailContato === (brand?.emailContato || "") &&
+      current.telefoneSuporte === (brand?.telefoneSuporte || "") &&
+      current.whatsappSuporte === (brand?.whatsappSuporte || "");
+
+    if (isUnchanged) {
+      return;
+    }
+
     updateConfig({
       brandCenter: {
         ...brand,
@@ -83,7 +101,7 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
       },
     });
     onSaveFeedback();
-  }, [brand, updateConfig, onSaveFeedback]);
+  }, [brand, branding?.favicon_url, updateConfig, onSaveFeedback]);
 
   const handleFieldChange = useCallback((field: keyof BrandFormData, value: string) => {
     isTypingRef.current = true;
@@ -129,8 +147,24 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
       whatsappSuporte: brand?.whatsappSuporte || "",
     };
 
-    setFormData(externalState);
-    pendingDataRef.current = externalState;
+    const cur = pendingDataRef.current;
+    if (
+      cur.nomePlataforma !== externalState.nomePlataforma ||
+      cur.slogan !== externalState.slogan ||
+      cur.descricaoInstitucional !== externalState.descricaoInstitucional ||
+      cur.logoPrincipalUrl !== externalState.logoPrincipalUrl ||
+      cur.logoReduzidaUrl !== externalState.logoReduzidaUrl ||
+      cur.faviconDesktopUrl !== externalState.faviconDesktopUrl ||
+      cur.appleTouchIconUrl !== externalState.appleTouchIconUrl ||
+      cur.logoBrancaUrl !== externalState.logoBrancaUrl ||
+      cur.logoEscuraUrl !== externalState.logoEscuraUrl ||
+      cur.emailContato !== externalState.emailContato ||
+      cur.telefoneSuporte !== externalState.telefoneSuporte ||
+      cur.whatsappSuporte !== externalState.whatsappSuporte
+    ) {
+      setFormData(externalState);
+      pendingDataRef.current = externalState;
+    }
   }, [
     brand?.nomePlataforma,
     brand?.slogan,
