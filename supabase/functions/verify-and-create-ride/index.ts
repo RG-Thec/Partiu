@@ -101,7 +101,12 @@ serve(async (req: Request) => {
             encodedPolyline = data.routes[0].geometry || "";
           }
         }
-    } else {
+      } catch (err) {
+        console.warn("[verify-and-create-ride] Falha ao consultar Mapbox Directions:", err);
+      }
+    }
+
+    if (!encodedPolyline) {
       // Fallback geodésico server-side calibrado (malha urbana de 1.35x e velocidade média 24 km/h)
       const dLat = ((destinationCoordinates[1] - pickupCoordinates[1]) * Math.PI) / 180;
       const dLon = ((destinationCoordinates[0] - pickupCoordinates[0]) * Math.PI) / 180;

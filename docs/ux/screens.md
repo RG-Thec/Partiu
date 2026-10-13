@@ -33,7 +33,8 @@ whose code diverges from its record here is a "drifted" finding. -->
 | SCR-21 | Estúdio White Label | FLW-08 | [Figma Admin Theme](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=2010:918) | built | src/routes/app.admin.whitelabel.tsx:1-200 |
 | SCR-22 | Central de Incidentes SOS Admin | FLW-03 | [Figma Customer Chats](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=4001:884) | built | src/routes/app.admin.sos.tsx:1-150 |
 | SCR-23 | Configurações Globais do Sistema | FLW-08 | [Figma Admin Config](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=2010:918) | built | src/routes/app.admin.configuracoes.tsx:1-200 |
-| SCR-24 | Diagnóstico Geoespacial & WebGL | FLW-08 | [Figma Admin Map](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=2011:1124) | built | src/routes/app.admin.diagnostico.tsx:1-200 |
+| SCR-24 | Diagnóstico Geoespacial & WebGL | FLW-08 | [Figma Admin Map](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=2011:1124) | built | src/routes/app.admin.diagnostico.tsx:1-187 |
+| SCR-25 | Gestão Central de Franqueados & Multi-Tenant | FLW-08 | [Figma Admin Home](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=2010:918) | built | src/routes/app.admin.franqueados.tsx:1-1200 |
 
 ## Design system
 
@@ -59,7 +60,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | success | padrão | none — code first | Exibe a landing institucional com cores dinâmicas do White Label e navegação mobile-first |
   | loading | carregando dados da cidade | none — code first | Skeleton nos cards de cotação |
   | error | falha de conexão | none — code first | Mensagem de contingência mantendo botões funcionais |
-- **Coverage:** src/routes/index.tsx:1-40, src/components/landing/LandingHero.tsx:1-498
+- **Coverage:** src/routes/index.tsx:1-39, src/components/landing/LandingHero.tsx:1-498
 - **Scenarios:** SCN-005
 - **Resources:** src/components/landing/, useBrandTheme
 - **Status:** built
@@ -74,7 +75,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | success | dados carregados | none — code first | Fade-out suave em 220ms transicionando para a tela solicitada |
   | loading | em progresso | none — code first | Barra animada de 0 a 100% com curva acelerada (~550ms) |
   | error | falha crítica | none — code first | Exibe opção de recarregar a aplicação |
-- **Coverage:** src/components/branding/SplashScreen.tsx:1-171
+- **Coverage:** src/components/branding/SplashScreen.tsx:1-170
 - **Scenarios:** SCN-005
 - **Resources:** useBranding, useBrandTheme
 - **Status:** built
@@ -132,7 +133,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | success | documentos enviados | none — code first | Confirmação com status em análise e opções "Ir para o login" e "Acessar cockpit" |
   | error | documento ilegível ou inválido | none — code first | Alerta no campo com orientação de novo envio |
   | loading | fazendo upload de fotos ou salvando | none — code first | Barra de progresso e spinner no botão de confirmação |
-- **Coverage:** src/routes/cadastro-motorista.tsx:1-1110
+- **Coverage:** src/routes/cadastro-motorista.tsx:1-1107
 - **Scenarios:** SCN-005
 - **Resources:** driverFleetService, Supabase Storage
 - **Status:** built
@@ -162,7 +163,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | empty | nenhum motorista online | none — code first | Informa ausência temporária de veículos no raio e sugere aguardar |
   | error | falha de geocodificação ou rede | none — code first | Mensagem de erro amigável com botão de tentar novamente |
   | loading | calculando rotas e tarifas | none — code first | Skeleton nos cards de categoria e traçado animado no mapa |
-- **Coverage:** src/routes/app.index.tsx:1-835, src/components/home/Header.tsx:1-168, src/components/common/PartiuLogo.tsx:1-240, src/components/home/DestinationCard.tsx:1-280, src/components/navigation/ModeTabSelector.tsx:1-65
+- **Coverage:** src/routes/app.index.tsx:1-834, src/components/home/Header.tsx:1-167, src/components/common/PartiuLogo.tsx:1-240, src/components/home/DestinationCard.tsx:1-187, src/components/navigation/ModeTabSelector.tsx:1-65
 - **Scenarios:** SCN-001
 - **Resources:** src/components/map/, Mapbox GL, Supabase
 - **Status:** built
@@ -256,7 +257,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | empty | condutor offline | none — code first | Painel em repouso com resumo das corridas anteriores |
   | error | GPS desativado ou sem sinal | none — code first | Alerta visual solicitando ativação do serviço de localização |
   | loading | conectando ao despacho | none — code first | Spinner sutil de sincronização com o cluster PostGIS |
-- **Coverage:** src/routes/app.motorista.tsx:1-2636, src/components/driver/cockpit/states/IdleState.tsx:1-234
+- **Coverage:** src/routes/app.motorista.tsx:1-2451, src/components/driver/cockpit/states/IdleState.tsx:1-230
 - **Scenarios:** SCN-002
 - **Resources:** src/components/driver/, Supabase Realtime
 - **Status:** built
@@ -357,7 +358,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | superadmin | superadministrador seleciona franquia | none — code first | Banner de controle ativo com pré-visualização, teste rápido e propagação instantânea de white label para a praça selecionada |
   | regional | acesso com perfil franqueado | none — code first | Exibe 5 abas operacionais locais, oculta abas globais e bloqueia edição de identificadores nativos de compilação |
   | loading | compilando tema | none — code first | Indicador de persistência no Supabase |
-- **Coverage:** src/routes/app.admin.whitelabel.tsx:1-550, src/components/admin/whitelabel/MonetizationTab.tsx:1-260, src/components/admin/whitelabel/GeoAppComplianceTab.tsx:640-750, src/lib/white-label/white-label-engine.ts:1-700, src/components/branding/BrandingProvider.tsx:1-720
+- **Coverage:** src/routes/app.admin.whitelabel.tsx:1-487, src/components/admin/whitelabel/MonetizationTab.tsx:1-256, src/components/admin/whitelabel/GeoAppComplianceTab.tsx:640-750, src/lib/white-label/white-label-engine.ts:1-700, src/components/branding/BrandingProvider.tsx:1-709
 - **Scenarios:** SCN-010
 - **Resources:** ThemeEngine, LandingPageStore, whiteLabelEngine, saveMonetizacaoConfig, BrandingProvider
 - **Status:** built
@@ -399,7 +400,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   |-------|---------|-------------|----------|
   | success | telemetria sincronizada | none — code first | Exibe taxas de FPS (60 Hz), precisão GNSS em metros, status WSS e contadores de requisições Mapbox |
   | loading | medindo sinal GPS | none — code first | Spinner animado no botão Testar Sinal com leitura em tempo real via Geolocation API |
-- **Coverage:** src/routes/app.admin.diagnostico.tsx:1-200
+- **Coverage:** src/routes/app.admin.diagnostico.tsx:1-187
 - **Scenarios:** SCN-008
 - **Resources:** MapDiagnosticPanel, UniversalMapView, useTelemetriaFrota
 - **Status:** built

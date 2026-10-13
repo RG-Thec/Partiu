@@ -1,6 +1,19 @@
+import fs from "fs";
+import path from "path";
 import pg from "pg";
 
-const connectionString = "postgresql://postgres:Presbitero%402026@db.wlmnwazdntayhrsndfor.supabase.co:5432/postgres";
+let connectionString = process.env.DATABASE_URL || process.env.SUPABASE_DB_URL;
+if (!connectionString) {
+  try {
+    const envContent = fs.readFileSync(path.resolve(process.cwd(), ".env"), "utf-8");
+    const match = envContent.match(/DATABASE_URL=["']?([^"'\r\n]+)["']?/);
+    if (match) connectionString = match[1];
+  } catch {}
+}
+if (!connectionString) {
+  console.error("❌ Defina DATABASE_URL no arquivo .env");
+  process.exit(1);
+}
 
 async function main() {
   const client = new pg.Client({ connectionString, ssl: { rejectUnauthorized: false } });

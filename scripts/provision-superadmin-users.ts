@@ -1,7 +1,20 @@
+import fs from "fs";
+import path from "path";
 import pg from "pg";
 import crypto from "crypto";
 
-const connectionString = "postgresql://postgres:Presbitero%402026@db.wlmnwazdntayhrsndfor.supabase.co:5432/postgres";
+let connectionString = process.env.DATABASE_URL || process.env.SUPABASE_DB_URL;
+if (!connectionString) {
+  try {
+    const envContent = fs.readFileSync(path.resolve(process.cwd(), ".env"), "utf-8");
+    const match = envContent.match(/DATABASE_URL=["']?([^"'\r\n]+)["']?/);
+    if (match) connectionString = match[1];
+  } catch {}
+}
+if (!connectionString) {
+  console.error("❌ Defina DATABASE_URL no arquivo .env");
+  process.exit(1);
+}
 
 interface AdminUserSeed {
   email: string;
@@ -9,26 +22,28 @@ interface AdminUserSeed {
   password: string;
 }
 
+const defaultAdminPassword = process.env.SUPERADMIN_DEFAULT_PASSWORD || "AdminPartiu2026!";
+
 const SUPER_ADMINS_TO_PROVISION: AdminUserSeed[] = [
   {
     email: "superadmin@partiu.app",
     name: "Super Administrador Geral",
-    password: "AdminPartiu2026!",
+    password: defaultAdminPassword,
   },
   {
     email: "admin@partiumobe.com.br",
     name: "Administrador Geral (PARTIU MOBE)",
-    password: "AdminPartiu2026!",
+    password: defaultAdminPassword,
   },
   {
     email: "admin@partiu.app",
     name: "Administrador Matriz",
-    password: "AdminPartiu2026!",
+    password: defaultAdminPassword,
   },
   {
     email: "dono@partiu.app",
     name: "Proprietário Plataforma PARTIU",
-    password: "AdminPartiu2026!",
+    password: defaultAdminPassword,
   },
 ];
 

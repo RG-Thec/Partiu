@@ -366,7 +366,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             {actions.map((action, idx) => {
               const isPassenger = action.style === "primaryGradient" || action.type === "passenger";
-              const label = isPassenger ? "Pedir corrida" : "Dirigir com o Partiu";
+              const label = isPassenger ? "Pedir corrida" : "Dirigir com o PARTIU";
               const subtitle = isPassenger ? "Carro ou moto em minutos" : "100% repasse no Pix D+0";
 
               return (

@@ -403,7 +403,7 @@ export function CadastroPassageiroPage() {
                   ) : (
                     <>
                       <span>➔</span>
-                      <span>CONFIRMAR CRIAÇÃO DE CONTA</span>
+                      <span>Confirmar criação de conta</span>
                     </>
                   )}
                 </button>

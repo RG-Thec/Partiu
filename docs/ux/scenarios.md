@@ -15,6 +15,8 @@
 | SCN-007 | Consulta de histórico de viagens e envio de encomendas | Atividade e Encomendas | P-01 | ST-007, FLW-07 (JTBD-01, JRN-01/#5) | implemented | 2026-10-02 |
 | SCN-008 | Telemetria executiva e despacho operacional administrativo | Governança e Operação | P-03 | ST-008, FLW-08 (JTBD-03, JRN-01/#2) | implemented | 2026-10-02 |
 | SCN-009 | Tarifa dinâmica automática de alta demanda e sobretaxa administrativa imediata | Tarifa Dinâmica & Despacho | P-01, P-03 | ST-001, ST-008, FLW-01, FLW-08 | implemented | 2026-10-11 |
+| SCN-010 | Governança White Label com segregação regional e sincronização em tempo real | Identidade & White Label | P-03 | ST-008, FLW-08 (JTBD-03, JRN-01/#2) | implemented | 2026-10-12 |
+| SCN-011 | Gestão Central de Franqueados e Multi-Tenant com Visualização Fluida e Ações Imediatas | Gestão Central de Franqueados & Multi-Tenant | P-03 | ST-008, FLW-08 (JTBD-03, JRN-01/#2) | implemented | 2026-10-12 |
 
 ## Personas
 
@@ -190,7 +192,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Errors & recovery:** Se o canal WebSocket em tempo real sofrer desconexão, o painel alterna automaticamente para polling HTTP a cada 5 segundos e alerta o operador no cabeçalho.
 - **Telemetry:** admin_dispatch_audit (action_type, target_ride_id)
 - **Status:** implemented
-- **Coverage:** src/routes/app.admin.despacho.tsx:1-150, src/routes/app.admin.diagnostico.tsx:1-200, src/routes/app.admin.monitoramento.tsx:1-250
+- **Coverage:** src/routes/app.admin.despacho.tsx:1-150, src/routes/app.admin.diagnostico.tsx:1-187, src/routes/app.admin.monitoramento.tsx:1-250
 - **Product:** unobserved
 
 ## Tarifa Dinâmica & Despacho
@@ -235,7 +237,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Errors & recovery:** Tentativas de acesso direto a abas restritas por URL são interceptadas pelo guardião de navegação e redirecionadas para a aba inicial permitida (Brand Center).
 - **Telemetry:** whitelabel_tenant_updated (tenant_id, role, updated_modules)
 - **Status:** implemented
-- **Coverage:** src/routes/app.admin.whitelabel.tsx:60-550, src/routes/app.admin.franqueados.tsx:420-650, src/lib/white-label/white-label-engine.ts:1-700, src/components/branding/BrandingProvider.tsx:1-720, src/components/admin/whitelabel/MonetizationTab.tsx:1-260, src/components/admin/whitelabel/GeoAppComplianceTab.tsx:640-750, src/components/passenger/PassengerReviewRouteSheet.tsx:100-240
+- **Coverage:** src/routes/app.admin.whitelabel.tsx:60-487, src/routes/app.admin.franqueados.tsx:420-650, src/lib/white-label/white-label-engine.ts:1-700, src/components/branding/BrandingProvider.tsx:1-709, src/components/admin/whitelabel/MonetizationTab.tsx:1-256, src/components/admin/whitelabel/GeoAppComplianceTab.tsx:640-750, src/components/passenger/PassengerReviewRouteSheet.tsx:100-240
 - **Product:** unobserved
 
 ### SCN-011: Gestão Central de Franqueados e Multi-Tenant com Visualização Fluida e Ações Imediatas

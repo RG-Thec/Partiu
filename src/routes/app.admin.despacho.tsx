@@ -1226,7 +1226,7 @@ export function DespachoCentralCorridas() {
                     htmlFor="switch-auto-surge"
                     className="text-xs font-bold cursor-pointer text-foreground select-none"
                   >
-                    {dispatchSettings.autoSurgeAtivo !== false ? "Tarifa Automática Ativa" : "Tarifa Automática Desativada"}
+                    {dispatchSettings.autoSurgeAtivo !== false ? "Tarifa automática ativa" : "Tarifa automática desativada"}
                   </label>
                 </div>
 
@@ -1324,7 +1324,7 @@ export function DespachoCentralCorridas() {
                   className="min-h-11 px-4 rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground font-bold text-xs sm:text-sm transition-colors cursor-pointer shadow-sm flex items-center gap-2"
                 >
                   <X className="w-4 h-4" />
-                  Desativar Sobretaxa Agora
+                  Desativar sobretaxa agora
                 </button>
               ) : (
                 <button
@@ -1333,7 +1333,7 @@ export function DespachoCentralCorridas() {
                   className="min-h-11 px-5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm transition-colors cursor-pointer shadow-sm flex items-center gap-2"
                 >
                   <Flame className="w-4 h-4" />
-                  Aplicar Sobretaxa Imediata
+                  Aplicar sobretaxa imediata
                 </button>
               )}
             </div>

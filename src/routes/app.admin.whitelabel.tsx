@@ -262,7 +262,7 @@ function WhiteLabelStudioContent() {
             title="Abrir aplicativo em nova aba"
           >
             <ExternalLink className="w-3.5 h-3.5 text-primary" />
-            <span className="hidden sm:inline">Testar App</span>
+            <span className="hidden sm:inline">Testar app</span>
           </button>
 
           {/* Clonar Cidade (SuperAdmin) */}

@@ -875,7 +875,7 @@ function SuperAdminFranqueadosContent() {
                             title="Copiar link do app, login e senha em 1 clique"
                           >
                             <Share2 className="w-3.5 h-3.5 text-slate-500" />
-                            <span>Copiar Acesso</span>
+                            <span>Copiar acesso</span>
                           </button>
                         )}
 
@@ -889,7 +889,7 @@ function SuperAdminFranqueadosContent() {
                               : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
                           }`}
                         >
-                          <span>{isExpanded ? "Ocultar Detalhes" : "Detalhes & Links"}</span>
+                          <span>{isExpanded ? "Ocultar detalhes" : "Detalhes & links"}</span>
                           {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                         </button>
                       </div>
@@ -1108,7 +1108,7 @@ function SuperAdminFranqueadosContent() {
                               title="Personalizar identidade visual, cores e regras desta franquia"
                             >
                               <Palette className="w-3.5 h-3.5 text-primary-500" />
-                              <span>Personalizar White Label</span>
+                              <span>Personalizar white label</span>
                             </button>
 
                             {!isMatriz && (

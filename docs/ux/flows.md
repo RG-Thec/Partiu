@@ -216,6 +216,8 @@ flowchart TD
   D --> E[Screen: SCR-19 Gestão de Passageiros]
   E --> F[Screen: SCR-21 Estúdio White Label]
   F --> G[Screen: SCR-23 Configurações Globais do Sistema]
+  G --> H[Screen: SCR-24 Diagnóstico Geoespacial & WebGL]
+  H --> I[Screen: SCR-25 Gestão Central de Franqueados & Multi-Tenant]
 ```
 
 - **Screens traversed:**
@@ -228,3 +230,5 @@ flowchart TD
   | SCR-19 Gestão de Passageiros | success |
   | SCR-21 Estúdio White Label | success |
   | SCR-23 Configurações Globais do Sistema | success |
+  | SCR-24 Diagnóstico Geoespacial & WebGL | success |
+  | SCR-25 Gestão Central de Franqueados & Multi-Tenant | success |
