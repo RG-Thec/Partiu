@@ -279,6 +279,9 @@ export function PartiuAppAuthGate({
           // Solicita a senha cadastrada
           setEmail(cleanInput);
           setPassengerStep("LOGIN_PASSWORD");
+          if (checkResult.userName) {
+            setSuccessMessage(`Conta reconhecida! Olá, ${checkResult.userName}. Digite sua senha para entrar.`);
+          }
         }
       } else {
         // Usuário NÃO EXISTE -> Direciona para o Formulário de Cadastro (Step 1)
@@ -288,7 +291,7 @@ export function PartiuAppAuthGate({
           setTelefone(checkResult.formattedContact);
         }
         setPassengerStep("SIGNUP_STEP_1");
-        setSuccessMessage("Conta não encontrada nesta praça. Preencha seus dados para criar sua conta!");
+        setSuccessMessage("Novo por aqui? Preencha seus dados para criar sua conta gratuita!");
       }
     } catch (err: any) {
       setLoading(false);

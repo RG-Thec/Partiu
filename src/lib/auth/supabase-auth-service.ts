@@ -127,6 +127,17 @@ export function isMatchingTenant(userTenantId: string | null | undefined, target
   return normalizeUserTenantId(userTenantId) === normalizeUserTenantId(targetTenantId);
 }
 
+/**
+ * Detecta se o código está executando dentro de um ambiente de testes automatizados (Jest / Vitest / Node test runner).
+ * Em ambiente de produção e desenvolvimento no navegador (Vite), retorna false.
+ */
+export function isTestEnvironment(): boolean {
+  if (typeof process !== "undefined" && process.env?.NODE_ENV === "test") {
+    return true;
+  }
+  return false;
+}
+
 // Perfis padrão para teste rápido em ambiente de homologação
 const DEMO_PROFILES: Record<UserRole, AuthUserProfile> = {
   PASSAGEIRO: {
@@ -476,8 +487,8 @@ export class SupabaseAuthService {
       } catch {}
     }
 
-    // 2. Verificação no Supabase (filtrada pelo tenant_id se configurado)
-    if (isSupabaseConfigured() && typeof process !== "undefined" && process.env?.NODE_ENV !== "test") {
+    // 2. Verificação no Supabase
+    if (isSupabaseConfigured() && !isTestEnvironment()) {
       try {
         // A. Checagem em public.profiles
         if (cleanEmail) {
@@ -485,14 +496,13 @@ export class SupabaseAuthService {
             .from("profiles")
             .select("id, email, tenant_id")
             .eq("email", cleanEmail)
-            .eq("tenant_id", effectiveTenantId)
             .maybeSingle();
 
           if (profileByEmail) {
             return {
               registered: true,
               field: "email",
-              message: "Este e-mail já está cadastrado nesta praça. Faça login para acessar sua conta.",
+              message: "Este e-mail já está cadastrado no sistema. Faça login para acessar sua conta.",
             };
           }
         }
@@ -501,15 +511,14 @@ export class SupabaseAuthService {
           const { data: profileByCpf } = await (supabase as any)
             .from("profiles")
             .select("id, cpf, tenant_id")
-            .eq("cpf", cpf)
-            .eq("tenant_id", effectiveTenantId)
+            .eq("cpf", cleanCpf)
             .maybeSingle();
 
           if (profileByCpf) {
             return {
               registered: true,
               field: "cpf",
-              message: "Este CPF já está cadastrado nesta praça.",
+              message: "Este CPF já está cadastrado no sistema.",
             };
           }
         }
@@ -520,14 +529,13 @@ export class SupabaseAuthService {
             .from("partiu_passageiros")
             .select("id, email, tenant_id")
             .eq("email", cleanEmail)
-            .eq("tenant_id", effectiveTenantId)
             .maybeSingle();
 
           if (paxByEmail) {
             return {
               registered: true,
               field: "email",
-              message: "Este e-mail já está cadastrado como passageiro nesta praça. Faça login.",
+              message: "Este e-mail já está cadastrado como passageiro. Faça login para acessar.",
             };
           }
         }
@@ -536,15 +544,14 @@ export class SupabaseAuthService {
           const { data: paxByCpf } = await (supabase as any)
             .from("partiu_passageiros")
             .select("id, cpf, tenant_id")
-            .eq("cpf", cpf)
-            .eq("tenant_id", effectiveTenantId)
+            .eq("cpf", cleanCpf)
             .maybeSingle();
 
           if (paxByCpf) {
             return {
               registered: true,
               field: "cpf",
-              message: "Este CPF já está cadastrado nesta praça.",
+              message: "Este CPF já está cadastrado no sistema.",
             };
           }
         }
@@ -555,14 +562,13 @@ export class SupabaseAuthService {
             .from("partiu_motoristas")
             .select("id, email, tenant_id")
             .eq("email", cleanEmail)
-            .eq("tenant_id", effectiveTenantId)
             .maybeSingle();
 
           if (drvByEmail) {
             return {
               registered: true,
               field: "email",
-              message: "Este e-mail já está cadastrado como motorista parceiro nesta praça. Faça login.",
+              message: "Este e-mail já está cadastrado como motorista parceiro. Faça login para acessar.",
             };
           }
         }
@@ -572,14 +578,13 @@ export class SupabaseAuthService {
             .from("partiu_motoristas")
             .select("id, cpf, tenant_id")
             .eq("cpf", cleanCpf)
-            .eq("tenant_id", effectiveTenantId)
             .maybeSingle();
 
           if (drvByCpf) {
             return {
               registered: true,
               field: "cpf",
-              message: "Este CPF já está vinculado a um motorista cadastrado nesta praça.",
+              message: "Este CPF já está vinculado a um motorista cadastrado.",
             };
           }
         }
@@ -852,25 +857,68 @@ export class SupabaseAuthService {
     tenantId?: string;
   }): Promise<AuthResult> {
     const { email, senha, role, tenantId } = params;
-    const cleanEmail = email.trim().toLowerCase();
+    let cleanEmail = email.trim().toLowerCase();
     const effectiveTenantId = tenantId || getActiveAuthTenantId();
 
+    // Se o identificador for um número de celular, resolve o e-mail cadastrado
+    if (cleanEmail && !cleanEmail.includes("@")) {
+      const norm = normalizarTelefoneBR(cleanEmail);
+      if (norm.valido) {
+        if (isSupabaseConfigured() && !isTestEnvironment()) {
+          try {
+            const { data: pData } = await (supabase as any)
+              .from("profiles")
+              .select("email")
+              .or(`phone.eq.${norm.formatado},phone.eq.${norm.e164}`)
+              .maybeSingle();
+            if (pData?.email) {
+              cleanEmail = pData.email.trim().toLowerCase();
+            } else {
+              const { data: paxData } = await (supabase as any)
+                .from("partiu_passageiros")
+                .select("email")
+                .or(`telefone.eq.${norm.formatado},telefone.eq.${norm.e164}`)
+                .maybeSingle();
+              if (paxData?.email) {
+                cleanEmail = paxData.email.trim().toLowerCase();
+              }
+            }
+          } catch {}
+        }
+        if (!cleanEmail.includes("@") && typeof localStorage !== "undefined") {
+          try {
+            const storeKey = getTenantUsersStoreKey(effectiveTenantId);
+            const rawStore = localStorage.getItem(storeKey);
+            if (rawStore) {
+              const list = JSON.parse(rawStore);
+              if (Array.isArray(list)) {
+                const found = list.find((u: any) => u.phone && u.phone.replace(/\D/g, "").endsWith(norm.apenasDigitos.slice(-8)));
+                if (found?.email) {
+                  cleanEmail = found.email.trim().toLowerCase();
+                }
+              }
+            }
+          } catch {}
+        }
+      }
+    }
+
     if (!cleanEmail || !cleanEmail.includes("@")) {
-      return { success: false, error: "Informe um endereço de e-mail válido." };
+      return { success: false, error: "Informe um endereço de e-mail ou celular cadastrado válido." };
     }
     if (!senha || senha.length < 4) {
       return { success: false, error: "A senha deve conter no mínimo 6 caracteres." };
     }
 
     // 1. Verificação com Supabase Auth Real se configurado
-    if (isSupabaseConfigured() && typeof process !== "undefined" && process.env?.NODE_ENV !== "test") {
+    if (isSupabaseConfigured() && !isTestEnvironment()) {
       try {
         const authPromise = supabase.auth.signInWithPassword({
           email: cleanEmail,
           password: senha,
         });
         const timeoutPromise = new Promise<any>((resolve) =>
-          setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 2500)
+          setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 15000)
         );
         const { data, error } = await Promise.race([authPromise, timeoutPromise]);
 
@@ -895,10 +943,18 @@ export class SupabaseAuthService {
             profileData = pData;
           } catch {}
 
-          // ISOLAMENTO RIGOROSO MULTI-TENANT:
-          // Se a conta pertencer a outro tenant, desloga do Supabase e bloqueia o acesso
+          let finalRole: UserRole = role;
+          const rawRole = profileData?.role || data.user.user_metadata?.["role"] || "";
+          if (rawRole.toLowerCase() === "driver" || rawRole.toUpperCase() === "MOTORISTA") {
+            finalRole = "MOTORISTA";
+          } else if (rawRole.toLowerCase() === "admin" || rawRole.toUpperCase() === "ADMIN") {
+            finalRole = "ADMIN";
+          }
+
+          // ISOLAMENTO MULTI-TENANT:
+          // Apenas motoristas e administradores exigem vínculo territorial exclusivo
           const userTenantId = profileData?.tenant_id || data.user.user_metadata?.["tenant_id"];
-          if (!isMatchingTenant(userTenantId, effectiveTenantId)) {
+          if (finalRole !== "PASSAGEIRO" && userTenantId && !isMatchingTenant(userTenantId, effectiveTenantId)) {
             try {
               await Promise.race([
                 supabase.auth.signOut({ scope: "local" }),
@@ -907,16 +963,18 @@ export class SupabaseAuthService {
             } catch {}
             return {
               success: false,
-              error: "Esta conta de usuário pertence a outra franquia. Crie uma nova conta neste aplicativo para continuar.",
+              error: "Esta conta está vinculada a outra praça/franquia. Para atuar nesta praça, solicite credenciamento local.",
             };
           }
 
-          let finalRole: UserRole = role;
-          const rawRole = profileData?.role || data.user.user_metadata?.["role"] || "";
-          if (rawRole.toLowerCase() === "driver" || rawRole.toUpperCase() === "MOTORISTA") {
-            finalRole = "MOTORISTA";
-          } else if (rawRole.toLowerCase() === "admin" || rawRole.toUpperCase() === "ADMIN") {
-            finalRole = "ADMIN";
+          // Se for passageiro e seu tenant_id em profiles for null, vincula à praça atual
+          if (finalRole === "PASSAGEIRO" && !profileData?.tenant_id && effectiveTenantId && effectiveTenantId !== "default") {
+            try {
+              await (supabase as any)
+                .from("profiles")
+                .update({ tenant_id: effectiveTenantId })
+                .eq("id", data.user.id);
+            } catch {}
           }
 
           let driverApprovalStatus = profileData?.approval_status || (finalRole === "MOTORISTA" ? "pendente" : "aprovado");
@@ -1334,22 +1392,52 @@ export class SupabaseAuthService {
         }
       } catch {}
 
-      // 3. Checagem remota no Supabase (filtrada pelo tenant_id da franquia)
-      if (isSupabaseConfigured() && typeof process !== "undefined" && process.env?.NODE_ENV !== "test") {
+      // 3. Checagem remota no Supabase
+      if (isSupabaseConfigured() && !isTestEnvironment()) {
         try {
-          const { data } = await (supabase as any)
+          const { data: pData } = await (supabase as any)
             .from("profiles")
             .select("id, full_name, email, role, tenant_id")
             .eq("email", cleanEmail)
-            .eq("tenant_id", effectiveTenantId)
             .maybeSingle();
 
-          if (data) {
+          let profileMatch = pData;
+          if (!profileMatch) {
+            const { data: paxData } = await (supabase as any)
+              .from("partiu_passageiros")
+              .select("id, nome, email, tenant_id")
+              .eq("email", cleanEmail)
+              .maybeSingle();
+            if (paxData) {
+              profileMatch = {
+                id: paxData.id,
+                full_name: paxData.nome,
+                email: paxData.email,
+                role: "passenger",
+                tenant_id: paxData.tenant_id,
+              };
+            }
+          }
+
+          if (profileMatch) {
+            const isDriver = profileMatch.role === "driver" || profileMatch.role === "MOTORISTA";
+            const userTenantId = profileMatch.tenant_id;
+
+            // Se for tentativa de login no portal do motorista, respeita isolamento da praça
+            if (isDriver && role === "MOTORISTA" && userTenantId && !isMatchingTenant(userTenantId, effectiveTenantId)) {
+              return {
+                exists: false,
+                contactType: "EMAIL",
+                formattedContact: cleanEmail,
+                suggestedAuthMode: "PASSWORD",
+              };
+            }
+
             return {
               exists: true,
               contactType: "EMAIL",
               formattedContact: cleanEmail,
-              userName: data.full_name || undefined,
+              userName: profileMatch.full_name || undefined,
               suggestedAuthMode: "PASSWORD",
             };
           }
@@ -1424,22 +1512,51 @@ export class SupabaseAuthService {
         }
       } catch {}
 
-      // 3. Checagem remota no Supabase (filtrada pelo tenant_id da franquia)
-      if (isSupabaseConfigured() && norm.valido) {
+      // 3. Checagem remota no Supabase
+      if (isSupabaseConfigured() && norm.valido && !isTestEnvironment()) {
         try {
-          const { data } = await (supabase as any)
+          const { data: pData } = await (supabase as any)
             .from("profiles")
-            .select("id, full_name, phone, tenant_id")
-            .eq("tenant_id", effectiveTenantId)
+            .select("id, full_name, phone, role, tenant_id")
             .or(`phone.eq.${norm.formatado},phone.eq.${norm.e164}`)
             .maybeSingle();
 
-          if (data) {
+          let phoneMatch = pData;
+          if (!phoneMatch) {
+            const { data: paxData } = await (supabase as any)
+              .from("partiu_passageiros")
+              .select("id, nome, telefone, tenant_id")
+              .or(`telefone.eq.${norm.formatado},telefone.eq.${norm.e164}`)
+              .maybeSingle();
+            if (paxData) {
+              phoneMatch = {
+                id: paxData.id,
+                full_name: paxData.nome,
+                phone: paxData.telefone,
+                role: "passenger",
+                tenant_id: paxData.tenant_id,
+              };
+            }
+          }
+
+          if (phoneMatch) {
+            const isDriver = phoneMatch.role === "driver" || phoneMatch.role === "MOTORISTA";
+            const userTenantId = phoneMatch.tenant_id;
+
+            if (isDriver && role === "MOTORISTA" && userTenantId && !isMatchingTenant(userTenantId, effectiveTenantId)) {
+              return {
+                exists: false,
+                contactType: "PHONE",
+                formattedContact: formatted,
+                suggestedAuthMode: "SMS_OTP",
+              };
+            }
+
             return {
               exists: true,
               contactType: "PHONE",
               formattedContact: formatted,
-              userName: data.full_name || undefined,
+              userName: phoneMatch.full_name || undefined,
               suggestedAuthMode: "SMS_OTP",
             };
           }
@@ -1501,7 +1618,7 @@ export class SupabaseAuthService {
 
     // 1. Criação no Supabase Auth
     let supabaseUserId = `usr-pax-${Date.now().toString(36)}`;
-    if (isSupabaseConfigured() && typeof process !== "undefined" && process.env?.NODE_ENV !== "test") {
+    if (isSupabaseConfigured() && !isTestEnvironment()) {
       try {
         const signUpPromise = supabase.auth.signUp({
           email: cleanEmail,
@@ -1518,7 +1635,7 @@ export class SupabaseAuthService {
           },
         });
         const timeoutPromise = new Promise<any>((resolve) =>
-          setTimeout(() => resolve({ data: null, error: null }), 2500)
+          setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 15000)
         );
         const { data, error } = await Promise.race([signUpPromise, timeoutPromise]);
 
@@ -1532,6 +1649,12 @@ export class SupabaseAuthService {
             return {
               success: false,
               error: "Este endereço de e-mail já está cadastrado no sistema. Faça login para continuar.",
+            };
+          }
+          if (error.message === "timeout") {
+            return {
+              success: false,
+              error: "Tempo de resposta esgotado. Verifique sua conexão com a internet e tente novamente.",
             };
           }
           return { success: false, error: error.message };
