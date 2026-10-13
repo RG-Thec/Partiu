@@ -249,7 +249,9 @@ function SuperAdminFranqueadosContent() {
 
   function handleCopiarLinkApp(tenant: WhiteLabelTenantRecord) {
     const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
-    const url = `${origin}/app?tenant=${encodeURIComponent(tenant.tenantId)}`;
+    const url = tenant.tenantId && tenant.tenantId !== "default"
+      ? `${origin}/?tenant=${encodeURIComponent(tenant.tenantId)}`
+      : `${origin}/`;
     navigator.clipboard.writeText(url);
     toast.success(`Link de passageiros de ${tenant.nomeOperacao} copiado!`);
   }
@@ -263,7 +265,9 @@ function SuperAdminFranqueadosContent() {
 
   function handleAbrirApp(tenant: WhiteLabelTenantRecord) {
     const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
-    const url = `${origin}/app?tenant=${encodeURIComponent(tenant.tenantId)}`;
+    const url = tenant.tenantId && tenant.tenantId !== "default"
+      ? `${origin}/?tenant=${encodeURIComponent(tenant.tenantId)}`
+      : `${origin}/`;
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
@@ -337,7 +341,9 @@ function SuperAdminFranqueadosContent() {
     const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
     const email = tenant.adminEmail || tenant.responsavelEmail || `${tenant.tenantId.replace("tenant-", "")}@partiu.app`;
     const senha = tenant.adminSenha || "Franqueado2026!";
-    const urlApp = `${origin}/app?tenant=${encodeURIComponent(tenant.tenantId)}`;
+    const urlApp = tenant.tenantId && tenant.tenantId !== "default"
+      ? `${origin}/?tenant=${encodeURIComponent(tenant.tenantId)}`
+      : `${origin}/`;
     const urlMotorista = `${origin}/app/motorista?tenant=${encodeURIComponent(tenant.tenantId)}`;
     const urlPainel = `${origin}/app/admin/login`;
 
@@ -986,7 +992,7 @@ function SuperAdminFranqueadosContent() {
                             <span className="text-[10px] font-bold text-slate-500 block uppercase">App do Passageiro</span>
                             <div className="flex items-center gap-1">
                               <code className="text-[11px] font-mono text-primary-600 dark:text-primary-400 truncate flex-1 select-all">
-                                /app?tenant={tenant.tenantId}
+                                /?tenant={tenant.tenantId}
                               </code>
                               <button
                                 type="button"

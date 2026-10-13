@@ -108,19 +108,29 @@ export default function MeuAplicativoPage() {
     }
   }, [effectiveTenantId, conta.tenantNome, branding.app_name]);
 
-  // Link Oficial Permanente do Aplicativo
+  // Link Oficial Permanente do Aplicativo (Página Inicial com Identidade da Praça)
   const officialAppUrl = useMemo(() => {
     if (dominioRecord && dominioRecord.status === "ATIVO") {
       return `https://${dominioRecord.domain}`;
     }
-    if (typeof window === "undefined") return "/app";
-    return `${window.location.origin}/app?tenant=${encodeURIComponent(effectiveTenantId)}`;
+    if (typeof window === "undefined") return "/";
+    if (effectiveTenantId && effectiveTenantId !== "default") {
+      return `${window.location.origin}/?tenant=${encodeURIComponent(effectiveTenantId)}`;
+    }
+    return `${window.location.origin}/`;
   }, [dominioRecord, effectiveTenantId]);
 
-  // Link de Teste Imediato / Web Preview
+  // Link de Teste Imediato / Web Preview (Página Inicial)
   const previewAppUrl = useMemo(() => {
-    if (typeof window === "undefined") return `/app?tenant=${encodeURIComponent(effectiveTenantId)}`;
-    return `${window.location.origin}/app?tenant=${encodeURIComponent(effectiveTenantId)}`;
+    if (typeof window === "undefined") {
+      return effectiveTenantId && effectiveTenantId !== "default"
+        ? `/?tenant=${encodeURIComponent(effectiveTenantId)}`
+        : "/";
+    }
+    if (effectiveTenantId && effectiveTenantId !== "default") {
+      return `${window.location.origin}/?tenant=${encodeURIComponent(effectiveTenantId)}`;
+    }
+    return `${window.location.origin}/`;
   }, [effectiveTenantId]);
 
   const appUrl = officialAppUrl;
@@ -150,10 +160,17 @@ export default function MeuAplicativoPage() {
   }, [officialAppUrl, previewAppUrl, qrCodeMode]);
 
   // URLs diretas por perfil
+  // Passageiro: direciona para a Página Inicial com a marca da franquia para apresentação e login
   const passengerAppUrl = useMemo(() => {
-    if (typeof window === "undefined") return `/app?tenant=${encodeURIComponent(effectiveTenantId)}`;
-    return `${window.location.origin}/app?tenant=${encodeURIComponent(effectiveTenantId)}`;
-  }, [effectiveTenantId]);
+    if (dominioRecord && dominioRecord.status === "ATIVO") {
+      return `https://${dominioRecord.domain}`;
+    }
+    if (typeof window === "undefined") return "/";
+    if (effectiveTenantId && effectiveTenantId !== "default") {
+      return `${window.location.origin}/?tenant=${encodeURIComponent(effectiveTenantId)}`;
+    }
+    return `${window.location.origin}/`;
+  }, [dominioRecord, effectiveTenantId]);
 
   const driverAppUrl = useMemo(() => {
     if (typeof window === "undefined") return `/app/motorista?tenant=${encodeURIComponent(effectiveTenantId)}`;
@@ -539,7 +556,7 @@ export default function MeuAplicativoPage() {
                     <Smartphone className="w-3.5 h-3.5 text-primary" />
                     App Passageiro
                   </span>
-                  <span className="text-[10px] font-mono text-slate-400">/app</span>
+                  <span className="text-[10px] font-mono text-slate-400">Página Inicial</span>
                 </div>
                 <input
                   type="text"

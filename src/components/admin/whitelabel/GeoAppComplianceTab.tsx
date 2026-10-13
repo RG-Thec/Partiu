@@ -48,10 +48,11 @@ export function GeoAppComplianceTab({
   const [testandoMapa, setTestandoMapa] = useState(false);
   const [resultadoTesteMapa, setResultadoTesteMapa] = useState<{ valid: boolean; message: string } | null>(null);
   const [mostrarToken, setMostrarToken] = useState(false);
-
-  const tenantId = activeTenant?.tenantId || "default";
   const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
-  const passengerUrl = `${origin}/app?tenant=${encodeURIComponent(tenantId)}`;
+  const tenantId = activeTenant?.tenantId || "default";
+  const passengerUrl = tenantId && tenantId !== "default"
+    ? `${origin}/?tenant=${encodeURIComponent(tenantId)}`
+    : `${origin}/`;
   const driverUrl = `${origin}/app/motorista?tenant=${encodeURIComponent(tenantId)}`;
 
   function handleCopiarLink(url: string, label: string) {

@@ -269,7 +269,10 @@ function WhiteLabelStudioContent() {
             type="button"
             onClick={() => {
               const origin = typeof window !== "undefined" ? window.location.origin : "";
-              const url = `${origin}/app?tenant=${encodeURIComponent(activeTenant?.tenantId || "default")}`;
+              const activeTenantId = activeTenant?.tenantId || "default";
+              const url = activeTenantId !== "default"
+                ? `${origin}/?tenant=${encodeURIComponent(activeTenantId)}`
+                : `${origin}/`;
               window.open(url, "_blank", "noopener,noreferrer");
             }}
             className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border border-slate-700"

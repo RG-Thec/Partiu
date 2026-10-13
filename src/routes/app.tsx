@@ -74,12 +74,7 @@ export const Route = createFileRoute("/app")({
         return { user: session?.user ?? (storedUser as any) ?? null, tenantId: effectiveTenantId };
       }
 
-      // 2. Rota inicial do Passageiro: permite exploração e simulação no mapa em modo convidado / Live Preview
-      if (pathname === "/app" || pathname === "/app/") {
-        return { user: session?.user ?? (storedUser as any) ?? null, tenantId: effectiveTenantId };
-      }
-
-      // 3. Demais rotas privadas do passageiro (/app/perfil, /app/bilhetes, /app/encomendas, /app/viagem): exigem autenticação
+      // 2. Rotas do passageiro (/app, /app/perfil, /app/bilhetes, /app/encomendas, /app/viagem): exigem autenticação obrigatória
       if (!isAuthenticated) {
         throw redirect({
           to: "/auth",

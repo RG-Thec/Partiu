@@ -39,9 +39,13 @@ import {
 } from "@/components/ui/white-label";
 import { CameraPhotoCapture } from "@/components/common/CameraPhotoCapture";
 import { Mail } from "lucide-react";
-
+import { whiteLabelEngine } from "@/lib/white-label";
 
 export const Route = createFileRoute("/cadastro-motorista")({
+  validateSearch: (search: Record<string, unknown>): { tenant?: string; tenant_id?: string } => ({
+    tenant: typeof search.tenant === "string" ? search.tenant : undefined,
+    tenant_id: typeof search.tenant_id === "string" ? search.tenant_id : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Cadastro de Motorista & Entregador Parceiro | PARTIU" },
@@ -56,6 +60,17 @@ export const Route = createFileRoute("/cadastro-motorista")({
 });
 
 export function CadastroMotoristaPage() {
+  const search = Route.useSearch();
+  const tenantParam = search.tenant || search.tenant_id;
+
+  useEffect(() => {
+    if (tenantParam && tenantParam.trim()) {
+      try {
+        whiteLabelEngine.switchTenant(tenantParam.trim());
+      } catch {}
+    }
+  }, [tenantParam]);
+
   const {
     nomeApp,
     corPrimaria,
@@ -348,6 +363,7 @@ export function CadastroMotoristaPage() {
       <div className="w-full max-w-xl mx-auto px-4 pt-[max(0.5rem,calc(env(safe-area-inset-top,0px)))] flex items-center justify-between pb-2">
         <Link
           to="/"
+          search={tenantParam ? { tenant: tenantParam } : undefined}
           className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition active:scale-95 shadow-2xs"
           aria-label="Voltar para início"
         >
@@ -367,7 +383,7 @@ export function CadastroMotoristaPage() {
         </span>
         <Link
           to="/auth"
-          search={{ role: "MOTORISTA" }}
+          search={{ role: "MOTORISTA", ...(tenantParam ? { tenant: tenantParam } : {}) }}
           className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 transition active:scale-95 shadow-2xs whitespace-nowrap"
           style={{ color: colors.primary }}
           aria-label="Entrar como motorista"
@@ -1084,12 +1100,20 @@ export function CadastroMotoristaPage() {
             </div>
 
             <div className="pt-3 space-y-2.5">
-              <Link to="/auth" search={{ role: "MOTORISTA" }} className="block w-full">
+              <Link
+                to="/auth"
+                search={{ role: "MOTORISTA", ...(tenantParam ? { tenant: tenantParam } : {}) }}
+                className="block w-full"
+              >
                 <NativeButton variant="filled" size="md" fullWidth>
                   Ir para o login
                 </NativeButton>
               </Link>
-              <Link to="/app/motorista" className="block w-full">
+              <Link
+                to="/app/motorista"
+                search={tenantParam ? { tenant: tenantParam } : undefined}
+                className="block w-full"
+              >
                 <NativeButton variant="outlined" size="md" fullWidth>
                   Acessar cockpit
                 </NativeButton>

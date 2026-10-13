@@ -29,8 +29,13 @@ import {
   WhiteLabelProgressBar,
 } from "@/components/ui/white-label";
 import { CameraPhotoCapture } from "@/components/common/CameraPhotoCapture";
+import { whiteLabelEngine } from "@/lib/white-label";
 
 export const Route = createFileRoute("/cadastro-passageiro")({
+  validateSearch: (search: Record<string, unknown>): { tenant?: string; tenant_id?: string } => ({
+    tenant: typeof search.tenant === "string" ? search.tenant : undefined,
+    tenant_id: typeof search.tenant_id === "string" ? search.tenant_id : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Cadastro de Passageiro | PARTIU" },
@@ -61,7 +66,17 @@ function formatarCpf(v: string) {
 
 export function CadastroPassageiroPage() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
+  const tenantParam = search.tenant || search.tenant_id;
   const { corPrimaria, corTextoPrimaria } = useBrandTheme();
+
+  useEffect(() => {
+    if (tenantParam && tenantParam.trim()) {
+      try {
+        whiteLabelEngine.switchTenant(tenantParam.trim());
+      } catch {}
+    }
+  }, [tenantParam]);
   const { appConfig } = useTheme();
   const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
   const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
@@ -184,6 +199,7 @@ export function CadastroPassageiroPage() {
       <div className="mx-auto w-full max-w-md pt-[max(0.5rem,calc(env(safe-area-inset-top,0px)))] flex items-center justify-between pb-2">
         <Link
           to="/"
+          search={tenantParam ? { tenant: tenantParam } : undefined}
           className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition active:scale-95 shadow-2xs"
           aria-label="Voltar para início"
         >
@@ -203,7 +219,7 @@ export function CadastroPassageiroPage() {
         </span>
         <Link
           to="/auth"
-          search={{ role: "PASSAGEIRO" }}
+          search={{ role: "PASSAGEIRO", ...(tenantParam ? { tenant: tenantParam } : {}) }}
           className="text-xs font-bold hover:underline transition"
           style={{ color: colors.primary }}
         >
@@ -411,7 +427,7 @@ export function CadastroPassageiroPage() {
                 <div className="text-center pt-1">
                   <Link
                     to="/auth"
-                    search={{ role: "PASSAGEIRO" }}
+                    search={{ role: "PASSAGEIRO", ...(tenantParam ? { tenant: tenantParam } : {}) }}
                     className="inline-flex items-center justify-center text-xs font-semibold hover:underline py-1 transition-colors"
                     style={{ color: colors.textSecondary }}
                   >
@@ -456,12 +472,20 @@ export function CadastroPassageiroPage() {
             </p>
 
             <div className="pt-3 space-y-2.5">
-              <Link to="/auth" search={{ role: "PASSAGEIRO" }} className="block w-full">
+              <Link
+                to="/auth"
+                search={{ role: "PASSAGEIRO", ...(tenantParam ? { tenant: tenantParam } : {}) }}
+                className="block w-full"
+              >
                 <NativeButton variant="filled" size="md" fullWidth>
                   Ir para o login
                 </NativeButton>
               </Link>
-              <Link to="/app" className="block w-full">
+              <Link
+                to="/app"
+                search={tenantParam ? { tenant: tenantParam } : undefined}
+                className="block w-full"
+              >
                 <NativeButton variant="outlined" size="md" fullWidth>
                   Acessar aplicativo
                 </NativeButton>
