@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Sparkles, Upload, Globe, RotateCcw, CheckCircle2, AlertTriangle } from "lucide-react";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useBranding } from "@/hooks/useBranding";
@@ -6,6 +6,21 @@ import { updateBrowserFavicon, generateSvgFavicon } from "@/lib/branding/ThemeEn
 
 interface BrandCenterTabProps {
   onSaveFeedback: () => void;
+}
+
+interface BrandFormData {
+  nomePlataforma: string;
+  slogan: string;
+  descricaoInstitucional: string;
+  logoPrincipalUrl: string;
+  logoReduzidaUrl: string;
+  faviconDesktopUrl: string;
+  appleTouchIconUrl: string;
+  logoBrancaUrl: string;
+  logoEscuraUrl: string;
+  emailContato: string;
+  telefoneSuporte: string;
+  whatsappSuporte: string;
 }
 
 export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
@@ -16,7 +31,145 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [faviconTestFeedback, setFaviconTestFeedback] = useState(false);
 
+  // Estado local para digitação imediata e fluida (Zero Latency / Anti-Travamento)
+  const [formData, setFormData] = useState<BrandFormData>(() => ({
+    nomePlataforma: brand?.nomePlataforma || "",
+    slogan: brand?.slogan || "",
+    descricaoInstitucional: brand?.descricaoInstitucional || "",
+    logoPrincipalUrl: brand?.logos?.logoPrincipalUrl || "",
+    logoReduzidaUrl: brand?.logos?.logoReduzidaUrl || "",
+    faviconDesktopUrl: brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || "",
+    appleTouchIconUrl: brand?.favicons?.appleTouchIconUrl || "",
+    logoBrancaUrl: brand?.logos?.logoBrancaUrl || "",
+    logoEscuraUrl: brand?.logos?.logoEscuraUrl || "",
+    emailContato: brand?.emailContato || "",
+    telefoneSuporte: brand?.telefoneSuporte || "",
+    whatsappSuporte: brand?.whatsappSuporte || "",
+  }));
+
+  const pendingDataRef = useRef<BrandFormData>(formData);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isTypingRef = useRef<boolean>(false);
+
+  const flushUpdates = useCallback((dataToSave?: BrandFormData) => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    isTypingRef.current = false;
+    const current = dataToSave || pendingDataRef.current;
+
+    updateConfig({
+      brandCenter: {
+        ...brand,
+        nomePlataforma: current.nomePlataforma,
+        slogan: current.slogan,
+        descricaoInstitucional: current.descricaoInstitucional,
+        logos: {
+          ...brand.logos,
+          logoPrincipalUrl: current.logoPrincipalUrl,
+          logoReduzidaUrl: current.logoReduzidaUrl,
+          logoBrancaUrl: current.logoBrancaUrl,
+          logoEscuraUrl: current.logoEscuraUrl,
+        },
+        favicons: {
+          ...brand.favicons,
+          faviconDesktopUrl: current.faviconDesktopUrl,
+          appleTouchIconUrl: current.appleTouchIconUrl,
+        },
+        emailContato: current.emailContato,
+        telefoneSuporte: current.telefoneSuporte,
+        whatsappSuporte: current.whatsappSuporte,
+      },
+    });
+    onSaveFeedback();
+  }, [brand, updateConfig, onSaveFeedback]);
+
+  const handleFieldChange = useCallback((field: keyof BrandFormData, value: string) => {
+    isTypingRef.current = true;
+    setFormData((prev) => {
+      const next = { ...prev, [field]: value };
+      pendingDataRef.current = next;
+      return next;
+    });
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      flushUpdates();
+    }, 400);
+  }, [flushUpdates]);
+
+  const handleBlur = useCallback(() => {
+    if (debounceTimerRef.current) {
+      flushUpdates();
+    }
+  }, [flushUpdates]);
+
+  // Sincroniza estado local quando a marca for alterada externamente (troca de praça, preset ou carga da nuvem)
+  // Mas NUNCA sobrescreve se o usuário estiver digitando ativamente no formulário
+  useEffect(() => {
+    if (isTypingRef.current || debounceTimerRef.current) {
+      return;
+    }
+    const externalState: BrandFormData = {
+      nomePlataforma: brand?.nomePlataforma || "",
+      slogan: brand?.slogan || "",
+      descricaoInstitucional: brand?.descricaoInstitucional || "",
+      logoPrincipalUrl: brand?.logos?.logoPrincipalUrl || "",
+      logoReduzidaUrl: brand?.logos?.logoReduzidaUrl || "",
+      faviconDesktopUrl: brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || "",
+      appleTouchIconUrl: brand?.favicons?.appleTouchIconUrl || "",
+      logoBrancaUrl: brand?.logos?.logoBrancaUrl || "",
+      logoEscuraUrl: brand?.logos?.logoEscuraUrl || "",
+      emailContato: brand?.emailContato || "",
+      telefoneSuporte: brand?.telefoneSuporte || "",
+      whatsappSuporte: brand?.whatsappSuporte || "",
+    };
+
+    setFormData(externalState);
+    pendingDataRef.current = externalState;
+  }, [
+    brand?.nomePlataforma,
+    brand?.slogan,
+    brand?.descricaoInstitucional,
+    brand?.logos?.logoPrincipalUrl,
+    brand?.logos?.logoReduzidaUrl,
+    brand?.logos?.logoBrancaUrl,
+    brand?.logos?.logoEscuraUrl,
+    brand?.favicons?.faviconDesktopUrl,
+    brand?.favicons?.appleTouchIconUrl,
+    brand?.emailContato,
+    brand?.telefoneSuporte,
+    brand?.whatsappSuporte,
+    branding?.favicon_url,
+  ]);
+
+  // Salva alterações pendentes se o componente for desmontado
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        flushUpdates();
+      }
+    };
+  }, [flushUpdates]);
+
   function handleApplyCustomFavicon(url: string) {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    isTypingRef.current = false;
+    const nextFormData = {
+      ...pendingDataRef.current,
+      faviconDesktopUrl: url,
+    };
+    setFormData(nextFormData);
+    pendingDataRef.current = nextFormData;
+
     updateConfig({
       brandCenter: {
         ...brand,
@@ -43,7 +196,7 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
   }
 
   function handleTestarFaviconAba() {
-    const activeFav = brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || "/favicon.svg";
+    const activeFav = formData.faviconDesktopUrl || brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || "/favicon.svg";
     updateBrowserFavicon(activeFav);
     setFaviconTestFeedback(true);
     setTimeout(() => setFaviconTestFeedback(false), 3000);
@@ -56,6 +209,9 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
       const url = await uploadAsset(file, type);
       if (url) {
         if (type === "logo") {
+          const next = { ...pendingDataRef.current, logoPrincipalUrl: url };
+          setFormData(next);
+          pendingDataRef.current = next;
           updateConfig({
             brandCenter: {
               ...brand,
@@ -75,6 +231,9 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
             },
           });
         } else if (type === "favicon") {
+          const next = { ...pendingDataRef.current, faviconDesktopUrl: url };
+          setFormData(next);
+          pendingDataRef.current = next;
           updateConfig({
             brandCenter: {
               ...brand,
@@ -117,13 +276,9 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
           </label>
           <input
             type="text"
-            value={brand?.nomePlataforma || ""}
-            onChange={(e) => {
-              updateConfig({
-                brandCenter: { ...brand, nomePlataforma: e.target.value },
-              });
-              onSaveFeedback();
-            }}
+            value={formData.nomePlataforma}
+            onChange={(e) => handleFieldChange("nomePlataforma", e.target.value)}
+            onBlur={handleBlur}
             placeholder="ex: PARTIU"
             className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] rounded-xl px-3.5 py-2 text-sm text-slate-800 outline-none transition"
           />
@@ -135,13 +290,9 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
           </label>
           <input
             type="text"
-            value={brand?.slogan || ""}
-            onChange={(e) => {
-              updateConfig({
-                brandCenter: { ...brand, slogan: e.target.value },
-              });
-              onSaveFeedback();
-            }}
+            value={formData.slogan}
+            onChange={(e) => handleFieldChange("slogan", e.target.value)}
+            onBlur={handleBlur}
             placeholder="ex: Mobilidade inteligente para sua cidade"
             className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] rounded-xl px-3.5 py-2 text-sm text-slate-800 outline-none transition"
           />
@@ -154,13 +305,9 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
         </label>
         <textarea
           rows={3}
-          value={brand?.descricaoInstitucional || ""}
-          onChange={(e) => {
-            updateConfig({
-              brandCenter: { ...brand, descricaoInstitucional: e.target.value },
-            });
-            onSaveFeedback();
-          }}
+          value={formData.descricaoInstitucional}
+          onChange={(e) => handleFieldChange("descricaoInstitucional", e.target.value)}
+          onBlur={handleBlur}
           className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#0088FF] rounded-xl px-3.5 py-2 text-sm text-slate-800 outline-none transition"
         />
       </div>
@@ -184,8 +331,8 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col items-center text-center space-y-3">
             <span className="text-xs font-bold text-slate-700">Logo Principal</span>
             <div className="w-20 h-20 rounded-2xl bg-white border border-slate-200 flex items-center justify-center p-2 overflow-hidden shadow-xs">
-              {branding?.logo_url ? (
-                <img src={branding.logo_url} alt="Logo" className="w-full h-full object-contain" />
+              {branding?.logo_url || formData.logoPrincipalUrl ? (
+                <img src={branding?.logo_url || formData.logoPrincipalUrl} alt="Logo" className="w-full h-full object-contain" />
               ) : (
                 <span className="text-xs text-slate-400 font-bold">Sem Logo</span>
               )}
@@ -240,9 +387,9 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col items-center text-center space-y-3">
             <span className="text-xs font-bold text-slate-700">Favicon do Navegador</span>
             <div className="w-20 h-20 rounded-2xl bg-white border border-slate-200 flex items-center justify-center p-2 overflow-hidden shadow-xs">
-              {brand?.favicons?.faviconDesktopUrl || branding?.favicon_url ? (
+              {formData.faviconDesktopUrl ? (
                 <img
-                  src={brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || ""}
+                  src={formData.faviconDesktopUrl}
                   alt="Favicon"
                   className="w-10 h-10 object-contain"
                 />
@@ -286,7 +433,7 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
               </div>
             </div>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 w-fit">
-              {(brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || "").startsWith("data:image/svg")
+              {formData.faviconDesktopUrl.startsWith("data:image/svg")
                 ? "✨ SVG Vetorial Dinâmico"
                 : "🖼️ Imagem Personalizada"}
             </span>
@@ -308,9 +455,9 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
 
               <div className="flex items-center gap-2 bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-md max-w-sm truncate shadow-xs">
                 <div className="w-4 h-4 rounded-xs shrink-0 overflow-hidden flex items-center justify-center bg-slate-900">
-                  {brand?.favicons?.faviconDesktopUrl || branding?.favicon_url ? (
+                  {formData.faviconDesktopUrl ? (
                     <img
-                      src={brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || ""}
+                      src={formData.faviconDesktopUrl}
                       alt="Aba Favicon"
                       className="w-4 h-4 object-contain"
                     />
@@ -319,7 +466,7 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
                   )}
                 </div>
                 <span className="text-xs font-semibold text-slate-200 truncate">
-                  {brand?.nomePlataforma || branding?.app_name || "PARTIU"} — {brand?.slogan || "Mobilidade Inteligente"}
+                  {formData.nomePlataforma || branding?.app_name || "PARTIU"} — {formData.slogan || "Mobilidade Inteligente"}
                 </span>
                 <span className="text-slate-500 hover:text-slate-300 text-xs ml-auto cursor-default">×</span>
               </div>
@@ -373,16 +520,9 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
             </label>
             <input
               type="text"
-              value={brand?.logos?.logoPrincipalUrl || ""}
-              onChange={(e) => {
-                updateConfig({
-                  brandCenter: {
-                    ...brand,
-                    logos: { ...brand.logos, logoPrincipalUrl: e.target.value },
-                  },
-                });
-                onSaveFeedback();
-              }}
+              value={formData.logoPrincipalUrl}
+              onChange={(e) => handleFieldChange("logoPrincipalUrl", e.target.value)}
+              onBlur={handleBlur}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none"
             />
           </div>
@@ -393,16 +533,9 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
             </label>
             <input
               type="text"
-              value={brand?.logos?.logoReduzidaUrl || ""}
-              onChange={(e) => {
-                updateConfig({
-                  brandCenter: {
-                    ...brand,
-                    logos: { ...brand.logos, logoReduzidaUrl: e.target.value },
-                  },
-                });
-                onSaveFeedback();
-              }}
+              value={formData.logoReduzidaUrl}
+              onChange={(e) => handleFieldChange("logoReduzidaUrl", e.target.value)}
+              onBlur={handleBlur}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none"
             />
           </div>
@@ -413,10 +546,14 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
             </label>
             <input
               type="text"
-              value={brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || ""}
+              value={formData.faviconDesktopUrl}
               placeholder="https://... ou /favicon.svg ou data:image/svg+xml,..."
-              onChange={(e) => {
-                handleApplyCustomFavicon(e.target.value);
+              onChange={(e) => handleFieldChange("faviconDesktopUrl", e.target.value)}
+              onBlur={() => {
+                handleBlur();
+                if (formData.faviconDesktopUrl) {
+                  updateBrowserFavicon(formData.faviconDesktopUrl);
+                }
               }}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-mono outline-none"
             />
@@ -428,17 +565,10 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
             </label>
             <input
               type="text"
-              value={brand?.favicons?.appleTouchIconUrl || ""}
+              value={formData.appleTouchIconUrl}
               placeholder="/apple-touch-icon.png ou URL externa"
-              onChange={(e) => {
-                updateConfig({
-                  brandCenter: {
-                    ...brand,
-                    favicons: { ...brand.favicons, appleTouchIconUrl: e.target.value },
-                  },
-                });
-                onSaveFeedback();
-              }}
+              onChange={(e) => handleFieldChange("appleTouchIconUrl", e.target.value)}
+              onBlur={handleBlur}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-mono outline-none"
             />
           </div>
@@ -449,16 +579,9 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
             </label>
             <input
               type="text"
-              value={brand?.logos?.logoBrancaUrl || ""}
-              onChange={(e) => {
-                updateConfig({
-                  brandCenter: {
-                    ...brand,
-                    logos: { ...brand.logos, logoBrancaUrl: e.target.value },
-                  },
-                });
-                onSaveFeedback();
-              }}
+              value={formData.logoBrancaUrl}
+              onChange={(e) => handleFieldChange("logoBrancaUrl", e.target.value)}
+              onBlur={handleBlur}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none"
             />
           </div>
@@ -469,16 +592,9 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
             </label>
             <input
               type="text"
-              value={brand?.logos?.logoEscuraUrl || ""}
-              onChange={(e) => {
-                updateConfig({
-                  brandCenter: {
-                    ...brand,
-                    logos: { ...brand.logos, logoEscuraUrl: e.target.value },
-                  },
-                });
-                onSaveFeedback();
-              }}
+              value={formData.logoEscuraUrl}
+              onChange={(e) => handleFieldChange("logoEscuraUrl", e.target.value)}
+              onBlur={handleBlur}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none"
             />
           </div>
@@ -497,13 +613,9 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
             </label>
             <input
               type="email"
-              value={brand?.emailContato || ""}
-              onChange={(e) => {
-                updateConfig({
-                  brandCenter: { ...brand, emailContato: e.target.value },
-                });
-                onSaveFeedback();
-              }}
+              value={formData.emailContato}
+              onChange={(e) => handleFieldChange("emailContato", e.target.value)}
+              onBlur={handleBlur}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none"
             />
           </div>
@@ -513,13 +625,9 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
             </label>
             <input
               type="text"
-              value={brand?.telefoneSuporte || ""}
-              onChange={(e) => {
-                updateConfig({
-                  brandCenter: { ...brand, telefoneSuporte: e.target.value },
-                });
-                onSaveFeedback();
-              }}
+              value={formData.telefoneSuporte}
+              onChange={(e) => handleFieldChange("telefoneSuporte", e.target.value)}
+              onBlur={handleBlur}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none"
             />
           </div>
@@ -529,13 +637,9 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
             </label>
             <input
               type="text"
-              value={brand?.whatsappSuporte || ""}
-              onChange={(e) => {
-                updateConfig({
-                  brandCenter: { ...brand, whatsappSuporte: e.target.value },
-                });
-                onSaveFeedback();
-              }}
+              value={formData.whatsappSuporte}
+              onChange={(e) => handleFieldChange("whatsappSuporte", e.target.value)}
+              onBlur={handleBlur}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none"
             />
           </div>

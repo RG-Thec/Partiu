@@ -1,5 +1,5 @@
-import React from "react";
-import { DollarSign, QrCode, ShieldCheck, Building2, Wallet, CheckCircle2, XCircle } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { DollarSign, QrCode, Building2, Wallet, CheckCircle2, XCircle } from "lucide-react";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { saveMonetizacaoConfig } from "@/lib/superadmin-config";
 
@@ -7,13 +7,47 @@ interface MonetizationTabProps {
   onSaveFeedback: () => void;
 }
 
+type TipoChavePix = "cpf" | "email" | "cnpj" | "telefone" | "aleatoria";
+type GatewayProvider = "mercadopago" | "asaas" | "efi" | "manual";
+
+interface MonetizationFormData {
+  chavePixAdmin: string;
+  tipoChavePixAdmin: TipoChavePix;
+  beneficiarioAdmin: string;
+  cidadeAdmin: string;
+  diariaCarro: number;
+  diariaMoto: number;
+  gatewayProvider: GatewayProvider;
+}
+
 export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
   const { monetization, updateConfig } = useBrandTheme();
 
-  function handleUpdateMonetization(patch: Record<string, any>) {
+  const [formData, setFormData] = useState<MonetizationFormData>(() => ({
+    chavePixAdmin: monetization?.chavePixAdmin || "",
+    tipoChavePixAdmin: (monetization?.tipoChavePixAdmin as TipoChavePix) || "email",
+    beneficiarioAdmin: monetization?.beneficiarioAdmin || "",
+    cidadeAdmin: monetization?.cidadeAdmin || "",
+    diariaCarro: monetization?.diariaCarro ?? 19.90,
+    diariaMoto: monetization?.diariaMoto ?? 11.90,
+    gatewayProvider: (monetization?.gatewayProvider as GatewayProvider) || "mercadopago",
+  }));
+
+  const pendingDataRef = useRef<MonetizationFormData>(formData);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isTypingRef = useRef<boolean>(false);
+
+  const flushUpdates = useCallback((overrideData?: MonetizationFormData) => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    isTypingRef.current = false;
+    const current = overrideData || pendingDataRef.current;
+
     const updated = {
       ...monetization,
-      ...patch,
+      ...current,
     };
     updateConfig({
       monetization: updated,
@@ -28,13 +62,88 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
       gateway: updated.gatewayProvider,
     });
     onSaveFeedback();
-  }
+  }, [monetization, updateConfig, onSaveFeedback]);
+
+  const handleFieldChange = useCallback((field: keyof MonetizationFormData, value: any) => {
+    isTypingRef.current = true;
+    setFormData((prev) => {
+      const next = { ...prev, [field]: value };
+      pendingDataRef.current = next;
+      return next;
+    });
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      flushUpdates();
+    }, 400);
+  }, [flushUpdates]);
+
+  const handleBlur = useCallback(() => {
+    if (debounceTimerRef.current) {
+      flushUpdates();
+    }
+  }, [flushUpdates]);
+
+  // Sincroniza se vierem atualizações externas
+  useEffect(() => {
+    if (isTypingRef.current || debounceTimerRef.current) return;
+    const next: MonetizationFormData = {
+      chavePixAdmin: monetization?.chavePixAdmin || "",
+      tipoChavePixAdmin: (monetization?.tipoChavePixAdmin as TipoChavePix) || "email",
+      beneficiarioAdmin: monetization?.beneficiarioAdmin || "",
+      cidadeAdmin: monetization?.cidadeAdmin || "",
+      diariaCarro: monetization?.diariaCarro ?? 19.90,
+      diariaMoto: monetization?.diariaMoto ?? 11.90,
+      gatewayProvider: (monetization?.gatewayProvider as GatewayProvider) || "mercadopago",
+    };
+    setFormData(next);
+    pendingDataRef.current = next;
+  }, [
+    monetization?.chavePixAdmin,
+    monetization?.tipoChavePixAdmin,
+    monetization?.beneficiarioAdmin,
+    monetization?.cidadeAdmin,
+    monetization?.diariaCarro,
+    monetization?.diariaMoto,
+    monetization?.gatewayProvider,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        flushUpdates();
+      }
+    };
+  }, [flushUpdates]);
 
   function handleTogglePlano(planoId: string, ativo: boolean) {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
     const planosAtualizados = (monetization?.planos || []).map((p) =>
       p.id === planoId ? { ...p, ativo } : p
     );
-    handleUpdateMonetization({ planos: planosAtualizados });
+    const updated = {
+      ...monetization,
+      ...pendingDataRef.current,
+      planos: planosAtualizados,
+    };
+    updateConfig({ monetization: updated });
+    saveMonetizacaoConfig({
+      chavePixAdmin: updated.chavePixAdmin,
+      tipoChavePixAdmin: updated.tipoChavePixAdmin,
+      beneficiarioAdmin: updated.beneficiarioAdmin,
+      cidadeAdmin: updated.cidadeAdmin,
+      diariaCarro: updated.diariaCarro,
+      diariaMoto: updated.diariaMoto,
+      gateway: updated.gatewayProvider,
+    });
+    onSaveFeedback();
   }
 
   return (
@@ -66,10 +175,9 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
             </label>
             <input
               type="text"
-              value={monetization?.chavePixAdmin || ""}
-              onChange={(e) => {
-                handleUpdateMonetization({ chavePixAdmin: e.target.value.trim() });
-              }}
+              value={formData.chavePixAdmin}
+              onChange={(e) => handleFieldChange("chavePixAdmin", e.target.value.trim())}
+              onBlur={handleBlur}
               placeholder="ex: financeiro@suacidade.com.br"
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition font-mono"
             />
@@ -80,10 +188,8 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
               Tipo de Chave
             </label>
             <select
-              value={monetization?.tipoChavePixAdmin || "email"}
-              onChange={(e: any) => {
-                handleUpdateMonetization({ tipoChavePixAdmin: e.target.value });
-              }}
+              value={formData.tipoChavePixAdmin}
+              onChange={(e: any) => handleFieldChange("tipoChavePixAdmin", e.target.value as TipoChavePix)}
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
             >
               <option value="email">E-mail</option>
@@ -100,10 +206,9 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
             </label>
             <input
               type="text"
-              value={monetization?.beneficiarioAdmin || ""}
-              onChange={(e) => {
-                handleUpdateMonetization({ beneficiarioAdmin: e.target.value });
-              }}
+              value={formData.beneficiarioAdmin}
+              onChange={(e) => handleFieldChange("beneficiarioAdmin", e.target.value)}
+              onBlur={handleBlur}
               placeholder="Razão Social ou Titular"
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
             />
@@ -115,10 +220,9 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
             </label>
             <input
               type="text"
-              value={monetization?.cidadeAdmin || ""}
-              onChange={(e) => {
-                handleUpdateMonetization({ cidadeAdmin: e.target.value });
-              }}
+              value={formData.cidadeAdmin}
+              onChange={(e) => handleFieldChange("cidadeAdmin", e.target.value)}
+              onBlur={handleBlur}
               placeholder="ex: Itaperuna"
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition uppercase"
             />
@@ -133,10 +237,9 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
             <input
               type="number"
               step="0.10"
-              value={monetization?.diariaCarro ?? 19.90}
-              onChange={(e) => {
-                handleUpdateMonetization({ diariaCarro: Number(e.target.value) || 19.90 });
-              }}
+              value={formData.diariaCarro}
+              onChange={(e) => handleFieldChange("diariaCarro", Number(e.target.value) || 19.90)}
+              onBlur={handleBlur}
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 font-mono outline-none"
             />
           </div>
@@ -148,10 +251,9 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
             <input
               type="number"
               step="0.10"
-              value={monetization?.diariaMoto ?? 11.90}
-              onChange={(e) => {
-                handleUpdateMonetization({ diariaMoto: Number(e.target.value) || 11.90 });
-              }}
+              value={formData.diariaMoto}
+              onChange={(e) => handleFieldChange("diariaMoto", Number(e.target.value) || 11.90)}
+              onBlur={handleBlur}
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 font-mono outline-none"
             />
           </div>
@@ -161,10 +263,8 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
               Gateway Financeiro
             </label>
             <select
-              value={monetization?.gatewayProvider || "mercadopago"}
-              onChange={(e: any) => {
-                handleUpdateMonetization({ gatewayProvider: e.target.value });
-              }}
+              value={formData.gatewayProvider}
+              onChange={(e: any) => handleFieldChange("gatewayProvider", e.target.value as GatewayProvider)}
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none"
             >
               <option value="mercadopago">Mercado Pago</option>
