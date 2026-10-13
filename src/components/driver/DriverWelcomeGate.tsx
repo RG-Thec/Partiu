@@ -7,14 +7,17 @@ import {
   DollarSign,
   Clock,
   Zap,
+  Sparkles,
 } from "lucide-react";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
+import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
+import { whiteLabelEngine } from "@/lib/white-label";
 
 interface DriverWelcomeGateProps {
   onEnterDemo?: () => void;
 }
 
-export const DriverWelcomeGate: React.FC<DriverWelcomeGateProps> = () => {
+export const DriverWelcomeGate: React.FC<DriverWelcomeGateProps> = ({ onEnterDemo }) => {
   const navigate = useNavigate();
   const {
     nomeApp,
@@ -25,6 +28,33 @@ export const DriverWelcomeGate: React.FC<DriverWelcomeGateProps> = () => {
   } = useBrandTheme();
 
   const brandGradient = `linear-gradient(135deg, ${corCabecalhoInicio || corPrimaria || "#FF6B00"} 0%, ${corCabecalhoFim || corSecundaria || "#FFB800"} 100%)`;
+
+  const handleEnterDemo = () => {
+    if (onEnterDemo) {
+      onEnterDemo();
+      return;
+    }
+    const currentTenant = whiteLabelEngine.getActiveTenantId() || "default";
+    supabaseAuthService.saveStoredSession(
+      {
+        id: "usr-drv-demo-01",
+        name: "Motorista Parceiro",
+        email: "motorista@partiu.com.br",
+        phone: "(11) 99999-0002",
+        cpf: "000.000.000-02",
+        role: "MOTORISTA",
+        rating: 5.0,
+        totalTrips: 48,
+        vehiclePlate: "MOB2A00",
+        vehicleModel: "Veículo Padrão (Prata)",
+        driverApprovalStatus: "aprovado",
+        avatarUrl: "",
+        createdAt: Date.now(),
+      },
+      currentTenant
+    );
+    window.location.reload();
+  };
 
   return (
     <div className="min-h-[100dvh] w-full bg-slate-50 text-slate-900 flex flex-col justify-between p-4 sm:p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] font-sans animate-in fade-in duration-300">
@@ -138,6 +168,16 @@ export const DriverWelcomeGate: React.FC<DriverWelcomeGateProps> = () => {
           >
             <span>Já sou parceiro cadastrado • Fazer login</span>
           </Link>
+
+          {/* Botão de Demonstração / Teste Imediato do Cockpit */}
+          <button
+            type="button"
+            onClick={handleEnterDemo}
+            className="w-full h-8 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-slate-600 font-semibold text-[11px] flex items-center justify-center gap-1.5 active:scale-98 transition cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span>Explorar Cockpit no Modo Demonstração</span>
+          </button>
         </div>
       </main>
 

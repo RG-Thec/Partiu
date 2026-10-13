@@ -104,8 +104,8 @@ export const Header = memo(function Header({
               style={{
                 backgroundColor: corPrimaria
                   ? `${corPrimaria}18`
-                  : "rgba(2, 132, 199, 0.12)",
-                color: corPrimaria || "#0284c7",
+                  : "rgba(255, 107, 0, 0.12)",
+                color: corPrimaria || "#FF6B00",
               }}
             >
               {iniciais ? (

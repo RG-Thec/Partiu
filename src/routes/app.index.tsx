@@ -164,12 +164,12 @@ function PartiuPassengerHomeContent() {
 
   const navigate = useNavigate();
 
-  const { corPrimaria, corSecundaria } = useBrandTheme();
+  const { corPrimaria, corSecundaria, nomeApp, corFundoApp } = useBrandTheme();
   const { appConfig } = useTheme();
   const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
   const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
   const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
-  const appName = branding?.appName || DEFAULT_APP_CONFIG.branding.appName;
+  const appName = nomeApp || branding?.appName || DEFAULT_APP_CONFIG.branding.appName;
 
   const [drawerAberto, setDrawerAberto] = useState(false);
   const [modalPushAberto, setModalPushAberto] = useState(false);
@@ -678,7 +678,7 @@ function PartiuPassengerHomeContent() {
                   title="Centralizar no meu local exato"
                   aria-label="Centralizar no meu local exato"
                 >
-                  <LocateFixed className="w-5.5 h-5.5 text-blue-600" />
+                  <LocateFixed className="w-5.5 h-5.5" style={{ color: corPrimaria }} />
                 </button>
               </div>
             </div>

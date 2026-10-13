@@ -66,16 +66,26 @@ export const Route = createFileRoute("/app")({
       const isDev = Boolean(typeof import.meta !== "undefined" && import.meta.env?.DEV);
 
       const hasValidSession = Boolean(session && !expired && sessionTenantMatches);
-      const hasOfflineFallback = Boolean((!isOnline || isDev) && storedUser && userTenantMatches);
-      const isAuthenticated = hasValidSession || hasOfflineFallback;
+      const hasStoredUser = Boolean(storedUser && userTenantMatches);
+      const isAuthenticated = hasValidSession || hasStoredUser;
 
+      // 1. Rota do Cockpit do Motorista: possui controle próprio de acesso (DriverWelcomeGate para não cadastrados, DriverAccessGuard para motoristas)
+      if (pathname.startsWith("/app/motorista")) {
+        return { user: session?.user ?? (storedUser as any) ?? null, tenantId: effectiveTenantId };
+      }
+
+      // 2. Rota inicial do Passageiro: permite exploração e simulação no mapa em modo convidado / Live Preview
+      if (pathname === "/app" || pathname === "/app/") {
+        return { user: session?.user ?? (storedUser as any) ?? null, tenantId: effectiveTenantId };
+      }
+
+      // 3. Demais rotas privadas do passageiro (/app/perfil, /app/bilhetes, /app/encomendas, /app/viagem): exigem autenticação
       if (!isAuthenticated) {
-        const isMotorista = pathname.startsWith("/app/motorista");
         throw redirect({
           to: "/auth",
           search: {
             redirect: pathname,
-            role: isMotorista ? ("MOTORISTA" as const) : ("PASSAGEIRO" as const),
+            role: "PASSAGEIRO" as const,
             tenant: effectiveTenantId,
             ...(session && expired ? { expirada: "1" as const } : {}),
           },

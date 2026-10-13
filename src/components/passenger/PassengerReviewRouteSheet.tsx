@@ -334,7 +334,7 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
                 badgeClass={
                   quotePop?.surgeMultiplier && quotePop.surgeMultiplier > 1.0
                     ? "text-amber-800 bg-amber-100 border border-amber-300 font-extrabold"
-                    : "text-blue-700 bg-blue-50 border border-blue-200"
+                    : "text-slate-700 bg-slate-100 border border-slate-200"
                 }
                 etaMinutes={pickupMinPop || 4}
                 capacityText="4 passageiros"

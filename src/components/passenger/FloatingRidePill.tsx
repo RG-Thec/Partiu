@@ -56,7 +56,7 @@ export function FloatingRidePill({ onExpand, className = "" }: FloatingRidePillP
 
   if (isDriverAssigned) {
     statusLabel = "A caminho do embarque (~3 min)";
-    statusBadgeClass = "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30";
+    statusBadgeClass = "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30";
   } else if (isDriverArrived) {
     statusLabel = "Chegou ao local de embarque!";
     statusBadgeClass = "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 animate-pulse";
@@ -98,7 +98,7 @@ export function FloatingRidePill({ onExpand, className = "" }: FloatingRidePillP
           ) : isMoto ? (
             <Bike className="w-5 h-5 text-emerald-600" />
           ) : (
-            <Car className="w-5 h-5 text-blue-600" />
+            <Car className="w-5 h-5" style={{ color: corPrimaria }} />
           )}
         </div>
 

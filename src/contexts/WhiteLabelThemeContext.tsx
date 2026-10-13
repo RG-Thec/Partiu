@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { useBranding } from "@/hooks/useBranding";
 import { themeEngine, ensureGoogleFontLoaded } from "@/lib/branding/ThemeEngine";
+import { whiteLabelEngine } from "@/lib/white-label";
 
 // ==============================================================================
 // 🏷️ WHITE LABEL SAAS THEME CONTRACT (Conforme Especificação de Painel Admin)
@@ -373,6 +374,63 @@ export function WhiteLabelThemeProvider({
       });
     }
   }, [globalBranding?.branding]);
+
+  // Escuta atualizações do WhiteLabelEngine e sincronização entre abas/janelas
+  useEffect(() => {
+    function handleWhiteLabelUpdated(e: any) {
+      const cfg = e?.detail?.config || (e?.detail?.brandCenter ? e.detail : null) || (typeof window !== "undefined" ? whiteLabelEngine.getActiveConfig() : null);
+      if (!cfg) return;
+      const prim = cfg.designSystem?.paletaPrimaria;
+      const primCor = prim?.corPrincipal;
+      if (!primCor) return;
+      setAppConfigState((prev) => {
+        const prevColors = prev?.branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
+        const prevUi = prev?.branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
+        const targetAppName = cfg.brandCenter?.nomePlataforma || prev?.branding?.appName || DEFAULT_APP_CONFIG.branding.appName;
+        return {
+          ...prev,
+          branding: {
+            appName: targetAppName,
+            logoUrl: cfg.brandCenter?.logos?.logoPrincipalUrl || prev?.branding?.logoUrl || "",
+            colors: {
+              ...prevColors,
+              primary: primCor,
+              primaryHover: prim.corPrincipalHover || primCor,
+              secondary: prim.corSecundaria || prevColors.secondary,
+              background: prim.corFundoApp || prevColors.background,
+              surface: prim.corSuperficieCard || prevColors.surface,
+              textPrimary: prim.corTextoPrincipal || prevColors.textPrimary,
+            },
+            ui: {
+              ...prevUi,
+              buttonShadow: computeButtonShadow(primCor),
+              fontFamily: cfg.typography?.familiaPrincipal || prevUi.fontFamily,
+            },
+          },
+        };
+      });
+    }
+
+    function handleStorage(e: StorageEvent) {
+      if (
+        e.key?.startsWith("partiu_branding_tenant_") ||
+        e.key === "partiu_active_branding_v2" ||
+        e.key?.startsWith("partiu_whitelabel") ||
+        e.key === "partiu_wl_app_config_v2"
+      ) {
+        handleWhiteLabelUpdated({ detail: null });
+      }
+    }
+
+    window.addEventListener("partiu:whitelabel-updated", handleWhiteLabelUpdated);
+    window.addEventListener("partiu:theme-palette-updated", handleWhiteLabelUpdated);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener("partiu:whitelabel-updated", handleWhiteLabelUpdated);
+      window.removeEventListener("partiu:theme-palette-updated", handleWhiteLabelUpdated);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
 
   // Aplica as variáveis CSS sempre que o appConfig sofrer mutação
   useEffect(() => {

@@ -176,7 +176,7 @@ const SearchDestinationItemRow = React.memo(function SearchDestinationItemRow({
               className={`text-[9.5px] font-bold px-1.5 py-0.2 rounded border shrink-0 ${
                 isFrequente || badgeFinal === "Casa" || badgeFinal === "Trabalho" || badgeFinal === "Favorito" || badgeFinal === "Frequente"
                   ? "text-amber-800 bg-amber-50 border-amber-200"
-                  : "text-blue-800 bg-blue-50 border-blue-200"
+                  : "text-slate-700 bg-slate-100 border-slate-200"
               }`}
             >
               {badgeFinal}
@@ -630,7 +630,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
       return <Home className="w-4 h-4 text-emerald-600" />;
     }
     if (l === "trabalho" || l.startsWith("trabalho ") || l.includes("meu trabalho")) {
-      return <Briefcase className="w-4 h-4 text-blue-600" />;
+      return <Briefcase className="w-4 h-4" style={{ color: colors.primary }} />;
     }
     if (l === "favorito" || l.includes("favorito")) {
       return <Star className="w-4 h-4 text-amber-500 fill-amber-500/20" />;
@@ -642,7 +642,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
       return <GraduationCap className="w-4 h-4 text-indigo-500" />;
     }
     if (l.includes("rodoviário") || l.includes("terminal") || l.includes("balsa") || l.includes("estação")) {
-      return <Bus className="w-4 h-4 text-blue-500" />;
+      return <Bus className="w-4 h-4" style={{ color: colors.secondary }} />;
     }
     if (l.includes("mercado") || l.includes("fluminense") || l.includes("shopping") || l.includes("supermercado")) {
       return <ShoppingBag className="w-4 h-4 text-emerald-500" />;
@@ -651,7 +651,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
       return <Sparkles className="w-4 h-4 text-amber-500" />;
     }
     if (origemSugestao === "PROXIMO") {
-      return <MapPin className="w-4 h-4 text-blue-600" />;
+      return <MapPin className="w-4 h-4" style={{ color: colors.primary }} />;
     }
     return <Building2 className="w-4 h-4 text-slate-500" />;
   }
@@ -1217,10 +1217,17 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                     <div className={`space-y-1 ${sugestoesInteligentes.frequentes.length > 0 ? "pt-2 border-t border-slate-100" : ""}`}>
                       <div className="flex items-center justify-between px-1 py-1">
                         <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                          <MapPin className="w-3.5 h-3.5" style={{ color: colors.primary }} />
                           <span>Locais Próximos de Você</span>
                         </span>
-                        <span className="text-[10px] font-bold text-blue-800 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                        <span
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+                          style={{
+                            color: colors.primary,
+                            backgroundColor: `${colors.primary}15`,
+                            borderColor: `${colors.primary}30`,
+                          }}
+                        >
                           Por Proximidade GPS
                         </span>
                       </div>
