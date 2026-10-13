@@ -4,6 +4,7 @@ import { GuardiaoAcesso } from "@/components/admin/GuardiaoAcesso";
 import { getAdminRole, getContaAtiva, isOwner, isSuperAdmin } from "@/lib/admin-rbac";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useBranding } from "@/hooks/useBranding";
+import { whiteLabelEngine } from "@/lib/white-label";
 import { BRANDING_PRESETS } from "@/lib/branding";
 import type { MobilityLandingPageData } from "@/types/mobilityLanding";
 import { toast } from "sonner";
@@ -139,17 +140,30 @@ function WhiteLabelStudioContent() {
     [switchTenant, navigate]
   );
 
+  // Carrega catálogo atualizado do Supabase ao abrir o estúdio White Label
+  useEffect(() => {
+    void whiteLabelEngine.loadTenantsFromSupabase();
+  }, []);
+
   // Super Admin / Matriz
   useEffect(() => {
     if (search.tenant && search.tenant.trim() && activeTenant?.tenantId !== search.tenant.trim()) {
-      switchTenant(search.tenant.trim());
+      try {
+        switchTenant(search.tenant.trim());
+      } catch (err) {
+        console.warn("[whitelabel] Erro ao alternar tenant via query param:", err);
+      }
     }
   }, [search.tenant, activeTenant?.tenantId, switchTenant]);
 
   // Franqueado
   useEffect(() => {
     if (isFranqueadoRole && contaAtiva.tenantId && activeTenant?.tenantId !== contaAtiva.tenantId) {
-      switchTenant(contaAtiva.tenantId);
+      try {
+        switchTenant(contaAtiva.tenantId);
+      } catch (err) {
+        console.warn("[whitelabel] Erro ao alternar tenant do franqueado:", err);
+      }
     }
   }, [isFranqueadoRole, contaAtiva.tenantId, activeTenant?.tenantId, switchTenant]);
 

@@ -330,6 +330,24 @@ async function runTestSuite() {
   );
 
   // ----------------------------------------------------------------------------
+  // TESTE 14B: ALTERNÂNCIA RESILIENTE & AUTO-CURA (ZERO HARD CRASH)
+  // ----------------------------------------------------------------------------
+  console.log("\n🛡️ MÓDULO 14B: Alternância Resiliente de Tenants & Auto-Cura");
+  const tenantBH = whiteLabelEngine.switchTenant("tenant-bh");
+  assert(!!tenantBH, "Tenant tenant-bh deve ser resolvido com sucesso");
+  assertEqual(tenantBH.tenantId, "tenant-bh", "Tenant ID deve ser tenant-bh");
+  assertEqual(whiteLabelEngine.getActiveTenantId(), "tenant-bh", "Active tenant deve ser tenant-bh");
+
+  const tenantBHMob = whiteLabelEngine.switchTenant("tenant-bhmob");
+  assert(!!tenantBHMob, "Tenant tenant-bhmob deve ser resolvido");
+  assertEqual(tenantBHMob.tenantId, "tenant-bhmob", "Tenant ID deve ser tenant-bhmob");
+
+  const tenantDesconhecido = whiteLabelEngine.switchTenant("tenant-arbitrario-xyz");
+  assert(!!tenantDesconhecido, "Tenant desconhecido não deve lançar exceção e sim auto-curar");
+  assertEqual(tenantDesconhecido.tenantId, "tenant-arbitrario-xyz", "ID auto-curado deve coincidir");
+  assert(!!tenantDesconhecido.configuracaoCompleta, "Configuração completa sintetizada deve existir");
+
+  // ----------------------------------------------------------------------------
   // TESTE 15: BENCHMARK DE PERFORMANCE & ZERO-CODE GUARANTEE
   // ----------------------------------------------------------------------------
   console.log("\n⚡ MÓDULO 15: Benchmark de Performance & Auditoria Final");

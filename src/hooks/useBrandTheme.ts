@@ -102,15 +102,23 @@ export function useBrandTheme() {
   );
 
   const switchTenant = useCallback((tenantId: string) => {
-    const t = whiteLabelEngine.switchTenant(tenantId);
-    if (t) {
-      setActiveTenant(t);
-      setConfig(t.configuracaoCompleta);
-      if (brandingCtx?.setTenantId) {
-        void brandingCtx.setTenantId(tenantId);
+    try {
+      const t = whiteLabelEngine.switchTenant(tenantId);
+      if (t) {
+        setActiveTenant(t);
+        setConfig(t.configuracaoCompleta);
+        if (brandingCtx?.setTenantId) {
+          void brandingCtx.setTenantId(t.tenantId);
+        }
       }
+      return t;
+    } catch (err) {
+      console.warn("[useBrandTheme] Falha ao alternar tenant:", err);
+      const fallback = whiteLabelEngine.getActiveTenant();
+      setActiveTenant(fallback);
+      setConfig(fallback.configuracaoCompleta);
+      return fallback;
     }
-    return t;
   }, [brandingCtx]);
 
   const cloneTenant = useCallback(

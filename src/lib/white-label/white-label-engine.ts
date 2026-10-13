@@ -904,6 +904,61 @@ const TEST_FIXTURE_TENANTS: WhiteLabelTenantRecord[] = [
       },
     },
   },
+  {
+    tenantId: "tenant-bh",
+    nomeOperacao: "BH Mob",
+    cidadeId: "belo-horizonte-mg",
+    cidadeNome: "Belo Horizonte",
+    uf: "MG",
+    responsavelNome: "Operador BH Mob",
+    responsavelEmail: "franquiateste@gmail.com",
+    responsavelTelefone: "(31) 98765-4321",
+    cnpjFranqueado: "12.345.678/0001-90",
+    adminEmail: "franquiateste@gmail.com",
+    adminSenha: "123456",
+    ativo: true,
+    statusPlano: "ATIVO",
+    criadoEm: 1772928000000,
+    configuracaoCompleta: {
+      ...DEFAULT_WHITELABEL_CONFIG,
+      tenantId: "tenant-bh",
+      brandCenter: {
+        ...DEFAULT_WHITELABEL_CONFIG.brandCenter,
+        nomePlataforma: "BH MOB",
+        slogan: "Mobilidade inteligente na Grande BH",
+        descricaoInstitucional:
+          "O aplicativo oficial de mobilidade urbana e entregas rápidas de Belo Horizonte.",
+      },
+      designSystem: {
+        ...DEFAULT_WHITELABEL_CONFIG.designSystem,
+        paletaPrimaria: {
+          ...DEFAULT_WHITELABEL_CONFIG.designSystem.paletaPrimaria,
+          corPrincipal: "#2563EB",
+          corPrincipalHover: "#1D4ED8",
+          corSecundaria: "#3B82F6",
+          corSecundariaHover: "#2563EB",
+          corTextoPrincipal: "#0F172A",
+        },
+      },
+      monetization: {
+        ...DEFAULT_WHITELABEL_CONFIG.monetization,
+        chavePixAdmin: "financeiro@bhmob.com.br",
+        tipoChavePixAdmin: "email",
+        beneficiarioAdmin: "BH Mob Mobilidade Urbana Ltda",
+        cidadeAdmin: "Belo Horizonte",
+        diariaCarro: 25.00,
+        diariaMoto: 15.00,
+      },
+      geo: {
+        ...DEFAULT_WHITELABEL_CONFIG.geo,
+        cidadeSede: "Belo Horizonte",
+        estadoUf: "MG",
+        coordenadasCentroLat: -19.916681,
+        coordenadasCentroLng: -43.934493,
+        raioOperacaoPadraoKm: 30.0,
+      },
+    },
+  },
 ];
 
 const SEED_TENANTS: WhiteLabelTenantRecord[] = [
@@ -1020,6 +1075,9 @@ export class WhiteLabelEngine {
               }
             } catch {}
           }
+          if (!this.tenantsMap.has(urlTenant)) {
+            this.resolveOrRegisterTenant(urlTenant);
+          }
         }
         void this.syncFromSupabase(urlTenant);
       } else {
@@ -1037,6 +1095,10 @@ export class WhiteLabelEngine {
 
         if (sessionTenant) {
           this.activeTenantId = sessionTenant;
+          if (!this.tenantsMap.has(sessionTenant)) {
+            this.resolveOrRegisterTenant(sessionTenant);
+          }
+          void this.syncFromSupabase(sessionTenant);
         } else {
           // Prioridade 3: Armazenamento persistido unificado
           const savedTenantId =
@@ -1046,6 +1108,9 @@ export class WhiteLabelEngine {
 
           if (savedTenantId && savedTenantId.trim()) {
             this.activeTenantId = savedTenantId.trim();
+            if (!this.tenantsMap.has(this.activeTenantId)) {
+              this.resolveOrRegisterTenant(this.activeTenantId);
+            }
           } else {
             this.activeTenantId = "default";
           }
@@ -1053,6 +1118,9 @@ export class WhiteLabelEngine {
       }
 
       this.saveTenantsRegistry();
+      if (typeof window !== "undefined") {
+        void this.loadTenantsFromSupabase();
+      }
     } catch (err) { silentCatchWarn("white-label-engine", err); }
   }
 
@@ -1143,6 +1211,12 @@ export class WhiteLabelEngine {
   public getActiveTenant(): WhiteLabelTenantRecord {
     const existing = this.tenantsMap.get(this.activeTenantId);
     if (existing) return existing;
+    if (this.activeTenantId === "tenant-bh" && this.tenantsMap.has("tenant-bhmob")) {
+      return this.tenantsMap.get("tenant-bhmob")!;
+    }
+    if (this.activeTenantId === "tenant-bhmob" && this.tenantsMap.has("tenant-bh")) {
+      return this.tenantsMap.get("tenant-bh")!;
+    }
     const defaultTenant = this.tenantsMap.get("default");
     if (defaultTenant) return defaultTenant;
     return (
@@ -1180,7 +1254,16 @@ export class WhiteLabelEngine {
   }
 
   public getTenantById(tenantId: string): WhiteLabelTenantRecord | undefined {
-    return this.tenantsMap.get(tenantId);
+    const cleanId = (tenantId || "").trim();
+    if (!cleanId) return undefined;
+    const direct = this.tenantsMap.get(cleanId);
+    if (direct) return direct;
+    if (cleanId === "tenant-bh") return this.tenantsMap.get("tenant-bhmob");
+    if (cleanId === "tenant-bhmob") return this.tenantsMap.get("tenant-bh");
+    for (const [id, t] of this.tenantsMap.entries()) {
+      if (id.toLowerCase() === cleanId.toLowerCase()) return t;
+    }
+    return undefined;
   }
 
   /**
@@ -1453,15 +1536,179 @@ export class WhiteLabelEngine {
     };
   }
 
+  /**
+   * Resolve um tenant de forma resiliente com auto-cura e tolerância total a falhas:
+   * 1. Busca exata no mapa em memória
+   * 2. Mapeamento de aliases de praça (ex: tenant-bh <-> tenant-bhmob)
+   * 3. Busca insensível a maiúsculas/minúsculas
+   * 4. Catálogo de fixtures canônicas (TEST_FIXTURE_TENANTS)
+   * 5. Cache isolado de branding no localStorage
+   * 6. Síntese dinâmica de auto-cura (Graceful Fallback — Zero Crash)
+   */
+  public resolveOrRegisterTenant(tenantId: string): WhiteLabelTenantRecord {
+    const cleanId = (tenantId || "").trim();
+    if (!cleanId || cleanId === "default" || cleanId === "matriz-br") {
+      return this.getActiveTenant();
+    }
+
+    // 1. Busca exata
+    const exact = this.tenantsMap.get(cleanId);
+    if (exact) return exact;
+
+    // 2. Mapeamento de aliases
+    if (cleanId === "tenant-bh" && this.tenantsMap.has("tenant-bhmob")) {
+      const bh = this.tenantsMap.get("tenant-bhmob")!;
+      const bhAlias: WhiteLabelTenantRecord = { ...bh, tenantId: "tenant-bh" };
+      this.tenantsMap.set("tenant-bh", bhAlias);
+      return bhAlias;
+    }
+    if (cleanId === "tenant-bhmob" && this.tenantsMap.has("tenant-bh")) {
+      const bh = this.tenantsMap.get("tenant-bh")!;
+      const bhMobAlias: WhiteLabelTenantRecord = { ...bh, tenantId: "tenant-bhmob" };
+      this.tenantsMap.set("tenant-bhmob", bhMobAlias);
+      return bhMobAlias;
+    }
+
+    // 3. Busca case-insensitive
+    for (const [key, record] of this.tenantsMap.entries()) {
+      if (key.toLowerCase() === cleanId.toLowerCase()) {
+        return record;
+      }
+    }
+
+    // 4. Catálogo de fixtures canônicas
+    const fixture = TEST_FIXTURE_TENANTS.find(
+      (f) =>
+        f.tenantId === cleanId ||
+        (cleanId === "tenant-bh" && f.tenantId === "tenant-bhmob") ||
+        (cleanId === "tenant-bhmob" && f.tenantId === "tenant-bh")
+    );
+    if (fixture) {
+      const cloned: WhiteLabelTenantRecord = {
+        ...fixture,
+        tenantId: cleanId,
+        configuracaoCompleta: {
+          ...fixture.configuracaoCompleta,
+          tenantId: cleanId,
+        },
+      };
+      this.tenantsMap.set(cleanId, cloned);
+      return cloned;
+    }
+
+    // 5. Cache de branding persistido no navegador
+    if (typeof window !== "undefined") {
+      try {
+        const cachedBranding = localStorage.getItem(`partiu_branding_tenant_${cleanId}`);
+        if (cachedBranding) {
+          const b = JSON.parse(cachedBranding);
+          if (b && (b.app_name || b.primary_color)) {
+            const dynamicTenant: WhiteLabelTenantRecord = {
+              tenantId: cleanId,
+              nomeOperacao: b.app_name || `Franquia ${cleanId.replace(/^tenant-/, "").toUpperCase()}`,
+              cidadeId: `cidade-${cleanId}`,
+              cidadeNome: cleanId.includes("bh") ? "Belo Horizonte" : "Cidade Regional",
+              uf: cleanId.includes("bh") ? "MG" : "BR",
+              responsavelNome: "Gestor Regional",
+              responsavelEmail: `${cleanId}@partiu.app`,
+              responsavelTelefone: "(00) 00000-0000",
+              cnpjFranqueado: "00.000.000/0001-00",
+              ativo: true,
+              statusPlano: "ATIVO",
+              criadoEm: Date.now(),
+              configuracaoCompleta: {
+                ...DEFAULT_WHITELABEL_CONFIG,
+                tenantId: cleanId,
+                brandCenter: {
+                  ...DEFAULT_WHITELABEL_CONFIG.brandCenter,
+                  nomePlataforma: b.app_name || "PARTIU",
+                },
+                designSystem: {
+                  ...DEFAULT_WHITELABEL_CONFIG.designSystem,
+                  paletaPrimaria: {
+                    ...DEFAULT_WHITELABEL_CONFIG.designSystem.paletaPrimaria,
+                    corPrincipal: b.primary_color || DEFAULT_WHITELABEL_CONFIG.designSystem.paletaPrimaria.corPrincipal,
+                    corSecundaria: b.secondary_color || DEFAULT_WHITELABEL_CONFIG.designSystem.paletaPrimaria.corSecundaria,
+                  },
+                },
+              },
+            };
+            this.tenantsMap.set(cleanId, dynamicTenant);
+            return dynamicTenant;
+          }
+        }
+      } catch {}
+    }
+
+    // 6. Síntese dinâmica de auto-cura (Graceful Fallback — Zero Hard Crash)
+    const isBh = cleanId.toLowerCase().includes("bh");
+    const synthesized: WhiteLabelTenantRecord = {
+      tenantId: cleanId,
+      nomeOperacao: isBh ? "BH Mob" : `Franquia ${cleanId.replace(/^tenant-/, "").toUpperCase()}`,
+      cidadeId: isBh ? "belo-horizonte-mg" : `cidade-${cleanId}`,
+      cidadeNome: isBh ? "Belo Horizonte" : "Cidade Regional",
+      uf: isBh ? "MG" : "BR",
+      responsavelNome: isBh ? "Gestor BH Mob" : "Gestor Regional",
+      responsavelEmail: isBh ? "franquiateste@gmail.com" : `${cleanId}@partiu.app`,
+      responsavelTelefone: isBh ? "(31) 98765-4321" : "(00) 00000-0000",
+      cnpjFranqueado: "00.000.000/0001-00",
+      adminEmail: isBh ? "franquiateste@gmail.com" : `${cleanId}@partiu.app`,
+      adminSenha: isBh ? "123456" : "123456",
+      ativo: true,
+      statusPlano: "ATIVO",
+      criadoEm: Date.now(),
+      configuracaoCompleta: {
+        ...DEFAULT_WHITELABEL_CONFIG,
+        tenantId: cleanId,
+        brandCenter: {
+          ...DEFAULT_WHITELABEL_CONFIG.brandCenter,
+          nomePlataforma: isBh ? "BH MOB" : `PARTIU ${cleanId.replace(/^tenant-/, "").toUpperCase()}`,
+          slogan: isBh ? "Mobilidade inteligente na Grande BH" : DEFAULT_WHITELABEL_CONFIG.brandCenter.slogan,
+        },
+        designSystem: {
+          ...DEFAULT_WHITELABEL_CONFIG.designSystem,
+          paletaPrimaria: isBh
+            ? {
+                ...DEFAULT_WHITELABEL_CONFIG.designSystem.paletaPrimaria,
+                corPrincipal: "#2563EB",
+                corPrincipalHover: "#1D4ED8",
+                corSecundaria: "#3B82F6",
+                corSecundariaHover: "#2563EB",
+                corTextoPrincipal: "#0F172A",
+              }
+            : DEFAULT_WHITELABEL_CONFIG.designSystem.paletaPrimaria,
+        },
+        geo: isBh
+          ? {
+              ...DEFAULT_WHITELABEL_CONFIG.geo,
+              cidadeSede: "Belo Horizonte",
+              estadoUf: "MG",
+              coordenadasCentroLat: -19.916681,
+              coordenadasCentroLng: -43.934493,
+              raioOperacaoPadraoKm: 30.0,
+            }
+          : DEFAULT_WHITELABEL_CONFIG.geo,
+      },
+    };
+
+    this.tenantsMap.set(cleanId, synthesized);
+    return synthesized;
+  }
+
   public switchTenant(tenantId: string): WhiteLabelTenantRecord {
-    const tenant = this.tenantsMap.get(tenantId);
-    if (!tenant) throw new Error(`Tenant '${tenantId}' não encontrado.`);
-    this.activeTenantId = tenantId;
+    const cleanId = (tenantId || "").trim();
+    if (!cleanId) {
+      return this.getActiveTenant();
+    }
+
+    // Auto-cura e resolução resiliente sem nunca lançar erro fatal que quebre o render do React
+    const tenant = this.resolveOrRegisterTenant(cleanId);
+    this.activeTenantId = tenant.tenantId;
     this.saveTenantsRegistry();
     this.applyTheme(tenant.configuracaoCompleta);
     this.broadcastUpdate();
     // Sincroniza do Supabase para garantir a versão mais recente em nuvem
-    void this.syncFromSupabase(tenantId);
+    void this.syncFromSupabase(tenant.tenantId);
     return tenant;
   }
 

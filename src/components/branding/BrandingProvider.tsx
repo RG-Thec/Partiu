@@ -429,7 +429,11 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem("partiu_wl_active_tenant_v1", cleanId);
       localStorage.setItem("partiu_whitelabel_active_tenant_id_v1", cleanId);
     } catch {}
-    whiteLabelEngine.switchTenant(cleanId);
+    try {
+      whiteLabelEngine.switchTenant(cleanId);
+    } catch (err) {
+      console.warn("[BrandingProvider] Erro ao alternar tenant:", err);
+    }
     await fetchTenantBranding(cleanId);
   }, [fetchTenantBranding]);
 
