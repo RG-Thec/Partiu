@@ -490,12 +490,18 @@ export class SupabaseAuthService {
     // 2. Verificação no Supabase
     if (isSupabaseConfigured() && !isTestEnvironment()) {
       try {
+        const formattedCpf =
+          cleanCpf && cleanCpf.length === 11
+            ? `${cleanCpf.slice(0, 3)}.${cleanCpf.slice(3, 6)}.${cleanCpf.slice(6, 9)}-${cleanCpf.slice(9)}`
+            : "";
+        const cpfVars = [cleanCpf, formattedCpf].filter(Boolean);
+
         // A. Checagem em public.profiles
         if (cleanEmail) {
           const { data: profileByEmail } = await (supabase as any)
             .from("profiles")
             .select("id, email, tenant_id")
-            .eq("email", cleanEmail)
+            .ilike("email", cleanEmail)
             .maybeSingle();
 
           if (profileByEmail) {
@@ -507,11 +513,11 @@ export class SupabaseAuthService {
           }
         }
 
-        if (cleanCpf && cleanCpf.length === 11) {
+        if (cpfVars.length > 0) {
           const { data: profileByCpf } = await (supabase as any)
             .from("profiles")
             .select("id, cpf, tenant_id")
-            .eq("cpf", cleanCpf)
+            .in("cpf", cpfVars)
             .maybeSingle();
 
           if (profileByCpf) {
@@ -528,7 +534,7 @@ export class SupabaseAuthService {
           const { data: paxByEmail } = await (supabase as any)
             .from("partiu_passageiros")
             .select("id, email, tenant_id")
-            .eq("email", cleanEmail)
+            .ilike("email", cleanEmail)
             .maybeSingle();
 
           if (paxByEmail) {
@@ -540,11 +546,11 @@ export class SupabaseAuthService {
           }
         }
 
-        if (cleanCpf && cleanCpf.length === 11) {
+        if (cpfVars.length > 0) {
           const { data: paxByCpf } = await (supabase as any)
             .from("partiu_passageiros")
             .select("id, cpf, tenant_id")
-            .eq("cpf", cleanCpf)
+            .in("cpf", cpfVars)
             .maybeSingle();
 
           if (paxByCpf) {
@@ -561,7 +567,7 @@ export class SupabaseAuthService {
           const { data: drvByEmail } = await (supabase as any)
             .from("partiu_motoristas")
             .select("id, email, tenant_id")
-            .eq("email", cleanEmail)
+            .ilike("email", cleanEmail)
             .maybeSingle();
 
           if (drvByEmail) {
@@ -573,11 +579,11 @@ export class SupabaseAuthService {
           }
         }
 
-        if (cleanCpf && cleanCpf.length === 11) {
+        if (cpfVars.length > 0) {
           const { data: drvByCpf } = await (supabase as any)
             .from("partiu_motoristas")
             .select("id, cpf, tenant_id")
-            .eq("cpf", cleanCpf)
+            .in("cpf", cpfVars)
             .maybeSingle();
 
           if (drvByCpf) {
@@ -620,18 +626,18 @@ export class SupabaseAuthService {
             silentCatchWarn("checkAndHydrateSession:profiles", err);
           }
 
-          // Verificação estrita de tenant: se a conta pertencer a outra praça, não hidrata como logada
-          const userTenantId = profileData?.tenant_id || user.user_metadata?.["tenant_id"];
-          if (!isMatchingTenant(userTenantId, effectiveTenantId)) {
-            return null;
-          }
-
           let role: UserRole = "PASSAGEIRO";
           const rawRole = profileData?.role || user.user_metadata?.["role"] || "";
           if (rawRole.toLowerCase() === "driver" || rawRole.toUpperCase() === "MOTORISTA") {
             role = "MOTORISTA";
           } else if (rawRole.toLowerCase() === "admin" || rawRole.toUpperCase() === "ADMIN") {
             role = "ADMIN";
+          }
+
+          // Verificação estrita de tenant: apenas motoristas e administradores exigem vínculo territorial exclusivo
+          const userTenantId = profileData?.tenant_id || user.user_metadata?.["tenant_id"];
+          if (role !== "PASSAGEIRO" && userTenantId && !isMatchingTenant(userTenantId, effectiveTenantId)) {
+            return null;
           }
 
           let driverApprovalStatus = profileData?.approval_status || (role === "MOTORISTA" ? "pendente" : "aprovado");
@@ -860,46 +866,80 @@ export class SupabaseAuthService {
     let cleanEmail = email.trim().toLowerCase();
     const effectiveTenantId = tenantId || getActiveAuthTenantId();
 
-    // Se o identificador for um número de celular, resolve o e-mail cadastrado
+    // Se o identificador for um número de celular ou CPF, resolve o e-mail cadastrado
     if (cleanEmail && !cleanEmail.includes("@")) {
       const norm = normalizarTelefoneBR(cleanEmail);
-      if (norm.valido) {
-        if (isSupabaseConfigured() && !isTestEnvironment()) {
-          try {
-            const { data: pData } = await (supabase as any)
-              .from("profiles")
+      const digits = cleanEmail.replace(/\D/g, "");
+      const phoneVariations = Array.from(
+        new Set([
+          norm.formatado,
+          norm.e164,
+          norm.apenasDigitos,
+          `+55${norm.apenasDigitos}`,
+          `55${norm.apenasDigitos}`,
+          digits,
+        ])
+      ).filter(Boolean);
+
+      if (isSupabaseConfigured() && !isTestEnvironment()) {
+        try {
+          const { data: pData } = await (supabase as any)
+            .from("profiles")
+            .select("email")
+            .in("phone", phoneVariations)
+            .maybeSingle();
+          if (pData?.email) {
+            cleanEmail = pData.email.trim().toLowerCase();
+          } else {
+            const { data: paxData } = await (supabase as any)
+              .from("partiu_passageiros")
               .select("email")
-              .or(`phone.eq.${norm.formatado},phone.eq.${norm.e164}`)
+              .in("telefone", phoneVariations)
               .maybeSingle();
-            if (pData?.email) {
-              cleanEmail = pData.email.trim().toLowerCase();
-            } else {
-              const { data: paxData } = await (supabase as any)
-                .from("partiu_passageiros")
+            if (paxData?.email) {
+              cleanEmail = paxData.email.trim().toLowerCase();
+            } else if (digits.length === 11) {
+              const formattedCpf = `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+              const cpfVars = [digits, formattedCpf];
+              const { data: cpfProf } = await (supabase as any)
+                .from("profiles")
                 .select("email")
-                .or(`telefone.eq.${norm.formatado},telefone.eq.${norm.e164}`)
+                .in("cpf", cpfVars)
                 .maybeSingle();
-              if (paxData?.email) {
-                cleanEmail = paxData.email.trim().toLowerCase();
-              }
-            }
-          } catch {}
-        }
-        if (!cleanEmail.includes("@") && typeof localStorage !== "undefined") {
-          try {
-            const storeKey = getTenantUsersStoreKey(effectiveTenantId);
-            const rawStore = localStorage.getItem(storeKey);
-            if (rawStore) {
-              const list = JSON.parse(rawStore);
-              if (Array.isArray(list)) {
-                const found = list.find((u: any) => u.phone && u.phone.replace(/\D/g, "").endsWith(norm.apenasDigitos.slice(-8)));
-                if (found?.email) {
-                  cleanEmail = found.email.trim().toLowerCase();
+              if (cpfProf?.email) {
+                cleanEmail = cpfProf.email.trim().toLowerCase();
+              } else {
+                const { data: cpfPax } = await (supabase as any)
+                  .from("partiu_passageiros")
+                  .select("email")
+                  .in("cpf", cpfVars)
+                  .maybeSingle();
+                if (cpfPax?.email) {
+                  cleanEmail = cpfPax.email.trim().toLowerCase();
                 }
               }
             }
-          } catch {}
-        }
+          }
+        } catch {}
+      }
+      if (!cleanEmail.includes("@") && typeof localStorage !== "undefined") {
+        try {
+          const storeKey = getTenantUsersStoreKey(effectiveTenantId);
+          const rawStore = localStorage.getItem(storeKey);
+          if (rawStore) {
+            const list = JSON.parse(rawStore);
+            if (Array.isArray(list)) {
+              const found = list.find(
+                (u: any) =>
+                  (u.phone && digits && u.phone.replace(/\D/g, "").endsWith(digits.slice(-8))) ||
+                  (u.cpf && digits && u.cpf.replace(/\D/g, "") === digits)
+              );
+              if (found?.email) {
+                cleanEmail = found.email.trim().toLowerCase();
+              }
+            }
+          }
+        } catch {}
       }
     }
 
@@ -1398,7 +1438,7 @@ export class SupabaseAuthService {
           const { data: pData } = await (supabase as any)
             .from("profiles")
             .select("id, full_name, email, role, tenant_id")
-            .eq("email", cleanEmail)
+            .ilike("email", cleanEmail)
             .maybeSingle();
 
           let profileMatch = pData;
@@ -1406,7 +1446,7 @@ export class SupabaseAuthService {
             const { data: paxData } = await (supabase as any)
               .from("partiu_passageiros")
               .select("id, nome, email, tenant_id")
-              .eq("email", cleanEmail)
+              .ilike("email", cleanEmail)
               .maybeSingle();
             if (paxData) {
               profileMatch = {
@@ -1496,7 +1536,9 @@ export class SupabaseAuthService {
             const list = JSON.parse(rawStore);
             if (Array.isArray(list)) {
               const found = list.find(
-                (u: any) => u.phone && u.phone.replace(/\D/g, "").endsWith(digits.slice(-8))
+                (u: any) =>
+                  (u.phone && digits && u.phone.replace(/\D/g, "").endsWith(digits.slice(-8))) ||
+                  (u.cpf && digits && u.cpf.replace(/\D/g, "") === digits)
               );
               if (found) {
                 return {
@@ -1513,12 +1555,23 @@ export class SupabaseAuthService {
       } catch {}
 
       // 3. Checagem remota no Supabase
-      if (isSupabaseConfigured() && norm.valido && !isTestEnvironment()) {
+      if (isSupabaseConfigured() && !isTestEnvironment()) {
         try {
+          const phoneVariations = Array.from(
+            new Set([
+              norm.formatado,
+              norm.e164,
+              norm.apenasDigitos,
+              `+55${norm.apenasDigitos}`,
+              `55${norm.apenasDigitos}`,
+              digits,
+            ])
+          ).filter(Boolean);
+
           const { data: pData } = await (supabase as any)
             .from("profiles")
             .select("id, full_name, phone, role, tenant_id")
-            .or(`phone.eq.${norm.formatado},phone.eq.${norm.e164}`)
+            .in("phone", phoneVariations)
             .maybeSingle();
 
           let phoneMatch = pData;
@@ -1526,7 +1579,7 @@ export class SupabaseAuthService {
             const { data: paxData } = await (supabase as any)
               .from("partiu_passageiros")
               .select("id, nome, telefone, tenant_id")
-              .or(`telefone.eq.${norm.formatado},telefone.eq.${norm.e164}`)
+              .in("telefone", phoneVariations)
               .maybeSingle();
             if (paxData) {
               phoneMatch = {
@@ -1536,6 +1589,35 @@ export class SupabaseAuthService {
                 role: "passenger",
                 tenant_id: paxData.tenant_id,
               };
+            }
+          }
+
+          // Fallback por CPF caso o identificador numérico digitado seja CPF
+          if (!phoneMatch && digits.length === 11) {
+            const formattedCpf = `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+            const cpfVars = [digits, formattedCpf];
+            const { data: cpfProf } = await (supabase as any)
+              .from("profiles")
+              .select("id, full_name, phone, role, tenant_id")
+              .in("cpf", cpfVars)
+              .maybeSingle();
+            if (cpfProf) {
+              phoneMatch = cpfProf;
+            } else {
+              const { data: cpfPax } = await (supabase as any)
+                .from("partiu_passageiros")
+                .select("id, nome, telefone, tenant_id")
+                .in("cpf", cpfVars)
+                .maybeSingle();
+              if (cpfPax) {
+                phoneMatch = {
+                  id: cpfPax.id,
+                  full_name: cpfPax.nome,
+                  phone: cpfPax.telefone,
+                  role: "passenger",
+                  tenant_id: cpfPax.tenant_id,
+                };
+              }
             }
           }
 

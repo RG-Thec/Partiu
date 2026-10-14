@@ -54,13 +54,16 @@ export const Route = createFileRoute("/app")({
       const expired = !session || (session.expires_at ?? 0) * 1000 <= Date.now();
       const storedUser = typeof window !== "undefined" ? supabaseAuthService.getStoredSession(effectiveTenantId) : null;
 
-      // Validação de isolamento multi-tenant: usuário autenticado deve pertencer ao tenant da praça
+      const userRole = session?.user?.user_metadata?.["role"]?.toUpperCase();
+      const isPassenger = !userRole || userRole === "PASSAGEIRO" || userRole === "PASSENGER";
+
+      // Validação de isolamento multi-tenant: apenas motoristas e administradores exigem vínculo territorial exclusivo
       const sessionTenantMatches =
-        session?.user?.user_metadata?.["tenant_id"]
+        !isPassenger && session?.user?.user_metadata?.["tenant_id"]
           ? isMatchingTenant(session.user.user_metadata["tenant_id"], effectiveTenantId)
           : true;
 
-      const userTenantMatches = storedUser && (!storedUser.tenantId || isMatchingTenant(storedUser.tenantId, effectiveTenantId));
+      const userTenantMatches = storedUser && (!storedUser.tenantId || isPassenger || isMatchingTenant(storedUser.tenantId, effectiveTenantId));
 
       const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
       const isDev = Boolean(typeof import.meta !== "undefined" && import.meta.env?.DEV);

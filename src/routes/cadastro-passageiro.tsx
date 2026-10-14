@@ -164,6 +164,7 @@ export function CadastroPassageiroPage() {
         cpf,
         password: senha,
         avatarUrl: fotoUrl,
+        tenantId: tenantParam || undefined,
       });
 
       if (!res.success) {

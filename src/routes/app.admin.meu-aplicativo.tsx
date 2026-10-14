@@ -110,14 +110,19 @@ export default function MeuAplicativoPage() {
 
   // Link Oficial Permanente do Aplicativo (Página Inicial com Identidade da Praça)
   const officialAppUrl = useMemo(() => {
-    if (dominioRecord && dominioRecord.status === "ATIVO") {
+    if (typeof window === "undefined") return "/";
+    const origin = window.location.origin;
+    if (
+      dominioRecord &&
+      dominioRecord.status === "ATIVO" &&
+      window.location.hostname === dominioRecord.domain
+    ) {
       return `https://${dominioRecord.domain}`;
     }
-    if (typeof window === "undefined") return "/";
     if (effectiveTenantId && effectiveTenantId !== "default") {
-      return `${window.location.origin}/?tenant=${encodeURIComponent(effectiveTenantId)}`;
+      return `${origin}/?tenant=${encodeURIComponent(effectiveTenantId)}`;
     }
-    return `${window.location.origin}/`;
+    return `${origin}/`;
   }, [dominioRecord, effectiveTenantId]);
 
   // Link de Teste Imediato / Web Preview (Página Inicial)
@@ -162,14 +167,19 @@ export default function MeuAplicativoPage() {
   // URLs diretas por perfil
   // Passageiro: direciona para a Página Inicial com a marca da franquia para apresentação e login
   const passengerAppUrl = useMemo(() => {
-    if (dominioRecord && dominioRecord.status === "ATIVO") {
+    if (typeof window === "undefined") return "/";
+    const origin = window.location.origin;
+    if (
+      dominioRecord &&
+      dominioRecord.status === "ATIVO" &&
+      window.location.hostname === dominioRecord.domain
+    ) {
       return `https://${dominioRecord.domain}`;
     }
-    if (typeof window === "undefined") return "/";
     if (effectiveTenantId && effectiveTenantId !== "default") {
-      return `${window.location.origin}/?tenant=${encodeURIComponent(effectiveTenantId)}`;
+      return `${origin}/?tenant=${encodeURIComponent(effectiveTenantId)}`;
     }
-    return `${window.location.origin}/`;
+    return `${origin}/`;
   }, [dominioRecord, effectiveTenantId]);
 
   const driverAppUrl = useMemo(() => {

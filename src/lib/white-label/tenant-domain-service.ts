@@ -212,7 +212,12 @@ export class TenantDomainService {
       const raw = localStorage.getItem(STORAGE_KEY_DOMAINS);
       if (raw) {
         const parsed = JSON.parse(raw) as TenantDomainRecord[];
-        const dummyDomains = ["app.mobe-saopaulo.com.br", "maceio.partiumobe.com.br", "bhmob.partiumobe.com.br"];
+        const dummyDomains = [
+          "app.mobe-saopaulo.com.br",
+          "maceio.partiumobe.com.br",
+          "bhmob.partiumobe.com.br",
+          "bh.partiumobe.com.br",
+        ];
         parsed.forEach((d) => {
           const key = d.domain.toLowerCase();
           if (dummyDomains.includes(key)) return;
@@ -418,23 +423,11 @@ export class TenantDomainService {
   }
 
   /**
-   * Obtém o domínio de um tenant ou cria automaticamente o subdomínio oficial ativo da franquia
+   * Obtém o domínio de um tenant ou cria o subdomínio da franquia
    */
   public getOrCreateDomainForTenant(tenantId: string, tenantNome = "Franqueado Regional"): TenantDomainRecord {
     const existing = this.getDomainByTenantId(tenantId);
     if (existing) {
-      // Se for domínio oficial da franquia mas estiver pendente por cache antigo, garante ativo
-      if (existing.domain.includes("partiumobe.com.br") && existing.status !== "ATIVO") {
-        existing.status = "ATIVO";
-        existing.sslStatus = "ATIVO";
-        existing.verifiedAt = new Date().toISOString();
-        if (existing.dnsRecords && existing.dnsRecords.length > 0) {
-          existing.dnsRecords[0].matched = true;
-          existing.dnsRecords[0].actual = CANONICAL_CNAME_TARGET;
-        }
-        this.domainsMap.set(existing.domain.toLowerCase(), existing);
-        this.persist();
-      }
       return existing;
     }
 
