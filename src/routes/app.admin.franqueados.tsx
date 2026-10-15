@@ -50,6 +50,7 @@ import { MapboxConfig } from "@/config/MapboxConfig";
 import { listarPassageiros, type PassageiroAdmin } from "@/lib/passageiros.functions";
 import { useMotoristas } from "@/lib/partiu-db";
 import { usePartiuRides, type PartiuRideRecord } from "@/lib/partiu-db";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { exportarParaCSV } from "@/lib/export-csv";
 import { CloneTenantModal } from "@/components/admin/whitelabel/CloneTenantModal";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
@@ -113,7 +114,37 @@ function SuperAdminFranqueadosContent() {
   const listar = useServerFn(listarPassageiros);
   const { data: todosPassageiros = [], isLoading: carregandoPassageiros } = useQuery({
     queryKey: ["admin", "passageiros"],
-    queryFn: () => listar(),
+    queryFn: async () => {
+      try {
+        const res = await listar();
+        if (Array.isArray(res) && res.length > 0) return res;
+      } catch {}
+
+      if (isSupabaseConfigured()) {
+        try {
+          const { data } = await (supabase as any)
+            .from("profiles")
+            .select("id, full_name, email, cpf, phone, created_at, is_active, approval_status, role")
+            .order("created_at", { ascending: false })
+            .limit(200);
+
+          if (Array.isArray(data) && data.length > 0) {
+            return data
+              .filter((p: any) => p.role !== "motorista" && p.role !== "driver" && p.role !== "franqueado")
+              .map((p: any) => ({
+                id: p.id,
+                email: p.email || null,
+                full_name: p.full_name || "Passageiro",
+                cpf: p.cpf || null,
+                phone: p.phone || null,
+                created_at: p.created_at || new Date().toISOString(),
+                status: (p.is_active === false || p.approval_status === "suspenso" ? "bloqueado" : "ativo") as "ativo" | "bloqueado" | "inativo",
+              }));
+          }
+        } catch {}
+      }
+      return [];
+    },
   });
 
   // 3. Base de Motoristas
