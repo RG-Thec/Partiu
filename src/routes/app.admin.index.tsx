@@ -270,8 +270,8 @@ export function SuperAdminDashboardExecutive() {
         } • Padrão Zero Comissão`}
         breadcrumbs={[{ label: "Painel Admin", to: "/app/admin" }, { label: "Comando" }]}
         badge={
-          <AdminBadge variant="success" dot pulse size="sm">
-            NOC OPERACIONAL 60 FPS
+          <AdminBadge variant="success" dot size="sm">
+            OPERACIONAL
           </AdminBadge>
         }
         actions={

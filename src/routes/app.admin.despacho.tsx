@@ -50,6 +50,12 @@ import {
 import { getCorridaAtiva, obterPainelSaudeCidade, type CorridaPartiu, type CityHealthDashboardData } from "@/lib/partiu-engine";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { AdminManualDispatchModal } from "@/components/admin/AdminManualDispatchModal";
+import {
+  AdminPageHeader,
+  AdminBadge,
+  AdminActionButton,
+  AdminTabBar,
+} from "@/components/admin/ui";
 import { Switch } from "@/components/ui/switch";
 import { useAdminCity } from "@/contexts/AdminCityContext";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -547,62 +553,38 @@ export function DespachoCentralCorridas() {
 
   return (
     <div className="w-full space-y-6 pb-16">
-      {/* Header com Identidade PARTIU */}
-      <header className="w-full bg-slate-950 p-6 sm:p-7 rounded-3xl text-white shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 border border-slate-800">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#0088FF]/20 px-4 py-1.5 text-xs font-black uppercase text-primary-500 border border-primary-600/30">
-            <Package className="h-4 w-4" />
-            <span>
-              Torre de Despacho • {isFranqueado ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional Global"}
-            </span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-            Central de Despacho &amp; Regras de Matching
-          </h1>
-          <p className="text-sm text-slate-300 max-w-3xl font-medium leading-relaxed">
-            Monitore o fluxo de chamadas ao vivo, configure os parâmetros do algoritmo de busca progressiva e automatize tarifas dinâmicas (Surge Pricing).
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 flex-wrap">
-          <button
-            type="button"
+      {/* Header Institucional Padronizado */}
+      <AdminPageHeader
+        title="Central de Despacho & Matching"
+        subtitle={`Torre de Despacho • ${isFranqueado ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional Global"} • Monitore chamadas ao vivo, parâmetros de busca e tarifas dinâmicas`}
+        breadcrumbs={[{ label: "Painel Admin", to: "/app/admin" }, { label: "Despacho" }]}
+        badge={
+          <AdminBadge variant="brand" size="sm">
+            TORRE DE COMANDO
+          </AdminBadge>
+        }
+        actions={
+          <AdminActionButton
+            variant="primary"
+            size="sm"
+            iconLeft={<Phone className="w-4 h-4" />}
             onClick={() => setModalNovoChamado(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black transition active:scale-95 shadow-md cursor-pointer"
           >
-            <Phone className="w-4 h-4" />
-            <span>+ Novo Chamado (Central / Zap)</span>
-          </button>
-          
-          {/* Seletor de Abas */}
-          <div className="flex items-center p-1 rounded-2xl bg-slate-900 border border-slate-800">
-            <button
-              type="button"
-              onClick={() => setAbaAtiva("FILA_DESPACHO")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                abaAtiva === "FILA_DESPACHO"
-                  ? "bg-primary text-slate-950 font-black shadow-xs"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <Radio className="w-3.5 h-3.5" />
-              Fila ao Vivo
-            </button>
-            <button
-              type="button"
-              onClick={() => setAbaAtiva("REGRAS_SURGE")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                abaAtiva === "REGRAS_SURGE"
-                  ? "bg-primary text-slate-950 font-black shadow-xs"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <Sliders className="w-3.5 h-3.5" />
-              Regras &amp; Surge
-            </button>
-          </div>
-        </div>
-      </header>
+            Novo Chamado
+          </AdminActionButton>
+        }
+      />
+
+      {/* Seletor de Abas Padronizado */}
+      <AdminTabBar
+        variant="pills"
+        activeTab={abaAtiva}
+        onChange={(tab) => setAbaAtiva(tab as any)}
+        tabs={[
+          { id: "FILA_DESPACHO", label: "Fila ao Vivo", icon: <Radio className="w-3.5 h-3.5" /> },
+          { id: "REGRAS_SURGE", label: "Regras & Surge", icon: <Sliders className="w-3.5 h-3.5" /> },
+        ]}
+      />
 
       {/* Toast Feedback */}
       {toastFeedback && (

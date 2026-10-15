@@ -249,7 +249,7 @@ whose code diverges from its record here is a "drifted" finding. -->
 ### SCR-14: Cockpit Operacional do Motorista
 - **Used by:** FLW-01 step 6, FLW-02 step 1, FLW-04 step 1, FLW-06 step 3
 - **Purpose:** Fornecer ao motorista parceiro controle do modo online, recebimento de chamadas com ganho líquido e métricas diárias com visão desobstruída
-- **Elements:** Barra superior com avatar e menu, status operacional unificado com alternador online/offline, resumo de ganhos do dia com taxa zero e repasse Pix D+0, atalhos para modo destino e taxímetro
+- **Elements:** Barra superior com avatar, menu gaveta, alternador de modo noturno e status online/offline, resumo de ganhos do dia com taxa zero e repasse Pix D+0, modal de oferta zero-scroll com temporizador regressivo de 15s e slider de confirmação de 56px, mapa vetorial com iluminação adaptativa diurna/noturna, atalhos para Waze e Google Maps, botão ergonômico de cancelamento com alvo tátil de 40px
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |-------|---------|-------------|----------|
@@ -257,7 +257,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | empty | condutor offline | none — code first | Painel em repouso com resumo das corridas anteriores |
   | error | GPS desativado ou sem sinal | none — code first | Alerta visual solicitando ativação do serviço de localização |
   | loading | conectando ao despacho | none — code first | Spinner sutil de sincronização com o cluster PostGIS |
-- **Coverage:** src/routes/app.motorista.tsx:1-2451, src/components/driver/cockpit/states/IdleState.tsx:1-230
+- **Coverage:** src/routes/app.motorista.tsx:1-2454, src/components/driver/cockpit/DriverHeader.tsx:1-120, src/components/driver/DriverOfferModal.tsx:1-420, src/components/driver/cockpit/states/IdleState.tsx:1-230, src/components/driver/cockpit/states/HeadingToPickupState.tsx:1-131
 - **Scenarios:** SCN-002
 - **Resources:** src/components/driver/, Supabase Realtime
 - **Status:** built

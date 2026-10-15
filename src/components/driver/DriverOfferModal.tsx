@@ -80,8 +80,8 @@ export const DriverOfferModal = memo(function DriverOfferModal({
     };
   }, [onRecusar]);
 
-  // Cálculo do progresso circular SVG grande (Raio = 40, Perímetro ≈ 251.3)
-  const circleRadius = 40;
+  // Cálculo do progresso circular SVG compacto para telas veiculares (Raio = 34, Perímetro ≈ 213.6)
+  const circleRadius = 34;
   const circumference = 2 * Math.PI * circleRadius;
   const strokeDashoffset = circumference - (secondsRemaining / countdownSeconds) * circumference;
 
@@ -145,7 +145,7 @@ export const DriverOfferModal = memo(function DriverOfferModal({
 
   return (
     <div className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 ${isNightMode ? "dark" : ""}`}>
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-[28px] sm:rounded-[32px] p-4 sm:p-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[0_20px_60px_rgba(0,0,0,0.25)] border border-slate-100 dark:border-slate-800 text-slate-900 dark:text-white animate-in slide-in-from-bottom duration-300 select-none text-center max-h-[92dvh] overflow-y-auto scrollbar-none relative">
+      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-[28px] sm:rounded-[32px] p-3.5 sm:p-5 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_20px_60px_rgba(0,0,0,0.25)] border border-slate-100 dark:border-slate-800 text-slate-900 dark:text-white animate-in slide-in-from-bottom duration-300 select-none text-center max-h-[94dvh] overflow-y-auto scrollbar-none relative">
         {/* Botão Superior de Recusa Rápida (Thumb-zone / Ergonomia Veicular com uma mão) */}
         <button
           type="button"
@@ -153,7 +153,7 @@ export const DriverOfferModal = memo(function DriverOfferModal({
             callAlertService.stopAlert();
             onRecusar();
           }}
-          className="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 flex items-center justify-center cursor-pointer transition active:scale-90 border border-slate-200/60 dark:border-slate-700/60 shadow-2xs"
+          className="absolute top-3.5 right-3.5 w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 flex items-center justify-center cursor-pointer transition active:scale-90 border border-slate-200/60 dark:border-slate-700/60 shadow-2xs"
           title="Recusar oferta agora"
           aria-label="Recusar oferta de corrida"
         >
@@ -161,25 +161,25 @@ export const DriverOfferModal = memo(function DriverOfferModal({
         </button>
 
         {/* Barra tátil de puxar */}
-        <div className="w-12 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 mx-auto mb-3" />
+        <div className="w-10 h-1 rounded-full bg-slate-200 dark:bg-slate-700 mx-auto mb-2" />
 
-        {/* 1. GRANDE TEMPORIZADOR CIRCULAR REGRESSIVO */}
-        <div className="relative w-24 h-24 mx-auto mb-2 flex items-center justify-center">
-          <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 96 96">
+        {/* 1. GRANDE TEMPORIZADOR CIRCULAR REGRESSIVO (COMPACTADO ERGONÔMICO) */}
+        <div className="relative w-20 h-20 mx-auto mb-1 flex items-center justify-center">
+          <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 80 80">
             <circle
-              cx="48"
-              cy="48"
+              cx="40"
+              cy="40"
               r={circleRadius}
               className="stroke-slate-100 dark:stroke-slate-800"
-              strokeWidth="5"
+              strokeWidth="4.5"
               fill="transparent"
             />
             <circle
-              cx="48"
-              cy="48"
+              cx="40"
+              cy="40"
               r={circleRadius}
               stroke={colors.primary}
-              strokeWidth="5.5"
+              strokeWidth="5"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
@@ -189,13 +189,13 @@ export const DriverOfferModal = memo(function DriverOfferModal({
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <span
-              className="text-3xl font-extrabold leading-none tracking-tight"
+              className="text-2xl font-extrabold leading-none tracking-tight"
               style={{ color: colors.primary }}
             >
               {secondsRemaining}
             </span>
             <span
-              className="text-xs font-bold -mt-0.5"
+              className="text-[10px] font-bold -mt-0.5"
               style={{ color: colors.textSecondary }}
             >
               seg
@@ -204,38 +204,38 @@ export const DriverOfferModal = memo(function DriverOfferModal({
         </div>
 
         {/* 2. GANHOS LÍQUIDOS DO MOTORISTA */}
-        <div className="mb-4">
+        <div className="mb-2.5 sm:mb-3">
           <span
-            className="text-xs sm:text-sm font-semibold uppercase tracking-wider block"
+            className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider block"
             style={{ color: colors.textSecondary }}
           >
             Ganhos líquidos
           </span>
           <div
-            className="text-3xl sm:text-4xl font-black tracking-tight leading-tight my-1"
+            className="text-2.5xl sm:text-3xl font-black tracking-tight leading-tight my-0.5"
             style={{ color: colors.textPrimary }}
           >
             {oferta.valorLiquido.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
           </div>
           {/* Pill de R$/km (Padrão de Alta Conversão dos Top Condutores) */}
-          <div className="flex flex-wrap items-center justify-center gap-1.5 mt-1">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-black text-xs shadow-2xs">
+          <div className="flex flex-wrap items-center justify-center gap-1 mt-0.5">
+            <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-black text-[11px] shadow-2xs">
               <span>R$ {ganhoKmCalculado.toFixed(2).replace(".", ",")} / km</span>
-              <span className="text-[10px] opacity-80 font-bold">• Alta rentabilidade</span>
+              <span className="text-[9px] opacity-80 font-bold">• Alta rentabilidade</span>
             </div>
             {oferta.descontoCupom && oferta.descontoCupom > 0 ? (
-              <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-400 font-bold text-xs shadow-2xs">
-                <span>🎁 + R$ {oferta.descontoCupom.toFixed(2).replace(".", ",")} de Cupom na sua diária</span>
+              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-400 font-bold text-[11px] shadow-2xs">
+                <span>🎁 + R$ {oferta.descontoCupom.toFixed(2).replace(".", ",")} de Cupom</span>
               </div>
             ) : null}
           </div>
         </div>
 
         {/* 3. 3 CARDS DE MÉTRICAS */}
-        <div className="grid grid-cols-3 gap-2 mb-3.5">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-2.5">
           {/* Card 1: Distância Total */}
           <div
-            className="p-2 sm:p-2.5 border text-center transition-all"
+            className="p-1.5 sm:p-2 border text-center transition-all"
             style={{
               backgroundColor: colors.inputBackground,
               borderColor: colors.inputBorder,
@@ -243,7 +243,7 @@ export const DriverOfferModal = memo(function DriverOfferModal({
             }}
           >
             <MapPin
-              className="w-4 h-4 mx-auto mb-0.5"
+              className="w-3.5 h-3.5 mx-auto mb-0.5"
               style={{ color: colors.primary }}
             />
             <div
@@ -253,7 +253,7 @@ export const DriverOfferModal = memo(function DriverOfferModal({
               {distanciaViagemTexto}
             </div>
             <div
-              className="text-xs font-bold uppercase tracking-wider mt-0.5"
+              className="text-[10px] font-bold uppercase tracking-wider mt-0.5"
               style={{ color: colors.textSecondary }}
             >
               distância
@@ -262,7 +262,7 @@ export const DriverOfferModal = memo(function DriverOfferModal({
 
           {/* Card 2: Tempo até embarque */}
           <div
-            className="p-2 sm:p-2.5 border text-center transition-all"
+            className="p-1.5 sm:p-2 border text-center transition-all"
             style={{
               backgroundColor: colors.inputBackground,
               borderColor: colors.inputBorder,
@@ -270,7 +270,7 @@ export const DriverOfferModal = memo(function DriverOfferModal({
             }}
           >
             <Clock
-              className="w-4 h-4 mx-auto mb-0.5"
+              className="w-3.5 h-3.5 mx-auto mb-0.5"
               style={{ color: colors.primary }}
             />
             <div
@@ -289,14 +289,14 @@ export const DriverOfferModal = memo(function DriverOfferModal({
 
           {/* Card 3: Nota do Passageiro */}
           <div
-            className="p-2 sm:p-2.5 border text-center transition-all"
+            className="p-1.5 sm:p-2 border text-center transition-all"
             style={{
               backgroundColor: colors.inputBackground,
               borderColor: colors.inputBorder,
               borderRadius: ui.borderRadius,
             }}
           >
-            <Star className="w-4 h-4 mx-auto mb-0.5 text-amber-500 fill-amber-400" />
+            <Star className="w-3.5 h-3.5 mx-auto mb-0.5 text-amber-500 fill-amber-400" />
             <div
               className="text-xs sm:text-sm font-bold leading-tight mt-0.5 flex items-center justify-center gap-0.5"
               style={{ color: colors.textPrimary }}
@@ -314,17 +314,17 @@ export const DriverOfferModal = memo(function DriverOfferModal({
         </div>
 
         {/* 4. CARDS DE ENDEREÇO */}
-        <div className="space-y-2.5 mb-5 text-left">
+        <div className="space-y-2 mb-3.5 text-left">
           {/* Local de Embarque */}
           <div
-            className="p-3.5 flex items-center justify-between gap-3 border-l-4 border-emerald-500 shadow-2xs border bg-slate-50/70 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700"
+            className="p-2.5 sm:p-3 flex items-center justify-between gap-2.5 border-l-4 border-emerald-500 shadow-2xs border bg-slate-50/70 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700"
             style={{
               borderRadius: ui.borderRadius,
             }}
           >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                <User className="w-5 h-5" />
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8.5 h-8.5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                <User className="w-4.5 h-4.5" />
               </div>
               <div className="min-w-0">
                 <span className="text-xs font-black block leading-tight text-slate-900 dark:text-white">
@@ -342,14 +342,14 @@ export const DriverOfferModal = memo(function DriverOfferModal({
 
           {/* Destino */}
           <div
-            className="p-3.5 flex items-center justify-between gap-3 border-l-4 border-rose-500 shadow-2xs border bg-slate-50/70 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700"
+            className="p-2.5 sm:p-3 flex items-center justify-between gap-2.5 border-l-4 border-rose-500 shadow-2xs border bg-slate-50/70 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700"
             style={{
               borderRadius: ui.borderRadius,
             }}
           >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-full bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                <MapPin className="w-5 h-5 fill-white" />
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8.5 h-8.5 rounded-full bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                <MapPin className="w-4.5 h-4.5 fill-white" />
               </div>
               <div className="min-w-0">
                 <span className="text-xs font-black block leading-tight text-slate-900 dark:text-white">

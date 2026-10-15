@@ -1,5 +1,5 @@
 import React from "react";
-import { Menu, Volume2, VolumeX, Bell, Clock } from "lucide-react";
+import { Menu, Volume2, VolumeX, Bell, Clock, Moon, Sun } from "lucide-react";
 import { PartiuLogo } from "@/components/common/PartiuLogo";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
@@ -125,7 +125,7 @@ export function DriverHeader({
           >
             <span
               className={`w-2 h-2 rounded-full ${
-                isOnline ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground/60"
+                isOnline ? "bg-emerald-500" : "bg-muted-foreground/60"
               }`}
             />
             <span className="hidden xs:inline">{isOnline ? "Online" : "Off"}</span>
@@ -142,6 +142,20 @@ export function DriverHeader({
             >
               <Clock className="w-3 h-3 text-emerald-600 stroke-[2]" />
               <span className="hidden sm:inline">{diariaBadgeText}</span>
+            </button>
+          )}
+
+          {/* Alternador de Modo Noturno Veicular */}
+          {onToggleNightMode && (
+            <button
+              type="button"
+              onClick={onToggleNightMode}
+              style={{ borderRadius: ui.borderRadius }}
+              className="w-10 h-10 min-h-[40px] min-w-[40px] flex items-center justify-center text-foreground hover:bg-muted active:scale-90 transition cursor-pointer"
+              title={isNightMode ? "Modo Diurno (clique para alternar)" : "Modo Noturno (clique para alternar)"}
+              aria-label={isNightMode ? "Ativar modo diurno" : "Ativar modo noturno"}
+            >
+              {isNightMode ? <Sun className="w-4 h-4 text-amber-400 stroke-[2]" /> : <Moon className="w-4 h-4 stroke-[2]" />}
             </button>
           )}
 

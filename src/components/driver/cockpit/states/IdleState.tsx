@@ -42,9 +42,8 @@ export function IdleState({
       {/* Linha 1: Status Operacional Unificado & Botão Ficar Offline */}
       <div className="flex items-center justify-between gap-2.5 p-3 rounded-2xl bg-card border border-border shadow-[0_2px_12px_rgba(0,0,0,0.02)]">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500/15 shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+          <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500/15 border border-emerald-500/20 shrink-0">
+            <span className="inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -103,14 +102,9 @@ export function IdleState({
             <TrendingUp className="w-5 h-5" style={{ color: colors.primary }} />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10.5px] text-muted-foreground font-bold uppercase tracking-wider block truncate">
-                Ganhos de hoje
-              </span>
-              <span className="text-[9px] font-black uppercase text-emerald-800 bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 px-1.5 py-0.5 rounded-full shrink-0">
-                0% taxa
-              </span>
-            </div>
+            <span className="text-[10.5px] text-muted-foreground font-bold uppercase tracking-wider block truncate">
+              Ganhos de hoje
+            </span>
             <div
               style={{ color: colors.primary }}
               className="text-xl sm:text-2xl font-black leading-tight truncate my-0.5"

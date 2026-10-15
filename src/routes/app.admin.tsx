@@ -146,7 +146,6 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
         label: "Pipeline CRM Kanban",
         icon: Columns3,
         exact: false,
-        badge: "Funil",
         moduleId: "motoristas",
       },
       {
@@ -182,7 +181,6 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
         label: "Planos SaaS & Diárias Pix",
         icon: CreditCard,
         exact: false,
-        badge: "0% Taxa",
         moduleId: "financeiro",
       },
       {
@@ -541,8 +539,7 @@ function SuperAdminLayout() {
                       <p className="text-xs font-black tracking-tight leading-none text-white truncate">
                         {branding.appName.toUpperCase()} <span style={{ color: colors.primary }}>OPS</span>
                       </p>
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9px] font-bold text-emerald-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9px] font-bold text-emerald-400">
                         SaaS
                       </span>
                     </div>

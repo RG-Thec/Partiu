@@ -1617,7 +1617,7 @@ export function PartiuDriverCockpit() {
         estado={estadoCockpit}
         origemEndereco={ofertaAtiva?.origem}
         destinoEndereco={emDevolucao ? ofertaAtiva?.origem : ofertaAtiva?.destino}
-        modoNoturno={false}
+        modoNoturno={isNightMode}
         className="absolute inset-0 z-0"
       />
 
@@ -1628,6 +1628,8 @@ export function PartiuDriverCockpit() {
         isOnline={isOnline}
         somAtivo={somAtivo}
         onToggleSom={toggleSom}
+        isNightMode={isNightMode}
+        onToggleNightMode={toggleModoNoturno}
         onOpenMenu={() => setModalMenuMotoristaAberto(true)}
         onOpenProfile={() => setModalPerfilMotorista(true)}
         driverAvatarUrl={perfilMotorista.fotoUrl}

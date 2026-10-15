@@ -114,12 +114,12 @@ export function HeadingToPickupState({
         <span>CHEGUEI AO LOCAL DE EMBARQUE</span>
       </button>
 
-      {/* Opção Secundária: Cancelamento Justificado */}
+      {/* Opção Secundária: Cancelamento Justificado — Touch Target Ergonômico */}
       <div className="pt-0.5 flex justify-center">
         <button
           type="button"
           onClick={onOpenCancelar}
-          className="text-xs font-semibold text-muted-foreground hover:text-rose-600 flex items-center gap-1.5 py-1 px-3 rounded-lg transition active:scale-95 cursor-pointer"
+          className="h-10 min-h-[40px] px-4 rounded-xl border border-border/70 hover:border-rose-300 dark:hover:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-muted-foreground hover:text-rose-600 active:scale-98 transition cursor-pointer flex items-center justify-center gap-1.5 text-xs font-semibold"
         >
           <AlertTriangle className="w-3.5 h-3.5 text-muted-foreground/60" />
           <span>Cancelar corrida</span>
