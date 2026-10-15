@@ -265,7 +265,7 @@ export class SupabaseAuthService {
 
       if (raw) {
         const parsed = JSON.parse(raw) as AuthUserProfile;
-        // Validação estrita: se a sessão for de outro tenant, rejeita imediatamente
+        // Validação estrita: o usuário deve pertencer ao tenant da sessão ativa
         if (!isMatchingTenant(parsed.tenantId, effectiveTenantId)) {
           return null;
         }
@@ -275,7 +275,7 @@ export class SupabaseAuthService {
         return parsed;
       }
 
-      // 2. Fallback de compatibilidade com chave legada apenas para o tenant padrão
+      // 2. Fallback de compatibilidade com chave legada (apenas para matriz/default)
       const legacyRaw = localStorage.getItem(STORAGE_SESSION_KEY);
       if (legacyRaw) {
         const parsed = JSON.parse(legacyRaw) as AuthUserProfile;
@@ -435,6 +435,24 @@ export class SupabaseAuthService {
           registeredAt: Date.now(),
         });
         localStorage.setItem(storeKey, JSON.stringify(list));
+
+        // Se for Matriz (tenant-itaperuna), sincroniza também na chave padrão default para compatibilidade
+        if (isMatchingTenant(effectiveTenantId, "tenant-itaperuna") && effectiveTenantId !== "default") {
+          const defKey = getTenantUsersStoreKey("default");
+          const defRaw = localStorage.getItem(defKey);
+          const defList = defRaw ? JSON.parse(defRaw) : [];
+          if (!defList.some((u: any) => u.email?.toLowerCase().trim() === cleanEmail)) {
+            defList.push({
+              id: user.id,
+              email: cleanEmail,
+              cpf: user.cpf,
+              role: user.role,
+              tenantId: "default",
+              registeredAt: Date.now(),
+            });
+            localStorage.setItem(defKey, JSON.stringify(defList));
+          }
+        }
       }
     } catch (err) {
       silentCatchWarn("recordRegisteredUserLocally", err);
@@ -514,13 +532,13 @@ export class SupabaseAuthService {
         }
 
         if (cpfVars.length > 0) {
-          const { data: profileByCpf } = await (supabase as any)
+          const { data: profileByCpfList } = await (supabase as any)
             .from("profiles")
             .select("id, cpf, tenant_id")
             .in("cpf", cpfVars)
-            .maybeSingle();
+            .limit(1);
 
-          if (profileByCpf) {
+          if (profileByCpfList?.[0]) {
             return {
               registered: true,
               field: "cpf",
@@ -547,13 +565,13 @@ export class SupabaseAuthService {
         }
 
         if (cpfVars.length > 0) {
-          const { data: paxByCpf } = await (supabase as any)
+          const { data: paxByCpfList } = await (supabase as any)
             .from("partiu_passageiros")
             .select("id, cpf, tenant_id")
             .in("cpf", cpfVars)
-            .maybeSingle();
+            .limit(1);
 
-          if (paxByCpf) {
+          if (paxByCpfList?.[0]) {
             return {
               registered: true,
               field: "cpf",
@@ -580,13 +598,13 @@ export class SupabaseAuthService {
         }
 
         if (cpfVars.length > 0) {
-          const { data: drvByCpf } = await (supabase as any)
+          const { data: drvByCpfList } = await (supabase as any)
             .from("partiu_motoristas")
             .select("id, cpf, tenant_id")
             .in("cpf", cpfVars)
-            .maybeSingle();
+            .limit(1);
 
-          if (drvByCpf) {
+          if (drvByCpfList?.[0]) {
             return {
               registered: true,
               field: "cpf",
@@ -883,39 +901,39 @@ export class SupabaseAuthService {
 
       if (isSupabaseConfigured() && !isTestEnvironment()) {
         try {
-          const { data: pData } = await (supabase as any)
+          const { data: pList } = await (supabase as any)
             .from("profiles")
             .select("email")
             .in("phone", phoneVariations)
-            .maybeSingle();
-          if (pData?.email) {
-            cleanEmail = pData.email.trim().toLowerCase();
+            .limit(1);
+          if (pList?.[0]?.email) {
+            cleanEmail = pList[0].email.trim().toLowerCase();
           } else {
-            const { data: paxData } = await (supabase as any)
+            const { data: paxList } = await (supabase as any)
               .from("partiu_passageiros")
               .select("email")
               .in("telefone", phoneVariations)
-              .maybeSingle();
-            if (paxData?.email) {
-              cleanEmail = paxData.email.trim().toLowerCase();
+              .limit(1);
+            if (paxList?.[0]?.email) {
+              cleanEmail = paxList[0].email.trim().toLowerCase();
             } else if (digits.length === 11) {
               const formattedCpf = `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
               const cpfVars = [digits, formattedCpf];
-              const { data: cpfProf } = await (supabase as any)
+              const { data: cpfProfList } = await (supabase as any)
                 .from("profiles")
                 .select("email")
                 .in("cpf", cpfVars)
-                .maybeSingle();
-              if (cpfProf?.email) {
-                cleanEmail = cpfProf.email.trim().toLowerCase();
+                .limit(1);
+              if (cpfProfList?.[0]?.email) {
+                cleanEmail = cpfProfList[0].email.trim().toLowerCase();
               } else {
-                const { data: cpfPax } = await (supabase as any)
+                const { data: cpfPaxList } = await (supabase as any)
                   .from("partiu_passageiros")
                   .select("email")
                   .in("cpf", cpfVars)
-                  .maybeSingle();
-                if (cpfPax?.email) {
-                  cleanEmail = cpfPax.email.trim().toLowerCase();
+                  .limit(1);
+                if (cpfPaxList?.[0]?.email) {
+                  cleanEmail = cpfPaxList[0].email.trim().toLowerCase();
                 }
               }
             }
@@ -1186,16 +1204,29 @@ export class SupabaseAuthService {
     const demo = DEMO_PROFILES[role];
     const isDemoEmail = isDefaultTenant && cleanEmail === demo.email;
 
-    // Busca usuário registrado no banco local isolado daquele tenant
+    // Busca usuário registrado no banco local isolado daquele tenant e transversal para passageiros
     let localTenantUser: any = null;
     if (typeof localStorage !== "undefined") {
       try {
         const storeKey = getTenantUsersStoreKey(effectiveTenantId);
-        const rawStore = localStorage.getItem(storeKey);
-        if (rawStore) {
-          const list = JSON.parse(rawStore);
-          if (Array.isArray(list)) {
-            localTenantUser = list.find((u: any) => u.email?.toLowerCase() === cleanEmail);
+        const storeKeys = [storeKey];
+        if (isDefaultTenant) {
+          const altKey = effectiveTenantId === "default"
+            ? getTenantUsersStoreKey("tenant-itaperuna")
+            : getTenantUsersStoreKey("default");
+          if (!storeKeys.includes(altKey)) storeKeys.push(altKey);
+        }
+        for (const sk of storeKeys) {
+          const rawStore = localStorage.getItem(sk);
+          if (rawStore) {
+            const list = JSON.parse(rawStore);
+            if (Array.isArray(list)) {
+              const found = list.find((u: any) => u.email?.toLowerCase() === cleanEmail);
+              if (found) {
+                localTenantUser = found;
+                break;
+              }
+            }
           }
         }
       } catch {}
@@ -1508,7 +1539,7 @@ export class SupabaseAuthService {
             contactType: "PHONE",
             formattedContact: formatted,
             userName: demo.name,
-            suggestedAuthMode: "SMS_OTP",
+            suggestedAuthMode: "PASSWORD",
           };
         }
       }
@@ -1525,7 +1556,7 @@ export class SupabaseAuthService {
                 contactType: "PHONE",
                 formattedContact: formatted,
                 userName: stored.name,
-                suggestedAuthMode: "SMS_OTP",
+                suggestedAuthMode: "PASSWORD",
               };
             }
           }
@@ -1546,7 +1577,7 @@ export class SupabaseAuthService {
                   contactType: "PHONE",
                   formattedContact: formatted,
                   userName: found.name || undefined,
-                  suggestedAuthMode: "SMS_OTP",
+                  suggestedAuthMode: "PASSWORD",
                 };
               }
             }
@@ -1568,26 +1599,26 @@ export class SupabaseAuthService {
             ])
           ).filter(Boolean);
 
-          const { data: pData } = await (supabase as any)
+          const { data: pList } = await (supabase as any)
             .from("profiles")
             .select("id, full_name, phone, role, tenant_id")
             .in("phone", phoneVariations)
-            .maybeSingle();
+            .limit(1);
 
-          let phoneMatch = pData;
+          let phoneMatch = pList?.[0] || null;
           if (!phoneMatch) {
-            const { data: paxData } = await (supabase as any)
+            const { data: paxList } = await (supabase as any)
               .from("partiu_passageiros")
               .select("id, nome, telefone, tenant_id")
               .in("telefone", phoneVariations)
-              .maybeSingle();
-            if (paxData) {
+              .limit(1);
+            if (paxList?.[0]) {
               phoneMatch = {
-                id: paxData.id,
-                full_name: paxData.nome,
-                phone: paxData.telefone,
+                id: paxList[0].id,
+                full_name: paxList[0].nome,
+                phone: paxList[0].telefone,
                 role: "passenger",
-                tenant_id: paxData.tenant_id,
+                tenant_id: paxList[0].tenant_id,
               };
             }
           }
@@ -1596,26 +1627,26 @@ export class SupabaseAuthService {
           if (!phoneMatch && digits.length === 11) {
             const formattedCpf = `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
             const cpfVars = [digits, formattedCpf];
-            const { data: cpfProf } = await (supabase as any)
+            const { data: cpfProfList } = await (supabase as any)
               .from("profiles")
               .select("id, full_name, phone, role, tenant_id")
               .in("cpf", cpfVars)
-              .maybeSingle();
-            if (cpfProf) {
-              phoneMatch = cpfProf;
+              .limit(1);
+            if (cpfProfList?.[0]) {
+              phoneMatch = cpfProfList[0];
             } else {
-              const { data: cpfPax } = await (supabase as any)
+              const { data: cpfPaxList } = await (supabase as any)
                 .from("partiu_passageiros")
                 .select("id, nome, telefone, tenant_id")
                 .in("cpf", cpfVars)
-                .maybeSingle();
-              if (cpfPax) {
+                .limit(1);
+              if (cpfPaxList?.[0]) {
                 phoneMatch = {
-                  id: cpfPax.id,
-                  full_name: cpfPax.nome,
-                  phone: cpfPax.telefone,
+                  id: cpfPaxList[0].id,
+                  full_name: cpfPaxList[0].nome,
+                  phone: cpfPaxList[0].telefone,
                   role: "passenger",
-                  tenant_id: cpfPax.tenant_id,
+                  tenant_id: cpfPaxList[0].tenant_id,
                 };
               }
             }
@@ -1630,7 +1661,7 @@ export class SupabaseAuthService {
                 exists: false,
                 contactType: "PHONE",
                 formattedContact: formatted,
-                suggestedAuthMode: "SMS_OTP",
+                suggestedAuthMode: "PASSWORD",
               };
             }
 
@@ -1639,7 +1670,7 @@ export class SupabaseAuthService {
               contactType: "PHONE",
               formattedContact: formatted,
               userName: phoneMatch.full_name || undefined,
-              suggestedAuthMode: "SMS_OTP",
+              suggestedAuthMode: "PASSWORD",
             };
           }
         } catch (err) {
@@ -1651,7 +1682,7 @@ export class SupabaseAuthService {
         exists: false,
         contactType: "PHONE",
         formattedContact: formatted,
-        suggestedAuthMode: "SMS_OTP",
+        suggestedAuthMode: "PASSWORD",
       };
     }
   }

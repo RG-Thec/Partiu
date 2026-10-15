@@ -268,20 +268,13 @@ export function PartiuAppAuthGate({
       setRecognizedUserName(checkResult.userName || null);
 
       if (checkResult.exists) {
-        // Usuário EXISTE -> Direciona para o Fluxo de Login
-        if (checkResult.contactType === "PHONE" && features.allowSmsLogin) {
-          // Envia OTP SMS e vai para a tela de código
-          setPassengerStep("LOGIN_OTP");
-          void supabaseAuthService.sendPhoneOtp(cleanInput);
-          setOtpCountdown(45);
-          setSuccessMessage(`Enviamos um código SMS para ${checkResult.formattedContact}`);
+        // Usuário EXISTE -> Direciona para o Fluxo de Login por Senha
+        setEmail(cleanInput);
+        setPassengerStep("LOGIN_PASSWORD");
+        if (checkResult.userName) {
+          setSuccessMessage(`Conta reconhecida! Olá, ${checkResult.userName}. Digite sua senha para entrar.`);
         } else {
-          // Solicita a senha cadastrada
-          setEmail(cleanInput);
-          setPassengerStep("LOGIN_PASSWORD");
-          if (checkResult.userName) {
-            setSuccessMessage(`Conta reconhecida! Olá, ${checkResult.userName}. Digite sua senha para entrar.`);
-          }
+          setSuccessMessage("Conta encontrada! Digite sua senha de acesso para entrar.");
         }
       } else {
         // Usuário NÃO EXISTE -> Direciona para o Formulário de Cadastro (Step 1)

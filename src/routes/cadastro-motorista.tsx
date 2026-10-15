@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, type FormEvent } from "react";
 import {
   ArrowLeft,
@@ -54,6 +54,7 @@ export const Route = createFileRoute("/cadastro-motorista")({
 });
 
 export function CadastroMotoristaPage() {
+  const navigate = useNavigate();
   const search = Route.useSearch();
   const tenantParam = search.tenant || search.tenant_id;
 
@@ -340,6 +341,13 @@ export function CadastroMotoristaPage() {
     });
 
     setSucesso(true);
+    const targetTenant = tenantParam || whiteLabelEngine.getActiveTenantId() || "default";
+    const dest = targetTenant && targetTenant !== "default"
+      ? `/app/motorista?tenant=${encodeURIComponent(targetTenant)}`
+      : "/app/motorista";
+    setTimeout(() => {
+      void navigate({ to: dest as any, replace: true });
+    }, 1800);
   }
 
   return (
@@ -936,21 +944,21 @@ export function CadastroMotoristaPage() {
 
             <div className="pt-3 space-y-2.5">
               <Link
-                to="/auth"
-                search={{ role: "MOTORISTA", ...(tenantParam ? { tenant: tenantParam } : {}) }}
-                className="block w-full"
-              >
-                <NativeButton variant="filled" size="md" fullWidth>
-                  Ir para o login
-                </NativeButton>
-              </Link>
-              <Link
                 to="/app/motorista"
                 search={tenantParam ? { tenant: tenantParam } : undefined}
                 className="block w-full"
               >
+                <NativeButton variant="filled" size="md" fullWidth>
+                  Acessar cockpit agora
+                </NativeButton>
+              </Link>
+              <Link
+                to="/"
+                search={tenantParam ? { tenant: tenantParam } : undefined}
+                className="block w-full"
+              >
                 <NativeButton variant="outlined" size="md" fullWidth>
-                  Acessar cockpit
+                  Voltar ao início
                 </NativeButton>
               </Link>
             </div>

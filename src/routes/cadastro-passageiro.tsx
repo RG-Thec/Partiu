@@ -160,6 +160,13 @@ export function CadastroPassageiroPage() {
       }
 
       setSucesso(true);
+      const targetTenant = tenantParam || whiteLabelEngine.getActiveTenantId() || "default";
+      const dest = targetTenant && targetTenant !== "default"
+        ? `/app?tenant=${encodeURIComponent(targetTenant)}`
+        : "/app";
+      setTimeout(() => {
+        void navigate({ to: dest as any, replace: true });
+      }, 1200);
     } catch (err: any) {
       setErroCadastro(err?.message || "Instabilidade na conexão. Verifique sua internet.");
     } finally {
@@ -447,21 +454,21 @@ export function CadastroPassageiroPage() {
 
             <div className="pt-3 space-y-2.5">
               <Link
-                to="/auth"
-                search={{ role: "PASSAGEIRO", ...(tenantParam ? { tenant: tenantParam } : {}) }}
-                className="block w-full"
-              >
-                <NativeButton variant="filled" size="md" fullWidth>
-                  Ir para o login
-                </NativeButton>
-              </Link>
-              <Link
                 to="/app"
                 search={tenantParam ? { tenant: tenantParam } : undefined}
                 className="block w-full"
               >
+                <NativeButton variant="filled" size="md" fullWidth>
+                  Acessar aplicativo agora
+                </NativeButton>
+              </Link>
+              <Link
+                to="/"
+                search={tenantParam ? { tenant: tenantParam } : undefined}
+                className="block w-full"
+              >
                 <NativeButton variant="outlined" size="md" fullWidth>
-                  Acessar aplicativo
+                  Voltar ao início
                 </NativeButton>
               </Link>
             </div>
