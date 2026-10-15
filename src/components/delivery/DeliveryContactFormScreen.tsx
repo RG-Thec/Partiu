@@ -33,6 +33,7 @@ export function DeliveryContactFormScreen() {
   const [complemento, setComplemento] = useState("");
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [coords, setCoords] = useState<{ latitude?: number; longitude?: number }>({});
   const [erroValidacao, setErroValidacao] = useState<string | null>(null);
 
   // Autocomplete Mapbox
@@ -46,6 +47,7 @@ export function DeliveryContactFormScreen() {
       setComplemento(infoAtual.complemento || "");
       setNome(infoAtual.contatoNome || "");
       setTelefone(infoAtual.contatoTelefone || "");
+      setCoords({ latitude: infoAtual.latitude, longitude: infoAtual.longitude });
       setErroValidacao(null);
       setMostrarDropdown(false);
       setSugestoes([]);
@@ -92,6 +94,9 @@ export function DeliveryContactFormScreen() {
 
   function handleSelecionarLugar(lugar: GeocodedPlace) {
     setEndereco(lugar.endereco);
+    if (lugar.coords && lugar.coords.length === 2) {
+      setCoords({ longitude: lugar.coords[0], latitude: lugar.coords[1] });
+    }
     setMostrarDropdown(false);
   }
 
@@ -100,6 +105,7 @@ export function DeliveryContactFormScreen() {
     setComplemento(rec.complemento || "");
     setNome(rec.nome);
     setTelefone(aplicarMascaraTelefone(rec.telefone));
+    setCoords({ latitude: rec.latitude, longitude: rec.longitude });
     setErroValidacao(null);
     setMostrarDropdown(false);
   }
@@ -124,6 +130,8 @@ export function DeliveryContactFormScreen() {
       complemento: complemento.trim(),
       contatoNome: nome.trim(),
       contatoTelefone: telefone.trim(),
+      latitude: coords.latitude,
+      longitude: coords.longitude,
     });
   }
 

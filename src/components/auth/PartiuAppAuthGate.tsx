@@ -562,11 +562,10 @@ export function PartiuAppAuthGate({
                     void navigate({ to: "/cadastro-motorista" });
                   }
                 }}
-                className="w-full sm:w-auto shrink-0 px-3.5 py-2 rounded-xl text-xs font-black text-white shadow-md flex items-center justify-center gap-1.5 transition hover:brightness-105 active:scale-95 cursor-pointer"
+                className="w-full sm:w-auto shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-sm flex items-center justify-center gap-1.5 transition hover:brightness-105 active:scale-95 cursor-pointer"
                 style={{ backgroundColor: colors.primary }}
               >
-                <span>➔</span>
-                <span>CONFIRMAR CRIAÇÃO DE CONTA</span>
+                <span>Criar conta</span>
               </button>
             )}
           </div>
@@ -587,11 +586,10 @@ export function PartiuAppAuthGate({
                     targetBtn.scrollIntoView({ behavior: "smooth", block: "center" });
                   }
                 }}
-                className="w-full sm:w-auto shrink-0 px-3.5 py-2 rounded-xl text-xs font-black text-white shadow-md flex items-center justify-center gap-1.5 transition hover:brightness-105 active:scale-95 cursor-pointer"
+                className="w-full sm:w-auto shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold text-white shadow-sm flex items-center justify-center gap-1.5 transition hover:brightness-105 active:scale-95 cursor-pointer"
                 style={{ backgroundColor: colors.primary }}
               >
-                <span>➔</span>
-                <span>CONFIRMAR CRIAÇÃO DE CONTA</span>
+                <span>Criar conta</span>
               </button>
             )}
           </div>
@@ -916,10 +914,9 @@ export function PartiuAppAuthGate({
                         color: colors.primary,
                         borderRadius: ui.borderRadius || "0.75rem",
                       }}
-                      className="w-full py-2.5 px-4 border-2 text-xs font-black tracking-wide shadow-xs flex items-center justify-center gap-2 transition hover:bg-slate-50 active:scale-[0.98] cursor-pointer"
+                      className="w-full py-2.5 px-4 border text-xs font-bold tracking-wide shadow-xs flex items-center justify-center gap-2 transition hover:bg-slate-50 active:scale-[0.98] cursor-pointer"
                     >
-                      <span>➔</span>
-                      <span>CONFIRMAR CRIAÇÃO DE CONTA</span>
+                      <span>Criar uma nova conta</span>
                     </button>
 
                     <div className="text-center pt-0.5">
@@ -962,12 +959,6 @@ export function PartiuAppAuthGate({
                     />
                   </div>
 
-                  <WhiteLabelProgressBar
-                    currentStep={1}
-                    totalSteps={2}
-                    stepTitle="Dados Pessoais"
-                    className="mb-2"
-                  />
 
                   {/* Foto Oficial de Identificação */}
                   <CameraPhotoCapture
@@ -1060,7 +1051,7 @@ export function PartiuAppAuthGate({
                         backgroundColor: colors.primary,
                         borderRadius: ui.borderRadius || "0.75rem",
                       }}
-                      className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50"
+                      className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-bold tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.99] cursor-pointer disabled:opacity-50"
                     >
                       {loading ? (
                         <>
@@ -1068,10 +1059,7 @@ export function PartiuAppAuthGate({
                           <span>Cadastrando...</span>
                         </>
                       ) : (
-                        <>
-                          <span>➔</span>
-                          <span>CONFIRMAR CRIAÇÃO DE CONTA</span>
-                        </>
+                        <span>Criar minha conta</span>
                       )}
                     </button>
 

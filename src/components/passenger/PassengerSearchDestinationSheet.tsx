@@ -153,48 +153,33 @@ const SearchDestinationItemRow = React.memo(function SearchDestinationItemRow({
   }, [item, onSelect]);
 
   const placeItem = item as SuggestedPlaceItem;
-  const badgeFinal = badge || placeItem.badge;
-  const isFrequente = placeItem.origemSugestao === "FREQUENTE";
 
   return (
     <button
       type="button"
       onClick={handleClick}
-      className="w-full p-3 flex items-center gap-3 text-left hover:bg-slate-50 rounded-2xl transition active:scale-[0.99] cursor-pointer group"
+      className="w-full py-2.5 px-3 flex items-center gap-3 text-left hover:bg-slate-50/80 rounded-xl transition active:scale-[0.99] cursor-pointer group"
     >
-      <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-slate-200/80 text-slate-700 flex items-center justify-center shrink-0 transition">
+      <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-slate-200/70 text-slate-600 flex items-center justify-center shrink-0 transition">
         {getIcon(item.label, placeItem.origemSugestao)}
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <p className="text-xs sm:text-sm font-black text-slate-900 truncate leading-tight transition">
-            {item.label}
-          </p>
-          {badgeFinal && (
-            <span
-              className={`text-[9.5px] font-bold px-1.5 py-0.2 rounded border shrink-0 ${
-                isFrequente || badgeFinal === "Casa" || badgeFinal === "Trabalho" || badgeFinal === "Favorito" || badgeFinal === "Frequente"
-                  ? "text-amber-800 bg-amber-50 border-amber-200"
-                  : "text-slate-700 bg-slate-100 border-slate-200"
-              }`}
-            >
-              {badgeFinal}
-            </span>
-          )}
-        </div>
-        <p className="text-xs text-slate-700 truncate mt-0.5 font-medium">
+        <p className="text-sm font-semibold text-slate-900 truncate leading-snug">
+          {item.label}
+        </p>
+        <p className="text-xs text-slate-500 truncate mt-0.5 font-normal">
           {item.sublabel || item.endereco}
         </p>
       </div>
 
       {(item.distanciaFormatada || distText) && (
-        <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-300 shrink-0">
+        <span className="text-xs font-medium text-slate-400 shrink-0 ml-1">
           {item.distanciaFormatada ? `~${item.distanciaFormatada}` : distText}
         </span>
       )}
 
-      <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-700 shrink-0 transition" />
+      <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 shrink-0 transition" />
     </button>
   );
 });
@@ -218,33 +203,28 @@ const RecentTripItemRow = React.memo(function RecentTripItemRow({
     <button
       type="button"
       onClick={handleClick}
-      className="w-full p-3 flex items-center gap-3 text-left hover:bg-slate-50 rounded-2xl transition active:scale-[0.99] cursor-pointer group"
+      className="w-full py-2.5 px-3 flex items-center gap-3 text-left hover:bg-slate-50/80 rounded-xl transition active:scale-[0.99] cursor-pointer group"
     >
-      <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-slate-200 text-slate-600 flex items-center justify-center shrink-0 transition">
-        <Clock className="w-4 h-4 stroke-[2.2]" />
+      <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-slate-200/70 text-slate-500 flex items-center justify-center shrink-0 transition">
+        <Clock className="w-4 h-4 stroke-[2]" />
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs sm:text-sm font-black text-slate-900 truncate leading-tight transition">
-            {item.label}
-          </span>
-          <span className="text-[10px] font-bold text-slate-700 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">
-            Recente
-          </span>
-        </div>
-        <p className="text-xs text-slate-700 truncate mt-0.5 font-medium">
+        <p className="text-sm font-semibold text-slate-900 truncate leading-snug">
+          {item.label}
+        </p>
+        <p className="text-xs text-slate-500 truncate mt-0.5 font-normal">
           {item.endereco}
         </p>
       </div>
 
       {distText && (
-        <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-300 shrink-0">
+        <span className="text-xs font-medium text-slate-400 shrink-0 ml-1">
           {distText}
         </span>
       )}
 
-      <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-700 shrink-0 transition" />
+      <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 shrink-0 transition" />
     </button>
   );
 });
@@ -685,10 +665,9 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
           <div className="w-10 h-1.5 rounded-full bg-slate-300" />
         </div>
 
-        {/* 1. CABEÇALHO LIMPO COM SELETOR DE PASSAGEIRO (ESTILO 99) */}
-        <div className="px-4 sm:px-5 py-2.5 border-b border-slate-100 bg-white flex items-center justify-between shrink-0 relative">
-          <div className="flex items-center gap-2.5">
-            {/* Botão Voltar */}
+        {/* 1. CABEÇALHO LIMPO E ELEGANTE */}
+        <div className="px-4 sm:px-5 py-3 border-b border-slate-100 bg-white flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => {
@@ -696,134 +675,121 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                 cancelSearch();
               }}
               aria-label="Voltar para o mapa"
-              className="min-w-[48px] min-h-[48px] -ml-2 text-slate-700 hover:text-slate-950 hover:bg-slate-100 active:scale-95 rounded-full transition cursor-pointer flex items-center justify-center"
+              className="w-9 h-9 text-slate-700 hover:text-slate-950 hover:bg-slate-100 active:scale-95 rounded-full transition cursor-pointer flex items-center justify-center -ml-1"
             >
-              <ArrowLeft className="w-5 h-5 stroke-[2.4]" />
+              <ArrowLeft className="w-5 h-5 stroke-[2.2]" />
             </button>
-
-            {/* Seletor de Passageiro ("Para mim ▾" / "Outra pessoa ▾") */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setModalPassageiroAberto(!modalPassageiroAberto)}
-                className="min-h-[44px] px-3.5 py-2 rounded-full bg-slate-100 hover:bg-slate-200/80 text-slate-800 text-xs font-black flex items-center gap-1.5 transition active:scale-95 cursor-pointer border border-slate-200/70"
-              >
-                {viajanteOutraPessoa ? (
-                  <Users className="w-3.5 h-3.5 text-primary-700" />
-                ) : (
-                  <User className="w-3.5 h-3.5 text-slate-600" />
-                )}
-                <span>
-                  {viajanteOutraPessoa
-                    ? `Para: ${nomeOutroPassageiro || "Outra pessoa"}`
-                    : "Para mim"}
-                </span>
-                <span className="text-xs text-slate-500">▾</span>
-              </button>
-
-              {/* Dropdown Flutuante do Seletor de Passageiro */}
-              {modalPassageiroAberto && (
-                <div className="absolute left-0 top-full mt-2 w-64 bg-white rounded-2xl border border-slate-200 shadow-2xl p-3 z-30 space-y-2 animate-in fade-in zoom-in-95 duration-150">
-                  <p className="text-[11px] font-black uppercase tracking-wider text-slate-400">
-                    Quem vai viajar?
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setViajanteOutraPessoa(false);
-                        setModalPassageiroAberto(false);
-                      }}
-                      style={
-                        !viajanteOutraPessoa
-                          ? { backgroundColor: colors.primary, color: colors.surface, borderRadius: ui.borderRadius }
-                          : { borderRadius: ui.borderRadius }
-                      }
-                      className={`py-2 px-2.5 text-xs font-black transition cursor-pointer flex items-center justify-center gap-1 ${
-                        !viajanteOutraPessoa ? "shadow-2xs" : "bg-muted text-muted-foreground hover:bg-muted/80"
-                      }`}
-                    >
-                      <User className="w-3 h-3" />
-                      <span>Para mim</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setViajanteOutraPessoa(true)}
-                      style={
-                        viajanteOutraPessoa
-                          ? { backgroundColor: colors.primary, color: colors.surface, borderRadius: ui.borderRadius }
-                          : { borderRadius: ui.borderRadius }
-                      }
-                      className={`py-2 px-2.5 text-xs font-black transition cursor-pointer flex items-center justify-center gap-1 ${
-                        viajanteOutraPessoa ? "shadow-2xs" : "bg-muted text-muted-foreground hover:bg-muted/80"
-                      }`}
-                    >
-                      <Users className="w-3 h-3" />
-                      <span>Outra pessoa</span>
-                    </button>
-                  </div>
-
-                  {viajanteOutraPessoa && (
-                    <div className="pt-1">
-                      <input
-                        type="text"
-                        value={nomeOutroPassageiro}
-                        onChange={(e) => setNomeOutroPassageiro(e.target.value)}
-                        placeholder="Nome do passageiro..."
-                        className="w-full text-xs font-semibold px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-slate-800"
-                        autoFocus
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setModalPassageiroAberto(false)}
-                        className="w-full mt-2 py-1.5 rounded-xl bg-slate-900 text-white text-[11px] font-black cursor-pointer hover:bg-slate-800"
-                      >
-                        Salvar Passageiro
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            <h2 className="text-sm font-bold text-slate-900">
+              Escolher destino
+            </h2>
           </div>
 
-          {/* Atalho no Topo: Definir no Mapa */}
-          <button
-            type="button"
-            onClick={selectDestinationOnMap}
-            className="px-2.5 py-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 active:scale-95 rounded-lg transition cursor-pointer flex items-center gap-1 text-xs font-bold"
-            title="Escolher destino diretamente no mapa"
-          >
-            <Compass className="w-3.5 h-3.5 text-primary-700 stroke-[2.4]" />
-            <span>No mapa</span>
-          </button>
+          {/* Seletor de Passageiro ("Para mim" / "Outra pessoa") */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setModalPassageiroAberto(!modalPassageiroAberto)}
+              className="h-8 px-3 rounded-full bg-slate-100 hover:bg-slate-200/70 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+            >
+              {viajanteOutraPessoa ? (
+                <Users className="w-3.5 h-3.5" style={{ color: colors.primary }} />
+              ) : (
+                <User className="w-3.5 h-3.5 text-slate-500" />
+              )}
+              <span>
+                {viajanteOutraPessoa
+                  ? (nomeOutroPassageiro ? `Para: ${nomeOutroPassageiro.split(" ")[0]}` : "Outra pessoa")
+                  : "Para mim"}
+              </span>
+              <span className="text-[10px] text-slate-400">▾</span>
+            </button>
+
+            {/* Dropdown do Passageiro */}
+            {modalPassageiroAberto && (
+              <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl border border-slate-200 shadow-xl p-3 z-30 space-y-2 animate-in fade-in zoom-in-95 duration-150">
+                <p className="text-[11px] font-bold text-slate-500">
+                  Quem vai viajar?
+                </p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setViajanteOutraPessoa(false);
+                      setModalPassageiroAberto(false);
+                    }}
+                    style={
+                      !viajanteOutraPessoa
+                        ? { backgroundColor: colors.primary, color: "#FFFFFF" }
+                        : {}
+                    }
+                    className={`py-2 px-2.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1 ${
+                      !viajanteOutraPessoa ? "shadow-2xs" : "bg-slate-100 text-slate-700 hover:bg-slate-200/80"
+                    }`}
+                  >
+                    <User className="w-3 h-3" />
+                    <span>Para mim</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViajanteOutraPessoa(true)}
+                    style={
+                      viajanteOutraPessoa
+                        ? { backgroundColor: colors.primary, color: "#FFFFFF" }
+                        : {}
+                    }
+                    className={`py-2 px-2.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1 ${
+                      viajanteOutraPessoa ? "shadow-2xs" : "bg-slate-100 text-slate-700 hover:bg-slate-200/80"
+                    }`}
+                  >
+                    <Users className="w-3 h-3" />
+                    <span>Outra pessoa</span>
+                  </button>
+                </div>
+
+                {viajanteOutraPessoa && (
+                  <div className="pt-1">
+                    <input
+                      type="text"
+                      value={nomeOutroPassageiro}
+                      onChange={(e) => setNomeOutroPassageiro(e.target.value)}
+                      placeholder="Nome do passageiro..."
+                      className="w-full text-xs font-medium px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-slate-400"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setModalPassageiroAberto(false)}
+                      className="w-full mt-2 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-bold cursor-pointer hover:bg-slate-800"
+                    >
+                      Confirmar passageiro
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* 2. CAMPOS CONECTADOS DE ORIGEM E DESTINO (LIMPO E INTUITIVO ESTILO 99) */}
+        {/* 2. CAMPOS CONECTADOS DE EMBARQUE E DESTINO */}
         <div className="p-3.5 sm:p-4 bg-white border-b border-slate-100 shrink-0 space-y-2.5">
-          <div className="bg-slate-50 rounded-2xl border border-slate-200/90 p-3 relative flex items-center gap-3">
-            {/* Coluna Visual com Indicadores Conectados Padrão 99 */}
+          <div className="bg-slate-50/90 rounded-2xl border border-slate-200/80 p-3 flex items-center gap-3">
+            {/* Trilho Visual Conector */}
             <div className="flex flex-col items-center justify-between h-20 py-2 shrink-0">
-              {/* Ponto Verde de Embarque */}
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-100" />
-              {/* Linha Conectora */}
-              <div className="w-0.5 flex-1 bg-slate-300 my-1" />
-              {/* Marcador de Destino */}
+              <div className="w-0.5 flex-1 bg-slate-200 my-1" />
               <div
                 style={{
                   backgroundColor: colors.primary,
-                  boxShadow: `0 0 0 4px ${colors.primary}25`,
+                  boxShadow: `0 0 0 4px ${colors.primary}20`,
                 }}
                 className="w-2.5 h-2.5 rounded-[2px]"
               />
             </div>
 
-            {/* Coluna dos Inputs de Texto */}
+            {/* Coluna dos Inputs */}
             <div className="flex-1 min-w-0 space-y-2">
-              {/* CAMPO 1: ORIGEM (LOCAL DE EMBARQUE) */}
-              <div className="flex items-center justify-between gap-2">
+              {/* CAMPO EMBARQUE */}
+              <div className="flex items-center justify-between gap-1.5">
                 <input
                   ref={inputOrigemRef}
                   type="text"
@@ -840,8 +806,8 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                     }
                   }}
                   placeholder="Local de embarque..."
-                  className={`w-full text-xs sm:text-[13px] font-semibold bg-transparent placeholder:text-slate-400 truncate outline-none py-1 transition ${
-                    campoAtivo === "embarque" ? "text-slate-950 font-bold" : "text-slate-700"
+                  className={`w-full text-xs sm:text-[13px] bg-transparent placeholder:text-slate-400 truncate outline-none py-1 transition ${
+                    campoAtivo === "embarque" ? "text-slate-950 font-bold" : "text-slate-700 font-medium"
                   }`}
                 />
 
@@ -853,7 +819,7 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                       e.stopPropagation();
                       await handleUsarGpsAtual();
                     }}
-                    className="px-2 py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer transition hover:opacity-80 disabled:opacity-50"
+                    className="px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer transition hover:bg-slate-100 disabled:opacity-50"
                     style={{ color: colors.primary }}
                     title="Restaurar GPS atual"
                   >
@@ -877,21 +843,21 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                         setCampoAtivo("embarque");
                         inputOrigemRef.current?.focus();
                       }}
-                      className="min-w-[36px] min-h-[36px] p-1.5 text-slate-500 hover:text-slate-800 rounded-full cursor-pointer flex items-center justify-center -mr-1 transition"
+                      className="w-7 h-7 text-slate-400 hover:text-slate-700 rounded-full cursor-pointer flex items-center justify-center transition"
                       title="Limpar embarque"
                       aria-label="Limpar campo de embarque"
                     >
-                      <X className="w-4 h-4 stroke-[2.2]" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
               </div>
 
-              {/* DIVISOR INTERNO SUTIL */}
-              <div className="border-t border-slate-200" />
+              {/* Divisor */}
+              <div className="border-t border-slate-200/70" />
 
-              {/* CAMPO 2: DESTINO (PARA ONDE VAMOS? - COM FOCO INICIAL) */}
-              <div className="flex items-center justify-between gap-2">
+              {/* CAMPO DESTINO */}
+              <div className="flex items-center justify-between gap-1.5">
                 <input
                   ref={inputDestinoRef}
                   type="text"
@@ -916,17 +882,17 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                       setCampoAtivo("destino");
                       inputDestinoRef.current?.focus();
                     }}
-                    className="min-w-[36px] min-h-[36px] p-1.5 text-slate-400 hover:text-slate-700 rounded-full cursor-pointer shrink-0 flex items-center justify-center -mr-1 transition"
+                    className="w-7 h-7 text-slate-400 hover:text-slate-700 rounded-full cursor-pointer shrink-0 flex items-center justify-center transition"
                     title="Limpar destino"
                     aria-label="Limpar campo de destino"
                   >
-                    <X className="w-4 h-4 stroke-[2.2]" />
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
             </div>
 
-            {/* BOTÃO SWAP (⇅ INVERTER ORIGEM E DESTINO) */}
+            {/* Botão Swap */}
             <button
               type="button"
               onClick={(e) => {
@@ -938,50 +904,50 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                 setBuscaDestino(tempOrigem);
                 swapOrigemDestino();
               }}
-              className="min-w-[40px] min-h-[40px] rounded-xl bg-white hover:bg-slate-100 border border-slate-200/90 shadow-2xs text-slate-700 hover:text-slate-950 flex items-center justify-center shrink-0 transition active:scale-90 cursor-pointer"
-              title="Inverter origem e destino"
-              aria-label="Inverter origem e destino"
+              className="w-9 h-9 rounded-xl bg-white hover:bg-slate-100 border border-slate-200/90 shadow-2xs text-slate-600 hover:text-slate-900 flex items-center justify-center shrink-0 transition active:scale-95 cursor-pointer"
+              title="Inverter embarque e destino"
+              aria-label="Inverter embarque e destino"
             >
-              <ArrowUpDown className="w-4 h-4 stroke-[2.4]" />
+              <ArrowUpDown className="w-4 h-4 stroke-[2]" />
             </button>
           </div>
 
-          {/* 3. ATALHOS RÁPIDOS PADRÃO 99: CASA, TRABALHO, FAVORITOS E NO MAPA */}
+          {/* 3. ATALHOS RÁPIDOS HARMONIOSOS (CHIPS) */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-0.5">
             <button
               type="button"
               onClick={handleShortcutCasa}
-              className="min-h-[44px] px-4 py-2 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0 shadow-2xs"
+              className="h-8.5 px-3.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0"
             >
-              <Home className="w-4 h-4 text-primary-700" />
+              <Home className="w-3.5 h-3.5 text-slate-600" />
               <span>Casa</span>
             </button>
 
             <button
               type="button"
               onClick={handleShortcutTrabalho}
-              className="min-h-[44px] px-4 py-2 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0 shadow-2xs"
+              className="h-8.5 px-3.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0"
             >
-              <Briefcase className="w-4 h-4" style={{ color: colors.primary }} />
+              <Briefcase className="w-3.5 h-3.5 text-slate-600" />
               <span>Trabalho</span>
             </button>
 
             <button
               type="button"
               onClick={handleShortcutFavoritos}
-              className="min-h-[44px] px-4 py-2 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0 shadow-2xs"
+              className="h-8.5 px-3.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0"
             >
-              <Star className="w-4 h-4 text-primary-600 fill-amber-500" />
+              <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500/20" />
               <span>Favoritos</span>
             </button>
 
             <button
               type="button"
               onClick={selectDestinationOnMap}
-              className="min-h-[44px] px-4 py-2 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0 shadow-2xs"
+              className="h-8.5 px-3.5 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shrink-0"
             >
-              <MapPin className="w-4 h-4 text-rose-500" />
-              <span>No Mapa</span>
+              <MapPin className="w-3.5 h-3.5" style={{ color: colors.primary }} />
+              <span>No mapa</span>
             </button>
           </div>
         </div>
@@ -992,42 +958,36 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
             /* ========================================================
                MODO 1: CAMPO DE EMBARQUE SELECIONADO / EM EDIÇÃO
                ======================================================== */
-            origemLocal.trim().length > 0 ? (
+             origemLocal.trim().length > 0 ? (
               <div className="space-y-1 pt-1 pb-3">
                 {/* Opção Rápida no Topo: Definir texto digitado como local de embarque */}
                 <button
                   type="button"
                   onClick={() => handleCustomOrigem(origemLocal.trim())}
-                  style={{
-                    borderColor: `${colors.primary}60`,
-                    backgroundColor: `${colors.primary}15`,
-                    borderRadius: ui.borderRadius,
-                  }}
-                  className="w-full p-3 flex items-center gap-3 text-left transition active:scale-[0.99] cursor-pointer border mb-2 shadow-2xs"
+                  className="w-full p-2.5 rounded-xl flex items-center gap-3 text-left transition active:scale-[0.99] cursor-pointer bg-slate-50 hover:bg-slate-100 border border-slate-200/80 mb-2"
                 >
                   <div
                     style={{
-                      backgroundColor: colors.primary,
-                      color: colors.surface,
-                      borderRadius: ui.borderRadius,
+                      backgroundColor: `${colors.primary}18`,
+                      color: colors.primary,
                     }}
-                    className="w-8 h-8 flex items-center justify-center shrink-0 font-black shadow-2xs"
+                    className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
                   >
-                    <MapPin className="w-4 h-4 stroke-[2.5]" />
+                    <MapPin className="w-4 h-4 stroke-[2.2]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-black text-slate-950 truncate">
-                      Definir &ldquo;{origemLocal}&rdquo; como local de embarque
+                    <p className="text-sm font-semibold text-slate-900 truncate">
+                      Definir &ldquo;{origemLocal}&rdquo;
                     </p>
-                    <p className="text-xs text-slate-700 truncate font-medium">
-                      Definir este endereço como ponto de partida
+                    <p className="text-xs text-slate-500 truncate">
+                      Usar como ponto de partida
                     </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
                 </button>
 
-                <span className="text-xs font-black uppercase tracking-wider text-slate-700 block px-1 pb-1">
-                  Sugestões de Embarque (Tempo Real)
+                <span className="text-xs font-semibold text-slate-500 block px-1 pb-1">
+                  Sugestões de embarque
                 </span>
 
                 {/* Lista Refinada a Cada Letra Digitada */}
@@ -1053,12 +1013,9 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                   type="button"
                   onClick={handleUsarGpsAtual}
                   disabled={isResolvingGps}
-                  style={{
-                    borderRadius: ui.borderRadius,
-                  }}
-                  className="w-full p-3 flex items-center gap-3 text-left transition active:scale-[0.99] cursor-pointer bg-emerald-50 border border-emerald-200/90 hover:bg-emerald-100/70 shadow-2xs"
+                  className="w-full p-2.5 rounded-xl flex items-center gap-3 text-left transition active:scale-[0.99] cursor-pointer bg-emerald-50/70 border border-emerald-200 hover:bg-emerald-100/60"
                 >
-                  <div className="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                  <div className="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
                     {isResolvingGps ? (
                       <Loader2 className="w-4 h-4 animate-spin text-white" />
                     ) : (
@@ -1066,11 +1023,11 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-black text-emerald-950 truncate">
-                      Usar minha localização atual (GPS)
+                    <p className="text-sm font-semibold text-emerald-950 truncate">
+                      Usar localização atual
                     </p>
-                    <p className="text-xs text-emerald-700 truncate font-medium">
-                      Identificar ponto de embarque automaticamente
+                    <p className="text-xs text-emerald-700/90 truncate">
+                      Identificar ponto de partida pelo GPS
                     </p>
                   </div>
                   <ChevronRight className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -1079,8 +1036,8 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                 {/* Sugestões de locais próximos para embarque (reais por GPS) */}
                 {sugestoesInteligentes.proximos.length > 0 && (
                   <div className="space-y-1 pt-1">
-                    <span className="text-xs font-black uppercase tracking-wider text-slate-700 block px-1 pb-1">
-                      Locais Próximos Sugeridos para Embarque
+                    <span className="text-xs font-semibold text-slate-500 block px-1 pb-1">
+                      Locais próximos
                     </span>
                     <div className="space-y-1">
                       {sugestoesInteligentes.proximos.slice(0, 3).map((lugar) => (
@@ -1107,36 +1064,30 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                 <button
                   type="button"
                   onClick={() => handleSelectDestino(buscaDestino.trim(), undefined, buscaDestino.trim())}
-                  style={{
-                    borderColor: `${colors.primary}60`,
-                    backgroundColor: `${colors.primary}15`,
-                    borderRadius: ui.borderRadius,
-                  }}
-                  className="w-full p-3 flex items-center gap-3 text-left transition active:scale-[0.99] cursor-pointer border mb-2 shadow-2xs"
+                  className="w-full p-2.5 rounded-xl flex items-center gap-3 text-left transition active:scale-[0.99] cursor-pointer bg-slate-50 hover:bg-slate-100 border border-slate-200/80 mb-2"
                 >
                   <div
                     style={{
-                      backgroundColor: colors.primary,
-                      color: colors.surface,
-                      borderRadius: ui.borderRadius,
+                      backgroundColor: `${colors.primary}18`,
+                      color: colors.primary,
                     }}
-                    className="w-8 h-8 flex items-center justify-center shrink-0 font-black shadow-2xs"
+                    className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
                   >
-                    <Search className="w-4 h-4 stroke-[2.5]" />
+                    <Search className="w-4 h-4 stroke-[2.2]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-black text-slate-950 truncate">
+                    <p className="text-sm font-semibold text-slate-900 truncate">
                       Buscar &ldquo;{buscaDestino}&rdquo;
                     </p>
-                    <p className="text-xs text-slate-700 truncate font-medium">
-                      Definir este endereço como destino no mapa
+                    <p className="text-xs text-slate-500 truncate">
+                      Definir como destino no mapa
                     </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
                 </button>
 
-                <span className="text-xs font-black uppercase tracking-wider text-slate-700 block px-1 pb-1">
-                  Sugestões de Endereço (Tempo Real)
+                <span className="text-xs font-semibold text-slate-500 block px-1 pb-1">
+                  Sugestões de endereço
                 </span>
 
                 {/* Lista Refinada a Cada Letra Digitada ou Shimmer Skeleton */}
@@ -1161,9 +1112,9 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                 {historicoRecente && historicoRecente.length > 0 && (
                   <div className="space-y-1">
                     <div className="flex items-center justify-between px-1 py-1">
-                      <span className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 text-slate-600" />
-                        <span>Últimas Viagens</span>
+                      <span className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Últimas viagens</span>
                       </span>
                     </div>
 
@@ -1186,12 +1137,9 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                   {sugestoesInteligentes.frequentes.length > 0 && (
                     <div className="space-y-1">
                       <div className="flex items-center justify-between px-1 py-1">
-                        <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                        <span className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
                           <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                          <span>Locais que Você Frequenta</span>
-                        </span>
-                        <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                          Acesso Rápido
+                          <span>Locais frequentes</span>
                         </span>
                       </div>
 
@@ -1200,7 +1148,6 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                           <SearchDestinationItemRow
                             key={lugar.id}
                             item={lugar}
-                            badge={lugar.badge || "Frequente"}
                             distText={lugar.distanciaFormatada || getDistanciaTexto(lugar.coords)}
                             onSelect={(itemSel) =>
                               handleSelectDestino(itemSel.endereco, itemSel.coords, itemSel.label)
@@ -1216,19 +1163,9 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                   {sugestoesInteligentes.proximos.length > 0 && (
                     <div className={`space-y-1 ${sugestoesInteligentes.frequentes.length > 0 ? "pt-2 border-t border-slate-100" : ""}`}>
                       <div className="flex items-center justify-between px-1 py-1">
-                        <span className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                        <span className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
                           <MapPin className="w-3.5 h-3.5" style={{ color: colors.primary }} />
-                          <span>Locais Próximos de Você</span>
-                        </span>
-                        <span
-                          className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
-                          style={{
-                            color: colors.primary,
-                            backgroundColor: `${colors.primary}15`,
-                            borderColor: `${colors.primary}30`,
-                          }}
-                        >
-                          Por Proximidade GPS
+                          <span>Locais próximos</span>
                         </span>
                       </div>
 
@@ -1237,7 +1174,6 @@ export const PassengerSearchDestinationSheet = React.memo(function PassengerSear
                           <SearchDestinationItemRow
                             key={lugar.id}
                             item={lugar}
-                            badge={lugar.distanciaFormatada ? `~${lugar.distanciaFormatada}` : undefined}
                             distText={lugar.distanciaFormatada || getDistanciaTexto(lugar.coords)}
                             onSelect={(itemSel) =>
                               handleSelectDestino(itemSel.endereco, itemSel.coords, itemSel.label)

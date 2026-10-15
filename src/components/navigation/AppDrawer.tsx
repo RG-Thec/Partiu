@@ -47,7 +47,7 @@ interface AppDrawerProps {
 
 export function AppDrawer({ open, onClose }: AppDrawerProps) {
   const navigate = useNavigate();
-  const { nomeApp, corTextoPrimaria } = useBrandTheme();
+  const { nomeApp, corTextoPrimaria, activeTenant } = useBrandTheme();
   const { appConfig } = useTheme();
   const { colors, ui } = appConfig.branding;
 
@@ -254,6 +254,11 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
     navigate({ to: "/auth" });
   }
 
+  const cidadeRegional =
+    activeTenant?.cidadeNome
+      ? `${activeTenant.cidadeNome}${activeTenant.uf ? `, ${activeTenant.uf}` : ""}`
+      : appSettings.pixReceiverCity || "Operação Regional";
+
   if (!open) return null;
 
   return (
@@ -272,14 +277,14 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
       >
         <div className="flex-1">
           {/* HEADER DO PERFIL */}
-          <div className="p-5 border-b border-border flex items-center justify-between">
-            <div className="flex items-center gap-3.5">
+          <div className="p-4 sm:p-5 pb-3 sm:pb-4 border-b border-border/80 flex items-center justify-between">
+            <div className="flex items-center gap-3 min-w-0">
               <div
                 style={{
                   borderRadius: ui.borderRadius,
                   background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary || colors.primary} 100%)`,
                 }}
-                className="w-12 h-12 flex items-center justify-center font-bold text-white shadow-md relative overflow-hidden shrink-0 border border-white/20"
+                className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center font-bold text-white shadow-md relative overflow-hidden shrink-0 border border-white/20"
               >
                 {effectiveAvatar ? (
                   <img
@@ -295,15 +300,17 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
                     {effectiveName ? effectiveName.charAt(0).toUpperCase() : "P"}
                   </span>
                 )}
+                {/* Indicador Online */}
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white ring-1 ring-black/5" />
               </div>
 
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <h2 className="text-sm font-black text-foreground leading-tight">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <h2 className="text-sm font-black text-foreground leading-tight truncate">
                     {effectiveName}
                   </h2>
                   <span
-                    className="inline-flex items-center gap-0.5 text-[10px] font-black px-1.5 py-0.5 rounded-full border shadow-2xs"
+                    className="inline-flex items-center gap-0.5 text-[10px] font-black px-1.5 py-0.5 rounded-full border shadow-2xs shrink-0"
                     style={{
                       backgroundColor: `${colors.secondary}20`,
                       borderColor: `${colors.secondary}40`,
@@ -320,7 +327,7 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
                   onClick={onClose}
                   className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors mt-0.5 text-left inline-flex items-center gap-1"
                 >
-                  Editar perfil
+                  <span>Ver perfil</span>
                   <ChevronRight className="h-3 w-3" />
                 </Link>
               </div>
@@ -329,331 +336,331 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer"
+              className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer shrink-0"
               aria-label="Fechar menu"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
-          {/* SEÇÃO 1: USO DIÁRIO (ESSENCIAIS) */}
-          <div className="p-4 py-3 border-b border-border">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-3 block mb-1.5">
-              Uso Diário
-            </span>
-            <nav className="space-y-0.5">
-              <Link
-                to="/app/bilhetes"
-                onClick={onClose}
-                style={{ borderRadius: ui.borderRadius }}
-                className="w-full flex items-center justify-between p-3 hover:bg-muted active:scale-[0.99] transition-all text-foreground group"
+          {/* FAIXA EXECUTIVA DE ACESSO RÁPIDO (3 PILLS) */}
+          <div className="px-4 py-2.5 bg-muted/30 border-b border-border/60 grid grid-cols-3 gap-2">
+            <Link
+              to="/app/bilhetes"
+              onClick={onClose}
+              className="p-2 rounded-xl bg-card border border-border/80 hover:border-primary/40 active:scale-95 transition-all text-center flex flex-col items-center justify-center gap-1 shadow-2xs group cursor-pointer"
+            >
+              <div
+                style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
+                className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
               >
-                <div className="flex items-center gap-3">
-                  <div
-                    style={{
-                      borderRadius: ui.borderRadius,
-                      backgroundColor: `${colors.primary}15`,
-                      color: colors.primary,
-                    }}
-                    className="p-2.5 transition-all shrink-0 flex items-center justify-center group-hover:scale-105"
-                  >
-                    <Clock className="h-4 w-4" style={{ color: colors.primary }} />
-                  </div>
-                  <span className="text-xs font-bold">Minhas Viagens e Entregas</span>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </Link>
+                <Clock className="w-3.5 h-3.5" />
+              </div>
+              <span className="text-[10px] font-bold text-foreground leading-tight">Viagens</span>
+            </Link>
 
-              {/* Item: Enviar Encomenda (Delivery com Duplo PIN) */}
-              <Link
-                to="/app/encomendas"
-                onClick={onClose}
-                style={{ borderRadius: ui.borderRadius }}
-                className="w-full flex items-center justify-between p-3 hover:bg-muted active:scale-[0.99] transition-all text-foreground group"
+            <button
+              type="button"
+              onClick={() => setModalCupons(true)}
+              className="p-2 rounded-xl bg-card border border-border/80 hover:border-primary/40 active:scale-95 transition-all text-center flex flex-col items-center justify-center gap-1 shadow-2xs group cursor-pointer"
+            >
+              <div
+                style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
+                className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform relative"
               >
-                <div className="flex items-center gap-3">
-                  <div
-                    style={{
-                      borderRadius: ui.borderRadius,
-                      backgroundColor: `${colors.primary}15`,
-                      color: colors.primary,
-                    }}
-                    className="p-2.5 transition-all shrink-0 flex items-center justify-center group-hover:scale-105"
-                  >
-                    <Package className="h-4 w-4" style={{ color: colors.primary }} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold leading-none">Enviar Encomenda</span>
-                      <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 border border-amber-500/20">
-                        Rápido
-                      </span>
-                    </div>
-                    <span className="text-[10px] text-muted-foreground mt-1 block">
-                      Entrega expressa com validação por Duplo PIN
-                    </span>
-                  </div>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </Link>
+                <Tag className="w-3.5 h-3.5" />
+                {cupomAtivo && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white" />
+                )}
+              </div>
+              <span className="text-[10px] font-bold text-foreground leading-tight">Cupons</span>
+            </button>
 
-              <button
-                type="button"
-                onClick={() => setModalEnderecos(true)}
-                style={{ borderRadius: ui.borderRadius }}
-                className="w-full flex items-center justify-between p-3 hover:bg-muted active:scale-[0.99] transition-all text-foreground group cursor-pointer text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    style={{
-                      borderRadius: ui.borderRadius,
-                      backgroundColor: `${colors.primary}15`,
-                      color: colors.primary,
-                    }}
-                    className="p-2.5 transition-all shrink-0 flex items-center justify-center group-hover:scale-105"
-                  >
-                    <MapPin className="h-4 w-4" style={{ color: colors.primary }} />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold block leading-none">Meus Endereços</span>
-                    <span className="text-[10px] text-muted-foreground mt-1 block">
-                      {enderecos.length} locais sincronizados
-                    </span>
-                  </div>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </button>
-
-              {/* Item: Como Pagar */}
-              <button
-                type="button"
-                onClick={() => setModalPagamentos(true)}
-                style={{ borderRadius: ui.borderRadius }}
-                className="w-full flex items-center justify-between p-3 hover:bg-muted active:scale-[0.99] transition-all text-foreground group cursor-pointer text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    style={{
-                      borderRadius: ui.borderRadius,
-                      backgroundColor: `${colors.primary}15`,
-                      color: colors.primary,
-                    }}
-                    className="p-2.5 transition-all shrink-0 flex items-center justify-center group-hover:scale-105"
-                  >
-                    <QrCode className="h-4 w-4" style={{ color: colors.primary }} />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold block leading-none">Como Pagar</span>
-                    <span className="text-[10px] text-muted-foreground mt-1 block">
-                      PIX QR Code ou Dinheiro no final da viagem
-                    </span>
-                  </div>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </button>
-
-              {/* Item: Meus Cupons & Promoções Reais */}
-              <button
-                type="button"
-                onClick={() => setModalCupons(true)}
-                style={{ borderRadius: ui.borderRadius }}
-                className="w-full flex items-center justify-between p-3 hover:bg-muted active:scale-[0.99] transition-all text-foreground group cursor-pointer text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    style={{
-                      borderRadius: ui.borderRadius,
-                      backgroundColor: `${colors.primary}15`,
-                      color: colors.primary,
-                    }}
-                    className="p-2.5 transition-all shrink-0 flex items-center justify-center group-hover:scale-105"
-                  >
-                    <Tag className="h-4 w-4" style={{ color: colors.primary }} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold block leading-none">Meus Cupons</span>
-                      {cupomAtivo && (
-                        <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-600 border border-emerald-500/20">
-                          {cupomAtivo.codigo} Ativo
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-[10px] text-muted-foreground mt-1 block">
-                      {promocoesDisponiveis.length > 0
-                        ? `${promocoesDisponiveis.length} promoções ativas`
-                        : "Ver descontos disponíveis"}
-                    </span>
-                  </div>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </button>
-            </nav>
+            <button
+              type="button"
+              onClick={() => setModalSeguranca(true)}
+              className="p-2 rounded-xl bg-card border border-border/80 hover:border-destructive/40 active:scale-95 transition-all text-center flex flex-col items-center justify-center gap-1 shadow-2xs group cursor-pointer"
+            >
+              <div className="w-6 h-6 rounded-lg bg-destructive/15 text-destructive flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <ShieldAlert className="w-3.5 h-3.5" />
+              </div>
+              <span className="text-[10px] font-bold text-foreground leading-tight">SOS 24h</span>
+            </button>
           </div>
 
-          {/* SEÇÃO 2: CRESCIMENTO E SUPORTE */}
-          <div className="p-4 py-3 border-b border-border">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-3 block mb-1.5">
-              Crescimento &amp; Suporte
-            </span>
-            <nav className="space-y-0.5">
-              <button
-                type="button"
-                onClick={() => setModalIndique(true)}
-                style={{ borderRadius: ui.borderRadius }}
-                className="w-full flex items-center justify-between p-3 hover:bg-muted active:scale-[0.99] transition-all text-foreground group cursor-pointer text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    style={{
-                      borderRadius: ui.borderRadius,
-                      backgroundColor: `${colors.secondary}15`,
-                      color: colors.primary,
-                    }}
-                    className="p-2.5 transition-all shrink-0 flex items-center justify-center group-hover:scale-105"
-                  >
-                    <Gift className="h-4 w-4" style={{ color: colors.primary }} />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold block leading-none">Indique e Ganhe</span>
-                    <span
-                      className="text-[10px] font-semibold mt-1 block"
-                      style={{ color: colors.primary }}
+          {/* CORPO DO MENU ROLÁVEL COM 4 CATEGORIAS */}
+          <div className="p-3.5 sm:p-4 space-y-3.5">
+            {/* CATEGORIA 1: MOBILIDADE & ATIVIDADES */}
+            <div className="space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground px-1.5 block">
+                Mobilidade &amp; Atividades
+              </span>
+              <div className="bg-card rounded-2xl border border-border/80 overflow-hidden divide-y divide-border/60 shadow-2xs">
+                {/* Minhas Viagens */}
+                <Link
+                  to="/app/bilhetes"
+                  onClick={onClose}
+                  className="w-full flex items-center justify-between p-3 hover:bg-muted/60 active:bg-muted transition-colors text-foreground group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
+                      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
                     >
-                      Ganhe R$ {appSettings.referralBonusBrl || 5},00 por amigo
-                    </span>
+                      <Clock className="w-4 h-4" />
+                    </div>
+                    <span className="text-xs font-bold text-foreground">Minhas Viagens e Recibos</span>
                   </div>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </button>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                </Link>
 
-              {/* Card Destaque: Seja um Motorista Partiu com Gradiente da Marca */}
-              <div
-                onClick={() => setModalMotoristaExpress(true)}
-                style={{
-                  borderRadius: ui.borderRadius,
-                  backgroundColor: colors.inputBackground,
-                  borderColor: colors.inputBorder,
-                }}
-                className="w-full my-2 p-3.5 shadow-sm active:scale-[0.99] transition-all cursor-pointer flex items-center justify-between border"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    style={{
-                      borderRadius: ui.borderRadius,
-                      background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary || colors.primary} 100%)`,
-                      color: "#FFFFFF",
-                      boxShadow: `0 4px 14px ${colors.primary}40`,
-                    }}
-                    className="p-2.5 shadow-md shrink-0 flex items-center justify-center"
-                  >
-                    <Car className="h-4 w-4 text-white stroke-[2.5]" />
+                {/* Enviar Encomenda */}
+                <Link
+                  to="/app/encomendas"
+                  onClick={onClose}
+                  className="w-full flex items-center justify-between p-3 hover:bg-muted/60 active:bg-muted transition-colors text-foreground group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
+                      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
+                    >
+                      <Package className="w-4 h-4" />
+                    </div>
+                    <span className="text-xs font-bold text-foreground">Enviar Encomenda</span>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-black leading-tight text-foreground">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 border border-amber-500/20">
+                      Duplo PIN
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  </div>
+                </Link>
+              </div>
+            </div>
+
+            {/* CATEGORIA 2: PAGAMENTOS & VANTAGENS */}
+            <div className="space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground px-1.5 block">
+                Pagamentos &amp; Vantagens
+              </span>
+              <div className="bg-card rounded-2xl border border-border/80 overflow-hidden divide-y divide-border/60 shadow-2xs">
+                {/* Formas de Pagamento */}
+                <button
+                  type="button"
+                  onClick={() => setModalPagamentos(true)}
+                  className="w-full flex items-center justify-between p-3 hover:bg-muted/60 active:bg-muted transition-colors text-foreground group cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
+                      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
+                    >
+                      <QrCode className="w-4 h-4" />
+                    </div>
+                    <span className="text-xs font-bold text-foreground">Como Pagar (PIX / Dinheiro)</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                </button>
+
+                {/* Meus Cupons */}
+                <button
+                  type="button"
+                  onClick={() => setModalCupons(true)}
+                  className="w-full flex items-center justify-between p-3 hover:bg-muted/60 active:bg-muted transition-colors text-foreground group cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
+                      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
+                    >
+                      <Tag className="w-4 h-4" />
+                    </div>
+                    <span className="text-xs font-bold text-foreground">Cupons &amp; Descontos</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {cupomAtivo ? (
+                      <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 border border-emerald-500/20">
+                        {cupomAtivo.codigo}
+                      </span>
+                    ) : promocoesDisponiveis.length > 0 ? (
+                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                        {promocoesDisponiveis.length} novos
+                      </span>
+                    ) : null}
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  </div>
+                </button>
+
+                {/* Indique e Ganhe */}
+                <button
+                  type="button"
+                  onClick={() => setModalIndique(true)}
+                  className="w-full flex items-center justify-between p-3 hover:bg-muted/60 active:bg-muted transition-colors text-foreground group cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{ backgroundColor: `${colors.secondary}20`, color: colors.primary }}
+                      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
+                    >
+                      <Gift className="w-4 h-4" />
+                    </div>
+                    <span className="text-xs font-bold text-foreground">Indique e Ganhe</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      style={{ color: colors.primary }}
+                      className="text-[10px] font-black bg-primary/10 px-2 py-0.5 rounded-full"
+                    >
+                      +R$ {appSettings.referralBonusBrl || 5},00
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* CATEGORIA 3: SEGURANÇA & PREFERÊNCIAS */}
+            <div className="space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground px-1.5 block">
+                Segurança &amp; Preferências
+              </span>
+              <div className="bg-card rounded-2xl border border-border/80 overflow-hidden divide-y divide-border/60 shadow-2xs">
+                {/* Central de Segurança */}
+                <button
+                  type="button"
+                  onClick={() => setModalSeguranca(true)}
+                  className="w-full flex items-center justify-between p-3 hover:bg-muted/60 active:bg-muted transition-colors text-foreground group cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-destructive/15 text-destructive flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <ShieldAlert className="w-4 h-4" />
+                    </div>
+                    <span className="text-xs font-bold text-foreground">Central de Segurança &amp; SOS</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-destructive/15 text-destructive">
+                      SOS 24h
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  </div>
+                </button>
+
+                {/* Meus Endereços */}
+                <button
+                  type="button"
+                  onClick={() => setModalEnderecos(true)}
+                  className="w-full flex items-center justify-between p-3 hover:bg-muted/60 active:bg-muted transition-colors text-foreground group cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
+                      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
+                    >
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <span className="text-xs font-bold text-foreground">Endereços Salvos</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                      {enderecos.length} salvos
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  </div>
+                </button>
+
+                {/* Configurações & Conforto */}
+                <button
+                  type="button"
+                  onClick={() => setModalConfiguracoes(true)}
+                  className="w-full flex items-center justify-between p-3 hover:bg-muted/60 active:bg-muted transition-colors text-foreground group cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
+                      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </div>
+                    <span className="text-xs font-bold text-foreground">Configurações &amp; Conforto</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                </button>
+              </div>
+            </div>
+
+            {/* CATEGORIA 4: SUPORTE & OPORTUNIDADES */}
+            <div className="space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground px-1.5 block">
+                Suporte &amp; Oportunidades
+              </span>
+              <div className="bg-card rounded-2xl border border-border/80 overflow-hidden divide-y divide-border/60 shadow-2xs">
+                {/* Ajuda & Suporte */}
+                <button
+                  type="button"
+                  onClick={() => setModalAjuda(true)}
+                  className="w-full flex items-center justify-between p-3 hover:bg-muted/60 active:bg-muted transition-colors text-foreground group cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
+                      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
+                    >
+                      <Headphones className="w-4 h-4" />
+                    </div>
+                    <span className="text-xs font-bold text-foreground">Ajuda &amp; Suporte 24h</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                </button>
+
+                {/* Seja Motorista Parceiro */}
+                <div
+                  onClick={() => setModalMotoristaExpress(true)}
+                  className="w-full p-3 hover:bg-muted/60 active:bg-muted transition-colors text-foreground group cursor-pointer flex items-center justify-between text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{
+                        background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary || colors.primary} 100%)`,
+                        color: "#FFFFFF",
+                      }}
+                      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform"
+                    >
+                      <Car className="w-4 h-4 text-white stroke-[2.5]" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-black text-foreground block leading-tight">
                         Seja Motorista Parceiro
                       </span>
-                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 border border-emerald-500/20">
-                        DIÁRIA FIXA
+                      <span className="text-[10px] text-muted-foreground block leading-tight mt-0.5">
+                        Taxa Zero • 100% seu
                       </span>
                     </div>
-                    <span className="text-[10px] text-muted-foreground mt-0.5 block leading-tight">
-                      Taxa Zero: 100% do valor da corrida é seu
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 border border-emerald-500/20">
+                      Diária Fixa
                     </span>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                   </div>
                 </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
               </div>
-
-              {/* Central de Segurança & SOS 24h Exclusivo no Menu */}
-              <button
-                type="button"
-                onClick={() => setModalSeguranca(true)}
-                style={{ borderRadius: ui.borderRadius }}
-                className="w-full flex items-center justify-between p-3 hover:bg-muted active:scale-[0.99] transition-all text-foreground group cursor-pointer text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    style={{ borderRadius: ui.borderRadius }}
-                    className="p-2.5 bg-destructive/10 text-destructive group-hover:bg-destructive/20 transition-colors shrink-0 flex items-center justify-center"
-                  >
-                    <ShieldAlert className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold block leading-none">Central de Segurança &amp; SOS 24h</span>
-                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-destructive/15 text-destructive">
-                        SOS
-                      </span>
-                    </div>
-                    <span className="text-[10px] text-muted-foreground mt-1 block">
-                      Botão de emergência, 190 e Siga Minha Viagem
-                    </span>
-                  </div>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setModalAjuda(true)}
-                style={{ borderRadius: ui.borderRadius }}
-                className="w-full flex items-center justify-between p-3 hover:bg-muted active:scale-[0.99] transition-all text-foreground group cursor-pointer text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    style={{
-                      borderRadius: ui.borderRadius,
-                      backgroundColor: `${colors.primary}15`,
-                      color: colors.primary,
-                    }}
-                    className="p-2.5 transition-all shrink-0 flex items-center justify-center group-hover:scale-105"
-                  >
-                    <Headphones className="h-4 w-4" style={{ color: colors.primary }} />
-                  </div>
-                  <span className="text-xs font-bold">Ajuda &amp; Suporte 24h</span>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setModalConfiguracoes(true)}
-                style={{ borderRadius: ui.borderRadius }}
-                className="w-full flex items-center justify-between p-3 hover:bg-muted active:scale-[0.99] transition-all text-foreground group cursor-pointer text-left"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    style={{
-                      borderRadius: ui.borderRadius,
-                      backgroundColor: `${colors.primary}15`,
-                      color: colors.primary,
-                    }}
-                    className="p-2.5 transition-all shrink-0 flex items-center justify-center group-hover:scale-105"
-                  >
-                    <Settings className="h-4 w-4" style={{ color: colors.primary }} />
-                  </div>
-                  <span className="text-xs font-bold">Configurações &amp; Conforto</span>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </button>
-            </nav>
+            </div>
           </div>
         </div>
 
         {/* RODAPÉ DO MENU */}
-        <div className="p-5 border-t border-border bg-card">
-          <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium mb-3">
+        <div className="p-4 border-t border-border bg-card/80">
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium mb-2.5">
             <span>{nomeApp} v{appSettings.appVersion || "1.0.0"}</span>
-            <span>Itaperuna, RJ</span>
+            <span className="font-semibold">{cidadeRegional}</span>
           </div>
 
           <button
             type="button"
             onClick={() => setConfirmSairAberto(true)}
             style={{ borderRadius: ui.borderRadius }}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-destructive/10 border border-destructive/20 text-destructive font-bold text-xs hover:bg-destructive/20 active:scale-[0.99] transition-all shadow-2xs cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-2.5 bg-destructive/10 border border-destructive/20 text-destructive font-bold text-xs hover:bg-destructive/20 active:scale-[0.99] transition-all shadow-2xs cursor-pointer"
           >
             <LogOut className="h-4 w-4" />
             <span>Sair da Conta</span>

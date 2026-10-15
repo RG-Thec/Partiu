@@ -39,6 +39,8 @@ export function DeliverySetupDashboard({
     destino,
     abrirModalEndereco,
     cotacao,
+    cotacaoMoto,
+    cotacaoCarro,
     iniciarEntrega,
   } = useDelivery();
 
@@ -50,7 +52,7 @@ export function DeliverySetupDashboard({
     corCabecalhoInicio,
     corCabecalhoFim,
   } = useBrandTheme();
-  const primeiroNome = (userName || "").trim().split(/\s+/)[0] || "Maria";
+  const primeiroNome = (userName || "").trim().split(/\s+/)[0] || "Passageiro";
   const appName = nomeApp || "Partiu";
 
   const rotaPronta = Boolean(
@@ -60,8 +62,8 @@ export function DeliverySetupDashboard({
     destino.contatoNome
   );
 
-  const precoMoto = cotacao.precoBrl;
-  const precoCarro = Number((cotacao.precoBrl * 1.55).toFixed(2));
+  const precoMoto = cotacaoMoto.precoBrl;
+  const precoCarro = cotacaoCarro.precoBrl;
   const precoAtual = veiculo === "MOTO" ? precoMoto : precoCarro;
 
   return (
@@ -385,7 +387,7 @@ export function DeliverySetupDashboard({
                     Moto Flash
                   </span>
                   <span className="text-[10px] text-slate-500 font-medium block">
-                    ~12 min • Rápido
+                    ~{cotacaoMoto.duracaoMin} min • Rápido
                   </span>
                 </div>
 
@@ -444,7 +446,7 @@ export function DeliverySetupDashboard({
                     Carro Baú
                   </span>
                   <span className="text-[10px] text-slate-500 font-medium block">
-                    ~18 min • Caixas
+                    ~{cotacaoCarro.duracaoMin} min • Caixas
                   </span>
                 </div>
 

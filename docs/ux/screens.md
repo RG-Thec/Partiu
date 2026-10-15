@@ -110,30 +110,30 @@ whose code diverges from its record here is a "drifted" finding. -->
 
 ### SCR-05: Cadastro de Passageiro
 - **Used by:** FLW-05 step 5
-- **Purpose:** Coleta de nome, telefone, e-mail e senha para passageiros com garantia de visibilidade de ações
-- **Elements:** Campos de formulário com máscaras automáticas, checkbox de termos/WhatsApp, bloco de ações de alta visibilidade com botão de ação primária "CONFIRMAR CRIAÇÃO DE CONTA" e ação secundária "Ir para o login", tela de sucesso com opções "Ir para o login" e "Acessar aplicativo"
+- **Purpose:** Coleta limpa e direta de nome, telefone, e-mail, senha e foto de identificação para passageiros sem etapas fantasmas
+- **Elements:** Campos de formulário com máscaras automáticas, captura integrada de selfie de identificação, checkbox de WhatsApp, botão de ação primária "Criar minha conta" e ação secundária "Entrar", tela de sucesso com opções "Ir para o login" e "Acessar aplicativo"
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |-------|---------|-------------|----------|
   | success | conta criada | none — code first | Confirmação exibindo opções "Ir para o login" e "Acessar aplicativo" |
-  | error | CPF ou telefone já cadastrado | none — code first | Alerta explicativo com link para recuperação |
+  | error | CPF ou telefone já cadastrado | none — code first | Alerta explicativo não intrusivo com link para recuperação |
   | loading | processando cadastro | none — code first | Indicador de envio com spinner no botão de confirmação |
-- **Coverage:** src/routes/cadastro-passageiro.tsx:1-475, src/components/auth/PartiuAppAuthGate.tsx:1-1400
+- **Coverage:** src/routes/cadastro-passageiro.tsx:1-450, src/components/auth/PartiuAppAuthGate.tsx:1-1400
 - **Scenarios:** SCN-005
 - **Resources:** supabaseAuthService, useGeolocation
 - **Status:** built
 
 ### SCR-06: Cadastro de Motorista Parceiro
 - **Used by:** FLW-05 step 6
-- **Purpose:** Onboarding em 4 etapas para envio de CNH com EAR, CRLV e dados Pix com bloco de ações sempre visível
-- **Elements:** Stepper de progresso em 4 etapas, dropzone de documentos, formulário do veículo e dados PIX, bloco de ações de alta visibilidade sem overflow com botão primário "CONFIRMAR CRIAÇÃO DE CONTA" e link secundário "Ir para o login", tela de sucesso com opções "Ir para o login" e "Acessar cockpit"
+- **Purpose:** Onboarding limpo em 3 etapas estratégicas para envio de dados pessoais, veículo, CNH com EAR, CRLV e repasse Pix
+- **Elements:** Stepper de progresso em 3 etapas (Dados Pessoais, Veículo, Habilitação & Repasse), dropzone compacta de documentos, formulário do veículo e dados PIX, bloco de ações de alta visibilidade sem overflow com botão primário "Finalizar cadastro" e link secundário "Entrar", tela de sucesso com opções "Ir para o login" e "Acessar cockpit"
 - **States:**
   | State | Trigger | Figma frame | Behavior |
   |-------|---------|-------------|----------|
   | success | documentos enviados | none — code first | Confirmação com status em análise e opções "Ir para o login" e "Acessar cockpit" |
   | error | documento ilegível ou inválido | none — code first | Alerta no campo com orientação de novo envio |
   | loading | fazendo upload de fotos ou salvando | none — code first | Barra de progresso e spinner no botão de confirmação |
-- **Coverage:** src/routes/cadastro-motorista.tsx:1-1107
+- **Coverage:** src/routes/cadastro-motorista.tsx:1-850
 - **Scenarios:** SCN-005
 - **Resources:** driverFleetService, Supabase Storage
 - **Status:** built

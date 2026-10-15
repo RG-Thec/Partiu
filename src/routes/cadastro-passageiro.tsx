@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   Lock,
   Mail,
-  MapPin,
   Phone,
   ShieldCheck,
   User,
@@ -15,8 +14,8 @@ import {
   Eye,
   EyeOff,
   FileText,
+  Sparkles,
 } from "lucide-react";
-import { useGeolocation } from "@/lib/use-geolocation";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
@@ -25,9 +24,6 @@ import {
   NativeInput,
   NativeSurface,
 } from "@/components/native";
-import {
-  WhiteLabelProgressBar,
-} from "@/components/ui/white-label";
 import { CameraPhotoCapture } from "@/components/common/CameraPhotoCapture";
 import { whiteLabelEngine } from "@/lib/white-label";
 
@@ -77,13 +73,14 @@ export function CadastroPassageiroPage() {
       } catch {}
     }
   }, [tenantParam]);
+
   const { appConfig } = useTheme();
   const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
   const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
   const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
   const appName = branding?.appName || DEFAULT_APP_CONFIG.branding.appName;
 
-  // Estados limpos sem dados mockados pré-preenchidos
+  // Estados do formulário
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -91,19 +88,12 @@ export function CadastroPassageiroPage() {
   const [telefone, setTelefone] = useState("");
   const [cpf, setCpf] = useState("");
   const [fotoUrl, setFotoUrl] = useState("");
-  const [receberWhatsApp, setReceberWhatsApp] = useState(false);
+  const [receberWhatsApp, setReceberWhatsApp] = useState(true);
 
   // Estados de feedback operacional
   const [carregando, setCarregando] = useState(false);
   const [erroCadastro, setErroCadastro] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState(false);
-
-  const {
-    localDetectado,
-    carregando: carregandoGPS,
-    solicitarLocalizacao,
-    permissaoConcedida,
-  } = useGeolocation();
 
   useEffect(() => {
     try {
@@ -127,19 +117,19 @@ export function CadastroPassageiroPage() {
     const rawCpf = cpf.replace(/\D/g, "");
 
     if (cleanNome.length < 3) {
-      setErroCadastro("Por favor, digite seu nome completo (ao menos 3 letras).");
-      return;
-    }
-    if (!cleanEmail.includes("@") || !cleanEmail.includes(".")) {
-      setErroCadastro("Por favor, digite um e-mail válido.");
+      setErroCadastro("Digite seu nome completo (ao menos 3 letras).");
       return;
     }
     if (rawTelefone.length < 10) {
-      setErroCadastro("Por favor, digite um número de celular válido com DDD.");
+      setErroCadastro("Digite um número de celular válido com DDD.");
       return;
     }
     if (rawCpf.length !== 11) {
-      setErroCadastro("Por favor, digite um CPF válido com 11 dígitos.");
+      setErroCadastro("Digite um CPF válido com 11 dígitos.");
+      return;
+    }
+    if (!cleanEmail.includes("@") || !cleanEmail.includes(".")) {
+      setErroCadastro("Digite um e-mail válido.");
       return;
     }
     if (senha.length < 6) {
@@ -147,12 +137,8 @@ export function CadastroPassageiroPage() {
       return;
     }
     if (!fotoUrl) {
-      setErroCadastro("Por favor, tire sua foto pela câmera do celular para identificação oficial.");
+      setErroCadastro("Tire sua foto de identificação para segurança no embarque.");
       return;
-    }
-
-    if (!permissaoConcedida) {
-      solicitarLocalizacao();
     }
 
     setCarregando(true);
@@ -168,20 +154,14 @@ export function CadastroPassageiroPage() {
       });
 
       if (!res.success) {
-        setErroCadastro(res.error || "Não foi possível concluir o cadastro no momento. Tente novamente.");
+        setErroCadastro(res.error || "Não foi possível concluir o cadastro. Tente novamente.");
         setCarregando(false);
         return;
       }
 
-      if (permissaoConcedida) {
-        try {
-          localStorage.setItem("partiu_gps_permitido", "true");
-        } catch {}
-      }
-
       setSucesso(true);
     } catch (err: any) {
-      setErroCadastro(err?.message || "Ocorreu um erro de conexão. Verifique sua internet.");
+      setErroCadastro(err?.message || "Instabilidade na conexão. Verifique sua internet.");
     } finally {
       setCarregando(false);
     }
@@ -189,202 +169,204 @@ export function CadastroPassageiroPage() {
 
   return (
     <div
-      className="min-h-[100dvh] w-full flex flex-col font-sans transition-colors duration-200 overflow-x-hidden overflow-y-auto bg-slate-50 p-3.5 sm:p-6 pb-[max(2rem,calc(env(safe-area-inset-bottom,0px)+1.5rem))]"
+      className="min-h-[100dvh] w-full flex flex-col font-sans transition-colors duration-200 overflow-x-hidden overflow-y-auto bg-slate-50 p-4 sm:p-6 pb-[max(2rem,calc(env(safe-area-inset-bottom,0px)+1.5rem))]"
       style={{
         backgroundColor: colors.background,
         color: colors.textPrimary,
         fontFamily: ui.fontFamily,
       }}
     >
-      {/* Top Header */}
-      <div className="mx-auto w-full max-w-md pt-[max(0.5rem,calc(env(safe-area-inset-top,0px)))] flex items-center justify-between pb-2">
+      {/* Top Header Limpo e Simétrico */}
+      <header className="mx-auto w-full max-w-md pt-[max(0.5rem,calc(env(safe-area-inset-top,0px)))] flex items-center justify-between pb-3">
         <Link
           to="/"
           search={tenantParam ? { tenant: tenantParam } : undefined}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition active:scale-95 shadow-2xs"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 transition active:scale-95 shadow-2xs"
           aria-label="Voltar para início"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Voltar</span>
         </Link>
+
         <span
-          className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 px-3 py-1 rounded-full border"
+          className="text-xs font-bold tracking-tight flex items-center gap-1.5 px-3 py-1 rounded-full border"
           style={{
-            borderColor: `${colors.primary}33`,
-            backgroundColor: `${colors.primary}12`,
+            borderColor: `${colors.primary}25`,
+            backgroundColor: `${colors.primary}0D`,
             color: colors.primary,
           }}
         >
-          <Zap className="h-3.5 w-3.5" />
-          Passageiro {appName}
+          <Zap className="h-3 w-3" />
+          <span>Passageiro</span>
         </span>
+
         <Link
           to="/auth"
           search={{ role: "PASSAGEIRO", ...(tenantParam ? { tenant: tenantParam } : {}) }}
-          className="text-xs font-bold hover:underline transition"
+          className="text-xs font-bold hover:underline transition px-2 py-1"
           style={{ color: colors.primary }}
         >
           Entrar
         </Link>
-      </div>
+      </header>
 
-      <main className="w-full max-w-md mx-auto flex-1 flex flex-col justify-start py-2 sm:py-3 pb-8 sm:pb-12">
+      {/* Conteúdo Central */}
+      <main className="w-full max-w-md mx-auto flex-1 flex flex-col justify-start py-2 pb-8 sm:pb-12">
         {!sucesso ? (
           <div
-            className="w-full p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 shadow-xl sm:shadow-2xl shadow-slate-200/50 space-y-3 transition-all duration-200 relative"
-            style={{ borderRadius: ui.borderRadius || "1.5rem" }}
+            className="w-full p-5 sm:p-7 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/90 shadow-lg shadow-slate-100/80 transition-all duration-200 relative"
+            style={{ borderRadius: ui.borderRadius || "1.25rem" }}
           >
-            <form onSubmit={handleSubmit} className="space-y-3">
-              {/* Cabeçalho do Card Padrão Design System */}
-              <div className="text-center">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Cabeçalho do Card */}
+              <div className="text-center pb-1">
                 <h1
-                  className="text-lg sm:text-xl font-black tracking-tight"
+                  className="text-xl sm:text-[22px] font-black tracking-tight"
                   style={{ color: colors.textPrimary }}
                 >
-                  Cadastro de Passageiro
+                  Criar conta de Passageiro
                 </h1>
-                <p className="text-[11px] sm:text-xs mt-0.5 font-normal" style={{ color: colors.textSecondary }}>
-                  Crie sua conta para solicitar corridas e entregas com segurança.
+                <p className="text-xs mt-1 font-normal" style={{ color: colors.textSecondary }}>
+                  Suas corridas com preço justo, rapidez e segurança
                 </p>
-                {/* Barra de destaque na cor primária do Franqueado */}
                 <div
-                  className="w-7 h-1 rounded-full mx-auto mt-1.5 mb-3 transition-colors"
+                  className="w-7 h-0.5 rounded-full mx-auto mt-2 transition-colors"
                   style={{ backgroundColor: colors.primary }}
                 />
               </div>
 
-              {/* Indicador de Progresso Conectado à Cor Primária */}
-              <WhiteLabelProgressBar
-                currentStep={1}
-                totalSteps={2}
-                stepTitle="Dados Pessoais"
-                className="mb-0.5"
-              />
-
+              {/* Banner de Erro Não-Intrusivo */}
               {erroCadastro && (
                 <div
                   role="alert"
                   className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 font-semibold flex items-center gap-2 animate-in fade-in"
                 >
                   <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
-                  <span>{erroCadastro}</span>
+                  <span className="leading-snug">{erroCadastro}</span>
                 </div>
               )}
 
-              {/* Foto de Perfil Obrigatória via Câmera do Celular */}
-              <CameraPhotoCapture
-                label="Sua foto de identificação"
-                sublabel="Tire uma selfie ao vivo pela câmera"
-                value={fotoUrl}
-                onChange={(capturedUrl) => {
-                  setFotoUrl(capturedUrl);
-                  if (capturedUrl) {
-                    try {
-                      localStorage.setItem("partiu_user_avatar", capturedUrl);
-                      localStorage.setItem("partiu_user_foto", capturedUrl);
-                      localStorage.setItem("partiu_user_selfie", capturedUrl);
-                    } catch {}
-                  }
-                  if (erroCadastro?.includes("foto")) setErroCadastro(null);
-                }}
-                required
-              />
-
-              <NativeInput
-                label="Nome completo"
-                required
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                placeholder="Digite seu nome completo"
-                leftIcon={<User className="w-4 h-4 text-slate-400" />}
-              />
-
-              <div className="grid grid-cols-2 gap-2">
+              {/* Bloco 1: Dados Pessoais Básicos */}
+              <div className="space-y-3">
                 <NativeInput
-                  label="Celular"
+                  label="Nome completo"
                   required
-                  type="tel"
-                  value={telefone}
-                  onChange={(e) => setTelefone(formatarTelefone(e.target.value))}
-                  placeholder="(82) 99999-9999"
-                  leftIcon={
-                    <div className="flex items-center gap-0.5 text-[11px] font-black text-slate-700 dark:text-slate-200 select-none">
-                      <span>🇧🇷</span>
-                    </div>
-                  }
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  placeholder="Nome e sobrenome"
+                  leftIcon={<User className="w-4 h-4 text-slate-400" />}
                 />
+
+                <div className="grid grid-cols-2 gap-2.5">
+                  <NativeInput
+                    label="Celular"
+                    required
+                    type="tel"
+                    value={telefone}
+                    onChange={(e) => setTelefone(formatarTelefone(e.target.value))}
+                    placeholder="(82) 99999-9999"
+                    leftIcon={
+                      <div className="flex items-center gap-0.5 text-[11px] font-bold text-slate-700 select-none">
+                        <span>🇧🇷</span>
+                      </div>
+                    }
+                  />
+                  <NativeInput
+                    label="CPF"
+                    required
+                    value={cpf}
+                    onChange={(e) => {
+                      setCpf(formatarCpf(e.target.value));
+                      if (erroCadastro?.includes("CPF")) setErroCadastro(null);
+                    }}
+                    onBlur={async () => {
+                      const raw = cpf.replace(/\D/g, "");
+                      if (raw.length === 11) {
+                        const check = await supabaseAuthService.isEmailOrCpfRegistered("", raw);
+                        if (check.registered && check.field === "cpf") {
+                          setErroCadastro(check.message || "Este CPF já está cadastrado.");
+                        }
+                      }
+                    }}
+                    placeholder="000.000.000-00"
+                    leftIcon={<FileText className="w-4 h-4 text-slate-400" />}
+                  />
+                </div>
+
                 <NativeInput
-                  label="CPF"
+                  label="E-mail"
                   required
-                  value={cpf}
+                  type="email"
+                  value={email}
                   onChange={(e) => {
-                    setCpf(formatarCpf(e.target.value));
-                    if (erroCadastro?.includes("CPF")) setErroCadastro(null);
+                    setEmail(e.target.value);
+                    if (erroCadastro?.includes("e-mail") || erroCadastro?.includes("E-mail")) setErroCadastro(null);
                   }}
                   onBlur={async () => {
-                    const raw = cpf.replace(/\D/g, "");
-                    if (raw.length === 11) {
-                      const check = await supabaseAuthService.isEmailOrCpfRegistered("", raw);
-                      if (check.registered && check.field === "cpf") {
-                        setErroCadastro(check.message || "Este CPF já está cadastrado.");
+                    if (email.includes("@") && email.includes(".")) {
+                      const check = await supabaseAuthService.isEmailOrCpfRegistered(email.trim().toLowerCase());
+                      if (check.registered && check.field === "email") {
+                        setErroCadastro(check.message || "Este e-mail já está cadastrado.");
                       }
                     }
                   }}
-                  placeholder="000.000.000-00"
-                  leftIcon={<FileText className="w-4 h-4 text-slate-400" />}
+                  placeholder="seu.email@exemplo.com"
+                  leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
                 />
-              </div>
 
-              <NativeInput
-                label="E-mail"
-                required
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (erroCadastro?.includes("e-mail") || erroCadastro?.includes("E-mail")) setErroCadastro(null);
-                }}
-                onBlur={async () => {
-                  if (email.includes("@") && email.includes(".")) {
-                    const check = await supabaseAuthService.isEmailOrCpfRegistered(email.trim().toLowerCase());
-                    if (check.registered && check.field === "email") {
-                      setErroCadastro(check.message || "Este e-mail já está cadastrado.");
-                    }
-                  }
-                }}
-                placeholder="seu.email@exemplo.com"
-                leftIcon={<Mail className="w-4 h-4 text-slate-400" />}
-              />
+                {/* Senha com Toggle de Visualização */}
+                <div className="text-left space-y-1.5">
+                  <label className="block text-xs font-semibold tracking-tight select-none text-slate-800">
+                    Criar senha de acesso <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      placeholder="Mínimo 6 caracteres"
+                      value={senha}
+                      onChange={(e) => setSenha(e.target.value)}
+                      className="w-full bg-slate-50/60 border border-slate-200 rounded-xl pl-9 pr-10 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition"
+                      style={{
+                        borderRadius: ui.borderRadius || "0.75rem",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer p-0.5"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5 text-left">
-                  Senha de acesso
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    placeholder="Mínimo 6 dígitos"
-                    value={senha}
-                    onChange={(e) => setSenha(e.target.value)}
-                    className="w-full bg-white border border-slate-300 rounded-lg pl-10 pr-10 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 transition"
-                    style={{
-                      borderRadius: ui.borderRadius || "0.5rem",
+                {/* Foto de Identificação Integrada */}
+                <div className="pt-1">
+                  <CameraPhotoCapture
+                    label="Foto de identificação"
+                    sublabel="Sua selfie para identificação segura no embarque"
+                    value={fotoUrl}
+                    onChange={(capturedUrl) => {
+                      setFotoUrl(capturedUrl);
+                      if (capturedUrl) {
+                        try {
+                          localStorage.setItem("partiu_user_avatar", capturedUrl);
+                          localStorage.setItem("partiu_user_foto", capturedUrl);
+                          localStorage.setItem("partiu_user_selfie", capturedUrl);
+                        } catch {}
+                      }
+                      if (erroCadastro?.includes("foto")) setErroCadastro(null);
                     }}
+                    required
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer p-0.5"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 pt-0.5">
+              {/* Preferência WhatsApp */}
+              <div className="flex items-center gap-2 pt-1">
                 <input
                   type="checkbox"
                   id="wppUpdates"
@@ -395,33 +377,31 @@ export function CadastroPassageiroPage() {
                 />
                 <label
                   htmlFor="wppUpdates"
-                  className="text-[11px] font-medium cursor-pointer leading-tight select-none text-left"
-                  style={{ color: colors.textSecondary }}
+                  className="text-xs font-medium cursor-pointer leading-tight select-none text-slate-600"
                 >
-                  Receber comprovantes de corridas e código PIN no WhatsApp
+                  Receber comprovantes de viagens e código PIN no WhatsApp
                 </label>
               </div>
 
-              <div className="pt-2 space-y-2.5 mt-2">
+              {/* Botão de Envio e Link de Login */}
+              <div className="pt-2 space-y-2.5">
                 <button
+                  id="btn-confirmar-cadastro"
                   type="submit"
                   disabled={carregando}
                   style={{
                     backgroundColor: colors.primary,
                     borderRadius: ui.borderRadius || "0.75rem",
                   }}
-                  className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50"
+                  className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-bold tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.99] cursor-pointer disabled:opacity-50"
                 >
                   {carregando ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Cadastrando...</span>
+                      <span>Criando conta...</span>
                     </>
                   ) : (
-                    <>
-                      <span>➔</span>
-                      <span>Confirmar criação de conta</span>
-                    </>
+                    <span>Criar minha conta</span>
                   )}
                 </button>
 
@@ -429,22 +409,14 @@ export function CadastroPassageiroPage() {
                   <Link
                     to="/auth"
                     search={{ role: "PASSAGEIRO", ...(tenantParam ? { tenant: tenantParam } : {}) }}
-                    className="inline-flex items-center justify-center text-xs font-semibold hover:underline py-1 transition-colors"
-                    style={{ color: colors.textSecondary }}
+                    className="inline-flex items-center justify-center text-xs font-medium hover:underline py-1 transition-colors text-slate-600"
                   >
                     Já tem uma conta?{" "}
-                    <span className="font-extrabold underline ml-1" style={{ color: colors.primary }}>
-                      Ir para o login
+                    <span className="font-bold underline ml-1" style={{ color: colors.primary }}>
+                      Entrar
                     </span>
                   </Link>
                 </div>
-              </div>
-
-              {/* Rodapé Interno do Card */}
-              <div className="border-t border-slate-100 pt-2.5 mt-2">
-                <p className="text-[11px] text-slate-400 text-center">
-                  © {new Date().getFullYear()} {appName} · Mobilidade conectada
-                </p>
               </div>
             </form>
           </div>
@@ -452,25 +424,26 @@ export function CadastroPassageiroPage() {
           <NativeSurface
             elevation={2}
             padding="lg"
-            className="text-center space-y-4 animate-in zoom-in-95"
+            className="text-center space-y-4 animate-in zoom-in-95 bg-white border border-slate-200"
           >
             <div
-              className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl shadow-lg"
+              className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl shadow-sm"
               style={{
-                backgroundColor: `${colors.primary}18`,
+                backgroundColor: `${colors.primary}15`,
                 color: colors.primary,
               }}
             >
-              <CheckCircle2 className="h-9 w-9 stroke-[2.5]" />
+              <CheckCircle2 className="h-8 w-8 stroke-[2.5]" />
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-black" style={{ color: colors.textPrimary }}>
-              Conta criada com sucesso
-            </h2>
-            <p className="text-xs leading-relaxed" style={{ color: colors.textSecondary }}>
-              Bem-vindo ao {appName}, <span className="font-bold" style={{ color: colors.textPrimary }}>{nome}</span>! Seu
-              cadastro foi confirmado com sucesso.
-            </p>
+            <div className="space-y-1">
+              <h2 className="text-xl font-black text-slate-900">
+                Conta criada com sucesso
+              </h2>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Bem-vindo ao {appName}, <span className="font-bold text-slate-900">{nome}</span>. Seu cadastro está ativo.
+              </p>
+            </div>
 
             <div className="pt-3 space-y-2.5">
               <Link
@@ -496,8 +469,8 @@ export function CadastroPassageiroPage() {
         )}
       </main>
 
-      <footer className="text-center text-[11px] text-muted-foreground">
-        PARTIU Mobilidade Urbana & Entregas Flash • Plataforma Nacional
+      <footer className="text-center text-[11px] text-slate-400 py-2">
+        {appName} Mobilidade Urbana & Logística Expressa
       </footer>
     </div>
   );

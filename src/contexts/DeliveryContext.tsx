@@ -26,6 +26,7 @@ import {
   finalizarViagem,
   getCorridaAtiva,
 } from "@/lib/partiu-engine";
+import { calculateHaversineKm } from "@/lib/partiu-dispatch-engine";
 import { geocodingService } from "@/lib/passenger/geocoding-service";
 import { reverseGeocodingService } from "@/services/ReverseGeocodingService";
 import { UserService } from "@/services/UserService";
@@ -38,6 +39,8 @@ export interface EnderecoRecenteItem {
   complemento?: string;
   nome: string;
   telefone: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface DeliveryContextValue {
@@ -48,6 +51,8 @@ interface DeliveryContextValue {
   destino: DeliveryAddressInfo;
   descricaoPacote: string;
   cotacao: DeliveryQuote;
+  cotacaoMoto: DeliveryQuote;
+  cotacaoCarro: DeliveryQuote;
   status: DeliveryFlowStatus;
   ordemAtiva: DeliveryOrderRecord | null;
 
@@ -240,10 +245,41 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
     }
   }, [ordemAtiva]);
 
-  // Cotação calculada dinamicamente para Moto ou Carro
+  // Cotação calculada dinamicamente para Moto ou Carro (com base em coordenadas reais quando disponíveis)
+  const metricasRota = useMemo(() => {
+    let distanciaKm = 5.2;
+    let duracaoMin = 16;
+
+    if (
+      origem.latitude &&
+      origem.longitude &&
+      destino.latitude &&
+      destino.longitude
+    ) {
+      const distLinhaReta = calculateHaversineKm(
+        { latitude: origem.latitude, longitude: origem.longitude },
+        { latitude: destino.latitude, longitude: destino.longitude }
+      );
+      // Fator de malha urbana real (1.35) com piso de 1.0 km
+      distanciaKm = Math.max(1.0, Number((distLinhaReta * 1.35).toFixed(1)));
+      const velocidadeMediaKmH = veiculo === "MOTO" ? 28 : 22;
+      duracaoMin = Math.max(6, Math.round((distanciaKm / velocidadeMediaKmH) * 60));
+    }
+
+    return { distanciaKm, duracaoMin };
+  }, [origem.latitude, origem.longitude, destino.latitude, destino.longitude, veiculo]);
+
   const cotacao = useMemo(() => {
-    return calcularCotacaoEntrega(veiculo, 5.2, 16);
-  }, [veiculo]);
+    return calcularCotacaoEntrega(veiculo, metricasRota.distanciaKm, metricasRota.duracaoMin);
+  }, [veiculo, metricasRota]);
+
+  const cotacaoMoto = useMemo(() => {
+    return calcularCotacaoEntrega("MOTO", metricasRota.distanciaKm, metricasRota.duracaoMin);
+  }, [metricasRota]);
+
+  const cotacaoCarro = useMemo(() => {
+    return calcularCotacaoEntrega("CARRO", metricasRota.distanciaKm, metricasRota.duracaoMin);
+  }, [metricasRota]);
 
   const status: DeliveryFlowStatus = ordemAtiva?.status || "SETUP";
 
@@ -282,6 +318,8 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
             complemento: info.complemento?.trim() || "",
             nome: info.contatoNome.trim(),
             telefone: info.contatoTelefone.trim(),
+            latitude: info.latitude,
+            longitude: info.longitude,
           };
           const listaAtualizada = [novoRecente, ...filtrados].slice(0, 10);
           try {
@@ -437,6 +475,8 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
       destino,
       descricaoPacote,
       cotacao,
+      cotacaoMoto,
+      cotacaoCarro,
       status,
       ordemAtiva,
       isAddressModalOpen,
@@ -466,6 +506,8 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
       destino,
       descricaoPacote,
       cotacao,
+      cotacaoMoto,
+      cotacaoCarro,
       status,
       ordemAtiva,
       isAddressModalOpen,
@@ -473,6 +515,11 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
       enderecosRecentes,
       setVeiculo,
       setAbaAcao,
+      setOrigem,
+      setDestino,
+      setDescricaoPacote,
+      abrirModalEndereco,
+      fecharModalEndereco,
       salvarEnderecoModal,
       iniciarEntrega,
       validarPin1,
