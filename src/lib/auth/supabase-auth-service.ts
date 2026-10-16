@@ -644,6 +644,15 @@ export class SupabaseAuthService {
             silentCatchWarn("checkAndHydrateSession:profiles", err);
           }
 
+          // Se a conta não existe mais na tabela profiles (foi purgada/zerada), limpa a sessão local obsoleta
+          if (!profileData) {
+            try {
+              await supabase.auth.signOut({ scope: "local" });
+              this.clearUserSessionAndCaches(effectiveTenantId);
+            } catch {}
+            return null;
+          }
+
           let role: UserRole = "PASSAGEIRO";
           const rawRole = profileData?.role || user.user_metadata?.["role"] || "";
           if (rawRole.toLowerCase() === "driver" || rawRole.toUpperCase() === "MOTORISTA") {
@@ -1233,7 +1242,6 @@ export class SupabaseAuthService {
     }
 
     // Se NÃO for conta demo da matriz E NÃO for usuário registrado nessa franquia, BLOQUEIA!
-    // (Impede terminantemente que contas de outras cidades como teste@gmail.com loguem aqui com 123456)
     if (!isDemoEmail && !localTenantUser) {
       return {
         success: false,

@@ -136,10 +136,9 @@ export function CadastroPassageiroPage() {
       setErroCadastro("A senha de acesso deve ter pelo menos 6 caracteres.");
       return;
     }
-    if (!fotoUrl) {
-      setErroCadastro("Tire sua foto de identificação para segurança no embarque.");
-      return;
-    }
+    const finalFoto =
+      fotoUrl ||
+      `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(cleanNome || cleanEmail)}`;
 
     setCarregando(true);
     try {
@@ -149,7 +148,7 @@ export function CadastroPassageiroPage() {
         phone: telefone,
         cpf,
         password: senha,
-        avatarUrl: fotoUrl,
+        avatarUrl: finalFoto,
         tenantId: tenantParam || undefined,
       });
 

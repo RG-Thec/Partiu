@@ -403,10 +403,9 @@ export function PartiuAppAuthGate({
       setErrorMessage("A senha deve ter no mínimo 6 caracteres.");
       return;
     }
-    if (!fotoPerfilUrl) {
-      setErrorMessage("Por favor, tire sua foto pela câmera do celular para identificação oficial.");
-      return;
-    }
+    const finalAvatar =
+      fotoPerfilUrl ||
+      `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(nome.trim() || email)}`;
 
     setLoading(true);
     const res = await supabaseAuthService.signUpPassenger({
@@ -415,7 +414,7 @@ export function PartiuAppAuthGate({
       phone: telefone,
       cpf,
       password: senha,
-      avatarUrl: fotoPerfilUrl,
+      avatarUrl: finalAvatar,
       tenantId: currentTenantId,
     });
     setLoading(false);
