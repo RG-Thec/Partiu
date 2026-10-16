@@ -19,6 +19,8 @@ import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { normalizarTelefoneBR } from "@/lib/passenger-cloud-sync";
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { googleAuthService } from "./google-auth-service";
+import { whiteLabelEngine } from "@/lib/white-label/white-label-engine";
+import { validarAcessoTerritorialParaCadastro } from "@/lib/geo/territory-guard";
 
 export type UserRole = "PASSAGEIRO" | "MOTORISTA" | "ADMIN";
 
@@ -1706,6 +1708,8 @@ export class SupabaseAuthService {
     password: string;
     avatarUrl?: string;
     tenantId?: string;
+    coordinates?: { lat: number; lng: number } | null;
+    city?: string;
   }): Promise<AuthResult> {
     const { name, email, phone, cpf, password, avatarUrl, tenantId } = params;
     const cleanName = name.trim();
@@ -1728,7 +1732,25 @@ export class SupabaseAuthService {
 
     const cleanCpf = cpf ? cpf.trim() : "";
 
-    // 0. Bloqueio proativo de e-mail e CPF duplicados NAQUELA FRANQUIA
+    // 0. Bloqueio proativo de novas contas fora do território autorizado da franquia
+    const targetTenant =
+      whiteLabelEngine.getTenantById(effectiveTenantId) || whiteLabelEngine.getActiveTenant();
+    if (targetTenant) {
+      const checagemTerritorial = validarAcessoTerritorialParaCadastro(
+        targetTenant,
+        params.coordinates,
+        params.city,
+        whiteLabelEngine.getAllTenants()
+      );
+      if (!checagemTerritorial.permitido) {
+        return {
+          success: false,
+          error: checagemTerritorial.mensagem,
+        };
+      }
+    }
+
+    // 0.1 Bloqueio proativo de e-mail e CPF duplicados NAQUELA FRANQUIA
     const checkDuplicity = await this.isEmailOrCpfRegistered(cleanEmail, cleanCpf, effectiveTenantId);
     if (checkDuplicity.registered) {
       return {
@@ -1926,6 +1948,8 @@ export class SupabaseAuthService {
     pixKey?: string;
     pixKeyType?: string;
     tenantId?: string;
+    coordinates?: { lat: number; lng: number } | null;
+    city?: string;
   }): Promise<AuthResult> {
     const { name, email, phone, cpf, password, tenantId } = params;
     const cleanName = name.trim();
@@ -1948,7 +1972,25 @@ export class SupabaseAuthService {
 
     const cleanCpf = cpf ? cpf.trim() : "";
 
-    // 0. Bloqueio proativo de e-mail e CPF duplicados NAQUELA FRANQUIA
+    // 0. Bloqueio proativo de novos condutores fora do território autorizado da franquia
+    const targetTenant =
+      whiteLabelEngine.getTenantById(effectiveTenantId) || whiteLabelEngine.getActiveTenant();
+    if (targetTenant) {
+      const checagemTerritorial = validarAcessoTerritorialParaCadastro(
+        targetTenant,
+        params.coordinates,
+        params.city,
+        whiteLabelEngine.getAllTenants()
+      );
+      if (!checagemTerritorial.permitido) {
+        return {
+          success: false,
+          error: checagemTerritorial.mensagem,
+        };
+      }
+    }
+
+    // 0.1 Bloqueio proativo de e-mail e CPF duplicados NAQUELA FRANQUIA
     const checkDuplicity = await this.isEmailOrCpfRegistered(cleanEmail, cleanCpf, effectiveTenantId);
     if (checkDuplicity.registered) {
       return {

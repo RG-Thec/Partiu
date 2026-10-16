@@ -65,6 +65,8 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
     horarioDesembarquePrevisto,
     preferences,
     togglePreference,
+    isOutsideServiceArea,
+    territoryStatusMessage,
   } = usePassengerRide();
 
   const { corPrimaria, corSecundaria, nomeApp, businessModels } = useBrandTheme();
@@ -558,6 +560,8 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
           precoAtivo={precoAtivo}
           corPrimaria={corPrimaria}
           corSecundaria={corSecundaria}
+          isOutsideServiceArea={isOutsideServiceArea}
+          territoryStatusMessage={territoryStatusMessage}
         />
       </div>
 

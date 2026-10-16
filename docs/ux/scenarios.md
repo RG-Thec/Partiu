@@ -17,6 +17,7 @@
 | SCN-009 | Tarifa dinâmica automática de alta demanda e sobretaxa administrativa imediata | Tarifa Dinâmica & Despacho | P-01, P-03 | ST-001, ST-008, FLW-01, FLW-08 | implemented | 2026-10-11 |
 | SCN-010 | Governança White Label com segregação regional e sincronização em tempo real | Identidade & White Label | P-03 | ST-008, FLW-08 (JTBD-03, JRN-01/#2) | implemented | 2026-10-12 |
 | SCN-011 | Gestão Central de Franqueados e Multi-Tenant com Visualização Fluida e Ações Imediatas | Gestão Central de Franqueados & Multi-Tenant | P-03 | ST-008, FLW-08 (JTBD-03, JRN-01/#2) | implemented | 2026-10-12 |
+| SCN-012 | Governança territorial e bloqueio de cadastros e corridas fora da região da franquia | Delimitação Geográfica & Anti-Invasão | P-01, P-02, P-03 | ST-005, ST-008, FLW-05, FLW-08 | implemented | 2026-10-16 |
 
 ## Personas
 
@@ -257,5 +258,26 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Telemetry:** tenant_management_action (tenant_id, action, status)
 - **Status:** implemented
 - **Coverage:** src/routes/app.admin.franqueados.tsx:1-1200
+- **Product:** unobserved
+
+## Delimitação Geográfica & Anti-Invasão
+
+### SCN-012: Governança territorial e bloqueio de cadastros e corridas fora da região da franquia
+- **Persona:** P-01, P-02, P-03
+- **Feature:** Delimitação Geográfica & Anti-Invasão
+- **Traces:** ST-005, ST-008, FLW-05, FLW-08 (JTBD-01, JTBD-03)
+- **Entry point:** Telas de cadastro (/cadastro-passageiro, /cadastro-motorista, /auth), Bottom Sheet de cotação de corrida (/app) e Gestão de Franqueados (/app/admin/franqueados)
+- **Preconditions:** Usuário tentando se cadastrar ou solicitar corrida em praça regional, ou Super Admin configurando os limites de atuação da franquia
+- **Steps:**
+  1. O Super Admin cadastra ou edita uma franquia regional na Central de Franqueados, definindo cidade-sede, raio máximo de atendimento em km e cidades adicionais licenciadas, com o controle de bloqueio de novas contas ativado.
+  2. Um novo passageiro ou motorista parceiro tenta criar conta informando sua cidade ou utilizando localização via GPS: se estiver fora do território autorizado da franquia regional, a interface exibe aviso claro indicando a praça de atuação e desabilita a finalização do cadastro, enquanto a camada de serviço no Supabase Auth bloqueia atomicamente a operação. Na Matriz Nacional, o cadastro permanece irrestrito em qualquer ponto do território brasileiro.
+  3. No aplicativo do passageiro, quando o usuário seleciona um ponto de embarque fora da área autorizada da franquia ativa, o Bottom Sheet de cotação exibe uma faixa informativa discreta indicando que a localidade está fora da área de atendimento e desabilita com segurança o botão de confirmação da corrida.
+- **Expected result:** Proteção territorial estrita anti-invasão entre franquias e prevenção de contas fantasmas em praças sem cobertura ativa, preservando a autonomia irrestrita da Matriz Nacional.
+- **UI elements:** Banner de fora de atendimento no cadastro, Botão de confirmação de cadastro desabilitado com aviso explicativo, Faixa informativa de fora de área no Bottom Sheet de corrida, Botão Confirmar Corrida desabilitado, Checkbox de bloqueio de novas contas no modal de criação e edição de franquias
+- **States covered:** success, outside_territory, loading, error
+- **Errors & recovery:** Em caso de GPS indisponível no dispositivo, o sistema utiliza o município canônico informado no formulário ou endereço; caso o usuário necessite de atendimento nacional, o sistema permite direcionamento à Matriz Nacional.
+- **Telemetry:** territory_access_checked (tenant_id, allowed, reason, distance_km)
+- **Status:** implemented
+- **Coverage:** src/lib/geo/territory-guard.ts:1-250, src/lib/auth/supabase-auth-service.ts:160-260, src/components/auth/PartiuAppAuthGate.tsx:390-440, src/components/passenger/PassengerReviewRouteSheet.tsx:320-370, src/components/passenger/route-sheet/RouteSheetFooter.tsx:25-70, src/components/admin/whitelabel/CloneTenantModal.tsx:180-280, src/routes/app.admin.franqueados.tsx:1150-1250
 - **Product:** unobserved
 

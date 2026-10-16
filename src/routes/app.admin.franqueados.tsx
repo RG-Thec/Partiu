@@ -203,6 +203,7 @@ function SuperAdminFranqueadosContent() {
   const [lngCentroModal, setLngCentroModal] = useState<number>(-47.882778);
   const [raioKmTerritorioModal, setRaioKmTerritorioModal] = useState<number>(30);
   const [bloquearChamadasForaModal, setBloquearChamadasForaModal] = useState(true);
+  const [bloquearNovasContasModal, setBloquearNovasContasModal] = useState(true);
   const [bloquearFrotaVizinhaModal, setBloquearFrotaVizinhaModal] = useState(true);
   const [cidadesLicenciadasModal, setCidadesLicenciadasModal] = useState<string[]>([]);
   const [novaCidadeExpansaoInput, setNovaCidadeExpansaoInput] = useState("");
@@ -218,6 +219,7 @@ function SuperAdminFranqueadosContent() {
     setLngCentroModal(terr?.lngCentro ?? tenant.configuracaoCompleta?.geo?.coordenadasCentroLng ?? -47.882778);
     setRaioKmTerritorioModal(isMatriz ? 9999 : (terr?.raioMaximoKm ?? tenant.configuracaoCompleta?.geo?.raioOperacaoPadraoKm ?? 30));
     setBloquearChamadasForaModal(terr?.bloquearChamadasForaTerritorio ?? true);
+    setBloquearNovasContasModal(terr?.bloquearNovasContasForaTerritorio ?? true);
     setBloquearFrotaVizinhaModal(terr?.bloquearDespachoFrotaVizinha ?? true);
     setCidadesLicenciadasModal(terr?.cidadesLicenciadas || [tenant.cidadeNome]);
     setNovaCidadeExpansaoInput("");
@@ -238,6 +240,7 @@ function SuperAdminFranqueadosContent() {
       lngCentro: Number(lngCentroModal),
       raioMaximoKm: isMatriz ? 9999 : Number(raioKmTerritorioModal),
       bloquearChamadasForaTerritorio: isMatriz ? false : bloquearChamadasForaModal,
+      bloquearNovasContasForaTerritorio: isMatriz ? false : bloquearNovasContasModal,
       bloquearDespachoFrotaVizinha: isMatriz ? false : bloquearFrotaVizinhaModal,
       cidadesLicenciadas: isMatriz ? ["*"] : cidadesLicenciadasModal,
     });
@@ -2199,6 +2202,18 @@ function SuperAdminFranqueadosContent() {
                     />
                     <span className="font-medium">
                       Bloquear chamadas fora da área autorizada (Geofence estrito)
+                    </span>
+                  </label>
+
+                  <label className="flex items-center gap-2.5 text-xs text-slate-800 dark:text-slate-200 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={bloquearNovasContasModal}
+                      onChange={(e) => setBloquearNovasContasModal(e.target.checked)}
+                      className="rounded border-slate-300 text-primary-600 focus:ring-0"
+                    />
+                    <span className="font-medium">
+                      Bloquear novos cadastros de usuários fora da cidade/raio desta franquia
                     </span>
                   </label>
 

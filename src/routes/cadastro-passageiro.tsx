@@ -94,6 +94,19 @@ export function CadastroPassageiroPage() {
   const [carregando, setCarregando] = useState(false);
   const [erroCadastro, setErroCadastro] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState(false);
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        },
+        () => {},
+        { enableHighAccuracy: false, timeout: 5000 }
+      );
+    }
+  }, []);
 
   useEffect(() => {
     try {
@@ -150,6 +163,7 @@ export function CadastroPassageiroPage() {
         password: senha,
         avatarUrl: finalFoto,
         tenantId: tenantParam || undefined,
+        coordinates: userCoords,
       });
 
       if (!res.success) {

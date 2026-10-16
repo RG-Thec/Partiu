@@ -130,6 +130,7 @@ export function criarTerritorioPadrao(
       raioMaximoKm: 9999, // Cobertura total Brasil
       cidadesLicenciadas: ["*"], // Todas as cidades
       bloquearChamadasForaTerritorio: false,
+      bloquearNovasContasForaTerritorio: false,
       bloquearDespachoFrotaVizinha: false,
       permiteExpansao: true,
       permitirExpansaoPaga: true,
@@ -154,6 +155,7 @@ export function criarTerritorioPadrao(
     raioMaximoKm: raioDefinitivo,
     cidadesLicenciadas: [cidadeNome],
     bloquearChamadasForaTerritorio: true,
+    bloquearNovasContasForaTerritorio: true,
     bloquearDespachoFrotaVizinha: true,
     permiteExpansao: true,
     permitirExpansaoPaga: true,
@@ -312,5 +314,177 @@ export function validarAcessoTerritorial(
     cidadesLicenciadas: territorio.cidadesLicenciadas || [tenant.cidadeNome],
     mensagem: `Operação fora do raio padrão (${distanciaKm} km), autorizada por política flexível.`,
     modo: territorio.modo,
+  };
+}
+
+export interface ValidacaoCadastroTerritorialResult {
+  permitido: boolean;
+  isMatriz: boolean;
+  motivo?:
+    | "MATRIZ_NACIONAL"
+    | "DENTRO_DO_RAIO"
+    | "CIDADE_LICENCIADA"
+    | "CADASTRO_FORA_DA_PRACA"
+    | "CIDADE_NAO_LICENCIADA"
+    | string;
+  cidadeBase: string;
+  cidadesLicenciadas: string[];
+  distanciaKm?: number;
+  raioMaximoKm?: number;
+  mensagem: string;
+}
+
+/**
+ * Validador oficial de território para cadastro de novos passageiros e motoristas.
+ * Impede a criação de contas para franquias regionais fora de sua praça autorizada.
+ */
+export function validarAcessoTerritorialParaCadastro(
+  tenant: WhiteLabelTenantRecord | undefined | null,
+  coords?: { lat: number; lng: number } | null,
+  cidadeUsuario?: string | null,
+  todosTenantsAtivos: WhiteLabelTenantRecord[] = []
+): ValidacaoCadastroTerritorialResult {
+  // 1. Matriz Nacional (tenantId === 'default' ou isMatrizNacional === true ou modo === 'NACIONAL_IRRESTRITO')
+  if (
+    !tenant ||
+    tenant.tenantId === "default" ||
+    tenant.isMatrizNacional === true ||
+    tenant.territorio?.isMatrizNacional ||
+    tenant.territorio?.modo === "NACIONAL_IRRESTRITO"
+  ) {
+    return {
+      permitido: true,
+      isMatriz: true,
+      motivo: "MATRIZ_NACIONAL",
+      cidadeBase: tenant?.cidadeNome || "Nacional",
+      cidadesLicenciadas: ["*"],
+      mensagem: "Cadastro permitido em todo o território nacional.",
+    };
+  }
+
+  const territorio =
+    tenant.territorio ||
+    tenant.configuracaoCompleta?.geo?.territorio ||
+    criarTerritorioPadrao(
+      tenant.cidadeNome,
+      tenant.uf,
+      false,
+      tenant.configuracaoCompleta?.geo?.raioOperacaoPadraoKm
+    );
+
+  const deveBloquear =
+    territorio.bloquearNovasContasForaTerritorio ??
+    territorio.bloquearChamadasForaTerritorio ??
+    true;
+
+  const cidadeBase = territorio.cidadeBase || tenant.cidadeNome;
+  const cidadesLicenciadas = territorio.cidadesLicenciadas || [cidadeBase];
+  const raioMaximo =
+    territorio.raioMaximoKm ||
+    territorio.raioOperacaoPadraoKm ||
+    tenant.configuracaoCompleta?.geo?.raioOperacaoPadraoKm ||
+    25;
+
+  // Se a franquia configurada pelo super admin não restringir novos cadastros
+  if (!deveBloquear) {
+    return {
+      permitido: true,
+      isMatriz: false,
+      motivo: "DENTRO_DO_RAIO",
+      cidadeBase,
+      cidadesLicenciadas,
+      raioMaximoKm: raioMaximo,
+      mensagem: "Cadastro permitido pela política da praça.",
+    };
+  }
+
+  // 2. Se a cidade informada pelo usuário for passada
+  if (cidadeUsuario && cidadeUsuario.trim()) {
+    const cidNorm = cidadeUsuario.trim().toLowerCase();
+    const match =
+      cidadesLicenciadas.some((c) => c.trim().toLowerCase() === cidNorm) ||
+      cidNorm === cidadeBase.trim().toLowerCase();
+
+    if (match) {
+      return {
+        permitido: true,
+        isMatriz: false,
+        motivo: "CIDADE_LICENCIADA",
+        cidadeBase,
+        cidadesLicenciadas,
+        raioMaximoKm: raioMaximo,
+        mensagem: `Cadastro autorizado na cidade de ${cidadeUsuario}.`,
+      };
+    }
+  }
+
+  // 3. Se as coordenadas geográficas foram capturadas
+  if (
+    coords &&
+    typeof coords.lat === "number" &&
+    typeof coords.lng === "number" &&
+    !isNaN(coords.lat) &&
+    !isNaN(coords.lng)
+  ) {
+    const centroLat =
+      territorio.latCentro ??
+      territorio.coordenadasCentroLat ??
+      tenant.configuracaoCompleta?.geo?.coordenadasCentroLat ??
+      -15.7975;
+    const centroLng =
+      territorio.lngCentro ??
+      territorio.coordenadasCentroLng ??
+      tenant.configuracaoCompleta?.geo?.coordenadasCentroLng ??
+      -47.8919;
+
+    const distanciaKm = calcularDistanciaKm(centroLat, centroLng, coords.lat, coords.lng);
+
+    if (distanciaKm <= raioMaximo) {
+      return {
+        permitido: true,
+        isMatriz: false,
+        motivo: "DENTRO_DO_RAIO",
+        distanciaKm,
+        raioMaximoKm: raioMaximo,
+        cidadeBase,
+        cidadesLicenciadas,
+        mensagem: `Localização permitida dentro da praça de ${cidadeBase} (${distanciaKm} km do centro).`,
+      };
+    }
+
+    // Coordenadas fora do raio da franquia
+    return {
+      permitido: false,
+      isMatriz: false,
+      motivo: "CADASTRO_FORA_DA_PRACA",
+      distanciaKm,
+      raioMaximoKm: raioMaximo,
+      cidadeBase,
+      cidadesLicenciadas,
+      mensagem: `A franquia ${tenant.nomeOperacao} atua exclusivamente em ${cidadeBase} e região autorizada (raio de ${raioMaximo} km). Sua localização atual está a ${distanciaKm} km e fora da área de cobertura desta praça.`,
+    };
+  }
+
+  // 4. Se a cidade foi informada e não deu match nas cidades licenciadas
+  if (cidadeUsuario && cidadeUsuario.trim()) {
+    return {
+      permitido: false,
+      isMatriz: false,
+      motivo: "CIDADE_NAO_LICENCIADA",
+      cidadeBase,
+      cidadesLicenciadas,
+      mensagem: `A franquia ${tenant.nomeOperacao} aceita novos usuários exclusivamente em ${cidadeBase} e cidades licenciadas (${cidadesLicenciadas.join(", ")}).`,
+    };
+  }
+
+  // 5. Se nenhuma localização foi fornecida e não há cidade informada, permite
+  return {
+    permitido: true,
+    isMatriz: false,
+    motivo: "DENTRO_DO_RAIO",
+    cidadeBase,
+    cidadesLicenciadas,
+    raioMaximoKm: raioMaximo,
+    mensagem: "Localização não restrita.",
   };
 }

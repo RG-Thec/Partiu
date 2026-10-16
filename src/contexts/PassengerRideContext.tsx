@@ -55,6 +55,8 @@ import {
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { couponService } from "@/services/CouponService";
+import { whiteLabelEngine } from "@/lib/white-label/white-label-engine";
+import { validarAcessoTerritorial } from "@/lib/geo/territory-guard";
 
 export interface PassengerPreferences {
   arCondicionado: boolean;
@@ -155,6 +157,10 @@ interface PassengerRideContextValue {
   isGpsPermissionModalOpen: boolean;
   closeGpsPermissionModal: () => void;
   solicitarPermissaoGps: () => Promise<boolean>;
+
+  // Validação Territorial da Franquia (Geofencing Estrito)
+  isOutsideServiceArea: boolean;
+  territoryStatusMessage?: string | undefined;
 }
 
 export type PassengerGpsState = "GPS_READY" | "GPS_SEARCHING" | "GPS_WEAK_SIGNAL" | "GPS_DISABLED";
@@ -692,6 +698,17 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
     return formatarHorarioChegada(duracaoViagem);
   }, [activeQuote, duracaoMin]);
 
+  // Validação de Fronteira Territorial da Franquia Atual (Geofencing Estrito)
+  const territoryStatus = useMemo(() => {
+    if (!origemCoords || origemCoords.length < 2) return null;
+    const activeTenant = whiteLabelEngine.getActiveTenant();
+    if (!activeTenant) return null;
+    return validarAcessoTerritorial(activeTenant, origemCoords[1], origemCoords[0]);
+  }, [origemCoords]);
+
+  const isOutsideServiceArea = Boolean(territoryStatus && !territoryStatus.permitido);
+  const territoryStatusMessage = territoryStatus?.mensagem;
+
   // Sincronização com o motor geral de corridas e eventos de telemetria
   useEffect(() => {
     const corridaSalva = getCorridaAtiva();
@@ -1139,6 +1156,13 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    // 0. Bloqueio Territorial: Não permite solicitar corrida fora da área autorizada da franquia
+    if (isOutsideServiceArea && territoryStatusMessage) {
+      alert(territoryStatusMessage);
+      setState("REVIEWING_ROUTE");
+      return;
+    }
+
     // 1. Aplicação Real e Auditada de Cupom Promocional Ativo
     const activeCoupon = couponService.getActiveRideCoupon();
     const fareDiscount = couponService.calculateFareDiscount(activeQuote.priceBrl, activeCoupon);
@@ -1568,6 +1592,8 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       isGpsPermissionModalOpen,
       closeGpsPermissionModal,
       solicitarPermissaoGps,
+      isOutsideServiceArea,
+      territoryStatusMessage,
     }),
     [
       state,
@@ -1638,6 +1664,8 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       isGpsPermissionModalOpen,
       closeGpsPermissionModal,
       solicitarPermissaoGps,
+      isOutsideServiceArea,
+      territoryStatusMessage,
     ]
   );
 

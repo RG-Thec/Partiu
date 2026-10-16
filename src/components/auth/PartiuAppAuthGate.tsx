@@ -24,6 +24,7 @@ import {
   Edit2,
   Car,
   MapPin,
+  AlertTriangle,
 } from "lucide-react";
 import { normalizarTelefoneBR } from "@/lib/passenger-cloud-sync";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
@@ -42,6 +43,7 @@ import { silentCatchWarn } from "@/lib/structured-logger";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { CameraPhotoCapture } from "@/components/common/CameraPhotoCapture";
 import { whiteLabelEngine } from "@/lib/white-label/white-label-engine";
+import { validarAcessoTerritorialParaCadastro } from "@/lib/geo/territory-guard";
 
 export interface PartiuAppAuthGateProps {
   redirectDestination?: string | undefined;
@@ -144,6 +146,42 @@ export function PartiuAppAuthGate({
   const [checkingSession, setCheckingSession] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Validação Territorial Proativa para Novos Usuários
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [territorialBlock, setTerritorialBlock] = useState<{ blocked: boolean; message: string } | null>(null);
+
+  // Consulta proativa de GPS para validação territorial de novos cadastros
+  useEffect(() => {
+    if (typeof window !== "undefined" && "geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setUserLocation(coords);
+
+          const targetTenant =
+            whiteLabelEngine.getTenantById(currentTenantId) || whiteLabelEngine.getActiveTenant();
+          if (targetTenant) {
+            const check = validarAcessoTerritorialParaCadastro(
+              targetTenant,
+              coords,
+              null,
+              whiteLabelEngine.getAllTenants()
+            );
+            if (!check.permitido) {
+              setTerritorialBlock({ blocked: true, message: check.mensagem });
+            } else {
+              setTerritorialBlock(null);
+            }
+          }
+        },
+        () => {
+          /* Fallback silencioso caso GPS não seja compartilhado */
+        },
+        { enableHighAccuracy: false, timeout: 5000 }
+      );
+    }
+  }, [currentTenantId]);
 
   // Verificação inicial de sessão ativa
   useEffect(() => {
@@ -403,6 +441,10 @@ export function PartiuAppAuthGate({
       setErrorMessage("A senha deve ter no mínimo 6 caracteres.");
       return;
     }
+    if (territorialBlock?.blocked) {
+      setErrorMessage(territorialBlock.message);
+      return;
+    }
     const finalAvatar =
       fotoPerfilUrl ||
       `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(nome.trim() || email)}`;
@@ -416,6 +458,7 @@ export function PartiuAppAuthGate({
       password: senha,
       avatarUrl: finalAvatar,
       tenantId: currentTenantId,
+      coordinates: userLocation,
     });
     setLoading(false);
 
@@ -951,6 +994,19 @@ export function PartiuAppAuthGate({
                     />
                   </div>
 
+                  {/* Aviso de Bloqueio Territorial (se fora da praça autorizada) */}
+                  {territorialBlock?.blocked && (
+                    <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-2.5 animate-in fade-in">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                      <div className="min-w-0">
+                        <p className="font-bold text-amber-950 dark:text-amber-100">Área de Atendimento Exclusiva</p>
+                        <p className="text-[11px] text-amber-800 dark:text-amber-300 mt-0.5 leading-relaxed">
+                          {territorialBlock.message}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
 
                   {/* Foto Oficial de Identificação */}
                   <CameraPhotoCapture
@@ -1038,18 +1094,20 @@ export function PartiuAppAuthGate({
                     <button
                       id="btn-confirmar-cadastro"
                       type="submit"
-                      disabled={loading}
+                      disabled={loading || Boolean(territorialBlock?.blocked)}
                       style={{
                         backgroundColor: colors.primary,
                         borderRadius: ui.borderRadius || "0.75rem",
                       }}
-                      className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-bold tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.99] cursor-pointer disabled:opacity-50"
+                      className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-bold tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loading ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
                           <span>Cadastrando...</span>
                         </>
+                      ) : territorialBlock?.blocked ? (
+                        <span>Cadastro indisponível nesta região</span>
                       ) : (
                         <span>Criar minha conta</span>
                       )}

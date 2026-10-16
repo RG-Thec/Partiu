@@ -365,6 +365,7 @@ export interface TerritorioExclusivoConfig {
   raioMaximoKm: number;
   cidadesLicenciadas: string[];
   bloquearChamadasForaTerritorio: boolean;
+  bloquearNovasContasForaTerritorio?: boolean | undefined;
   bloquearDespachoFrotaVizinha: boolean;
   permiteExpansao?: boolean | undefined;
   permitirExpansaoPaga?: boolean | undefined;

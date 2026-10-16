@@ -48,6 +48,7 @@ export function CloneTenantModal({ isOpen, onClose, onCloned }: CloneTenantModal
   const [raioKm, setRaioKm] = useState<number>(30);
   const [modoExclusividade, setModoExclusividade] = useState<ModoExclusividadeTerritorial>("CIDADE_ESTRITA");
   const [bloquearFora, setBloquearFora] = useState(true);
+  const [bloquearNovasContas, setBloquearNovasContas] = useState(true);
   const [bloquearFrotaVizinha, setBloquearFrotaVizinha] = useState(true);
   const [cidadesExpansaoTexto, setCidadesExpansaoTexto] = useState("");
 
@@ -140,6 +141,7 @@ export function CloneTenantModal({ isOpen, onClose, onCloned }: CloneTenantModal
       raioMaximoKm: Number(raioKm),
       cidadesLicenciadas: [cidadeNome.trim(), ...adicionais],
       bloquearChamadasForaTerritorio: bloquearFora,
+      bloquearNovasContasForaTerritorio: bloquearNovasContas,
       bloquearDespachoFrotaVizinha: bloquearFrotaVizinha,
       permitirExpansaoPaga: true,
       valorExpansaoPorCidadeBrl: 1500,
@@ -341,6 +343,18 @@ export function CloneTenantModal({ isOpen, onClose, onCloned }: CloneTenantModal
                 />
                 <span className="font-medium">
                   Bloquear chamadas de passageiros fora da cidade/raio desta franquia
+                </span>
+              </label>
+
+              <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={bloquearNovasContas}
+                  onChange={(e) => setBloquearNovasContas(e.target.checked)}
+                  className="rounded border-slate-700 text-primary-600 focus:ring-0"
+                />
+                <span className="font-medium">
+                  Bloquear novos cadastros de usuários fora da cidade/raio desta franquia
                 </span>
               </label>
 

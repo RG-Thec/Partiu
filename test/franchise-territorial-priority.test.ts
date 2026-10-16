@@ -6,11 +6,13 @@ import {
 } from "../src/lib/geo/brazil-cities.ts";
 import {
   validarAcessoTerritorial,
+  validarAcessoTerritorialParaCadastro,
   criarTerritorioPadrao,
   calcularDistanciaHaversineKm,
 } from "../src/lib/geo/territory-guard.ts";
 import { whiteLabelEngine } from "../src/lib/white-label/white-label-engine.ts";
 import { MatchingEngine } from "../src/services/MatchingEngine.ts";
+import { supabaseAuthService } from "../src/lib/auth/supabase-auth-service.ts";
 
 describe("39. GEOFENCING & PRIORIDADE TERRITORIAL DE FRANQUIAS (SUPER ADMIN)", () => {
   test("Base Geográfica Canônica: Busca e Autocomplete de Cidades Brasileiras", () => {
@@ -70,7 +72,7 @@ describe("39. GEOFENCING & PRIORIDADE TERRITORIAL DE FRANQUIAS (SUPER ADMIN)", (
     // Cria uma franquia regional restrita a Curitiba (raio 25km)
     const franquiaCuritiba = whiteLabelEngine.cloneTenant(
       "default",
-      "curitiba-express",
+      "tenant-curitiba-express",
       "Curitiba",
       "PR",
       "Curitiba Express",
@@ -151,5 +153,87 @@ describe("39. GEOFENCING & PRIORIDADE TERRITORIAL DE FRANQUIAS (SUPER ADMIN)", (
       category: "POP",
     });
     expect(chamadaFora.length).toBe(0);
+  });
+
+  test("Governança de Cadastro: Bloqueio de Novas Contas Fora da Região da Franquia", () => {
+    const franquiaCuritiba = whiteLabelEngine.getTenantById("tenant-curitiba-express");
+    expect(franquiaCuritiba).toBeDefined();
+
+    // 1. Cadastro dentro de Curitiba (coordenadas locais) -> PERMITIDO
+    const cadastroDentro = validarAcessoTerritorialParaCadastro(
+      franquiaCuritiba,
+      { lat: -25.4284, lng: -49.2733 }
+    );
+    expect(cadastroDentro.permitido).toBe(true);
+    expect(cadastroDentro.motivo).toBe("DENTRO_DO_RAIO");
+
+    // 2. Cadastro por cidade autorizada ("Curitiba") -> PERMITIDO
+    const cadastroCidadeAutorizada = validarAcessoTerritorialParaCadastro(
+      franquiaCuritiba,
+      null,
+      "Curitiba"
+    );
+    expect(cadastroCidadeAutorizada.permitido).toBe(true);
+    expect(cadastroCidadeAutorizada.motivo).toBe("CIDADE_LICENCIADA");
+
+    // 3. Tentativa de cadastro a partir de São Paulo para a franquia de Curitiba -> BLOQUEADO
+    const cadastroSp = validarAcessoTerritorialParaCadastro(
+      franquiaCuritiba,
+      { lat: -23.5505, lng: -46.6333 }
+    );
+    expect(cadastroSp.permitido).toBe(false);
+    expect(cadastroSp.motivo).toBe("CADASTRO_FORA_DA_PRACA");
+    expect(cadastroSp.mensagem).toContain("atua exclusivamente em Curitiba");
+
+    // 4. Tentativa informando cidade de outra região ("Fortaleza") -> BLOQUEADO
+    const cadastroOutraCidade = validarAcessoTerritorialParaCadastro(
+      franquiaCuritiba,
+      null,
+      "Fortaleza"
+    );
+    expect(cadastroOutraCidade.permitido).toBe(false);
+    expect(cadastroOutraCidade.motivo).toBe("CIDADE_NAO_LICENCIADA");
+
+    // 5. Matriz Nacional permite cadastro de qualquer localização
+    const matriz = whiteLabelEngine.getTenantById("default");
+    const cadastroMatrizSp = validarAcessoTerritorialParaCadastro(
+      matriz,
+      { lat: -23.5505, lng: -46.6333 },
+      "São Paulo"
+    );
+    expect(cadastroMatrizSp.permitido).toBe(true);
+    expect(cadastroMatrizSp.motivo).toBe("MATRIZ_NACIONAL");
+  });
+
+  test("Governança de Cadastro: Integração Direta com supabaseAuthService.signUpPassenger", async () => {
+    const franquiaCuritiba = whiteLabelEngine.getTenantById("tenant-curitiba-express");
+    expect(franquiaCuritiba).toBeDefined();
+
+    // 1. Tentativa de cadastro em franquia de Curitiba com localização em Porto Alegre -> BLOQUEIO ATÔMICO
+    const resBloqueado = await supabaseAuthService.signUpPassenger({
+      name: "Passageiro de Fora",
+      email: "fora@teste.com",
+      phone: "(51) 99999-8888",
+      cpf: "12345678901",
+      password: "SenhaSegura123!",
+      tenantId: franquiaCuritiba!.tenantId,
+      coordinates: { lat: -30.0346, lng: -51.2177 }, // Porto Alegre (~540km de Curitiba)
+    });
+
+    expect(resBloqueado.success).toBe(false);
+    expect(resBloqueado.error).toContain("atua exclusivamente em Curitiba");
+
+    // 2. Cadastro na Matriz Nacional com qualquer localização -> PERMITIDO
+    const resMatriz = await supabaseAuthService.signUpPassenger({
+      name: "Passageiro Matriz Nacional",
+      email: "nacional@teste.com",
+      phone: "(61) 99999-7777",
+      cpf: "98765432100",
+      password: "SenhaSegura123!",
+      tenantId: "default",
+      coordinates: { lat: -30.0346, lng: -51.2177 },
+    });
+
+    expect(resMatriz.success).toBe(true);
   });
 });

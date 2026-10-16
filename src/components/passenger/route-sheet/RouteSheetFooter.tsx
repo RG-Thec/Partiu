@@ -1,5 +1,5 @@
 import React from "react";
-import { Tag, ChevronRight, Bike, Car, LucideIcon } from "lucide-react";
+import { Tag, ChevronRight, Bike, Car, LucideIcon, AlertTriangle } from "lucide-react";
 import { couponService, type ActiveCoupon } from "@/services/CouponService";
 import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
 
@@ -20,6 +20,8 @@ export interface RouteSheetFooterProps {
   precoAtivo: string;
   corPrimaria?: string;
   corSecundaria?: string;
+  isOutsideServiceArea?: boolean;
+  territoryStatusMessage?: string;
 }
 
 export function RouteSheetFooter({
@@ -34,6 +36,8 @@ export function RouteSheetFooter({
   precoAtivo,
   corPrimaria,
   corSecundaria,
+  isOutsideServiceArea = false,
+  territoryStatusMessage,
 }: RouteSheetFooterProps) {
   const PaymentIcon = paymentInfo.icon;
 
@@ -107,14 +111,38 @@ export function RouteSheetFooter({
         </div>
       </div>
 
+      {/* AVISO DE ÁREA FORA DE COBERTURA */}
+      {isOutsideServiceArea && (
+        <div className="flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs animate-in fade-in">
+          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="font-bold text-amber-950 dark:text-amber-100">Fora da Área de Atendimento</p>
+            <p className="text-[11px] text-amber-800 dark:text-amber-300 mt-0.5 leading-snug">
+              {territoryStatusMessage || "O ponto de embarque selecionado está fora da área de atuação desta praça."}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* BOTÃO PRINCIPAL DE CONFIRMAÇÃO DA CORRIDA (PADRÃO 56PX ERGONÔMICO) */}
       <button
         type="button"
-        onClick={onConfirm}
-        aria-label={`Confirmar corrida ${nomeVeiculoAtivo} por ${precoAtivo}`}
-        className="w-full h-14 rounded-2xl bg-gradient-to-r from-brand-primary-vibrant to-brand-primary-deep hover:brightness-105 text-white font-extrabold text-sm sm:text-base tracking-wide active:scale-[0.98] transition-all duration-150 flex flex-row items-center justify-center gap-2.5 cursor-pointer shadow-lg shadow-brand-primary-vibrant/25 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 select-none"
+        onClick={isOutsideServiceArea ? undefined : onConfirm}
+        disabled={isOutsideServiceArea}
+        aria-label={
+          isOutsideServiceArea
+            ? "Embarque fora da área de atendimento desta franquia"
+            : `Confirmar corrida ${nomeVeiculoAtivo} por ${precoAtivo}`
+        }
+        className={`w-full h-14 rounded-2xl text-white font-extrabold text-sm sm:text-base tracking-wide transition-all duration-150 flex flex-row items-center justify-center gap-2.5 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 select-none ${
+          isOutsideServiceArea
+            ? "bg-slate-400 dark:bg-slate-700 opacity-60 cursor-not-allowed shadow-none"
+            : "bg-gradient-to-r from-brand-primary-vibrant to-brand-primary-deep hover:brightness-105 active:scale-[0.98] cursor-pointer shadow-lg shadow-brand-primary-vibrant/25"
+        }`}
         style={
-          corPrimaria && corSecundaria
+          isOutsideServiceArea
+            ? undefined
+            : corPrimaria && corSecundaria
             ? {
                 backgroundImage: `linear-gradient(to right, ${corPrimaria}, ${corSecundaria})`,
               }
@@ -123,13 +151,19 @@ export function RouteSheetFooter({
             : undefined
         }
       >
-        {isMoto ? (
-          <Bike className="w-5 h-5 text-white stroke-[2.2]" />
+        {isOutsideServiceArea ? (
+          <span>Fora da Área de Atendimento</span>
         ) : (
-          <Car className="w-5 h-5 text-white stroke-[2.2]" />
+          <>
+            {isMoto ? (
+              <Bike className="w-5 h-5 text-white stroke-[2.2]" />
+            ) : (
+              <Car className="w-5 h-5 text-white stroke-[2.2]" />
+            )}
+            <span className="opacity-40 font-light text-base">|</span>
+            <span>Confirmar • {precoAtivo}</span>
+          </>
         )}
-        <span className="opacity-40 font-light text-base">|</span>
-        <span>Confirmar • {precoAtivo}</span>
       </button>
     </div>
   );

@@ -135,6 +135,22 @@ export function CadastroMotoristaPage() {
   const [fotoPerfilUrl, setFotoPerfilUrl] = useState<string>(() => draftSalvo?.fotoPerfilUrl || "");
   const [uploadingDoc, setUploadingDoc] = useState<"cnh" | "crlv" | null>(null);
 
+  // Localização e cidade de atuação do motorista
+  const [cidadeOperacao, setCidadeOperacao] = useState(() => draftSalvo?.cidadeOperacao || "");
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        },
+        () => {},
+        { enableHighAccuracy: false, timeout: 5000 }
+      );
+    }
+  }, []);
+
   // Persistência automática do rascunho
   useEffect(() => {
     if (sucesso) {
@@ -288,6 +304,9 @@ export function CadastroMotoristaPage() {
       fotoPerfilUrl,
       pixKey: chavePixEfetiva,
       pixKeyType: "CPF",
+      tenantId: tenantParam || undefined,
+      coordinates: userCoords,
+      city: cidadeOperacao || undefined,
     });
 
     setCarregando(false);

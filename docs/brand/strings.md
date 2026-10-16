@@ -29,6 +29,8 @@ Registro de decisões textuais da interface reconciliadas com a voz do produto.
 | whitelabel.test_app | Testar app | src/routes/app.admin.whitelabel.tsx:265 | SCN-010 | agreed |
 | action.auth.confirm_signup | Confirmar criação de conta | src/routes/cadastro-passageiro.tsx:406 | SCN-005 | agreed |
 | action.auth.go_to_login | Ir para o login | src/routes/cadastro-passageiro.tsx:420 | SCN-005 | agreed |
+| feedback.territory.outside | Fora da Área de Atendimento | src/components/passenger/route-sheet/RouteSheetFooter.tsx:32 | SCN-012 | agreed |
+| feedback.auth.territory_blocked | Cadastro indisponível nesta região | src/components/auth/PartiuAppAuthGate.tsx:422 | SCN-012 | agreed |
 
 ## Columns
 
