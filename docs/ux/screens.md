@@ -93,8 +93,8 @@ whose code diverges from its record here is a "drifted" finding. -->
   | success | credenciais válidas      | none — code first | Redireciona para o cockpit ou mapa conforme a role       |
   | error   | credenciais inválidas    | none — code first | Alerta visual discreto com instrução de recuperação      |
   | loading | autenticando no Supabase | none — code first | Botão com spinner de carregamento e campos desabilitados |
-- **Coverage:** src/routes/auth.tsx:1-45, src/components/auth/PartiuAppAuthGate.tsx:1-1400
-- **Scenarios:** SCN-006
+- **Coverage:** src/routes/auth.tsx:1-50, src/components/auth/PartiuAppAuthGate.tsx:1-1641
+- **Scenarios:** SCN-005
 - **Resources:** supabaseAuthService, PartiuAppAuthGate
 - **Status:** built
 
@@ -123,7 +123,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | success | conta criada                  | none — code first | Confirmação exibindo opções "Ir para o login" e "Acessar aplicativo" |
   | error   | CPF ou telefone já cadastrado | none — code first | Alerta explicativo não intrusivo com link para recuperação           |
   | loading | processando cadastro          | none — code first | Indicador de envio com spinner no botão de confirmação               |
-- **Coverage:** src/routes/cadastro-passageiro.tsx:1-450, src/components/auth/PartiuAppAuthGate.tsx:1-1400
+- **Coverage:** src/routes/cadastro-passageiro.tsx:1-495, src/components/auth/PartiuAppAuthGate.tsx:1-1641
 - **Scenarios:** SCN-005
 - **Resources:** supabaseAuthService, useGeolocation
 - **Status:** built
@@ -171,7 +171,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | empty   | nenhum motorista online         | none — code first | Informa ausência temporária de veículos no raio e sugere aguardar |
   | error   | falha de geocodificação ou rede | none — code first | Mensagem de erro amigável com botão de tentar novamente           |
   | loading | calculando rotas e tarifas      | none — code first | Skeleton nos cards de categoria e traçado animado no mapa         |
-- **Coverage:** src/routes/app.index.tsx:1-834, src/components/home/Header.tsx:1-167, src/components/common/PartiuLogo.tsx:1-240, src/components/home/DestinationCard.tsx:1-187, src/components/navigation/ModeTabSelector.tsx:1-65
+- **Coverage:** src/routes/app.index.tsx:1-834, src/components/home/Header.tsx:1-161, src/components/common/PartiuLogo.tsx:1-240, src/components/home/DestinationCard.tsx:1-183, src/components/navigation/ModeTabSelector.tsx:1-65
 - **Scenarios:** SCN-001
 - **Resources:** src/components/map/, Mapbox GL, Supabase
 - **Status:** built
@@ -271,7 +271,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | empty   | condutor offline            | none — code first | Painel em repouso com resumo das corridas anteriores            |
   | error   | GPS desativado ou sem sinal | none — code first | Alerta visual solicitando ativação do serviço de localização    |
   | loading | conectando ao despacho      | none — code first | Spinner sutil de sincronização com o cluster PostGIS            |
-- **Coverage:** src/routes/app.motorista.tsx:1-2454, src/components/driver/cockpit/DriverHeader.tsx:1-120, src/components/driver/DriverOfferModal.tsx:1-420, src/components/driver/cockpit/states/IdleState.tsx:1-230, src/components/driver/cockpit/states/HeadingToPickupState.tsx:1-131
+- **Coverage:** src/routes/app.motorista.tsx:1-2454, src/components/driver/cockpit/DriverHeader.tsx:1-120, src/components/driver/DriverOfferModal.tsx:1-412, src/components/driver/cockpit/states/IdleState.tsx:1-230, src/components/driver/cockpit/states/HeadingToPickupState.tsx:1-130
 - **Scenarios:** SCN-002
 - **Resources:** src/components/driver/, Supabase Realtime
 - **Status:** built

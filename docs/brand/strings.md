@@ -27,10 +27,10 @@ Registro de decisões textuais da interface reconciliadas com a voz do produto.
 | action.tenant.copy_access         | Copiar acesso                      | src/routes/app.admin.franqueados.tsx:878                     | SCN-011  | agreed |
 | action.whitelabel.edit_tenant     | Personalizar white label           | src/routes/app.admin.franqueados.tsx:1111                    | SCN-010  | agreed |
 | whitelabel.test_app               | Testar app                         | src/routes/app.admin.whitelabel.tsx:265                      | SCN-010  | agreed |
-| action.auth.confirm_signup        | Confirmar criação de conta         | src/routes/cadastro-passageiro.tsx:406                       | SCN-005  | agreed |
-| action.auth.go_to_login           | Ir para o login                    | src/routes/cadastro-passageiro.tsx:420                       | SCN-005  | agreed |
-| feedback.territory.outside        | Fora da Área de Atendimento        | src/components/passenger/route-sheet/RouteSheetFooter.tsx:32 | SCN-012  | agreed |
-| feedback.auth.territory_blocked   | Cadastro indisponível nesta região | src/components/auth/PartiuAppAuthGate.tsx:422                | SCN-012  | agreed |
+| action.auth.confirm_signup        | Criar minha conta                  | src/routes/cadastro-passageiro.tsx:423                       | SCN-005  | agreed |
+| action.auth.go_to_login           | Entrar                             | src/routes/cadastro-passageiro.tsx:435                       | SCN-005  | agreed |
+| feedback.territory.outside        | Fora da área de atendimento        | src/components/passenger/route-sheet/RouteSheetFooter.tsx:124 | SCN-012  | agreed |
+| feedback.auth.territory_blocked   | Cadastro indisponível nesta região | src/components/auth/PartiuAppAuthGate.tsx:1208               | SCN-012  | agreed |
 
 ## Columns
 

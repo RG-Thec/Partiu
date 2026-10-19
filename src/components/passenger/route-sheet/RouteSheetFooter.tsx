@@ -121,7 +121,7 @@ export function RouteSheetFooter({
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <div className="min-w-0">
             <p className="font-bold text-amber-950 dark:text-amber-100">
-              Fora da Área de Atendimento
+              Fora da área de atendimento
             </p>
             <p className="text-[11px] text-amber-800 dark:text-amber-300 mt-0.5 leading-snug">
               {territoryStatusMessage ||

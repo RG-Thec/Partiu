@@ -38,6 +38,8 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { CameraPhotoCapture } from "@/components/common/CameraPhotoCapture";
+import { GoogleIcon } from "@/components/common/GoogleIcon";
+import { GoogleConfigModal } from "@/components/auth/GoogleConfigModal";
 import { whiteLabelEngine } from "@/lib/white-label/white-label-engine";
 import { validarAcessoTerritorialParaCadastro } from "@/lib/geo/territory-guard";
 
@@ -423,6 +425,42 @@ export function PartiuAppAuthGate({
   }
 
   // ===========================================================================
+  // 🌐 LOGIN SOCIAL: Autenticação via Google OAuth 2.0 (1-Tap)
+  // ===========================================================================
+  async function handleGoogleSignIn() {
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setLoading(true);
+
+    const target =
+      redirectDestination ||
+      (activeRole === "MOTORISTA" ? "/app/motorista" : "/app");
+    const scopedDest = target.includes("tenant=")
+      ? target
+      : `${target}${target.includes("?") ? "&" : "?"}tenant=${encodeURIComponent(currentTenantId)}`;
+
+    const res = await supabaseAuthService.signInWithGoogle({
+      role: activeRole,
+      redirectUrl: scopedDest,
+    });
+    setLoading(false);
+
+    if (!res.success) {
+      if (res.error && !res.error.includes("Client ID")) {
+        setErrorMessage(res.error);
+      }
+      return;
+    }
+
+    if (res.user) {
+      setSuccessMessage("Autenticado com Google com sucesso! Entrando...");
+      setTimeout(() => {
+        void navigate({ to: scopedDest, replace: true });
+      }, 300);
+    }
+  }
+
+  // ===========================================================================
   // 📝 CADASTRO STEP 1: Conclusão de Registro do Passageiro
   // ===========================================================================
   async function handlePassengerSignUp(e: FormEvent) {
@@ -639,9 +677,13 @@ export function PartiuAppAuthGate({
           </div>
         )}
 
-        {/* SUPERFÍCIE DO DESIGN SYSTEM: CARD BRANCO FLUTUANTE ELEVADO COM CUSTOMIZAÇÃO DO FRANQUEADO */}
+        {/* SUPERFÍCIE DO DESIGN SYSTEM: CARD FLUTUANTE ELEVADO (LIGHT PARA PASSAGEIRO / DARK COCKPIT PARA MOTORISTA) */}
         <div
-          className="w-full p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-white border border-slate-200/80 shadow-xl sm:shadow-2xl shadow-slate-200/50 space-y-5 transition-all duration-300"
+          className={`w-full p-6 sm:p-8 rounded-2xl sm:rounded-3xl transition-all duration-300 space-y-5 ${
+            activeRole === "MOTORISTA"
+              ? "bg-slate-900 border border-slate-800 text-white shadow-2xl shadow-black/50"
+              : "bg-white border border-slate-200/80 shadow-xl sm:shadow-2xl shadow-slate-200/50"
+          }`}
           style={{ borderRadius: ui.borderRadius || "1.5rem" }}
         >
           {/* =================================================================== */}
@@ -707,6 +749,32 @@ export function PartiuAppAuthGate({
                   >
                     <span>{loading ? "Verificando..." : "Continuar"}</span>
                     {!loading && <ArrowRight className="w-4 h-4" />}
+                  </button>
+
+                  {/* Divisor Visual */}
+                  <div className="relative my-3">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-slate-200" />
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="bg-white px-3 text-slate-400 font-medium">
+                        ou continue com
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Botão Google 1-Tap Social Login */}
+                  <button
+                    type="button"
+                    onClick={handleGoogleSignIn}
+                    disabled={loading}
+                    style={{
+                      borderRadius: ui.borderRadius || "0.75rem",
+                    }}
+                    className="w-full py-3 px-4 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs sm:text-sm font-semibold tracking-wide shadow-xs flex items-center justify-center gap-2.5 transition active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <GoogleIcon className="w-4 h-4" />
+                    <span>Continuar com o Google</span>
                   </button>
 
                   {/* Ação de Cadastro de Novo Usuário */}
@@ -1199,7 +1267,7 @@ export function PartiuAppAuthGate({
                     <span
                       className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-2"
                       style={{
-                        backgroundColor: colors.inputBackground,
+                        backgroundColor: "rgba(255, 255, 255, 0.08)",
                         color: colors.primary,
                       }}
                     >
@@ -1207,14 +1275,11 @@ export function PartiuAppAuthGate({
                       Portal do Parceiro
                     </span>
 
-                    <h1
-                      className="text-xl sm:text-[22px] font-black tracking-tight"
-                      style={{ color: colors.textPrimary }}
-                    >
+                    <h1 className="text-xl sm:text-[22px] font-black tracking-tight text-white">
                       Dirija com a {appName}
                     </h1>
 
-                    <p className="text-xs mt-1 font-normal" style={{ color: colors.textSecondary }}>
+                    <p className="text-xs mt-1 font-normal text-slate-400">
                       Planos a partir de 0% de taxa e repasse imediato via PIX D+0.
                     </p>
                     <div
@@ -1225,44 +1290,38 @@ export function PartiuAppAuthGate({
 
                   {/* Benefícios Rápidos em Grid Compacta */}
                   <div className="grid grid-cols-2 gap-2 text-left">
-                    <div className="flex flex-col items-start gap-1 p-3 rounded-xl border border-slate-200/80 bg-slate-50/50">
+                    <div className="flex flex-col items-start gap-1 p-3 rounded-xl border border-slate-700/80 bg-slate-800/80">
                       <span
                         className="px-1.5 py-0.5 rounded font-black text-[10px] inline-block"
                         style={{
-                          backgroundColor: `${colors.primary}18`,
+                          backgroundColor: `${colors.primary}25`,
                           color: colors.primary,
                         }}
                       >
                         0% Taxa
                       </span>
-                      <h4
-                        className="text-xs font-bold leading-tight"
-                        style={{ color: colors.textPrimary }}
-                      >
+                      <h4 className="text-xs font-bold leading-tight text-white">
                         Plano Diário
                       </h4>
-                      <p className="text-[10px] leading-tight text-slate-500">
+                      <p className="text-[10px] leading-tight text-slate-400">
                         100% do valor da corrida é seu.
                       </p>
                     </div>
 
-                    <div className="flex flex-col items-start gap-1 p-3 rounded-xl border border-slate-200/80 bg-slate-50/50">
+                    <div className="flex flex-col items-start gap-1 p-3 rounded-xl border border-slate-700/80 bg-slate-800/80">
                       <span
                         className="px-1.5 py-0.5 rounded font-black text-[10px] inline-block"
                         style={{
-                          backgroundColor: `${colors.primary}18`,
+                          backgroundColor: `${colors.primary}25`,
                           color: colors.primary,
                         }}
                       >
                         Pix D+0
                       </span>
-                      <h4
-                        className="text-xs font-bold leading-tight"
-                        style={{ color: colors.textPrimary }}
-                      >
+                      <h4 className="text-xs font-bold leading-tight text-white">
                         Repasse Imediato
                       </h4>
-                      <p className="text-[10px] leading-tight text-slate-500">
+                      <p className="text-[10px] leading-tight text-slate-400">
                         Direto na sua conta bancária.
                       </p>
                     </div>
@@ -1277,10 +1336,10 @@ export function PartiuAppAuthGate({
                           backgroundColor: colors.primary,
                           borderRadius: ui.borderRadius || "0.75rem",
                         }}
-                        className="w-full py-3 px-4 text-white text-xs font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer"
+                        className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-bold tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer"
                       >
-                        <span>➔</span>
-                        <span>CADASTRAR MEU VEÍCULO</span>
+                        <Car className="w-4 h-4" />
+                        <span>Cadastrar meu veículo</span>
                       </button>
                     </Link>
 
@@ -1301,28 +1360,25 @@ export function PartiuAppAuthGate({
                   </div>
 
                   {/* Rodapé Interno do Card */}
-                  <div className="border-t border-slate-100 pt-3.5 mt-5">
-                    <p className="text-[11px] text-slate-400 text-center">
+                  <div className="border-t border-slate-800 pt-3.5 mt-5">
+                    <p className="text-[11px] text-slate-500 text-center">
                       © {new Date().getFullYear()} {appName} · Mobilidade conectada
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* VISÃO 2: LOGIN DO MOTORISTA PARCEIRO */}
+              {/* VISÃO 2: LOGIN DO MOTORISTA PARCEIRO (DARK COCKPIT) */}
               {driverView === "LOGIN" && (
                 <form
                   onSubmit={handlePasswordLogin}
                   className="space-y-4 animate-in fade-in duration-200"
                 >
                   <div className="text-center">
-                    <h2
-                      className="text-xl sm:text-[22px] font-black tracking-tight"
-                      style={{ color: colors.textPrimary }}
-                    >
+                    <h2 className="text-xl sm:text-[22px] font-black tracking-tight text-white">
                       Cockpit do Motorista
                     </h2>
-                    <p className="text-xs mt-1 font-normal" style={{ color: colors.textSecondary }}>
+                    <p className="text-xs mt-1 font-normal text-slate-400">
                       Informe suas credenciais para gerenciar suas corridas.
                     </p>
                     <div
@@ -1332,7 +1388,7 @@ export function PartiuAppAuthGate({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5 text-left">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5 text-left">
                       E-mail ou Celular Cadastrado
                     </label>
                     <div className="relative">
@@ -1343,7 +1399,7 @@ export function PartiuAppAuthGate({
                         placeholder="motorista@exemplo.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-lg pl-10 pr-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 transition"
+                        className="w-full bg-slate-800/90 border border-slate-700 rounded-lg pl-10 pr-3.5 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 transition"
                         style={{
                           borderRadius: ui.borderRadius || "0.5rem",
                         }}
@@ -1352,7 +1408,7 @@ export function PartiuAppAuthGate({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5 text-left">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5 text-left">
                       Senha de Acesso
                     </label>
                     <div className="relative">
@@ -1363,7 +1419,7 @@ export function PartiuAppAuthGate({
                         placeholder="Sua senha de motorista"
                         value={senha}
                         onChange={(e) => setSenha(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-lg pl-10 pr-10 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 transition"
+                        className="w-full bg-slate-800/90 border border-slate-700 rounded-lg pl-10 pr-10 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 transition"
                         style={{
                           borderRadius: ui.borderRadius || "0.5rem",
                         }}
@@ -1372,7 +1428,7 @@ export function PartiuAppAuthGate({
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer p-0.5"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 focus:outline-none cursor-pointer p-0.5"
                       >
                         {showPassword ? (
                           <EyeOff className="h-4 w-4" />
@@ -1396,9 +1452,35 @@ export function PartiuAppAuthGate({
                     {!loading && <ArrowRight className="w-4 h-4" />}
                   </button>
 
+                  {/* Divisor Visual no Cockpit */}
+                  <div className="relative my-3">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-slate-800" />
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="bg-slate-900 px-3 text-slate-400 font-medium">
+                        ou acesse com
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Botão Google 1-Tap Cockpit */}
+                  <button
+                    type="button"
+                    onClick={handleGoogleSignIn}
+                    disabled={loading}
+                    style={{
+                      borderRadius: ui.borderRadius || "0.75rem",
+                    }}
+                    className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 text-xs sm:text-sm font-semibold tracking-wide shadow-xs flex items-center justify-center gap-2.5 transition active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <GoogleIcon className="w-4 h-4" />
+                    <span>Entrar com o Google</span>
+                  </button>
+
                   {/* Ação Alternativa: Cadastro de Motorista Parceiro */}
                   <div className="pt-2 text-center space-y-2">
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-400">
                       Ainda não é parceiro?{" "}
                       <Link
                         to="/cadastro-motorista"
@@ -1418,12 +1500,11 @@ export function PartiuAppAuthGate({
                       >
                         Esqueceu sua senha?
                       </button>
-                      <span className="text-slate-300">•</span>
+                      <span className="text-slate-600">•</span>
                       <button
                         type="button"
                         onClick={() => setDriverView("PORTAL")}
-                        className="text-xs font-medium hover:underline cursor-pointer transition-colors"
-                        style={{ color: colors.textSecondary }}
+                        className="text-xs font-medium hover:underline cursor-pointer transition-colors text-slate-400 hover:text-slate-200"
                       >
                         Ver benefícios
                       </button>
@@ -1431,8 +1512,8 @@ export function PartiuAppAuthGate({
                   </div>
 
                   {/* Rodapé Interno do Card */}
-                  <div className="border-t border-slate-100 pt-3.5 mt-5">
-                    <p className="text-[11px] text-slate-400 text-center">
+                  <div className="border-t border-slate-800 pt-3.5 mt-5">
+                    <p className="text-[11px] text-slate-500 text-center">
                       © {new Date().getFullYear()} {appName} · Mobilidade conectada
                     </p>
                   </div>
@@ -1552,6 +1633,9 @@ export function PartiuAppAuthGate({
           </p>
         </footer>
       </main>
+
+      {/* MODAL OFICIAL PARA CONFIGURAÇÃO DE CLIENT ID DO GOOGLE */}
+      <GoogleConfigModal />
     </div>
   );
 }
