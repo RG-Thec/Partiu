@@ -127,16 +127,16 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Entry point:** Tela inicial pública ou rota de autenticação unificada
 - **Preconditions:** Usuário iniciou o aplicativo ou acessou a tela de entrada
 - **Steps:**
-  1. O usuário visualiza a tela inicial e escolhe entre Entrar ou Criar Conta -> O sistema exibe o formulário de credenciais ou direciona para a seleção de modalidade.
-  2. O usuário escolhe entre Passageiro ou Motorista Parceiro -> O formulário específico de cadastro é carregado com campos dedicados.
-  3. O usuário preenche nome, telefone celular e credenciais seguras e submete o formulário -> A sessão é gerada no Supabase Auth e o perfil é direcionado ao fluxo correspondente.
-- **Expected result:** Sessão de autenticação estabelecida e o usuário é redirecionado ao mapa de passageiro ou fluxo de verificação do motorista.
-- **UI elements:** Botões de seleção de perfil, Formulário de login/cadastro, Input de telefone com máscara E.164, Botão Continuar
+  1. O usuário visualiza a tela inicial e escolhe entre Entrar ou Criar Conta -> O sistema exibe o formulário de credenciais diretas por perfil com alternância fluida entre Passageiro e Motorista.
+  2. No perfil Passageiro, o acesso é simplificado por telefone ou e-mail com cadastro em fluxo contínuo e foto opcional; no perfil Motorista, o login é direto no Cockpit com atalho evidente para credenciamento veicular em 3 etapas.
+  3. O usuário preenche seus dados essenciais e submete o formulário -> A sessão é estabelecida no Supabase Auth com isolamento multi-tenant e o usuário é redirecionado imediatamente à sua estação de trabalho ou mapa.
+- **Expected result:** Sessão de autenticação estabelecida em menos de 10 segundos para passageiros e entrada desobstruída no Cockpit para motoristas parceiros.
+- **UI elements:** Botões de seleção de perfil, Formulário de login/cadastro, Input de telefone com máscara E.164, Botão Continuar, Atalho de cadastro veicular
 - **States covered:** success, error, loading
 - **Errors & recovery:** Em caso de telefone duplicado ou senha inválida, mensagens de validação claras são exibidas ao lado de cada campo sem apagar os dados preenchidos.
 - **Telemetry:** user_signed_up (role, auth_provider)
 - **Status:** implemented
-- **Coverage:** src/routes/auth.tsx:1-45
+- **Coverage:** src/routes/auth.tsx:1-51, src/routes/cadastro-passageiro.tsx:1-497
 - **Product:** unobserved
 
 ## Resiliência e Rede

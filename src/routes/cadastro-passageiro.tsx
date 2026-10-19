@@ -363,10 +363,10 @@ export function CadastroPassageiroPage() {
                   </div>
                 </div>
 
-                {/* Foto de Identificação Integrada */}
+                {/* Foto de Identificação Integrada (Opcional) */}
                 <div className="pt-1">
                   <CameraPhotoCapture
-                    label="Foto de identificação"
+                    label="Foto de identificação (opcional)"
                     sublabel="Sua selfie para identificação segura no embarque"
                     value={fotoUrl}
                     onChange={(capturedUrl) => {
@@ -380,7 +380,6 @@ export function CadastroPassageiroPage() {
                       }
                       if (erroCadastro?.includes("foto")) setErroCadastro(null);
                     }}
-                    required
                   />
                 </div>
               </div>

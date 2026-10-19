@@ -116,7 +116,7 @@ export function PartiuAppAuthGate({
 
   // 3. Estados dos Fluxos
   const [passengerStep, setPassengerStep] = useState<PassengerStep>("MAGIC_ENTRY");
-  const [driverView, setDriverView] = useState<DriverView>("PORTAL");
+  const [driverView, setDriverView] = useState<DriverView>("LOGIN");
 
   // 4. Campos do Formulário
   const [contactInput, setContactInput] = useState("");
@@ -578,7 +578,7 @@ export function PartiuAppAuthGate({
               if (role === "PASSAGEIRO") {
                 setPassengerStep("MAGIC_ENTRY");
               } else {
-                setDriverView("PORTAL");
+                setDriverView("LOGIN");
               }
             }}
           />
@@ -703,53 +703,35 @@ export function PartiuAppAuthGate({
                       backgroundColor: colors.primary,
                       borderRadius: ui.borderRadius || "0.75rem",
                     }}
-                    className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+                    className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-bold tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-4"
                   >
-                    <span>➔</span>
-                    <span>{loading ? "Verificando..." : "CONTINUAR"}</span>
+                    <span>{loading ? "Verificando..." : "Continuar"}</span>
+                    {!loading && <ArrowRight className="w-4 h-4" />}
                   </button>
 
-                  {/* Ação Direta para Confirmar Criação de Conta */}
-                  <div className="pt-1.5 space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const cleanInput = contactInput.trim();
-                        if (cleanInput.includes("@")) {
-                          setEmail(cleanInput);
-                        } else if (cleanInput) {
-                          setTelefone(cleanInput);
-                        }
-                        setErrorMessage(null);
-                        setSuccessMessage(null);
-                        setPassengerStep("SIGNUP_STEP_1");
-                      }}
-                      style={{
-                        borderColor: colors.primary,
-                        color: colors.primary,
-                        borderRadius: ui.borderRadius || "0.75rem",
-                      }}
-                      className="w-full py-2.5 px-4 border-2 text-xs font-black tracking-wide shadow-xs flex items-center justify-center gap-2 transition hover:bg-slate-50 active:scale-[0.98] cursor-pointer"
-                    >
-                      <span>➔</span>
-                      <span>CONFIRMAR CRIAÇÃO DE CONTA</span>
-                    </button>
-
-                    <div className="text-center pt-0.5">
-                      <Link
-                        to="/escolher-tipo-cadastro"
-                        className="inline-flex items-center justify-center text-xs font-medium hover:underline cursor-pointer transition-colors"
-                        style={{ color: colors.textSecondary }}
+                  {/* Ação de Cadastro de Novo Usuário */}
+                  <div className="pt-2 text-center">
+                    <p className="text-xs text-slate-500">
+                      Não tem uma conta?{" "}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const cleanInput = contactInput.trim();
+                          if (cleanInput.includes("@")) {
+                            setEmail(cleanInput);
+                          } else if (cleanInput) {
+                            setTelefone(cleanInput);
+                          }
+                          setErrorMessage(null);
+                          setSuccessMessage(null);
+                          setPassengerStep("SIGNUP_STEP_1");
+                        }}
+                        className="font-bold underline hover:opacity-80 transition cursor-pointer"
+                        style={{ color: colors.primary }}
                       >
-                        Não tem uma conta?{" "}
-                        <span
-                          className="ml-1 font-bold underline"
-                          style={{ color: colors.primary }}
-                        >
-                          Cadastre-se
-                        </span>
-                      </Link>
-                    </div>
+                        Cadastre-se em 1 minuto
+                      </button>
+                    </p>
                   </div>
 
                   {/* Rodapé Interno do Card */}
@@ -970,10 +952,10 @@ export function PartiuAppAuthGate({
                       backgroundColor: colors.primary,
                       borderRadius: ui.borderRadius || "0.75rem",
                     }}
-                    className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 mt-4"
+                    className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-bold tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 mt-4"
                   >
-                    <span>➔</span>
-                    <span>{loading ? "Autenticando..." : "ENTRAR"}</span>
+                    <span>{loading ? "Autenticando..." : "Entrar"}</span>
+                    {!loading && <ArrowRight className="w-4 h-4" />}
                   </button>
 
                   {/* Ação Alternativa: Confirmar Criação de Conta se não possuir senha/conta */}
@@ -1053,13 +1035,12 @@ export function PartiuAppAuthGate({
                     </div>
                   )}
 
-                  {/* Foto Oficial de Identificação */}
+                  {/* Foto Oficial de Identificação (Opcional) */}
                   <CameraPhotoCapture
-                    label="Foto Oficial de Identificação"
-                    sublabel="Tire uma selfie nítida pela câmera para identificação oficial"
+                    label="Foto de identificação (opcional)"
+                    sublabel="Sua selfie para identificação segura no embarque"
                     value={fotoPerfilUrl}
                     onChange={(url) => setFotoPerfilUrl(url)}
-                    required
                   />
 
                   {/* Nome Completo */}
@@ -1409,50 +1390,43 @@ export function PartiuAppAuthGate({
                       backgroundColor: colors.primary,
                       borderRadius: ui.borderRadius || "0.75rem",
                     }}
-                    className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-black tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 mt-4"
+                    className="w-full py-3.5 px-4 text-white text-xs sm:text-sm font-bold tracking-wide shadow-md flex items-center justify-center gap-2 transition hover:brightness-105 active:scale-[0.98] cursor-pointer disabled:opacity-50 mt-4"
                   >
-                    <span>➔</span>
-                    <span>{loading ? "Autenticando..." : "ENTRAR NO COCKPIT"}</span>
+                    <span>{loading ? "Autenticando..." : "Entrar no Cockpit"}</span>
+                    {!loading && <ArrowRight className="w-4 h-4" />}
                   </button>
 
-                  {/* Ação Alternativa: Confirmar Criação de Conta de Parceiro */}
-                  <div className="pt-1.5 space-y-2">
-                    <Link to="/cadastro-motorista" className="block w-full">
+                  {/* Ação Alternativa: Cadastro de Motorista Parceiro */}
+                  <div className="pt-2 text-center space-y-2">
+                    <p className="text-xs text-slate-500">
+                      Ainda não é parceiro?{" "}
+                      <Link
+                        to="/cadastro-motorista"
+                        className="font-bold underline hover:opacity-80 transition cursor-pointer"
+                        style={{ color: colors.primary }}
+                      >
+                        Cadastre seu veículo
+                      </Link>
+                    </p>
+
+                    <div className="pt-1 flex items-center justify-center gap-3 text-xs">
                       <button
                         type="button"
-                        style={{
-                          borderColor: colors.primary,
-                          color: colors.primary,
-                          borderRadius: ui.borderRadius || "0.75rem",
-                        }}
-                        className="w-full py-2.5 px-4 border-2 text-xs font-black tracking-wide shadow-xs flex items-center justify-center gap-2 transition hover:bg-slate-50 active:scale-[0.98] cursor-pointer"
+                        onClick={handleForgotPassword}
+                        className="text-xs font-semibold hover:underline cursor-pointer transition-colors"
+                        style={{ color: colors.primary }}
                       >
-                        <span>➔</span>
-                        <span>CONFIRMAR CRIAÇÃO DE CONTA</span>
+                        Esqueceu sua senha?
                       </button>
-                    </Link>
-
-                    <div className="space-y-1.5 text-center pt-0.5">
-                      <div>
-                        <button
-                          type="button"
-                          onClick={handleForgotPassword}
-                          className="text-xs font-semibold hover:underline cursor-pointer transition-colors"
-                          style={{ color: colors.primary }}
-                        >
-                          Esqueceu sua senha?
-                        </button>
-                      </div>
-                      <div>
-                        <button
-                          type="button"
-                          onClick={() => setDriverView("PORTAL")}
-                          className="text-xs font-medium hover:underline cursor-pointer transition-colors"
-                          style={{ color: colors.textSecondary }}
-                        >
-                          Voltar ao Portal do Parceiro
-                        </button>
-                      </div>
+                      <span className="text-slate-300">•</span>
+                      <button
+                        type="button"
+                        onClick={() => setDriverView("PORTAL")}
+                        className="text-xs font-medium hover:underline cursor-pointer transition-colors"
+                        style={{ color: colors.textSecondary }}
+                      >
+                        Ver benefícios
+                      </button>
                     </div>
                   </div>
 
