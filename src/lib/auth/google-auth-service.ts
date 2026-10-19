@@ -147,6 +147,33 @@ class GoogleAuthService {
   }
 
   /**
+   * Verifica se o provedor do Google está de fato habilitado no painel do Supabase
+   */
+  public async isSupabaseGoogleOAuthEnabled(): Promise<boolean> {
+    if (!isSupabaseConfigured()) return false;
+    try {
+      const envUrl =
+        (typeof import.meta !== "undefined" && import.meta.env?.["VITE_SUPABASE_URL"]) ||
+        "https://wlmnwazdntayhrsndfor.supabase.co";
+      const envKey =
+        (typeof import.meta !== "undefined" &&
+          (import.meta.env?.["VITE_SUPABASE_ANON_KEY"] ||
+            import.meta.env?.["VITE_SUPABASE_PUBLISHABLE_KEY"])) ||
+        "sb_publishable_cifMsHi21KuC2S3aiGbw9w_AmHZqIcE";
+
+      const res = await fetch(`${envUrl}/auth/v1/settings`, {
+        headers: { apikey: envKey },
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      return Boolean(data?.external?.google === true);
+    } catch (err) {
+      silentCatchWarn("isSupabaseGoogleOAuthEnabled", err);
+      return false;
+    }
+  }
+
+  /**
    * Inicia o fluxo real de autenticação com o Google
    */
   public async signIn(params?: {
@@ -156,33 +183,41 @@ class GoogleAuthService {
     const role = params?.role || "PASSAGEIRO";
     const redirectUrl = params?.redirectUrl || (role === "MOTORISTA" ? "/app/motorista" : "/app");
 
-    // 1. Prioridade A: Supabase com Provedor Google configurado
+    // 1. Prioridade A: Supabase com Provedor Google configurado E habilitado no painel
     if (isSupabaseConfigured()) {
-      try {
-        const origin = typeof window !== "undefined" ? window.location.origin : "";
-        const redirectTo = `${origin}/auth?redirect=${encodeURIComponent(redirectUrl)}&role=${role}`;
+      const isGoogleActiveInSupabase = await this.isSupabaseGoogleOAuthEnabled();
+      if (isGoogleActiveInSupabase) {
+        try {
+          const origin = typeof window !== "undefined" ? window.location.origin : "";
+          const redirectTo = `${origin}/auth?redirect=${encodeURIComponent(redirectUrl)}&role=${role}`;
 
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo,
-            queryParams: {
-              access_type: "offline",
-              prompt: "select_account",
+          const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+              redirectTo,
+              queryParams: {
+                access_type: "offline",
+                prompt: "select_account",
+              },
             },
-          },
-        });
+          });
 
-        if (error) {
-          silentCatchWarn("supabase-google-oauth-error", error);
-        } else if (data?.url) {
-          if (typeof window !== "undefined") {
-            window.location.href = data.url;
+          if (error) {
+            silentCatchWarn("supabase-google-oauth-error", error);
+          } else if (data?.url) {
+            if (typeof window !== "undefined") {
+              window.location.href = data.url;
+            }
+            return { success: true };
           }
-          return { success: true };
+        } catch (err) {
+          silentCatchWarn("supabase-google-oauth-catch", err);
         }
-      } catch (err) {
-        silentCatchWarn("supabase-google-oauth-catch", err);
+      } else {
+        silentCatchWarn(
+          "supabase-google-oauth-disabled",
+          "Provedor Google desativado no painel do Supabase. Utilizando Google Identity Services.",
+        );
       }
     }
 

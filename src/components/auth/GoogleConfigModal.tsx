@@ -164,42 +164,73 @@ export const GoogleConfigModal: React.FC = () => {
           </button>
 
           {showTutorial && (
-            <div className="p-3.5 space-y-2 text-[11px] text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 leading-relaxed">
-              <ol className="list-decimal pl-4 space-y-1">
-                <li>
-                  Acesse o{" "}
-                  <a
-                    href="https://console.cloud.google.com/apis/credentials"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-600 hover:underline font-bold inline-flex items-center gap-0.5"
-                  >
-                    Google Cloud Console <ExternalLink className="w-3 h-3 inline" />
-                  </a>
-                </li>
-                <li>
-                  Clique em <strong>Criar Credenciais</strong> &gt;{" "}
-                  <strong>ID do cliente OAuth</strong>.
-                </li>
-                <li>
-                  Selecione o tipo <strong>Aplicativo da Web</strong>.
-                </li>
-                <li>
-                  Em <strong>Origens JavaScript autorizadas</strong>, adicione:
-                  <div className="font-mono bg-slate-100 dark:bg-slate-800 p-1 rounded mt-0.5 text-[10px]">
-                    http://localhost:8080
-                  </div>
-                </li>
-                <li>
-                  Em <strong>URIs de redirecionamento autorizados</strong>, adicione:
-                  <div className="font-mono bg-slate-100 dark:bg-slate-800 p-1 rounded mt-0.5 text-[10px]">
-                    http://localhost:8080/auth
-                  </div>
-                </li>
-                <li>
-                  Copie o <strong>ID do cliente</strong> gerado e cole no campo acima.
-                </li>
-              </ol>
+            <div className="p-3.5 space-y-3 text-[11px] text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 leading-relaxed">
+              <div>
+                <p className="font-bold text-slate-800 dark:text-slate-100 mb-1">
+                  Opção 1: Inserir Google Client ID (Login direto no navegador)
+                </p>
+                <ol className="list-decimal pl-4 space-y-1">
+                  <li>
+                    Acesse o{" "}
+                    <a
+                      href="https://console.cloud.google.com/apis/credentials"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-blue-600 hover:underline font-bold inline-flex items-center gap-0.5"
+                    >
+                      Google Cloud Console <ExternalLink className="w-3 h-3 inline" />
+                    </a>
+                  </li>
+                  <li>
+                    Clique em <strong>Criar Credenciais</strong> &gt;{" "}
+                    <strong>ID do cliente OAuth</strong> (Aplicativo da Web).
+                  </li>
+                  <li>
+                    Em <strong>Origens JavaScript autorizadas</strong>, adicione:
+                    <div className="font-mono bg-slate-100 dark:bg-slate-800 p-1 rounded mt-0.5 text-[10px]">
+                      http://localhost:8080
+                    </div>
+                  </li>
+                  <li>
+                    Copie o <strong>ID do cliente</strong> gerado e cole no campo acima.
+                  </li>
+                </ol>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                <p className="font-bold text-slate-800 dark:text-slate-100 mb-1">
+                  Opção 2: Ativar no Painel Supabase
+                </p>
+                <p className="text-[10px] text-slate-500 mb-1.5">
+                  Se preferir que a autenticação passe diretamente pela infraestrutura Supabase:
+                </p>
+                <ol className="list-decimal pl-4 space-y-1">
+                  <li>
+                    Acesse o{" "}
+                    <a
+                      href="https://supabase.com/dashboard/project/wlmnwazdntayhrsndfor/auth/providers"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-emerald-600 hover:underline font-bold inline-flex items-center gap-0.5"
+                    >
+                      Painel do Supabase &gt; Auth &gt; Providers{" "}
+                      <ExternalLink className="w-3 h-3 inline" />
+                    </a>
+                  </li>
+                  <li>
+                    Localize <strong>Google</strong> e ative a chave (toggle ON).
+                  </li>
+                  <li>
+                    Insira o <strong>Client ID</strong> e <strong>Client Secret</strong>.
+                  </li>
+                  <li>
+                    No Google Cloud, defina o URI de redirecionamento:
+                    <div className="font-mono bg-slate-100 dark:bg-slate-800 p-1 rounded mt-0.5 text-[10px]">
+                      https://wlmnwazdntayhrsndfor.supabase.co/auth/v1/callback
+                    </div>
+                  </li>
+                </ol>
+              </div>
             </div>
           )}
         </div>
