@@ -128,15 +128,15 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Preconditions:** Usuário iniciou o aplicativo ou acessou a tela de entrada
 - **Steps:**
   1. O usuário visualiza a tela inicial e escolhe entre Entrar ou Criar Conta -> O sistema exibe o formulário de credenciais diretas por perfil com alternância fluida entre Passageiro e Motorista.
-  2. No perfil Passageiro, o acesso é simplificado por telefone, e-mail ou autenticação social Google OAuth 2.0 em 1 toque, com cadastro em fluxo contínuo e foto opcional; no perfil Motorista, o card assume a estética Dark Cockpit de alto contraste com login direto por credenciais ou Google 1-Tap e atalho evidente para credenciamento veicular em 3 etapas.
-  3. O usuário preenche seus dados essenciais ou seleciona sua conta Google oficial -> A sessão é estabelecida no Supabase Auth com isolamento multi-tenant e o usuário é redirecionado imediatamente à sua estação de trabalho ou mapa.
+  2. No perfil Passageiro, o acesso é simplificado por telefone ou e-mail, com cadastro em fluxo contínuo e foto opcional; no perfil Motorista, o card assume a estética Dark Cockpit de alto contraste com login direto por credenciais e atalho evidente para credenciamento veicular em 3 etapas.
+  3. O usuário preenche seus dados essenciais e submete o formulário -> A sessão é estabelecida no Supabase Auth com isolamento multi-tenant e o usuário é redirecionado imediatamente à sua estação de trabalho ou mapa.
 - **Expected result:** Sessão de autenticação estabelecida em menos de 10 segundos para passageiros e entrada desobstruída no Cockpit para motoristas parceiros.
-- **UI elements:** Botões de seleção de perfil, Formulário de login/cadastro, Input de telefone com máscara E.164, Botão Continuar, Botão Google 1-Tap Social Login, Modal de Configuração Google OAuth, Card Dark Cockpit para Motorista, Atalho de cadastro veicular
+- **UI elements:** Botões de seleção de perfil, Formulário de login/cadastro, Input de telefone com máscara E.164, Botão Continuar, Card Dark Cockpit para Motorista, Atalho de cadastro veicular
 - **States covered:** success, error, loading
 - **Errors & recovery:** Em caso de telefone duplicado ou senha inválida, mensagens de validação claras são exibidas ao lado de cada campo sem apagar os dados preenchidos.
 - **Telemetry:** user_signed_up (role, auth_provider)
 - **Status:** implemented
-- **Coverage:** src/routes/auth.tsx:1-50, src/components/auth/PartiuAppAuthGate.tsx:1-1641, src/routes/cadastro-passageiro.tsx:1-495
+- **Coverage:** src/routes/auth.tsx:1-50, src/components/auth/PartiuAppAuthGate.tsx:1-1548, src/routes/cadastro-passageiro.tsx:1-495
 - **Product:** unobserved
 
 ## Resiliência e Rede

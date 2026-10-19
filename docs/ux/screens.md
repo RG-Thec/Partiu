@@ -85,15 +85,15 @@ whose code diverges from its record here is a "drifted" finding. -->
 ### SCR-03: Tela de Login e Autenticação Unificada
 
 - **Used by:** FLW-05 step 3
-- **Purpose:** Autenticação rápida com Google (1-Tap / OAuth direto), divisor único e entrada simplificada por celular ou e-mail
-- **Elements:** Botão Google proeminente no topo, divisor discreto, campo inteligente de contato com formatação BR automática, botão Continuar
+- **Purpose:** Entrada simplificada por celular ou e-mail com alternância fluida entre passageiro e motorista parceiro (Dark Cockpit)
+- **Elements:** Campo inteligente de contato com formatação BR automática, botão Continuar, toggle de alternância de perfil, card Dark Cockpit de alto contraste para motorista
 - **States:**
   | State   | Trigger                  | Figma frame       | Behavior                                                 |
   | ------- | ------------------------ | ----------------- | -------------------------------------------------------- |
   | success | credenciais válidas      | none — code first | Redireciona para o cockpit ou mapa conforme a role       |
   | error   | credenciais inválidas    | none — code first | Alerta visual discreto com instrução de recuperação      |
   | loading | autenticando no Supabase | none — code first | Botão com spinner de carregamento e campos desabilitados |
-- **Coverage:** src/routes/auth.tsx:1-50, src/components/auth/PartiuAppAuthGate.tsx:1-1641
+- **Coverage:** src/routes/auth.tsx:1-50, src/components/auth/PartiuAppAuthGate.tsx:1-1548
 - **Scenarios:** SCN-005
 - **Resources:** supabaseAuthService, PartiuAppAuthGate
 - **Status:** built
@@ -123,7 +123,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | success | conta criada                  | none — code first | Confirmação exibindo opções "Ir para o login" e "Acessar aplicativo" |
   | error   | CPF ou telefone já cadastrado | none — code first | Alerta explicativo não intrusivo com link para recuperação           |
   | loading | processando cadastro          | none — code first | Indicador de envio com spinner no botão de confirmação               |
-- **Coverage:** src/routes/cadastro-passageiro.tsx:1-495, src/components/auth/PartiuAppAuthGate.tsx:1-1641
+- **Coverage:** src/routes/cadastro-passageiro.tsx:1-495, src/components/auth/PartiuAppAuthGate.tsx:1-1548
 - **Scenarios:** SCN-005
 - **Resources:** supabaseAuthService, useGeolocation
 - **Status:** built

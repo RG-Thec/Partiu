@@ -38,8 +38,6 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { CameraPhotoCapture } from "@/components/common/CameraPhotoCapture";
-import { GoogleIcon } from "@/components/common/GoogleIcon";
-import { GoogleConfigModal } from "@/components/auth/GoogleConfigModal";
 import { whiteLabelEngine } from "@/lib/white-label/white-label-engine";
 import { validarAcessoTerritorialParaCadastro } from "@/lib/geo/territory-guard";
 
@@ -425,42 +423,6 @@ export function PartiuAppAuthGate({
   }
 
   // ===========================================================================
-  // 🌐 LOGIN SOCIAL: Autenticação via Google OAuth 2.0 (1-Tap)
-  // ===========================================================================
-  async function handleGoogleSignIn() {
-    setErrorMessage(null);
-    setSuccessMessage(null);
-    setLoading(true);
-
-    const target =
-      redirectDestination ||
-      (activeRole === "MOTORISTA" ? "/app/motorista" : "/app");
-    const scopedDest = target.includes("tenant=")
-      ? target
-      : `${target}${target.includes("?") ? "&" : "?"}tenant=${encodeURIComponent(currentTenantId)}`;
-
-    const res = await supabaseAuthService.signInWithGoogle({
-      role: activeRole,
-      redirectUrl: scopedDest,
-    });
-    setLoading(false);
-
-    if (!res.success) {
-      if (res.error && !res.error.includes("Client ID")) {
-        setErrorMessage(res.error);
-      }
-      return;
-    }
-
-    if (res.user) {
-      setSuccessMessage("Autenticado com Google com sucesso! Entrando...");
-      setTimeout(() => {
-        void navigate({ to: scopedDest, replace: true });
-      }, 300);
-    }
-  }
-
-  // ===========================================================================
   // 📝 CADASTRO STEP 1: Conclusão de Registro do Passageiro
   // ===========================================================================
   async function handlePassengerSignUp(e: FormEvent) {
@@ -749,32 +711,6 @@ export function PartiuAppAuthGate({
                   >
                     <span>{loading ? "Verificando..." : "Continuar"}</span>
                     {!loading && <ArrowRight className="w-4 h-4" />}
-                  </button>
-
-                  {/* Divisor Visual */}
-                  <div className="relative my-3">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-slate-200" />
-                    </div>
-                    <div className="relative flex justify-center text-xs">
-                      <span className="bg-white px-3 text-slate-400 font-medium">
-                        ou continue com
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Botão Google 1-Tap Social Login */}
-                  <button
-                    type="button"
-                    onClick={handleGoogleSignIn}
-                    disabled={loading}
-                    style={{
-                      borderRadius: ui.borderRadius || "0.75rem",
-                    }}
-                    className="w-full py-3 px-4 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs sm:text-sm font-semibold tracking-wide shadow-xs flex items-center justify-center gap-2.5 transition active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <GoogleIcon className="w-4 h-4" />
-                    <span>Continuar com o Google</span>
                   </button>
 
                   {/* Ação de Cadastro de Novo Usuário */}
@@ -1452,32 +1388,6 @@ export function PartiuAppAuthGate({
                     {!loading && <ArrowRight className="w-4 h-4" />}
                   </button>
 
-                  {/* Divisor Visual no Cockpit */}
-                  <div className="relative my-3">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-slate-800" />
-                    </div>
-                    <div className="relative flex justify-center text-xs">
-                      <span className="bg-slate-900 px-3 text-slate-400 font-medium">
-                        ou acesse com
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Botão Google 1-Tap Cockpit */}
-                  <button
-                    type="button"
-                    onClick={handleGoogleSignIn}
-                    disabled={loading}
-                    style={{
-                      borderRadius: ui.borderRadius || "0.75rem",
-                    }}
-                    className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 text-xs sm:text-sm font-semibold tracking-wide shadow-xs flex items-center justify-center gap-2.5 transition active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <GoogleIcon className="w-4 h-4" />
-                    <span>Entrar com o Google</span>
-                  </button>
-
                   {/* Ação Alternativa: Cadastro de Motorista Parceiro */}
                   <div className="pt-2 text-center space-y-2">
                     <p className="text-xs text-slate-400">
@@ -1633,9 +1543,6 @@ export function PartiuAppAuthGate({
           </p>
         </footer>
       </main>
-
-      {/* MODAL OFICIAL PARA CONFIGURAÇÃO DE CLIENT ID DO GOOGLE */}
-      <GoogleConfigModal />
     </div>
   );
 }
