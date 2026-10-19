@@ -37,8 +37,8 @@ export interface PickupEtaResult {
   durationMinutes: number;
   distanceKm: number;
   formattedText: string; // Ex: "Chega em 3 min"
-  formattedEta: string;  // Ex: "3 min"
-  badgeText: string;     // Ex: "~3 min de espera"
+  formattedEta: string; // Ex: "3 min"
+  badgeText: string; // Ex: "~3 min de espera"
   dispatchScore: number;
 }
 
@@ -49,9 +49,9 @@ export interface TripEtaResult {
   distanceMeters: number;
   formattedDuration: string; // Ex: "9 min" ou "1h 15min"
   formattedDistance: string; // Ex: "4,8 km"
-  formattedEta: string;      // Ex: "9 min"
+  formattedEta: string; // Ex: "9 min"
   estimatedDropoffTime: string; // Ex: "14:35"
-  summaryText: string;       // Ex: "~9 min • 4,8 km"
+  summaryText: string; // Ex: "~9 min • 4,8 km"
   routeMetrics: RouteMetrics;
 }
 
@@ -98,7 +98,7 @@ export class EtaEngine {
   public async calculatePickupEta(
     firstArg: [number, number],
     secondArg: any = "CARRO",
-    availableDrivers: DriverCandidate[] = []
+    availableDrivers: DriverCandidate[] = [],
   ): Promise<PickupEtaResult> {
     // Se invocado diretamente com (driverCoords, passengerCoords)
     if (Array.isArray(secondArg) && typeof secondArg[0] === "number") {
@@ -125,7 +125,7 @@ export class EtaEngine {
 
     // Filtra motoristas online e disponíveis compatíveis com a categoria
     const candidates = availableDrivers.filter(
-      (d) => d.isOnline && d.isAvailable && (!d.vehicleCategory || d.vehicleCategory === category)
+      (d) => d.isOnline && d.isAvailable && (!d.vehicleCategory || d.vehicleCategory === category),
     );
 
     if (candidates.length === 0) {
@@ -208,8 +208,13 @@ export class EtaEngine {
    * Encontra e ranqueia o melhor motorista por ETA e score de despacho
    */
   public async findBestDriverCandidate(
-    candidates: Array<{ id: string; coords: [number, number]; category?: string; [key: string]: any }>,
-    targetCoords: [number, number]
+    candidates: Array<{
+      id: string;
+      coords: [number, number];
+      category?: string;
+      [key: string]: any;
+    }>,
+    targetCoords: [number, number],
   ): Promise<{ driver: any; durationMinutes: number } | null> {
     if (!candidates || candidates.length === 0) return null;
     let best = candidates[0];
@@ -235,7 +240,7 @@ export class EtaEngine {
   public async calculateTripEta(
     origin: [number, number],
     destination: [number, number],
-    category: "MOTO" | "CARRO" = "CARRO"
+    category: "MOTO" | "CARRO" = "CARRO",
   ): Promise<TripEtaResult> {
     const routeMetrics = await routingService.getRoute(origin, destination, {
       vehicleType: category === "MOTO" ? "motorcycle" : "car",

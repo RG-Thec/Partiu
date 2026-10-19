@@ -62,7 +62,8 @@ function ErrorComponent({ error, reset }: { error: any; reset: () => void }) {
           Não foi possível carregar esta tela
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Ocorreu uma instabilidade na conexão ou no processamento dos dados. Você pode tentar atualizar ou retornar ao início.
+          Ocorreu uma instabilidade na conexão ou no processamento dos dados. Você pode tentar
+          atualizar ou retornar ao início.
         </p>
         {error?.message && (
           <p className="mt-3 text-xs font-mono bg-muted text-muted-foreground p-3 rounded-xl break-words text-left max-h-32 overflow-auto border border-border">

@@ -17,7 +17,8 @@ export function BusinessModelsTab({ onSaveFeedback }: BusinessModelsTabProps) {
           Módulo 6: Business Model Engine (Multi-Negócio)
         </h2>
         <p className="text-xs text-slate-400 mt-1">
-          Ative ou desative as 11 verticais operacionais da sua plataforma, configure tarifas base e comissões.
+          Ative ou desative as 11 verticais operacionais da sua plataforma, configure tarifas base e
+          comissões.
         </p>
       </div>
 
@@ -38,12 +39,8 @@ export function BusinessModelsTab({ onSaveFeedback }: BusinessModelsTabProps) {
                     {v.icone}
                   </div>
                   <div>
-                    <span className="text-xs font-black text-white block">
-                      {v.nomeExibicao}
-                    </span>
-                    <span className="text-[10px] text-slate-400">
-                      {v.descricao}
-                    </span>
+                    <span className="text-xs font-black text-white block">{v.nomeExibicao}</span>
+                    <span className="text-[10px] text-slate-400">{v.descricao}</span>
                   </div>
                 </div>
 
@@ -73,9 +70,7 @@ export function BusinessModelsTab({ onSaveFeedback }: BusinessModelsTabProps) {
                 </div>
                 <div>
                   <span className="text-emerald-400 block font-medium">Taxa por Corrida</span>
-                  <span className="font-bold text-emerald-300 font-mono">
-                    0% (Taxa Zero)
-                  </span>
+                  <span className="font-bold text-emerald-300 font-mono">0% (Taxa Zero)</span>
                 </div>
               </div>
             </div>

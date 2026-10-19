@@ -118,7 +118,7 @@ describe("25. ETA Engine (Pickup ETA 1 & Trip ETA 2)", () => {
   test("ETA: Ranqueia motorista mais próximo pelo ETA real", async () => {
     const candidates = [
       { id: "d1", coords: [-46.658, -23.563] as [number, number], category: "PARTIU_CARRO" },
-      { id: "d2", coords: [-46.700, -23.600] as [number, number], category: "PARTIU_CARRO" },
+      { id: "d2", coords: [-46.7, -23.6] as [number, number], category: "PARTIU_CARRO" },
     ];
 
     const ranked = await etaEngine.findBestDriverCandidate(candidates, origenSP);
@@ -219,7 +219,7 @@ describe("28. Antifraud Shield & Server Verification (Tolerância < 1.5%)", () =
     const quote = pricingService.calculateCategoryQuote(
       "PARTIU_CARRO",
       route.distanceKm,
-      route.durationMinutes
+      route.durationMinutes,
     );
 
     const verification = await antifraudService.verifyQuote({
@@ -241,7 +241,7 @@ describe("28. Antifraud Shield & Server Verification (Tolerância < 1.5%)", () =
     const quote = pricingService.calculateCategoryQuote(
       "PARTIU_CARRO",
       route.distanceKm,
-      route.durationMinutes
+      route.durationMinutes,
     );
 
     // Usuário tenta pagar 50% adulterando o payload do cliente

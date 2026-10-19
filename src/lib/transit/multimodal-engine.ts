@@ -1,15 +1,15 @@
 /**
  * MULTIMODAL TRANSIT ENGINE — UNIFIED TRANSIT LAYER
- * 
+ *
  * Camada Unificada de Trânsito Urbano e Regional:
  * - Integração operacional de Carros, Motos, Vans Cooperadas, Ônibus e Fretamento
  * - Bilhete Único Multimodal com desconto automático em conexões
  * - Sincronização de transferências em terminais e hubs
  */
 
-import { vanNetworkEngine, UrbanVanLine } from './van-network';
-import { busNetworkEngine, UrbanBusLine } from './bus-network';
-import { routeOptimizerEngine, MultimodalTripItinerary, TransitModalType } from './route-optimizer';
+import { vanNetworkEngine, UrbanVanLine } from "./van-network";
+import { busNetworkEngine, UrbanBusLine } from "./bus-network";
+import { routeOptimizerEngine, MultimodalTripItinerary, TransitModalType } from "./route-optimizer";
 
 export interface UnifiedTransitLayerState {
   cityId: string;
@@ -22,7 +22,7 @@ export interface UnifiedTransitLayerState {
   dailyPassengersCarriedEstimate: number;
   transferDiscountEnabled: boolean;
   transferDiscountWindowMinutes: number; // Ex: 90 minutos
-  status: 'OPERACAO_NORMAL' | 'CONTINGENCIA' | 'FROTA_EXPANDIDA';
+  status: "OPERACAO_NORMAL" | "CONTINGENCIA" | "FROTA_EXPANDIDA";
   lastSynchronizedAt: number;
 }
 
@@ -35,7 +35,7 @@ export interface MultimodalTicket {
   farePaidBrl: number;
   transfersAllowed: number;
   transfersUsed: number;
-  status: 'VALIDO' | 'UTILIZADO' | 'EXPIRADO';
+  status: "VALIDO" | "UTILIZADO" | "EXPIRADO";
 }
 
 export class MultimodalEngine {
@@ -71,15 +71,19 @@ export class MultimodalEngine {
       dailyPassengersCarriedEstimate: 28400,
       transferDiscountEnabled: true,
       transferDiscountWindowMinutes: 90,
-      status: 'OPERACAO_NORMAL',
-      lastSynchronizedAt: Date.now()
+      status: "OPERACAO_NORMAL",
+      lastSynchronizedAt: Date.now(),
     };
   }
 
   /**
    * Emite um Bilhete Único Multimodal com janela de transferência de 90 minutos
    */
-  public issueUnifiedTransitTicket(passengerId: string, initialModal: TransitModalType, fareBrl: number): MultimodalTicket {
+  public issueUnifiedTransitTicket(
+    passengerId: string,
+    initialModal: TransitModalType,
+    fareBrl: number,
+  ): MultimodalTicket {
     const ticket: MultimodalTicket = {
       ticketId: `TICK-MULTI-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       passengerId,
@@ -89,7 +93,7 @@ export class MultimodalEngine {
       farePaidBrl: fareBrl,
       transfersAllowed: 2,
       transfersUsed: 0,
-      status: 'VALIDO'
+      status: "VALIDO",
     };
 
     this.tickets.set(ticket.ticketId, ticket);
@@ -99,23 +103,38 @@ export class MultimodalEngine {
   /**
    * Valida transbordo de bilhete multimodal (desconto de até 100% no segundo modal ou tarifa complementar)
    */
-  public validateTransfer(ticketId: string, nextModalFareBrl: number): {
+  public validateTransfer(
+    ticketId: string,
+    nextModalFareBrl: number,
+  ): {
     authorized: boolean;
     complementBrl: number;
     message: string;
   } {
     const ticket = this.tickets.get(ticketId);
     if (!ticket) {
-      return { authorized: false, complementBrl: nextModalFareBrl, message: 'Bilhete multimodal não encontrado.' };
+      return {
+        authorized: false,
+        complementBrl: nextModalFareBrl,
+        message: "Bilhete multimodal não encontrado.",
+      };
     }
 
-    if (ticket.status !== 'VALIDO' || Date.now() > ticket.expiresAt) {
-      ticket.status = 'EXPIRADO';
-      return { authorized: false, complementBrl: nextModalFareBrl, message: 'Janela de 90 min de transferência expirada.' };
+    if (ticket.status !== "VALIDO" || Date.now() > ticket.expiresAt) {
+      ticket.status = "EXPIRADO";
+      return {
+        authorized: false,
+        complementBrl: nextModalFareBrl,
+        message: "Janela de 90 min de transferência expirada.",
+      };
     }
 
     if (ticket.transfersUsed >= ticket.transfersAllowed) {
-      return { authorized: false, complementBrl: nextModalFareBrl, message: 'Limite de transferências atingido.' };
+      return {
+        authorized: false,
+        complementBrl: nextModalFareBrl,
+        message: "Limite de transferências atingido.",
+      };
     }
 
     ticket.transfersUsed += 1;
@@ -125,9 +144,10 @@ export class MultimodalEngine {
     return {
       authorized: true,
       complementBrl: Number(complement.toFixed(2)),
-      message: complement === 0 
-        ? 'Transbordo 100% gratuito integrado!'
-        : `Transbordo autorizado com complemento tarifário de R$ ${complement.toFixed(2)}.`
+      message:
+        complement === 0
+          ? "Transbordo 100% gratuito integrado!"
+          : `Transbordo autorizado com complemento tarifário de R$ ${complement.toFixed(2)}.`,
     };
   }
 }

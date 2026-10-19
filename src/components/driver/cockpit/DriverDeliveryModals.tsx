@@ -1,5 +1,13 @@
 import React from "react";
-import { AlertTriangle, X, Phone, MessageCircle, Bell, RotateCcw, CheckCircle2 } from "lucide-react";
+import {
+  AlertTriangle,
+  X,
+  Phone,
+  MessageCircle,
+  Bell,
+  RotateCcw,
+  CheckCircle2,
+} from "lucide-react";
 import type { RecipientWaitStatus, ReturnDetails } from "@/lib/delivery";
 
 export interface DriverDeliveryModalsProps {
@@ -71,13 +79,20 @@ export function DriverDeliveryModals({
                 borderColor: corPrimaria ? `${corPrimaria}30` : undefined,
               }}
             >
-              <span className="text-[10px] font-black uppercase tracking-wider block" style={{ color: corPrimaria }}>
+              <span
+                className="text-[10px] font-black uppercase tracking-wider block"
+                style={{ color: corPrimaria }}
+              >
                 Tolerância Obrigatória de Espera
               </span>
               <div className="text-3xl font-mono font-black" style={{ color: corPrimaria }}>
-                {Math.floor(waitStatus.elapsedSeconds / 60).toString().padStart(2, "0")}:
-                {(waitStatus.elapsedSeconds % 60).toString().padStart(2, "0")}{" "}
-                <span className="text-xs font-sans font-bold text-muted-foreground">/ 05:00 min</span>
+                {Math.floor(waitStatus.elapsedSeconds / 60)
+                  .toString()
+                  .padStart(2, "0")}
+                :{(waitStatus.elapsedSeconds % 60).toString().padStart(2, "0")}{" "}
+                <span className="text-xs font-sans font-bold text-muted-foreground">
+                  / 05:00 min
+                </span>
               </div>
               <p className="text-xs text-foreground font-medium">
                 {waitStatus.canInitiateReturn

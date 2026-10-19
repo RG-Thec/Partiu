@@ -53,8 +53,14 @@ export interface BrandingContextValue {
   isSyncing: boolean;
   lastSyncedAt: Date | null;
   setTenantId: (tenantId: string) => Promise<void>;
-  updateBranding: (partial: Partial<AppBrandingRecord>, targetTenantOverride?: string) => Promise<boolean>;
+  updateBranding: (
+    partial: Partial<AppBrandingRecord>,
+    targetTenantOverride?: string,
+  ) => Promise<boolean>;
   applyPreset: (presetId: string) => Promise<boolean>;
-  uploadAsset: (file: File, type: "logo" | "splash" | "favicon" | "app_icon" | "push_icon") => Promise<string | null>;
+  uploadAsset: (
+    file: File,
+    type: "logo" | "splash" | "favicon" | "app_icon" | "push_icon",
+  ) => Promise<string | null>;
   resetToDefault: () => Promise<boolean>;
 }

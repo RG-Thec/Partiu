@@ -1,9 +1,9 @@
 /**
  * PARTIU MOBILIDADE URBANA — DYNAMIC DELIVERY PRICING ENGINE
- * 
+ *
  * High-precision algorithm for urban last-mile freight quotation:
  * Price = Floor( [Base + (Dist * KmRate) + (Time * MinRate)] * SizeMultiplier * Surge + Insurance )
- * 
+ *
  * Ensures:
  * 1. Fair compensation for couriers (minimum floor: R$ 9.90 moto / R$ 18.50 carro).
  * 2. Transparent itemized breakdown for senders.

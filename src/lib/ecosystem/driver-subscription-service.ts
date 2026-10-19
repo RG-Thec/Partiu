@@ -15,7 +15,11 @@
 
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { appSettingsService } from "./app-settings-service";
-import { computePixCrc16, buildStandardEmvPix, generateLocalQrCodeSvgSync } from "@/services/payment/PaymentProviderAdapter";
+import {
+  computePixCrc16,
+  buildStandardEmvPix,
+  generateLocalQrCodeSvgSync,
+} from "@/services/payment/PaymentProviderAdapter";
 import { getMonetizacaoConfig } from "@/lib/superadmin-config";
 import { WhiteLabelEngine } from "@/lib/white-label/white-label-engine";
 
@@ -127,7 +131,9 @@ class DriverSubscriptionService {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
           const dummyIds = ["mot-001", "mot-002", "mot-003", "mot-004", "mot-005", "mot-006"];
-          return parsed.filter((acc: DriverSubscriptionAccount) => !dummyIds.includes(acc.driverId));
+          return parsed.filter(
+            (acc: DriverSubscriptionAccount) => !dummyIds.includes(acc.driverId),
+          );
         }
       }
     } catch (e) {
@@ -222,7 +228,11 @@ class DriverSubscriptionService {
   /**
    * Calcula o tempo restante da diária ativa em horas e minutos formatados
    */
-  public getRemainingTime(subscription: DriverSubscriptionRecord): { hours: number; minutes: number; formatted: string } {
+  public getRemainingTime(subscription: DriverSubscriptionRecord): {
+    hours: number;
+    minutes: number;
+    formatted: string;
+  } {
     const now = Date.now();
     const diffMs = Math.max(0, new Date(subscription.expires_at).getTime() - now);
     const totalMinutes = Math.floor(diffMs / 60000);
@@ -257,7 +267,7 @@ class DriverSubscriptionService {
     driverId: string,
     vehicleType: "MOTO" | "CARRO" = "CARRO",
     cycle: "DAILY" | "WEEKLY" | "MONTHLY" = "DAILY",
-    tenantId?: string
+    tenantId?: string,
   ): GeneratedPixPayment {
     const effectiveTenantId = tenantId || this.getDriverTenantId(driverId);
     let tenantMonetization: any = null;
@@ -298,18 +308,21 @@ class DriverSubscriptionService {
       settings.pix_receiver_city ||
       "ITAPERUNA";
 
-    let amount = vehicleType === "MOTO"
-      ? (tenantMonetization?.diariaMoto ?? config.diariaMoto)
-      : (tenantMonetization?.diariaCarro ?? config.diariaCarro);
+    let amount =
+      vehicleType === "MOTO"
+        ? (tenantMonetization?.diariaMoto ?? config.diariaMoto)
+        : (tenantMonetization?.diariaCarro ?? config.diariaCarro);
 
     if (cycle === "WEEKLY") {
-      amount = vehicleType === "MOTO"
-        ? (tenantMonetization?.semanalMoto ?? config.semanalMoto)
-        : (tenantMonetization?.semanalCarro ?? config.semanalCarro);
+      amount =
+        vehicleType === "MOTO"
+          ? (tenantMonetization?.semanalMoto ?? config.semanalMoto)
+          : (tenantMonetization?.semanalCarro ?? config.semanalCarro);
     } else if (cycle === "MONTHLY") {
-      amount = vehicleType === "MOTO"
-        ? (tenantMonetization?.mensalMoto ?? config.mensalMoto)
-        : (tenantMonetization?.mensalCarro ?? config.mensalCarro);
+      amount =
+        vehicleType === "MOTO"
+          ? (tenantMonetization?.mensalMoto ?? config.mensalMoto)
+          : (tenantMonetization?.mensalCarro ?? config.mensalCarro);
     }
 
     // Abate créditos operacionais acumulados (ex: taxa de no-show / cancelamento / cupons)
@@ -319,7 +332,7 @@ class DriverSubscriptionService {
         const store = typeof window !== "undefined" ? window.localStorage : localStorage;
         const creditsKey = `partiu_driver_daily_credits_${driverId}`;
         const availableCredits = Number(
-          store.getItem(creditsKey) || store.getItem("partiu_driver_daily_credits") || 0
+          store.getItem(creditsKey) || store.getItem("partiu_driver_daily_credits") || 0,
         );
         if (availableCredits > 0) {
           amount = Math.max(1.0, Number((amount - availableCredits).toFixed(2)));
@@ -354,7 +367,7 @@ class DriverSubscriptionService {
     driverId: string,
     vehicleType: "MOTO" | "CARRO" = "CARRO",
     cycle: "DAILY" | "WEEKLY" | "MONTHLY" = "DAILY",
-    tenantId?: string
+    tenantId?: string,
   ): GeneratedPixPayment {
     return this.generateDailyFeePix(driverId, vehicleType, cycle, tenantId);
   }
@@ -369,8 +382,8 @@ class DriverSubscriptionService {
       const store = typeof window !== "undefined" ? window.localStorage : localStorage;
       return Number(
         store.getItem(`partiu_driver_daily_credits_${driverId}`) ||
-        store.getItem("partiu_driver_daily_credits") ||
-        0
+          store.getItem("partiu_driver_daily_credits") ||
+          0,
       );
     } catch {
       return 0;
@@ -406,7 +419,7 @@ class DriverSubscriptionService {
     txId?: string,
     amount?: number,
     durationHours: number = 24,
-    tenantId?: string
+    tenantId?: string,
   ): Promise<DriverSubscriptionRecord> {
     const effectiveTenantId = tenantId || this.getDriverTenantId(driverId);
     let valorDiaria = amount;
@@ -417,9 +430,10 @@ class DriverSubscriptionService {
         const tenantConfig = wlEngine.getTenantConfig(effectiveTenantId);
         const tMon = tenantConfig?.monetization;
         const config = getMonetizacaoConfig();
-        valorDiaria = vehicleType === "MOTO"
-          ? (tMon?.diariaMoto ?? config.diariaMoto)
-          : (tMon?.diariaCarro ?? config.diariaCarro);
+        valorDiaria =
+          vehicleType === "MOTO"
+            ? (tMon?.diariaMoto ?? config.diariaMoto)
+            : (tMon?.diariaCarro ?? config.diariaCarro);
       } catch {
         const config = getMonetizacaoConfig();
         valorDiaria = vehicleType === "MOTO" ? config.diariaMoto : config.diariaCarro;
@@ -463,7 +477,7 @@ class DriverSubscriptionService {
       window.dispatchEvent(
         new CustomEvent("partiu:driver_subscription_activated", {
           detail: { driverId, expiresAt: expiresAt.toISOString(), timestamp: Date.now() },
-        })
+        }),
       );
     }
 
@@ -496,7 +510,7 @@ class DriverSubscriptionService {
   public async activateTrial(
     driverId: string,
     vehicleType: "MOTO" | "CARRO" = "CARRO",
-    tenantId?: string
+    tenantId?: string,
   ): Promise<DriverSubscriptionRecord | null> {
     const effectiveTenantId = tenantId || this.getDriverTenantId(driverId);
     let tenantMonetization: any = null;
@@ -519,7 +533,7 @@ class DriverSubscriptionService {
       `TRIAL_${Date.now()}`,
       0,
       hours,
-      effectiveTenantId
+      effectiveTenantId,
     );
   }
 
@@ -529,7 +543,7 @@ class DriverSubscriptionService {
   public async simulateDailyFeePayment(
     driverId: string,
     vehicleType: "MOTO" | "CARRO" = "CARRO",
-    tenantId?: string
+    tenantId?: string,
   ): Promise<DriverSubscriptionRecord> {
     const effectiveTenantId = tenantId || this.getDriverTenantId(driverId);
     return this.confirmDailyFeePayment(
@@ -538,7 +552,7 @@ class DriverSubscriptionService {
       `TX_TEST_${Date.now()}`,
       undefined,
       24,
-      effectiveTenantId
+      effectiveTenantId,
     );
   }
 
@@ -618,15 +632,16 @@ class DriverSubscriptionService {
     driverId: string,
     days: number,
     reason: string = "Cortesia Administrativa",
-    adminName: string = "Super Admin"
+    adminName: string = "Super Admin",
   ): DriverSubscriptionAccount | null {
     const accIndex = this.driverAccounts.findIndex((a) => a.driverId === driverId);
     if (accIndex === -1) return null;
 
     const currentAcc = this.driverAccounts[accIndex];
-    const baseDate = new Date(currentAcc.expiresAt).getTime() > Date.now()
-      ? new Date(currentAcc.expiresAt)
-      : new Date();
+    const baseDate =
+      new Date(currentAcc.expiresAt).getTime() > Date.now()
+        ? new Date(currentAcc.expiresAt)
+        : new Date();
 
     const newExpiresAt = new Date(baseDate.getTime() + days * 86400000);
 
@@ -649,7 +664,7 @@ class DriverSubscriptionService {
       currentAcc.vehicleType,
       `CORTESIA_${days}D_${Date.now()}`,
       0,
-      days * 24
+      days * 24,
     );
 
     if (isSupabaseConfigured()) {
@@ -670,8 +685,8 @@ class DriverSubscriptionService {
     driverId: string,
     planName: string,
     durationDays: number = 30,
-    amount: number = 199.90,
-    adminName: string = "Super Admin"
+    amount: number = 199.9,
+    adminName: string = "Super Admin",
   ): DriverSubscriptionAccount | null {
     const accIndex = this.driverAccounts.findIndex((a) => a.driverId === driverId);
     if (accIndex === -1) return null;
@@ -702,7 +717,7 @@ class DriverSubscriptionService {
       currentAcc.vehicleType,
       `REC_MANUAL_${Date.now()}`,
       amount,
-      durationDays * 24
+      durationDays * 24,
     );
 
     if (isSupabaseConfigured()) {
@@ -722,7 +737,7 @@ class DriverSubscriptionService {
   public blockDriverAccess(
     driverId: string,
     reason: string = "Bloqueio administrativo por inadimplência",
-    adminName: string = "Super Admin"
+    adminName: string = "Super Admin",
   ): DriverSubscriptionAccount | null {
     const accIndex = this.driverAccounts.findIndex((a) => a.driverId === driverId);
     if (accIndex === -1) return null;
@@ -740,7 +755,7 @@ class DriverSubscriptionService {
 
     // Força expiração de qualquer assinatura ativa local
     this.subscriptions = this.subscriptions.map((s) =>
-      s.driver_id === driverId ? { ...s, status: "CANCELLED" as SubscriptionStatus } : s
+      s.driver_id === driverId ? { ...s, status: "CANCELLED" as SubscriptionStatus } : s,
     );
     this.saveToStorage();
     this.notifyListeners();
@@ -799,7 +814,7 @@ class DriverSubscriptionService {
         });
         if (!error && data) {
           const mrr = Number(data.mrr_brl) || 0;
-          const arr = Number(data.arr_brl) || (mrr * 12);
+          const arr = Number(data.arr_brl) || mrr * 12;
           const active = Number(data.active_subscribers_count) || 0;
           const exp7d = Number(data.expiring_in_7_days_count) || 0;
           const expired = Number(data.expired_count) || 0;
@@ -814,12 +829,16 @@ class DriverSubscriptionService {
             defaultingOrBlockedCount: expired + suspended,
             totalGmvProcessedBrl: active * 1800,
             totalSavingsForFleetBrl: Math.round(active * 1800 * 0.22 * 100) / 100,
-            renewalRatePercent: active + expired > 0 ? Number(((active / (active + expired)) * 100).toFixed(1)) : 100,
+            renewalRatePercent:
+              active + expired > 0 ? Number(((active / (active + expired)) * 100).toFixed(1)) : 100,
             churnRatePercent: churn,
           };
         }
       } catch (err) {
-        console.warn("[DriverSubscriptionService] Falha ao consultar fn_calculate_saas_metrics:", err);
+        console.warn(
+          "[DriverSubscriptionService] Falha ao consultar fn_calculate_saas_metrics:",
+          err,
+        );
       }
     }
     return this.getExecutiveSaaSMetrics();
@@ -829,28 +848,33 @@ class DriverSubscriptionService {
     const accounts = this.getDriverAccounts();
     const activeSubscribers = accounts.filter((a) => a.status === "ACTIVE" || a.status === "TRIAL");
     const expiringIn7Days = accounts.filter(
-      (a) => (a.status === "ACTIVE" || a.status === "TRIAL") && a.daysRemaining <= 7
+      (a) => (a.status === "ACTIVE" || a.status === "TRIAL") && a.daysRemaining <= 7,
     );
     const defaultingOrBlocked = accounts.filter(
-      (a) => a.status === "GRACE_PERIOD" || a.status === "BLOCKED" || a.status === "EXPIRED"
+      (a) => a.status === "GRACE_PERIOD" || a.status === "BLOCKED" || a.status === "EXPIRED",
     );
 
     const mrrBrl = accounts.reduce((acc, a) => {
       if (a.status === "ACTIVE") {
-        return acc + (a.lastPaymentBrl > 0 ? a.lastPaymentBrl : 199.90);
+        return acc + (a.lastPaymentBrl > 0 ? a.lastPaymentBrl : 199.9);
       }
       return acc;
     }, 0);
 
-    const totalGmvProcessedBrl = accounts.reduce((sum, a) => sum + ((a.completedTrips || 0) * 18.5), 0);
+    const totalGmvProcessedBrl = accounts.reduce(
+      (sum, a) => sum + (a.completedTrips || 0) * 18.5,
+      0,
+    );
     const totalSavingsForFleetBrl = Math.round(totalGmvProcessedBrl * 0.22 * 100) / 100;
 
-    const renewalRatePercent = accounts.length > 0
-      ? Number(((activeSubscribers.length / accounts.length) * 100).toFixed(1))
-      : 0;
-    const churnRatePercent = accounts.length > 0
-      ? Number(((defaultingOrBlocked.length / accounts.length) * 100).toFixed(1))
-      : 0;
+    const renewalRatePercent =
+      accounts.length > 0
+        ? Number(((activeSubscribers.length / accounts.length) * 100).toFixed(1))
+        : 0;
+    const churnRatePercent =
+      accounts.length > 0
+        ? Number(((defaultingOrBlocked.length / accounts.length) * 100).toFixed(1))
+        : 0;
 
     return {
       mrrBrl: Math.round(mrrBrl * 100) / 100,

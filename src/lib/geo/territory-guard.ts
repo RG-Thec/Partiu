@@ -53,7 +53,7 @@ export function calcularDistanciaKm(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number
+  lon2: number,
 ): number {
   const R = 6371; // Raio da Terra em km
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -87,7 +87,7 @@ export function criarTerritorioPadrao(
       },
   ufOuMatriz?: string | boolean,
   isMatrizParam = false,
-  raioPersonalizadoKm?: number
+  raioPersonalizadoKm?: number,
 ): TerritorioExclusivoConfig {
   let cidadeNome: string;
   let uf: string;
@@ -136,7 +136,8 @@ export function criarTerritorioPadrao(
       permitirExpansaoPaga: true,
       cidadesExpansaoContratadas: 999,
       valorExpansaoPorCidadeBrl: 0,
-      notasExclusividade: "Franquia Matriz Nacional: atuação irrestrita em 100% do território nacional brasileiro.",
+      notasExclusividade:
+        "Franquia Matriz Nacional: atuação irrestrita em 100% do território nacional brasileiro.",
       mensagemBloqueioForaArea: undefined,
     };
   }
@@ -174,7 +175,7 @@ export function validarAcessoTerritorial(
   lat: number,
   lng: number,
   cidadePassageiro?: string,
-  todosTenantsAtivos: WhiteLabelTenantRecord[] = []
+  todosTenantsAtivos: WhiteLabelTenantRecord[] = [],
 ): ValidacaoTerritorialResult {
   // 1. Matriz Nacional (tenantId === 'default' ou isMatrizNacional === true ou modo === 'NACIONAL_IRRESTRITO')
   if (
@@ -205,7 +206,7 @@ export function validarAcessoTerritorial(
       tenant.cidadeNome,
       tenant.uf,
       false,
-      tenant.configuracaoCompleta?.geo?.raioOperacaoPadraoKm
+      tenant.configuracaoCompleta?.geo?.raioOperacaoPadraoKm,
     );
 
   const centroLat =
@@ -229,7 +230,9 @@ export function validarAcessoTerritorial(
   // 2. Verificação se a cidade solicitada é uma das cidades expressamente licenciadas
   const cidadeNormalizada = cidadePassageiro?.toLowerCase().trim();
   const cidadeLicenciadaMatch = cidadeNormalizada
-    ? (territorio.cidadesLicenciadas || []).some((c) => c.toLowerCase().trim() === cidadeNormalizada)
+    ? (territorio.cidadesLicenciadas || []).some(
+        (c) => c.toLowerCase().trim() === cidadeNormalizada,
+      )
     : false;
 
   // 3. Regra de Autorização: Ponto dentro do raio ou cidade expressamente autorizada
@@ -342,7 +345,7 @@ export function validarAcessoTerritorialParaCadastro(
   tenant: WhiteLabelTenantRecord | undefined | null,
   coords?: { lat: number; lng: number } | null,
   cidadeUsuario?: string | null,
-  todosTenantsAtivos: WhiteLabelTenantRecord[] = []
+  todosTenantsAtivos: WhiteLabelTenantRecord[] = [],
 ): ValidacaoCadastroTerritorialResult {
   // 1. Matriz Nacional (tenantId === 'default' ou isMatrizNacional === true ou modo === 'NACIONAL_IRRESTRITO')
   if (
@@ -369,7 +372,7 @@ export function validarAcessoTerritorialParaCadastro(
       tenant.cidadeNome,
       tenant.uf,
       false,
-      tenant.configuracaoCompleta?.geo?.raioOperacaoPadraoKm
+      tenant.configuracaoCompleta?.geo?.raioOperacaoPadraoKm,
     );
 
   const deveBloquear =

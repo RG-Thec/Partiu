@@ -299,7 +299,7 @@ export class TenantDomainService {
    */
   public resolveTenantFromHost(
     rawHostname: string,
-    searchParams?: URLSearchParams | undefined
+    searchParams?: URLSearchParams | undefined,
   ): TenantDomainResolution {
     const host = this.cleanHostname(rawHostname);
 
@@ -425,16 +425,20 @@ export class TenantDomainService {
   /**
    * Obtém o domínio de um tenant ou cria o subdomínio da franquia
    */
-  public getOrCreateDomainForTenant(tenantId: string, tenantNome = "Franqueado Regional"): TenantDomainRecord {
+  public getOrCreateDomainForTenant(
+    tenantId: string,
+    tenantNome = "Franqueado Regional",
+  ): TenantDomainRecord {
     const existing = this.getDomainByTenantId(tenantId);
     if (existing) {
       return existing;
     }
 
-    const cleanSlug = tenantId
-      .replace(/^tenant-/, "")
-      .replace(/[^a-z0-9-]/gi, "")
-      .toLowerCase() || "app";
+    const cleanSlug =
+      tenantId
+        .replace(/^tenant-/, "")
+        .replace(/[^a-z0-9-]/gi, "")
+        .toLowerCase() || "app";
 
     const domain = `${cleanSlug}.partiumobe.com.br`;
     const res = this.registerCustomDomain(tenantId, domain, tenantNome);
@@ -486,11 +490,14 @@ export class TenantDomainService {
   public registerCustomDomain(
     tenantId: string,
     rawDomain: string,
-    tenantNome = "Franqueado Regional"
+    tenantNome = "Franqueado Regional",
   ): { sucesso: boolean; mensagem: string; record?: TenantDomainRecord } {
     const domain = this.cleanHostname(rawDomain);
     if (!domain || !domain.includes(".")) {
-      return { sucesso: false, mensagem: "Informe um domínio válido (ex: app.suafranquia.com.br)." };
+      return {
+        sucesso: false,
+        mensagem: "Informe um domínio válido (ex: app.suafranquia.com.br).",
+      };
     }
 
     if (this.domainsMap.has(domain)) {
@@ -632,7 +639,12 @@ export class TenantDomainService {
     record.sslStatus = "ATIVO";
     record.verifiedAt = now;
     record.updatedAt = now;
-    record.dnsRecords = record.dnsRecords.map((r) => ({ ...r, matched: true, actual: CANONICAL_CNAME_TARGET, checkedAt: now }));
+    record.dnsRecords = record.dnsRecords.map((r) => ({
+      ...r,
+      matched: true,
+      actual: CANONICAL_CNAME_TARGET,
+      checkedAt: now,
+    }));
 
     this.domainsMap.set(domain, record);
     this.persist();
@@ -673,14 +685,17 @@ export class TenantDomainService {
     const engine = WhiteLabelEngine.getInstance();
     const allTenants = engine.getAllTenants();
     const tenant = allTenants.find((t) => t.tenantId === tenantId) || allTenants[0];
-    const fullConfig: WhiteLabelFullConfig = tenant?.configuracaoCompleta || DEFAULT_WHITELABEL_CONFIG;
+    const fullConfig: WhiteLabelFullConfig =
+      tenant?.configuracaoCompleta || DEFAULT_WHITELABEL_CONFIG;
 
     const brand = fullConfig.brandCenter;
     const colors = fullConfig.designSystem.paletaPrimaria;
     const native = fullConfig.nativeApp;
 
     const appName =
-      (brand?.nomePlataforma && brand.nomePlataforma !== "PARTIU" ? brand.nomePlataforma : undefined) ||
+      (brand?.nomePlataforma && brand.nomePlataforma !== "PARTIU"
+        ? brand.nomePlataforma
+        : undefined) ||
       native?.nomeAppExibicao ||
       brand?.nomePlataforma ||
       "PARTIU";

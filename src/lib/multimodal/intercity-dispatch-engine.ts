@@ -1,6 +1,6 @@
 /**
  * PARTIU INTERCITY DISPATCH ENGINE
- * 
+ *
  * Motor de Despacho e Otimização Intermunicipal Autônomo.
  * Responsável por:
  * - Unir múltiplos passageiros em viagens compartilhadas intermunicipais
@@ -8,7 +8,7 @@
  * - Consolidar viagens para maximizar ocupação, reduzir custo por km e elevar o lucro líquido
  */
 
-import { MultimodalType, MultimodalVehicle, TransitLine } from './multimodal-network-engine';
+import { MultimodalType, MultimodalVehicle, TransitLine } from "./multimodal-network-engine";
 
 export interface IntercityRideRequest {
   requestId: string;
@@ -35,8 +35,8 @@ export interface IntercityCargoRequest {
   destinationCityId: string;
   weightKg: number;
   volumeLiters: number;
-  cargoType: 'DOCUMENTO' | 'ENCOMENDA_LEVE' | 'VOLUME_MEDIO' | 'MERCADORIA_FRACIONADA';
-  priority: 'FLASH' | 'SAME_DAY' | 'STANDARD';
+  cargoType: "DOCUMENTO" | "ENCOMENDA_LEVE" | "VOLUME_MEDIO" | "MERCADORIA_FRACIONADA";
+  priority: "FLASH" | "SAME_DAY" | "STANDARD";
   targetDeliveryTimestamp: number;
   declaredValueBrl: number;
   freightFareBrl: number;
@@ -55,14 +55,14 @@ export interface ConsolidatedIntercityManifest {
   distanceKm: number;
   passengers: IntercityRideRequest[];
   cargoPackages: IntercityCargoRequest[];
-  
+
   // Métricas Consolidadas
   totalPassengersCount: number;
   totalCargoWeightKg: number;
   totalCargoVolumeLiters: number;
   passengerOccupancyRatePct: number;
   cargoOccupancyRatePct: number;
-  
+
   // Financeiro do Despacho
   receitaPassageirosBrl: number;
   receitaCargaBrl: number;
@@ -71,10 +71,10 @@ export interface ConsolidatedIntercityManifest {
   repasseOperadorBrl: number;
   margemLiquidaPlataformaBrl: number;
   custoPorKmBrl: number;
-  
+
   // Score de Otimização (0 a 100)
   optimizationScore: number;
-  status: 'EM_CONSOLIDACAO' | 'DESPACHADO' | 'EM_TRANSITO' | 'FINALIZADO';
+  status: "EM_CONSOLIDACAO" | "DESPACHADO" | "EM_TRANSITO" | "FINALIZADO";
 }
 
 export class IntercityDispatchEngine {
@@ -89,9 +89,12 @@ export class IntercityDispatchEngine {
     distanceKm: number,
     passengerQueue: IntercityRideRequest[],
     cargoQueue: IntercityCargoRequest[],
-    availableVehicles: MultimodalVehicle[]
+    availableVehicles: MultimodalVehicle[],
   ): ConsolidatedIntercityManifest | null {
-    if (availableVehicles.length === 0 || (passengerQueue.length === 0 && cargoQueue.length === 0)) {
+    if (
+      availableVehicles.length === 0 ||
+      (passengerQueue.length === 0 && cargoQueue.length === 0)
+    ) {
       return null;
     }
 
@@ -123,7 +126,10 @@ export class IntercityDispatchEngine {
     }
 
     // Capacidade remanescente para carga
-    const remainingCargoCapacityKg = Math.max(0, targetVehicle.cargoCapacityKg - allocatedPassengerBaggageKg);
+    const remainingCargoCapacityKg = Math.max(
+      0,
+      targetVehicle.cargoCapacityKg - allocatedPassengerBaggageKg,
+    );
     const remainingCargoVolumeLiters = targetVehicle.cargoVolumeLiters * 0.75; // Reserva 25% para malas de passageiros
 
     const allocatedCargo: IntercityCargoRequest[] = [];
@@ -149,24 +155,39 @@ export class IntercityDispatchEngine {
     // Custo estimado: R$ 0.95/km combustível + R$ 0.30/km manutenção/pedágio
     const custoCombustivelPedagioBrl = Number((distanceKm * 1.25).toFixed(2));
     const repasseOperadorBrl = Number((receitaBrutaTotalBrl * 0.85).toFixed(2));
-    const margemLiquidaPlataformaBrl = Number((receitaBrutaTotalBrl - repasseOperadorBrl).toFixed(2));
+    const margemLiquidaPlataformaBrl = Number(
+      (receitaBrutaTotalBrl - repasseOperadorBrl).toFixed(2),
+    );
     const custoPorKmBrl = Number((custoCombustivelPedagioBrl / Math.max(1, distanceKm)).toFixed(2));
 
-    const passengerOccupancyRatePct = targetVehicle.totalSeats > 0
-      ? Number(((allocatedSeats / targetVehicle.totalSeats) * 100).toFixed(1))
-      : 0;
+    const passengerOccupancyRatePct =
+      targetVehicle.totalSeats > 0
+        ? Number(((allocatedSeats / targetVehicle.totalSeats) * 100).toFixed(1))
+        : 0;
 
-    const cargoOccupancyRatePct = targetVehicle.cargoCapacityKg > 0
-      ? Number((((allocatedPassengerBaggageKg + allocatedCargoKg) / targetVehicle.cargoCapacityKg) * 100).toFixed(1))
-      : 0;
+    const cargoOccupancyRatePct =
+      targetVehicle.cargoCapacityKg > 0
+        ? Number(
+            (
+              ((allocatedPassengerBaggageKg + allocatedCargoKg) / targetVehicle.cargoCapacityKg) *
+              100
+            ).toFixed(1),
+          )
+        : 0;
 
     // Função de Score Multivariável:
     // Maximize Ocupação (35%) + Margem (30%) + Eficiência Custo (20%) + Utilização Carga (15%)
     const scoreOcupacao = (passengerOccupancyRatePct / 100) * 35;
-    const scoreMargem = Math.min(30, (margemLiquidaPlataformaBrl / Math.max(1, custoCombustivelPedagioBrl)) * 30);
-    const scoreCusto = Math.max(0, 20 - (custoPorKmBrl * 4));
+    const scoreMargem = Math.min(
+      30,
+      (margemLiquidaPlataformaBrl / Math.max(1, custoCombustivelPedagioBrl)) * 30,
+    );
+    const scoreCusto = Math.max(0, 20 - custoPorKmBrl * 4);
     const scoreCarga = (cargoOccupancyRatePct / 100) * 15;
-    const optimizationScore = Math.min(100, Math.round(scoreOcupacao + scoreMargem + scoreCusto + scoreCarga));
+    const optimizationScore = Math.min(
+      100,
+      Math.round(scoreOcupacao + scoreMargem + scoreCusto + scoreCarga),
+    );
 
     const manifestId = `MNF-INT-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
@@ -195,7 +216,7 @@ export class IntercityDispatchEngine {
       margemLiquidaPlataformaBrl,
       custoPorKmBrl,
       optimizationScore,
-      status: 'DESPACHADO'
+      status: "DESPACHADO",
     };
 
     this.activeManifests.set(manifestId, manifest);

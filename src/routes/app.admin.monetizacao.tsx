@@ -88,34 +88,42 @@ type AbaMonetizacao = "dashboard" | "ciclo_vida" | "planos" | "gateways_pix";
 
 export function AdminMonetizacaoPage() {
   const [abaAtiva, setAbaAtiva] = useState<AbaMonetizacao>("ciclo_vida");
-  const [appSettings, setAppSettings] = useState<AppSettings>(() => appSettingsService.getSettings());
-  const [diariaCarroInput, setDiariaCarroInput] = useState(() => appSettings.daily_fee_car.toFixed(2));
-  const [diariaMotoInput, setDiariaMotoInput] = useState(() => appSettings.daily_fee_moto.toFixed(2));
+  const [appSettings, setAppSettings] = useState<AppSettings>(() =>
+    appSettingsService.getSettings(),
+  );
+  const [diariaCarroInput, setDiariaCarroInput] = useState(() =>
+    appSettings.daily_fee_car.toFixed(2),
+  );
+  const [diariaMotoInput, setDiariaMotoInput] = useState(() =>
+    appSettings.daily_fee_moto.toFixed(2),
+  );
 
   // Dados das Assinaturas e Contas
   const [executiveMetrics, setExecutiveMetrics] = useState<ExecutiveSaaSMetrics>(() =>
-    driverSubscriptionService.getExecutiveSaaSMetrics()
+    driverSubscriptionService.getExecutiveSaaSMetrics(),
   );
   const [driverAccounts, setDriverAccounts] = useState<DriverSubscriptionAccount[]>(() =>
-    driverSubscriptionService.getDriverAccounts()
+    driverSubscriptionService.getDriverAccounts(),
   );
   const [subscriptionsList, setSubscriptionsList] = useState<DriverSubscriptionRecord[]>(() =>
-    driverSubscriptionService.getAllSubscriptions()
+    driverSubscriptionService.getAllSubscriptions(),
   );
-  const [planos, setPlanos] = useState<DriverPlan[]>(() =>
-    subscriptionEngine.getAllPlans(true)
-  );
+  const [planos, setPlanos] = useState<DriverPlan[]>(() => subscriptionEngine.getAllPlans(true));
   const [metrics, setMetrics] = useState<PlatformRevenueMetrics>(() =>
-    revenueDashboardEngine.calculateMetrics()
+    revenueDashboardEngine.calculateMetrics(),
   );
 
   // Gateways Pix e Conciliação
-  const [pedidosRecarga, setPedidosRecarga] = useState<PedidoRecargaPix[]>(() => carregarPedidosRecarga());
+  const [pedidosRecarga, setPedidosRecarga] = useState<PedidoRecargaPix[]>(() =>
+    carregarPedidosRecarga(),
+  );
   const [gatewayConfig, setGatewayConfig] = useState<GatewayConfig>(() => carregarGatewayConfig());
 
   // Filtros de busca no ciclo de vida
   const [buscaMotorista, setBuscaMotorista] = useState("");
-  const [filtroStatus, setFiltroStatus] = useState<"TODOS" | DriverLifecycleStatus | "EXPIRING_SOON">("TODOS");
+  const [filtroStatus, setFiltroStatus] = useState<
+    "TODOS" | DriverLifecycleStatus | "EXPIRING_SOON"
+  >("TODOS");
 
   // Modais de Ações de Gestão
   const [modalCortesiaAberto, setModalCortesiaAberto] = useState(false);
@@ -127,13 +135,17 @@ export function AdminMonetizacaoPage() {
   // Estados dos formulários de modais
   const [contaSelecionada, setContaSelecionada] = useState<DriverSubscriptionAccount | null>(null);
   const [diasCortesiaInput, setDiasCortesiaInput] = useState(7);
-  const [motivoCortesiaInput, setMotivoCortesiaInput] = useState("Bonificação de fidelidade e incentivo operacional");
+  const [motivoCortesiaInput, setMotivoCortesiaInput] = useState(
+    "Bonificação de fidelidade e incentivo operacional",
+  );
 
   const [planoRenovacaoNome, setPlanoRenovacaoNome] = useState("Mensal Ilimitado (Zero Taxa)");
   const [diasRenovacaoInput, setDiasRenovacaoInput] = useState(30);
   const [valorRenovacaoInput, setValorRenovacaoInput] = useState("199.90");
 
-  const [motivoBloqueioInput, setMotivoBloqueioInput] = useState("Inadimplência de mensalidade após tolerância");
+  const [motivoBloqueioInput, setMotivoBloqueioInput] = useState(
+    "Inadimplência de mensalidade após tolerância",
+  );
 
   const [planoEmEdicao, setPlanoEmEdicao] = useState<Partial<DriverPlan> | null>(null);
 
@@ -145,7 +157,9 @@ export function AdminMonetizacaoPage() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   // Estados do Configurador Visual de Trial (Degustação Gratuita)
-  const [monetizacaoGlobal, setMonetizacaoGlobal] = useState<ConfigMonetizacaoWhiteLabel>(() => getMonetizacaoConfig());
+  const [monetizacaoGlobal, setMonetizacaoGlobal] = useState<ConfigMonetizacaoWhiteLabel>(() =>
+    getMonetizacaoConfig(),
+  );
   const [tenantsDisponiveis, setTenantsDisponiveis] = useState<WhiteLabelTenantRecord[]>(() => {
     try {
       return WhiteLabelEngine.getInstance().getAllTenants();
@@ -154,8 +168,12 @@ export function AdminMonetizacaoPage() {
     }
   });
   const [tenantSelecionadoTrial, setTenantSelecionadoTrial] = useState<string>("global");
-  const [trialAtivoInput, setTrialAtivoInput] = useState<boolean>(() => monetizacaoGlobal.trialAtivo ?? true);
-  const [trialDiasInput, setTrialDiasInput] = useState<number>(() => monetizacaoGlobal.trialDias ?? 3);
+  const [trialAtivoInput, setTrialAtivoInput] = useState<boolean>(
+    () => monetizacaoGlobal.trialAtivo ?? true,
+  );
+  const [trialDiasInput, setTrialDiasInput] = useState<number>(
+    () => monetizacaoGlobal.trialDias ?? 3,
+  );
   const [isSalvandoTrial, setIsSalvandoTrial] = useState(false);
 
   function mostrarToast(msg: string) {
@@ -217,7 +235,7 @@ export function AdminMonetizacaoPage() {
         mostrarToast(
           `Degustação Global salva com sucesso: ${
             trialAtivoInput ? `${dias} dias grátis` : "Desativada"
-          }. Sincronizada no app do motorista!`
+          }. Sincronizada no app do motorista!`,
         );
       } else {
         const wlEngine = WhiteLabelEngine.getInstance();
@@ -235,7 +253,7 @@ export function AdminMonetizacaoPage() {
           mostrarToast(
             `Degustação para "${nomeFranquia}" salva: ${
               trialAtivoInput ? `${dias} dias grátis` : "Desativada"
-            }.`
+            }.`,
           );
         }
       }
@@ -295,10 +313,12 @@ export function AdminMonetizacaoPage() {
       contaSelecionada.driverId,
       Number(diasCortesiaInput),
       motivoCortesiaInput,
-      "Super Admin"
+      "Super Admin",
     );
     if (res) {
-      mostrarToast(`Cortesia de ${diasCortesiaInput} dias concedida a ${res.driverName}! Acesso liberado no app.`);
+      mostrarToast(
+        `Cortesia de ${diasCortesiaInput} dias concedida a ${res.driverName}! Acesso liberado no app.`,
+      );
       setModalCortesiaAberto(false);
       recarregarDados();
     }
@@ -321,10 +341,12 @@ export function AdminMonetizacaoPage() {
       planoRenovacaoNome,
       Number(diasRenovacaoInput),
       isNaN(valor) ? 0 : valor,
-      "Super Admin"
+      "Super Admin",
     );
     if (res) {
-      mostrarToast(`Assinatura de ${res.driverName} renovada manualmente por ${diasRenovacaoInput} dias!`);
+      mostrarToast(
+        `Assinatura de ${res.driverName} renovada manualmente por ${diasRenovacaoInput} dias!`,
+      );
       setModalRenovacaoAberto(false);
       recarregarDados();
     }
@@ -342,7 +364,7 @@ export function AdminMonetizacaoPage() {
     const res = driverSubscriptionService.blockDriverAccess(
       contaSelecionada.driverId,
       motivoBloqueioInput,
-      "Super Admin"
+      "Super Admin",
     );
     if (res) {
       mostrarToast(`Acesso de ${res.driverName} bloqueado no app.`);
@@ -384,9 +406,9 @@ export function AdminMonetizacaoPage() {
     setPlanoEmEdicao({
       name: "",
       description: "",
-      monthlyFeeBrl: 199.90,
-      dailyFeeBrl: 14.90,
-      weeklyFeeBrl: 69.90,
+      monthlyFeeBrl: 199.9,
+      dailyFeeBrl: 14.9,
+      weeklyFeeBrl: 69.9,
       commissionPercent: 0.0,
       billingCycle: "MONTHLY",
       features: ["0% Taxa por Corrida", "100% Repasse Líquido D+0", "Acesso Total ao App"],
@@ -452,7 +474,9 @@ export function AdminMonetizacaoPage() {
 
   function handleToggleStatusPlano(planoId: string) {
     const atualizado = subscriptionEngine.togglePlanStatus(planoId);
-    mostrarToast(`Plano "${atualizado.name}" agora está ${atualizado.active ? "ATIVO" : "INATIVO"}.`);
+    mostrarToast(
+      `Plano "${atualizado.name}" agora está ${atualizado.active ? "ATIVO" : "INATIVO"}.`,
+    );
     recarregarDados();
   }
 
@@ -512,14 +536,17 @@ export function AdminMonetizacaoPage() {
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
                 0% TAKE RATE • SAAS PURO
               </span>
-              <span className="text-xs font-bold text-slate-500">Governança de Assinaturas & Recorrência</span>
+              <span className="text-xs font-bold text-slate-500">
+                Governança de Assinaturas & Recorrência
+              </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-950 mt-1">
               Monetização &amp; Planos SaaS (Taxa Zero)
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 mt-1">
-              O motorista fica com 100% do valor da corrida. A receita da plataforma provém exclusivamente
-              das assinaturas periódicas (diárias, semanais e mensais) pagas pelos parceiros.
+              O motorista fica com 100% do valor da corrida. A receita da plataforma provém
+              exclusivamente das assinaturas periódicas (diárias, semanais e mensais) pagas pelos
+              parceiros.
             </p>
           </div>
 
@@ -560,11 +587,18 @@ export function AdminMonetizacaoPage() {
               MRR (Recorrência)
             </span>
             <div className="text-xl sm:text-2xl font-black text-slate-950">
-              {executiveMetrics.mrrBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+              {executiveMetrics.mrrBrl.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              })}
             </div>
             <span className="text-[10px] text-emerald-700 font-bold flex items-center gap-0.5">
               <TrendingUp className="w-3 h-3" />
-              ARR {executiveMetrics.arrBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+              ARR{" "}
+              {executiveMetrics.arrBrl.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              })}
             </span>
           </div>
 
@@ -671,8 +705,9 @@ export function AdminMonetizacaoPage() {
                   Gestão do Ciclo de Vida das Assinaturas
                 </h2>
                 <p className="text-xs text-slate-300 max-w-2xl">
-                  Motoristas com assinatura ativa ou em período de teste recebem chamados instantaneamente no app.
-                  Condutores inadimplentes são excluídos da esteira de despacho até a regularização via Pix.
+                  Motoristas com assinatura ativa ou em período de teste recebem chamados
+                  instantaneamente no app. Condutores inadimplentes são excluídos da esteira de
+                  despacho até a regularização via Pix.
                 </p>
               </div>
 
@@ -774,13 +809,19 @@ export function AdminMonetizacaoPage() {
                             {/* Veículo */}
                             <td className="py-3 px-2">
                               <div className="font-semibold text-slate-800">{acc.vehicleModel}</div>
-                              <div className="font-mono text-[10px] text-slate-500 uppercase">{acc.vehiclePlate}</div>
+                              <div className="font-mono text-[10px] text-slate-500 uppercase">
+                                {acc.vehiclePlate}
+                              </div>
                             </td>
 
                             {/* Plano Atual */}
                             <td className="py-3 px-2">
-                              <span className="font-bold text-slate-900 block">{acc.currentPlanName}</span>
-                              <span className="text-[10px] font-black text-emerald-700">0% Comissão (100% Repasse)</span>
+                              <span className="font-bold text-slate-900 block">
+                                {acc.currentPlanName}
+                              </span>
+                              <span className="text-[10px] font-black text-emerald-700">
+                                0% Comissão (100% Repasse)
+                              </span>
                             </td>
 
                             {/* Status */}
@@ -927,11 +968,15 @@ export function AdminMonetizacaoPage() {
                   Tarifas Rápidas de Acesso por Diária (24h)
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Valores sincronizados instantaneamente no Supabase (<code>app_settings</code>) e cobrados via Pix para liberação de 24 horas no app.
+                  Valores sincronizados instantaneamente no Supabase (<code>app_settings</code>) e
+                  cobrados via Pix para liberação de 24 horas no app.
                 </p>
               </div>
 
-              <form onSubmit={handleSalvarDiariasSaaS} className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+              <form
+                onSubmit={handleSalvarDiariasSaaS}
+                className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end"
+              >
                 <div className="space-y-1.5">
                   <label className="text-xs font-black text-slate-700 block">
                     Diária Carro (R$ / 24h):
@@ -1003,14 +1048,14 @@ export function AdminMonetizacaoPage() {
                     </h3>
                   </div>
                   <p className="text-xs text-slate-500 max-w-2xl">
-                    Configure os dias de cortesia com 0% de comissão concedidos aos novos motoristas aprovados antes da primeira cobrança. Adapte livremente para lançamentos regionais ou campanhas de captação.
+                    Configure os dias de cortesia com 0% de comissão concedidos aos novos motoristas
+                    aprovados antes da primeira cobrança. Adapte livremente para lançamentos
+                    regionais ou campanhas de captação.
                   </p>
                 </div>
 
                 <div className="flex items-center gap-3 bg-slate-50 p-2.5 rounded-2xl border border-slate-200 self-start sm:self-auto">
-                  <span className="text-xs font-bold text-slate-700">
-                    Status do Trial:
-                  </span>
+                  <span className="text-xs font-bold text-slate-700">Status do Trial:</span>
                   <button
                     type="button"
                     onClick={() => setTrialAtivoInput(!trialAtivoInput)}
@@ -1050,7 +1095,8 @@ export function AdminMonetizacaoPage() {
                     ))}
                   </select>
                   <span className="text-[10.5px] text-slate-400 block">
-                    Defina se a regra vale para toda a plataforma ou apenas para uma praça específica.
+                    Defina se a regra vale para toda a plataforma ou apenas para uma praça
+                    específica.
                   </span>
                 </div>
 
@@ -1102,7 +1148,10 @@ export function AdminMonetizacaoPage() {
               {/* Ajuste Fino e Live Preview */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
                 {/* Campo Personalizado e Salvar */}
-                <form onSubmit={handleSalvarConfigTrial} className="space-y-4 bg-slate-50/70 p-4 rounded-2xl border border-slate-200/80">
+                <form
+                  onSubmit={handleSalvarConfigTrial}
+                  className="space-y-4 bg-slate-50/70 p-4 rounded-2xl border border-slate-200/80"
+                >
                   <div className="space-y-1.5">
                     <label className="text-xs font-black text-slate-800 block">
                       Dias Personalizados de Degustação:
@@ -1122,7 +1171,8 @@ export function AdminMonetizacaoPage() {
                       </span>
                     </div>
                     <span className="text-[10.5px] text-slate-500 block">
-                      Equivalente a <strong>{trialDiasInput * 24} horas</strong> de liberação contínua sem bloqueio.
+                      Equivalente a <strong>{trialDiasInput * 24} horas</strong> de liberação
+                      contínua sem bloqueio.
                     </span>
                   </div>
 
@@ -1148,9 +1198,13 @@ export function AdminMonetizacaoPage() {
                         <Sparkles className="w-3 h-3 text-amber-500" />
                         Visualização em Tempo Real no App do Condutor
                       </span>
-                      <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
-                        trialAtivoInput ? "bg-emerald-100 text-emerald-900" : "bg-slate-200 text-slate-600"
-                      }`}>
+                      <span
+                        className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                          trialAtivoInput
+                            ? "bg-emerald-100 text-emerald-900"
+                            : "bg-slate-200 text-slate-600"
+                        }`}
+                      >
                         {trialAtivoInput ? "Visível no App" : "Oculto no App"}
                       </span>
                     </div>
@@ -1164,7 +1218,9 @@ export function AdminMonetizacaoPage() {
                           </h4>
                         </div>
                         <p className="text-[11px] text-slate-600 leading-tight">
-                          Aproveite seu período de degustação com <strong>0% de taxa por corrida</strong>. Todos os ganhos das viagens são 100% seus.
+                          Aproveite seu período de degustação com{" "}
+                          <strong>0% de taxa por corrida</strong>. Todos os ganhos das viagens são
+                          100% seus.
                         </p>
                         <div className="pt-1.5 flex items-center justify-between">
                           <span className="text-[10px] font-bold text-emerald-700">
@@ -1177,13 +1233,15 @@ export function AdminMonetizacaoPage() {
                       </div>
                     ) : (
                       <div className="p-4 text-center text-xs text-slate-400 bg-white/60 rounded-xl border border-slate-200">
-                        O banner promocional de degustação está pausado. Novos motoristas serão direcionados diretamente para o catálogo de diárias pagas.
+                        O banner promocional de degustação está pausado. Novos motoristas serão
+                        direcionados diretamente para o catálogo de diárias pagas.
                       </div>
                     )}
                   </div>
 
                   <span className="text-[9.5px] text-slate-400 text-center mt-2 block">
-                    Ao salvar, o banner do app sincroniza imediatamente via eventos de tela e storage.
+                    Ao salvar, o banner do app sincroniza imediatamente via eventos de tela e
+                    storage.
                   </span>
                 </div>
               </div>
@@ -1197,7 +1255,8 @@ export function AdminMonetizacaoPage() {
                     Planos de Acesso Recorrentes da Frota
                   </h2>
                   <p className="text-xs text-slate-500">
-                    Todos os planos operam com 0% de comissão retida e 100% de repasse líquido ao condutor.
+                    Todos os planos operam com 0% de comissão retida e 100% de repasse líquido ao
+                    condutor.
                   </p>
                 </div>
               </div>
@@ -1215,7 +1274,9 @@ export function AdminMonetizacaoPage() {
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className={`w-3 h-3 rounded-full ${plano.badgeColor || "bg-emerald-600"}`} />
+                          <span
+                            className={`w-3 h-3 rounded-full ${plano.badgeColor || "bg-emerald-600"}`}
+                          />
                           <h3 className="text-base font-black text-slate-950">{plano.name}</h3>
                         </div>
                         {plano.isPopular && (
@@ -1335,9 +1396,7 @@ export function AdminMonetizacaoPage() {
                   <span className="text-xs font-bold uppercase">Comissões por Corrida</span>
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
                 </div>
-                <div className="text-2xl font-black text-emerald-700">
-                  R$ 0,00 (0,0%)
-                </div>
+                <div className="text-2xl font-black text-emerald-700">R$ 0,00 (0,0%)</div>
                 <span className="text-[11px] text-slate-500 block">
                   Zero dedução fracionada sobre viagens
                 </span>
@@ -1466,7 +1525,9 @@ export function AdminMonetizacaoPage() {
                         const isExpired = new Date(sub.expires_at).getTime() < Date.now();
                         return (
                           <tr key={sub.id} className="hover:bg-slate-50/80 transition">
-                            <td className="py-3 font-mono font-bold text-slate-900">{sub.driver_id}</td>
+                            <td className="py-3 font-mono font-bold text-slate-900">
+                              {sub.driver_id}
+                            </td>
                             <td className="py-3">
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-slate-100 text-slate-700">
                                 {sub.vehicle_type}
@@ -1545,7 +1606,9 @@ export function AdminMonetizacaoPage() {
                       }
                       className="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                     >
-                      <option value="MERCADO_PAGO">Mercado Pago (Pix Transparente / Webhook)</option>
+                      <option value="MERCADO_PAGO">
+                        Mercado Pago (Pix Transparente / Webhook)
+                      </option>
                       <option value="PICPAY">PicPay API (QR Code & Notificações)</option>
                       <option value="ASAAS">Asaas (Cobranças & Recorrência)</option>
                       <option value="MANUAL">Central Manual (Chave Pix & Comprovante)</option>
@@ -1598,7 +1661,10 @@ export function AdminMonetizacaoPage() {
                         type="text"
                         value={gatewayConfig.nomeBeneficiario}
                         onChange={(e) =>
-                          setGatewayConfig((prev) => ({ ...prev, nomeBeneficiario: e.target.value }))
+                          setGatewayConfig((prev) => ({
+                            ...prev,
+                            nomeBeneficiario: e.target.value,
+                          }))
                         }
                         placeholder="Ex: Partiu Mobilidade Ltda"
                         className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
@@ -1612,7 +1678,10 @@ export function AdminMonetizacaoPage() {
                         type="text"
                         value={gatewayConfig.cidadeBeneficiario}
                         onChange={(e) =>
-                          setGatewayConfig((prev) => ({ ...prev, cidadeBeneficiario: e.target.value }))
+                          setGatewayConfig((prev) => ({
+                            ...prev,
+                            cidadeBeneficiario: e.target.value,
+                          }))
                         }
                         placeholder="Ex: Sao Paulo"
                         className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
@@ -1633,7 +1702,10 @@ export function AdminMonetizacaoPage() {
                         type="password"
                         value={gatewayConfig.mercadoPagoAccessToken || ""}
                         onChange={(e) =>
-                          setGatewayConfig((prev) => ({ ...prev, mercadoPagoAccessToken: e.target.value }))
+                          setGatewayConfig((prev) => ({
+                            ...prev,
+                            mercadoPagoAccessToken: e.target.value,
+                          }))
                         }
                         placeholder="APP_USR-xxxx-xxxx-xxxx"
                         className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
@@ -1649,7 +1721,10 @@ export function AdminMonetizacaoPage() {
                           type="text"
                           value={gatewayConfig.picPayClientId || ""}
                           onChange={(e) =>
-                            setGatewayConfig((prev) => ({ ...prev, picPayClientId: e.target.value }))
+                            setGatewayConfig((prev) => ({
+                              ...prev,
+                              picPayClientId: e.target.value,
+                            }))
                           }
                           placeholder="client_id_exemplo"
                           className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
@@ -1663,7 +1738,10 @@ export function AdminMonetizacaoPage() {
                           type="password"
                           value={gatewayConfig.picPayClientSecret || ""}
                           onChange={(e) =>
-                            setGatewayConfig((prev) => ({ ...prev, picPayClientSecret: e.target.value }))
+                            setGatewayConfig((prev) => ({
+                              ...prev,
+                              picPayClientSecret: e.target.value,
+                            }))
                           }
                           placeholder="••••••••••••"
                           className="w-full text-xs rounded-xl border border-slate-200 bg-slate-50 p-2 font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
@@ -1705,7 +1783,8 @@ export function AdminMonetizacaoPage() {
                       Fila de Conciliação de Assinaturas Pix
                     </h3>
                     <p className="text-[11px] text-slate-500">
-                      Ordens de pagamento de planos e diárias aguardando webhook ou validação manual.
+                      Ordens de pagamento de planos e diárias aguardando webhook ou validação
+                      manual.
                     </p>
                   </div>
                   <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">
@@ -1897,7 +1976,10 @@ export function AdminMonetizacaoPage() {
 
                 <div className="p-3 bg-blue-50 rounded-2xl border border-blue-100 text-[11px] text-blue-900 space-y-1">
                   <span className="font-bold block">Efeito Imediato:</span>
-                  <span>O status da assinatura mudará para <strong>ATIVO</strong> e o botão "Ficar Online" no app do motorista será desbloqueado em tempo real.</span>
+                  <span>
+                    O status da assinatura mudará para <strong>ATIVO</strong> e o botão "Ficar
+                    Online" no app do motorista será desbloqueado em tempo real.
+                  </span>
                 </div>
 
                 <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
@@ -1932,7 +2014,9 @@ export function AdminMonetizacaoPage() {
                     <RefreshCw className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-black text-slate-950">Renovação Manual de Assinatura</h3>
+                    <h3 className="text-sm font-black text-slate-950">
+                      Renovação Manual de Assinatura
+                    </h3>
                     <p className="text-[11px] text-slate-500">{contaSelecionada.driverName}</p>
                   </div>
                 </div>
@@ -1957,7 +2041,9 @@ export function AdminMonetizacaoPage() {
                   >
                     <option value="Diária Flex (24h)">Diária Flex (24h)</option>
                     <option value="Semanal Pro (7 Dias)">Semanal Pro (7 Dias)</option>
-                    <option value="Mensal Ilimitado (Zero Taxa)">Mensal Ilimitado (Zero Taxa)</option>
+                    <option value="Mensal Ilimitado (Zero Taxa)">
+                      Mensal Ilimitado (Zero Taxa)
+                    </option>
                     <option value="Mensal Ouro (30 Dias)">Mensal Ouro (30 Dias)</option>
                   </select>
                 </div>
@@ -2021,7 +2107,9 @@ export function AdminMonetizacaoPage() {
                     <Lock className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-black text-slate-950">Bloquear Acesso do Motorista</h3>
+                    <h3 className="text-sm font-black text-slate-950">
+                      Bloquear Acesso do Motorista
+                    </h3>
                     <p className="text-[11px] text-slate-500">{contaSelecionada.driverName}</p>
                   </div>
                 </div>
@@ -2051,7 +2139,10 @@ export function AdminMonetizacaoPage() {
 
                 <div className="p-3 bg-rose-50 rounded-2xl border border-rose-100 text-[11px] text-rose-900">
                   <span className="font-bold block">Atenção:</span>
-                  <span>O motorista será desconectado da fila de despacho e impedido de aceitar novas corridas até que sua assinatura seja regularizada.</span>
+                  <span>
+                    O motorista será desconectado da fila de despacho e impedido de aceitar novas
+                    corridas até que sua assinatura seja regularizada.
+                  </span>
                 </div>
 
                 <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
@@ -2082,7 +2173,9 @@ export function AdminMonetizacaoPage() {
             <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="text-base font-black text-slate-950">
-                  {planoEmEdicao.id ? `Editar Plano: ${planoEmEdicao.name}` : "Criar Novo Plano SaaS"}
+                  {planoEmEdicao.id
+                    ? `Editar Plano: ${planoEmEdicao.name}`
+                    : "Criar Novo Plano SaaS"}
                 </h3>
                 <button
                   type="button"
@@ -2296,8 +2389,12 @@ export function AdminMonetizacaoPage() {
                     <QrCode className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-black text-slate-950">Cobrança de Mensalidade Pix</h3>
-                    <p className="text-[11px] text-slate-500">QR Code dinâmico com liquidação instantânea</p>
+                    <h3 className="text-sm font-black text-slate-950">
+                      Cobrança de Mensalidade Pix
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      QR Code dinâmico com liquidação instantânea
+                    </p>
                   </div>
                 </div>
                 <button

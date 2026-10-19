@@ -1,6 +1,6 @@
 /**
  * SMART PASSENGER BOARDING ENGINE — ORCHESTRATOR
- * 
+ *
  * Motor central de embarque inteligente sem dependência de PIN obrigatório.
  * Modelo profissional centrado no motorista (Uber / 99), com verificação de identidade,
  * geofence anti-fraude e integração ao Passenger Trust Score.
@@ -10,20 +10,10 @@ import {
   PassengerVerificationResult,
   passengerVerificationEngine,
   PassengerIdentityInput,
-} from './passenger-verification';
-import {
-  BoardingChecklistState,
-  boardingChecklistEngine,
-} from './boarding-checklist';
-import {
-  RideStartTelemetry,
-  rideStartValidator,
-  RideCoordinates,
-} from './ride-start-validator';
-import {
-  TrustBoardingPolicy,
-  trustAssistedBoardingEngine,
-} from './trust-assisted-boarding';
+} from "./passenger-verification";
+import { BoardingChecklistState, boardingChecklistEngine } from "./boarding-checklist";
+import { RideStartTelemetry, rideStartValidator, RideCoordinates } from "./ride-start-validator";
+import { TrustBoardingPolicy, trustAssistedBoardingEngine } from "./trust-assisted-boarding";
 
 export interface BoardingAuditRecord {
   id: string;
@@ -31,7 +21,7 @@ export interface BoardingAuditRecord {
   driverId: string;
   passengerId: string;
   timestamp: number;
-  boardingMethod: 'ONE_TAP_SMART' | 'ASSISTED_TRUST' | 'OPTIONAL_PIN';
+  boardingMethod: "ONE_TAP_SMART" | "ASSISTED_TRUST" | "OPTIONAL_PIN";
   trustScore: number;
   trustTier: string;
   riskLevel: string;
@@ -69,7 +59,7 @@ export interface ConfirmBoardingInput {
 export interface BoardingConfirmationResult {
   success: boolean;
   rideId: string;
-  status: 'EM_VIAGEM' | 'CHEGOU' | 'CANCELADA';
+  status: "EM_VIAGEM" | "CHEGOU" | "CANCELADA";
   message: string;
   telemetry: RideStartTelemetry;
   auditRecord?: BoardingAuditRecord | undefined;
@@ -82,7 +72,11 @@ export class SmartPassengerBoardingEngine {
   /**
    * Verifica se o PIN está bloqueado por excesso de tentativas
    */
-  public getPinLockStatus(rideId: string): { isLocked: boolean; remainingSeconds: number; attempts: number } {
+  public getPinLockStatus(rideId: string): {
+    isLocked: boolean;
+    remainingSeconds: number;
+    attempts: number;
+  } {
     const record = this.pinAttempts.get(rideId);
     if (!record) return { isLocked: false, remainingSeconds: 0, attempts: 0 };
     const now = Date.now();
@@ -106,7 +100,7 @@ export class SmartPassengerBoardingEngine {
     pin?: string | undefined,
     passengerDetails?: Partial<PassengerIdentityInput> | undefined,
     driverLocation?: RideCoordinates | undefined,
-    pickupLocation?: RideCoordinates | undefined
+    pickupLocation?: RideCoordinates | undefined,
   ): BoardingSession {
     const passengerId = passengerDetails?.passengerId || `pass-${rideId}`;
 
@@ -119,7 +113,7 @@ export class SmartPassengerBoardingEngine {
       totalCompletedRides: passengerDetails?.totalCompletedRides ?? 48,
       accountAgeDays: passengerDetails?.accountAgeDays ?? 240,
       trustScore: passengerDetails?.trustScore ?? 88,
-      trustTier: passengerDetails?.trustTier ?? 'PREMIUM',
+      trustTier: passengerDetails?.trustTier ?? "PREMIUM",
       photoUrl: passengerDetails?.photoUrl,
       severeReportsCount: passengerDetails?.severeReportsCount ?? 0,
       cancellationRate: passengerDetails?.cancellationRate ?? 0.02,
@@ -128,7 +122,7 @@ export class SmartPassengerBoardingEngine {
     // 2. Diretriz de Confiança
     const policy = trustAssistedBoardingEngine.getPolicy(
       verification.trustTier,
-      verification.trustScore
+      verification.trustScore,
     );
 
     // 3. Checklist de Embarque
@@ -136,7 +130,7 @@ export class SmartPassengerBoardingEngine {
       rideId,
       passengerId,
       verification.riskLevel,
-      verification.trustTier
+      verification.trustTier,
     );
 
     // 4. Validação Prévia de Geofence se localizações forem fornecidas
@@ -159,7 +153,7 @@ export class SmartPassengerBoardingEngine {
       checklistState: checklist,
       isReadyForOneTapStart,
       pinFallbackAllowed: true, // Sempre disponível como opção secundária
-      pinFallbackValue: pin || '4829',
+      pinFallbackValue: pin || "4829",
     };
   }
 
@@ -182,8 +176,9 @@ export class SmartPassengerBoardingEngine {
       return {
         success: false,
         rideId: input.rideId,
-        status: 'CHEGOU',
-        message: telemetry.errorMessage || 'Condições de segurança não atendidas para início da viagem.',
+        status: "CHEGOU",
+        message:
+          telemetry.errorMessage || "Condições de segurança não atendidas para início da viagem.",
         telemetry,
       };
     }
@@ -191,34 +186,34 @@ export class SmartPassengerBoardingEngine {
     // 2. Avaliação de Perfil de Confiança
     const verification = passengerVerificationEngine.verifyPassenger({
       passengerId: input.passengerId,
-      name: input.passengerInput?.name || 'Passageiro',
+      name: input.passengerInput?.name || "Passageiro",
       cpfVerified: input.passengerInput?.cpfVerified ?? true,
       rating: input.passengerInput?.rating ?? 4.95,
       totalCompletedRides: input.passengerInput?.totalCompletedRides ?? 32,
       accountAgeDays: input.passengerInput?.accountAgeDays ?? 180,
       trustScore: input.passengerInput?.trustScore ?? 85,
-      trustTier: input.passengerInput?.trustTier ?? 'PREMIUM',
+      trustTier: input.passengerInput?.trustTier ?? "PREMIUM",
     });
 
-    if (verification.riskLevel === 'BLOCKED') {
+    if (verification.riskLevel === "BLOCKED") {
       return {
         success: false,
         rideId: input.rideId,
-        status: 'CHEGOU',
-        message: 'Passageiro com restrição severa de segurança. Embarque não autorizado.',
+        status: "CHEGOU",
+        message: "Passageiro com restrição severa de segurança. Embarque não autorizado.",
         telemetry: {
           ...telemetry,
           isApproved: false,
-          errorCode: 'ERR_PASSENGER_BLOCKED',
-          errorMessage: 'Passageiro bloqueado por diretriz de segurança.',
+          errorCode: "ERR_PASSENGER_BLOCKED",
+          errorMessage: "Passageiro bloqueado por diretriz de segurança.",
         },
       };
     }
 
     // 3. Método de Embarque Utilizado & Proteção Anti-Brute-Force
-    let method: BoardingAuditRecord['boardingMethod'] = 'ONE_TAP_SMART';
+    let method: BoardingAuditRecord["boardingMethod"] = "ONE_TAP_SMART";
     if (input.pinProvided && input.expectedPin) {
-      method = 'OPTIONAL_PIN';
+      method = "OPTIONAL_PIN";
 
       // 3.1 Verifica bloqueio por tentativas excedidas
       const lockStatus = this.getPinLockStatus(input.rideId);
@@ -226,13 +221,13 @@ export class SmartPassengerBoardingEngine {
         return {
           success: false,
           rideId: input.rideId,
-          status: 'CHEGOU',
+          status: "CHEGOU",
           message: `PIN temporariamente bloqueado por ${Math.ceil(lockStatus.remainingSeconds / 60)} min devido a 3 tentativas incorretas.`,
           telemetry: {
             ...telemetry,
             isApproved: false,
-            errorCode: 'ERR_PIN_LOCKED',
-            errorMessage: 'PIN temporariamente bloqueado.',
+            errorCode: "ERR_PIN_LOCKED",
+            errorMessage: "PIN temporariamente bloqueado.",
           },
         };
       }
@@ -244,19 +239,20 @@ export class SmartPassengerBoardingEngine {
         const lockedUntil = newCount >= 3 ? Date.now() + 15 * 60 * 1000 : 0;
         this.pinAttempts.set(input.rideId, { count: newCount, lockedUntil });
 
-        const msg = newCount >= 3
-          ? 'PIN incorreto pela 3ª vez! O embarque por PIN foi temporariamente bloqueado por 15 minutos.'
-          : `PIN incorreto! Tentativa ${newCount} de 3.`;
+        const msg =
+          newCount >= 3
+            ? "PIN incorreto pela 3ª vez! O embarque por PIN foi temporariamente bloqueado por 15 minutos."
+            : `PIN incorreto! Tentativa ${newCount} de 3.`;
 
         return {
           success: false,
           rideId: input.rideId,
-          status: 'CHEGOU',
+          status: "CHEGOU",
           message: msg,
           telemetry: {
             ...telemetry,
             isApproved: false,
-            errorCode: 'ERR_INVALID_PIN',
+            errorCode: "ERR_INVALID_PIN",
             errorMessage: msg,
           },
         };
@@ -264,8 +260,8 @@ export class SmartPassengerBoardingEngine {
 
       // 3.3 Sucesso no PIN: Reseta tentativas
       this.pinAttempts.delete(input.rideId);
-    } else if (verification.trustTier === 'ELITE' || verification.trustTier === 'PREMIUM') {
-      method = 'ASSISTED_TRUST';
+    } else if (verification.trustTier === "ELITE" || verification.trustTier === "PREMIUM") {
+      method = "ASSISTED_TRUST";
     }
 
     // 4. Criação do Registro Forense de Auditoria
@@ -282,26 +278,26 @@ export class SmartPassengerBoardingEngine {
       distanceToPickupMeters: telemetry.distanceToPickupMeters,
       geofencePassed: telemetry.geofencePassed,
       statusBefore: input.currentRideStatus,
-      statusAfter: 'EM_VIAGEM',
+      statusAfter: "EM_VIAGEM",
       fraudFlags: telemetry.fraudFlags,
     };
 
     this.auditLogs.push(auditRecord);
 
     // 5. Emitir evento distribuído no navegador se disponível
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       window.dispatchEvent(
-        new CustomEvent('partiu:boarding-confirmed', {
+        new CustomEvent("partiu:boarding-confirmed", {
           detail: auditRecord,
-        })
+        }),
       );
     }
 
     return {
       success: true,
       rideId: input.rideId,
-      status: 'EM_VIAGEM',
-      message: 'Embarque confirmado com sucesso! Viagem iniciada.',
+      status: "EM_VIAGEM",
+      message: "Embarque confirmado com sucesso! Viagem iniciada.",
       telemetry,
       auditRecord,
     };
@@ -313,7 +309,7 @@ export class SmartPassengerBoardingEngine {
   public validatePin(
     rideId: string,
     pinProvided: string,
-    expectedPin: string
+    expectedPin: string,
   ): { success: boolean; isLockedOut: boolean; attemptsRemaining: number; message: string } {
     const lockStatus = this.getPinLockStatus(rideId);
     if (lockStatus.isLocked) {
@@ -334,7 +330,7 @@ export class SmartPassengerBoardingEngine {
       const isLockedOut = newCount >= 3;
       const remaining = Math.max(0, 3 - newCount);
       const message = isLockedOut
-        ? 'PIN incorreto pela 3ª vez! O embarque foi temporariamente bloqueado por 15 minutos.'
+        ? "PIN incorreto pela 3ª vez! O embarque foi temporariamente bloqueado por 15 minutos."
         : `PIN incorreto! Tentativa ${newCount} de 3. Restam ${remaining} tentativas.`;
 
       return {
@@ -351,7 +347,7 @@ export class SmartPassengerBoardingEngine {
       success: true,
       isLockedOut: false,
       attemptsRemaining: 3,
-      message: 'PIN validado com sucesso!',
+      message: "PIN validado com sucesso!",
     };
   }
 }
@@ -361,7 +357,7 @@ export const smartPassengerBoardingEngine = new SmartPassengerBoardingEngine();
 export function validateRidePinWithLockout(
   rideId: string,
   pinProvided: string,
-  expectedPin: string
+  expectedPin: string,
 ): { success: boolean; isLockedOut: boolean; attemptsRemaining: number; message: string } {
   return smartPassengerBoardingEngine.validatePin(rideId, pinProvided, expectedPin);
 }

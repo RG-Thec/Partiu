@@ -24,7 +24,15 @@ export interface GeocodedPlace {
   sublabel: string;
   endereco: string;
   coords: [number, number]; // [lng, lat]
-  tipo?: "rua" | "ponto_interesse" | "bairro" | "hospital" | "faculdade" | "transporte" | "cep" | "comercio";
+  tipo?:
+    | "rua"
+    | "ponto_interesse"
+    | "bairro"
+    | "hospital"
+    | "faculdade"
+    | "transporte"
+    | "cep"
+    | "comercio";
   relevance?: number;
   bairro?: string;
   cidade?: string;
@@ -47,7 +55,7 @@ const FATOR_MALHA_URBANA = 1.35;
  */
 export function calcularDistanciaHaversineMetros(
   coord1: [number, number],
-  coord2: [number, number]
+  coord2: [number, number],
 ): number {
   const [lon1, lat1] = coord1;
   const [lon2, lat2] = coord2;
@@ -89,7 +97,7 @@ export const LUGARES_CURADOS_ITAPERUNA: GeocodedPlace[] = [
     label: "Bairro São Mateus",
     sublabel: "São Mateus — Itaperuna, RJ",
     endereco: "Bairro São Mateus, Itaperuna - RJ",
-    coords: [-41.8780, -21.1880],
+    coords: [-41.878, -21.188],
     tipo: "bairro",
     bairro: "São Mateus",
     cidade: "Itaperuna",
@@ -129,7 +137,7 @@ export const LUGARES_CURADOS_ITAPERUNA: GeocodedPlace[] = [
     label: "Rua Antônio Jacomini",
     sublabel: "São Mateus — Itaperuna, RJ",
     endereco: "Rua Antônio Jacomini - São Mateus, Itaperuna - RJ",
-    coords: [-41.8762, -21.1870],
+    coords: [-41.8762, -21.187],
     tipo: "rua",
     bairro: "São Mateus",
     cidade: "Itaperuna",
@@ -169,7 +177,7 @@ export const LUGARES_CURADOS_ITAPERUNA: GeocodedPlace[] = [
     label: "Rua Sebastião Leopoldo Coelho",
     sublabel: "São Mateus — Itaperuna, RJ",
     endereco: "Rua Sebastião Leopoldo Coelho - São Mateus, Itaperuna - RJ",
-    coords: [-41.8790, -21.1867],
+    coords: [-41.879, -21.1867],
     tipo: "rua",
     bairro: "São Mateus",
     cidade: "Itaperuna",
@@ -219,7 +227,7 @@ export const LUGARES_CURADOS_ITAPERUNA: GeocodedPlace[] = [
     label: "Rua Pedro Álvares Cabral",
     sublabel: "São Mateus — Itaperuna, RJ",
     endereco: "Rua Pedro Álvares Cabral - São Mateus, Itaperuna - RJ",
-    coords: [-41.8780, -21.1905],
+    coords: [-41.878, -21.1905],
     tipo: "rua",
     bairro: "São Mateus",
     cidade: "Itaperuna",
@@ -910,7 +918,7 @@ export class GeocodingService {
    */
   public async buscarLugares(
     termo: string,
-    coordsOrigem?: [number, number]
+    coordsOrigem?: [number, number],
   ): Promise<GeocodedPlace[]> {
     const q = normalizarTexto(termo);
     const centroRef: [number, number] = coordsOrigem || MapboxConfig.DEFAULT_CENTER;
@@ -949,7 +957,10 @@ export class GeocodingService {
             const remotos: GeocodedPlace[] = [];
             for (const f of data.features) {
               if (!f.geometry || !Array.isArray(f.geometry.coordinates)) continue;
-              const coords: [number, number] = [f.geometry.coordinates[0], f.geometry.coordinates[1]];
+              const coords: [number, number] = [
+                f.geometry.coordinates[0],
+                f.geometry.coordinates[1],
+              ];
               const dist = calcularDistanciaHaversineMetros(centroRef, coords);
               // Filtro estrito: Somente locais reais dentro de 8 km
               if (dist < 40 || dist > 8000) continue;
@@ -994,7 +1005,7 @@ export class GeocodingService {
             labelNorm.includes(t) ||
             subNorm.includes(t) ||
             endNorm.includes(t) ||
-            bairroNorm.includes(t)
+            bairroNorm.includes(t),
         );
 
         if (matchTodosTokens) {
@@ -1018,9 +1029,9 @@ export class GeocodingService {
           } else if (distanciaMetros <= 1500) {
             score += 100; // Mesmo bairro ou adjacência direta
           } else if (distanciaMetros <= 3000) {
-            score += 50;  // Mesma região da cidade
+            score += 50; // Mesma região da cidade
           } else if (distanciaMetros > 5000) {
-            score -= 30;  // Distante
+            score -= 30; // Distante
           }
 
           candidatosLocais.push({
@@ -1044,7 +1055,7 @@ export class GeocodingService {
 
         // Photon aceita lat e lon do usuário para dar preferência aos resultados locais
         const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(
-          termo
+          termo,
         )}&lat=${centroRef[1]}&lon=${centroRef[0]}&limit=6&lang=pt`;
 
         const res = await fetch(photonUrl, { signal: controller.signal });
@@ -1063,14 +1074,16 @@ export class GeocodingService {
                 const props = f.properties || {};
                 const nome = props.name || props.street || termo;
                 const bairroRemoto = props.district || props.suburb || "";
-                const cidadeRemota = props.city || props.town || props.village || props.municipality || "";
+                const cidadeRemota =
+                  props.city || props.town || props.village || props.municipality || "";
                 const estadoRemoto = props.state || "";
 
-                const sublabel = bairroRemoto && cidadeRemota
-                  ? `${bairroRemoto} — ${cidadeRemota}${estadoRemoto ? `, ${estadoRemoto}` : ""}`
-                  : cidadeRemota
-                  ? `${cidadeRemota}${estadoRemoto ? `, ${estadoRemoto}` : ""}`
-                  : bairroRemoto || "Endereço Encontrado";
+                const sublabel =
+                  bairroRemoto && cidadeRemota
+                    ? `${bairroRemoto} — ${cidadeRemota}${estadoRemoto ? `, ${estadoRemoto}` : ""}`
+                    : cidadeRemota
+                      ? `${cidadeRemota}${estadoRemoto ? `, ${estadoRemoto}` : ""}`
+                      : bairroRemoto || "Endereço Encontrado";
 
                 const dist = calcularDistanciaHaversineMetros(centroRef, coords);
 
@@ -1145,10 +1158,7 @@ export class GeocodingService {
   /**
    * Busca lugares com autocomplete textual e priorização geográfica (Compatibilidade de API)
    */
-  public async search(
-    query: string,
-    options: GeocodingOptions = {}
-  ): Promise<GeocodedPlace[]> {
+  public async search(query: string, options: GeocodingOptions = {}): Promise<GeocodedPlace[]> {
     const termo = (query || "").trim();
     if (!termo || termo.length < 2) {
       return [];
@@ -1161,7 +1171,8 @@ export class GeocodingService {
     const termoNormalizado = normalizarTexto(termo);
 
     // 1. Lugares curados prioritários da região (apenas se o usuário estiver próximo ao polo curado)
-    const estaNoPoloCurado = calcularDistanciaHaversineMetros(proximity, [-41.888, -21.205]) <= 35000;
+    const estaNoPoloCurado =
+      calcularDistanciaHaversineMetros(proximity, [-41.888, -21.205]) <= 35000;
     const locaisCurados = estaNoPoloCurado
       ? LUGARES_CURADOS_ITAPERUNA.filter((l) => {
           const labelNorm = normalizarTexto(l.label);
@@ -1188,7 +1199,7 @@ export class GeocodingService {
       const token = MapboxConfig.getAccessToken();
       if (token && token.startsWith("pk.")) {
         const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-          termo
+          termo,
         )}.json`;
         const params = new URLSearchParams({
           access_token: token,
@@ -1209,11 +1220,12 @@ export class GeocodingService {
               const city = context.find((c: any) => c.id.startsWith("place"))?.text || "";
               const state = context.find((c: any) => c.id.startsWith("region"))?.text || "";
 
-              const sublabel = neighborhood && city
-                ? `${neighborhood}, ${city}${state ? ` - ${state}` : ""}`
-                : city
-                ? `${city}${state ? ` - ${state}` : ""}`
-                : neighborhood || "Localidade Encontrada";
+              const sublabel =
+                neighborhood && city
+                  ? `${neighborhood}, ${city}${state ? ` - ${state}` : ""}`
+                  : city
+                    ? `${city}${state ? ` - ${state}` : ""}`
+                    : neighborhood || "Localidade Encontrada";
 
               let tipo: GeocodedPlace["tipo"] = "rua";
               if (feat.place_type?.includes("poi")) tipo = "ponto_interesse";
@@ -1262,7 +1274,7 @@ export class GeocodingService {
       (l) =>
         l.tipo === "cep" &&
         (l.label.replace(/\D/g, "").includes(cepLimpo) ||
-          l.endereco.replace(/\D/g, "").includes(cepLimpo))
+          l.endereco.replace(/\D/g, "").includes(cepLimpo)),
     );
     if (curado.length > 0) return curado;
     return this.search(cep, { types: ["postcode"] });

@@ -1,6 +1,17 @@
 import React, { memo } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
-import { Car, Package, Compass, CreditCard, User, Truck, Shield, HelpCircle, Home, Clock } from "lucide-react";
+import {
+  Car,
+  Package,
+  Compass,
+  CreditCard,
+  User,
+  Truck,
+  Shield,
+  HelpCircle,
+  Home,
+  Clock,
+} from "lucide-react";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 
 export interface HomeBottomNavProps {
@@ -107,7 +118,13 @@ export const HomeBottomNav = memo(function HomeBottomNav({
   const defaultTabs = [
     { id: "inicio", rotulo: "Início", rota: "/app", icone: Home, ativo: isInicio },
     { id: "viagens", rotulo: "Viagens", rota: "/app/viagem", icone: Clock, ativo: isViagens },
-    { id: "entregas", rotulo: "Entregas", rota: "/app/encomendas", icone: Package, ativo: isEntregas },
+    {
+      id: "entregas",
+      rotulo: "Entregas",
+      rota: "/app/encomendas",
+      icone: Package,
+      ativo: isEntregas,
+    },
     { id: "perfil", rotulo: "Perfil", rota: "/app/perfil", icone: User, ativo: isPerfil },
   ];
 

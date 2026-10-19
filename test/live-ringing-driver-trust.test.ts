@@ -150,7 +150,9 @@ describe("SUITE 45: PARTIU RESILIENCE — Realtime Connection & Micro-Payloads",
     });
 
     expect(typeof recordedState).toBe("string");
-    expect(["DISCONNECTED", "CONNECTING", "CONNECTED", "RECONNECTING", "ERROR"].includes(recordedState)).toBe(true);
+    expect(
+      ["DISCONNECTED", "CONNECTING", "CONNECTED", "RECONNECTING", "ERROR"].includes(recordedState),
+    ).toBe(true);
 
     unsubscribe();
   });

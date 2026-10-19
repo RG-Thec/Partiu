@@ -1,17 +1,17 @@
 /**
  * PARTIU WHATSAPP DISPATCH & TRACKING
- * 
+ *
  * Orquestrador de Despacho, Pagamento PIX e Rastreamento ao Vivo para corridas via WhatsApp.
  */
 
-import { pixEngine } from '../finance/pix-engine';
-import { partiuWalletEngine } from '../finance/partiu-wallet';
+import { pixEngine } from "../finance/pix-engine";
+import { partiuWalletEngine } from "../finance/partiu-wallet";
 
 export interface WhatsAppDispatchedRide {
   rideId: string;
   phoneNumber: string;
   passengerName: string;
-  modalidade: 'POP' | 'MOTO' | 'PLUS';
+  modalidade: "POP" | "MOTO" | "PLUS";
   origin: string;
   destination: string;
   distanceKm: number;
@@ -25,7 +25,13 @@ export interface WhatsAppDispatchedRide {
   pixTxId: string;
   pixQrCodePayload: string;
   trackingUrl: string;
-  status: 'PAGAMENTO_PENDENTE' | 'MOTORISTA_A_CAMINHO' | 'MOTORISTA_NO_LOCAL' | 'EM_VIAGEM' | 'CONCLUIDA' | 'CANCELADA';
+  status:
+    | "PAGAMENTO_PENDENTE"
+    | "MOTORISTA_A_CAMINHO"
+    | "MOTORISTA_NO_LOCAL"
+    | "EM_VIAGEM"
+    | "CONCLUIDA"
+    | "CANCELADA";
   createdAt: number;
   etaArrivalMinutes: number;
 }
@@ -39,11 +45,11 @@ export class WhatsAppDispatchEngine {
   public dispatchRide(
     phoneNumber: string,
     passengerName: string,
-    modalidade: 'POP' | 'MOTO' | 'PLUS',
+    modalidade: "POP" | "MOTO" | "PLUS",
     origin: string,
     destination: string,
     distanceKm: number,
-    fareBrl: number
+    fareBrl: number,
   ): WhatsAppDispatchedRide {
     const rideId = `WPP-RIDE-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
@@ -51,17 +57,38 @@ export class WhatsAppDispatchEngine {
     const pixOrder = pixEngine.createPixCashInOrder({
       payerId: phoneNumber,
       amountBrl: fareBrl,
-      description: `Corrida PARTIU WhatsApp ${modalidade} - ${rideId}`
+      description: `Corrida PARTIU WhatsApp ${modalidade} - ${rideId}`,
     });
 
     // Motoristas virtuais parceiros para alocação instantânea
     const mockDrivers = [
-      { id: 'DRV-WPP-01', name: 'Leandro Silveira', phone: '+55 22 99881-2233', plate: 'KRP-4A12', model: 'Chevrolet Onix Prata', rating: 4.96 },
-      { id: 'DRV-WPP-02', name: 'Tiago Bernardes', phone: '+55 22 99712-4455', plate: 'RIO-9B88', model: 'Honda CG 160 Vermelha', rating: 4.91 },
-      { id: 'DRV-WPP-03', name: 'Cláudia Fontes', phone: '+55 22 99933-7788', plate: 'BRA-2C34', model: 'Toyota Yaris Sedan Branco', rating: 4.98 }
+      {
+        id: "DRV-WPP-01",
+        name: "Leandro Silveira",
+        phone: "+55 22 99881-2233",
+        plate: "KRP-4A12",
+        model: "Chevrolet Onix Prata",
+        rating: 4.96,
+      },
+      {
+        id: "DRV-WPP-02",
+        name: "Tiago Bernardes",
+        phone: "+55 22 99712-4455",
+        plate: "RIO-9B88",
+        model: "Honda CG 160 Vermelha",
+        rating: 4.91,
+      },
+      {
+        id: "DRV-WPP-03",
+        name: "Cláudia Fontes",
+        phone: "+55 22 99933-7788",
+        plate: "BRA-2C34",
+        model: "Toyota Yaris Sedan Branco",
+        rating: 4.98,
+      },
     ];
 
-    const driverIndex = modalidade === 'MOTO' ? 1 : modalidade === 'PLUS' ? 2 : 0;
+    const driverIndex = modalidade === "MOTO" ? 1 : modalidade === "PLUS" ? 2 : 0;
     const assignedDriver = mockDrivers[driverIndex]!;
 
     const trackingUrl = `https://partiu.app/live/${rideId}?auth=${Math.random().toString(36).substring(2, 10)}`;
@@ -84,9 +111,9 @@ export class WhatsAppDispatchEngine {
       pixTxId: pixOrder.orderId,
       pixQrCodePayload: pixOrder.qrCodePayload,
       trackingUrl,
-      status: 'PAGAMENTO_PENDENTE',
+      status: "PAGAMENTO_PENDENTE",
       createdAt: Date.now(),
-      etaArrivalMinutes: modalidade === 'MOTO' ? 2 : 4
+      etaArrivalMinutes: modalidade === "MOTO" ? 2 : 4,
     };
 
     this.activeWhatsAppRides.set(rideId, ride);
@@ -101,7 +128,7 @@ export class WhatsAppDispatchEngine {
     const ride = this.activeWhatsAppRides.get(rideId);
     if (!ride) return undefined;
 
-    ride.status = 'MOTORISTA_A_CAMINHO';
+    ride.status = "MOTORISTA_A_CAMINHO";
 
     // Executa split atômico no ledger financeiro PARTIU Pay
     partiuWalletEngine.executeRideSplit({
@@ -110,7 +137,7 @@ export class WhatsAppDispatchEngine {
       passengerId: ride.phoneNumber,
       totalAmountBrl: ride.fareBrl,
       cashbackPercent: 2.5,
-      idempotencyKey: `WPP-${ride.rideId}`
+      idempotencyKey: `WPP-${ride.rideId}`,
     });
 
     return ride;
@@ -119,14 +146,14 @@ export class WhatsAppDispatchEngine {
   public completeRide(rideId: string): WhatsAppDispatchedRide | undefined {
     const ride = this.activeWhatsAppRides.get(rideId);
     if (!ride) return undefined;
-    ride.status = 'CONCLUIDA';
+    ride.status = "CONCLUIDA";
     return ride;
   }
 
   public cancelRide(rideId: string): WhatsAppDispatchedRide | undefined {
     const ride = this.activeWhatsAppRides.get(rideId);
     if (!ride) return undefined;
-    ride.status = 'CANCELADA';
+    ride.status = "CANCELADA";
     return ride;
   }
 }

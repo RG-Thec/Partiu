@@ -15,12 +15,7 @@ import { silentCatchWarn } from "@/lib/structured-logger";
 import { isInAppBrowser } from "@/lib/push-notifications";
 
 export type PushPermissionReason =
-  | "granted"
-  | "denied"
-  | "ios_needs_pwa"
-  | "in_app_browser"
-  | "not_supported"
-  | "error";
+  "granted" | "denied" | "ios_needs_pwa" | "in_app_browser" | "not_supported" | "error";
 
 export interface PushPermissionResult {
   granted: boolean;
@@ -31,12 +26,7 @@ export interface PushPermissionResult {
 }
 
 export type NotificationCategory =
-  | "conta"
-  | "corrida"
-  | "bonus"
-  | "promocao"
-  | "sistema"
-  | "veiculo";
+  "conta" | "corrida" | "bonus" | "promocao" | "sistema" | "veiculo";
 
 export interface AppNotification {
   id: string;
@@ -57,7 +47,8 @@ const MOCK_INITIAL_NOTIFICATIONS: Omit<AppNotification, "userId">[] = [
   {
     id: "notif-seed-01",
     title: "Sua conta foi aprovada! 🚀",
-    message: "Seu cadastro de parceiro PARTIU foi validado pela moderação. Você já pode ficar online e aceitar corridas com repasse D+0!",
+    message:
+      "Seu cadastro de parceiro PARTIU foi validado pela moderação. Você já pode ficar online e aceitar corridas com repasse D+0!",
     category: "conta",
     isRead: false,
     createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(), // 45 min atrás
@@ -65,7 +56,8 @@ const MOCK_INITIAL_NOTIFICATIONS: Omit<AppNotification, "userId">[] = [
   {
     id: "notif-seed-02",
     title: "Bônus de R$ 50,00 Atingido! 💰",
-    message: "Parabéns! Você completou a meta de corridas consecutivas do dia e garantiu R$ 50,00 extras no seu saldo PIX.",
+    message:
+      "Parabéns! Você completou a meta de corridas consecutivas do dia e garantiu R$ 50,00 extras no seu saldo PIX.",
     category: "bonus",
     isRead: false,
     createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(), // 3h atrás
@@ -73,7 +65,8 @@ const MOCK_INITIAL_NOTIFICATIONS: Omit<AppNotification, "userId">[] = [
   {
     id: "notif-seed-03",
     title: "Promoção: Indique um Amigo 🎁",
-    message: "Indique novos motoristas parceiros para a rede PARTIU e ganhe R$ 30,00 de crédito instantâneo na primeira corrida deles.",
+    message:
+      "Indique novos motoristas parceiros para a rede PARTIU e ganhe R$ 30,00 de crédito instantâneo na primeira corrida deles.",
     category: "promocao",
     isRead: false,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(), // 12h atrás
@@ -81,7 +74,8 @@ const MOCK_INITIAL_NOTIFICATIONS: Omit<AppNotification, "userId">[] = [
   {
     id: "notif-seed-04",
     title: "Sistema Operacional Seguro 🛡️",
-    message: "A verificação biométrica e a trava de chave PIX por CPF garantem 100% de proteção contra saques não autorizados.",
+    message:
+      "A verificação biométrica e a trava de chave PIX por CPF garantem 100% de proteção contra saques não autorizados.",
     category: "sistema",
     isRead: true,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 dia atrás
@@ -91,7 +85,8 @@ const MOCK_INITIAL_NOTIFICATIONS: Omit<AppNotification, "userId">[] = [
 
 export class PushNotificationService {
   private static instance: PushNotificationService;
-  private localListeners: Set<(notifications: AppNotification[], unreadCount: number) => void> = new Set();
+  private localListeners: Set<(notifications: AppNotification[], unreadCount: number) => void> =
+    new Set();
   private memoryStore: Map<string, AppNotification[]> = new Map();
   private memoryPushToken: string | null = null;
 
@@ -116,7 +111,7 @@ export class PushNotificationService {
    */
   public async requestPermission(
     userId?: string,
-    userRole?: "DRIVER" | "PASSENGER" | "ADMIN"
+    userRole?: "DRIVER" | "PASSENGER" | "ADMIN",
   ): Promise<PushPermissionResult> {
     if (typeof window === "undefined") {
       return {
@@ -151,8 +146,7 @@ export class PushNotificationService {
       return {
         granted: false,
         reason: "ios_needs_pwa",
-        message:
-          "No iPhone, adicione o app à Tela de Início para ativar as notificações push.",
+        message: "No iPhone, adicione o app à Tela de Início para ativar as notificações push.",
         error: "iOS requires Home Screen PWA",
       };
     }
@@ -162,8 +156,7 @@ export class PushNotificationService {
       return {
         granted: false,
         reason: "not_supported",
-        message:
-          "Este navegador não suporta notificações em segundo plano. Abra no Google Chrome.",
+        message: "Este navegador não suporta notificações em segundo plano. Abra no Google Chrome.",
         error: "Navegador não suporta notificações nativas.",
       };
     }
@@ -173,8 +166,7 @@ export class PushNotificationService {
       return {
         granted: false,
         reason: "denied",
-        message:
-          "As notificações estão bloqueadas nas configurações do seu navegador.",
+        message: "As notificações estão bloqueadas nas configurações do seu navegador.",
         error: "Permissão de notificação negada pelo usuário.",
       };
     }
@@ -186,8 +178,7 @@ export class PushNotificationService {
         return {
           granted: false,
           reason: "denied",
-          message:
-            "A permissão não foi concedida. Desbloqueie nas configurações do navegador.",
+          message: "A permissão não foi concedida. Desbloqueie nas configurações do navegador.",
           error: "Permissão de notificação negada pelo usuário.",
         };
       }
@@ -348,7 +339,7 @@ export class PushNotificationService {
       });
 
       const merged = Array.from(map.values()).sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
 
       this.saveLocalNotifications(userId, merged);
@@ -385,7 +376,7 @@ export class PushNotificationService {
     }
 
     const updated = local.map((n) =>
-      n.id === notificationId ? { ...n, isRead: true, readAt: new Date().toISOString() } : n
+      n.id === notificationId ? { ...n, isRead: true, readAt: new Date().toISOString() } : n,
     );
     this.saveLocalNotifications(userId, updated);
     this.dispatchUpdateEvent();
@@ -438,7 +429,7 @@ export class PushNotificationService {
    * Cria e emite uma nova notificação para um usuário
    */
   public async createNotification(
-    input: Omit<AppNotification, "id" | "createdAt" | "isRead">
+    input: Omit<AppNotification, "id" | "createdAt" | "isRead">,
   ): Promise<AppNotification> {
     const newNotif: AppNotification = {
       ...input,
@@ -481,7 +472,7 @@ export class PushNotificationService {
    */
   public subscribeToUserNotifications(
     userId: string,
-    onUpdate: (notifications: AppNotification[], unreadCount: number) => void
+    onUpdate: (notifications: AppNotification[], unreadCount: number) => void,
   ): () => void {
     this.localListeners.add(onUpdate);
 
@@ -510,7 +501,7 @@ export class PushNotificationService {
                 const unread = list.filter((n) => !n.isRead).length;
                 onUpdate(list, unread);
               });
-            }
+            },
           )
           .subscribe();
 
@@ -556,9 +547,7 @@ export class PushNotificationService {
         process.env.npm_lifecycle_event === "test" ||
         Boolean(process.env.VITEST));
 
-    const initial = isTestOrSuite
-      ? MOCK_INITIAL_NOTIFICATIONS.map((m) => ({ ...m, userId }))
-      : [];
+    const initial = isTestOrSuite ? MOCK_INITIAL_NOTIFICATIONS.map((m) => ({ ...m, userId })) : [];
     this.saveLocalNotifications(userId, initial);
     return initial;
   }

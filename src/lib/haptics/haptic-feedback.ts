@@ -5,14 +5,15 @@
  * confirmação de corrida e alertas de status.
  */
 
-export type HapticPattern = 'selection' | 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error';
+export type HapticPattern =
+  "selection" | "light" | "medium" | "heavy" | "success" | "warning" | "error";
 
 class HapticFeedbackEngine {
   private isSupported(): boolean {
     return (
-      typeof window !== 'undefined' &&
-      typeof navigator !== 'undefined' &&
-      typeof navigator.vibrate === 'function'
+      typeof window !== "undefined" &&
+      typeof navigator !== "undefined" &&
+      typeof navigator.vibrate === "function"
     );
   }
 

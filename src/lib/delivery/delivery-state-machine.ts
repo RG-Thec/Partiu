@@ -14,10 +14,10 @@ export class InvalidDeliveryStateTransitionError extends Error {
   constructor(
     public readonly currentState: DeliveryState,
     public readonly targetState: DeliveryState,
-    public readonly reason: string
+    public readonly reason: string,
   ) {
     super(
-      `TRANSIÇÃO_DE_ENTREGA_INVÁLIDA: Não é permitido mover entrega de [${currentState}] para [${targetState}]. Razão: ${reason}`
+      `TRANSIÇÃO_DE_ENTREGA_INVÁLIDA: Não é permitido mover entrega de [${currentState}] para [${targetState}]. Razão: ${reason}`,
     );
     this.name = "InvalidDeliveryStateTransitionError";
   }
@@ -121,7 +121,7 @@ export class DeliveryStateMachine {
     targetState: DeliveryState,
     actor: "SYSTEM" | "DRIVER" | "SENDER" | "RECIPIENT" | "ADMIN",
     reason?: string | undefined,
-    metadata?: Record<string, unknown> | undefined
+    metadata?: Record<string, unknown> | undefined,
   ): DeliveryState {
     const currentState = this.getState(deliveryId);
 
@@ -137,7 +137,7 @@ export class DeliveryStateMachine {
         targetState,
         `Transição não permitida na máquina de estados. Destinos válidos a partir de [${currentState}]: (${
           allowed?.join(", ") || "Nenhum — estado terminal"
-        })`
+        })`,
       );
     }
 

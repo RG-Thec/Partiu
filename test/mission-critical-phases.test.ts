@@ -81,8 +81,8 @@ describe("MISSION CRITICAL SUITE — FASES 1 A 9 VALIDATION", () => {
       },
       {
         id: "drv-car-01",
-        latitude: -21.2060,
-        longitude: -41.8890,
+        latitude: -21.206,
+        longitude: -41.889,
         heading: 180,
         status: "DISPONIVEL",
         category: "CARRO",
@@ -107,8 +107,8 @@ describe("MISSION CRITICAL SUITE — FASES 1 A 9 VALIDATION", () => {
     // Feature 2 (Carro)
     const f2 = geoJson.features[1]!;
     expect(f2.geometry.type).toBe("Point");
-    expect(f2.geometry.coordinates[0]).toBe(-41.8890);
-    expect(f2.geometry.coordinates[1]).toBe(-21.2060);
+    expect(f2.geometry.coordinates[0]).toBe(-41.889);
+    expect(f2.geometry.coordinates[1]).toBe(-21.206);
     expect(f2.properties.icon).toBe("car-icon");
     expect(f2.properties.heading).toBe(180);
   });

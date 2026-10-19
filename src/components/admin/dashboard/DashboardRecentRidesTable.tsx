@@ -12,9 +12,7 @@ export interface DashboardRecentRidesTableProps {
 const brl = (v: number | string) =>
   Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-export function DashboardRecentRidesTable({
-  rides,
-}: DashboardRecentRidesTableProps) {
+export function DashboardRecentRidesTable({ rides }: DashboardRecentRidesTableProps) {
   const colunas: AdminColumn<any>[] = [
     {
       key: "hora",

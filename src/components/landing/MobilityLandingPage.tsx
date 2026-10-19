@@ -24,7 +24,10 @@ function generateDarkGradientFromColors(primaryHex: string, secondaryHex?: strin
     let clean = (hex || "").replace("#", "").trim();
     if (!clean || clean.length < 3) return { r: 15, g: 23, b: 42 };
     if (clean.length === 3) {
-      clean = clean.split("").map((c) => c + c).join("");
+      clean = clean
+        .split("")
+        .map((c) => c + c)
+        .join("");
     }
     const num = parseInt(clean.substring(0, 6), 16);
     if (isNaN(num)) return { r: 15, g: 23, b: 42 };
@@ -45,7 +48,7 @@ function generateDarkGradientFromColors(primaryHex: string, secondaryHex?: strin
       const dark2 = `rgb(${Math.round(r2 * 0.16 + 4)}, ${Math.round(r2 * 0.16 + 4)}, ${Math.round(r2 * 0.16 + 8)})`;
       return `linear-gradient(to bottom, ${dark1}, ${dark2})`;
     }
-    const dark2 = `rgb(${Math.round(r1 * 0.20 + 4)}, ${Math.round(r1 * 0.20 + 4)}, ${Math.round(r1 * 0.20 + 8)})`;
+    const dark2 = `rgb(${Math.round(r1 * 0.2 + 4)}, ${Math.round(r1 * 0.2 + 4)}, ${Math.round(r1 * 0.2 + 8)})`;
     return `linear-gradient(to bottom, ${dark1}, ${dark2})`;
   } catch {
     return "linear-gradient(to bottom, #0F172A, #020617)";
@@ -78,8 +81,8 @@ export const MobilityLandingPage: React.FC<MobilityLandingPageProps> = ({
   }, [corPrimaria, corSecundaria]);
 
   // Carrega configuração persistida pelo painel administrativo
-  const [storedData, setStoredData] = useState<MobilityLandingPageData>(() =>
-    initialData || getStoredLandingPageData(tenantId)
+  const [storedData, setStoredData] = useState<MobilityLandingPageData>(
+    () => initialData || getStoredLandingPageData(tenantId),
   );
 
   // Recarrega quando mudar de tenant
@@ -114,14 +117,16 @@ export const MobilityLandingPage: React.FC<MobilityLandingPageProps> = ({
       base.header.brandName !== "SUA MARCA" &&
       base.header.brandName.trim() !== ""
         ? base.header.brandName
-        : (nomeApp || "PARTIU");
+        : nomeApp || "PARTIU";
 
     // Resolução da Logo Oficial White Label
     const activeLogo =
       branding?.logo_url ||
       config.brandCenter?.logos?.logoPrincipalUrl ||
       identidade?.logoUrl ||
-      (base.header?.logoUrl && base.header.logoUrl !== "/lightning_icon.svg" ? base.header.logoUrl : "") ||
+      (base.header?.logoUrl && base.header.logoUrl !== "/lightning_icon.svg"
+        ? base.header.logoUrl
+        : "") ||
       "/assets/partiu-logo-transparent.png";
 
     // Resolução das Cores: O tema White Label do Painel (corPrimaria / corSecundaria) tem autoridade
@@ -135,7 +140,9 @@ export const MobilityLandingPage: React.FC<MobilityLandingPageProps> = ({
       base.theme.bgDark.gradient.includes("#001236") ||
       base.theme.bgDark.gradient.includes("#002D62");
 
-    const activeDarkGradient = isOldBlueGradient ? darkGradientForTheme : base.theme.bgDark.gradient;
+    const activeDarkGradient = isOldBlueGradient
+      ? darkGradientForTheme
+      : base.theme.bgDark.gradient;
 
     // Resolução da imagem de carro do hero:
     // Removemos a foto retangular estática /modern_car_dusk.png que corta e obstrui o mapa vetorial
@@ -171,8 +178,7 @@ export const MobilityLandingPage: React.FC<MobilityLandingPageProps> = ({
       reasonSection: {
         ...base.reasonSection,
         brandName:
-          base.reasonSection?.brandName &&
-          !base.reasonSection.brandName.includes("SUA MARCA")
+          base.reasonSection?.brandName && !base.reasonSection.brandName.includes("SUA MARCA")
             ? base.reasonSection.brandName
             : `${activeBrand}?`,
       },
@@ -244,11 +250,8 @@ export const MobilityLandingPage: React.FC<MobilityLandingPageProps> = ({
     >
       {/* CONTAINER PRINCIPAL RESPONSIVO E ELEGANTEMENTE ESTRUTURADO NO TEMA CLARO */}
       <main className="w-full min-h-screen overflow-x-hidden relative flex flex-col bg-slate-50">
-        
         {/* SEÇÃO SUPERIOR CLARA (CLEAN LIGHT HERO COM SUAVES LUZES AMBIENTES E RADAR TECNOLÓGICO) */}
-        <div
-          className="relative w-full flex flex-col overflow-hidden transition-colors duration-500 bg-gradient-to-b from-white via-slate-50/80 to-slate-100/90"
-        >
+        <div className="relative w-full flex flex-col overflow-hidden transition-colors duration-500 bg-gradient-to-b from-white via-slate-50/80 to-slate-100/90">
           {/* Efeitos sutis de luz ambiente suave de fundo com a cor primária ativa */}
           <div
             className="absolute top-0 right-1/4 w-[500px] h-[500px] rounded-full blur-3xl opacity-[0.08] pointer-events-none transition-colors duration-500"

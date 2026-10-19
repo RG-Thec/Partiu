@@ -45,7 +45,10 @@ import {
 import { toast } from "sonner";
 import { GuardiaoAcesso } from "@/components/admin/GuardiaoAcesso";
 import { whiteLabelEngine } from "@/lib/white-label";
-import { type WhiteLabelTenantRecord, type ModoExclusividadeTerritorial } from "@/lib/white-label/white-label-types";
+import {
+  type WhiteLabelTenantRecord,
+  type ModoExclusividadeTerritorial,
+} from "@/lib/white-label/white-label-types";
 import { MapboxConfig } from "@/config/MapboxConfig";
 import { listarPassageiros, type PassageiroAdmin } from "@/lib/passageiros.functions";
 import { useMotoristas } from "@/lib/partiu-db";
@@ -83,7 +86,7 @@ function SuperAdminFranqueadosContent() {
 
   // 1. Dados de Tenants / Franqueados
   const [tenants, setTenants] = useState<WhiteLabelTenantRecord[]>(() =>
-    whiteLabelEngine.getAllTenants()
+    whiteLabelEngine.getAllTenants(),
   );
 
   const recarregarTenants = () => {
@@ -124,13 +127,18 @@ function SuperAdminFranqueadosContent() {
         try {
           const { data } = await (supabase as any)
             .from("profiles")
-            .select("id, full_name, email, cpf, phone, created_at, is_active, approval_status, role")
+            .select(
+              "id, full_name, email, cpf, phone, created_at, is_active, approval_status, role",
+            )
             .order("created_at", { ascending: false })
             .limit(200);
 
           if (Array.isArray(data) && data.length > 0) {
             return data
-              .filter((p: any) => p.role !== "motorista" && p.role !== "driver" && p.role !== "franqueado")
+              .filter(
+                (p: any) =>
+                  p.role !== "motorista" && p.role !== "driver" && p.role !== "franqueado",
+              )
               .map((p: any) => ({
                 id: p.id,
                 email: p.email || null,
@@ -138,7 +146,9 @@ function SuperAdminFranqueadosContent() {
                 cpf: p.cpf || null,
                 phone: p.phone || null,
                 created_at: p.created_at || new Date().toISOString(),
-                status: (p.is_active === false || p.approval_status === "suspenso" ? "bloqueado" : "ativo") as "ativo" | "bloqueado" | "inativo",
+                status: (p.is_active === false || p.approval_status === "suspenso"
+                  ? "bloqueado"
+                  : "ativo") as "ativo" | "bloqueado" | "inativo",
               }));
           }
         } catch {}
@@ -165,18 +175,24 @@ function SuperAdminFranqueadosContent() {
 
   // Modais de Controle
   const [modalClonarAberto, setModalClonarAberto] = useState(false);
-  const [tenantParaDesativar, setTenantParaDesativar] = useState<WhiteLabelTenantRecord | null>(null);
+  const [tenantParaDesativar, setTenantParaDesativar] = useState<WhiteLabelTenantRecord | null>(
+    null,
+  );
   const [motivoDesativacao, setMotivoDesativacao] = useState("");
   const [tenantParaExcluir, setTenantParaExcluir] = useState<WhiteLabelTenantRecord | null>(null);
   const [confirmacaoExclusaoTexto, setConfirmacaoExclusaoTexto] = useState("");
 
   // Modais de Inspeção de Usuários por Franqueado
-  const [tenantInspecaoPassageiros, setTenantInspecaoPassageiros] = useState<WhiteLabelTenantRecord | null>(null);
-  const [tenantInspecaoMotoristas, setTenantInspecaoMotoristas] = useState<WhiteLabelTenantRecord | null>(null);
+  const [tenantInspecaoPassageiros, setTenantInspecaoPassageiros] =
+    useState<WhiteLabelTenantRecord | null>(null);
+  const [tenantInspecaoMotoristas, setTenantInspecaoMotoristas] =
+    useState<WhiteLabelTenantRecord | null>(null);
   const [buscaModalUsuario, setBuscaModalUsuario] = useState("");
 
   // Modal de Credenciais do Franqueado
-  const [tenantParaCredenciais, setTenantParaCredenciais] = useState<WhiteLabelTenantRecord | null>(null);
+  const [tenantParaCredenciais, setTenantParaCredenciais] = useState<WhiteLabelTenantRecord | null>(
+    null,
+  );
   const [credencialEmail, setCredencialEmail] = useState("");
   const [credencialSenha, setCredencialSenha] = useState("");
   const [mostrarSenhaModal, setMostrarSenhaModal] = useState(false);
@@ -191,12 +207,18 @@ function SuperAdminFranqueadosContent() {
   const [centerLngModal, setCenterLngModal] = useState<number>(-41.8892);
   const [radiusKmModal, setRadiusKmModal] = useState<number>(15);
   const [testandoMapaModal, setTestandoMapaModal] = useState(false);
-  const [resultadoTesteMapaModal, setResultadoTesteMapaModal] = useState<{ valid: boolean; message: string } | null>(null);
+  const [resultadoTesteMapaModal, setResultadoTesteMapaModal] = useState<{
+    valid: boolean;
+    message: string;
+  } | null>(null);
   const [mostrarTokenModal, setMostrarTokenModal] = useState(false);
 
   // Modal de Território & Exclusividade da Franquia
-  const [tenantParaTerritorio, setTenantParaTerritorio] = useState<WhiteLabelTenantRecord | null>(null);
-  const [modoTerritorioModal, setModoTerritorioModal] = useState<ModoExclusividadeTerritorial>("CIDADE_ESTRITA");
+  const [tenantParaTerritorio, setTenantParaTerritorio] = useState<WhiteLabelTenantRecord | null>(
+    null,
+  );
+  const [modoTerritorioModal, setModoTerritorioModal] =
+    useState<ModoExclusividadeTerritorial>("CIDADE_ESTRITA");
   const [cidadeSedeModal, setCidadeSedeModal] = useState("");
   const [estadoUfModal, setEstadoUfModal] = useState("");
   const [latCentroModal, setLatCentroModal] = useState<number>(-15.793889);
@@ -212,12 +234,20 @@ function SuperAdminFranqueadosContent() {
     setTenantParaTerritorio(tenant);
     const terr = tenant.territorio || tenant.configuracaoCompleta?.geo?.territorio;
     const isMatriz = tenant.tenantId === "default" || tenant.isMatrizNacional === true;
-    setModoTerritorioModal(isMatriz ? "NACIONAL_IRRESTRITO" : (terr?.modo || "CIDADE_ESTRITA"));
+    setModoTerritorioModal(isMatriz ? "NACIONAL_IRRESTRITO" : terr?.modo || "CIDADE_ESTRITA");
     setCidadeSedeModal(terr?.cidadeSede || tenant.cidadeNome);
     setEstadoUfModal(terr?.estadoUf || tenant.uf);
-    setLatCentroModal(terr?.latCentro ?? tenant.configuracaoCompleta?.geo?.coordenadasCentroLat ?? -15.793889);
-    setLngCentroModal(terr?.lngCentro ?? tenant.configuracaoCompleta?.geo?.coordenadasCentroLng ?? -47.882778);
-    setRaioKmTerritorioModal(isMatriz ? 9999 : (terr?.raioMaximoKm ?? tenant.configuracaoCompleta?.geo?.raioOperacaoPadraoKm ?? 30));
+    setLatCentroModal(
+      terr?.latCentro ?? tenant.configuracaoCompleta?.geo?.coordenadasCentroLat ?? -15.793889,
+    );
+    setLngCentroModal(
+      terr?.lngCentro ?? tenant.configuracaoCompleta?.geo?.coordenadasCentroLng ?? -47.882778,
+    );
+    setRaioKmTerritorioModal(
+      isMatriz
+        ? 9999
+        : (terr?.raioMaximoKm ?? tenant.configuracaoCompleta?.geo?.raioOperacaoPadraoKm ?? 30),
+    );
     setBloquearChamadasForaModal(terr?.bloquearChamadasForaTerritorio ?? true);
     setBloquearNovasContasModal(terr?.bloquearNovasContasForaTerritorio ?? true);
     setBloquearFrotaVizinhaModal(terr?.bloquearDespachoFrotaVizinha ?? true);
@@ -229,7 +259,8 @@ function SuperAdminFranqueadosContent() {
     e.preventDefault();
     if (!tenantParaTerritorio) return;
 
-    const isMatriz = tenantParaTerritorio.tenantId === "default" || tenantParaTerritorio.isMatrizNacional === true;
+    const isMatriz =
+      tenantParaTerritorio.tenantId === "default" || tenantParaTerritorio.isMatrizNacional === true;
 
     whiteLabelEngine.updateTenantTerritory(tenantParaTerritorio.tenantId, {
       modo: isMatriz ? "NACIONAL_IRRESTRITO" : modoTerritorioModal,
@@ -246,7 +277,9 @@ function SuperAdminFranqueadosContent() {
     });
 
     recarregarTenants();
-    toast.success(`Território exclusivo da franquia ${tenantParaTerritorio.nomeOperacao} atualizado com sucesso!`);
+    toast.success(
+      `Território exclusivo da franquia ${tenantParaTerritorio.nomeOperacao} atualizado com sucesso!`,
+    );
     setTenantParaTerritorio(null);
   }
 
@@ -282,31 +315,37 @@ function SuperAdminFranqueadosContent() {
   };
 
   function handleCopiarLinkApp(tenant: WhiteLabelTenantRecord) {
-    const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
-    const url = tenant.tenantId && tenant.tenantId !== "default"
-      ? `${origin}/?tenant=${encodeURIComponent(tenant.tenantId)}`
-      : `${origin}/`;
+    const origin =
+      typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
+    const url =
+      tenant.tenantId && tenant.tenantId !== "default"
+        ? `${origin}/?tenant=${encodeURIComponent(tenant.tenantId)}`
+        : `${origin}/`;
     navigator.clipboard.writeText(url);
     toast.success(`Link de passageiros de ${tenant.nomeOperacao} copiado!`);
   }
 
   function handleCopiarLinkMotorista(tenant: WhiteLabelTenantRecord) {
-    const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
+    const origin =
+      typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
     const url = `${origin}/app/motorista?tenant=${encodeURIComponent(tenant.tenantId)}`;
     navigator.clipboard.writeText(url);
     toast.success(`Link do portal do motorista de ${tenant.nomeOperacao} copiado!`);
   }
 
   function handleAbrirApp(tenant: WhiteLabelTenantRecord) {
-    const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
-    const url = tenant.tenantId && tenant.tenantId !== "default"
-      ? `${origin}/?tenant=${encodeURIComponent(tenant.tenantId)}`
-      : `${origin}/`;
+    const origin =
+      typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
+    const url =
+      tenant.tenantId && tenant.tenantId !== "default"
+        ? `${origin}/?tenant=${encodeURIComponent(tenant.tenantId)}`
+        : `${origin}/`;
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
   function handleAbrirMotorista(tenant: WhiteLabelTenantRecord) {
-    const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
+    const origin =
+      typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
     const url = `${origin}/app/motorista?tenant=${encodeURIComponent(tenant.tenantId)}`;
     window.open(url, "_blank", "noopener,noreferrer");
   }
@@ -339,7 +378,10 @@ function SuperAdminFranqueadosContent() {
         if (res.valid) toast.success(res.message);
         else toast.error(res.message);
       } else {
-        const res = { valid: true, message: "OpenStreetMap / CARTO selecionado (camada pública sem custos de API)." };
+        const res = {
+          valid: true,
+          message: "OpenStreetMap / CARTO selecionado (camada pública sem custos de API).",
+        };
         setResultadoTesteMapaModal(res);
         toast.success(res.message);
       }
@@ -367,21 +409,29 @@ function SuperAdminFranqueadosContent() {
     };
     whiteLabelEngine.updateTenantConfig(tenantParaMapa.tenantId, { geo: updatedGeo });
     recarregarTenants();
-    toast.success(`APIs de Mapa da franquia ${tenantParaMapa.nomeOperacao} configuradas e ativadas!`);
+    toast.success(
+      `APIs de Mapa da franquia ${tenantParaMapa.nomeOperacao} configuradas e ativadas!`,
+    );
     setTenantParaMapa(null);
   }
 
   function handleCopiarKitAcesso(tenant: WhiteLabelTenantRecord) {
-    const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
-    const email = tenant.adminEmail || tenant.responsavelEmail || `${tenant.tenantId.replace("tenant-", "")}@partiu.app`;
+    const origin =
+      typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
+    const email =
+      tenant.adminEmail ||
+      tenant.responsavelEmail ||
+      `${tenant.tenantId.replace("tenant-", "")}@partiu.app`;
     const senha = tenant.adminSenha || "Franqueado2026!";
-    const urlApp = tenant.tenantId && tenant.tenantId !== "default"
-      ? `${origin}/?tenant=${encodeURIComponent(tenant.tenantId)}`
-      : `${origin}/`;
+    const urlApp =
+      tenant.tenantId && tenant.tenantId !== "default"
+        ? `${origin}/?tenant=${encodeURIComponent(tenant.tenantId)}`
+        : `${origin}/`;
     const urlMotorista = `${origin}/app/motorista?tenant=${encodeURIComponent(tenant.tenantId)}`;
     const urlPainel = `${origin}/app/admin/login`;
 
-    const texto = `🚗 KIT DE ACESSO EXCLUSIVO — ${tenant.nomeOperacao.toUpperCase()}\n\n` +
+    const texto =
+      `🚗 KIT DE ACESSO EXCLUSIVO — ${tenant.nomeOperacao.toUpperCase()}\n\n` +
       `📍 Praça: ${tenant.cidadeNome} — ${tenant.uf}\n\n` +
       `📲 Link de Passageiros (Solicitar Corridas):\n${urlApp}\n\n` +
       `🚘 Link do Portal do Motorista (Cadastro & Assinatura):\n${urlMotorista}\n\n` +
@@ -404,7 +454,7 @@ function SuperAdminFranqueadosContent() {
     whiteLabelEngine.updateTenantCredentials(
       tenantParaCredenciais.tenantId,
       credencialEmail.trim(),
-      credencialSenha.trim()
+      credencialSenha.trim(),
     );
     recarregarTenants();
     toast.success(`Credenciais de ${tenantParaCredenciais.nomeOperacao} atualizadas com sucesso!`);
@@ -498,13 +548,15 @@ function SuperAdminFranqueadosContent() {
       // O tenant "default" representa a Matriz Holding, não uma franquia regional
       if (t.tenantId === "default") return false;
 
-      const isAtivo = t.ativo !== false && t.statusPlano !== "SUSPENSO" && t.statusPlano !== "CANCELADO";
+      const isAtivo =
+        t.ativo !== false && t.statusPlano !== "SUSPENSO" && t.statusPlano !== "CANCELADO";
       if (filtroStatus === "ATIVOS" && !isAtivo) return false;
       if (filtroStatus === "SUSPENSOS" && isAtivo) return false;
 
       if (busca) {
         const q = busca.toLowerCase();
-        const textoCompleto = `${t.nomeOperacao} ${t.cidadeNome} ${t.uf} ${t.responsavelNome} ${t.responsavelEmail} ${t.cnpjFranqueado} ${t.tenantId}`.toLowerCase();
+        const textoCompleto =
+          `${t.nomeOperacao} ${t.cidadeNome} ${t.uf} ${t.responsavelNome} ${t.responsavelEmail} ${t.cnpjFranqueado} ${t.tenantId}`.toLowerCase();
         return textoCompleto.includes(q);
       }
       return true;
@@ -516,7 +568,7 @@ function SuperAdminFranqueadosContent() {
     const franquiasRegionais = tenants.filter((t) => t.tenantId !== "default");
     const total = franquiasRegionais.length;
     const ativos = franquiasRegionais.filter(
-      (t) => t.ativo !== false && t.statusPlano !== "SUSPENSO" && t.statusPlano !== "CANCELADO"
+      (t) => t.ativo !== false && t.statusPlano !== "SUSPENSO" && t.statusPlano !== "CANCELADO",
     ).length;
     const suspensos = total - ativos;
     const totalPassageirosRede = todosPassageiros.length;
@@ -527,14 +579,15 @@ function SuperAdminFranqueadosContent() {
   // Ação: Alternar Status do Plano (Kill Switch)
   async function executarAlternanciaPlano() {
     if (!tenantParaDesativar) return;
-    const isAtivo = tenantParaDesativar.ativo !== false && tenantParaDesativar.statusPlano !== "SUSPENSO";
+    const isAtivo =
+      tenantParaDesativar.ativo !== false && tenantParaDesativar.statusPlano !== "SUSPENSO";
     const novoStatus = isAtivo ? "SUSPENSO" : "ATIVO";
 
     try {
       await whiteLabelEngine.setTenantStatus(
         tenantParaDesativar.tenantId,
         novoStatus,
-        isAtivo ? motivoDesativacao || "Plano desativado pela administração central" : undefined
+        isAtivo ? motivoDesativacao || "Plano desativado pela administração central" : undefined,
       );
       setTenantParaDesativar(null);
       setMotivoDesativacao("");
@@ -560,7 +613,15 @@ function SuperAdminFranqueadosContent() {
   // Exportação CSV de Passageiros do Franqueado
   function exportarPassageirosFranqueado(tenant: WhiteLabelTenantRecord) {
     const lista = passageirosPorTenant.get(tenant.tenantId) || [];
-    const cabecalhos = ["ID", "Nome Completo", "E-mail", "Telefone", "CPF", "Status", "Data de Cadastro"];
+    const cabecalhos = [
+      "ID",
+      "Nome Completo",
+      "E-mail",
+      "Telefone",
+      "CPF",
+      "Status",
+      "Data de Cadastro",
+    ];
     const linhas = lista.map((p) => [
       p.id,
       p.full_name || "Sem Nome",
@@ -608,7 +669,8 @@ function SuperAdminFranqueadosContent() {
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Ativação e desativação de planos, controle de APIs, listas de passageiros e motoristas por praça.
+                Ativação e desativação de planos, controle de APIs, listas de passageiros e
+                motoristas por praça.
               </p>
             </div>
           </div>
@@ -634,7 +696,9 @@ function SuperAdminFranqueadosContent() {
               Total Franquias
             </span>
             <div className="flex items-baseline justify-between mt-1.5">
-              <span className="text-2xl font-black text-slate-950 dark:text-white">{stats.total}</span>
+              <span className="text-2xl font-black text-slate-950 dark:text-white">
+                {stats.total}
+              </span>
               <Building2 className="w-4 h-4 text-slate-400" />
             </div>
           </div>
@@ -644,7 +708,9 @@ function SuperAdminFranqueadosContent() {
               Planos Ativos
             </span>
             <div className="flex items-baseline justify-between mt-1.5">
-              <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{stats.ativos}</span>
+              <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                {stats.ativos}
+              </span>
               <CheckCircle2 className="w-4 h-4 text-emerald-500" />
             </div>
           </div>
@@ -654,7 +720,9 @@ function SuperAdminFranqueadosContent() {
               Suspensos / Offline
             </span>
             <div className="flex items-baseline justify-between mt-1.5">
-              <span className="text-2xl font-black text-rose-600 dark:text-rose-400">{stats.suspensos}</span>
+              <span className="text-2xl font-black text-rose-600 dark:text-rose-400">
+                {stats.suspensos}
+              </span>
               <AlertOctagon className="w-4 h-4 text-rose-500" />
             </div>
           </div>
@@ -664,7 +732,9 @@ function SuperAdminFranqueadosContent() {
               Motoristas na Rede
             </span>
             <div className="flex items-baseline justify-between mt-1.5">
-              <span className="text-2xl font-black text-slate-950 dark:text-white">{stats.totalMotoristasRede}</span>
+              <span className="text-2xl font-black text-slate-950 dark:text-white">
+                {stats.totalMotoristasRede}
+              </span>
               <Car className="w-4 h-4 text-slate-400" />
             </div>
           </div>
@@ -674,7 +744,9 @@ function SuperAdminFranqueadosContent() {
               Passageiros na Rede
             </span>
             <div className="flex items-baseline justify-between mt-1.5">
-              <span className="text-2xl font-black text-slate-950 dark:text-white">{stats.totalPassageirosRede}</span>
+              <span className="text-2xl font-black text-slate-950 dark:text-white">
+                {stats.totalPassageirosRede}
+              </span>
               <Users className="w-4 h-4 text-slate-400" />
             </div>
           </div>
@@ -805,12 +877,20 @@ function SuperAdminFranqueadosContent() {
             <div className="grid grid-cols-1 gap-4">
               {franqueadosFiltrados.map((tenant) => {
                 const isMatriz = MapboxConfig.isOfficialMatrizTenant(tenant.tenantId);
-                const isAtivo = tenant.ativo !== false && tenant.statusPlano !== "SUSPENSO" && tenant.statusPlano !== "CANCELADO";
+                const isAtivo =
+                  tenant.ativo !== false &&
+                  tenant.statusPlano !== "SUSPENSO" &&
+                  tenant.statusPlano !== "CANCELADO";
                 const isExpanded = expandedTenantId === tenant.tenantId;
                 const passageirosCount = passageirosPorTenant.get(tenant.tenantId)?.length || 0;
                 const motoristasCount = motoristasPorTenant.get(tenant.tenantId)?.length || 0;
-                const hasMapboxKey = Boolean(tenant.configuracaoCompleta?.geo?.mapboxAccessToken?.startsWith("pk."));
-                const hasGoogleKey = Boolean(tenant.configuracaoCompleta?.geo?.googleMapsApiKey && tenant.configuracaoCompleta.geo.googleMapsApiKey.length > 10);
+                const hasMapboxKey = Boolean(
+                  tenant.configuracaoCompleta?.geo?.mapboxAccessToken?.startsWith("pk."),
+                );
+                const hasGoogleKey = Boolean(
+                  tenant.configuracaoCompleta?.geo?.googleMapsApiKey &&
+                  tenant.configuracaoCompleta.geo.googleMapsApiKey.length > 10,
+                );
                 const hasPixKey = Boolean(tenant.configuracaoCompleta?.monetization?.chavePixAdmin);
 
                 return (
@@ -829,7 +909,8 @@ function SuperAdminFranqueadosContent() {
                           className="w-11 h-11 rounded-2xl flex items-center justify-center font-black text-white shrink-0 shadow-2xs text-base"
                           style={{
                             backgroundColor:
-                              tenant.configuracaoCompleta?.designSystem?.paletaPrimaria?.corPrincipal || "#FF6B00",
+                              tenant.configuracaoCompleta?.designSystem?.paletaPrimaria
+                                ?.corPrincipal || "#FF6B00",
                           }}
                         >
                           {tenant.cidadeNome.slice(0, 2).toUpperCase()}
@@ -871,7 +952,9 @@ function SuperAdminFranqueadosContent() {
                             <span>•</span>
                             <span>{tenant.responsavelNome || "Responsável não informado"}</span>
                             <span>•</span>
-                            <span className="font-mono text-[11px] text-slate-400">{tenant.tenantId}</span>
+                            <span className="font-mono text-[11px] text-slate-400">
+                              {tenant.tenantId}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -930,7 +1013,11 @@ function SuperAdminFranqueadosContent() {
                           }`}
                         >
                           <span>{isExpanded ? "Ocultar detalhes" : "Detalhes & links"}</span>
-                          {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                          {isExpanded ? (
+                            <ChevronUp className="w-3.5 h-3.5" />
+                          ) : (
+                            <ChevronDown className="w-3.5 h-3.5" />
+                          )}
                         </button>
                       </div>
                     </div>
@@ -980,7 +1067,13 @@ function SuperAdminFranqueadosContent() {
                         </div>
                         <div className="mt-1 flex items-center justify-between">
                           <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                            {isMatriz ? "Matriz Oficial" : hasMapboxKey ? "Mapbox GL" : hasGoogleKey ? "Google Maps" : "CARTO / OSM"}
+                            {isMatriz
+                              ? "Matriz Oficial"
+                              : hasMapboxKey
+                                ? "Mapbox GL"
+                                : hasGoogleKey
+                                  ? "Google Maps"
+                                  : "CARTO / OSM"}
                           </span>
                           {!isMatriz && (
                             <button
@@ -1023,7 +1116,9 @@ function SuperAdminFranqueadosContent() {
 
                           {/* Link Passageiro */}
                           <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs space-y-1">
-                            <span className="text-[10px] font-bold text-slate-500 block uppercase">App do Passageiro</span>
+                            <span className="text-[10px] font-bold text-slate-500 block uppercase">
+                              App do Passageiro
+                            </span>
                             <div className="flex items-center gap-1">
                               <code className="text-[11px] font-mono text-primary-600 dark:text-primary-400 truncate flex-1 select-all">
                                 /?tenant={tenant.tenantId}
@@ -1049,7 +1144,9 @@ function SuperAdminFranqueadosContent() {
 
                           {/* Link Motorista */}
                           <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs space-y-1">
-                            <span className="text-[10px] font-bold text-slate-500 block uppercase">Portal do Motorista</span>
+                            <span className="text-[10px] font-bold text-slate-500 block uppercase">
+                              Portal do Motorista
+                            </span>
                             <div className="flex items-center gap-1">
                               <code className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 truncate flex-1 select-all">
                                 /app/motorista?tenant={tenant.tenantId}
@@ -1084,17 +1181,21 @@ function SuperAdminFranqueadosContent() {
                           {!isMatriz ? (
                             <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs space-y-2">
                               <div>
-                                <span className="text-[10px] text-slate-400 block font-bold uppercase">E-mail de Login</span>
+                                <span className="text-[10px] text-slate-400 block font-bold uppercase">
+                                  E-mail de Login
+                                </span>
                                 <span className="font-mono text-slate-900 dark:text-white text-xs select-all">
                                   {tenant.adminEmail || tenant.responsavelEmail}
                                 </span>
                               </div>
                               <div>
-                                <span className="text-[10px] text-slate-400 block font-bold uppercase">Senha do Painel</span>
+                                <span className="text-[10px] text-slate-400 block font-bold uppercase">
+                                  Senha do Painel
+                                </span>
                                 <div className="flex items-center justify-between">
                                   <span className="font-mono text-slate-900 dark:text-white text-xs">
                                     {senhasVisiveis[tenant.tenantId]
-                                      ? (tenant.adminSenha || "Franqueado2026!")
+                                      ? tenant.adminSenha || "Franqueado2026!"
                                       : "••••••••••••"}
                                   </span>
                                   <button
@@ -1102,7 +1203,11 @@ function SuperAdminFranqueadosContent() {
                                     onClick={() => toggleVerSenhaCard(tenant.tenantId)}
                                     className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
                                   >
-                                    {senhasVisiveis[tenant.tenantId] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                    {senhasVisiveis[tenant.tenantId] ? (
+                                      <EyeOff className="w-3.5 h-3.5" />
+                                    ) : (
+                                      <Eye className="w-3.5 h-3.5" />
+                                    )}
                                   </button>
                                 </div>
                               </div>
@@ -1110,7 +1215,11 @@ function SuperAdminFranqueadosContent() {
                                 type="button"
                                 onClick={() => {
                                   setTenantParaCredenciais(tenant);
-                                  setCredencialEmail(tenant.adminEmail || tenant.responsavelEmail || `${tenant.tenantId.replace("tenant-", "")}@partiu.app`);
+                                  setCredencialEmail(
+                                    tenant.adminEmail ||
+                                      tenant.responsavelEmail ||
+                                      `${tenant.tenantId.replace("tenant-", "")}@partiu.app`,
+                                  );
                                   setCredencialSenha(tenant.adminSenha || "Franqueado2026!");
                                   setMostrarSenhaModal(false);
                                 }}
@@ -1122,7 +1231,8 @@ function SuperAdminFranqueadosContent() {
                             </div>
                           ) : (
                             <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-500">
-                              Esta praça é a Matriz Oficial e utiliza as credenciais master do Super Administrador.
+                              Esta praça é a Matriz Oficial e utiliza as credenciais master do Super
+                              Administrador.
                             </div>
                           )}
                         </div>
@@ -1173,7 +1283,9 @@ function SuperAdminFranqueadosContent() {
                                 }`}
                               >
                                 <Power className="w-3.5 h-3.5" />
-                                <span>{isAtivo ? "Suspender Plano (Kill Switch)" : "Reativar Plano"}</span>
+                                <span>
+                                  {isAtivo ? "Suspender Plano (Kill Switch)" : "Reativar Plano"}
+                                </span>
                               </button>
                             )}
 
@@ -1217,12 +1329,23 @@ function SuperAdminFranqueadosContent() {
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {franqueadosFiltrados.map((tenant) => {
                       const isMatriz = MapboxConfig.isOfficialMatrizTenant(tenant.tenantId);
-                      const isAtivo = tenant.ativo !== false && tenant.statusPlano !== "SUSPENSO" && tenant.statusPlano !== "CANCELADO";
-                      const passageirosCount = passageirosPorTenant.get(tenant.tenantId)?.length || 0;
+                      const isAtivo =
+                        tenant.ativo !== false &&
+                        tenant.statusPlano !== "SUSPENSO" &&
+                        tenant.statusPlano !== "CANCELADO";
+                      const passageirosCount =
+                        passageirosPorTenant.get(tenant.tenantId)?.length || 0;
                       const motoristasCount = motoristasPorTenant.get(tenant.tenantId)?.length || 0;
-                      const hasMapboxKey = Boolean(tenant.configuracaoCompleta?.geo?.mapboxAccessToken?.startsWith("pk."));
-                      const hasGoogleKey = Boolean(tenant.configuracaoCompleta?.geo?.googleMapsApiKey && tenant.configuracaoCompleta.geo.googleMapsApiKey.length > 10);
-                      const hasPixKey = Boolean(tenant.configuracaoCompleta?.monetization?.chavePixAdmin);
+                      const hasMapboxKey = Boolean(
+                        tenant.configuracaoCompleta?.geo?.mapboxAccessToken?.startsWith("pk."),
+                      );
+                      const hasGoogleKey = Boolean(
+                        tenant.configuracaoCompleta?.geo?.googleMapsApiKey &&
+                        tenant.configuracaoCompleta.geo.googleMapsApiKey.length > 10,
+                      );
+                      const hasPixKey = Boolean(
+                        tenant.configuracaoCompleta?.monetization?.chavePixAdmin,
+                      );
 
                       return (
                         <tr
@@ -1236,7 +1359,8 @@ function SuperAdminFranqueadosContent() {
                                 className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-white shrink-0 text-xs shadow-2xs"
                                 style={{
                                   backgroundColor:
-                                    tenant.configuracaoCompleta?.designSystem?.paletaPrimaria?.corPrincipal || "#FF6B00",
+                                    tenant.configuracaoCompleta?.designSystem?.paletaPrimaria
+                                      ?.corPrincipal || "#FF6B00",
                                 }}
                               >
                                 {tenant.cidadeNome.slice(0, 2).toUpperCase()}
@@ -1260,7 +1384,9 @@ function SuperAdminFranqueadosContent() {
                           {/* Coluna 2: Responsável */}
                           <td className="py-3 px-3 text-slate-700 dark:text-slate-300">
                             <div className="font-medium">{tenant.responsavelNome || "-"}</div>
-                            <div className="text-[11px] text-slate-400">{tenant.adminEmail || tenant.responsavelEmail}</div>
+                            <div className="text-[11px] text-slate-400">
+                              {tenant.adminEmail || tenant.responsavelEmail}
+                            </div>
                           </td>
 
                           {/* Coluna 3: Passageiros */}
@@ -1291,17 +1417,25 @@ function SuperAdminFranqueadosContent() {
                           <td className="py-3 px-3">
                             <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
                               <Navigation className="w-3 h-3 text-blue-500" />
-                              {isMatriz ? "Matriz Oficial" : hasMapboxKey ? "Mapbox GL" : hasGoogleKey ? "Google Maps" : "CARTO / OSM"}
+                              {isMatriz
+                                ? "Matriz Oficial"
+                                : hasMapboxKey
+                                  ? "Mapbox GL"
+                                  : hasGoogleKey
+                                    ? "Google Maps"
+                                    : "CARTO / OSM"}
                             </span>
                           </td>
 
                           {/* Coluna 6: PIX */}
                           <td className="py-3 px-3">
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              hasPixKey
-                                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
-                                : "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300"
-                            }`}>
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                hasPixKey
+                                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                  : "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300"
+                              }`}
+                            >
                               <DollarSign className="w-2.5 h-2.5" />
                               {hasPixKey ? "Ativa" : "Pendente"}
                             </span>
@@ -1395,7 +1529,9 @@ function SuperAdminFranqueadosContent() {
                   Passageiros Cadastrados — {tenantInspecaoPassageiros.nomeOperacao}
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Total de {passageirosPorTenant.get(tenantInspecaoPassageiros.tenantId)?.length || 0} passageiros vinculados a esta praça.
+                  Total de{" "}
+                  {passageirosPorTenant.get(tenantInspecaoPassageiros.tenantId)?.length || 0}{" "}
+                  passageiros vinculados a esta praça.
                 </p>
               </div>
 
@@ -1434,7 +1570,9 @@ function SuperAdminFranqueadosContent() {
 
             <div className="flex-1 overflow-y-auto space-y-2 pr-1">
               {(() => {
-                const lista = (passageirosPorTenant.get(tenantInspecaoPassageiros.tenantId) || []).filter((p) => {
+                const lista = (
+                  passageirosPorTenant.get(tenantInspecaoPassageiros.tenantId) || []
+                ).filter((p) => {
                   if (!buscaModalUsuario) return true;
                   const q = buscaModalUsuario.toLowerCase();
                   return (
@@ -1468,7 +1606,9 @@ function SuperAdminFranqueadosContent() {
                           <td className="py-2 px-2 font-medium text-slate-900 dark:text-white">
                             {p.full_name || "Sem Nome"}
                           </td>
-                          <td className="py-2 px-2 text-slate-600 dark:text-slate-300">{p.phone || "-"}</td>
+                          <td className="py-2 px-2 text-slate-600 dark:text-slate-300">
+                            {p.phone || "-"}
+                          </td>
                           <td className="py-2 px-2 text-slate-500">{p.email || "-"}</td>
                           <td className="py-2 px-2">
                             <span
@@ -1503,7 +1643,8 @@ function SuperAdminFranqueadosContent() {
                   Motoristas Cadastrados — {tenantInspecaoMotoristas.nomeOperacao}
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Total de {motoristasPorTenant.get(tenantInspecaoMotoristas.tenantId)?.length || 0} condutores parceiros vinculados.
+                  Total de {motoristasPorTenant.get(tenantInspecaoMotoristas.tenantId)?.length || 0}{" "}
+                  condutores parceiros vinculados.
                 </p>
               </div>
 
@@ -1542,7 +1683,9 @@ function SuperAdminFranqueadosContent() {
 
             <div className="flex-1 overflow-y-auto space-y-2 pr-1">
               {(() => {
-                const lista = (motoristasPorTenant.get(tenantInspecaoMotoristas.tenantId) || []).filter((m) => {
+                const lista = (
+                  motoristasPorTenant.get(tenantInspecaoMotoristas.tenantId) || []
+                ).filter((m) => {
                   if (!buscaModalUsuario) return true;
                   const q = buscaModalUsuario.toLowerCase();
                   return (
@@ -1576,9 +1719,12 @@ function SuperAdminFranqueadosContent() {
                           <td className="py-2 px-2 font-medium text-slate-900 dark:text-white">
                             {m.full_name || "Sem Nome"}
                           </td>
-                          <td className="py-2 px-2 text-slate-600 dark:text-slate-300">{m.phone || "-"}</td>
                           <td className="py-2 px-2 text-slate-600 dark:text-slate-300">
-                            {m.veiculo_modelo || "-"} • <span className="font-mono font-bold">{m.veiculo_placa || "-"}</span>
+                            {m.phone || "-"}
+                          </td>
+                          <td className="py-2 px-2 text-slate-600 dark:text-slate-300">
+                            {m.veiculo_modelo || "-"} •{" "}
+                            <span className="font-mono font-bold">{m.veiculo_placa || "-"}</span>
                           </td>
                           <td className="py-2 px-2">
                             <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
@@ -1603,7 +1749,8 @@ function SuperAdminFranqueadosContent() {
             <div className="flex items-center gap-3">
               <div
                 className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
-                  tenantParaDesativar.ativo !== false && tenantParaDesativar.statusPlano !== "SUSPENSO"
+                  tenantParaDesativar.ativo !== false &&
+                  tenantParaDesativar.statusPlano !== "SUSPENSO"
                     ? "bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400"
                     : "bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
                 }`}
@@ -1612,7 +1759,8 @@ function SuperAdminFranqueadosContent() {
               </div>
               <div>
                 <h3 className="text-base font-black text-slate-950 dark:text-white">
-                  {tenantParaDesativar.ativo !== false && tenantParaDesativar.statusPlano !== "SUSPENSO"
+                  {tenantParaDesativar.ativo !== false &&
+                  tenantParaDesativar.statusPlano !== "SUSPENSO"
                     ? "Suspender Plano e Desativar App"
                     : "Reativar Plano da Franquia"}
                 </h3>
@@ -1626,20 +1774,21 @@ function SuperAdminFranqueadosContent() {
                 : "Ao reativar, o aplicativo da praça voltará a operar normalmente e o gestor terá seu acesso administrativo restabelecido."}
             </p>
 
-            {tenantParaDesativar.ativo !== false && tenantParaDesativar.statusPlano !== "SUSPENSO" && (
-              <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                  Motivo da suspensão (exibido ao gestor)
-                </label>
-                <input
-                  type="text"
-                  placeholder="ex: Inadimplência de mensalidade SaaS, descumprimento contratual..."
-                  value={motivoDesativacao}
-                  onChange={(e) => setMotivoDesativacao(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs"
-                />
-              </div>
-            )}
+            {tenantParaDesativar.ativo !== false &&
+              tenantParaDesativar.statusPlano !== "SUSPENSO" && (
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                    Motivo da suspensão (exibido ao gestor)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="ex: Inadimplência de mensalidade SaaS, descumprimento contratual..."
+                    value={motivoDesativacao}
+                    onChange={(e) => setMotivoDesativacao(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs"
+                  />
+                </div>
+              )}
 
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
@@ -1656,12 +1805,14 @@ function SuperAdminFranqueadosContent() {
                 type="button"
                 onClick={executarAlternanciaPlano}
                 className={`px-4 py-2 rounded-xl text-xs font-bold text-white transition cursor-pointer ${
-                  tenantParaDesativar.ativo !== false && tenantParaDesativar.statusPlano !== "SUSPENSO"
+                  tenantParaDesativar.ativo !== false &&
+                  tenantParaDesativar.statusPlano !== "SUSPENSO"
                     ? "bg-rose-600 hover:bg-rose-500"
                     : "bg-emerald-600 hover:bg-emerald-500"
                 }`}
               >
-                {tenantParaDesativar.ativo !== false && tenantParaDesativar.statusPlano !== "SUSPENSO"
+                {tenantParaDesativar.ativo !== false &&
+                tenantParaDesativar.statusPlano !== "SUSPENSO"
                   ? "Confirmar Suspensão"
                   : "Confirmar Reativação"}
               </button>
@@ -1687,12 +1838,15 @@ function SuperAdminFranqueadosContent() {
             </div>
 
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-              Esta ação é <strong>irreversível</strong>. A conta do franqueado, as customizações White-Label e os acessos locais serão excluídos do sistema.
+              Esta ação é <strong>irreversível</strong>. A conta do franqueado, as customizações
+              White-Label e os acessos locais serão excluídos do sistema.
             </p>
 
             <div>
               <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                Digite o nome da cidade (<span className="text-rose-600">{tenantParaExcluir.cidadeNome}</span>) para confirmar:
+                Digite o nome da cidade (
+                <span className="text-rose-600">{tenantParaExcluir.cidadeNome}</span>) para
+                confirmar:
               </label>
               <input
                 type="text"
@@ -1716,7 +1870,10 @@ function SuperAdminFranqueadosContent() {
               </button>
               <button
                 type="button"
-                disabled={confirmacaoExclusaoTexto.trim().toLowerCase() !== tenantParaExcluir.cidadeNome.trim().toLowerCase()}
+                disabled={
+                  confirmacaoExclusaoTexto.trim().toLowerCase() !==
+                  tenantParaExcluir.cidadeNome.trim().toLowerCase()
+                }
                 onClick={executarExclusaoFranqueado}
                 className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 disabled:opacity-40 text-white transition cursor-pointer"
               >
@@ -1741,7 +1898,8 @@ function SuperAdminFranqueadosContent() {
                     Credenciais do Franqueado
                   </h3>
                   <p className="text-xs text-slate-500">
-                    {tenantParaCredenciais.nomeOperacao} ({tenantParaCredenciais.cidadeNome} — {tenantParaCredenciais.uf})
+                    {tenantParaCredenciais.nomeOperacao} ({tenantParaCredenciais.cidadeNome} —{" "}
+                    {tenantParaCredenciais.uf})
                   </p>
                 </div>
               </div>
@@ -1805,7 +1963,11 @@ function SuperAdminFranqueadosContent() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                     tabIndex={-1}
                   >
-                    {mostrarSenhaModal ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {mostrarSenhaModal ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -1816,7 +1978,11 @@ function SuperAdminFranqueadosContent() {
                   Isolamento de Segurança Garantido
                 </div>
                 <p className="text-[11px] leading-relaxed">
-                  Ao salvar, o franqueado poderá acessar imediatamente o painel em <span className="font-mono text-slate-800 dark:text-slate-300">/app/admin/login</span> com estas credenciais e gerenciar apenas os dados de sua praça.
+                  Ao salvar, o franqueado poderá acessar imediatamente o painel em{" "}
+                  <span className="font-mono text-slate-800 dark:text-slate-300">
+                    /app/admin/login
+                  </span>{" "}
+                  com estas credenciais e gerenciar apenas os dados de sua praça.
                 </p>
               </div>
 
@@ -1854,7 +2020,8 @@ function SuperAdminFranqueadosContent() {
                     Conectar APIs de Mapas Própria
                   </h3>
                   <p className="text-xs text-slate-500">
-                    {tenantParaMapa.nomeOperacao} ({tenantParaMapa.cidadeNome} — {tenantParaMapa.uf})
+                    {tenantParaMapa.nomeOperacao} ({tenantParaMapa.cidadeNome} — {tenantParaMapa.uf}
+                    )
                   </p>
                 </div>
               </div>
@@ -1873,7 +2040,9 @@ function SuperAdminFranqueadosContent() {
               <div>
                 <p className="font-bold">Isolamento Estrito de Cotas da Holding</p>
                 <p className="text-[11px] mt-0.5 leading-relaxed text-amber-700 dark:text-amber-400">
-                  A chave da Matriz é de uso exclusivo do Super Administrador. Cada franqueado deve conectar seu próprio Mapbox ou Google Maps para isolar seus custos. Se nenhuma chave for cadastrada, a praça operará na camada gratuita CARTO/OSM.
+                  A chave da Matriz é de uso exclusivo do Super Administrador. Cada franqueado deve
+                  conectar seu próprio Mapbox ou Google Maps para isolar seus custos. Se nenhuma
+                  chave for cadastrada, a praça operará na camada gratuita CARTO/OSM.
                 </p>
               </div>
             </div>
@@ -1924,7 +2093,11 @@ function SuperAdminFranqueadosContent() {
                       onClick={() => setMostrarTokenModal(!mostrarTokenModal)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                     >
-                      {mostrarTokenModal ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {mostrarTokenModal ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -1959,7 +2132,11 @@ function SuperAdminFranqueadosContent() {
                       onClick={() => setMostrarTokenModal(!mostrarTokenModal)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                     >
-                      {mostrarTokenModal ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {mostrarTokenModal ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -2084,7 +2261,8 @@ function SuperAdminFranqueadosContent() {
                     Prioridade Territorial & Exclusividade
                   </h3>
                   <p className="text-xs text-slate-500">
-                    {tenantParaTerritorio.nomeOperacao} ({tenantParaTerritorio.cidadeNome} — {tenantParaTerritorio.uf})
+                    {tenantParaTerritorio.nomeOperacao} ({tenantParaTerritorio.cidadeNome} —{" "}
+                    {tenantParaTerritorio.uf})
                   </p>
                 </div>
               </div>
@@ -2098,13 +2276,16 @@ function SuperAdminFranqueadosContent() {
             </div>
 
             {/* Aviso de Matriz Nacional ou Franquia Regional */}
-            {tenantParaTerritorio.tenantId === "default" || tenantParaTerritorio.isMatrizNacional ? (
+            {tenantParaTerritorio.tenantId === "default" ||
+            tenantParaTerritorio.isMatrizNacional ? (
               <div className="p-3.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-800/60 text-xs text-blue-800 dark:text-blue-300 flex items-start gap-2.5">
                 <ShieldCheck className="w-4 h-4 shrink-0 text-blue-600 mt-0.5" />
                 <div>
                   <p className="font-bold">Franquia Matriz Nacional (Super Administrador)</p>
                   <p className="text-[11px] mt-0.5 leading-relaxed text-blue-700 dark:text-blue-400">
-                    A Franquia Mãe opera com cobertura irrestrita em 100% do território nacional brasileiro, atendendo e roteando em todas as regiões, sem restrições de fronteira municipal.
+                    A Franquia Mãe opera com cobertura irrestrita em 100% do território nacional
+                    brasileiro, atendendo e roteando em todas as regiões, sem restrições de
+                    fronteira municipal.
                   </p>
                 </div>
               </div>
@@ -2114,7 +2295,9 @@ function SuperAdminFranqueadosContent() {
                 <div>
                   <p className="font-bold">Garantia de Exclusividade e Não-Canibalização</p>
                   <p className="text-[11px] mt-0.5 leading-relaxed text-emerald-700 dark:text-emerald-400">
-                    O aplicativo desta franquia só operará dentro do território e raio definidos, bloqueando invasão de corridas e motoristas de cidades vizinhas. Expansões adicionais requerem licenciamento formal.
+                    O aplicativo desta franquia só operará dentro do território e raio definidos,
+                    bloqueando invasão de corridas e motoristas de cidades vizinhas. Expansões
+                    adicionais requerem licenciamento formal.
                   </p>
                 </div>
               </div>
@@ -2122,7 +2305,9 @@ function SuperAdminFranqueadosContent() {
 
             <form onSubmit={handleSalvarTerritorio} className="space-y-4">
               {/* Modo de Exclusividade */}
-              {!(tenantParaTerritorio.tenantId === "default" || tenantParaTerritorio.isMatrizNacional) && (
+              {!(
+                tenantParaTerritorio.tenantId === "default" || tenantParaTerritorio.isMatrizNacional
+              ) && (
                 <div>
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
                     Regime de Operação Territorial
@@ -2133,7 +2318,9 @@ function SuperAdminFranqueadosContent() {
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white font-semibold outline-none"
                   >
                     <option value="CIDADE_ESTRITA">Cidade Estrita (Apenas município sede)</option>
-                    <option value="MULTI_CIDADES_EXPANSAO">Multi-Cidades (Expansão Territorial Licenciada)</option>
+                    <option value="MULTI_CIDADES_EXPANSAO">
+                      Multi-Cidades (Expansão Territorial Licenciada)
+                    </option>
                     <option value="RAIO_KM_LIVRE">Raio KM Livre (A partir do centro)</option>
                   </select>
                 </div>
@@ -2187,7 +2374,9 @@ function SuperAdminFranqueadosContent() {
               </div>
 
               {/* Travas de Blindagem e Não-Canibalização */}
-              {!(tenantParaTerritorio.tenantId === "default" || tenantParaTerritorio.isMatrizNacional) && (
+              {!(
+                tenantParaTerritorio.tenantId === "default" || tenantParaTerritorio.isMatrizNacional
+              ) && (
                 <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 space-y-2.5">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
                     Travas Automáticas de Fronteira
@@ -2232,7 +2421,9 @@ function SuperAdminFranqueadosContent() {
               )}
 
               {/* Gestão de Cidades Licenciadas / Expansão */}
-              {!(tenantParaTerritorio.tenantId === "default" || tenantParaTerritorio.isMatrizNacional) && (
+              {!(
+                tenantParaTerritorio.tenantId === "default" || tenantParaTerritorio.isMatrizNacional
+              ) && (
                 <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
                     Cidades Licenciadas para Esta Franquia
@@ -2253,7 +2444,11 @@ function SuperAdminFranqueadosContent() {
                         >
                           <MapPin className="w-3 h-3 text-slate-500" />
                           <span>{cid}</span>
-                          {isSede && <span className="text-[9px] uppercase opacity-75 font-black">(Sede)</span>}
+                          {isSede && (
+                            <span className="text-[9px] uppercase opacity-75 font-black">
+                              (Sede)
+                            </span>
+                          )}
                           {!isSede && (
                             <button
                               type="button"
@@ -2293,7 +2488,8 @@ function SuperAdminFranqueadosContent() {
                     </button>
                   </div>
                   <p className="text-[10px] text-slate-400">
-                    O Super Administrador pode adicionar municípios quando o franqueado adquirir direitos de expansão territorial.
+                    O Super Administrador pode adicionar municípios quando o franqueado adquirir
+                    direitos de expansão territorial.
                   </p>
                 </div>
               )}

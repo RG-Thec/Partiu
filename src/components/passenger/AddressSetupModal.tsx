@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Home, Briefcase, Clock, MapPin, X, Loader2 } from "lucide-react";
 import { addressService } from "@/services/AddressService";
-import {
-  geocodingService,
-  type GeocodedPlace,
-} from "@/lib/passenger/geocoding-service";
+import { geocodingService, type GeocodedPlace } from "@/lib/passenger/geocoding-service";
 import { calcularDistanciaHaversine } from "@/lib/passenger/eta-service";
 import { usePassengerRide } from "@/contexts/PassengerRideContext";
 
@@ -158,9 +155,13 @@ export function AddressSetupModal({
                 </div>
                 <div className="flex-1 min-w-0 pr-2">
                   <p className="text-sm font-bold text-slate-900 truncate">{lugar.label}</p>
-                  <p className="text-xs text-slate-500 truncate mt-0.5 font-normal">{lugar.endereco}</p>
+                  <p className="text-xs text-slate-500 truncate mt-0.5 font-normal">
+                    {lugar.endereco}
+                  </p>
                 </div>
-                {dist && <span className="text-xs font-semibold text-slate-400 shrink-0">{dist}</span>}
+                {dist && (
+                  <span className="text-xs font-semibold text-slate-400 shrink-0">{dist}</span>
+                )}
               </button>
             );
           })}

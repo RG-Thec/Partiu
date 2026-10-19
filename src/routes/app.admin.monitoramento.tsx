@@ -57,7 +57,9 @@ export function MonitoramentoCommandCenter() {
   const { data: frotaBanco = [] } = useTelemetriaFrota();
   const [veiculos, setVeiculos] = useState<TelemetriaVeiculo[]>([]);
   const [selecionadoId, setSelecionadoId] = useState<string>("");
-  const [filtroStatus, setFiltroStatus] = useState<"todos" | "em_rota" | "parado" | "socorro_sos">("todos");
+  const [filtroStatus, setFiltroStatus] = useState<"todos" | "em_rota" | "parado" | "socorro_sos">(
+    "todos",
+  );
   const [busca, setBusca] = useState<string>("");
   const [mensagemRadio, setMensagemRadio] = useState<string>("");
   const [mensagemEnviada, setMensagemEnviada] = useState<boolean>(false);
@@ -111,8 +113,10 @@ export function MonitoramentoCommandCenter() {
 
   const veiculosFiltrados = veiculos.filter((v) => {
     if (filtroStatus !== "todos") {
-      if (filtroStatus === "em_rota" && v.status !== "em_rota" && v.status !== "embarcando") return false;
-      if (filtroStatus === "parado" && v.status !== "parado" && v.status !== "garagem") return false;
+      if (filtroStatus === "em_rota" && v.status !== "em_rota" && v.status !== "embarcando")
+        return false;
+      if (filtroStatus === "parado" && v.status !== "parado" && v.status !== "garagem")
+        return false;
       if (filtroStatus === "socorro_sos" && v.status !== "socorro_sos") return false;
     }
     if (busca.trim()) {
@@ -151,7 +155,9 @@ export function MonitoramentoCommandCenter() {
             <span className="text-[10px] uppercase font-bold text-slate-400 block">
               Frota em Rota
             </span>
-            <strong className="text-lg font-black text-emerald-400 leading-tight">28 condutores</strong>
+            <strong className="text-lg font-black text-emerald-400 leading-tight">
+              28 condutores
+            </strong>
           </div>
           <div className="rounded-2xl bg-slate-900/90 px-3.5 py-2.5 border border-slate-800 text-center">
             <span className="text-[10px] uppercase font-bold text-slate-400 block">
@@ -310,7 +316,12 @@ export function MonitoramentoCommandCenter() {
                         : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200"
                     }`}
                   >
-                    Em rota ({veiculos.filter((v) => v.status === "em_rota" || v.status === "embarcando").length})
+                    Em rota (
+                    {
+                      veiculos.filter((v) => v.status === "em_rota" || v.status === "embarcando")
+                        .length
+                    }
+                    )
                   </button>
                   <button
                     type="button"
@@ -321,7 +332,9 @@ export function MonitoramentoCommandCenter() {
                         : "bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200"
                     }`}
                   >
-                    Disponível ({veiculos.filter((v) => v.status === "parado" || v.status === "garagem").length})
+                    Disponível (
+                    {veiculos.filter((v) => v.status === "parado" || v.status === "garagem").length}
+                    )
                   </button>
                   <button
                     type="button"
@@ -556,7 +569,9 @@ export function MonitoramentoCommandCenter() {
             variant="full"
             gpsAccuracyMeters={8}
             driversOnlineCount={veiculos.length}
-            driversInViewportCount={veiculos.filter((v) => v.status === "em_rota").length || veiculos.length}
+            driversInViewportCount={
+              veiculos.filter((v) => v.status === "em_rota").length || veiculos.length
+            }
             websocketStatus="CONNECTED"
             lastRealtimeEventTimestamp={Date.now() - 300}
             mapboxRequestCount={136}

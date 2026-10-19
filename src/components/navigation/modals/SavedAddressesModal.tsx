@@ -105,7 +105,10 @@ export function SavedAddressesModal({
                 type="button"
                 onClick={handleSubmit}
                 className="flex-1 py-2 text-xs font-bold text-white rounded-xl shadow-xs cursor-pointer"
-                style={{ backgroundColor: corPrimaria || "#FF6B00", color: corTextoPrimaria || "#FFFFFF" }}
+                style={{
+                  backgroundColor: corPrimaria || "#FF6B00",
+                  color: corTextoPrimaria || "#FFFFFF",
+                }}
               >
                 Salvar
               </button>

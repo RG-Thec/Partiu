@@ -87,8 +87,7 @@ export async function solicitarPermissaoPush(): Promise<ResultadoSolicitacaoPush
     /iPad|iPhone|iPod/.test(navigator.userAgent) &&
     !(window as any).MSStream;
   const isStandalone =
-    (typeof window !== "undefined" &&
-      window.matchMedia?.("(display-mode: standalone)")?.matches) ||
+    (typeof window !== "undefined" && window.matchMedia?.("(display-mode: standalone)")?.matches) ||
     (typeof navigator !== "undefined" && (navigator as any).standalone === true);
 
   if (isIOSDevice && !isStandalone && !("Notification" in window)) {

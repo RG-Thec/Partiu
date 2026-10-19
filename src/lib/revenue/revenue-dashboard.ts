@@ -65,12 +65,12 @@ export class RevenueDashboardEngine {
     // Diária Flex: 20 motoristas (R$ 149,90)
     // Semanal Pro: 15 motoristas (R$ 199,90)
     // Mensal Ilimitado: 10 motoristas (R$ 99,90)
-    const mrrBrl = 20 * 149.90 + 15 * 199.90 + 10 * 99.90; // R$ 6.995,50
+    const mrrBrl = 20 * 149.9 + 15 * 199.9 + 10 * 99.9; // R$ 6.995,50
     const arrBrl = mrrBrl * 12; // R$ 83.946,00
 
     // Volume operacional estimado na praça piloto (ex: 6.800 corridas no mês)
     const totalRidesCount = 6800;
-    const averageTicketBrl = 18.50;
+    const averageTicketBrl = 18.5;
     const totalGmvBrl = totalRidesCount * averageTicketBrl; // R$ 125.800,00
 
     // REGRA DE OURO PARTIU: 0% Take Rate sobre corridas (100% em posse dos motoristas)
@@ -87,7 +87,7 @@ export class RevenueDashboardEngine {
     // LTV = (Receita Líquida por motorista / mês) / Churn Rate
     const revenuePerDriverMonth = totalNetRevenueBrl / totalDrivers;
     const driverLtvBrl = Number((revenuePerDriverMonth / (churnRatePercent / 100)).toFixed(2));
-    const driverCacBrl = 45.00; // Custo de aquisição via indicação / marketing local
+    const driverCacBrl = 45.0; // Custo de aquisição via indicação / marketing local
 
     const protectionFundReserveTotalBrl = 0.0;
 

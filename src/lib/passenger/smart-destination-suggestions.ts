@@ -64,7 +64,8 @@ interface DestinoFrequenteRegistro {
  */
 function getStorageFrequencyKey(uid?: string): string {
   if (typeof window === "undefined") return "partiu_user_destination_frequency_v3";
-  const user = uid || supabaseAuthService.getStoredSession()?.id || localStorage.getItem("partiu_user_id");
+  const user =
+    uid || supabaseAuthService.getStoredSession()?.id || localStorage.getItem("partiu_user_id");
   if (user && user !== "passageiro_default") {
     return `partiu_user_destination_frequency_v3_${user}`;
   }
@@ -88,7 +89,7 @@ export function registrarDestinoFrequente(
   label: string,
   endereco: string,
   coords?: [number, number],
-  uid?: string
+  uid?: string,
 ): void {
   if (typeof window === "undefined" || !endereco) return;
   try {
@@ -104,7 +105,9 @@ export function registrarDestinoFrequente(
 
     const endNorm = normalizarTexto(endereco);
     const indexExistente = registros.findIndex(
-      (r) => normalizarTexto(r.endereco) === endNorm || normalizarTexto(r.label) === normalizarTexto(label)
+      (r) =>
+        normalizarTexto(r.endereco) === endNorm ||
+        normalizarTexto(r.label) === normalizarTexto(label),
     );
 
     if (indexExistente >= 0) {
@@ -140,25 +143,33 @@ export function registrarDestinoFrequente(
 export async function getTop3LocaisFrequentados(
   coordsOrigem?: [number, number],
   uid?: string,
-  phone?: string
+  phone?: string,
 ): Promise<SuggestedPlaceItem[]> {
-  const lugaresAgrupados = new Map<string, {
-    label: string;
-    endereco: string;
-    coords?: [number, number];
-    score: number;
-    badge: string;
-    frequencia: number;
-  }>();
+  const lugaresAgrupados = new Map<
+    string,
+    {
+      label: string;
+      endereco: string;
+      coords?: [number, number];
+      score: number;
+      badge: string;
+      frequencia: number;
+    }
+  >();
 
   // 1. Endereços salvos prioritários do próprio usuário (Casa e Trabalho)
   try {
     const casa = addressService.getCasa(uid);
     if (casa && casa.endereco) {
       // Ignora se for mock de ambiente de teste antigo
-      const eMock = casa.endereco.includes("Itaperuna") && coordsOrigem && calcularDistanciaHaversineMetros(coordsOrigem, casa.coords) > 80000;
+      const eMock =
+        casa.endereco.includes("Itaperuna") &&
+        coordsOrigem &&
+        calcularDistanciaHaversineMetros(coordsOrigem, casa.coords) > 80000;
       if (!eMock) {
-        const dist = coordsOrigem ? calcularDistanciaHaversineMetros(coordsOrigem, casa.coords) : undefined;
+        const dist = coordsOrigem
+          ? calcularDistanciaHaversineMetros(coordsOrigem, casa.coords)
+          : undefined;
         // Só exibe se for na mesma macrorregião (< 80 km)
         if (dist === undefined || dist < 80000) {
           const norm = normalizarTexto(casa.endereco);
@@ -176,9 +187,14 @@ export async function getTop3LocaisFrequentados(
 
     const trabalho = addressService.getTrabalho(uid);
     if (trabalho && trabalho.endereco) {
-      const eMock = trabalho.endereco.includes("Itaperuna") && coordsOrigem && calcularDistanciaHaversineMetros(coordsOrigem, trabalho.coords) > 80000;
+      const eMock =
+        trabalho.endereco.includes("Itaperuna") &&
+        coordsOrigem &&
+        calcularDistanciaHaversineMetros(coordsOrigem, trabalho.coords) > 80000;
       if (!eMock) {
-        const dist = coordsOrigem ? calcularDistanciaHaversineMetros(coordsOrigem, trabalho.coords) : undefined;
+        const dist = coordsOrigem
+          ? calcularDistanciaHaversineMetros(coordsOrigem, trabalho.coords)
+          : undefined;
         if (dist === undefined || dist < 80000) {
           const norm = normalizarTexto(trabalho.endereco);
           lugaresAgrupados.set(norm, {
@@ -197,7 +213,9 @@ export async function getTop3LocaisFrequentados(
     const outrosSalvos = addressService.getFavoritos(uid);
     for (const fav of outrosSalvos) {
       if (fav && fav.endereco) {
-        const dist = coordsOrigem ? calcularDistanciaHaversineMetros(coordsOrigem, fav.coords) : undefined;
+        const dist = coordsOrigem
+          ? calcularDistanciaHaversineMetros(coordsOrigem, fav.coords)
+          : undefined;
         if (dist === undefined || dist < 80000) {
           const norm = normalizarTexto(fav.endereco);
           if (!lugaresAgrupados.has(norm)) {
@@ -231,7 +249,7 @@ export async function getTop3LocaisFrequentados(
 
           const norm = normalizarTexto(reg.endereco);
           const pesoTempo = Date.now() - reg.ultimaVisita < 7 * 24 * 60 * 60 * 1000 ? 10 : 0;
-          const score = (reg.contagem * 8) + pesoTempo;
+          const score = reg.contagem * 8 + pesoTempo;
 
           if (lugaresAgrupados.has(norm)) {
             const atual = lugaresAgrupados.get(norm)!;
@@ -301,7 +319,9 @@ export async function getTop3LocaisFrequentados(
   for (const item of candidatos) {
     if (resultadoFrequentes.length >= 3) break;
     const coordsFinal = item.coords || coordsOrigem || [-47.935, -15.795];
-    const distanciaMetros = coordsOrigem ? calcularDistanciaHaversineMetros(coordsOrigem, coordsFinal) : undefined;
+    const distanciaMetros = coordsOrigem
+      ? calcularDistanciaHaversineMetros(coordsOrigem, coordsFinal)
+      : undefined;
     resultadoFrequentes.push({
       id: `freq-${normalizarTexto(item.label).slice(0, 15)}-${resultadoFrequentes.length}`,
       label: item.label,
@@ -310,7 +330,8 @@ export async function getTop3LocaisFrequentados(
       coords: coordsFinal,
       origemSugestao: "FREQUENTE",
       distanciaMetros,
-      distanciaFormatada: distanciaMetros !== undefined ? formatarDistanciaLegivel(distanciaMetros) : undefined,
+      distanciaFormatada:
+        distanciaMetros !== undefined ? formatarDistanciaLegivel(distanciaMetros) : undefined,
       badge: item.badge,
       frequencia: item.frequencia,
     });
@@ -325,7 +346,7 @@ export async function getTop3LocaisFrequentados(
  */
 export async function getTop3LocaisProximosReais(
   coordsOrigem: [number, number],
-  excluirEnderecos: string[] = []
+  excluirEnderecos: string[] = [],
 ): Promise<SuggestedPlaceItem[]> {
   const normExcluidos = new Set(excluirEnderecos.map(normalizarTexto));
   const candidatosProximos: (SuggestedPlaceItem & { distanciaMetros: number })[] = [];
@@ -380,7 +401,7 @@ export async function getTop3LocaisProximosReais(
         const termos = ["avenida", "praca", "mercado", "farmacia", "hospital"];
         const endpoints = termos.map(
           (termo) =>
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${termo}.json?proximity=${lng},${lat}&bbox=${bbox}&limit=3&country=br&language=pt&access_token=${token}`
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${termo}.json?proximity=${lng},${lat}&bbox=${bbox}&limit=3&country=br&language=pt&access_token=${token}`,
         );
 
         const responses = await Promise.allSettled(
@@ -396,11 +417,12 @@ export async function getTop3LocaisProximosReais(
                 clearTimeout(timeout);
                 return null;
               });
-          })
+          }),
         );
 
         for (const resp of responses) {
-          if (resp.status !== "fulfilled" || !resp.value || !Array.isArray(resp.value.features)) continue;
+          if (resp.status !== "fulfilled" || !resp.value || !Array.isArray(resp.value.features))
+            continue;
           for (const feat of resp.value.features) {
             const coords = feat.center as [number, number];
             if (!coords || !Array.isArray(coords)) continue;
@@ -420,7 +442,7 @@ export async function getTop3LocaisProximosReais(
             const jaExiste = candidatosProximos.some(
               (c) =>
                 calcularDistanciaHaversineMetros(c.coords, coords) < 100 ||
-                normalizarTexto(c.label) === normNome
+                normalizarTexto(c.label) === normNome,
             );
             if (jaExiste) continue;
 
@@ -478,7 +500,7 @@ export async function getTop3LocaisProximosReais(
             const jaExiste = candidatosProximos.some(
               (c) =>
                 calcularDistanciaHaversineMetros(c.coords, coords) < 100 ||
-                normalizarTexto(c.label) === normNome
+                normalizarTexto(c.label) === normNome,
             );
             if (jaExiste) continue;
 
@@ -517,7 +539,7 @@ export async function getTop3LocaisProximosReais(
 export async function getSeisSugestoesDestino(
   coordsOrigem: [number, number] = [-47.935, -15.795],
   uid?: string,
-  phone?: string
+  phone?: string,
 ): Promise<{
   frequentes: SuggestedPlaceItem[];
   proximos: SuggestedPlaceItem[];

@@ -1,6 +1,6 @@
 /**
  * PARTIU MOBILITY FOUNDATION MODEL
- * 
+ *
  * Modelo fundacional de representação vetorial unificada do estado nacional do marketplace.
  * Gera embeddings operacionais densos em 32 dimensões (Float32Array) que alimentam todos os agentes autônomos.
  */
@@ -19,7 +19,7 @@ export interface MarketplaceRawState {
   platformTakeRatePct: number; // ex: 5% (modelo híbrido)
   dailyRevenueBrl: number;
   liquidityRatio: number; // drivers / passengers
-  clima: 'LIMPO' | 'CHUVA_LEVE' | 'CHUVA_MODERADA' | 'TEMPESTADE';
+  clima: "LIMPO" | "CHUVA_LEVE" | "CHUVA_MODERADA" | "TEMPESTADE";
   eventosAtivosCount: number;
   acidentesViariosCount: number;
   cityHealthScore: number; // 0 a 100
@@ -69,11 +69,22 @@ export class MobilityFoundationModel {
     // 12-15: Fatores Temporais e Sazonalidade
     v[12] = date.getHours() / 24.0;
     v[13] = date.getDay() / 7.0;
-    v[14] = (date.getHours() >= 7 && date.getHours() <= 9) || (date.getHours() >= 17 && date.getHours() <= 19) ? 1.0 : 0.0;
+    v[14] =
+      (date.getHours() >= 7 && date.getHours() <= 9) ||
+      (date.getHours() >= 17 && date.getHours() <= 19)
+        ? 1.0
+        : 0.0;
     v[15] = date.getDay() === 5 || date.getDay() === 6 ? 1.0 : 0.0; // Fim de semana
 
     // 16-19: Fatores Ambientais e Choques Externos
-    v[16] = state.clima === 'TEMPESTADE' ? 1.0 : state.clima === 'CHUVA_MODERADA' ? 0.65 : state.clima === 'CHUVA_LEVE' ? 0.3 : 0.0;
+    v[16] =
+      state.clima === "TEMPESTADE"
+        ? 1.0
+        : state.clima === "CHUVA_MODERADA"
+          ? 0.65
+          : state.clima === "CHUVA_LEVE"
+            ? 0.3
+            : 0.0;
     v[17] = Math.min(1.0, state.eventosAtivosCount / 5.0);
     v[18] = Math.min(1.0, state.acidentesViariosCount / 4.0);
     v[19] = Math.min(1.0, state.hotspotMaxDeficitRatio / 3.0);
@@ -91,8 +102,8 @@ export class MobilityFoundationModel {
     v[27] = (1.0 - v[5]) * v[20]; // Rejeição de viagens ponderada pela saúde
     v[28] = v[1] * v[9]; // Ocupação ponderada pelo take-rate
     v[29] = v[22] * (1.0 - v[0]); // Churn amplificado por baixa frota
-    v[30] = Math.sin((v[12] * Math.PI * 2)); // Ciclo circadiano contínuo seno
-    v[31] = Math.cos((v[12] * Math.PI * 2)); // Ciclo circadiano contínuo cosseno
+    v[30] = Math.sin(v[12] * Math.PI * 2); // Ciclo circadiano contínuo seno
+    v[31] = Math.cos(v[12] * Math.PI * 2); // Ciclo circadiano contínuo cosseno
 
     const featuresNamed: Record<string, number> = {
       ofertaRelativa: Number(v[0].toFixed(3)),
@@ -103,7 +114,7 @@ export class MobilityFoundationModel {
       cityHealthNormalizado: Number(v[20].toFixed(3)),
       nationalHealthNormalizado: Number(v[21].toFixed(3)),
       riscoChurn: Number(v[22].toFixed(3)),
-      riscoFraude: Number(v[23].toFixed(3))
+      riscoFraude: Number(v[23].toFixed(3)),
     };
 
     return {
@@ -111,7 +122,7 @@ export class MobilityFoundationModel {
       cityName: state.cityName,
       timestamp: state.timestamp || Date.now(),
       embedding: v,
-      featuresNamed
+      featuresNamed,
     };
   }
 

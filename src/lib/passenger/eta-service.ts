@@ -23,18 +23,12 @@ export interface CalculatedEta {
   duracaoMinutos: number;
   duracaoFormatada: string;
   horarioEstimadoChegada: string; // Ex: "11:45"
-  textoResumido: string;          // Ex: "~3 min • 1,2 km"
-  badgeTexto: string;             // Ex: "Chega às 11:45 (~3 min)"
+  textoResumido: string; // Ex: "~3 min • 1,2 km"
+  badgeTexto: string; // Ex: "Chega às 11:45 (~3 min)"
 }
 
 export type ModalidadeVelocidade =
-  | "MOTO"
-  | "CARRO"
-  | "EXECUTIVO"
-  | "FLASH"
-  | "ENTREGA"
-  | "TURISMO"
-  | "VAN";
+  "MOTO" | "CARRO" | "EXECUTIVO" | "FLASH" | "ENTREGA" | "TURISMO" | "VAN";
 
 /**
  * Constantes de calibração urbana para cidades regionais (ex: Itaperuna, RJ)
@@ -57,7 +51,7 @@ const FATOR_MALHA_URBANA = 1.35;
  */
 export function calcularDistanciaHaversine(
   coord1: [number, number],
-  coord2: [number, number]
+  coord2: [number, number],
 ): number {
   const [lon1, lat1] = coord1;
   const [lon2, lat2] = coord2;
@@ -100,7 +94,7 @@ import { routingCache } from "@/services/RoutingCache";
 export function calcularEtaDinamico(
   origem: [number, number],
   destino: [number, number],
-  modalidade: ModalidadeVelocidade = "CARRO"
+  modalidade: ModalidadeVelocidade = "CARRO",
 ): CalculatedEta {
   // 1. Prioriza rota real com trânsito ao vivo do cache de direções (Mapbox/Google Directions)
   const cachedRoute = routingCache.get(origem, destino);
@@ -147,7 +141,7 @@ export interface RouteNavigationProvider {
   obterRotaReal(
     origem: [number, number],
     destino: [number, number],
-    modalidade: ModalidadeVelocidade
+    modalidade: ModalidadeVelocidade,
   ): Promise<CalculatedEta>;
 }
 
@@ -158,7 +152,7 @@ export class HybridNavigationService implements RouteNavigationProvider {
   async obterRotaReal(
     origem: [number, number],
     destino: [number, number],
-    modalidade: ModalidadeVelocidade = "CARRO"
+    modalidade: ModalidadeVelocidade = "CARRO",
   ): Promise<CalculatedEta> {
     try {
       const route = await routingService.getRoute(origem, destino, {
@@ -172,9 +166,7 @@ export class HybridNavigationService implements RouteNavigationProvider {
       const horario = formatarHorarioChegada(durMin);
 
       const distFmt =
-        distMetros < 1000
-          ? `${distMetros} m`
-          : `${distKm.toFixed(1).replace(".", ",")} km`;
+        distMetros < 1000 ? `${distMetros} m` : `${distKm.toFixed(1).replace(".", ",")} km`;
 
       return {
         distanciaMetros: distMetros,

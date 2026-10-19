@@ -68,25 +68,35 @@ export function validateCorporateRidePolicy(
   costCenter: CostCenter,
   estimatedRideCostBrl: number,
   rideHour: number, // 0 a 23
-  providedReason?: string
+  providedReason?: string,
 ): CorporateTripValidationResult {
   if (company.status !== "ATIVA") {
-    return { isAllowed: false, rejectReason: "Conta corporativa da empresa com restrição administrativa ou financeira." };
+    return {
+      isAllowed: false,
+      rejectReason: "Conta corporativa da empresa com restrição administrativa ou financeira.",
+    };
   }
 
   if (company.currentMonthSpentBrl + estimatedRideCostBrl > company.monthlyCreditLimitBrl) {
-    return { isAllowed: false, rejectReason: "Limite de crédito corporativo global da empresa atingido para este ciclo." };
+    return {
+      isAllowed: false,
+      rejectReason: "Limite de crédito corporativo global da empresa atingido para este ciclo.",
+    };
   }
 
   if (!employee.isActive) {
-    return { isAllowed: false, rejectReason: "Colaborador inativo nas políticas corporativas da empresa." };
+    return {
+      isAllowed: false,
+      rejectReason: "Colaborador inativo nas políticas corporativas da empresa.",
+    };
   }
 
   // Validação de horário comercial (07h às 20h)
   if (employee.allowedHours === "COMMERCIAL_ONLY" && (rideHour < 7 || rideHour > 20)) {
     return {
       isAllowed: false,
-      rejectReason: "Horário não autorizado pelas diretrizes da sua empresa (apenas horário comercial das 07h às 20h).",
+      rejectReason:
+        "Horário não autorizado pelas diretrizes da sua empresa (apenas horário comercial das 07h às 20h).",
     };
   }
 
@@ -94,7 +104,8 @@ export function validateCorporateRidePolicy(
   if (employee.requireReasonForRide && (!providedReason || providedReason.trim().length < 5)) {
     return {
       isAllowed: false,
-      rejectReason: "Esta empresa exige justificativa de negócio para autorizar a corrida (mínimo 5 caracteres).",
+      rejectReason:
+        "Esta empresa exige justificativa de negócio para autorizar a corrida (mínimo 5 caracteres).",
     };
   }
 
@@ -109,7 +120,8 @@ export function validateCorporateRidePolicy(
   return {
     isAllowed: true,
     costCenterName: costCenter.name,
-    remainingEmployeeBudgetBrl: employee.monthlySpendLimitBrl - (costCenter.allocatedSpendBrl + estimatedRideCostBrl),
+    remainingEmployeeBudgetBrl:
+      employee.monthlySpendLimitBrl - (costCenter.allocatedSpendBrl + estimatedRideCostBrl),
   };
 }
 
@@ -122,7 +134,7 @@ export function generateCorporateInvoice(
   tripsCount: number,
   periodStart: string,
   periodEnd: string,
-  dueDate: string
+  dueDate: string,
 ): CorporateInvoice {
   const convenienceFee = tripsAmountBrl * (company.convenienceFeePercent / 100);
   const total = tripsAmountBrl + convenienceFee;

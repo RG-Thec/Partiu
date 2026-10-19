@@ -10,11 +10,7 @@ export interface FloatingRidePillProps {
 }
 
 export function FloatingRidePill({ onExpand, className = "" }: FloatingRidePillProps) {
-  const {
-    activeRide,
-    state,
-    categoriaVeiculo,
-  } = usePassengerRide();
+  const { activeRide, state, categoriaVeiculo } = usePassengerRide();
   const { corPrimaria } = useBrandTheme();
 
   // Determina status ativo da corrida a partir da state machine canônica
@@ -47,8 +43,8 @@ export function FloatingRidePill({ onExpand, className = "" }: FloatingRidePillP
   const vehicleInfo = driver?.veiculo
     ? `${driver.veiculo}${driver.placa ? ` • ${driver.placa}` : ""}`
     : isMoto
-    ? "Partiu Moto"
-    : "Partiu Pop";
+      ? "Partiu Moto"
+      : "Partiu Pop";
   const driverRating = driver?.avaliacao ?? 4.95;
 
   let statusLabel = "Buscando motorista...";
@@ -59,10 +55,12 @@ export function FloatingRidePill({ onExpand, className = "" }: FloatingRidePillP
     statusBadgeClass = "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30";
   } else if (isDriverArrived) {
     statusLabel = "Chegou ao local de embarque!";
-    statusBadgeClass = "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 animate-pulse";
+    statusBadgeClass =
+      "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 animate-pulse";
   } else if (isOnTrip) {
     statusLabel = "Em viagem até o destino";
-    statusBadgeClass = "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30";
+    statusBadgeClass =
+      "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30";
   }
 
   const handleClick = () => {
@@ -90,11 +88,7 @@ export function FloatingRidePill({ onExpand, className = "" }: FloatingRidePillP
           style={corPrimaria ? { borderColor: `${corPrimaria}40` } : undefined}
         >
           {driver?.foto ? (
-            <img
-              src={driver.foto}
-              alt={driverName}
-              className="w-full h-full object-cover"
-            />
+            <img src={driver.foto} alt={driverName} className="w-full h-full object-cover" />
           ) : isMoto ? (
             <Bike className="w-5 h-5 text-emerald-600" />
           ) : (

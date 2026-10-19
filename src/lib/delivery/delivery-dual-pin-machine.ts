@@ -19,10 +19,10 @@ export type DeliveryActionTab = "enviar" | "receber";
 
 export type DeliveryFlowStatus =
   | "SETUP"
-  | "AWAITING_PICKUP"   // Estado 1 (Coleta): PIN 1 gerado, aguardando motorista
-  | "IN_TRANSIT"         // Estado 2 (Trânsito): PIN 1 validado pelo motorista
+  | "AWAITING_PICKUP" // Estado 1 (Coleta): PIN 1 gerado, aguardando motorista
+  | "IN_TRANSIT" // Estado 2 (Trânsito): PIN 1 validado pelo motorista
   | "ARRIVED_DESTINATION" // Estado 3 (Destino): Motorista no local, PIN 2 revelado para repasse
-  | "DELIVERED"         // Estado 4 (Conclusão): PIN 2 validado com sucesso
+  | "DELIVERED" // Estado 4 (Conclusão): PIN 2 validado com sucesso
   | "CANCELLED";
 
 export interface DeliveryAddressInfo {
@@ -93,12 +93,12 @@ export function gerarPinOtp(): string {
 export function calcularCotacaoEntrega(
   categoria: DeliveryVehicleCategory,
   distanciaKm = 5.2,
-  duracaoMin = 16
+  duracaoMin = 16,
 ): DeliveryQuote {
   const precoCalculado = appSettingsService.calculateDeliveryFare(
     distanciaKm,
     duracaoMin,
-    categoria
+    categoria,
   );
   const taxaSeguro = categoria === "MOTO" ? 1.0 : 1.5;
 
@@ -114,7 +114,7 @@ export function calcularCotacaoEntrega(
  * Retorna dados fictícios de motoristas parceiros por categoria (MOTO ou CARRO)
  */
 export function selecionarMotoristaEntrega(
-  categoria: DeliveryVehicleCategory
+  categoria: DeliveryVehicleCategory,
 ): DeliveryDriverProfile {
   if (categoria === "MOTO") {
     return {
@@ -150,7 +150,7 @@ export function selecionarMotoristaEntrega(
  */
 export function validarPin1Coleta(
   order: DeliveryOrderRecord,
-  pinInput: string
+  pinInput: string,
 ): { sucesso: boolean; mensagem: string; proximaOrdem?: DeliveryOrderRecord } {
   if (order.status !== "AWAITING_PICKUP") {
     return {
@@ -198,7 +198,7 @@ export function validarPin1Coleta(
  */
 export function validarPin2Entrega(
   order: DeliveryOrderRecord,
-  pinInput: string
+  pinInput: string,
 ): { sucesso: boolean; mensagem: string; proximaOrdem?: DeliveryOrderRecord } {
   if (order.status !== "IN_TRANSIT" && order.status !== "ARRIVED_DESTINATION") {
     return {

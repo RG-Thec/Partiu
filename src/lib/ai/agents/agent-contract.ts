@@ -1,26 +1,26 @@
 /**
  * CONTRATO OPERACIONAL DE AGENTES AUTÔNOMOS ESPECIALIZADOS
- * 
+ *
  * Define a interface unificada para os 6 agentes de inteligência de mobilidade:
  * analyze() -> recommend() -> simulate() -> execute()
  */
 
-import { MarketplaceStateVector } from '../partiu-foundation-model';
+import { MarketplaceStateVector } from "../partiu-foundation-model";
 
-export type AgentRole = 
-  | 'DISPATCH_AGENT'
-  | 'REVENUE_AGENT'
-  | 'SUPPLY_AGENT'
-  | 'DEMAND_AGENT'
-  | 'FRAUD_AGENT'
-  | 'EXPANSION_AGENT';
+export type AgentRole =
+  | "DISPATCH_AGENT"
+  | "REVENUE_AGENT"
+  | "SUPPLY_AGENT"
+  | "DEMAND_AGENT"
+  | "FRAUD_AGENT"
+  | "EXPANSION_AGENT";
 
 export interface AgentAnalysis {
   agentRole: AgentRole;
   cityId: string;
   timestamp: number;
   healthIndex: number; // 0 a 100
-  urgencyLevel: 'BAIXA' | 'MEDIA' | 'ALTA' | 'CRITICA';
+  urgencyLevel: "BAIXA" | "MEDIA" | "ALTA" | "CRITICA";
   detectedOpportunities: string[];
   detectedBottlenecks: string[];
   metricsSnapshot: Record<string, number>;
@@ -32,7 +32,7 @@ export interface AgentRecommendation {
   cityId: string;
   actionType: string;
   parameters: Record<string, any>;
-  priority: 'P0' | 'P1' | 'P2' | 'P3';
+  priority: "P0" | "P1" | "P2" | "P3";
   rationale: string;
   confidenceScore: number; // 0.0 a 1.0
   expectedImpact: {
@@ -58,7 +58,7 @@ export interface AgentSimulationOutcome {
 export interface AgentExecutionResult {
   executionId: string;
   recommendationId: string;
-  status: 'EXECUTADO' | 'APROVADO_AGUARDANDO_JANELA' | 'REJEITADO_PELO_BOARD' | 'FALHA';
+  status: "EXECUTADO" | "APROVADO_AGUARDANDO_JANELA" | "REJEITADO_PELO_BOARD" | "FALHA";
   executedAt: number;
   revertible: boolean;
   auditHash: string;

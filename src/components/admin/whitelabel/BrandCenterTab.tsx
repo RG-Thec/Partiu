@@ -51,74 +51,81 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingRef = useRef<boolean>(false);
 
-  const flushUpdates = useCallback((dataToSave?: BrandFormData) => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-      debounceTimerRef.current = null;
-    }
-    isTypingRef.current = false;
-    const current = dataToSave || pendingDataRef.current;
+  const flushUpdates = useCallback(
+    (dataToSave?: BrandFormData) => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+      isTypingRef.current = false;
+      const current = dataToSave || pendingDataRef.current;
 
-    const isUnchanged =
-      current.nomePlataforma === (brand?.nomePlataforma || "") &&
-      current.slogan === (brand?.slogan || "") &&
-      current.descricaoInstitucional === (brand?.descricaoInstitucional || "") &&
-      current.logoPrincipalUrl === (brand?.logos?.logoPrincipalUrl || "") &&
-      current.logoReduzidaUrl === (brand?.logos?.logoReduzidaUrl || "") &&
-      current.logoBrancaUrl === (brand?.logos?.logoBrancaUrl || "") &&
-      current.logoEscuraUrl === (brand?.logos?.logoEscuraUrl || "") &&
-      current.faviconDesktopUrl === (brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || "") &&
-      current.appleTouchIconUrl === (brand?.favicons?.appleTouchIconUrl || "") &&
-      current.emailContato === (brand?.emailContato || "") &&
-      current.telefoneSuporte === (brand?.telefoneSuporte || "") &&
-      current.whatsappSuporte === (brand?.whatsappSuporte || "");
+      const isUnchanged =
+        current.nomePlataforma === (brand?.nomePlataforma || "") &&
+        current.slogan === (brand?.slogan || "") &&
+        current.descricaoInstitucional === (brand?.descricaoInstitucional || "") &&
+        current.logoPrincipalUrl === (brand?.logos?.logoPrincipalUrl || "") &&
+        current.logoReduzidaUrl === (brand?.logos?.logoReduzidaUrl || "") &&
+        current.logoBrancaUrl === (brand?.logos?.logoBrancaUrl || "") &&
+        current.logoEscuraUrl === (brand?.logos?.logoEscuraUrl || "") &&
+        current.faviconDesktopUrl ===
+          (brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || "") &&
+        current.appleTouchIconUrl === (brand?.favicons?.appleTouchIconUrl || "") &&
+        current.emailContato === (brand?.emailContato || "") &&
+        current.telefoneSuporte === (brand?.telefoneSuporte || "") &&
+        current.whatsappSuporte === (brand?.whatsappSuporte || "");
 
-    if (isUnchanged) {
-      return;
-    }
+      if (isUnchanged) {
+        return;
+      }
 
-    updateConfig({
-      brandCenter: {
-        ...brand,
-        nomePlataforma: current.nomePlataforma,
-        slogan: current.slogan,
-        descricaoInstitucional: current.descricaoInstitucional,
-        logos: {
-          ...brand.logos,
-          logoPrincipalUrl: current.logoPrincipalUrl,
-          logoReduzidaUrl: current.logoReduzidaUrl,
-          logoBrancaUrl: current.logoBrancaUrl,
-          logoEscuraUrl: current.logoEscuraUrl,
+      updateConfig({
+        brandCenter: {
+          ...brand,
+          nomePlataforma: current.nomePlataforma,
+          slogan: current.slogan,
+          descricaoInstitucional: current.descricaoInstitucional,
+          logos: {
+            ...brand.logos,
+            logoPrincipalUrl: current.logoPrincipalUrl,
+            logoReduzidaUrl: current.logoReduzidaUrl,
+            logoBrancaUrl: current.logoBrancaUrl,
+            logoEscuraUrl: current.logoEscuraUrl,
+          },
+          favicons: {
+            ...brand.favicons,
+            faviconDesktopUrl: current.faviconDesktopUrl,
+            appleTouchIconUrl: current.appleTouchIconUrl,
+          },
+          emailContato: current.emailContato,
+          telefoneSuporte: current.telefoneSuporte,
+          whatsappSuporte: current.whatsappSuporte,
         },
-        favicons: {
-          ...brand.favicons,
-          faviconDesktopUrl: current.faviconDesktopUrl,
-          appleTouchIconUrl: current.appleTouchIconUrl,
-        },
-        emailContato: current.emailContato,
-        telefoneSuporte: current.telefoneSuporte,
-        whatsappSuporte: current.whatsappSuporte,
-      },
-    });
-    onSaveFeedback();
-  }, [brand, branding?.favicon_url, updateConfig, onSaveFeedback]);
+      });
+      onSaveFeedback();
+    },
+    [brand, branding?.favicon_url, updateConfig, onSaveFeedback],
+  );
 
-  const handleFieldChange = useCallback((field: keyof BrandFormData, value: string) => {
-    isTypingRef.current = true;
-    setFormData((prev) => {
-      const next = { ...prev, [field]: value };
-      pendingDataRef.current = next;
-      return next;
-    });
+  const handleFieldChange = useCallback(
+    (field: keyof BrandFormData, value: string) => {
+      isTypingRef.current = true;
+      setFormData((prev) => {
+        const next = { ...prev, [field]: value };
+        pendingDataRef.current = next;
+        return next;
+      });
 
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
 
-    debounceTimerRef.current = setTimeout(() => {
-      flushUpdates();
-    }, 400);
-  }, [flushUpdates]);
+      debounceTimerRef.current = setTimeout(() => {
+        flushUpdates();
+      }, 400);
+    },
+    [flushUpdates],
+  );
 
   const handleBlur = useCallback(() => {
     if (debounceTimerRef.current) {
@@ -221,8 +228,14 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
   }
 
   function handleGerarFaviconDaPaleta() {
-    const primary = (brand as any)?.designSystem?.paletaPrimaria?.corPrincipal || branding?.primary_color || "#FF6B00";
-    const secondary = (brand as any)?.designSystem?.paletaPrimaria?.corSecundaria || branding?.secondary_color || "#FFB800";
+    const primary =
+      (brand as any)?.designSystem?.paletaPrimaria?.corPrincipal ||
+      branding?.primary_color ||
+      "#FF6B00";
+    const secondary =
+      (brand as any)?.designSystem?.paletaPrimaria?.corSecundaria ||
+      branding?.secondary_color ||
+      "#FFB800";
     const svgUri = generateSvgFavicon(primary, secondary);
     handleApplyCustomFavicon(svgUri);
     setFaviconTestFeedback(true);
@@ -230,13 +243,20 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
   }
 
   function handleTestarFaviconAba() {
-    const activeFav = formData.faviconDesktopUrl || brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || "/favicon.svg";
+    const activeFav =
+      formData.faviconDesktopUrl ||
+      brand?.favicons?.faviconDesktopUrl ||
+      branding?.favicon_url ||
+      "/favicon.svg";
     updateBrowserFavicon(activeFav);
     setFaviconTestFeedback(true);
     setTimeout(() => setFaviconTestFeedback(false), 3000);
   }
 
-  async function handleFileUpload(file: File, type: "logo" | "splash" | "favicon" | "app_icon" | "push_icon") {
+  async function handleFileUpload(
+    file: File,
+    type: "logo" | "splash" | "favicon" | "app_icon" | "push_icon",
+  ) {
     try {
       setUploadingField(type);
       setUploadError(null);
@@ -298,7 +318,8 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
           Módulo 1: Brand Center
         </h2>
         <p className="text-xs text-slate-400 mt-1">
-          Nomes, slogans, logotipos SVG/PNG, favicons e informações institucionais sem mexer em código.
+          Nomes, slogans, logotipos SVG/PNG, favicons e informações institucionais sem mexer em
+          código.
         </p>
       </div>
 
@@ -319,9 +340,7 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
         </div>
 
         <div>
-          <label className="text-xs font-bold text-slate-700 block mb-1.5">
-            Slogan Principal
-          </label>
+          <label className="text-xs font-bold text-slate-700 block mb-1.5">Slogan Principal</label>
           <input
             type="text"
             value={formData.slogan}
@@ -366,7 +385,11 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
             <span className="text-xs font-bold text-slate-700">Logo Principal</span>
             <div className="w-20 h-20 rounded-2xl bg-white border border-slate-200 flex items-center justify-center p-2 overflow-hidden shadow-xs">
               {branding?.logo_url || formData.logoPrincipalUrl ? (
-                <img src={branding?.logo_url || formData.logoPrincipalUrl} alt="Logo" className="w-full h-full object-contain" />
+                <img
+                  src={branding?.logo_url || formData.logoPrincipalUrl}
+                  alt="Logo"
+                  className="w-full h-full object-contain"
+                />
               ) : (
                 <span className="text-xs text-slate-400 font-bold">Sem Logo</span>
               )}
@@ -394,7 +417,11 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
             <span className="text-xs font-bold text-slate-700">Logo Splash Screen</span>
             <div className="w-20 h-20 rounded-2xl bg-white border border-slate-200 flex items-center justify-center p-2 overflow-hidden shadow-xs">
               {branding?.splash_logo_url ? (
-                <img src={branding.splash_logo_url} alt="Splash" className="w-full h-full object-contain" />
+                <img
+                  src={branding.splash_logo_url}
+                  alt="Splash"
+                  className="w-full h-full object-contain"
+                />
               ) : (
                 <span className="text-xs text-slate-400 font-bold">Sem Splash</span>
               )}
@@ -444,7 +471,9 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
               />
               <span className="inline-flex items-center justify-center gap-1.5 w-full bg-primary-600 hover:bg-primary-500 text-slate-950 font-bold text-xs py-2 px-3 rounded-xl transition cursor-pointer">
                 <Upload className="w-3.5 h-3.5" />
-                <span>{uploadingField === "favicon" ? "Enviando..." : "Upload Favicon (<5MB)"}</span>
+                <span>
+                  {uploadingField === "favicon" ? "Enviando..." : "Upload Favicon (<5MB)"}
+                </span>
               </span>
             </label>
           </div>
@@ -462,7 +491,8 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
                   Ícone da Aba do Navegador (Favicon em Tempo Real)
                 </h4>
                 <p className="text-[11px] text-slate-400">
-                  Personalize o ícone exibido na aba do navegador do passageiro e motorista. Sincronização instantânea sem necessidade de recarregar a página.
+                  Personalize o ícone exibido na aba do navegador do passageiro e motorista.
+                  Sincronização instantânea sem necessidade de recarregar a página.
                 </p>
               </div>
             </div>
@@ -500,9 +530,12 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
                   )}
                 </div>
                 <span className="text-xs font-semibold text-slate-200 truncate">
-                  {formData.nomePlataforma || branding?.app_name || "PARTIU"} — {formData.slogan || "Mobilidade Inteligente"}
+                  {formData.nomePlataforma || branding?.app_name || "PARTIU"} —{" "}
+                  {formData.slogan || "Mobilidade Inteligente"}
                 </span>
-                <span className="text-slate-500 hover:text-slate-300 text-xs ml-auto cursor-default">×</span>
+                <span className="text-slate-500 hover:text-slate-300 text-xs ml-auto cursor-default">
+                  ×
+                </span>
               </div>
             </div>
           </div>
@@ -515,7 +548,13 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-slate-950 text-xs font-bold transition shadow-xs cursor-pointer active:scale-95"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Gerar da Cor da Marca ({(brand as any)?.designSystem?.paletaPrimaria?.corPrincipal || branding?.primary_color || "#FF6B00"})</span>
+              <span>
+                Gerar da Cor da Marca (
+                {(brand as any)?.designSystem?.paletaPrimaria?.corPrincipal ||
+                  branding?.primary_color ||
+                  "#FF6B00"}
+                )
+              </span>
             </button>
 
             <button
@@ -540,9 +579,7 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
           {faviconTestFeedback && (
             <div className="p-3 bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-xs rounded-xl flex items-center gap-2 animate-in fade-in">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>
-                ✓ Favicon atualizado com sucesso na aba do seu navegador em tempo real!
-              </span>
+              <span>✓ Favicon atualizado com sucesso na aba do seu navegador em tempo real!</span>
             </div>
           )}
         </div>
@@ -642,9 +679,7 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="text-xs font-medium text-slate-700 block mb-1">
-              E-mail Oficial
-            </label>
+            <label className="text-xs font-medium text-slate-700 block mb-1">E-mail Oficial</label>
             <input
               type="email"
               value={formData.emailContato}
@@ -654,9 +689,7 @@ export function BrandCenterTab({ onSaveFeedback }: BrandCenterTabProps) {
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-slate-700 block mb-1">
-              Telefone / 0800
-            </label>
+            <label className="text-xs font-medium text-slate-700 block mb-1">Telefone / 0800</label>
             <input
               type="text"
               value={formData.telefoneSuporte}

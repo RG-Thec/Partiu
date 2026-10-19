@@ -51,8 +51,12 @@ export function RouteStopsModal({
         <NativeSurface elevation={1} padding="sm" className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-full bg-emerald-500 shrink-0" />
           <div className="min-w-0 flex-1">
-            <span className="text-[11px] uppercase font-extrabold text-slate-500 block">Embarque</span>
-            <span className="font-bold truncate block text-xs" style={{ color: textColor }}>{origem}</span>
+            <span className="text-[11px] uppercase font-extrabold text-slate-500 block">
+              Embarque
+            </span>
+            <span className="font-bold truncate block text-xs" style={{ color: textColor }}>
+              {origem}
+            </span>
           </div>
         </NativeSurface>
 
@@ -86,7 +90,9 @@ export function RouteStopsModal({
                 >
                   Parada {idx + 1}
                 </span>
-                <span className="font-bold truncate block text-xs" style={{ color: textColor }}>{p.endereco}</span>
+                <span className="font-bold truncate block text-xs" style={{ color: textColor }}>
+                  {p.endereco}
+                </span>
               </div>
             </div>
             <button
@@ -116,7 +122,9 @@ export function RouteStopsModal({
                     handleAdd();
                   }
                 }}
-                placeholder={paradas.length === 0 ? "Endereço da 1ª parada..." : "Endereço da 2ª parada..."}
+                placeholder={
+                  paradas.length === 0 ? "Endereço da 1ª parada..." : "Endereço da 2ª parada..."
+                }
                 className="flex-1 text-xs sm:text-sm font-medium min-h-[48px] px-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2"
                 style={{
                   backgroundColor: colors.inputBackground,
@@ -152,18 +160,17 @@ export function RouteStopsModal({
         <NativeSurface elevation={1} padding="sm" className="flex items-center gap-3">
           <span className="w-3 h-3 rounded-sm bg-rose-500 shrink-0" />
           <div className="min-w-0 flex-1">
-            <span className="text-[11px] uppercase font-extrabold text-slate-500 block">Destino</span>
-            <span className="font-bold truncate block text-xs" style={{ color: textColor }}>{destino}</span>
+            <span className="text-[11px] uppercase font-extrabold text-slate-500 block">
+              Destino
+            </span>
+            <span className="font-bold truncate block text-xs" style={{ color: textColor }}>
+              {destino}
+            </span>
           </div>
         </NativeSurface>
 
         <div className="pt-2">
-          <NativeButton
-            variant="filled"
-            size="md"
-            fullWidth
-            onClick={onClose}
-          >
+          <NativeButton variant="filled" size="md" fullWidth onClick={onClose}>
             Concluir
           </NativeButton>
         </div>

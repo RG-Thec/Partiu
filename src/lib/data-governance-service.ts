@@ -23,10 +23,7 @@ export interface RegistroSoftDelete {
 }
 
 export type CategoriaPurga =
-  | "TELEMETRIA_GPS"
-  | "CORRIDAS_FINALIZADAS"
-  | "NOTIFICACOES_LOGS"
-  | "CHAMADOS_SUPORTE";
+  "TELEMETRIA_GPS" | "CORRIDAS_FINALIZADAS" | "NOTIFICACOES_LOGS" | "CHAMADOS_SUPORTE";
 
 export type JanelaCorteDias = 30 | 90 | 180 | 365;
 
@@ -219,7 +216,7 @@ export function restaurarRegistroSoftDelete(id: string, operador: string): boole
  */
 export function estimarRegistrosPurga(
   categoria: CategoriaPurga,
-  janelaDias: JanelaCorteDias
+  janelaDias: JanelaCorteDias,
 ): { registrosEstimados: number; espacoEstimadoMb: number } {
   // Modelagem analítica de estimativa de retenção por corte
   const pesosRegistros: Record<CategoriaPurga, number> = {
@@ -239,7 +236,7 @@ export function estimarRegistrosPurga(
   const base = pesosRegistros[categoria] || 1000;
   const mult = multiplicadorDias[janelaDias] || 1.0;
   const registrosEstimados = Math.round(base * mult);
-  const espacoEstimadoMb = parseFloat(((registrosEstimados * 0.00035) + 0.5).toFixed(1));
+  const espacoEstimadoMb = parseFloat((registrosEstimados * 0.00035 + 0.5).toFixed(1));
 
   return { registrosEstimados, espacoEstimadoMb };
 }
@@ -250,7 +247,7 @@ export function estimarRegistrosPurga(
 export function executarPurgaColdStorage(
   categoria: CategoriaPurga,
   janelaDias: JanelaCorteDias,
-  operador: string
+  operador: string,
 ): RegistroPurgaExecutada {
   const { registrosEstimados, espacoEstimadoMb } = estimarRegistrosPurga(categoria, janelaDias);
 
@@ -294,12 +291,12 @@ export function listarPurgas(): RegistroPurgaExecutada[] {
  */
 export function gerarDumpPreventivo(operador: string): BackupDumpMetadata {
   const randomHex64 = Array.from({ length: 64 }, () =>
-    Math.floor(Math.random() * 16).toString(16)
+    Math.floor(Math.random() * 16).toString(16),
   ).join("");
 
   const novoBackup: BackupDumpMetadata = {
     id: `dump-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${Math.floor(
-      100000 + Math.random() * 900000
+      100000 + Math.random() * 900000,
     )}`,
     dataCriacao: Date.now(),
     versaoSchema: "PostgreSQL 15.6 • Partiu Schema v4.8",

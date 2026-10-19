@@ -39,7 +39,7 @@ export function useDriverVoiceAlerts(enabled: boolean = true) {
         // Procura voz feminina ou masculina brasileira nativa se disponível
         const voices = window.speechSynthesis.getVoices();
         const ptVoice = voices.find(
-          (v) => v.lang.startsWith("pt") || v.lang.replace("_", "-") === "pt-BR"
+          (v) => v.lang.startsWith("pt") || v.lang.replace("_", "-") === "pt-BR",
         );
         if (ptVoice) {
           utterance.voice = ptVoice;
@@ -52,18 +52,19 @@ export function useDriverVoiceAlerts(enabled: boolean = true) {
         console.warn("[VoiceAlerts] Síntese de voz indisponível:", err);
       }
     },
-    [enabled]
+    [enabled],
   );
 
   const anunciarNovaOferta = useCallback(
     (distanciaKm: number, valor: number, modalidade: string = "Corrida") => {
       obterAudioContext();
       tocarAlertaRadar();
-      const distFormatada = distanciaKm > 0 ? `${distanciaKm.toFixed(1).replace(".", ",")} quilômetros` : "próxima";
+      const distFormatada =
+        distanciaKm > 0 ? `${distanciaKm.toFixed(1).replace(".", ",")} quilômetros` : "próxima";
       const valorFormatado = `${Math.round(valor)} reais`;
       falar(`Nova ${modalidade}. Distância de ${distFormatada}. Valor: ${valorFormatado}.`);
     },
-    [falar]
+    [falar],
   );
 
   const anunciarChegadaEmbarque = useCallback(() => {
@@ -82,7 +83,7 @@ export function useDriverVoiceAlerts(enabled: boolean = true) {
         falar("Viagem iniciada. Dirija com cuidado.");
       }
     },
-    [falar]
+    [falar],
   );
 
   const anunciarFimViagem = useCallback(
@@ -90,19 +91,21 @@ export function useDriverVoiceAlerts(enabled: boolean = true) {
       obterAudioContext();
       tocarAlertaFimViagem();
       if (valor && valor > 0) {
-        falar(`Corrida concluída. Valor de ${valor.toFixed(2).replace(".", ",")} reais recebido com sucesso.`);
+        falar(
+          `Corrida concluída. Valor de ${valor.toFixed(2).replace(".", ",")} reais recebido com sucesso.`,
+        );
       } else {
         falar("Corrida concluída com sucesso. Excelente trabalho!");
       }
     },
-    [falar]
+    [falar],
   );
 
   const anunciarDiariaExpirando = useCallback(
     (minutos: number) => {
       falar(`Atenção parceiro: sua diária encerra em ${minutos} minutos. Toque para renovar.`);
     },
-    [falar]
+    [falar],
   );
 
   return {

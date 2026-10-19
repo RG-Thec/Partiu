@@ -78,7 +78,7 @@ export class H3DemandHeatmapEngine {
         multiplier: 2.0,
         intensity: 1.0,
         fillColor: "#EF4444", // Vermelho
-        fillOpacity: 0.50,
+        fillOpacity: 0.5,
         label: "Pico Extremo (+100%)",
       };
     }
@@ -202,7 +202,7 @@ export class H3DemandHeatmapEngine {
 
     // Hotspot 2: Rodoviária / Aeroporto (Pico Extremo 2.0x)
     const h2Lat = baseLat - 0.012;
-    const h2Lng = baseLng + 0.010;
+    const h2Lng = baseLng + 0.01;
     for (let i = 0; i < 11; i++) {
       this.demandEvents.push({
         cell: h3SpatialIndex.latLngToCell(h2Lat, h2Lng, DEFAULT_H3_SURGE_RESOLUTION),

@@ -8,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { computePixCrc16, generateLocalQrCodeUrl } from "@/services/payment/PaymentProviderAdapter";
 
-
 export interface PixChargeRequest {
   corridaId: string;
   passageiroId: string;
@@ -76,7 +75,7 @@ export class PartiuPixPaymentProvider implements PaymentProvider {
   async createCharge(request: PixChargeRequest): Promise<PixChargeResponse> {
     const txId = `PIX-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
     const valorReais = (request.valorCents / 100).toFixed(2);
-    
+
     // Payload Pix Oficial (EMV QRCPS-MPM padrão Bacen)
     const rawEmv = `00020126580014br.gov.bcb.pix0136${txId}520400005303986540${valorReais.length}${valorReais}5802BR5915PARTIU BRASIL6009ITAPERUNA62070503***6304`;
     const qrCodeCopiaECola = `${rawEmv}${computePixCrc16(rawEmv)}`;
@@ -94,7 +93,9 @@ export class PartiuPixPaymentProvider implements PaymentProvider {
         qr_code_copia_cola: qrCodeCopiaECola,
         qr_code_image_url: qrCodeImageUrl,
       });
-    } catch (err) { silentCatchWarn("partiu-payment-provider", err); }
+    } catch (err) {
+      silentCatchWarn("partiu-payment-provider", err);
+    }
 
     return {
       txId,
@@ -119,7 +120,9 @@ export class PartiuPixPaymentProvider implements PaymentProvider {
 
       if (data?.status === "LIQUIDADO") return "PAGO";
       if (data?.status === "CANCELADO") return "EXPIRADO";
-    } catch (err) { silentCatchWarn("partiu-payment-provider", err); }
+    } catch (err) {
+      silentCatchWarn("partiu-payment-provider", err);
+    }
 
     return "PENDENTE";
   }
@@ -143,7 +146,9 @@ export class PartiuPixPaymentProvider implements PaymentProvider {
         chave_pix_destino: request.chavePix,
         liquidado_em: new Date().toISOString(),
       });
-    } catch (err) { silentCatchWarn("partiu-payment-provider", err); }
+    } catch (err) {
+      silentCatchWarn("partiu-payment-provider", err);
+    }
 
     return {
       saqueId,

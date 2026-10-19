@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useCallback,
-  type ReactNode,
-} from "react";
+import React, { useEffect, useRef, useState, useCallback, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
@@ -113,7 +107,7 @@ export const NativeBottomSheet: React.FC<NativeBottomSheetProps> = ({
         setDragOffsetY(diff * 0.2);
       }
     },
-    [isDragging]
+    [isDragging],
   );
 
   const handleTouchEnd = useCallback(() => {
@@ -169,12 +163,8 @@ export const NativeBottomSheet: React.FC<NativeBottomSheetProps> = ({
           backgroundColor: colors.surface,
           borderTopLeftRadius: "28px",
           borderTopRightRadius: "28px",
-          transform: isAnimating
-            ? `translateY(${dragOffsetY}px)`
-            : "translateY(100%)",
-          transition: isDragging
-            ? "none"
-            : "transform 280ms cubic-bezier(0.32, 0.72, 0, 1)",
+          transform: isAnimating ? `translateY(${dragOffsetY}px)` : "translateY(100%)",
+          transition: isDragging ? "none" : "transform 280ms cubic-bezier(0.32, 0.72, 0, 1)",
           boxShadow: "0 -8px 30px rgba(0, 0, 0, 0.12)",
         }}
         className={`relative z-10 w-full flex flex-col ${maxHeight} overflow-hidden pb-safe select-none ${className}`}
@@ -232,9 +222,7 @@ export const NativeBottomSheet: React.FC<NativeBottomSheetProps> = ({
         )}
 
         {/* Conteúdo Rolável */}
-        <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-2">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-2">{children}</div>
 
         {/* Rodapé Fixo (Ações Principais) */}
         {footer && (
@@ -249,7 +237,5 @@ export const NativeBottomSheet: React.FC<NativeBottomSheetProps> = ({
     </div>
   );
 
-  return typeof document !== "undefined"
-    ? createPortal(sheetContent, document.body)
-    : null;
+  return typeof document !== "undefined" ? createPortal(sheetContent, document.body) : null;
 };

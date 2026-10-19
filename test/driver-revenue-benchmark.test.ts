@@ -69,12 +69,18 @@ async function runBenchmarkSuite() {
     });
 
     // Invariante 1: Bruto === Líquido + Deduções
-    if (settlement.grossFareCents !== settlement.driverNetEarningsCents + settlement.totalPlatformDeductionCents) {
+    if (
+      settlement.grossFareCents !==
+      settlement.driverNetEarningsCents + settlement.totalPlatformDeductionCents
+    ) {
       invariantBreaches++;
     }
 
     // Invariante 2: Dedução === Comissão + Proteção
-    if (settlement.totalPlatformDeductionCents !== settlement.platformCommissionCents + settlement.protectionFundContributionCents) {
+    if (
+      settlement.totalPlatformDeductionCents !==
+      settlement.platformCommissionCents + settlement.protectionFundContributionCents
+    ) {
       invariantBreaches++;
     }
 
@@ -89,8 +95,14 @@ async function runBenchmarkSuite() {
     }
   }
 
-  assert(invariantBreaches === 0, "10.000 corridas auditadas com ZERO quebras de invariante contábil.");
-  assert(roundingErrors === 0, "10.000 corridas executadas com ZERO erros de arredondamento floating-point.");
+  assert(
+    invariantBreaches === 0,
+    "10.000 corridas auditadas com ZERO quebras de invariante contábil.",
+  );
+  assert(
+    roundingErrors === 0,
+    "10.000 corridas executadas com ZERO erros de arredondamento floating-point.",
+  );
 
   // ============================================================================
   // TESTE 2: SIMULAÇÃO DE 100.000 CORRIDAS & COMPORTAMENTO DO FUNDO DE PROTEÇÃO
@@ -123,11 +135,11 @@ async function runBenchmarkSuite() {
 
   assert(
     protectionCapEnforcedCount === 50000,
-    "Teto do Fundo de Proteção (R$ 30,00) respeitado em 100% das vezes (50.000 corridas com retenção zero)."
+    "Teto do Fundo de Proteção (R$ 30,00) respeitado em 100% das vezes (50.000 corridas com retenção zero).",
   );
   assert(
     totalSavingsBrl > 0,
-    `Economia acumulada vs Uber (20%) calculada com sucesso: R$ ${totalSavingsBrl.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+    `Economia acumulada vs Uber (20%) calculada com sucesso: R$ ${totalSavingsBrl.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
   );
 
   // ============================================================================
@@ -141,22 +153,29 @@ async function runBenchmarkSuite() {
     commissionEngine.calculateRideSplit({
       rideId: `bench-${i}`,
       driverId: "bench-driver",
-      grossFareBrl: 32.50,
+      grossFareBrl: 32.5,
       plan: benchPlan,
       currentProtectionBalanceCents: 1000,
     });
   }
 
   const durationMs = Date.now() - startTime;
-  const opsPerSec = Math.round((1000000 / (durationMs / 1000)));
+  const opsPerSec = Math.round(1000000 / (durationMs / 1000));
   console.log(`  ⏱️ Tempo total: ${durationMs}ms para 1.000.000 de apurações.`);
-  console.log(`  ⚡ Throughput: ${opsPerSec.toLocaleString("pt-BR")} operações contábeis por segundo.`);
-  assert(opsPerSec > 100000, `Throughput de cálculo excede 100.000 ops/sec (Atingido: ${opsPerSec.toLocaleString("pt-BR")} ops/sec).`);
+  console.log(
+    `  ⚡ Throughput: ${opsPerSec.toLocaleString("pt-BR")} operações contábeis por segundo.`,
+  );
+  assert(
+    opsPerSec > 100000,
+    `Throughput de cálculo excede 100.000 ops/sec (Atingido: ${opsPerSec.toLocaleString("pt-BR")} ops/sec).`,
+  );
 
   // ============================================================================
   // TESTE 4: CICLO DE VIDA DE ASSINATURA, CARÊNCIA E RECUPERAÇÃO
   // ============================================================================
-  console.log("\n🔹 [TESTE 4] Ciclo de Vida da Assinatura, Carência (Grace Period 3 Dias) & Recuperação...");
+  console.log(
+    "\n🔹 [TESTE 4] Ciclo de Vida da Assinatura, Carência (Grace Period 3 Dias) & Recuperação...",
+  );
   const testDriverId = "driver-test-lifecycle-001";
   const sub = subscriptionEngine.getDriverSubscription(testDriverId);
   assert(sub.status === "ACTIVE", "Nova assinatura nasce com status ACTIVE.");
@@ -171,17 +190,26 @@ async function runBenchmarkSuite() {
   subWithDebt.nextBillingDate = Date.now() - 1000; // venceu há 1 segundo
   subWithDebt.gracePeriodEndsAt = Date.now() + 2 * 86400000; // restam 2 dias
   const subGrace = subscriptionEngine.evaluateSubscriptionStatus(subWithDebt);
-  assert(subGrace.status === "GRACE_PERIOD", "Status transiciona para GRACE_PERIOD sem bloqueio imediato.");
+  assert(
+    subGrace.status === "GRACE_PERIOD",
+    "Status transiciona para GRACE_PERIOD sem bloqueio imediato.",
+  );
 
   // 3. Simula expiração da carência
   subGrace.gracePeriodEndsAt = Date.now() - 1000; // carência expirou
   const subSuspended = subscriptionEngine.evaluateSubscriptionStatus(subGrace);
-  assert(subSuspended.status === "SUSPENDED", "Status transiciona para SUSPENDED após expirar a carência.");
+  assert(
+    subSuspended.status === "SUSPENDED",
+    "Status transiciona para SUSPENDED após expirar a carência.",
+  );
 
   // 4. Regularização e quitação
   const subCleared = subscriptionEngine.clearDebt(testDriverId, 4990);
   assert(subCleared.accumulatedDebtCents === 0, "Débito liquidado com sucesso.");
-  assert(subCleared.status === "ACTIVE", "Status retorna para ACTIVE e motorista é liberado imediatamente.");
+  assert(
+    subCleared.status === "ACTIVE",
+    "Status retorna para ACTIVE e motorista é liberado imediatamente.",
+  );
 
   // ============================================================================
   // TESTE 5: CASCATA DE COBRANÇA EM 4 NÍVEIS
@@ -189,15 +217,18 @@ async function runBenchmarkSuite() {
   console.log("\n🔹 [TESTE 5] Cascata de Cobrança Automática em 4 Níveis...");
 
   // Cria fatura de teste
-  const invoice = billingEngine.generateSubscriptionInvoice(testDriverId, 49.90, "Prata");
+  const invoice = billingEngine.generateSubscriptionInvoice(testDriverId, 49.9, "Prata");
 
   // Cenário A: Saldo em carteira suficiente (Nível 1 - Saldo de Corridas)
   const resultLevel1 = billingEngine.executeCascadeBilling(testDriverId, invoice.id, 6000);
   assert(resultLevel1.success === true, "Cobrança bem sucedida no 1º Nível (Saldo em Carteira).");
-  assert(resultLevel1.methodUsed === "BALANCE_DEDUCTION", "Método utilizado foi BALANCE_DEDUCTION.");
+  assert(
+    resultLevel1.methodUsed === "BALANCE_DEDUCTION",
+    "Método utilizado foi BALANCE_DEDUCTION.",
+  );
 
   // Cenário B: Saldo insuficiente em carteira -> aciona PIX (Nível 3)
-  const invoice2 = billingEngine.generateSubscriptionInvoice(testDriverId, 49.90, "Prata");
+  const invoice2 = billingEngine.generateSubscriptionInvoice(testDriverId, 49.9, "Prata");
   const resultLevel3 = billingEngine.executeCascadeBilling(testDriverId, invoice2.id, 500);
   assert(resultLevel3.methodUsed === "PIX", "Método acionado foi PIX com geração de QR Code.");
   assert(!!resultLevel3.pixQrCodePayload, "Payload de QR Code dinâmico gerado com sucesso.");
@@ -227,8 +258,14 @@ async function runBenchmarkSuite() {
   assert(preCheck.canWithdraw === true, "Motorista elegível para saque parcial após retenções.");
   assert(preCheck.grossAvailableBalanceBrl === 200.0, "Saldo bruto identificado: R$ 200,00.");
   assert(preCheck.subscriptionDeductionBrl === 49.9, "Dedução de mensalidade calculada: R$ 49,90.");
-  assert(preCheck.pendingDebtsDeductionBrl === 10.0, "Dedução de outras pendências calculada: R$ 10,00.");
-  assert(preCheck.netWithdrawalAvailableBrl === 140.1, "Líquido final disponível para PIX: R$ 140,10 (Exato).");
+  assert(
+    preCheck.pendingDebtsDeductionBrl === 10.0,
+    "Dedução de outras pendências calculada: R$ 10,00.",
+  );
+  assert(
+    preCheck.netWithdrawalAvailableBrl === 140.1,
+    "Líquido final disponível para PIX: R$ 140,10 (Exato).",
+  );
 
   // ============================================================================
   // TESTE 7: AUDITORIA FINANCEIRA IMUTÁVEL (ZERO-SUM CONTÁBIL)
@@ -237,13 +274,16 @@ async function runBenchmarkSuite() {
   const sampleSettlement = commissionEngine.calculateRideSplit({
     rideId: "ride-audit-001",
     driverId: "driver-audit-001",
-    grossFareBrl: 50.00,
+    grossFareBrl: 50.0,
     plan: STANDARD_DRIVER_PLANS.BRONZE,
     currentProtectionBalanceCents: 500,
   });
 
   const auditEntry = financialAuditEngine.auditRideSettlement(sampleSettlement);
-  assert(auditEntry.isZeroSumBalanced === true, "Verificação Zero-Sum contábil aprovada no audit log.");
+  assert(
+    auditEntry.isZeroSumBalanced === true,
+    "Verificação Zero-Sum contábil aprovada no audit log.",
+  );
   assert(auditEntry.status === "COMPLIANT", "Status do lançamento em compliance total.");
   assert(auditEntry.discrepancyCents === 0, "Discrepância contábil é estritamente 0 centavos.");
 
@@ -254,8 +294,14 @@ async function runBenchmarkSuite() {
   const metrics = revenueDashboardEngine.calculateMetrics();
   assert(metrics.mrrBrl > 0, `MRR calculado com sucesso: R$ ${metrics.mrrBrl.toFixed(2)}`);
   assert(metrics.arrBrl === metrics.mrrBrl * 12, "ARR estritamente igual a MRR * 12.");
-  assert(metrics.effectiveTakeRatePercent < 10.0, `Take-rate efetivo do marketplace competitivo (${metrics.effectiveTakeRatePercent}% < 10%).`);
-  assert(metrics.driverLtvBrl / metrics.driverCacBrl > 50, "Métrica de Eficiência LTV/CAC extraordinária (> 50x).");
+  assert(
+    metrics.effectiveTakeRatePercent < 10.0,
+    `Take-rate efetivo do marketplace competitivo (${metrics.effectiveTakeRatePercent}% < 10%).`,
+  );
+  assert(
+    metrics.driverLtvBrl / metrics.driverCacBrl > 50,
+    "Métrica de Eficiência LTV/CAC extraordinária (> 50x).",
+  );
 
   // ============================================================================
   // TESTE 9: AUDITORIA DOS 4 PLANOS (R$ 20, R$ 50, R$ 100, R$ 300)
@@ -284,21 +330,22 @@ async function runBenchmarkSuite() {
 
       assert(
         resFullFund.platformCommissionCents === expectedCommissionCents,
-        `[${name}] R$ ${valor.toFixed(2)}: Comissão calculada = R$ ${(expectedCommissionCents / 100).toFixed(2)} (${expectedRate}%).`
+        `[${name}] R$ ${valor.toFixed(2)}: Comissão calculada = R$ ${(expectedCommissionCents / 100).toFixed(2)} (${expectedRate}%).`,
       );
       assert(
         resFullFund.driverNetEarningsCents === expectedNetCents,
-        `[${name}] R$ ${valor.toFixed(2)}: Repasse condutor = R$ ${(expectedNetCents / 100).toFixed(2)} (${(100 - expectedRate)}%).`
+        `[${name}] R$ ${valor.toFixed(2)}: Repasse condutor = R$ ${(expectedNetCents / 100).toFixed(2)} (${100 - expectedRate}%).`,
       );
       assert(
-        resFullFund.grossFareCents === resFullFund.driverNetEarningsCents + resFullFund.totalPlatformDeductionCents,
-        `[${name}] Invariante contábil estrita verificada.`
+        resFullFund.grossFareCents ===
+          resFullFund.driverNetEarningsCents + resFullFund.totalPlatformDeductionCents,
+        `[${name}] Invariante contábil estrita verificada.`,
       );
 
       if (name === "OURO") {
         assert(
           resFullFund.driverNetEarningsCents === Math.round(valor * 100),
-          `[OURO] R$ ${valor.toFixed(2)}: ZERO COMISSÃO! 100% Repassado ao condutor.`
+          `[OURO] R$ ${valor.toFixed(2)}: ZERO COMISSÃO! 100% Repassado ao condutor.`,
         );
       }
     }
@@ -348,7 +395,7 @@ async function runBenchmarkSuite() {
     {
       id: driverActiveId,
       name: "Motorista Ouro Adimplente",
-      location: { latitude: -21.2100, longitude: -41.8900 },
+      location: { latitude: -21.21, longitude: -41.89 },
       rating: 4.92,
       acceptanceRate: 0.95,
       cancellationRate: 0.02,
@@ -364,17 +411,17 @@ async function runBenchmarkSuite() {
   const rankedDispatch = rankDriversForDispatch(candidates, sampleRequest);
   assert(
     rankedDispatch.length === 1,
-    "Despacho filtrou 100% dos motoristas suspensos (apenas 1 condutor elegível)."
+    "Despacho filtrou 100% dos motoristas suspensos (apenas 1 condutor elegível).",
   );
   assert(
     rankedDispatch[0]!.driverId === driverActiveId,
-    "Apenas o motorista adimplente recebeu a oferta de despacho."
+    "Apenas o motorista adimplente recebeu a oferta de despacho.",
   );
 
   const fairRanked = rankDriversByFairMarketplaceScore(candidates, sampleRequest);
   assert(
     fairRanked.length === 1 && fairRanked[0]!.driverId === driverActiveId,
-    "Fair Marketplace Ranking bloqueou o motorista suspenso da concorrência."
+    "Fair Marketplace Ranking bloqueou o motorista suspenso da concorrência.",
   );
 
   // ============================================================================
@@ -385,21 +432,17 @@ async function runBenchmarkSuite() {
 
   for (const fleetCount of fleetScales) {
     const freeCount = Math.round(fleetCount * 0.45);
-    const bronzeCount = Math.round(fleetCount * 0.30);
+    const bronzeCount = Math.round(fleetCount * 0.3);
     const prataCount = Math.round(fleetCount * 0.18);
     const ouroCount = Math.round(fleetCount * 0.07);
 
-    const saasMrrBrl =
-      freeCount * 0 +
-      bronzeCount * 19.90 +
-      prataCount * 49.90 +
-      ouroCount * 99.90;
+    const saasMrrBrl = freeCount * 0 + bronzeCount * 19.9 + prataCount * 49.9 + ouroCount * 99.9;
 
     const saasArrBrl = saasMrrBrl * 12;
 
     assert(
       saasMrrBrl > 0 && saasArrBrl > saasMrrBrl,
-      `Escala ${fleetCount.toLocaleString("pt-BR")} condutores: MRR SaaS = R$ ${saasMrrBrl.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} | ARR = R$ ${saasArrBrl.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+      `Escala ${fleetCount.toLocaleString("pt-BR")} condutores: MRR SaaS = R$ ${saasMrrBrl.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} | ARR = R$ ${saasArrBrl.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
     );
   }
 

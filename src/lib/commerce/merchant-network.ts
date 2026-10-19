@@ -1,6 +1,6 @@
 /**
  * MERCHANT NETWORK & LOCAL RETAIL COOPERATIVE
- * 
+ *
  * Gestão da rede credenciada de estabelecimentos comerciais locais:
  * - Restaurantes, lanchonetes e padarias
  * - Farmácias e drogarias
@@ -10,12 +10,12 @@
  */
 
 export type MerchantCategory =
-  | 'GASTRONOMIA'
-  | 'FARMACIA_SAUDE'
-  | 'SUPERMERCADO_ALIMENTOS'
-  | 'AUTOMOTIVO_POSTOS'
-  | 'VAREJO_MODA'
-  | 'SERVICOS_GERAIS';
+  | "GASTRONOMIA"
+  | "FARMACIA_SAUDE"
+  | "SUPERMERCADO_ALIMENTOS"
+  | "AUTOMOTIVO_POSTOS"
+  | "VAREJO_MODA"
+  | "SERVICOS_GERAIS";
 
 export interface LocalMerchant {
   merchantId: string;
@@ -32,7 +32,7 @@ export interface LocalMerchant {
   discountCouponsActiveCount: number;
   partiuPayWalletId: string;
   pixKey: string;
-  partnershipTier: 'OURO' | 'PRATA' | 'BRONZE';
+  partnershipTier: "OURO" | "PRATA" | "BRONZE";
   rating: number;
   monthlyGmvBrl: number;
   active: boolean;
@@ -48,72 +48,72 @@ export class MerchantNetworkEngine {
   private seedDefaultMerchants(): void {
     const defaultMerchants: LocalMerchant[] = [
       {
-        merchantId: 'MKT-ITAP-01',
-        tradingName: 'Restaurante Fogão de Lenha',
-        companyName: 'Fogão de Lenha Gastronomia Tradicional Ltda',
-        cnpjMasked: '**.455.123/0001-**',
-        cityId: 'itaperuna-rj',
-        category: 'GASTRONOMIA',
-        address: 'Rua Dez de Maio, 442 - Centro',
+        merchantId: "MKT-ITAP-01",
+        tradingName: "Restaurante Fogão de Lenha",
+        companyName: "Fogão de Lenha Gastronomia Tradicional Ltda",
+        cnpjMasked: "**.455.123/0001-**",
+        cityId: "itaperuna-rj",
+        category: "GASTRONOMIA",
+        address: "Rua Dez de Maio, 442 - Centro",
         latitude: -21.2056,
         longitude: -41.8874,
-        contactWhatsapp: '(22) 99876-1100',
+        contactWhatsapp: "(22) 99876-1100",
         cashbackOfferedPct: 8.0,
         discountCouponsActiveCount: 2,
-        partiuPayWalletId: 'WAL-MERCH-01',
-        pixKey: 'financeiro@fogaodelenha.com.br',
-        partnershipTier: 'OURO',
+        partiuPayWalletId: "WAL-MERCH-01",
+        pixKey: "financeiro@fogaodelenha.com.br",
+        partnershipTier: "OURO",
         rating: 4.88,
         monthlyGmvBrl: 84000.0,
-        active: true
+        active: true,
       },
       {
-        merchantId: 'MKT-ITAP-02',
-        tradingName: 'Farmácia São Lucas',
-        companyName: 'Drogaria & Manipulação São Lucas Eireli',
-        cnpjMasked: '**.981.334/0001-**',
-        cityId: 'itaperuna-rj',
-        category: 'FARMACIA_SAUDE',
-        address: 'Av. Cardoso Moreira, 810 - Centro',
-        latitude: -21.2080,
-        longitude: -41.8890,
-        contactWhatsapp: '(22) 99754-2211',
+        merchantId: "MKT-ITAP-02",
+        tradingName: "Farmácia São Lucas",
+        companyName: "Drogaria & Manipulação São Lucas Eireli",
+        cnpjMasked: "**.981.334/0001-**",
+        cityId: "itaperuna-rj",
+        category: "FARMACIA_SAUDE",
+        address: "Av. Cardoso Moreira, 810 - Centro",
+        latitude: -21.208,
+        longitude: -41.889,
+        contactWhatsapp: "(22) 99754-2211",
         cashbackOfferedPct: 5.0,
         discountCouponsActiveCount: 3,
-        partiuPayWalletId: 'WAL-MERCH-02',
-        pixKey: 'pix@farmaciasaolucas.com.br',
-        partnershipTier: 'OURO',
+        partiuPayWalletId: "WAL-MERCH-02",
+        pixKey: "pix@farmaciasaolucas.com.br",
+        partnershipTier: "OURO",
         rating: 4.92,
         monthlyGmvBrl: 125000.0,
-        active: true
+        active: true,
       },
       {
-        merchantId: 'MKT-ITAP-03',
-        tradingName: 'Oficina & Pneus Auto Central',
-        companyName: 'Auto Center Noroeste Ltda',
-        cnpjMasked: '**.112.556/0001-**',
-        cityId: 'itaperuna-rj',
-        category: 'AUTOMOTIVO_POSTOS',
-        address: 'BR-356, Km 01 - Cehab',
-        latitude: -21.1920,
-        longitude: -41.8980,
-        contactWhatsapp: '(22) 99233-8899',
+        merchantId: "MKT-ITAP-03",
+        tradingName: "Oficina & Pneus Auto Central",
+        companyName: "Auto Center Noroeste Ltda",
+        cnpjMasked: "**.112.556/0001-**",
+        cityId: "itaperuna-rj",
+        category: "AUTOMOTIVO_POSTOS",
+        address: "BR-356, Km 01 - Cehab",
+        latitude: -21.192,
+        longitude: -41.898,
+        contactWhatsapp: "(22) 99233-8899",
         cashbackOfferedPct: 6.0,
         discountCouponsActiveCount: 1,
-        partiuPayWalletId: 'WAL-MERCH-03',
-        pixKey: 'contato@autocentralnoroeste.com.br',
-        partnershipTier: 'PRATA',
+        partiuPayWalletId: "WAL-MERCH-03",
+        pixKey: "contato@autocentralnoroeste.com.br",
+        partnershipTier: "PRATA",
         rating: 4.79,
         monthlyGmvBrl: 95000.0,
-        active: true
-      }
+        active: true,
+      },
     ];
 
-    defaultMerchants.forEach(m => this.merchants.set(m.merchantId, m));
+    defaultMerchants.forEach((m) => this.merchants.set(m.merchantId, m));
   }
 
   public getMerchantsByCity(cityId: string): LocalMerchant[] {
-    return Array.from(this.merchants.values()).filter(m => m.cityId === cityId && m.active);
+    return Array.from(this.merchants.values()).filter((m) => m.cityId === cityId && m.active);
   }
 
   public getMerchant(merchantId: string): LocalMerchant | undefined {

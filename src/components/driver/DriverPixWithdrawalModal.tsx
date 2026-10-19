@@ -36,7 +36,14 @@ export const DriverPixWithdrawalModal: React.FC<DriverPixWithdrawalModalProps> =
   driverCpf = "",
   onWithdrawalSuccess,
 }) => {
-  const { corPrimaria, corSecundaria, corTextoPrimaria, corCabecalhoInicio, corCabecalhoFim, branding } = useBrandTheme();
+  const {
+    corPrimaria,
+    corSecundaria,
+    corTextoPrimaria,
+    corCabecalhoInicio,
+    corCabecalhoFim,
+    branding,
+  } = useBrandTheme();
   const accentColor = branding?.accent_color || corSecundaria || "#00C6FF";
   const effectiveCpf = (driverCpf || chavePixPadrao || "").trim();
   const keyType: PixKeyType = "CPF";
@@ -143,7 +150,9 @@ export const DriverPixWithdrawalModal: React.FC<DriverPixWithdrawalModalProps> =
                 <CheckCircle2 className="w-8 h-8 stroke-[2.5]" />
               </div>
               <h3 className="text-base font-black text-slate-950">
-                {receipt.status === "PROCESSING" ? "Saque em Processamento!" : "Saque Concluído com Sucesso!"}
+                {receipt.status === "PROCESSING"
+                  ? "Saque em Processamento!"
+                  : "Saque Concluído com Sucesso!"}
               </h3>
               <p className="text-xs text-slate-500">
                 {receipt.status === "PROCESSING"
@@ -156,7 +165,10 @@ export const DriverPixWithdrawalModal: React.FC<DriverPixWithdrawalModalProps> =
               <div className="flex justify-between items-center pb-2 border-b border-slate-200/60">
                 <span className="text-slate-500 font-semibold">Valor Transferido</span>
                 <span className="text-base font-black text-emerald-700">
-                  {receipt.amountBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  {receipt.amountBrl.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
                 </span>
               </div>
               <div className="flex justify-between items-center">
@@ -165,26 +177,37 @@ export const DriverPixWithdrawalModal: React.FC<DriverPixWithdrawalModalProps> =
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500">Chave PIX</span>
-                <span className="font-bold text-slate-800 truncate max-w-[180px]">{receipt.pixKey}</span>
+                <span className="font-bold text-slate-800 truncate max-w-[180px]">
+                  {receipt.pixKey}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500">Protocolo</span>
                 <div className="flex items-center gap-1">
-                  <span className="font-mono font-bold text-slate-700 text-[11px]">{receipt.transferId}</span>
+                  <span className="font-mono font-bold text-slate-700 text-[11px]">
+                    {receipt.transferId}
+                  </span>
                   <button
                     type="button"
                     onClick={() => handleCopyProtocol(receipt.transferId)}
                     className="p-1 text-slate-400 hover:text-slate-700"
                     title="Copiar"
                   >
-                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
                   </button>
                 </div>
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-slate-200/60">
                 <span className="text-slate-500">Novo Saldo em Conta</span>
                 <span className="font-black text-slate-900">
-                  {receipt.newBalanceBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  {receipt.newBalanceBrl.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
                 </span>
               </div>
             </div>
@@ -214,7 +237,10 @@ export const DriverPixWithdrawalModal: React.FC<DriverPixWithdrawalModalProps> =
               </span>
               <div className="flex items-baseline justify-between">
                 <span className="text-2xl font-black">
-                  {saldoDisponivelBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  {saldoDisponivelBrl.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
                 </span>
                 <span className="text-[11px] font-bold bg-white/20 px-2 py-0.5 rounded-full backdrop-blur-xs">
                   0% Taxa • Grátis
@@ -253,7 +279,8 @@ export const DriverPixWithdrawalModal: React.FC<DriverPixWithdrawalModalProps> =
               </div>
 
               <p className="text-[10.5px] text-slate-500 leading-snug">
-                Por exigência de conformidade bancária e segurança antifraude, o saque é creditado exclusivamente na conta bancária vinculada ao CPF do condutor cadastrado.
+                Por exigência de conformidade bancária e segurança antifraude, o saque é creditado
+                exclusivamente na conta bancária vinculada ao CPF do condutor cadastrado.
               </p>
             </div>
 

@@ -42,7 +42,7 @@ export class AdaptiveTelemetryEngine {
    */
   public getAdaptiveConfig(
     state: DriverOperationalState,
-    batteryLevelPercent = 100
+    batteryLevelPercent = 100,
   ): AdaptiveTelemetryConfig {
     const isLowBattery = batteryLevelPercent <= 15;
 
@@ -126,9 +126,7 @@ export class AdaptiveTelemetryEngine {
   } {
     const saved = Math.max(0, this.totalPingsBaseline - this.actualPingsTransmitted);
     const reduction =
-      this.totalPingsBaseline > 0
-        ? Math.round((saved / this.totalPingsBaseline) * 100)
-        : 0;
+      this.totalPingsBaseline > 0 ? Math.round((saved / this.totalPingsBaseline) * 100) : 0;
 
     return {
       baselinePings: this.totalPingsBaseline,

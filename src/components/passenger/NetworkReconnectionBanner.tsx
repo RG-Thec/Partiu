@@ -1,6 +1,9 @@
 import React, { memo, useEffect, useState } from "react";
 import { Loader2, CheckCircle2, WifiOff, RefreshCw } from "lucide-react";
-import { RealtimeConnectionManager, type ConnectionState } from "@/services/RealtimeConnectionManager";
+import {
+  RealtimeConnectionManager,
+  type ConnectionState,
+} from "@/services/RealtimeConnectionManager";
 
 /**
  * ==============================================================================
@@ -15,7 +18,7 @@ import { RealtimeConnectionManager, type ConnectionState } from "@/services/Real
 export const NetworkReconnectionBanner = memo(function NetworkReconnectionBanner() {
   const [connState, setConnState] = useState<ConnectionState>("CONNECTED");
   const [isOnline, setIsOnline] = useState<boolean>(
-    typeof navigator !== "undefined" ? navigator.onLine : true
+    typeof navigator !== "undefined" ? navigator.onLine : true,
   );
   const [showRestored, setShowRestored] = useState<boolean>(false);
 
@@ -24,7 +27,10 @@ export const NetworkReconnectionBanner = memo(function NetworkReconnectionBanner
 
     const unsubscribe = manager.onStateChange((state) => {
       setConnState((prev) => {
-        if ((prev === "RECONNECTING" || prev === "DISCONNECTED" || prev === "ERROR") && state === "CONNECTED") {
+        if (
+          (prev === "RECONNECTING" || prev === "DISCONNECTED" || prev === "ERROR") &&
+          state === "CONNECTED"
+        ) {
           setShowRestored(true);
           setTimeout(() => setShowRestored(false), 2000);
         }
@@ -67,21 +73,21 @@ export const NetworkReconnectionBanner = memo(function NetworkReconnectionBanner
     <div
       role="status"
       aria-live="assertive"
-      style={{
-        position: "fixed",
-        bottom: "calc(env(safe-area-inset-bottom, 0px) + 72px)",
-        zIndex: 9999,
-        elevation: 40,
-      } as React.CSSProperties}
+      style={
+        {
+          position: "fixed",
+          bottom: "calc(env(safe-area-inset-bottom, 0px) + 72px)",
+          zIndex: 9999,
+          elevation: 40,
+        } as React.CSSProperties
+      }
       className="inset-x-0 max-w-xs mx-auto px-2 pointer-events-none animate-in slide-in-from-bottom-2 fade-in duration-200 select-none"
     >
       {isDisconnected ? (
         <div className="w-full bg-primary-600 text-slate-950 font-black text-xs rounded-2xl shadow-xl border border-amber-600/40 px-3.5 py-2 flex items-center justify-between gap-2.5 backdrop-blur-md pointer-events-auto">
           <div className="flex items-center gap-2 min-w-0">
             <Loader2 className="w-4 h-4 animate-spin text-slate-950 shrink-0" />
-            <span className="truncate text-[11px]">
-              Reconectando... Sua busca continua ativa.
-            </span>
+            <span className="truncate text-[11px]">Reconectando... Sua busca continua ativa.</span>
           </div>
           <WifiOff className="w-3.5 h-3.5 text-slate-900/80 shrink-0" />
         </div>

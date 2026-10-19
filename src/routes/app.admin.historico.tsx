@@ -66,17 +66,21 @@ export function HistoricoRotas() {
           if (!error && data && data.length > 0) {
             const convertidos: CorridaHistorico[] = data.map((c: any) => ({
               id: c.codigo_viagem || c.id,
-              modalidade: c.is_entrega || c.modalidade?.startsWith("ENTREGA")
-                ? "Entregas Flash"
-                : c.modalidade === "MOTO"
-                  ? "Partiu Moto"
-                  : "Partiu Pop",
+              modalidade:
+                c.is_entrega || c.modalidade?.startsWith("ENTREGA")
+                  ? "Entregas Flash"
+                  : c.modalidade === "MOTO"
+                    ? "Partiu Moto"
+                    : "Partiu Pop",
               passageiro: c.passageiro_nome || "Passageiro",
               motorista: c.partiu_motoristas?.nome || "Motorista Parceiro",
               veiculo: `${c.partiu_motoristas?.veiculo_marca_modelo || "Veículo"} (${c.partiu_motoristas?.veiculo_placa || "---"})`,
               origem: c.origem_endereco || "Origem em rota",
               destino: c.destino_endereco || "Destino em rota",
-              data: new Date(c.created_at).toLocaleDateString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+              data: new Date(c.created_at).toLocaleDateString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
               duracao: `${c.duracao_min || 15} min`,
               valor: (c.valor_bruto_cents || 1600) / 100,
               status: c.status === "CANCELADA" ? "Cancelada" : "Concluída",
@@ -95,17 +99,21 @@ export function HistoricoRotas() {
       if (local.length > 0) {
         const convertidosLocal: CorridaHistorico[] = local.map((c) => ({
           id: c.id,
-          modalidade: c.isEntrega || c.modalidade.startsWith("ENTREGA")
-            ? "Entregas Flash"
-            : c.modalidade === "MOTO"
-              ? "Partiu Moto"
-              : "Partiu Pop",
+          modalidade:
+            c.isEntrega || c.modalidade.startsWith("ENTREGA")
+              ? "Entregas Flash"
+              : c.modalidade === "MOTO"
+                ? "Partiu Moto"
+                : "Partiu Pop",
           passageiro: c.passageiroNome || "Passageiro",
           motorista: c.motorista?.nome || "Motorista Parceiro",
           veiculo: `${c.motorista?.veiculo || "Veículo"} (${c.motorista?.placa || "---"})`,
           origem: c.origem || "Origem em rota",
           destino: c.destino || "Destino em rota",
-          data: new Date(c.criadoEm).toLocaleDateString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+          data: new Date(c.criadoEm).toLocaleDateString("pt-BR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
           duracao: `${c.duracaoMin} min`,
           valor: c.valor,
           status: c.status === "CANCELADA" ? "Cancelada" : "Concluída",
@@ -173,78 +181,81 @@ export function HistoricoRotas() {
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
               <Clock className="h-7 w-7" />
             </div>
-            <h3 className="text-sm font-black text-slate-800">Nenhuma corrida registrada no histórico</h3>
+            <h3 className="text-sm font-black text-slate-800">
+              Nenhuma corrida registrada no histórico
+            </h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              As corridas e entregas concluídas ou canceladas no ecossistema PARTIU aparecerão listadas aqui em tempo real.
+              As corridas e entregas concluídas ou canceladas no ecossistema PARTIU aparecerão
+              listadas aqui em tempo real.
             </p>
           </div>
         ) : (
           lista.map((corrida) => (
-          <div
-            key={corrida.id}
-            className="rounded-2xl bg-white p-4 sm:p-5 shadow-xs border border-slate-200 hover:border-slate-300 transition-all space-y-3"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-start gap-3 flex-1 min-w-0">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-900">
-                  {corrida.modalidade === "Partiu Moto" ? (
-                    <Bike className="h-5 w-5" />
-                  ) : corrida.modalidade === "Entregas Flash" ? (
-                    <Package className="h-5 w-5" />
-                  ) : (
-                    <Car className="h-5 w-5" />
-                  )}
-                </div>
-
-                <div className="min-w-0 flex-1 space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <p className="font-black text-slate-900 text-sm">{corrida.modalidade}</p>
-                    <span className="text-[10px] text-slate-400 font-bold">• {corrida.data}</span>
+            <div
+              key={corrida.id}
+              className="rounded-2xl bg-white p-4 sm:p-5 shadow-xs border border-slate-200 hover:border-slate-300 transition-all space-y-3"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-900">
+                    {corrida.modalidade === "Partiu Moto" ? (
+                      <Bike className="h-5 w-5" />
+                    ) : corrida.modalidade === "Entregas Flash" ? (
+                      <Package className="h-5 w-5" />
+                    ) : (
+                      <Car className="h-5 w-5" />
+                    )}
                   </div>
-                  <p className="text-xs text-slate-600 font-medium truncate">
-                    Passageiro: <strong className="text-slate-900">{corrida.passageiro}</strong>
-                  </p>
-                  <p className="text-xs text-slate-500 font-medium truncate">
-                    Motorista: {corrida.motorista} ({corrida.veiculo})
-                  </p>
+
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <p className="font-black text-slate-900 text-sm">{corrida.modalidade}</p>
+                      <span className="text-[10px] text-slate-400 font-bold">• {corrida.data}</span>
+                    </div>
+                    <p className="text-xs text-slate-600 font-medium truncate">
+                      Passageiro: <strong className="text-slate-900">{corrida.passageiro}</strong>
+                    </p>
+                    <p className="text-xs text-slate-500 font-medium truncate">
+                      Motorista: {corrida.motorista} ({corrida.veiculo})
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-right shrink-0">
+                  <span className="text-base font-black text-slate-900 block">
+                    R$ {corrida.valor.toFixed(2).replace(".", ",")}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
+                    <CheckCircle2 className="h-3 w-3" /> {corrida.status}
+                  </span>
                 </div>
               </div>
 
-              <div className="text-right shrink-0">
-                <span className="text-base font-black text-slate-900 block">
-                  R$ {corrida.valor.toFixed(2).replace(".", ",")}
-                </span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
-                  <CheckCircle2 className="h-3 w-3" /> {corrida.status}
-                </span>
+              {/* Trajeto */}
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5 text-xs">
+                <div className="flex items-center gap-2 text-slate-700">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="truncate">
+                    <strong className="text-slate-900">Origem:</strong> {corrida.origem}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-700">
+                  <span className="h-2 w-2 rounded-full bg-primary-600 shrink-0" />
+                  <span className="truncate">
+                    <strong className="text-slate-900">Destino:</strong> {corrida.destino}
+                  </span>
+                </div>
               </div>
-            </div>
 
-            {/* Trajeto */}
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5 text-xs">
-              <div className="flex items-center gap-2 text-slate-700">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
-                <span className="truncate">
-                  <strong className="text-slate-900">Origem:</strong> {corrida.origem}
+              <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-100">
+                <span className="flex items-center gap-1 font-medium">
+                  <Clock className="h-3.5 w-3.5" /> Duração: {corrida.duracao}
                 </span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-700">
-                <span className="h-2 w-2 rounded-full bg-primary-600 shrink-0" />
-                <span className="truncate">
-                  <strong className="text-slate-900">Destino:</strong> {corrida.destino}
-                </span>
+                <span className="font-mono text-[11px] text-slate-400">ID: {corrida.id}</span>
               </div>
             </div>
-
-            <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-100">
-              <span className="flex items-center gap-1 font-medium">
-                <Clock className="h-3.5 w-3.5" /> Duração: {corrida.duracao}
-              </span>
-              <span className="font-mono text-[11px] text-slate-400">ID: {corrida.id}</span>
-            </div>
-          </div>
-        ))
-      )}
+          ))
+        )}
       </div>
     </div>
   );

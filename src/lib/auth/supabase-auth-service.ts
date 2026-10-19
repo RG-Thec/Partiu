@@ -4,7 +4,7 @@
  * ==============================================================================
  * Serviço unificado de autenticação conectado diretamente ao Supabase Auth e
  * às tabelas relacionais public.partiu_passageiros e public.partiu_motoristas.
- * 
+ *
  * Funcionalidades:
  * - Login por E-mail + Senha (Passageiro, Motorista, Admin)
  * - Login por Celular + OTP SMS/WhatsApp
@@ -125,7 +125,10 @@ export function normalizeUserTenantId(tenantId?: string | null): string {
 /**
  * Valida se o usuário pertence à praça/franquia solicitada de forma Zero-Trust.
  */
-export function isMatchingTenant(userTenantId: string | null | undefined, targetTenantId: string): boolean {
+export function isMatchingTenant(
+  userTenantId: string | null | undefined,
+  targetTenantId: string,
+): boolean {
   return normalizeUserTenantId(userTenantId) === normalizeUserTenantId(targetTenantId);
 }
 
@@ -206,7 +209,8 @@ export class SupabaseAuthService {
         isOnline: false,
         url: envUrl,
         latencyMs: 0,
-        message: "Modo Local / Fallback Ativo. Configure VITE_SUPABASE_URL no arquivo .env para conectar ao banco real.",
+        message:
+          "Modo Local / Fallback Ativo. Configure VITE_SUPABASE_URL no arquivo .env para conectar ao banco real.",
       };
     }
 
@@ -319,7 +323,9 @@ export class SupabaseAuthService {
         localStorage.setItem(getTenantSessionStorageKey("default"), JSON.stringify(user));
         localStorage.setItem(getTenantSessionStorageKey("tenant-itaperuna"), JSON.stringify(user));
       }
-    } catch (err) { silentCatchWarn("supabase-auth-service", err); }
+    } catch (err) {
+      silentCatchWarn("supabase-auth-service", err);
+    }
   }
 
   /**
@@ -333,7 +339,9 @@ export class SupabaseAuthService {
       if (effectiveTenantId === "tenant-itaperuna" || effectiveTenantId === "default") {
         localStorage.removeItem(STORAGE_SESSION_KEY);
       }
-    } catch (err) { silentCatchWarn("supabase-auth-service", err); }
+    } catch (err) {
+      silentCatchWarn("supabase-auth-service", err);
+    }
   }
 
   /**
@@ -412,7 +420,7 @@ export class SupabaseAuthService {
       role: string;
       tenantId?: string;
     },
-    targetTenantId?: string
+    targetTenantId?: string,
   ): void {
     if (typeof localStorage === "undefined") return;
     try {
@@ -425,7 +433,7 @@ export class SupabaseAuthService {
       const exists = list.some(
         (u: any) =>
           u.email?.toLowerCase().trim() === cleanEmail ||
-          (cleanCpf && u.cpf && u.cpf.replace(/\D/g, "") === cleanCpf)
+          (cleanCpf && u.cpf && u.cpf.replace(/\D/g, "") === cleanCpf),
       );
       if (!exists) {
         list.push({
@@ -439,7 +447,10 @@ export class SupabaseAuthService {
         localStorage.setItem(storeKey, JSON.stringify(list));
 
         // Se for Matriz (tenant-itaperuna), sincroniza também na chave padrão default para compatibilidade
-        if (isMatchingTenant(effectiveTenantId, "tenant-itaperuna") && effectiveTenantId !== "default") {
+        if (
+          isMatchingTenant(effectiveTenantId, "tenant-itaperuna") &&
+          effectiveTenantId !== "default"
+        ) {
           const defKey = getTenantUsersStoreKey("default");
           const defRaw = localStorage.getItem(defKey);
           const defList = defRaw ? JSON.parse(defRaw) : [];
@@ -468,7 +479,7 @@ export class SupabaseAuthService {
   public async isEmailOrCpfRegistered(
     email: string,
     cpf?: string,
-    targetTenantId?: string
+    targetTenantId?: string,
   ): Promise<{ registered: boolean; field?: "email" | "cpf"; message?: string }> {
     const cleanEmail = email.trim().toLowerCase();
     const cleanCpf = cpf ? cpf.replace(/\D/g, "") : "";
@@ -487,18 +498,20 @@ export class SupabaseAuthService {
               return {
                 registered: true,
                 field: "email",
-                message: "Este e-mail já está cadastrado nesta praça. Faça login para acessar sua conta.",
+                message:
+                  "Este e-mail já está cadastrado nesta praça. Faça login para acessar sua conta.",
               };
             }
             if (cleanCpf && cleanCpf.length === 11) {
               const cpfMatch = list.find(
-                (u: any) => u.cpf && u.cpf.replace(/\D/g, "") === cleanCpf
+                (u: any) => u.cpf && u.cpf.replace(/\D/g, "") === cleanCpf,
               );
               if (cpfMatch) {
                 return {
                   registered: true,
                   field: "cpf",
-                  message: "Este CPF já está cadastrado nesta praça. Cada usuário deve ter um CPF único.",
+                  message:
+                    "Este CPF já está cadastrado nesta praça. Cada usuário deve ter um CPF único.",
                 };
               }
             }
@@ -528,7 +541,8 @@ export class SupabaseAuthService {
             return {
               registered: true,
               field: "email",
-              message: "Este e-mail já está cadastrado no sistema. Faça login para acessar sua conta.",
+              message:
+                "Este e-mail já está cadastrado no sistema. Faça login para acessar sua conta.",
             };
           }
         }
@@ -594,7 +608,8 @@ export class SupabaseAuthService {
             return {
               registered: true,
               field: "email",
-              message: "Este e-mail já está cadastrado como motorista parceiro. Faça login para acessar.",
+              message:
+                "Este e-mail já está cadastrado como motorista parceiro. Faça login para acessar.",
             };
           }
         }
@@ -665,11 +680,16 @@ export class SupabaseAuthService {
 
           // Verificação estrita de tenant: apenas motoristas e administradores exigem vínculo territorial exclusivo
           const userTenantId = profileData?.tenant_id || user.user_metadata?.["tenant_id"];
-          if (role !== "PASSAGEIRO" && userTenantId && !isMatchingTenant(userTenantId, effectiveTenantId)) {
+          if (
+            role !== "PASSAGEIRO" &&
+            userTenantId &&
+            !isMatchingTenant(userTenantId, effectiveTenantId)
+          ) {
             return null;
           }
 
-          let driverApprovalStatus = profileData?.approval_status || (role === "MOTORISTA" ? "pendente" : "aprovado");
+          let driverApprovalStatus =
+            profileData?.approval_status || (role === "MOTORISTA" ? "pendente" : "aprovado");
           let vehiclePlate = profileData?.metadata?.vehicle_plate;
           let vehicleModel = profileData?.metadata?.vehicle_model;
 
@@ -716,10 +736,10 @@ export class SupabaseAuthService {
           const existingStored = this.getStoredSession(effectiveTenantId);
           const isSameUser = Boolean(
             existingStored &&
-              (existingStored.id === user.id ||
-                (existingStored.email &&
-                  user.email &&
-                  existingStored.email.toLowerCase() === user.email.toLowerCase()))
+            (existingStored.id === user.id ||
+              (existingStored.email &&
+                user.email &&
+                existingStored.email.toLowerCase() === user.email.toLowerCase())),
           );
 
           if (!avatarUrl && isSameUser && existingStored?.avatarUrl) {
@@ -731,10 +751,14 @@ export class SupabaseAuthService {
 
           const resolvedName =
             (paxNome && paxNome !== "Passageiro" ? paxNome : null) ||
-            (profileData?.full_name && profileData.full_name !== "Passageiro" ? profileData.full_name : null) ||
+            (profileData?.full_name && profileData.full_name !== "Passageiro"
+              ? profileData.full_name
+              : null) ||
             user.user_metadata?.["name"] ||
             user.user_metadata?.["full_name"] ||
-            (isSameUser && existingStored?.name && existingStored.name !== "Passageiro" ? existingStored.name : null) ||
+            (isSameUser && existingStored?.name && existingStored.name !== "Passageiro"
+              ? existingStored.name
+              : null) ||
             user.email?.split("@")[0] ||
             "Passageiro";
 
@@ -768,7 +792,9 @@ export class SupabaseAuthService {
             driverApprovalStatus: driverApprovalStatus as any,
             vehiclePlate,
             vehicleModel,
-            createdAt: profileData?.created_at ? new Date(profileData.created_at).getTime() : Date.now(),
+            createdAt: profileData?.created_at
+              ? new Date(profileData.created_at).getTime()
+              : Date.now(),
           };
 
           this.saveStoredSession(hydrated, effectiveTenantId);
@@ -790,7 +816,7 @@ export class SupabaseAuthService {
                 localStorage.setItem("partiu_user_selfie", resolvedAvatar);
               }
               window.dispatchEvent(
-                new CustomEvent("partiu:user-profile-updated", { detail: hydrated })
+                new CustomEvent("partiu:user-profile-updated", { detail: hydrated }),
               );
             } catch {}
           }
@@ -907,7 +933,7 @@ export class SupabaseAuthService {
           `+55${norm.apenasDigitos}`,
           `55${norm.apenasDigitos}`,
           digits,
-        ])
+        ]),
       ).filter(Boolean);
 
       if (isSupabaseConfigured() && !isTestEnvironment()) {
@@ -961,7 +987,7 @@ export class SupabaseAuthService {
               const found = list.find(
                 (u: any) =>
                   (u.phone && digits && u.phone.replace(/\D/g, "").endsWith(digits.slice(-8))) ||
-                  (u.cpf && digits && u.cpf.replace(/\D/g, "") === digits)
+                  (u.cpf && digits && u.cpf.replace(/\D/g, "") === digits),
               );
               if (found?.email) {
                 cleanEmail = found.email.trim().toLowerCase();
@@ -973,7 +999,10 @@ export class SupabaseAuthService {
     }
 
     if (!cleanEmail || !cleanEmail.includes("@")) {
-      return { success: false, error: "Informe um endereço de e-mail ou celular cadastrado válido." };
+      return {
+        success: false,
+        error: "Informe um endereço de e-mail ou celular cadastrado válido.",
+      };
     }
     if (!senha || senha.length < 4) {
       return { success: false, error: "A senha deve conter no mínimo 6 caracteres." };
@@ -987,7 +1016,7 @@ export class SupabaseAuthService {
           password: senha,
         });
         const timeoutPromise = new Promise<any>((resolve) =>
-          setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 15000)
+          setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 15000),
         );
         const { data, error } = await Promise.race([authPromise, timeoutPromise]);
 
@@ -995,8 +1024,10 @@ export class SupabaseAuthService {
           const msg = error.message;
           let traduzido = "Credenciais de acesso incorretas.";
           if (msg.includes("Invalid login credentials")) traduzido = "E-mail ou senha incorretos.";
-          else if (msg.includes("Email not confirmed")) traduzido = "Por favor, confirme seu e-mail antes de entrar.";
-          else if (msg.includes("Too many requests")) traduzido = "Muitas tentativas consecutivas. Aguarde um momento.";
+          else if (msg.includes("Email not confirmed"))
+            traduzido = "Por favor, confirme seu e-mail antes de entrar.";
+          else if (msg.includes("Too many requests"))
+            traduzido = "Muitas tentativas consecutivas. Aguarde um momento.";
           return { success: false, error: traduzido };
         }
 
@@ -1023,7 +1054,11 @@ export class SupabaseAuthService {
           // ISOLAMENTO MULTI-TENANT:
           // Apenas motoristas e administradores exigem vínculo territorial exclusivo
           const userTenantId = profileData?.tenant_id || data.user.user_metadata?.["tenant_id"];
-          if (finalRole !== "PASSAGEIRO" && userTenantId && !isMatchingTenant(userTenantId, effectiveTenantId)) {
+          if (
+            finalRole !== "PASSAGEIRO" &&
+            userTenantId &&
+            !isMatchingTenant(userTenantId, effectiveTenantId)
+          ) {
             try {
               await Promise.race([
                 supabase.auth.signOut({ scope: "local" }),
@@ -1032,12 +1067,18 @@ export class SupabaseAuthService {
             } catch {}
             return {
               success: false,
-              error: "Esta conta está vinculada a outra praça/franquia. Para atuar nesta praça, solicite credenciamento local.",
+              error:
+                "Esta conta está vinculada a outra praça/franquia. Para atuar nesta praça, solicite credenciamento local.",
             };
           }
 
           // Se for passageiro e seu tenant_id em profiles for null, vincula à praça atual
-          if (finalRole === "PASSAGEIRO" && !profileData?.tenant_id && effectiveTenantId && effectiveTenantId !== "default") {
+          if (
+            finalRole === "PASSAGEIRO" &&
+            !profileData?.tenant_id &&
+            effectiveTenantId &&
+            effectiveTenantId !== "default"
+          ) {
             try {
               await (supabase as any)
                 .from("profiles")
@@ -1046,7 +1087,8 @@ export class SupabaseAuthService {
             } catch {}
           }
 
-          let driverApprovalStatus = profileData?.approval_status || (finalRole === "MOTORISTA" ? "pendente" : "aprovado");
+          let driverApprovalStatus =
+            profileData?.approval_status || (finalRole === "MOTORISTA" ? "pendente" : "aprovado");
           let vehiclePlate = profileData?.metadata?.vehicle_plate;
           let vehicleModel = profileData?.metadata?.vehicle_model;
 
@@ -1089,8 +1131,8 @@ export class SupabaseAuthService {
           const existingStored = this.getStoredSession(effectiveTenantId);
           const isSameUser = Boolean(
             existingStored &&
-              (existingStored.id === data.user.id ||
-                (existingStored.email && existingStored.email.toLowerCase() === cleanEmail))
+            (existingStored.id === data.user.id ||
+              (existingStored.email && existingStored.email.toLowerCase() === cleanEmail)),
           );
 
           if (!avatarUrl && isSameUser && existingStored?.avatarUrl) {
@@ -1102,10 +1144,14 @@ export class SupabaseAuthService {
 
           const resolvedName =
             (paxNome && paxNome !== "Passageiro" ? paxNome : null) ||
-            (profileData?.full_name && profileData.full_name !== "Passageiro" ? profileData.full_name : null) ||
+            (profileData?.full_name && profileData.full_name !== "Passageiro"
+              ? profileData.full_name
+              : null) ||
             data.user.user_metadata?.["name"] ||
             data.user.user_metadata?.["full_name"] ||
-            (isSameUser && existingStored?.name && existingStored.name !== "Passageiro" ? existingStored.name : null) ||
+            (isSameUser && existingStored?.name && existingStored.name !== "Passageiro"
+              ? existingStored.name
+              : null) ||
             cleanEmail.split("@")[0];
 
           const resolvedPhone =
@@ -1138,7 +1184,9 @@ export class SupabaseAuthService {
             driverApprovalStatus: driverApprovalStatus as any,
             vehiclePlate,
             vehicleModel,
-            createdAt: profileData?.created_at ? new Date(profileData.created_at).getTime() : Date.now(),
+            createdAt: profileData?.created_at
+              ? new Date(profileData.created_at).getTime()
+              : Date.now(),
           };
 
           // Se estiver trocando de conta no mesmo navegador, purga integralmente o cache do usuário anterior
@@ -1155,7 +1203,7 @@ export class SupabaseAuthService {
               role: finalRole,
               tenantId: effectiveTenantId,
             },
-            effectiveTenantId
+            effectiveTenantId,
           );
 
           // Sincroniza imediatamente o localStorage para o novo usuário autenticado
@@ -1187,7 +1235,7 @@ export class SupabaseAuthService {
               }
               if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
                 window.dispatchEvent(
-                  new CustomEvent("partiu:user-profile-updated", { detail: authUser })
+                  new CustomEvent("partiu:user-profile-updated", { detail: authUser }),
                 );
               }
             } catch {}
@@ -1197,7 +1245,11 @@ export class SupabaseAuthService {
             success: true,
             user: authUser,
             redirectUrl:
-              finalRole === "MOTORISTA" ? "/app/motorista" : finalRole === "ADMIN" ? "/app/admin" : "/app",
+              finalRole === "MOTORISTA"
+                ? "/app/motorista"
+                : finalRole === "ADMIN"
+                  ? "/app/admin"
+                  : "/app",
           };
         }
       } catch (err) {
@@ -1222,9 +1274,10 @@ export class SupabaseAuthService {
         const storeKey = getTenantUsersStoreKey(effectiveTenantId);
         const storeKeys = [storeKey];
         if (isDefaultTenant) {
-          const altKey = effectiveTenantId === "default"
-            ? getTenantUsersStoreKey("tenant-itaperuna")
-            : getTenantUsersStoreKey("default");
+          const altKey =
+            effectiveTenantId === "default"
+              ? getTenantUsersStoreKey("tenant-itaperuna")
+              : getTenantUsersStoreKey("default");
           if (!storeKeys.includes(altKey)) storeKeys.push(altKey);
         }
         for (const sk of storeKeys) {
@@ -1247,11 +1300,13 @@ export class SupabaseAuthService {
     if (!isDemoEmail && !localTenantUser) {
       return {
         success: false,
-        error: "Conta de usuário não encontrada nesta praça. Crie sua conta no aplicativo para acessar.",
+        error:
+          "Conta de usuário não encontrada nesta praça. Crie sua conta no aplicativo para acessar.",
       };
     }
 
-    const isDefaultPass = senha === "123456" || senha === "partiu2026" || (localTenantUser && senha.length >= 4);
+    const isDefaultPass =
+      senha === "123456" || senha === "partiu2026" || (localTenantUser && senha.length >= 4);
     if (!isDefaultPass) {
       return { success: false, error: "Senha incorreta. Verifique os dados digitados." };
     }
@@ -1296,7 +1351,10 @@ export class SupabaseAuthService {
   public async sendPhoneOtp(phone: string): Promise<{ success: boolean; error?: string }> {
     const norm = normalizarTelefoneBR(phone);
     if (!norm.valido) {
-      return { success: false, error: "Informe um número de celular válido com DDD (ex: 82 99841-2940)." };
+      return {
+        success: false,
+        error: "Informe um número de celular válido com DDD (ex: 82 99841-2940).",
+      };
     }
 
     if (isSupabaseConfigured() && norm.e164) {
@@ -1358,7 +1416,9 @@ export class SupabaseAuthService {
             redirectUrl: role === "MOTORISTA" ? "/app/motorista" : "/app",
           };
         }
-      } catch (err) { silentCatchWarn("supabase-auth-service", err); }
+      } catch (err) {
+        silentCatchWarn("supabase-auth-service", err);
+      }
     }
 
     // Fallback local
@@ -1390,7 +1450,7 @@ export class SupabaseAuthService {
   public async checkContactExists(
     contact: string,
     role: UserRole = "PASSAGEIRO",
-    targetTenantId?: string
+    targetTenantId?: string,
   ): Promise<{
     exists: boolean;
     contactType: "EMAIL" | "PHONE";
@@ -1505,7 +1565,12 @@ export class SupabaseAuthService {
             const userTenantId = profileMatch.tenant_id;
 
             // Se for tentativa de login no portal do motorista, respeita isolamento da praça
-            if (isDriver && role === "MOTORISTA" && userTenantId && !isMatchingTenant(userTenantId, effectiveTenantId)) {
+            if (
+              isDriver &&
+              role === "MOTORISTA" &&
+              userTenantId &&
+              !isMatchingTenant(userTenantId, effectiveTenantId)
+            ) {
               return {
                 exists: false,
                 contactType: "EMAIL",
@@ -1579,7 +1644,7 @@ export class SupabaseAuthService {
               const found = list.find(
                 (u: any) =>
                   (u.phone && digits && u.phone.replace(/\D/g, "").endsWith(digits.slice(-8))) ||
-                  (u.cpf && digits && u.cpf.replace(/\D/g, "") === digits)
+                  (u.cpf && digits && u.cpf.replace(/\D/g, "") === digits),
               );
               if (found) {
                 return {
@@ -1606,7 +1671,7 @@ export class SupabaseAuthService {
               `+55${norm.apenasDigitos}`,
               `55${norm.apenasDigitos}`,
               digits,
-            ])
+            ]),
           ).filter(Boolean);
 
           const { data: pList } = await (supabase as any)
@@ -1666,7 +1731,12 @@ export class SupabaseAuthService {
             const isDriver = phoneMatch.role === "driver" || phoneMatch.role === "MOTORISTA";
             const userTenantId = phoneMatch.tenant_id;
 
-            if (isDriver && role === "MOTORISTA" && userTenantId && !isMatchingTenant(userTenantId, effectiveTenantId)) {
+            if (
+              isDriver &&
+              role === "MOTORISTA" &&
+              userTenantId &&
+              !isMatchingTenant(userTenantId, effectiveTenantId)
+            ) {
               return {
                 exists: false,
                 contactType: "PHONE",
@@ -1740,7 +1810,7 @@ export class SupabaseAuthService {
         targetTenant,
         params.coordinates,
         params.city,
-        whiteLabelEngine.getAllTenants()
+        whiteLabelEngine.getAllTenants(),
       );
       if (!checagemTerritorial.permitido) {
         return {
@@ -1751,7 +1821,11 @@ export class SupabaseAuthService {
     }
 
     // 0.1 Bloqueio proativo de e-mail e CPF duplicados NAQUELA FRANQUIA
-    const checkDuplicity = await this.isEmailOrCpfRegistered(cleanEmail, cleanCpf, effectiveTenantId);
+    const checkDuplicity = await this.isEmailOrCpfRegistered(
+      cleanEmail,
+      cleanCpf,
+      effectiveTenantId,
+    );
     if (checkDuplicity.registered) {
       return {
         success: false,
@@ -1778,7 +1852,7 @@ export class SupabaseAuthService {
           },
         });
         const timeoutPromise = new Promise<any>((resolve) =>
-          setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 15000)
+          setTimeout(() => resolve({ data: null, error: { message: "timeout" } }), 15000),
         );
         const { data, error } = await Promise.race([signUpPromise, timeoutPromise]);
 
@@ -1791,13 +1865,15 @@ export class SupabaseAuthService {
           ) {
             return {
               success: false,
-              error: "Este endereço de e-mail já está cadastrado no sistema. Faça login para continuar.",
+              error:
+                "Este endereço de e-mail já está cadastrado no sistema. Faça login para continuar.",
             };
           }
           if (error.message === "timeout") {
             return {
               success: false,
-              error: "Tempo de resposta esgotado. Verifique sua conexão com a internet e tente novamente.",
+              error:
+                "Tempo de resposta esgotado. Verifique sua conexão com a internet e tente novamente.",
             };
           }
           return { success: false, error: error.message };
@@ -1805,10 +1881,15 @@ export class SupabaseAuthService {
 
         // Validação estrita GoTrue: quando o usuário já existe e a confirmação é requerida/ativa,
         // o Supabase retorna user com array identities vazio sem lançar erro de propósito.
-        if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        if (
+          data?.user &&
+          Array.isArray(data.user.identities) &&
+          data.user.identities.length === 0
+        ) {
           return {
             success: false,
-            error: "Este endereço de e-mail já está cadastrado no sistema. Faça login para continuar.",
+            error:
+              "Este endereço de e-mail já está cadastrado no sistema. Faça login para continuar.",
           };
         }
 
@@ -1864,7 +1945,10 @@ export class SupabaseAuthService {
         }
       } catch (err: any) {
         silentCatchWarn("signUpPassenger:supabase", err);
-        return { success: false, error: err?.message || "Erro ao conectar com o serviço de cadastro." };
+        return {
+          success: false,
+          error: err?.message || "Erro ao conectar com o serviço de cadastro.",
+        };
       }
     }
 
@@ -1880,7 +1964,7 @@ export class SupabaseAuthService {
         role: "PASSAGEIRO",
         tenantId: effectiveTenantId,
       },
-      effectiveTenantId
+      effectiveTenantId,
     );
 
     const newUser: AuthUserProfile = {
@@ -1980,7 +2064,7 @@ export class SupabaseAuthService {
         targetTenant,
         params.coordinates,
         params.city,
-        whiteLabelEngine.getAllTenants()
+        whiteLabelEngine.getAllTenants(),
       );
       if (!checagemTerritorial.permitido) {
         return {
@@ -1991,7 +2075,11 @@ export class SupabaseAuthService {
     }
 
     // 0.1 Bloqueio proativo de e-mail e CPF duplicados NAQUELA FRANQUIA
-    const checkDuplicity = await this.isEmailOrCpfRegistered(cleanEmail, cleanCpf, effectiveTenantId);
+    const checkDuplicity = await this.isEmailOrCpfRegistered(
+      cleanEmail,
+      cleanCpf,
+      effectiveTenantId,
+    );
     if (checkDuplicity.registered) {
       return {
         success: false,
@@ -2027,17 +2115,23 @@ export class SupabaseAuthService {
           ) {
             return {
               success: false,
-              error: "Este endereço de e-mail já está cadastrado no sistema. Faça login para continuar.",
+              error:
+                "Este endereço de e-mail já está cadastrado no sistema. Faça login para continuar.",
             };
           }
           return { success: false, error: error.message };
         }
 
         // Validação estrita GoTrue: se identities for array vazio, o usuário já existia!
-        if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        if (
+          data?.user &&
+          Array.isArray(data.user.identities) &&
+          data.user.identities.length === 0
+        ) {
           return {
             success: false,
-            error: "Este endereço de e-mail já está cadastrado no sistema. Faça login para continuar.",
+            error:
+              "Este endereço de e-mail já está cadastrado no sistema. Faça login para continuar.",
           };
         }
 
@@ -2093,7 +2187,9 @@ export class SupabaseAuthService {
               tenant_id: effectiveTenantId,
               cnh_numero: params.cnh || "00000000000",
               cnh_categoria: params.cnhCategory || "B",
-              cnh_validade: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+              cnh_validade: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+                .toISOString()
+                .slice(0, 10),
               possui_ear: params.hasEar ?? true,
               cnh_url: params.cnhUrl || null,
               crlv_url: params.crlvUrl || null,
@@ -2113,7 +2209,10 @@ export class SupabaseAuthService {
           }
         }
       } catch (err: any) {
-        return { success: false, error: err?.message || "Erro ao conectar com o serviço de cadastro." };
+        return {
+          success: false,
+          error: err?.message || "Erro ao conectar com o serviço de cadastro.",
+        };
       }
     }
 
@@ -2129,7 +2228,7 @@ export class SupabaseAuthService {
         role: "MOTORISTA",
         tenantId: effectiveTenantId,
       },
-      effectiveTenantId
+      effectiveTenantId,
     );
 
     const newDriver: AuthUserProfile = {
@@ -2178,7 +2277,9 @@ export class SupabaseAuthService {
         await supabase.auth.resetPasswordForEmail(clean, {
           redirectTo: `${typeof window !== "undefined" ? window.location.origin : ""}/auth?reset=1`,
         });
-      } catch (err) { silentCatchWarn("supabase-auth-service", err); }
+      } catch (err) {
+        silentCatchWarn("supabase-auth-service", err);
+      }
     }
 
     return {
@@ -2227,7 +2328,9 @@ export class SupabaseAuthService {
           supabase.auth.signOut({ scope: "local" }),
           new Promise((resolve) => setTimeout(resolve, 500)),
         ]);
-      } catch (err) { silentCatchWarn("supabase-auth-service", err); }
+      } catch (err) {
+        silentCatchWarn("supabase-auth-service", err);
+      }
     }
     this.clearUserSessionAndCaches();
   }

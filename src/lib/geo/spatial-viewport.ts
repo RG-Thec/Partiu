@@ -42,12 +42,7 @@ export function expandBoundingBox(bbox: BoundingBox, bufferFactor = 0.25): Bound
  * Verifica em O(1) se uma coordenada está dentro da BoundingBox
  */
 export function isPointInBoundingBox(lng: number, lat: number, bbox: BoundingBox): boolean {
-  return (
-    lng >= bbox.minLng &&
-    lng <= bbox.maxLng &&
-    lat >= bbox.minLat &&
-    lat <= bbox.maxLat
-  );
+  return lng >= bbox.minLng && lng <= bbox.maxLng && lat >= bbox.minLat && lat <= bbox.maxLat;
 }
 
 /**
@@ -56,16 +51,14 @@ export function isPointInBoundingBox(lng: number, lat: number, bbox: BoundingBox
 export function filterPointsInViewport<T extends SpatialPoint>(
   points: T[],
   rawBbox: BoundingBox | null | undefined,
-  bufferFactor = 0.25
+  bufferFactor = 0.25,
 ): T[] {
   if (!rawBbox || !Number.isFinite(rawBbox.minLng) || !Number.isFinite(rawBbox.maxLng)) {
     return points;
   }
 
   const bufferedBbox = expandBoundingBox(rawBbox, bufferFactor);
-  return points.filter((p) =>
-    isPointInBoundingBox(p.longitude, p.latitude, bufferedBbox)
-  );
+  return points.filter((p) => isPointInBoundingBox(p.longitude, p.latitude, bufferedBbox));
 }
 
 /**

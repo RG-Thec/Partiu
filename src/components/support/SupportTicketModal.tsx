@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { X, Check, HelpCircle, Package, CreditCard, ShieldAlert, MessageSquare, AlertCircle } from "lucide-react";
+import {
+  X,
+  Check,
+  HelpCircle,
+  Package,
+  CreditCard,
+  ShieldAlert,
+  MessageSquare,
+  AlertCircle,
+} from "lucide-react";
 import {
   supportTicketService,
   type TicketCategory,
@@ -134,9 +143,12 @@ export const SupportTicketModal: React.FC<SupportTicketModalProps> = ({
               <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-md">
                 Protocolo: {createdTicket.ticketNumber}
               </span>
-              <h4 className="text-lg font-black text-slate-900 mt-2">Chamado Aberto com Sucesso!</h4>
+              <h4 className="text-lg font-black text-slate-900 mt-2">
+                Chamado Aberto com Sucesso!
+              </h4>
               <p className="text-xs text-slate-600 mt-1 max-w-sm mx-auto leading-relaxed">
-                Nossa equipe de atendimento já recebeu seu protocolo. Entraremos em contato via WhatsApp ou telefone em até 2 horas.
+                Nossa equipe de atendimento já recebeu seu protocolo. Entraremos em contato via
+                WhatsApp ou telefone em até 2 horas.
               </p>
             </div>
 
@@ -159,7 +171,9 @@ export const SupportTicketModal: React.FC<SupportTicketModalProps> = ({
 
             {/* Categorias Rápidas */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-2">Selecione o motivo:</label>
+              <label className="block text-xs font-bold text-slate-700 mb-2">
+                Selecione o motivo:
+              </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {CATEGORIES.map((cat) => {
                   const Icon = cat.icon;
@@ -180,7 +194,9 @@ export const SupportTicketModal: React.FC<SupportTicketModalProps> = ({
                     >
                       <div
                         className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                          isSelected ? "bg-brand-primary-vibrant text-white" : "bg-white text-slate-600 border border-slate-200"
+                          isSelected
+                            ? "bg-brand-primary-vibrant text-white"
+                            : "bg-white text-slate-600 border border-slate-200"
                         }`}
                       >
                         <Icon className="w-4 h-4" />
@@ -199,7 +215,9 @@ export const SupportTicketModal: React.FC<SupportTicketModalProps> = ({
 
             {/* Assunto */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Título do problema:</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Título do problema:
+              </label>
               <input
                 type="text"
                 required
@@ -212,7 +230,9 @@ export const SupportTicketModal: React.FC<SupportTicketModalProps> = ({
 
             {/* Descrição Detalhada */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Descreva o ocorrido:</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Descreva o ocorrido:
+              </label>
               <textarea
                 required
                 rows={3}
@@ -230,7 +250,9 @@ export const SupportTicketModal: React.FC<SupportTicketModalProps> = ({
                 disabled={isSubmitting || !subject.trim() || !description.trim()}
                 className="w-full h-12 rounded-2xl bg-brand-primary-vibrant hover:brightness-105 disabled:opacity-50 text-white font-black text-sm shadow-md transition cursor-pointer flex items-center justify-center gap-2"
               >
-                <span>{isSubmitting ? "Registrando Protocolo..." : "Enviar Chamado de Suporte"}</span>
+                <span>
+                  {isSubmitting ? "Registrando Protocolo..." : "Enviar Chamado de Suporte"}
+                </span>
               </button>
             </div>
           </form>

@@ -40,9 +40,11 @@ export class InvalidDriverStateTransitionError extends Error {
   constructor(
     public readonly currentState: string,
     public readonly targetState: string,
-    public readonly reason: string
+    public readonly reason: string,
   ) {
-    super(`TRANSIÇÃO_INVÁLIDA: Não é permitido mover o condutor de [${currentState}] para [${targetState}]. Razão: ${reason}`);
+    super(
+      `TRANSIÇÃO_INVÁLIDA: Não é permitido mover o condutor de [${currentState}] para [${targetState}]. Razão: ${reason}`,
+    );
     this.name = "InvalidDriverStateTransitionError";
   }
 }
@@ -78,7 +80,10 @@ export class DriverStateMachine {
   private static readonly MAX_TRANSITION_HISTORY = 100;
 
   // Matriz de transições permitidas para entregas
-  private static readonly ALLOWED_DELIVERY_TRANSITIONS: Record<DeliveryDriverState, DeliveryDriverState[]> = {
+  private static readonly ALLOWED_DELIVERY_TRANSITIONS: Record<
+    DeliveryDriverState,
+    DeliveryDriverState[]
+  > = {
     DELIVERY_OFFER: ["DELIVERY_ACCEPTED", "COMPLETED"], // Recusa volta para COMPLETED/ONLINE
     DELIVERY_ACCEPTED: ["HEADING_TO_PICKUP"],
     HEADING_TO_PICKUP: ["AT_PICKUP"],
@@ -105,7 +110,9 @@ export class DriverStateMachine {
   private recordTransition(log: DriverStateTransitionLog): void {
     this.transitionHistory.push(log);
     if (this.transitionHistory.length > DriverStateMachine.MAX_TRANSITION_HISTORY) {
-      this.transitionHistory = this.transitionHistory.slice(-DriverStateMachine.MAX_TRANSITION_HISTORY);
+      this.transitionHistory = this.transitionHistory.slice(
+        -DriverStateMachine.MAX_TRANSITION_HISTORY,
+      );
     }
   }
 
@@ -162,7 +169,7 @@ export class DriverStateMachine {
     arg2: string,
     arg3: string | RideDriverState,
     actor: "DRIVER" | "PASSENGER" | "SYSTEM" | "ADMIN" = "DRIVER",
-    metadata?: Record<string, unknown> | undefined
+    metadata?: Record<string, unknown> | undefined,
   ): RideDriverState {
     let targetState: RideDriverState;
     let driverId: string;
@@ -183,7 +190,7 @@ export class DriverStateMachine {
       throw new InvalidDriverStateTransitionError(
         this.currentState,
         targetState,
-        `Transição fora da ordem operacional permitida (${allowed?.join(", ") || "nenhuma"}).`
+        `Transição fora da ordem operacional permitida (${allowed?.join(", ") || "nenhuma"}).`,
       );
     }
 
@@ -212,14 +219,18 @@ export class DriverStateMachine {
     driverId: string,
     rideId: string,
     actor: "DRIVER" | "PASSENGER" | "SYSTEM" | "ADMIN" = "DRIVER",
-    metadata?: Record<string, unknown> | undefined
+    metadata?: Record<string, unknown> | undefined,
   ): RideDriverState {
     try {
       return this.transitionRide(targetState, driverId, rideId, actor, metadata);
     } catch (err) {
-      console.warn(`[DriverStateMachine] Transição arriscada [${this.currentState} -> ${targetState}] interceptada:`, err);
+      console.warn(
+        `[DriverStateMachine] Transição arriscada [${this.currentState} -> ${targetState}] interceptada:`,
+        err,
+      );
       const fromState = this.currentState;
-      this.currentState = targetState === "ONLINE" || targetState === "OFFLINE" ? targetState : "ONLINE";
+      this.currentState =
+        targetState === "ONLINE" || targetState === "OFFLINE" ? targetState : "ONLINE";
       this.recordTransition({
         id: `SAFE-TR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
         driverId,
@@ -242,7 +253,7 @@ export class DriverStateMachine {
     driverId: string,
     deliveryId: string,
     actor: "DRIVER" | "PASSENGER" | "SYSTEM" | "ADMIN" = "DRIVER",
-    metadata?: Record<string, unknown> | undefined
+    metadata?: Record<string, unknown> | undefined,
   ): DeliveryDriverState {
     const allowed = DriverStateMachine.ALLOWED_DELIVERY_TRANSITIONS[this.currentDeliveryState];
 
@@ -250,7 +261,7 @@ export class DriverStateMachine {
       throw new InvalidDriverStateTransitionError(
         this.currentDeliveryState,
         targetState,
-        `Transição fora da ordem logística de entrega permitida (${allowed?.join(", ") || "nenhuma"}).`
+        `Transição fora da ordem logística de entrega permitida (${allowed?.join(", ") || "nenhuma"}).`,
       );
     }
 
@@ -280,4 +291,3 @@ export class DriverStateMachine {
 }
 
 export const driverStateMachine = new DriverStateMachine();
-

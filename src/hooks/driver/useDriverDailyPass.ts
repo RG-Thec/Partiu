@@ -18,7 +18,7 @@ export interface UseDriverDailyPassReturn {
   dailyFeeAmount: number;
   renovarComSaldo: (
     saldoDisponivel: number,
-    onDeduzirSaldo: (valor: number) => void
+    onDeduzirSaldo: (valor: number) => void,
   ) => Promise<boolean>;
   gerarPixRenovacao: (ciclo?: "DAILY" | "WEEKLY" | "MONTHLY") => GeneratedPixPayment;
   recarregarStatus: () => void;
@@ -26,7 +26,7 @@ export interface UseDriverDailyPassReturn {
 
 export function useDriverDailyPass(
   driverId: string,
-  vehicleType: "CARRO" | "MOTO" = "CARRO"
+  vehicleType: "CARRO" | "MOTO" = "CARRO",
 ): UseDriverDailyPassReturn {
   const [subscription, setSubscription] = useState<DriverSubscriptionRecord | null>(() => {
     return driverSubscriptionService.getSubscription(driverId) || null;
@@ -48,9 +48,10 @@ export function useDriverDailyPass(
   } catch {}
 
   const monetizacao = getMonetizacaoConfig();
-  const dailyFeeAmount = vehicleType === "MOTO"
-    ? (tenantMon?.diariaMoto ?? monetizacao.diariaMoto)
-    : (tenantMon?.diariaCarro ?? monetizacao.diariaCarro);
+  const dailyFeeAmount =
+    vehicleType === "MOTO"
+      ? (tenantMon?.diariaMoto ?? monetizacao.diariaMoto)
+      : (tenantMon?.diariaCarro ?? monetizacao.diariaCarro);
 
   const atualizarStatus = useCallback(() => {
     if (!driverId) return;
@@ -120,10 +121,7 @@ export function useDriverDailyPass(
    * Renovação em 1 Toque com débito direto dos ganhos de hoje (SaaS Zero-Atrito)
    */
   const renovarComSaldo = useCallback(
-    async (
-      saldoDisponivel: number,
-      onDeduzirSaldo: (valor: number) => void
-    ): Promise<boolean> => {
+    async (saldoDisponivel: number, onDeduzirSaldo: (valor: number) => void): Promise<boolean> => {
       if (saldoDisponivel < dailyFeeAmount) {
         toast.error("Saldo insuficiente hoje", {
           description: `Você tem R$ ${saldoDisponivel.toFixed(2)} e a diária custa R$ ${dailyFeeAmount.toFixed(2)}. Utilize a chave Pix para renovar.`,
@@ -138,7 +136,7 @@ export function useDriverDailyPass(
           vehicleType,
           txId,
           dailyFeeAmount,
-          24
+          24,
         );
 
         onDeduzirSaldo(dailyFeeAmount);
@@ -153,14 +151,14 @@ export function useDriverDailyPass(
         return false;
       }
     },
-    [dailyFeeAmount, driverId, vehicleType, atualizarStatus]
+    [dailyFeeAmount, driverId, vehicleType, atualizarStatus],
   );
 
   const gerarPixRenovacao = useCallback(
     (ciclo: "DAILY" | "WEEKLY" | "MONTHLY" = "DAILY"): GeneratedPixPayment => {
       return driverSubscriptionService.generateDailyFeePix(driverId, vehicleType, ciclo);
     },
-    [driverId, vehicleType]
+    [driverId, vehicleType],
   );
 
   return {

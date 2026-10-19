@@ -1,6 +1,6 @@
 /**
  * REGIONAL EXECUTIVE BOARD V3 & MULTI-OBJECTIVE AI GOVERNANCE
- * 
+ *
  * Conselho Executivo Colegiado Autônomo com 12 Agentes de IA:
  * 1. CEO Agent (Visão Holística e Alinhamento Estratégico)
  * 2. COO Agent (Eficiência Operacional e Despacho)
@@ -14,7 +14,7 @@
  * 10. Commerce Agent (Rede de Lojistas e PARTIU Ads)
  * 11. Education Agent (Universidades e Linhas Acadêmicas)
  * 12. Healthcare Agent (Transporte de Saúde e Hospitais)
- * 
+ *
  * Motor de Otimização Multi-Objetivo (Fronteira de Pareto):
  * Equilibra simultaneamente:
  * - GMV
@@ -28,23 +28,23 @@
  */
 
 export type ExecutiveAgentRoleV3 =
-  | 'CEO_AGENT'
-  | 'COO_AGENT'
-  | 'CFO_AGENT'
-  | 'CMO_AGENT'
-  | 'CRO_AGENT'
-  | 'CTO_AGENT'
-  | 'EXPANSION_AGENT'
-  | 'FRANCHISE_AGENT'
-  | 'GOVERNMENT_AGENT'
-  | 'COMMERCE_AGENT'
-  | 'EDUCATION_AGENT'
-  | 'HEALTHCARE_AGENT';
+  | "CEO_AGENT"
+  | "COO_AGENT"
+  | "CFO_AGENT"
+  | "CMO_AGENT"
+  | "CRO_AGENT"
+  | "CTO_AGENT"
+  | "EXPANSION_AGENT"
+  | "FRANCHISE_AGENT"
+  | "GOVERNMENT_AGENT"
+  | "COMMERCE_AGENT"
+  | "EDUCATION_AGENT"
+  | "HEALTHCARE_AGENT";
 
 export interface BoardAgentVoteV3 {
   agentRole: ExecutiveAgentRoleV3;
   agentName: string;
-  vote: 'FAVORAVEL' | 'CONTRARIO' | 'FAVORAVEL_COM_RESSALVAS';
+  vote: "FAVORAVEL" | "CONTRARIO" | "FAVORAVEL_COM_RESSALVAS";
   weight: number; // 1.0 a 1.5
   parecerIndividual: string;
   focusMetric: string;
@@ -86,19 +86,84 @@ export interface BoardDecisionV3 {
 }
 
 export class RegionalExecutiveBoardV3 {
-  private agentProfiles: { role: ExecutiveAgentRoleV3; name: string; weight: number; keyMetric: string }[] = [
-    { role: 'CEO_AGENT', name: 'Chief Executive Officer AI', weight: 1.5, keyMetric: 'Ecosystem Cohesion & Long-term Valuation' },
-    { role: 'COO_AGENT', name: 'Chief Operating Officer AI', weight: 1.3, keyMetric: 'Operational SLA & Dispatch Efficiency' },
-    { role: 'CFO_AGENT', name: 'Chief Financial Officer AI', weight: 1.4, keyMetric: 'EBITDA & Capital Allocation' },
-    { role: 'CMO_AGENT', name: 'Chief Marketing Officer AI', weight: 1.2, keyMetric: 'User Retention & Virality' },
-    { role: 'CRO_AGENT', name: 'Chief Risk Officer AI', weight: 1.3, keyMetric: 'Fraud Prevention & Compliance' },
-    { role: 'CTO_AGENT', name: 'Chief Technology Officer AI', weight: 1.3, keyMetric: 'Sub-millisecond Latency & Reliability' },
-    { role: 'EXPANSION_AGENT', name: 'Regional Expansion Director AI', weight: 1.2, keyMetric: 'Territorial Coverage & Satellites' },
-    { role: 'FRANCHISE_AGENT', name: 'Franchise Network Director AI', weight: 1.2, keyMetric: 'Municipal DRE & Local Franchisee Health' },
-    { role: 'GOVERNMENT_AGENT', name: 'Civic Infrastructure Director AI', weight: 1.2, keyMetric: 'Public Partnerships & Civic Subsidies' },
-    { role: 'COMMERCE_AGENT', name: 'Local Commerce Director AI', weight: 1.2, keyMetric: 'Merchant GMV & Ads Penetration' },
-    { role: 'EDUCATION_AGENT', name: 'Academic Mobility Director AI', weight: 1.1, keyMetric: 'University Lines & Student Access' },
-    { role: 'HEALTHCARE_AGENT', name: 'Healthcare Mobility Director AI', weight: 1.1, keyMetric: 'Clinical Punctuality & Patient Safety' }
+  private agentProfiles: {
+    role: ExecutiveAgentRoleV3;
+    name: string;
+    weight: number;
+    keyMetric: string;
+  }[] = [
+    {
+      role: "CEO_AGENT",
+      name: "Chief Executive Officer AI",
+      weight: 1.5,
+      keyMetric: "Ecosystem Cohesion & Long-term Valuation",
+    },
+    {
+      role: "COO_AGENT",
+      name: "Chief Operating Officer AI",
+      weight: 1.3,
+      keyMetric: "Operational SLA & Dispatch Efficiency",
+    },
+    {
+      role: "CFO_AGENT",
+      name: "Chief Financial Officer AI",
+      weight: 1.4,
+      keyMetric: "EBITDA & Capital Allocation",
+    },
+    {
+      role: "CMO_AGENT",
+      name: "Chief Marketing Officer AI",
+      weight: 1.2,
+      keyMetric: "User Retention & Virality",
+    },
+    {
+      role: "CRO_AGENT",
+      name: "Chief Risk Officer AI",
+      weight: 1.3,
+      keyMetric: "Fraud Prevention & Compliance",
+    },
+    {
+      role: "CTO_AGENT",
+      name: "Chief Technology Officer AI",
+      weight: 1.3,
+      keyMetric: "Sub-millisecond Latency & Reliability",
+    },
+    {
+      role: "EXPANSION_AGENT",
+      name: "Regional Expansion Director AI",
+      weight: 1.2,
+      keyMetric: "Territorial Coverage & Satellites",
+    },
+    {
+      role: "FRANCHISE_AGENT",
+      name: "Franchise Network Director AI",
+      weight: 1.2,
+      keyMetric: "Municipal DRE & Local Franchisee Health",
+    },
+    {
+      role: "GOVERNMENT_AGENT",
+      name: "Civic Infrastructure Director AI",
+      weight: 1.2,
+      keyMetric: "Public Partnerships & Civic Subsidies",
+    },
+    {
+      role: "COMMERCE_AGENT",
+      name: "Local Commerce Director AI",
+      weight: 1.2,
+      keyMetric: "Merchant GMV & Ads Penetration",
+    },
+    {
+      role: "EDUCATION_AGENT",
+      name: "Academic Mobility Director AI",
+      weight: 1.1,
+      keyMetric: "University Lines & Student Access",
+    },
+    {
+      role: "HEALTHCARE_AGENT",
+      name: "Healthcare Mobility Director AI",
+      weight: 1.1,
+      keyMetric: "Clinical Punctuality & Patient Safety",
+    },
   ];
 
   /**
@@ -115,16 +180,16 @@ export class RegionalExecutiveBoardV3 {
     const impNorm = Math.min(1.0, vector.impactoEconomicoRegionalScore / 100.0);
     const satNorm = Math.min(1.0, vector.satisfacaoUsuarioScore / 100.0);
 
-    const fitness = (
-      gmvNorm * 0.15 +
-      revNorm * 0.15 +
-      ebitdaNorm * 0.15 +
-      retNorm * 0.12 +
-      churnInvertedNorm * 0.10 +
-      cobNorm * 0.11 +
-      impNorm * 0.11 +
-      satNorm * 0.11
-    ) * 100;
+    const fitness =
+      (gmvNorm * 0.15 +
+        revNorm * 0.15 +
+        ebitdaNorm * 0.15 +
+        retNorm * 0.12 +
+        churnInvertedNorm * 0.1 +
+        cobNorm * 0.11 +
+        impNorm * 0.11 +
+        satNorm * 0.11) *
+      100;
 
     return Number(fitness.toFixed(2));
   }
@@ -142,31 +207,36 @@ export class RegionalExecutiveBoardV3 {
 
     for (const agent of this.agentProfiles) {
       totalWeight += agent.weight;
-      let voteStatus: BoardAgentVoteV3['vote'] = 'FAVORAVEL';
-      let parecer = '';
+      let voteStatus: BoardAgentVoteV3["vote"] = "FAVORAVEL";
+      let parecer = "";
 
       // Regras de decisão por agente especializado
-      if (agent.role === 'CFO_AGENT') {
+      if (agent.role === "CFO_AGENT") {
         if (motion.objectiveVector.ebitdaBrl < 0) {
-          voteStatus = 'FAVORAVEL_COM_RESSALVAS';
-          parecer = 'Atenção ao fluxo de caixa inicial, mas viável pela curva de payback.';
+          voteStatus = "FAVORAVEL_COM_RESSALVAS";
+          parecer = "Atenção ao fluxo de caixa inicial, mas viável pela curva de payback.";
         } else {
           parecer = `EBITDA projetado robusto de R$ ${motion.objectiveVector.ebitdaBrl.toFixed(2)}.`;
         }
-      } else if (agent.role === 'CRO_AGENT') {
+      } else if (agent.role === "CRO_AGENT") {
         if (motion.objectiveVector.churnTaxaPct > 4.5) {
-          voteStatus = 'FAVORAVEL_COM_RESSALVAS';
-          parecer = 'Necessário monitorar taxa de cancelamento e retenção.';
+          voteStatus = "FAVORAVEL_COM_RESSALVAS";
+          parecer = "Necessário monitorar taxa de cancelamento e retenção.";
         } else {
-          parecer = 'Risco e integridade devidamente parametrizados.';
+          parecer = "Risco e integridade devidamente parametrizados.";
         }
-      } else if (agent.role === 'GOVERNMENT_AGENT') {
-        parecer = 'Impacto cívico e cooperação com órgãos públicos alinhados.';
+      } else if (agent.role === "GOVERNMENT_AGENT") {
+        parecer = "Impacto cívico e cooperação com órgãos públicos alinhados.";
       } else {
         parecer = `Metas de ${agent.keyMetric} atendidas com alta aderência.`;
       }
 
-      const voteWeight = voteStatus === 'FAVORAVEL' ? agent.weight : voteStatus === 'FAVORAVEL_COM_RESSALVAS' ? agent.weight * 0.75 : 0;
+      const voteWeight =
+        voteStatus === "FAVORAVEL"
+          ? agent.weight
+          : voteStatus === "FAVORAVEL_COM_RESSALVAS"
+            ? agent.weight * 0.75
+            : 0;
       weightedFavor += voteWeight;
 
       votes.push({
@@ -175,12 +245,12 @@ export class RegionalExecutiveBoardV3 {
         vote: voteStatus,
         weight: agent.weight,
         parecerIndividual: parecer,
-        focusMetric: agent.keyMetric
+        focusMetric: agent.keyMetric,
       });
     }
 
     const weightedScore = Number((weightedFavor / totalWeight).toFixed(3));
-    const approved = weightedScore >= 0.70;
+    const approved = weightedScore >= 0.7;
     const consensusPct = Number((weightedScore * 100).toFixed(1));
 
     return {
@@ -193,7 +263,7 @@ export class RegionalExecutiveBoardV3 {
       votes,
       paretoOptimalityScore: paretoScore,
       multiObjectiveFitness: fitness,
-      executiveSummary: `Proposta '${motion.title}' ${approved ? 'APROVADA' : 'REJEITADA'} com ${consensusPct}% de consenso ponderado pelos 12 Diretores de IA (Fitness Multi-Objetivo: ${fitness}/100, Pareto-Score: ${paretoScore}/100).`
+      executiveSummary: `Proposta '${motion.title}' ${approved ? "APROVADA" : "REJEITADA"} com ${consensusPct}% de consenso ponderado pelos 12 Diretores de IA (Fitness Multi-Objetivo: ${fitness}/100, Pareto-Score: ${paretoScore}/100).`,
     };
   }
 }

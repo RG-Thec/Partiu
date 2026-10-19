@@ -23,13 +23,16 @@ export function ReferralModal({
 }: ReferralModalProps) {
   const [codigoAmigoInput, setCodigoAmigoInput] = useState("");
   const [resgatandoAmigo, setResgatandoAmigo] = useState(false);
-  const [mensagemAmigo, setMensagemAmigo] = useState<{ tipo: "sucesso" | "erro"; texto: string } | null>(null);
+  const [mensagemAmigo, setMensagemAmigo] = useState<{
+    tipo: "sucesso" | "erro";
+    texto: string;
+  } | null>(null);
   const [cupomCopiado, setCupomCopiado] = useState(false);
 
   if (!open) return null;
 
   const codigoPessoal = userProfile?.name
-    ? (userProfile.name.split(" ")[0].toUpperCase() + (appSettings.referralBonusBrl || 5))
+    ? userProfile.name.split(" ")[0].toUpperCase() + (appSettings.referralBonusBrl || 5)
     : `PARTIU${appSettings.referralBonusBrl || 5}`;
 
   function handleCopiar() {
@@ -87,7 +90,10 @@ export function ReferralModal({
 
         <div
           className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center mb-3"
-          style={{ backgroundColor: `${corPrimaria || "#FF6B00"}15`, color: corPrimaria || "#FF6B00" }}
+          style={{
+            backgroundColor: `${corPrimaria || "#FF6B00"}15`,
+            color: corPrimaria || "#FF6B00",
+          }}
         >
           <Gift className="h-7 w-7" />
         </div>
@@ -107,16 +113,18 @@ export function ReferralModal({
             <span className="text-[9px] uppercase font-bold text-slate-400 block text-left">
               Seu Código de Indicação
             </span>
-            <span className="text-sm font-mono font-black text-slate-900">
-              {codigoPessoal}
-            </span>
+            <span className="text-sm font-mono font-black text-slate-900">{codigoPessoal}</span>
           </div>
           <button
             type="button"
             onClick={handleCopiar}
             className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 active:scale-95 cursor-pointer flex items-center gap-1 text-xs font-bold"
           >
-            {cupomCopiado ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+            {cupomCopiado ? (
+              <Check className="h-3.5 w-3.5 text-emerald-600" />
+            ) : (
+              <Copy className="h-3.5 w-3.5" />
+            )}
             <span>{cupomCopiado ? "Copiado" : "Copiar"}</span>
           </button>
         </div>
@@ -125,7 +133,10 @@ export function ReferralModal({
           type="button"
           onClick={handleCompartilhar}
           className="w-full py-3 rounded-xl font-bold text-xs shadow-md transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2 mb-4"
-          style={{ backgroundColor: corPrimaria || "#FF6B00", color: corTextoPrimaria || "#FFFFFF" }}
+          style={{
+            backgroundColor: corPrimaria || "#FF6B00",
+            color: corTextoPrimaria || "#FFFFFF",
+          }}
         >
           <Share2 className="h-4 w-4" />
           Compartilhar Convite no WhatsApp

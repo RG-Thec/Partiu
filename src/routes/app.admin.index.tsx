@@ -1,13 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
-import {
-  RefreshCw,
-  Building2,
-  Bell,
-  BarChart3,
-  MapPin,
-  QrCode,
-} from "lucide-react";
+import { RefreshCw, Building2, Bell, BarChart3, MapPin, QrCode } from "lucide-react";
 import { UniversalMapView } from "@/components/maps/UniversalMapView";
 import {
   useTelemetriaFrota,
@@ -25,12 +18,7 @@ import {
 } from "@/lib/ecosystem/driver-subscription-service";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useAdminCity } from "@/contexts/AdminCityContext";
-import {
-  AdminPageHeader,
-  AdminBadge,
-  AdminActionButton,
-  AdminTabBar,
-} from "@/components/admin/ui";
+import { AdminPageHeader, AdminBadge, AdminActionButton, AdminTabBar } from "@/components/admin/ui";
 import { DashboardKpisSection } from "@/components/admin/dashboard/DashboardKpisSection";
 import { DashboardPerformanceCharts } from "@/components/admin/dashboard/DashboardPerformanceCharts";
 import { DashboardRankingsSection } from "@/components/admin/dashboard/DashboardRankingsSection";
@@ -74,9 +62,11 @@ export function SuperAdminDashboardExecutive() {
   const [modalAlertasTelegram, setModalAlertasTelegram] = useState(false);
 
   // Assinaturas e Contas SaaS do Ecossistema
-  const [assinaturas, setAssinaturas] = useState(() => driverSubscriptionService.getAllSubscriptions());
+  const [assinaturas, setAssinaturas] = useState(() =>
+    driverSubscriptionService.getAllSubscriptions(),
+  );
   const [driverAccounts, setDriverAccounts] = useState<DriverSubscriptionAccount[]>(() =>
-    driverSubscriptionService.getDriverAccounts()
+    driverSubscriptionService.getDriverAccounts(),
   );
   const saasMetrics = useMemo(() => driverSubscriptionService.getSaaSMetrics(), [assinaturas]);
 
@@ -140,7 +130,9 @@ export function SuperAdminDashboardExecutive() {
   // Indicadores de Eficiência
   const { taxaSucesso, ticketMedio } = useMemo(() => {
     const totalConcluidas = ridesFiltradas.filter((r) => r.status === "COMPLETED").length;
-    const totalCanceladas = ridesFiltradas.filter((r) => r.status === "CANCELLED" || r.status === "TIMEOUT").length;
+    const totalCanceladas = ridesFiltradas.filter(
+      (r) => r.status === "CANCELLED" || r.status === "TIMEOUT",
+    ).length;
     const totalDecididas = totalConcluidas + totalCanceladas;
 
     const txSucesso = totalDecididas > 0 ? (totalConcluidas / totalDecididas) * 100 : 0;
@@ -189,13 +181,13 @@ export function SuperAdminDashboardExecutive() {
   const distribuicaoStatus = useMemo(() => {
     const concluidas = ridesFiltradas.filter((r) => r.status === "COMPLETED").length;
     const emAndamento = ridesFiltradas.filter((r) =>
-      ["IN_PROGRESS", "DRIVER_ARRIVING", "DRIVER_ASSIGNED"].includes(r.status)
+      ["IN_PROGRESS", "DRIVER_ARRIVING", "DRIVER_ASSIGNED"].includes(r.status),
     ).length;
     const buscando = ridesFiltradas.filter((r) =>
-      ["REQUESTED", "SEARCHING_R1", "SEARCHING_R2", "SEARCHING_R3"].includes(r.status)
+      ["REQUESTED", "SEARCHING_R1", "SEARCHING_R2", "SEARCHING_R3"].includes(r.status),
     ).length;
     const canceladas = ridesFiltradas.filter((r) =>
-      ["CANCELLED", "TIMEOUT"].includes(r.status)
+      ["CANCELLED", "TIMEOUT"].includes(r.status),
     ).length;
 
     const total = ridesFiltradas.length || concluidas + emAndamento + buscando + canceladas;
@@ -212,7 +204,10 @@ export function SuperAdminDashboardExecutive() {
 
   // Rankings Reais
   const { topMotoristas, topPassageiros } = useMemo(() => {
-    const motoristasMap = new Map<string, { nome: string; corridas: number; gmv: number; rating: number }>();
+    const motoristasMap = new Map<
+      string,
+      { nome: string; corridas: number; gmv: number; rating: number }
+    >();
     ridesFiltradas.forEach((r) => {
       if (r.driver_id && r.status === "COMPLETED") {
         const id = r.driver_id;
@@ -228,7 +223,10 @@ export function SuperAdminDashboardExecutive() {
       }
     });
 
-    const passageirosMap = new Map<string, { nome: string; telefone: string; corridas: number; gastoTotal: number }>();
+    const passageirosMap = new Map<
+      string,
+      { nome: string; telefone: string; corridas: number; gastoTotal: number }
+    >();
     ridesFiltradas.forEach((r) => {
       if (r.passenger_name) {
         const key = r.passenger_name;
@@ -245,8 +243,12 @@ export function SuperAdminDashboardExecutive() {
     });
 
     return {
-      topMotoristas: Array.from(motoristasMap.values()).sort((a, b) => b.corridas - a.corridas).slice(0, 5),
-      topPassageiros: Array.from(passageirosMap.values()).sort((a, b) => b.gastoTotal - a.gastoTotal).slice(0, 5),
+      topMotoristas: Array.from(motoristasMap.values())
+        .sort((a, b) => b.corridas - a.corridas)
+        .slice(0, 5),
+      topPassageiros: Array.from(passageirosMap.values())
+        .sort((a, b) => b.gastoTotal - a.gastoTotal)
+        .slice(0, 5),
     };
   }, [ridesFiltradas, motoristasBanco]);
 
@@ -264,9 +266,15 @@ export function SuperAdminDashboardExecutive() {
     <div className="w-full space-y-6">
       {/* 1. Header Oficial do Dashboard */}
       <AdminPageHeader
-        title={isSuperAdmin ? "Central de Operações & Comando" : `Cockpit da Franquia — ${pracaAtiva?.nome || "Regional"}`}
+        title={
+          isSuperAdmin
+            ? "Central de Operações & Comando"
+            : `Cockpit da Franquia — ${pracaAtiva?.nome || "Regional"}`
+        }
         subtitle={`Centro nervoso da mobilidade: ${
-          isNacional ? "Visão Consolidada Nacional" : `Operação Ativa em ${pracaAtiva?.nome || "Praça Regional"}`
+          isNacional
+            ? "Visão Consolidada Nacional"
+            : `Operação Ativa em ${pracaAtiva?.nome || "Praça Regional"}`
         } • Padrão Zero Comissão`}
         breadcrumbs={[{ label: "Painel Admin", to: "/app/admin" }, { label: "Comando" }]}
         badge={
@@ -345,8 +353,16 @@ export function SuperAdminDashboardExecutive() {
           activeTab={abaVisao}
           onChange={(tab) => setAbaVisao(tab as any)}
           tabs={[
-            { id: "executivo", label: "Visão Executiva & Métricas", icon: <BarChart3 className="h-3.5 w-3.5" /> },
-            { id: "mapa_noc", label: "Mapa Cartográfico ao Vivo", icon: <MapPin className="h-3.5 w-3.5" /> },
+            {
+              id: "executivo",
+              label: "Visão Executiva & Métricas",
+              icon: <BarChart3 className="h-3.5 w-3.5" />,
+            },
+            {
+              id: "mapa_noc",
+              label: "Mapa Cartográfico ao Vivo",
+              icon: <MapPin className="h-3.5 w-3.5" />,
+            },
           ]}
         />
       </div>

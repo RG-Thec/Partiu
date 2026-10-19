@@ -34,7 +34,7 @@ export function PalettePickerSection({
     }
     // Identifica por cor primária atual
     const matching = MONOCHROMATIC_PALETTES.find(
-      (p) => p?.colors?.primary?.toLowerCase() === (branding?.primary_color || "").toLowerCase()
+      (p) => p?.colors?.primary?.toLowerCase() === (branding?.primary_color || "").toLowerCase(),
     );
     return matching?.id || DEFAULT_MONOCHROMATIC_PALETTE.id;
   });
@@ -60,28 +60,35 @@ export function PalettePickerSection({
 
     try {
       // 1. Aplicação imediata no DOM e CSS Variables via ThemeEngine
-      themeEngine.applyMonochromaticPalette(palette, branding?.app_name || "PARTIU", targetTenantId);
+      themeEngine.applyMonochromaticPalette(
+        palette,
+        branding?.app_name || "PARTIU",
+        targetTenantId,
+      );
       if (typeof window !== "undefined") {
         localStorage.setItem(`partiu_active_palette_id_${targetTenantId}`, palette.id);
         localStorage.setItem("partiu_active_palette_id", palette.id);
       }
 
       // 2. Persistência na camada SaaS / Supabase
-      await updateBranding({
-        tenant_id: targetTenantId,
-        primary_color: palette.colors.primary,
-        secondary_color: palette.colors.secondary,
-        accent_color: palette.colors.accent,
-        header_gradient_start: palette.colors.headerGradientStart,
-        header_gradient_end: palette.colors.headerGradientEnd,
-        footer_sync_with_header: true,
-        footer_gradient_start: palette.colors.headerGradientStart,
-        footer_gradient_end: palette.colors.headerGradientEnd,
-        background_color: palette.colors.background,
-        surface_color: palette.colors.surface,
-        text_primary: palette.colors.textPrimary,
-        text_secondary: palette.colors.textSecondary,
-      }, targetTenantId);
+      await updateBranding(
+        {
+          tenant_id: targetTenantId,
+          primary_color: palette.colors.primary,
+          secondary_color: palette.colors.secondary,
+          accent_color: palette.colors.accent,
+          header_gradient_start: palette.colors.headerGradientStart,
+          header_gradient_end: palette.colors.headerGradientEnd,
+          footer_sync_with_header: true,
+          footer_gradient_start: palette.colors.headerGradientStart,
+          footer_gradient_end: palette.colors.headerGradientEnd,
+          background_color: palette.colors.background,
+          surface_color: palette.colors.surface,
+          text_primary: palette.colors.textPrimary,
+          text_secondary: palette.colors.textSecondary,
+        },
+        targetTenantId,
+      );
 
       // 3. Sincroniza WhiteLabelEngine de forma estritamente isolada por tenant
       try {
@@ -149,7 +156,8 @@ export function PalettePickerSection({
                 </span>
               </h3>
               <p className="text-xs sm:text-sm lg:text-base text-slate-600 font-medium mt-1 leading-relaxed">
-                Selecione uma paleta harmônica com contraste profissional (WCAG AAA). O sistema atualiza todos os botões, cabeçalhos e telas na mesma hora.
+                Selecione uma paleta harmônica com contraste profissional (WCAG AAA). O sistema
+                atualiza todos os botões, cabeçalhos e telas na mesma hora.
               </p>
             </div>
           </div>

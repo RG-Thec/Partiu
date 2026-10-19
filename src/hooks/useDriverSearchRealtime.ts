@@ -46,24 +46,27 @@ export function useDriverSearchRealtime() {
 
   // Resolve os dados do condutor ativo atual a partir da sessão ou delta update
   const resolveCandidateData = useCallback(
-    (candidate: any, trustProfile?: any, cascadeSeconds?: number, status?: string): ContactedDriver | null => {
+    (
+      candidate: any,
+      trustProfile?: any,
+      cascadeSeconds?: number,
+      status?: string,
+    ): ContactedDriver | null => {
       if (!candidate && !trustProfile) return null;
 
-      const id = candidate?.driverId || (candidate as any)?.id || trustProfile?.driverId || "drv-unknown";
+      const id =
+        candidate?.driverId || (candidate as any)?.id || trustProfile?.driverId || "drv-unknown";
       const fullName = trustProfile?.fullName || candidate?.name || "Motorista Parceiro";
       const firstName = trustProfile?.firstName || fullName.split(" ")[0] || "Motorista";
-      const avatarUrl =
-        trustProfile?.avatarUrl ||
-        candidate?.avatarUrl ||
-        "";
+      const avatarUrl = trustProfile?.avatarUrl || candidate?.avatarUrl || "";
       const rating = Number(trustProfile?.rating || candidate?.rating || 5.0);
       const vehicleModel =
         trustProfile?.vehicleModel ||
         candidate?.vehicleModel ||
         (categoriaVeiculo === "MOTO" ? "Motocicleta" : "Veículo de Passeio");
-      const licensePlate =
-        trustProfile?.licensePlate || candidate?.licensePlate || "";
-      const category = trustProfile?.category || (categoriaVeiculo === "MOTO" ? "Partiu Moto" : "Partiu Carro");
+      const licensePlate = trustProfile?.licensePlate || candidate?.licensePlate || "";
+      const category =
+        trustProfile?.category || (categoriaVeiculo === "MOTO" ? "Partiu Moto" : "Partiu Carro");
       const distanceMeters = candidate?.distanceMeters || 0;
       const distanceKm = Number((distanceMeters / 1000).toFixed(1));
       const etaMinutes = candidate?.etaMinutes || Math.max(1, Math.round(distanceKm * 2.5));
@@ -83,7 +86,7 @@ export function useDriverSearchRealtime() {
         cascadeSecondsRemaining: cascadeSeconds ?? 12,
       };
     },
-    [categoriaVeiculo]
+    [categoriaVeiculo],
   );
 
   // Efeito principal de sincronização reativa com transições suaves
@@ -107,7 +110,8 @@ export function useDriverSearchRealtime() {
       return;
     }
 
-    const candidateId = candidate?.driverId || (candidate as any)?.id || trustProfile?.driverId || null;
+    const candidateId =
+      candidate?.driverId || (candidate as any)?.id || trustProfile?.driverId || null;
 
     // Se houve troca de condutor, dispara animação suave de crossfade
     if (candidateId && candidateId !== previousDriverIdRef.current) {
@@ -143,7 +147,7 @@ export function useDriverSearchRealtime() {
           delta.candidate,
           delta.trustProfile,
           undefined,
-          delta.dispatchStatus
+          delta.dispatchStatus,
         );
         if (resolved) {
           setCurrentDriver(resolved);
@@ -186,7 +190,11 @@ export function useDriverSearchRealtime() {
     isSearching,
     currentDriver: activeDisplayDriver,
     viewingDriver: activeDisplayDriver,
-    viewingDriversCount: Math.max(1, viewingDriversCount, progressiveSession?.viewingDrivers?.length || 0),
+    viewingDriversCount: Math.max(
+      1,
+      viewingDriversCount,
+      progressiveSession?.viewingDrivers?.length || 0,
+    ),
     isViewing: Boolean(activeDisplayDriver),
     isTransitioning,
     hasActiveDriver: Boolean(activeDisplayDriver),

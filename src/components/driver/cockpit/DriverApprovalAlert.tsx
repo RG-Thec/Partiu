@@ -34,7 +34,8 @@ export function DriverApprovalAlert({
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-1 leading-snug font-medium">
-              Sua documentação (CNH com EAR e CRLV) está sob auditoria da equipe operacional. O botão <strong>ONLINE</strong> será liberado instantaneamente assim que for aprovado.
+              Sua documentação (CNH com EAR e CRLV) está sob auditoria da equipe operacional. O
+              botão <strong>ONLINE</strong> será liberado instantaneamente assim que for aprovado.
             </p>
           </div>
         </div>
@@ -54,7 +55,8 @@ export function DriverApprovalAlert({
               </span>
             </div>
             <p className="text-xs text-destructive/80 mt-1 leading-snug font-medium">
-              Houve inconsistências na sua documentação. Por favor, contate o suporte operacional para regularização.
+              Houve inconsistências na sua documentação. Por favor, contate o suporte operacional
+              para regularização.
             </p>
           </div>
         </div>
@@ -68,7 +70,8 @@ export function DriverApprovalAlert({
             <div>
               <span className="font-black block text-xs">CONTA SUSPENSA POR INADIMPLÊNCIA</span>
               <span className="text-xs opacity-90">
-                Débito: {accumulatedDebtBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                Débito:{" "}
+                {accumulatedDebtBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </span>
             </div>
           </div>
@@ -83,19 +86,20 @@ export function DriverApprovalAlert({
       )}
 
       {/* Alerta de Elegibilidade do Condutor */}
-      {erroElegibilidade && !(subscriptionStatus === "SUSPENDED" || subscriptionStatus === "REACTIVATION_REQUIRED") && (
-        <div className="absolute top-[4.5rem] inset-x-3 z-40 max-w-md mx-auto p-3 bg-destructive/10 border border-destructive/20 text-destructive text-xs font-semibold rounded-2xl shadow-lg flex items-center justify-between animate-in slide-in-from-top duration-200">
-          <span>⚠️ {erroElegibilidade}</span>
-          <button
-            type="button"
-            onClick={onClearErro}
-            aria-label="Dispensar alerta de elegibilidade"
-            className="min-h-[36px] min-w-[36px] flex items-center justify-center p-2 text-destructive hover:bg-destructive/10 rounded-full transition-all cursor-pointer"
-          >
-            ✕
-          </button>
-        </div>
-      )}
+      {erroElegibilidade &&
+        !(subscriptionStatus === "SUSPENDED" || subscriptionStatus === "REACTIVATION_REQUIRED") && (
+          <div className="absolute top-[4.5rem] inset-x-3 z-40 max-w-md mx-auto p-3 bg-destructive/10 border border-destructive/20 text-destructive text-xs font-semibold rounded-2xl shadow-lg flex items-center justify-between animate-in slide-in-from-top duration-200">
+            <span>⚠️ {erroElegibilidade}</span>
+            <button
+              type="button"
+              onClick={onClearErro}
+              aria-label="Dispensar alerta de elegibilidade"
+              className="min-h-[36px] min-w-[36px] flex items-center justify-center p-2 text-destructive hover:bg-destructive/10 rounded-full transition-all cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        )}
     </>
   );
 }

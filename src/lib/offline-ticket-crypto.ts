@@ -9,7 +9,6 @@ import crypto from "crypto";
 import { ACTIVE_PUBLIC_KEY, ACTIVE_KEY_ID } from "./public-key-registry";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
-
 export interface DadosBilheteCriptografado {
   ticketCode: string;
   tripId: string;
@@ -301,7 +300,9 @@ export function validarQRCodeOffline(
       try {
         localStorage.setItem(STORAGE_USED_TICKETS_KEY, JSON.stringify(MEMORY_USED_TICKETS));
         localStorage.setItem(STORAGE_SYNC_KEY, JSON.stringify(MEMORY_SYNC_QUEUE));
-      } catch (err) { silentCatchWarn("offline-ticket-crypto", err); }
+      } catch (err) {
+        silentCatchWarn("offline-ticket-crypto", err);
+      }
     }
 
     return {

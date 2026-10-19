@@ -1,20 +1,13 @@
 import { describe, test, expect } from "./test-harness.mjs";
-import {
-  criarNovaCorrida,
-  type CorridaPartiu,
-} from "../src/lib/partiu-engine.ts";
+import { criarNovaCorrida, type CorridaPartiu } from "../src/lib/partiu-engine.ts";
 import { extrairOfertaDeCorrida } from "../src/routes/app.motorista.tsx";
 import {
   driverWithdrawalService,
   type PixKeyType,
 } from "../src/services/DriverWithdrawalService.ts";
 import { driverLedgerEngine } from "../src/lib/driver/driver-ledger-engine.ts";
-import {
-  h3DemandHeatmapEngine,
-} from "../src/lib/spatial/h3-demand-heatmap-engine.ts";
-import {
-  adaptiveTelemetryEngine,
-} from "../src/lib/telemetry/adaptive-telemetry-engine.ts";
+import { h3DemandHeatmapEngine } from "../src/lib/spatial/h3-demand-heatmap-engine.ts";
+import { adaptiveTelemetryEngine } from "../src/lib/telemetry/adaptive-telemetry-engine.ts";
 
 describe("SUITE 52: OTHER PERSON RIDES, DRIVER PIX WITHDRAWAL, H3 DEMAND HEATMAP & ADAPTIVE GPS", () => {
   // ============================================================================
@@ -122,7 +115,9 @@ describe("SUITE 52: OTHER PERSON RIDES, DRIVER PIX WITHDRAWAL, H3 DEMAND HEATMAP
       pixKeyType: "EMAIL" as any,
     });
     expect(resNonCpf.success).toBe(false);
-    expect(resNonCpf.message).toContain("Regra de Segurança: O saque PIX deve ser obrigatoriamente realizado para a chave CPF");
+    expect(resNonCpf.message).toContain(
+      "Regra de Segurança: O saque PIX deve ser obrigatoriamente realizado para a chave CPF",
+    );
 
     // 2.2. Tentar sacar com CPF divergente do titular cadastrado deve falhar por regra de titularidade
     const resWrongOwner = await driverWithdrawalService.requestPixWithdrawal({
@@ -133,7 +128,9 @@ describe("SUITE 52: OTHER PERSON RIDES, DRIVER PIX WITHDRAWAL, H3 DEMAND HEATMAP
       expectedCpf: "123.456.789-00",
     });
     expect(resWrongOwner.success).toBe(false);
-    expect(resWrongOwner.message).toContain("Regra de Titularidade: A chave CPF informada não coincide");
+    expect(resWrongOwner.message).toContain(
+      "Regra de Titularidade: A chave CPF informada não coincide",
+    );
 
     // 3. Saque válido de R$ 50,00
     const resOk = await driverWithdrawalService.requestPixWithdrawal({
@@ -150,7 +147,9 @@ describe("SUITE 52: OTHER PERSON RIDES, DRIVER PIX WITHDRAWAL, H3 DEMAND HEATMAP
     // Saldo no ledger deve ter sido debitado em exatamente R$ 50,00
     const summaryAfter = driverLedgerEngine.getEarningsSummary(driverId);
     const balanceAfter = summaryAfter.availableBalanceCents / 100;
-    expect(Math.round(balanceAfter * 100) / 100).toBe(Math.round((balanceBefore - 50.0) * 100) / 100);
+    expect(Math.round(balanceAfter * 100) / 100).toBe(
+      Math.round((balanceBefore - 50.0) * 100) / 100,
+    );
   });
 
   // ============================================================================

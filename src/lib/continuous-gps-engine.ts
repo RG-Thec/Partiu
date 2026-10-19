@@ -10,7 +10,6 @@ import { deveTransmitirGpsDeadband, calcularDistanciaMetros } from "./telemetry-
 import { enqueueDurableOfflineEvent } from "./offline-durable-queue";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
-
 export interface TelemetriaGpsPonto {
   latitude: number;
   longitude: number;
@@ -168,7 +167,9 @@ class ContinuousGpsManager {
     if (this.wakeLockSentinel) {
       try {
         this.wakeLockSentinel.release();
-      } catch (err) { silentCatchWarn("continuous-gps-engine", err); }
+      } catch (err) {
+        silentCatchWarn("continuous-gps-engine", err);
+      }
       this.wakeLockSentinel = null;
       this.atualizarEstado({ wakeLockAtivo: false });
     }
@@ -233,7 +234,9 @@ class ContinuousGpsManager {
     if (this.audioContext) {
       try {
         this.audioContext.close();
-      } catch (err) { silentCatchWarn("continuous-gps-engine", err); }
+      } catch (err) {
+        silentCatchWarn("continuous-gps-engine", err);
+      }
       this.audioContext = null;
     }
 

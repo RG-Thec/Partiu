@@ -45,7 +45,9 @@ async function main() {
   await client.query(updateBrandingSql);
   console.log("✅ Updated app_branding for default to official #FF6B00");
 
-  const wlRes = await client.query("SELECT design_system, full_snapshot FROM public.white_label_tenant_configs WHERE tenant_id = 'default'");
+  const wlRes = await client.query(
+    "SELECT design_system, full_snapshot FROM public.white_label_tenant_configs WHERE tenant_id = 'default'",
+  );
   if (wlRes.rows.length > 0) {
     const row = wlRes.rows[0];
     const ds = row.design_system || {};
@@ -61,15 +63,19 @@ async function main() {
 
     await client.query(
       "UPDATE public.white_label_tenant_configs SET design_system = $1, full_snapshot = $2, updated_at = NOW() WHERE tenant_id = 'default'",
-      [JSON.stringify(ds), JSON.stringify(snap)]
+      [JSON.stringify(ds), JSON.stringify(snap)],
     );
     console.log("✅ Updated white_label_tenant_configs for default to official #FF6B00");
   }
 
-  const res1 = await client.query("SELECT tenant_id, app_name, primary_color, secondary_color FROM public.app_branding WHERE tenant_id = 'default'");
+  const res1 = await client.query(
+    "SELECT tenant_id, app_name, primary_color, secondary_color FROM public.app_branding WHERE tenant_id = 'default'",
+  );
   console.log("Verified app_branding:", res1.rows);
 
-  const res2 = await client.query("SELECT tenant_id, (design_system->'paletaPrimaria'->>'corPrincipal') as cor FROM public.white_label_tenant_configs WHERE tenant_id = 'default'");
+  const res2 = await client.query(
+    "SELECT tenant_id, (design_system->'paletaPrimaria'->>'corPrincipal') as cor FROM public.white_label_tenant_configs WHERE tenant_id = 'default'",
+  );
   console.log("Verified white_label_tenant_configs:", res2.rows);
 
   await client.end();

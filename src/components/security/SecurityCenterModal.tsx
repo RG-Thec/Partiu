@@ -53,9 +53,10 @@ export function SecurityCenterModal({
       if (typeof navigator !== "undefined" && navigator.geolocation) {
         coords = await new Promise<string>((resolve) => {
           navigator.geolocation.getCurrentPosition(
-            (pos) => resolve(`${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`),
+            (pos) =>
+              resolve(`${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`),
             () => resolve(""),
-            { timeout: 1200, maximumAge: 10000 }
+            { timeout: 1200, maximumAge: 10000 },
           );
         });
       }
@@ -88,10 +89,15 @@ export function SecurityCenterModal({
     let shareUrl = "";
 
     if (trackingToken) {
-      shareText = rideLiveTrackingService.buildShareMessage(trackingToken, vehicleModel, vehiclePlate);
+      shareText = rideLiveTrackingService.buildShareMessage(
+        trackingToken,
+        vehicleModel,
+        vehiclePlate,
+      );
       shareUrl = rideLiveTrackingService.buildShareUrl(trackingToken);
     } else {
-      shareUrl = typeof window !== "undefined" ? window.location.origin : "https://partiumobilidade.com.br";
+      shareUrl =
+        typeof window !== "undefined" ? window.location.origin : "https://partiumobilidade.com.br";
       shareText = `Estou utilizando a plataforma de segurança ${nomeApp} para minhas viagens. Conheça e viaje com proteção: ${shareUrl}`;
     }
 
@@ -187,7 +193,8 @@ export function SecurityCenterModal({
                 <span>Confirmar Chamada para 190?</span>
               </div>
               <p className="text-xs text-rose-800 leading-relaxed">
-                Você será conectado diretamente à central de emergência da Polícia Militar do seu estado.
+                Você será conectado diretamente à central de emergência da Polícia Militar do seu
+                estado.
               </p>
               <div className="flex gap-2 pt-1">
                 <button
@@ -240,7 +247,8 @@ export function SecurityCenterModal({
               <div className="flex-1">
                 <h3 className="text-sm font-black text-slate-900">Compartilhar Trajeto ao Vivo</h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Familiares acompanham seu deslocamento no mapa em tempo real pelo WhatsApp sem login.
+                  Familiares acompanham seu deslocamento no mapa em tempo real pelo WhatsApp sem
+                  login.
                 </p>
               </div>
             </div>
@@ -282,7 +290,8 @@ export function SecurityCenterModal({
                 <div className="flex-1">
                   <h3 className="text-sm font-black text-amber-900">Bloqueio Mútuo Permanente</h3>
                   <p className="text-xs text-amber-800/80 mt-0.5">
-                    Você e {driverName} não serão mais emparelhados em nenhuma viagem futura na plataforma.
+                    Você e {driverName} não serão mais emparelhados em nenhuma viagem futura na
+                    plataforma.
                   </p>
                 </div>
               </div>
@@ -300,7 +309,9 @@ export function SecurityCenterModal({
                   className="w-full mt-1 py-2 px-3 rounded-xl border border-amber-300 bg-white hover:bg-amber-100 text-amber-900 text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer disabled:opacity-50"
                 >
                   <UserX className="h-3.5 w-3.5" />
-                  <span>{bloqueando ? "Bloqueando..." : `Não viajar novamente com ${driverName}`}</span>
+                  <span>
+                    {bloqueando ? "Bloqueando..." : `Não viajar novamente com ${driverName}`}
+                  </span>
                 </button>
               )}
             </div>
@@ -316,19 +327,22 @@ export function SecurityCenterModal({
               <li className="flex items-start gap-1.5">
                 <span className="text-emerald-600 font-bold">✓</span>
                 <span>
-                  <strong>Confira a Placa:</strong> Sempre confira se a placa e o modelo do veículo coincidem com as informações exibidas no app.
+                  <strong>Confira a Placa:</strong> Sempre confira se a placa e o modelo do veículo
+                  coincidem com as informações exibidas no app.
                 </span>
               </li>
               <li className="flex items-start gap-1.5">
                 <span className="text-emerald-600 font-bold">✓</span>
                 <span>
-                  <strong>Rastreamento GPS Contínuo:</strong> Toda a viagem é monitorada por satélite e registrada em nossa central de telemetria.
+                  <strong>Rastreamento GPS Contínuo:</strong> Toda a viagem é monitorada por
+                  satélite e registrada em nossa central de telemetria.
                 </span>
               </li>
               <li className="flex items-start gap-1.5">
                 <span className="text-emerald-600 font-bold">✓</span>
                 <span>
-                  <strong>Compartilhe Sempre:</strong> Avise um contato de confiança através do link Siga Minha Viagem ao embarcar.
+                  <strong>Compartilhe Sempre:</strong> Avise um contato de confiança através do link
+                  Siga Minha Viagem ao embarcar.
                 </span>
               </li>
             </ul>

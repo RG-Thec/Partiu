@@ -26,22 +26,25 @@ serve(async (req) => {
     // ── AUTH GUARD: Exige JWT válido ──────────────────────────────────────
     const authHeader = req.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({ error: "Token de autenticação ausente." }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Token de autenticação ausente." }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: { user }, error: authError } = await userClient.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await userClient.auth.getUser();
 
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Token inválido ou expirado." }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Token inválido ou expirado." }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
     // ── FIM AUTH GUARD ────────────────────────────────────────────────────
 
@@ -52,7 +55,7 @@ serve(async (req) => {
     if (!driver_id || !plan_id) {
       return new Response(
         JSON.stringify({ error: "Parâmetros obrigatórios: driver_id e plan_id" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -64,17 +67,18 @@ serve(async (req) => {
       .single();
 
     if (planErr || !plan) {
-      return new Response(
-        JSON.stringify({ error: "Plano de monetização não localizado." }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Plano de monetização não localizado." }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const amount = cycle_type === "MONTHLY"
-      ? Number(plan.monthly_fee)
-      : cycle_type === "WEEKLY"
-      ? Number(plan.weekly_fee)
-      : Number(plan.daily_fee);
+    const amount =
+      cycle_type === "MONTHLY"
+        ? Number(plan.monthly_fee)
+        : cycle_type === "WEEKLY"
+          ? Number(plan.weekly_fee)
+          : Number(plan.daily_fee);
 
     const billingId = `bill_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 min
@@ -122,7 +126,7 @@ serve(async (req) => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${mpAccessToken}`,
+            Authorization: `Bearer ${mpAccessToken}`,
             "X-Idempotency-Key": billingId,
           },
           body: JSON.stringify({
@@ -158,7 +162,11 @@ serve(async (req) => {
           }
         } else {
           const errText = await mpRes.text();
-          console.warn("[generate-driver-payment] Mercado Pago retornou erro:", mpRes.status, errText);
+          console.warn(
+            "[generate-driver-payment] Mercado Pago retornou erro:",
+            mpRes.status,
+            errText,
+          );
         }
       } catch (mpErr) {
         console.warn("[generate-driver-payment] Exceção ao chamar Mercado Pago:", mpErr);
@@ -167,9 +175,10 @@ serve(async (req) => {
 
     // 2.2 Contingência: Gateway Asaas
     const asaasApiKey = Deno.env.get("ASAAS_API_KEY");
-    const asaasBaseUrl = Deno.env.get("ASAAS_ENV") === "sandbox"
-      ? "https://sandbox.asaas.com/v3"
-      : "https://api.asaas.com/v3";
+    const asaasBaseUrl =
+      Deno.env.get("ASAAS_ENV") === "sandbox"
+        ? "https://sandbox.asaas.com/v3"
+        : "https://api.asaas.com/v3";
 
     if (!copiaECola && asaasApiKey) {
       try {
@@ -177,7 +186,7 @@ serve(async (req) => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "access_token": asaasApiKey,
+            access_token: asaasApiKey,
           },
           body: JSON.stringify({
             billingType: "PIX",
@@ -194,7 +203,7 @@ serve(async (req) => {
           gatewayUsed = "ASAAS";
 
           const qrRes = await fetch(`${asaasBaseUrl}/payments/${asaasData.id}/pixQrCode`, {
-            headers: { "access_token": asaasApiKey },
+            headers: { access_token: asaasApiKey },
           });
 
           if (qrRes.ok) {
@@ -204,7 +213,10 @@ serve(async (req) => {
           }
         }
       } catch (asaasErr) {
-        console.warn("[generate-driver-payment] Falha no gateway Asaas, acionando fallback EMV padrão:", asaasErr);
+        console.warn(
+          "[generate-driver-payment] Falha no gateway Asaas, acionando fallback EMV padrão:",
+          asaasErr,
+        );
       }
     }
 
@@ -217,14 +229,14 @@ serve(async (req) => {
       const keyLen = cleanKey.length.toString().padStart(2, "0");
 
       function calculateCRC16(payload: string): string {
-        let crc = 0xFFFF;
+        let crc = 0xffff;
         for (let i = 0; i < payload.length; i++) {
           crc ^= payload.charCodeAt(i) << 8;
           for (let j = 0; j < 8; j++) {
             if ((crc & 0x8000) !== 0) {
-              crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+              crc = ((crc << 1) ^ 0x1021) & 0xffff;
             } else {
-              crc = (crc << 1) & 0xFFFF;
+              crc = (crc << 1) & 0xffff;
             }
           }
         }
@@ -271,12 +283,12 @@ serve(async (req) => {
         qr_code_url: qrCodeUrl,
         expires_at: expiresAt,
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error: any) {
     return new Response(
       JSON.stringify({ error: error.message || "Erro ao processar cobrança PIX" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });

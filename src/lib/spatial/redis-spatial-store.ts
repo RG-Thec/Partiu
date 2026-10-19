@@ -109,7 +109,11 @@ export class InMemorySpatialStore implements RedisSpatialStoreInterface {
     return zset ? zset.size : 0;
   }
 
-  public async hset(key: string, fieldOrObj: string | Record<string, any>, value?: any): Promise<number> {
+  public async hset(
+    key: string,
+    fieldOrObj: string | Record<string, any>,
+    value?: any,
+  ): Promise<number> {
     let hash = this.hashes.get(key);
     if (!hash) {
       hash = new Map<string, string>();

@@ -19,9 +19,10 @@ import type { RouteMetrics } from "@/services/RoutingService";
 
 export function useDynamicPricing(
   routeMetrics: RouteMetrics | null,
-  surgeContext: Partial<SurgeContext> = {}
+  surgeContext: Partial<SurgeContext> = {},
 ) {
-  const [selectedCategory, setSelectedCategory] = useState<SupportedVehicleCategory>("PARTIU_CARRO");
+  const [selectedCategory, setSelectedCategory] =
+    useState<SupportedVehicleCategory>("PARTIU_CARRO");
   const [settingsVersion, setSettingsVersion] = useState(0);
 
   // Escuta alterações do painel administrativo em tempo real

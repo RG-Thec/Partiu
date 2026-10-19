@@ -216,7 +216,11 @@ export function PartiuReactNativeMap({
       <MapboxGL.MapView
         ref={mapRef}
         style={styles.map}
-        styleURL={'COLE_SUA_URL_DO_MAPBOX_STUDIO_AQUI'.startsWith('mapbox://') ? 'COLE_SUA_URL_DO_MAPBOX_STUDIO_AQUI' : 'mapbox://styles/mapbox/standard'}
+        styleURL={
+          "COLE_SUA_URL_DO_MAPBOX_STUDIO_AQUI".startsWith("mapbox://")
+            ? "COLE_SUA_URL_DO_MAPBOX_STUDIO_AQUI"
+            : "mapbox://styles/mapbox/standard"
+        }
         logoEnabled={false}
         attributionEnabled={false}
         compassEnabled={false}
@@ -343,11 +347,16 @@ export function PartiuReactNativeMap({
                 "interpolate",
                 ["linear"],
                 ["zoom"],
-                10, 0.08,
-                12, 0.12,
-                14, 0.16,
-                16, 0.20,
-                18, 0.25,
+                10,
+                0.08,
+                12,
+                0.12,
+                14,
+                0.16,
+                16,
+                0.2,
+                18,
+                0.25,
               ],
               iconAnchor: "center",
               iconRotate: ["coalesce", ["get", "heading"], ["get", "bearing"], 0],
@@ -391,15 +400,7 @@ export function PartiuReactNativeMap({
             id="partiu-origin-layer"
             style={{
               iconImage: "origin-pin",
-              iconSize: [
-                "interpolate",
-                ["linear"],
-                ["zoom"],
-                11, 0.65,
-                14, 0.90,
-                16, 1.15,
-                18, 1.40,
-              ],
+              iconSize: ["interpolate", ["linear"], ["zoom"], 11, 0.65, 14, 0.9, 16, 1.15, 18, 1.4],
               iconAnchor: "bottom", // Garante que a ponta inferior encosta no solo
               iconOffset: [0, -15], // Ajuste vertical milimétrico de sombra/ponto
               iconAllowOverlap: true,
@@ -423,10 +424,14 @@ export function PartiuReactNativeMap({
                   "interpolate",
                   ["linear"],
                   ["zoom"],
-                  11, 0.65,
-                  14, 0.90,
-                  16, 1.15,
-                  18, 1.40,
+                  11,
+                  0.65,
+                  14,
+                  0.9,
+                  16,
+                  1.15,
+                  18,
+                  1.4,
                 ],
                 iconAnchor: "bottom",
                 iconOffset: [0, -15],

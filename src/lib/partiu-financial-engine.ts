@@ -47,8 +47,11 @@ export interface TripFinancialSettlement {
  * Determina o nível do parceiro com base nas corridas do mês e rating.
  * Alinhado ao Driver Revenue Engine V3 (0% Ouro, 1% Prata, 3% Bronze, 5% Free).
  */
-export function getDriverClubBenefits(monthlyCompletedTrips: number, driverRating: number): DriverClubBenefits {
-  if (monthlyCompletedTrips >= 300 && driverRating >= 4.90) {
+export function getDriverClubBenefits(
+  monthlyCompletedTrips: number,
+  driverRating: number,
+): DriverClubBenefits {
+  if (monthlyCompletedTrips >= 300 && driverRating >= 4.9) {
     return {
       level: "BLACK",
       takeRatePercent: 0.0,
@@ -106,7 +109,7 @@ export function calculateTripSettlement(
   driverRating: number = 4.95,
   isCorporateTrip: boolean = false,
   isPartiuPrimeRider: boolean = false,
-  driverPlanTier?: "FREE" | "BRONZE" | "PRATA" | "OURO" | undefined
+  driverPlanTier?: "FREE" | "BRONZE" | "PRATA" | "OURO" | undefined,
 ): TripFinancialSettlement {
   const grossFareCents = Math.round(grossFareBrl * 100);
   const club = getDriverClubBenefits(driverCompletedTripsMonth, driverRating);
@@ -146,7 +149,10 @@ export function calculateTripSettlement(
  */
 const WALLET_KEY_PREFIX = "partiu_wallet_";
 
-export function getLocalWallet(userId: string, userType: "PASSAGEIRO" | "MOTORISTA" | "EMPRESA"): WalletBalance {
+export function getLocalWallet(
+  userId: string,
+  userType: "PASSAGEIRO" | "MOTORISTA" | "EMPRESA",
+): WalletBalance {
   if (typeof window === "undefined") {
     return {
       userId,
@@ -162,7 +168,9 @@ export function getLocalWallet(userId: string, userType: "PASSAGEIRO" | "MOTORIS
   if (raw) {
     try {
       return JSON.parse(raw);
-    } catch (err) { silentCatchWarn("partiu-financial-engine", err); }
+    } catch (err) {
+      silentCatchWarn("partiu-financial-engine", err);
+    }
   }
 
   const initial: WalletBalance = {
@@ -227,7 +235,7 @@ export interface CancellationFeeSettlement {
 export function processarCancelamentoComMulta(
   corridaId: string,
   passageiroId: string,
-  motoristaId: string
+  motoristaId: string,
 ): CancellationFeeSettlement {
   const totalFeeCents = 600;
   const driverShareCents = 450;
@@ -257,7 +265,7 @@ export function processarCancelamentoComMulta(
     window.dispatchEvent(
       new CustomEvent("partiu:corrida-cancelada-com-taxa", {
         detail: settlement,
-      })
+      }),
     );
   }
 
@@ -306,7 +314,7 @@ export function solicitarSaquePixMotorista(params: {
 }): FintechPixWithdrawalResult {
   const driverId = params.driverId;
   const wallet = getLocalWallet(driverId, "MOTORISTA");
-  const saldoDisponivelBrl = params.valorBrutoBrl ?? (wallet.balanceCents / 100);
+  const saldoDisponivelBrl = params.valorBrutoBrl ?? wallet.balanceCents / 100;
 
   if (saldoDisponivelBrl <= 0) {
     return {
@@ -324,7 +332,7 @@ export function solicitarSaquePixMotorista(params: {
 
   const saquesAtuais = getSaquesRealizadosNaSemana(driverId);
   const isPrimeiroDaSemana = saquesAtuais === 0;
-  const taxaBrl = isPrimeiroDaSemana ? 0.0 : 1.90;
+  const taxaBrl = isPrimeiroDaSemana ? 0.0 : 1.9;
   const valorLiquidoBrl = Math.max(0, Number((saldoDisponivelBrl - taxaBrl).toFixed(2)));
 
   // Atualiza carteira do motorista
@@ -414,6 +422,8 @@ export function assinarPartiuPrime(userId: string = "default_rider"): PartiuPrim
 export function cancelarAssinaturaPartiuPrime(userId: string = "default_rider"): void {
   if (typeof window !== "undefined") {
     localStorage.removeItem(PRIME_KEY);
-    window.dispatchEvent(new CustomEvent("partiu:prime-status-changed", { detail: { active: false } }));
+    window.dispatchEvent(
+      new CustomEvent("partiu:prime-status-changed", { detail: { active: false } }),
+    );
   }
 }

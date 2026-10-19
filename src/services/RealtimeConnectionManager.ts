@@ -15,11 +15,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export type ConnectionState =
-  | "DISCONNECTED"
-  | "CONNECTING"
-  | "CONNECTED"
-  | "RECONNECTING"
-  | "ERROR";
+  "DISCONNECTED" | "CONNECTING" | "CONNECTED" | "RECONNECTING" | "ERROR";
 
 export interface ConnectionMetrics {
   state: ConnectionState;
@@ -142,9 +138,7 @@ export class RealtimeConnectionManager {
     this.stopGhostPurge();
 
     const delay =
-      this.BACKOFF_DELAYS_MS[
-        Math.min(this.reconnectAttempts, this.BACKOFF_DELAYS_MS.length - 1)
-      ];
+      this.BACKOFF_DELAYS_MS[Math.min(this.reconnectAttempts, this.BACKOFF_DELAYS_MS.length - 1)];
 
     this.reconnectAttempts++;
     this.transitionTo("RECONNECTING");
@@ -155,7 +149,7 @@ export class RealtimeConnectionManager {
 
     this.reconnectTimer = setTimeout(() => {
       console.log(
-        `[RealtimeManager] Tentativa de reconexão #${this.reconnectAttempts} após ${delay}ms`
+        `[RealtimeManager] Tentativa de reconexão #${this.reconnectAttempts} após ${delay}ms`,
       );
       this.connect();
     }, delay);
@@ -217,7 +211,7 @@ export class RealtimeConnectionManager {
       window.dispatchEvent(
         new CustomEvent("partiu:realtime_connection_change", {
           detail: { state: newState, metrics },
-        })
+        }),
       );
     }
   }

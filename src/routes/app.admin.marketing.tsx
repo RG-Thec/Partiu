@@ -71,7 +71,9 @@ interface BannerItem {
 
 export function MarketingAdminPage() {
   const [abaAtiva, setAbaAtiva] = useState<AbaMarketing>("banners");
-  const [banners, setBanners] = useState<EcosystemBannerItem[]>(() => bannerService.getAllBanners());
+  const [banners, setBanners] = useState<EcosystemBannerItem[]>(() =>
+    bannerService.getAllBanners(),
+  );
 
   useEffect(() => {
     const unsub = bannerService.subscribe((list) => {
@@ -125,13 +127,19 @@ export function MarketingAdminPage() {
   const [novoCupomTipo, setNovoCupomTipo] = useState<"porcentagem" | "fixo">("porcentagem");
   const [novoCupomValor, setNovoCupomValor] = useState("10");
   const [novoCupomLimite, setNovoCupomLimite] = useState("100");
-  const [novoCupomValidade, setNovoCupomValidade] = useState(() => new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10));
+  const [novoCupomValidade, setNovoCupomValidade] = useState(() =>
+    new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+  );
   const [salvandoCupom, setSalvandoCupom] = useState(false);
 
   // Estados da Notificação Push (Campanhas futuras)
   const [pushTitulo, setPushTitulo] = useState("Sua próxima corrida tem desconto especial!");
-  const [pushMensagem, setPushMensagem] = useState("Abra o app PARTIU agora e aproveite 15% OFF em todas as viagens de carro e moto até às 20h.");
-  const [pushPublico, setPushPublico] = useState<"TODOS" | "PASSAGEIROS" | "MOTORISTAS">("PASSAGEIROS");
+  const [pushMensagem, setPushMensagem] = useState(
+    "Abra o app PARTIU agora e aproveite 15% OFF em todas as viagens de carro e moto até às 20h.",
+  );
+  const [pushPublico, setPushPublico] = useState<"TODOS" | "PASSAGEIROS" | "MOTORISTAS">(
+    "PASSAGEIROS",
+  );
   const [pushCidade, setPushCidade] = useState("Todas as Cidades");
   const [pushAgendamento, setPushAgendamento] = useState("IMEDIATO");
 
@@ -180,7 +188,9 @@ export function MarketingAdminPage() {
     // 2. Validar Peso Máximo (1 MB)
     const tamanhoKb = Math.round(file.size / 1024);
     if (tamanhoKb > 1024) {
-      setValidacaoErro(`Imagem muito pesada (${tamanhoKb} KB). O limite máximo permitido para dispositivos móveis é 1024 KB (1 MB).`);
+      setValidacaoErro(
+        `Imagem muito pesada (${tamanhoKb} KB). O limite máximo permitido para dispositivos móveis é 1024 KB (1 MB).`,
+      );
       return;
     }
 
@@ -202,13 +212,17 @@ export function MarketingAdminPage() {
 
       // Validação de Largura Mínima
       if (largura < 600) {
-        setValidacaoErro(`Largura insuficiente (${largura}px). Mínimo recomendado: 600px para nitidez em telas Retina/OLED.`);
+        setValidacaoErro(
+          `Largura insuficiente (${largura}px). Mínimo recomendado: 600px para nitidez em telas Retina/OLED.`,
+        );
         return;
       }
 
       // Validação de Aspect Ratio (16:9 ~ 1.78 a 4:3 ~ 1.33 com tolerância 1.20 a 2.40)
       if (ratio < 1.2 || ratio > 2.4) {
-        setValidacaoErro(`Proporção inadequada (${ratio.toFixed(2)}:1). Para o carrossel mobile, use proporções entre 4:3 (1.33) e 16:9 (1.78), recomendado 800x450px a 800x600px. Evite imagens verticais ou panorâmicas extremas.`);
+        setValidacaoErro(
+          `Proporção inadequada (${ratio.toFixed(2)}:1). Para o carrossel mobile, use proporções entre 4:3 (1.33) e 16:9 (1.78), recomendado 800x450px a 800x600px. Evite imagens verticais ou panorâmicas extremas.`,
+        );
         return;
       }
 
@@ -256,7 +270,9 @@ export function MarketingAdminPage() {
         ativo: true,
       });
 
-      toast.success(`Cupom ${novoCupomCodigo.trim().toUpperCase()} cadastrado e sincronizado com sucesso!`);
+      toast.success(
+        `Cupom ${novoCupomCodigo.trim().toUpperCase()} cadastrado e sincronizado com sucesso!`,
+      );
       setModalCupomAberto(false);
       setNovoCupomCodigo("");
       setNovoCupomDescricao("");
@@ -308,7 +324,8 @@ export function MarketingAdminPage() {
               Marketing, <span className="text-[#0088FF]">Banners &amp; Cupons</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-normal leading-relaxed mt-1">
-              Controle dos banners exibidos nos apps de passageiro e motorista com validação rigorosa de peso, cupons e campanhas de engajamento.
+              Controle dos banners exibidos nos apps de passageiro e motorista com validação
+              rigorosa de peso, cupons e campanhas de engajamento.
             </p>
           </div>
         </div>
@@ -320,7 +337,9 @@ export function MarketingAdminPage() {
           type="button"
           onClick={() => setAbaAtiva("banners")}
           className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
-            abaAtiva === "banners" ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            abaAtiva === "banners"
+              ? "bg-slate-950 text-white shadow-sm"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
           <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#0088FF]" />
@@ -334,7 +353,9 @@ export function MarketingAdminPage() {
           type="button"
           onClick={() => setAbaAtiva("cupons")}
           className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
-            abaAtiva === "cupons" ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            abaAtiva === "cupons"
+              ? "bg-slate-950 text-white shadow-sm"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
           <Ticket className="h-4 w-4 sm:h-5 sm:w-5 text-[#0088FF]" />
@@ -348,7 +369,9 @@ export function MarketingAdminPage() {
           type="button"
           onClick={() => setAbaAtiva("push")}
           className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
-            abaAtiva === "push" ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            abaAtiva === "push"
+              ? "bg-slate-950 text-white shadow-sm"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
           <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-[#0088FF]" />
@@ -381,7 +404,9 @@ export function MarketingAdminPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 className="text-base font-black text-slate-900">Banners Ativos no Aplicativo</h2>
-              <p className="text-xs text-slate-500">Exibição sincronizada em tempo real com o app do passageiro.</p>
+              <p className="text-xs text-slate-500">
+                Exibição sincronizada em tempo real com o app do passageiro.
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <Link
@@ -410,11 +435,7 @@ export function MarketingAdminPage() {
               >
                 <div>
                   <div className="relative aspect-video bg-slate-100 overflow-hidden">
-                    <img
-                      src={b.image_url}
-                      alt={b.title}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={b.image_url} alt={b.title} className="w-full h-full object-cover" />
                     <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
                       <span className="px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-xs text-white text-[10px] font-black">
                         {b.badge || "DESTAQUE"}
@@ -427,7 +448,9 @@ export function MarketingAdminPage() {
 
                   <div className="p-4 space-y-1">
                     <h3 className="text-sm font-black text-slate-900 leading-tight">{b.title}</h3>
-                    <p className="text-xs text-slate-500 leading-snug">{b.subtitle || "Sem descrição"}</p>
+                    <p className="text-xs text-slate-500 leading-snug">
+                      {b.subtitle || "Sem descrição"}
+                    </p>
                     <p className="text-[11px] font-mono text-slate-400 pt-1 truncate">
                       Link: {b.link_url}
                     </p>
@@ -441,7 +464,9 @@ export function MarketingAdminPage() {
                       await bannerService.toggleBannerStatus(b.id);
                     }}
                     className={`text-[10px] font-black uppercase flex items-center gap-1 cursor-pointer transition-colors ${
-                      b.is_active ? "text-emerald-600 hover:text-emerald-700" : "text-slate-400 hover:text-slate-600"
+                      b.is_active
+                        ? "text-emerald-600 hover:text-emerald-700"
+                        : "text-slate-400 hover:text-slate-600"
                     }`}
                   >
                     <span>{b.is_active ? "● Ativo no App" : "○ Desativado"}</span>
@@ -471,7 +496,9 @@ export function MarketingAdminPage() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-base font-black text-slate-900">Cupons Promocionais</h2>
-              <p className="text-xs text-slate-500">Códigos de desconto para ativação e retenção de passageiros.</p>
+              <p className="text-xs text-slate-500">
+                Códigos de desconto para ativação e retenção de passageiros.
+              </p>
             </div>
             <button
               type="button"
@@ -506,7 +533,8 @@ export function MarketingAdminPage() {
                   ) : cupons.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="p-8 text-center text-slate-500">
-                        Nenhum cupom cadastrado no momento. Clique em <strong>Criar Novo Cupom</strong> para começar.
+                        Nenhum cupom cadastrado no momento. Clique em{" "}
+                        <strong>Criar Novo Cupom</strong> para começar.
                       </td>
                     </tr>
                   ) : (
@@ -516,7 +544,10 @@ export function MarketingAdminPage() {
                       const percentUsado = Math.min(100, Math.round((usos / limite) * 100));
 
                       return (
-                        <tr key={c.id || c.codigo} className="hover:bg-slate-50/80 transition-colors">
+                        <tr
+                          key={c.id || c.codigo}
+                          className="hover:bg-slate-50/80 transition-colors"
+                        >
                           <td className="p-4">
                             <span className="font-mono font-black text-sm px-2.5 py-1 bg-primary-50 text-yellow-950 border border-primary-500 rounded-lg">
                               {c.codigo}
@@ -524,7 +555,9 @@ export function MarketingAdminPage() {
                           </td>
                           <td className="p-4">
                             <div className="font-bold text-slate-900">
-                              {c.tipo === "porcentagem" ? `${c.valor}% OFF` : `R$ ${Number(c.valor).toFixed(2).replace(".", ",")} OFF`}
+                              {c.tipo === "porcentagem"
+                                ? `${c.valor}% OFF`
+                                : `R$ ${Number(c.valor).toFixed(2).replace(".", ",")} OFF`}
                             </div>
                             <div className="text-[11px] text-slate-500 font-medium truncate max-w-xs">
                               {c.descontoDescricao}
@@ -556,7 +589,9 @@ export function MarketingAdminPage() {
                               }`}
                               title={c.ativo ? "Clique para desativar" : "Clique para ativar"}
                             >
-                              <span className={`w-1.5 h-1.5 rounded-full ${c.ativo ? "bg-emerald-600 animate-pulse" : "bg-slate-400"}`} />
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full ${c.ativo ? "bg-emerald-600 animate-pulse" : "bg-slate-400"}`}
+                              />
                               <span>{c.ativo ? "Ativo" : "Inativo"}</span>
                             </button>
                           </td>
@@ -599,14 +634,19 @@ export function MarketingAdminPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-7 space-y-4">
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-              <h2 className="text-base font-black text-slate-900">Configurar Campanha de Notificação Push</h2>
+              <h2 className="text-base font-black text-slate-900">
+                Configurar Campanha de Notificação Push
+              </h2>
               <p className="text-xs text-slate-500">
-                Dispare avisos promocionais, alertas climáticos ou cupons diretamente na barra de notificações dos usuários.
+                Dispare avisos promocionais, alertas climáticos ou cupons diretamente na barra de
+                notificações dos usuários.
               </p>
 
               <div className="space-y-3 pt-2">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Título da Notificação:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Título da Notificação:
+                  </label>
                   <input
                     type="text"
                     value={pushTitulo}
@@ -616,7 +656,9 @@ export function MarketingAdminPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Mensagem (Corpo do Push):</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Mensagem (Corpo do Push):
+                  </label>
                   <textarea
                     rows={3}
                     value={pushMensagem}
@@ -627,7 +669,9 @@ export function MarketingAdminPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Público-Alvo:</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Público-Alvo:
+                    </label>
                     <select
                       value={pushPublico}
                       onChange={(e: any) => setPushPublico(e.target.value)}
@@ -658,7 +702,9 @@ export function MarketingAdminPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      alert("Estrutura de push registrada no plano operacional! O serviço de envio será conectado ao Firebase Cloud Messaging (FCM) no módulo de infraestrutura.");
+                      alert(
+                        "Estrutura de push registrada no plano operacional! O serviço de envio será conectado ao Firebase Cloud Messaging (FCM) no módulo de infraestrutura.",
+                      );
                     }}
                     className="w-full h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
                   >
@@ -688,7 +734,9 @@ export function MarketingAdminPage() {
                       <div className="h-4 w-4 rounded-md bg-[#0088FF] flex items-center justify-center">
                         <Zap className="h-2.5 w-2.5 text-slate-950 fill-slate-950" />
                       </div>
-                      <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">PARTIU</span>
+                      <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+                        PARTIU
+                      </span>
                     </div>
                     <span className="text-[9px] text-slate-400">Agora</span>
                   </div>
@@ -717,7 +765,9 @@ export function MarketingAdminPage() {
                 Gestão de Conteúdo da Landing Page Institucional
               </h2>
               <p className="text-xs text-slate-600 max-w-2xl">
-                Personalize em tempo real a página pública inicial (Hero, benefícios, apelo para motoristas e passageiros, soluções corporativas B2B e depoimentos). As alterações refletem imediatamente na raiz do site.
+                Personalize em tempo real a página pública inicial (Hero, benefícios, apelo para
+                motoristas e passageiros, soluções corporativas B2B e depoimentos). As alterações
+                refletem imediatamente na raiz do site.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -849,7 +899,10 @@ export function MarketingAdminPage() {
 
                   <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-[11px] text-slate-500 space-y-1">
                     <span className="font-bold text-slate-700 block">Dica de Responsividade:</span>
-                    <p>A imagem do veículo se ajusta automaticamente entre desktop e telas compactas. Recomendamos imagens em formato PNG com transparência ou WebP leve.</p>
+                    <p>
+                      A imagem do veículo se ajusta automaticamente entre desktop e telas compactas.
+                      Recomendamos imagens em formato PNG com transparência ou WebP leve.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1020,7 +1073,9 @@ export function MarketingAdminPage() {
                               ctaTexto: "",
                               ctaUrl: "",
                             }),
-                            beneficios: e.target.value.split("\n").filter((l) => l.trim().length > 0),
+                            beneficios: e.target.value
+                              .split("\n")
+                              .filter((l) => l.trim().length > 0),
                           },
                         }))
                       }
@@ -1046,7 +1101,10 @@ export function MarketingAdminPage() {
               {/* 4 KPIs de Destaque */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {(cmsData.socialProof?.metricas || []).map((m, idx) => (
-                  <div key={m.id || idx} className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                  <div
+                    key={m.id || idx}
+                    className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-1"
+                  >
                     <input
                       type="text"
                       value={m.valor}
@@ -1055,7 +1113,10 @@ export function MarketingAdminPage() {
                         next[idx] = { ...next[idx], valor: e.target.value };
                         setCmsData((prev) => ({
                           ...prev,
-                          socialProof: { ...(prev.socialProof || { depoimentos: [] }), metricas: next },
+                          socialProof: {
+                            ...(prev.socialProof || { depoimentos: [] }),
+                            metricas: next,
+                          },
                         }));
                       }}
                       className="w-full text-lg font-black text-slate-950 bg-white border border-slate-200 rounded-lg px-2 py-1"
@@ -1068,7 +1129,10 @@ export function MarketingAdminPage() {
                         next[idx] = { ...next[idx], rotulo: e.target.value };
                         setCmsData((prev) => ({
                           ...prev,
-                          socialProof: { ...(prev.socialProof || { depoimentos: [] }), metricas: next },
+                          socialProof: {
+                            ...(prev.socialProof || { depoimentos: [] }),
+                            metricas: next,
+                          },
                         }));
                       }}
                       className="w-full text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-lg px-2 py-0.5"
@@ -1085,7 +1149,10 @@ export function MarketingAdminPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {(cmsData.socialProof?.depoimentos || []).map((d, dIdx) => (
-                    <div key={d.id || dIdx} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
+                    <div
+                      key={d.id || dIdx}
+                      className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-2"
+                    >
                       <div className="flex items-center gap-2">
                         <img
                           src={d.fotoUrl}
@@ -1101,7 +1168,10 @@ export function MarketingAdminPage() {
                               next[dIdx] = { ...next[dIdx], nome: e.target.value };
                               setCmsData((prev) => ({
                                 ...prev,
-                                socialProof: { ...(prev.socialProof || { metricas: [] }), depoimentos: next },
+                                socialProof: {
+                                  ...(prev.socialProof || { metricas: [] }),
+                                  depoimentos: next,
+                                },
                               }));
                             }}
                             className="w-full text-xs font-bold text-slate-950 bg-white border border-slate-200 rounded px-1.5 py-0.5"
@@ -1114,7 +1184,10 @@ export function MarketingAdminPage() {
                               next[dIdx] = { ...next[dIdx], cidade: e.target.value };
                               setCmsData((prev) => ({
                                 ...prev,
-                                socialProof: { ...(prev.socialProof || { metricas: [] }), depoimentos: next },
+                                socialProof: {
+                                  ...(prev.socialProof || { metricas: [] }),
+                                  depoimentos: next,
+                                },
                               }));
                             }}
                             className="w-full text-[10px] text-slate-500 bg-white border border-slate-200 rounded px-1.5 py-0.5 mt-0.5"
@@ -1130,7 +1203,10 @@ export function MarketingAdminPage() {
                           next[dIdx] = { ...next[dIdx], comentario: e.target.value };
                           setCmsData((prev) => ({
                             ...prev,
-                            socialProof: { ...(prev.socialProof || { metricas: [] }), depoimentos: next },
+                            socialProof: {
+                              ...(prev.socialProof || { metricas: [] }),
+                              depoimentos: next,
+                            },
                           }));
                         }}
                         className="w-full text-xs text-slate-700 bg-white border border-slate-200 rounded-lg p-2"
@@ -1198,7 +1274,9 @@ export function MarketingAdminPage() {
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Link de Destino / Ação:</label>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Link de Destino / Ação:
+                </label>
                 <input
                   type="text"
                   placeholder="/app/encomendas ou https://..."
@@ -1211,7 +1289,8 @@ export function MarketingAdminPage() {
               {/* Upload com Validação Obrigatória */}
               <div>
                 <label className="block font-bold text-slate-700 mb-1">
-                  Arquivo de Imagem (Recomendado: 800x450px a 800x600px - Proporção 16:9 a 4:3, máx 1 MB):
+                  Arquivo de Imagem (Recomendado: 800x450px a 800x600px - Proporção 16:9 a 4:3, máx
+                  1 MB):
                 </label>
                 <input
                   type="file"
@@ -1236,7 +1315,8 @@ export function MarketingAdminPage() {
                   <div className="text-xs">
                     <p className="font-bold">Imagem aprovada para o carrossel mobile!</p>
                     <p className="text-[11px] text-emerald-800">
-                      Dimensões: {validacaoInfo.largura}x{validacaoInfo.altura}px | Aspect: {validacaoInfo.aspectRatio}:1 | Peso: {validacaoInfo.tamanhoKb} KB
+                      Dimensões: {validacaoInfo.largura}x{validacaoInfo.altura}px | Aspect:{" "}
+                      {validacaoInfo.aspectRatio}:1 | Peso: {validacaoInfo.tamanhoKb} KB
                     </p>
                   </div>
                 </div>
@@ -1244,7 +1324,11 @@ export function MarketingAdminPage() {
 
               {previewBannerUrl && !validacaoErro && (
                 <div className="w-full h-44 sm:h-52 rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 relative shadow-inner">
-                  <img src={previewBannerUrl} alt="Preview" className="w-full h-full object-cover" />
+                  <img
+                    src={previewBannerUrl}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
                   <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] text-white font-mono">
                     Pré-visualização Mobile (cover)
                   </div>
@@ -1304,7 +1388,9 @@ export function MarketingAdminPage() {
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Descrição Promocional (Opcional):</label>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Descrição Promocional (Opcional):
+                </label>
                 <input
                   type="text"
                   placeholder="Ex: R$ 10 OFF em corridas urbanas"

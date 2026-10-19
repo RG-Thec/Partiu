@@ -1,12 +1,12 @@
 /**
  * PARTIU APPROVAL ENGINE
- * 
+ *
  * Motor de Fluxo de Aprovações para Viagens Corporativas.
  * Executa aprovação automática para viagens em conformidade ou encaminha para deliberação do gestor.
  */
 
-import { travelPolicyEngine, TravelPolicyValidationResult } from './travel-policy-engine';
-import { costCenterEngine } from './cost-center-engine';
+import { travelPolicyEngine, TravelPolicyValidationResult } from "./travel-policy-engine";
+import { costCenterEngine } from "./cost-center-engine";
 
 export interface CorporateTripApprovalRequest {
   requestId: string;
@@ -15,13 +15,14 @@ export interface CorporateTripApprovalRequest {
   employeeName: string;
   costCenterCode: string;
   managerEmail: string;
-  modalidade: 'POP' | 'MOTO' | 'PLUS';
+  modalidade: "POP" | "MOTO" | "PLUS";
   origin: string;
   destination: string;
   estimatedFareBrl: number;
   justificationText?: string | undefined;
   policyValidation: TravelPolicyValidationResult;
-  status: 'APROVADA_AUTOMATICA' | 'PENDENTE_APROVACAO_GESTOR' | 'APROVADA_GESTOR' | 'REJEITADA_GESTOR';
+  status:
+    "APROVADA_AUTOMATICA" | "PENDENTE_APROVACAO_GESTOR" | "APROVADA_GESTOR" | "REJEITADA_GESTOR";
   approverComments?: string | undefined;
   decidedAt?: number | undefined;
   createdAt: number;
@@ -39,12 +40,12 @@ export class ApprovalEngine {
     employeeName: string,
     costCenterCode: string,
     managerEmail: string,
-    modalidade: 'POP' | 'MOTO' | 'PLUS',
+    modalidade: "POP" | "MOTO" | "PLUS",
     origin: string,
     destination: string,
     estimatedFareBrl: number,
     currentDaySpendBrl: number,
-    justificationText?: string
+    justificationText?: string,
   ): CorporateTripApprovalRequest {
     const requestId = `APV-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
@@ -54,12 +55,12 @@ export class ApprovalEngine {
       currentDaySpendBrl,
       modalidade,
       origin,
-      destination
+      destination,
     );
 
-    let status: CorporateTripApprovalRequest['status'] = 'APROVADA_AUTOMATICA';
+    let status: CorporateTripApprovalRequest["status"] = "APROVADA_AUTOMATICA";
     if (validation.requiresManagerApproval) {
-      status = 'PENDENTE_APROVACAO_GESTOR';
+      status = "PENDENTE_APROVACAO_GESTOR";
     } else {
       // Já debita no centro de custo
       costCenterEngine.debitCostCenter(corporateId, costCenterCode, estimatedFareBrl);
@@ -80,7 +81,7 @@ export class ApprovalEngine {
       policyValidation: validation,
       status,
       createdAt: Date.now(),
-      decidedAt: status === 'APROVADA_AUTOMATICA' ? Date.now() : undefined
+      decidedAt: status === "APROVADA_AUTOMATICA" ? Date.now() : undefined,
     };
 
     this.requests.set(requestId, request);
@@ -90,11 +91,14 @@ export class ApprovalEngine {
   /**
    * Gestor aprova a solicitação pendente
    */
-  public approveRequest(requestId: string, comments: string = 'Aprovado pelo gestor de departamento.'): CorporateTripApprovalRequest {
+  public approveRequest(
+    requestId: string,
+    comments: string = "Aprovado pelo gestor de departamento.",
+  ): CorporateTripApprovalRequest {
     const req = this.requests.get(requestId);
     if (!req) throw new Error(`Solicitação '${requestId}' não encontrada.`);
 
-    req.status = 'APROVADA_GESTOR';
+    req.status = "APROVADA_GESTOR";
     req.approverComments = comments;
     req.decidedAt = Date.now();
 
@@ -109,7 +113,7 @@ export class ApprovalEngine {
     const req = this.requests.get(requestId);
     if (!req) throw new Error(`Solicitação '${requestId}' não encontrada.`);
 
-    req.status = 'REJEITADA_GESTOR';
+    req.status = "REJEITADA_GESTOR";
     req.approverComments = reason;
     req.decidedAt = Date.now();
     return req;
@@ -120,9 +124,10 @@ export class ApprovalEngine {
   }
 
   public getPendingRequestsByManager(managerEmail: string): CorporateTripApprovalRequest[] {
-    return Array.from(this.requests.values()).filter(r =>
-      r.managerEmail.toLowerCase() === managerEmail.toLowerCase() &&
-      r.status === 'PENDENTE_APROVACAO_GESTOR'
+    return Array.from(this.requests.values()).filter(
+      (r) =>
+        r.managerEmail.toLowerCase() === managerEmail.toLowerCase() &&
+        r.status === "PENDENTE_APROVACAO_GESTOR",
     );
   }
 }

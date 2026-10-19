@@ -54,7 +54,7 @@ export const NativeRipple: React.FC<NativeRippleProps> = ({
         onPointerDown(e);
       }
     },
-    [disabled, instanceId, onPointerDown]
+    [disabled, instanceId, onPointerDown],
   );
 
   const removeRipple = useCallback((id: string) => {
@@ -70,7 +70,10 @@ export const NativeRipple: React.FC<NativeRippleProps> = ({
       {children}
 
       {/* Camada de Ondas Táteis (Ripples) */}
-      <span className="pointer-events-none absolute inset-0 z-10 overflow-hidden" aria-hidden="true">
+      <span
+        className="pointer-events-none absolute inset-0 z-10 overflow-hidden"
+        aria-hidden="true"
+      >
         {ripples.map((ripple) => (
           <span
             key={ripple.id}

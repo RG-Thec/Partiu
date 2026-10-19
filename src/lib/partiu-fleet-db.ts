@@ -10,7 +10,6 @@ import type { TelemetriaVeiculo } from "@/lib/superadmin-config";
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { computePixCrc16 } from "@/services/payment/PaymentProviderAdapter";
 
-
 export type Linha = Tables<"linhas">;
 export type PontoEmbarque = Tables<"pontos_embarque">;
 export type Veiculo = Tables<"veiculos">;
@@ -574,7 +573,9 @@ export function useMotoristas(): UseQueryResult<
       try {
         const { data: partiuCondutores, error: errPartiu } = await (supabase as any)
           .from("partiu_motoristas")
-          .select("id, nome, cpf, telefone, foto_url, veiculo_marca_modelo, veiculo_placa, categoria_veiculo")
+          .select(
+            "id, nome, cpf, telefone, foto_url, veiculo_marca_modelo, veiculo_placa, categoria_veiculo",
+          )
           .eq("status_aprovacao", "aprovado");
 
         if (!errPartiu && partiuCondutores) {
@@ -591,7 +592,9 @@ export function useMotoristas(): UseQueryResult<
             });
           });
         }
-      } catch (err) { silentCatchWarn("partiu-db", err); }
+      } catch (err) {
+        silentCatchWarn("partiu-db", err);
+      }
 
       // 2. Condutores legados profiles/user_roles
       try {
@@ -614,7 +617,9 @@ export function useMotoristas(): UseQueryResult<
             });
           }
         }
-      } catch (err) { silentCatchWarn("partiu-db", err); }
+      } catch (err) {
+        silentCatchWarn("partiu-db", err);
+      }
 
       // 3. Fallback do store local se vazio
       if (todos.length === 0 && typeof window !== "undefined") {
@@ -635,7 +640,9 @@ export function useMotoristas(): UseQueryResult<
               });
             });
           }
-        } catch (err) { silentCatchWarn("partiu-db", err); }
+        } catch (err) {
+          silentCatchWarn("partiu-db", err);
+        }
       }
 
       return todos;
@@ -678,7 +685,9 @@ export function usePartiuMotoristasPendentes(): UseQueryResult<PartiuMotoristaPe
         if (!error && data && data.length > 0) {
           return data as PartiuMotoristaPendente[];
         }
-      } catch (err) { silentCatchWarn("partiu-db", err); }
+      } catch (err) {
+        silentCatchWarn("partiu-db", err);
+      }
 
       // Fallback local se o banco estiver vazio ou offline
       if (typeof window !== "undefined") {
@@ -731,7 +740,9 @@ export function usePartiuTodasSolicitacoesMotoristas(): UseQueryResult<PartiuMot
         if (!error && data && data.length > 0) {
           return data as PartiuMotoristaPendente[];
         }
-      } catch (err) { silentCatchWarn("partiu-db", err); }
+      } catch (err) {
+        silentCatchWarn("partiu-db", err);
+      }
 
       // Fallback local se offline
       if (typeof window !== "undefined") {
@@ -772,7 +783,9 @@ export function usePartiuTodasSolicitacoesMotoristas(): UseQueryResult<PartiuMot
 export function useAprovarPartiuMotorista() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: string | { id: string; categoriaVeiculo?: "CARRO" | "MOTO" | "PLUS" | "MULHER" }) => {
+    mutationFn: async (
+      payload: string | { id: string; categoriaVeiculo?: "CARRO" | "MOTO" | "PLUS" | "MULHER" },
+    ) => {
       const id = typeof payload === "string" ? payload : payload.id;
       const categoriaVeiculo = typeof payload === "string" ? undefined : payload.categoriaVeiculo;
       try {
@@ -792,7 +805,9 @@ export function useAprovarPartiuMotorista() {
           .from("profiles")
           .update({ approval_status: "aprovado" })
           .eq("id", targetUserId);
-      } catch (err) { silentCatchWarn("partiu-db", err); }
+      } catch (err) {
+        silentCatchWarn("partiu-db", err);
+      }
 
       if (typeof window !== "undefined") {
         try {
@@ -808,7 +823,9 @@ export function useAprovarPartiuMotorista() {
               localStorage.setItem("partiu_motoristas_store", JSON.stringify(list));
             }
           }
-        } catch (err) { silentCatchWarn("partiu-db", err); }
+        } catch (err) {
+          silentCatchWarn("partiu-db", err);
+        }
       }
     },
     onSuccess: () => {
@@ -834,7 +851,9 @@ export function useAtualizarCategoriaMotorista() {
           .from("partiu_motoristas")
           .update({ categoria_veiculo: categoria })
           .eq("id", id);
-      } catch (err) { silentCatchWarn("partiu-db", err); }
+      } catch (err) {
+        silentCatchWarn("partiu-db", err);
+      }
 
       if (typeof window !== "undefined") {
         try {
@@ -847,7 +866,9 @@ export function useAtualizarCategoriaMotorista() {
               localStorage.setItem("partiu_motoristas_store", JSON.stringify(list));
             }
           }
-        } catch (err) { silentCatchWarn("partiu-db", err); }
+        } catch (err) {
+          silentCatchWarn("partiu-db", err);
+        }
       }
     },
     onSuccess: () => {
@@ -875,7 +896,9 @@ export function useRejeitarPartiuMotorista() {
           .from("profiles")
           .update({ approval_status: "rejeitado", rejection_reason: motivo })
           .eq("id", targetUserId);
-      } catch (err) { silentCatchWarn("partiu-db", err); }
+      } catch (err) {
+        silentCatchWarn("partiu-db", err);
+      }
 
       if (typeof window !== "undefined") {
         try {
@@ -889,7 +912,9 @@ export function useRejeitarPartiuMotorista() {
               localStorage.setItem("partiu_motoristas_store", JSON.stringify(list));
             }
           }
-        } catch (err) { silentCatchWarn("partiu-db", err); }
+        } catch (err) {
+          silentCatchWarn("partiu-db", err);
+        }
       }
     },
     onSuccess: () => {

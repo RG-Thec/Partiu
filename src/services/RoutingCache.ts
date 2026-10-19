@@ -85,7 +85,9 @@ export class RoutingCache {
     if (typeof window !== "undefined") {
       try {
         localStorage.removeItem(CACHE_STORAGE_KEY);
-      } catch (err) { silentCatchWarn("RoutingCache", err); }
+      } catch (err) {
+        silentCatchWarn("RoutingCache", err);
+      }
     }
   }
 
@@ -102,7 +104,9 @@ export class RoutingCache {
           }
         }
       }
-    } catch (err) { silentCatchWarn("RoutingCache", err); }
+    } catch (err) {
+      silentCatchWarn("RoutingCache", err);
+    }
   }
 
   private persistToStorage(): void {
@@ -115,7 +119,9 @@ export class RoutingCache {
         obj[key] = data;
       }
       localStorage.setItem(CACHE_STORAGE_KEY, JSON.stringify(obj));
-    } catch (err) { silentCatchWarn("RoutingCache", err); }
+    } catch (err) {
+      silentCatchWarn("RoutingCache", err);
+    }
   }
 }
 

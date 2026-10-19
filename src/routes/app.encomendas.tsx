@@ -1,13 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Car,
-  Clock,
-  ShieldCheck,
-  Menu,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, Car, Clock, ShieldCheck, Menu } from "lucide-react";
 import { DeliveryProvider, useDelivery } from "@/contexts/DeliveryContext";
 import { DeliverySetupDashboard } from "@/components/delivery/DeliverySetupDashboard";
 import { DeliveryContactFormScreen } from "@/components/delivery/DeliveryContactFormScreen";
@@ -43,10 +36,7 @@ function PartiuEncomendasRoot() {
 }
 
 function PartiuEncomendasContent() {
-  const {
-    status,
-    ordemAtiva,
-  } = useDelivery();
+  const { status, ordemAtiva } = useDelivery();
   const { corPrimaria, corTextoPrimaria } = useBrandTheme();
 
   const [drawerAberto, setDrawerAberto] = useState(false);
@@ -111,10 +101,10 @@ function PartiuEncomendasContent() {
       status === "AWAITING_PICKUP"
         ? "A_CAMINHO"
         : status === "IN_TRANSIT"
-        ? "EM_VIAGEM"
-        : status === "ARRIVED_DESTINATION"
-        ? "CHEGOU"
-        : "CONCLUIDA";
+          ? "EM_VIAGEM"
+          : status === "ARRIVED_DESTINATION"
+            ? "CHEGOU"
+            : "CONCLUIDA";
 
     return (
       <div className="relative w-full h-[100dvh] flex flex-col bg-slate-100 overflow-hidden font-sans">

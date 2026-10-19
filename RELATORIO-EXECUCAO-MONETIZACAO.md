@@ -5,6 +5,7 @@
 Este documento formaliza a conclusão da reestruturação técnica e consolidação do ecossistema de monetização do Partiu. A intervenção eliminou a dispersão e as inconsistências catalogadas no relatório forense `ESTADO-ATUAL-MONETIZACAO.md`, garantindo alinhamento total ao modelo de negócio: **SaaS puro para motoristas com 0% de retenção (taxa zero) sobre corridas convencionais de mobilidade urbana**.
 
 A intervenção cobriu:
+
 1. Unificação da hierarquia de planos com precedência determinística: customização do tenant > catálogo canônico persistido (`monetization_plans`) > fallback em memória.
 2. Blindagem arquitetural da regra de 0% de comissão em banco de dados (`chk_monetization_plans_zero_take_rate`) e no código-fonte de todos os motores periféricos.
 3. Centralização da autoridade de vigência e ciclo de vida das assinaturas no backend através de RPCs PostgreSQL (`fn_driver_evaluate_access`, `fn_driver_expire_subscriptions_batch`), eliminando bypasses em armazenamento local de navegador.
@@ -17,21 +18,24 @@ A intervenção cobriu:
 ## 2. Diagnóstico das Causas-Raiz e Decisões de Engenharia
 
 ### 2.1 Fragmentação e Divergência de Catálogos (Split-Brain)
+
 - **Causa-Raiz:** Diversos arquivos (`PixBillingService.ts`, `white-label-engine.ts`, `billing-engine.ts`, `superadmin-config.ts`, `generate-driver-payment/index.ts`) continham definições estáticas paralelas de planos com durações e preços díspares (por exemplo, planos semanais de R$ 34,90 a R$ 49,90 e diárias de R$ 9,90 a R$ 14,90). Além disso, o free trial apresentava cobranças residuais indevidas em algumas rotas.
 - **Decisão Técnica:** Estabeleceu-se uma hierarquia de três níveis com isolamento multi-tenant:
   1. Nível 1 (Máxima prioridade): Configuração explícita do franqueado (`white_label_tenant_configs.monetization.planos`).
   2. Nível 2 (Canônico padrão): Tabela relacional persistida `monetization_plans`.
   3. Nível 3 (Contingência offline): Catálogo canônico imutável de fallback em `PixBillingService.ts`.
-  Planos de trial gratuito foram travados em R$ 0,00 com 3 dias de vigência. Planos pagos foram travados com `trial_days = 0`.
+     Planos de trial gratuito foram travados em R$ 0,00 com 3 dias de vigência. Planos pagos foram travados com `trial_days = 0`.
 
 ### 2.2 Resíduos de Comissão sobre Corridas em Motores Periféricos
+
 - **Causa-Raiz:** Motores e interfaces mantinham configurações herdadas de comissão percentual variando entre 1% e 12% (`monetization.planos` no `white-label-engine.ts` e `configSuperAdminInicial` no `superadmin-config.ts`).
-- **Decisão Técnica:** 
+- **Decisão Técnica:**
   1. Aplicação de `CONSTRAINT chk_monetization_plans_zero_take_rate CHECK (commission_percent = 0.00)` na tabela de planos.
   2. Atualização dos defaults de white-label e superadministrador para 0.0% de taxa administrativa, 0.0% de taxa cooperativa e repasse integral de 100% ao motorista.
   3. Atualização do formulário administrativo em `app.admin.configuracoes.tsx` para taxa zero por padrão.
 
 ### 2.3 Bypass de Cliente e Ausência de Autoridade Central no Ciclo de Vida
+
 - **Causa-Raiz:** O método `evaluateDriverAccess` consultava chaves locais (`localStorage`) antes de verificar a nuvem, permitindo que motoristas manipulassem datas no navegador para obter acesso indevido sem validação do backend. Adicionalmente, as rotinas de expiração e cortesia dependiam de cliques manuais em tela.
 - **Decisão Técnica:**
   1. Refatoração de `PixBillingService.evaluateDriverAccess` para consultar prioritariamente a RPC `fn_driver_evaluate_access` no PostgreSQL.
@@ -39,6 +43,7 @@ A intervenção cobriu:
   3. Criação da RPC `fn_admin_monetization_override` com persistência obrigatória na tabela `monetization_admin_audit_logs`.
 
 ### 2.4 Acoplamento entre Débito de Assinatura e Saques de Corridas
+
 - **Causa-Raiz:** No arquivo `billing-engine.ts`, o parâmetro `autoDeductOnWithdrawal` vinha configurado como `true`, gerando retenção automática do saldo de corridas para abater débitos de mensalidade.
 - **Decisão Técnica:** O parâmetro padrão foi alterado para `autoDeductOnWithdrawal: false`. O saldo de corridas do motorista permanece intocado. O acesso é bloqueado de forma fail-closed caso a assinatura expire, sem retenções indiretas não acordadas.
 
@@ -47,6 +52,7 @@ A intervenção cobriu:
 ## 3. Inventário Completo de Arquivos e Linhas Modificados
 
 ### 3.1 Migração de Banco de Dados
+
 - **`supabase/migrations/20261011_monetization_canonical_consolidation.sql`** (Novo)
   - Criação da tabela `monetization_plans` e inserção dos planos canônicos (Diário R$ 9,90, Semanal R$ 39,90, Quinzenal R$ 69,90, Mensal R$ 119,90, Anual R$ 1.190,00 e Trial Gratuito R$ 0,00).
   - Adição da coluna `tenant_id` e índices compostos em `driver_subscriptions`, `driver_billing` e `subscription_events`.
@@ -55,6 +61,7 @@ A intervenção cobriu:
   - Configuração de políticas de segurança Row Level Security (RLS) para isolamento por tenant.
 
 ### 3.2 Motores e Serviços de Backend e Frontend
+
 - **`src/services/subscription/PixBillingService.ts`**
   - Refatoração do catálogo canônico com validação estrita de trial e preços em centavos e reais.
   - Inclusão obrigatória de `tenant_id` em cobranças e registros de faturamento.
@@ -81,6 +88,7 @@ A intervenção cobriu:
   - Tipagem defensiva na leitura de `tenantMonetization` para evitar falhas em tempo de execução.
 
 ### 3.3 Testes e Documentação
+
 - **`test/monetization-ecosystem-consolidation.test.ts`** (Novo)
   - 8 testes cobrindo catálogo canônico, taxa zero, ciclo Pix, idempotência, avaliação de acesso, auditoria e métricas.
 - **`test/run-all-tests.mjs`**
@@ -124,20 +132,21 @@ Arquivo: `supabase/migrations/20261011_monetization_canonical_consolidation.sql`
 
 ## 5. Blindagens Implementadas contra Regressão
 
-| Vulnerabilidade Anterior | Risco de Negócio | Mecanismo de Blindagem Implementado | Camada de Proteção |
-| :--- | :--- | :--- | :--- |
-| Planos com comissão de 1% a 12% | Descumprimento da promessa de taxa zero aos motoristas | `CHECK (commission_percent = 0.00)` e código normalizado em todos os motores | Banco de dados e Aplicação |
-| Bypass de validade no cliente (`localStorage`) | Motorista trafegando sem pagar mensalidade alterando data no navegador | `fn_driver_evaluate_access` com fail-closed obrigatório via RPC | Backend PostgreSQL |
-| Cobrança residual em plano de trial | Desconfiança e atrito no primeiro uso | `CHECK` relacional e validação no `PixBillingService` (`trial_days > 0 => R$ 0,00`) | Banco de dados e Aplicação |
-| Saque de corridas retendo mensalidade | Reclamações de apropriação indevida de saldo de corridas | `autoDeductOnWithdrawal: false` por padrão em `billing-engine.ts` | Aplicação |
-| Bloqueio ou cortesia sem rastro | Fraude interna ou suporte concedendo dias sem justificativa | `fn_admin_monetization_override` exigindo motivo e gerando log imutável | Banco de dados |
-| Processamento repetido de webhook Pix | Extensão indevida de vigência por reentrega de mensagem | Idempotência transacional por `idempotency_key` e `txid` | Aplicação e Banco de dados |
+| Vulnerabilidade Anterior                       | Risco de Negócio                                                       | Mecanismo de Blindagem Implementado                                                 | Camada de Proteção         |
+| :--------------------------------------------- | :--------------------------------------------------------------------- | :---------------------------------------------------------------------------------- | :------------------------- |
+| Planos com comissão de 1% a 12%                | Descumprimento da promessa de taxa zero aos motoristas                 | `CHECK (commission_percent = 0.00)` e código normalizado em todos os motores        | Banco de dados e Aplicação |
+| Bypass de validade no cliente (`localStorage`) | Motorista trafegando sem pagar mensalidade alterando data no navegador | `fn_driver_evaluate_access` com fail-closed obrigatório via RPC                     | Backend PostgreSQL         |
+| Cobrança residual em plano de trial            | Desconfiança e atrito no primeiro uso                                  | `CHECK` relacional e validação no `PixBillingService` (`trial_days > 0 => R$ 0,00`) | Banco de dados e Aplicação |
+| Saque de corridas retendo mensalidade          | Reclamações de apropriação indevida de saldo de corridas               | `autoDeductOnWithdrawal: false` por padrão em `billing-engine.ts`                   | Aplicação                  |
+| Bloqueio ou cortesia sem rastro                | Fraude interna ou suporte concedendo dias sem justificativa            | `fn_admin_monetization_override` exigindo motivo e gerando log imutável             | Banco de dados             |
+| Processamento repetido de webhook Pix          | Extensão indevida de vigência por reentrega de mensagem                | Idempotência transacional por `idempotency_key` e `txid`                            | Aplicação e Banco de dados |
 
 ---
 
 ## 6. Resultados da Execução dos Testes e Validação
 
 A bateria de testes automatizados foi executada e validada:
+
 - **Suíte de Testes Automatizados:** 404 testes executados via `npm test` (`test/run-all-tests.mjs`).
   - Total de testes: **404**
   - Testes com sucesso: **404**
@@ -150,17 +159,18 @@ A bateria de testes automatizados foi executada e validada:
 ## 7. Riscos Residuais, Limitações e Mitigações
 
 1. **Execução Agendada da Expiração em Nuvem:**
-   - *Situação:* A função `fn_driver_expire_subscriptions_batch()` foi criada com execução transacional e idempotente no PostgreSQL. Em ambientes locais ou sem a extensão `pg_cron` habilitada no Supabase, a chamada periódica precisa ser disparada por um agendador externo (Supabase Edge Function via CRON ou cron job no servidor de aplicação).
-   - *Mitigação:* A função `fn_driver_evaluate_access()` verifica o carimbo de data/hora dinamicamente em tempo real. Mesmo que o lote de expiração não tenha rodado no minuto exato do vencimento, o motorista é bloqueado imediatamente na tentativa de acesso caso `current_period_end < now()`.
+   - _Situação:_ A função `fn_driver_expire_subscriptions_batch()` foi criada com execução transacional e idempotente no PostgreSQL. Em ambientes locais ou sem a extensão `pg_cron` habilitada no Supabase, a chamada periódica precisa ser disparada por um agendador externo (Supabase Edge Function via CRON ou cron job no servidor de aplicação).
+   - _Mitigação:_ A função `fn_driver_evaluate_access()` verifica o carimbo de data/hora dinamicamente em tempo real. Mesmo que o lote de expiração não tenha rodado no minuto exato do vencimento, o motorista é bloqueado imediatamente na tentativa de acesso caso `current_period_end < now()`.
 2. **Migrações de Ambientes de Produção:**
-   - *Situação:* A migração SQL precisa ser aplicada ao banco de dados Supabase de produção através do dashboard ou do Supabase CLI (`supabase db push`).
-   - *Mitigação:* A migração foi projetada de forma estritamente idempotente com cláusulas `IF NOT EXISTS`, `OR REPLACE` e `ON CONFLICT DO NOTHING`.
+   - _Situação:_ A migração SQL precisa ser aplicada ao banco de dados Supabase de produção através do dashboard ou do Supabase CLI (`supabase db push`).
+   - _Mitigação:_ A migração foi projetada de forma estritamente idempotente com cláusulas `IF NOT EXISTS`, `OR REPLACE` e `ON CONFLICT DO NOTHING`.
 
 ---
 
 ## 8. Procedimentos de Rollout e Rollback para Produção
 
 ### Procedimento de Rollout
+
 1. Aplicar a migração `supabase/migrations/20261011_monetization_canonical_consolidation.sql` no banco de dados do projeto.
 2. Confirmar a existência e o estado dos planos via query:
    ```sql
@@ -170,7 +180,9 @@ A bateria de testes automatizados foi executada e validada:
 4. Executar verificação de faturamento simulando a consulta de acesso de um motorista com a RPC `fn_driver_evaluate_access`.
 
 ### Procedimento de Rollback
+
 Caso ocorra qualquer instabilidade imprevista no ambiente:
+
 1. Reverter o deploy dos arquivos de aplicação para a versão anterior via Git.
 2. Como a migração SQL apenas adiciona novas tabelas, colunas opcionais (`tenant_id`) e funções RPC sem remover dados pré-existentes, não há necessidade de rollback destrutivo de schema.
 3. Se necessário remover restrições adicionadas:

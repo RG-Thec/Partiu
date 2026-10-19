@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { X, Star, Plus, Trash2, ArrowLeft, Loader2, MapPin } from "lucide-react";
 import { addressService, type UserAddressItem } from "@/services/AddressService";
-import {
-  geocodingService,
-  type GeocodedPlace,
-} from "@/lib/passenger/geocoding-service";
+import { geocodingService, type GeocodedPlace } from "@/lib/passenger/geocoding-service";
 import { calcularDistanciaHaversine } from "@/lib/passenger/eta-service";
 import { usePassengerRide } from "@/contexts/PassengerRideContext";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
@@ -15,7 +12,14 @@ export interface FavoritesManagerModalProps {
   onSelectFavorite: (endereco: string, coords: [number, number], label: string) => void;
 }
 
-const RÓTULOS_SUGERIDOS = ["Faculdade", "Academia", "Casa da Mãe", "Igreja", "Consultório", "Escola"];
+const RÓTULOS_SUGERIDOS = [
+  "Faculdade",
+  "Academia",
+  "Casa da Mãe",
+  "Igreja",
+  "Consultório",
+  "Escola",
+];
 
 export function FavoritesManagerModal({
   isOpen,
@@ -96,7 +100,11 @@ export function FavoritesManagerModal({
   async function handleSalvarFavorito() {
     if (!lugarSelecionado) return;
     const labelFinal = nomeCustomizado.trim() || lugarSelecionado.label || "Favorito";
-    await addressService.saveFavorito(labelFinal, lugarSelecionado.endereco, lugarSelecionado.coords);
+    await addressService.saveFavorito(
+      labelFinal,
+      lugarSelecionado.endereco,
+      lugarSelecionado.coords,
+    );
     carregarFavoritos();
     setModoAdicionar(false);
     setLugarSelecionado(null);
@@ -190,9 +198,7 @@ export function FavoritesManagerModal({
                   <p className="text-sm font-bold text-slate-900 mt-1 leading-snug">
                     {lugarSelecionado.label}
                   </p>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    {lugarSelecionado.endereco}
-                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5">{lugarSelecionado.endereco}</p>
                 </div>
 
                 <div className="pt-2">
@@ -221,7 +227,11 @@ export function FavoritesManagerModal({
                         onClick={() => setNomeCustomizado(rotulo)}
                         style={
                           nomeCustomizado === rotulo
-                            ? { backgroundColor: colors.primary, color: colors.surface, borderColor: colors.primary }
+                            ? {
+                                backgroundColor: colors.primary,
+                                color: colors.surface,
+                                borderColor: colors.primary,
+                              }
                             : undefined
                         }
                         className={`px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer border ${
@@ -265,7 +275,9 @@ export function FavoritesManagerModal({
                     autoFocus
                     className="w-full text-sm font-medium text-slate-900 bg-transparent placeholder:text-slate-400 outline-none caret-amber-500"
                   />
-                  {carregando && <Loader2 className="w-4 h-4 text-slate-400 animate-spin shrink-0" />}
+                  {carregando && (
+                    <Loader2 className="w-4 h-4 text-slate-400 animate-spin shrink-0" />
+                  )}
                 </div>
               </div>
 
@@ -285,7 +297,9 @@ export function FavoritesManagerModal({
                     </div>
                     <div className="flex-1 min-w-0 pr-2">
                       <p className="text-sm font-bold text-slate-900 truncate">{lugar.label}</p>
-                      <p className="text-xs text-slate-500 truncate mt-0.5 font-normal">{lugar.endereco}</p>
+                      <p className="text-xs text-slate-500 truncate mt-0.5 font-normal">
+                        {lugar.endereco}
+                      </p>
                     </div>
                   </button>
                 ))}
@@ -350,7 +364,11 @@ export function FavoritesManagerModal({
                       <p className="text-sm font-bold text-slate-900 truncate">{fav.label}</p>
                       <p className="text-xs text-slate-500 truncate mt-0.5">{fav.endereco}</p>
                     </div>
-                    {dist && <span className="text-xs font-semibold text-slate-400 shrink-0 mr-1">{dist}</span>}
+                    {dist && (
+                      <span className="text-xs font-semibold text-slate-400 shrink-0 mr-1">
+                        {dist}
+                      </span>
+                    )}
                     <button
                       type="button"
                       onClick={(e) => handleRemover(fav.id, e)}

@@ -137,7 +137,15 @@ export interface CardMobilidadeVantagem {
   subtitulo: string;
   corFundo: string;
   corDestaque: string;
-  tipoIcone?: "pin_seguranca" | "entrega_flash" | "rota_ao_vivo" | "agendamento" | "desconto" | "personalizado" | "mulher" | "suporte";
+  tipoIcone?:
+    | "pin_seguranca"
+    | "entrega_flash"
+    | "rota_ao_vivo"
+    | "agendamento"
+    | "desconto"
+    | "personalizado"
+    | "mulher"
+    | "suporte";
   imagemUrl?: string;
   linkDestino: string;
   ativo: boolean;
@@ -210,20 +218,20 @@ export interface ConfigMonetizacaoWhiteLabel {
 
 export const configMonetizacaoInicial: ConfigMonetizacaoWhiteLabel = {
   diariaAtiva: true,
-  diariaCarro: 19.90,
-  diariaMoto: 11.90,
+  diariaCarro: 19.9,
+  diariaMoto: 11.9,
   semanalAtivo: true,
-  semanalCarro: 99.00,
-  semanalMoto: 59.00,
+  semanalCarro: 99.0,
+  semanalMoto: 59.0,
   mensalAtivo: true,
-  mensalCarro: 349.00,
-  mensalMoto: 199.00,
+  mensalCarro: 349.0,
+  mensalMoto: 199.0,
   trialAtivo: true,
   trialDias: 7,
   programaIndicacaoAtivo: true,
   programaIndicacaoDiasBonus: 3,
   clubeVipPassageiroAtivo: true,
-  clubeVipPrecoMensal: 19.90,
+  clubeVipPrecoMensal: 19.9,
   clubeBeneficiosParceriasAtivo: true,
   chavePixAdmin: "financeiro@partiu.app",
   tipoChavePixAdmin: "email",
@@ -253,7 +261,8 @@ export const bannersIniciais: BannerApp[] = [
     titulo: "Vá de PARTIU Pop com 20% OFF",
     subtitulo: "Use o cupom PARTIU10 na sua próxima corrida urbana com ar-condicionado",
     extra: "Carros Confortáveis",
-    imagem: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&auto=format&fit=crop&q=80",
+    imagem:
+      "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&auto=format&fit=crop&q=80",
     linkDestino: "/app",
     ordem: 1,
     ativo: true,
@@ -264,7 +273,8 @@ export const bannersIniciais: BannerApp[] = [
     titulo: "Envie Documentos e Pacotes em Minutos",
     subtitulo: "Motoboys com rastreamento GPS e confirmação de entrega via PIN",
     extra: "A partir de R$ 9,90",
-    imagem: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800&auto=format&fit=crop&q=80",
+    imagem:
+      "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800&auto=format&fit=crop&q=80",
     linkDestino: "/app/encomendas",
     ordem: 2,
     ativo: true,
@@ -275,7 +285,8 @@ export const bannersIniciais: BannerApp[] = [
     titulo: "Passe Taxa Zero: 100% Repasse no PIX D+0",
     subtitulo: "Fature sem comissões abusivas e receba seus ganhos no mesmo dia",
     extra: "Saque Instantâneo",
-    imagem: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
+    imagem:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
     linkDestino: "/app/motorista",
     ordem: 3,
     ativo: true,
@@ -286,7 +297,8 @@ export const bannersIniciais: BannerApp[] = [
     titulo: "Partiu Mulher: Conexão Entre Elas",
     subtitulo: "Passageiras e condutoras mulheres com botão SOS 190 monitorado",
     extra: "100% Monitorado",
-    imagem: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&auto=format&fit=crop&q=80",
+    imagem:
+      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&auto=format&fit=crop&q=80",
     linkDestino: "/app",
     ordem: 4,
     ativo: true,
@@ -417,7 +429,8 @@ export const bannersComunicacaoIniciais: BannerComunicacao[] = [
     subtitulo: "Passageiros e motoristas da cidade têm até R$ 0,20 de desconto por litro.",
     botaoTexto: "Ver Oferta",
     linkDestino: "/app",
-    imagemUrl: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=500&auto=format&fit=crop&q=80",
+    imagemUrl:
+      "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=500&auto=format&fit=crop&q=80",
   },
   {
     id: "parceiro-2",
@@ -427,7 +440,8 @@ export const bannersComunicacaoIniciais: BannerComunicacao[] = [
     subtitulo: "Desconto imediato em medicamentos e perfumaria apresentando seu app.",
     botaoTexto: "Ativar Cupom",
     linkDestino: "/app",
-    imagemUrl: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=80",
+    imagemUrl:
+      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=80",
   },
   {
     id: "parceiro-3",
@@ -437,7 +451,8 @@ export const bannersComunicacaoIniciais: BannerComunicacao[] = [
     subtitulo: "Alinhamento computadorizado e troca de óleo com condições facilitadas.",
     botaoTexto: "Agendar Agora",
     linkDestino: "/app",
-    imagemUrl: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=500&auto=format&fit=crop&q=80",
+    imagemUrl:
+      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=500&auto=format&fit=crop&q=80",
   },
   {
     id: "parceiro-4",
@@ -447,7 +462,8 @@ export const bannersComunicacaoIniciais: BannerComunicacao[] = [
     subtitulo: "Proteção veicular com socorro 24h para motoristas e passageiros.",
     botaoTexto: "Simular Proteção",
     linkDestino: "/app",
-    imagemUrl: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=500&auto=format&fit=crop&q=80",
+    imagemUrl:
+      "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=500&auto=format&fit=crop&q=80",
   },
 ];
 
@@ -460,7 +476,8 @@ export const cardsMobilidadeIniciais: CardMobilidadeVantagem[] = [
     corFundo: "#EFF6FF",
     corDestaque: "#2563EB",
     tipoIcone: "pin_seguranca",
-    imagemUrl: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=500&auto=format&fit=crop&q=80",
+    imagemUrl:
+      "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=500&auto=format&fit=crop&q=80",
     linkDestino: "/app",
     ativo: true,
   },
@@ -472,7 +489,8 @@ export const cardsMobilidadeIniciais: CardMobilidadeVantagem[] = [
     corFundo: "#ECFDF5",
     corDestaque: "#059669",
     tipoIcone: "entrega_flash",
-    imagemUrl: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=80",
+    imagemUrl:
+      "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=500&auto=format&fit=crop&q=80",
     linkDestino: "/app/encomendas",
     ativo: true,
   },
@@ -484,7 +502,8 @@ export const cardsMobilidadeIniciais: CardMobilidadeVantagem[] = [
     corFundo: "#FEF3C7",
     corDestaque: "#D97706",
     tipoIcone: "rota_ao_vivo",
-    imagemUrl: "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=500&auto=format&fit=crop&q=80",
+    imagemUrl:
+      "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=500&auto=format&fit=crop&q=80",
     linkDestino: "/app",
     ativo: true,
   },
@@ -496,7 +515,8 @@ export const cardsMobilidadeIniciais: CardMobilidadeVantagem[] = [
     corFundo: "#F3E8FF",
     corDestaque: "#7C3AED",
     tipoIcone: "desconto",
-    imagemUrl: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=500&auto=format&fit=crop&q=80",
+    imagemUrl:
+      "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=500&auto=format&fit=crop&q=80",
     linkDestino: "/app",
     ativo: true,
   },
@@ -508,7 +528,8 @@ export const cardsMobilidadeIniciais: CardMobilidadeVantagem[] = [
     corFundo: "#FDF2F8",
     corDestaque: "#DB2777",
     tipoIcone: "mulher",
-    imagemUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=500&auto=format&fit=crop&q=80",
+    imagemUrl:
+      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=500&auto=format&fit=crop&q=80",
     linkDestino: "/app",
     ativo: true,
   },
@@ -520,7 +541,8 @@ export const cardsMobilidadeIniciais: CardMobilidadeVantagem[] = [
     corFundo: "#F0FDF4",
     corDestaque: "#16A34A",
     tipoIcone: "suporte",
-    imagemUrl: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=500&auto=format&fit=crop&q=80",
+    imagemUrl:
+      "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=500&auto=format&fit=crop&q=80",
     linkDestino: "/app",
     ativo: true,
   },
@@ -671,14 +693,16 @@ export function getSuperAdminConfig(): ConfigSuperAdmin {
           },
           bannersComunicacao: parsed.identidade?.bannersComunicacao?.length
             ? parsed.identidade.bannersComunicacao
-            : (parsed.identidade?.bannerComunicacao
-                ? [parsed.identidade.bannerComunicacao, ...bannersComunicacaoIniciais.slice(1)]
-                : bannersComunicacaoIniciais),
+            : parsed.identidade?.bannerComunicacao
+              ? [parsed.identidade.bannerComunicacao, ...bannersComunicacaoIniciais.slice(1)]
+              : bannersComunicacaoIniciais,
           cardsMobilidade: parsed.identidade?.cardsMobilidade?.length
             ? parsed.identidade.cardsMobilidade.map((c: any, i: number) => ({
                 ...cardsMobilidadeIniciais[i % cardsMobilidadeIniciais.length],
                 ...c,
-                imagemUrl: c.imagemUrl || cardsMobilidadeIniciais[i % cardsMobilidadeIniciais.length]?.imagemUrl,
+                imagemUrl:
+                  c.imagemUrl ||
+                  cardsMobilidadeIniciais[i % cardsMobilidadeIniciais.length]?.imagemUrl,
               }))
             : cardsMobilidadeIniciais,
           bannerCredito: {
@@ -702,7 +726,9 @@ export function getMonetizacaoConfig(): ConfigMonetizacaoWhiteLabel {
   return conf.monetizacao || configMonetizacaoInicial;
 }
 
-export function saveMonetizacaoConfig(novaConfig: Partial<ConfigMonetizacaoWhiteLabel>): ConfigMonetizacaoWhiteLabel {
+export function saveMonetizacaoConfig(
+  novaConfig: Partial<ConfigMonetizacaoWhiteLabel>,
+): ConfigMonetizacaoWhiteLabel {
   const atual = getSuperAdminConfig();
   const monetizacaoAtualizada: ConfigMonetizacaoWhiteLabel = {
     ...configMonetizacaoInicial,
@@ -716,7 +742,7 @@ export function saveMonetizacaoConfig(novaConfig: Partial<ConfigMonetizacaoWhite
   saveSuperAdminConfig(configAtualizada);
   if (typeof window !== "undefined") {
     window.dispatchEvent(
-      new CustomEvent("partiu:monetizacao-atualizada", { detail: monetizacaoAtualizada })
+      new CustomEvent("partiu:monetizacao-atualizada", { detail: monetizacaoAtualizada }),
     );
   }
   return monetizacaoAtualizada;
@@ -729,12 +755,10 @@ export function saveSuperAdminConfig(config: ConfigSuperAdmin) {
     if (config.identidade) {
       aplicarTemaVisual(config.identidade);
       window.dispatchEvent(
-        new CustomEvent("partiu:identidade-atualizada", { detail: config.identidade })
+        new CustomEvent("partiu:identidade-atualizada", { detail: config.identidade }),
       );
     }
-    window.dispatchEvent(
-      new CustomEvent("partiu:banners-atualizados", { detail: config.banners })
-    );
+    window.dispatchEvent(new CustomEvent("partiu:banners-atualizados", { detail: config.banners }));
 
     // Sincronização em tempo real no banco Supabase (public.app_settings)
     try {

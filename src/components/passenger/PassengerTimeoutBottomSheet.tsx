@@ -1,12 +1,5 @@
 import React, { useEffect } from "react";
-import {
-  RotateCcw,
-  X,
-  Clock,
-  Car,
-  Zap,
-  ArrowRight,
-} from "lucide-react";
+import { RotateCcw, X, Clock, Car, Zap, ArrowRight } from "lucide-react";
 import { usePassengerRide } from "@/contexts/PassengerRideContext";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
 import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
@@ -49,10 +42,7 @@ export function PassengerTimeoutBottomSheet() {
       data-hide-bottom-nav="true"
       className="w-full max-w-md mx-auto px-4 pb-6 z-30 animate-in slide-in-from-bottom duration-300 mt-auto select-none"
     >
-      <NativeSurface
-        elevation={2}
-        className="p-6 space-y-4 text-center backdrop-blur-md"
-      >
+      <NativeSurface elevation={2} className="p-6 space-y-4 text-center backdrop-blur-md">
         {/* BARRA SUPERIOR INDICADORA DE ARRASTE / DISPENSA */}
         <div
           onTouchStart={(e) => {
@@ -93,8 +83,13 @@ export function PassengerTimeoutBottomSheet() {
                   <span>Motorista encontrado por perto!</span>
                   <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 </h5>
-                <p className="text-[11px] font-semibold truncate mt-0.5" style={{ color: colors.textSecondary }}>
-                  {recoveryDriver?.driverName ? `${recoveryDriver.driverName.split(" ")[0]} está a ${(recoveryDriver.distanceMeters / 1000).toFixed(1)} km` : "Deseja tentar novamente agora?"}
+                <p
+                  className="text-[11px] font-semibold truncate mt-0.5"
+                  style={{ color: colors.textSecondary }}
+                >
+                  {recoveryDriver?.driverName
+                    ? `${recoveryDriver.driverName.split(" ")[0]} está a ${(recoveryDriver.distanceMeters / 1000).toFixed(1)} km`
+                    : "Deseja tentar novamente agora?"}
                 </p>
               </div>
             </div>
@@ -152,7 +147,8 @@ export function PassengerTimeoutBottomSheet() {
             className="text-xs font-medium leading-relaxed max-w-xs mx-auto"
             style={{ color: colors.textSecondary }}
           >
-            Buscamos durante alguns minutos por condutores na sua região, mas todos estão ocupados neste instante. O que deseja fazer?
+            Buscamos durante alguns minutos por condutores na sua região, mas todos estão ocupados
+            neste instante. O que deseja fazer?
           </p>
         </div>
 
@@ -165,12 +161,18 @@ export function PassengerTimeoutBottomSheet() {
             borderRadius: ui.borderRadius,
           }}
         >
-          <div className="flex items-center justify-between text-[11px] font-bold" style={{ color: colors.textSecondary }}>
+          <div
+            className="flex items-center justify-between text-[11px] font-bold"
+            style={{ color: colors.textSecondary }}
+          >
             <span className="truncate max-w-[200px]">{origem}</span>
             <span>➔</span>
             <span className="truncate max-w-[140px] text-right">{destino}</span>
           </div>
-          <div className="flex items-center justify-between pt-1 border-t font-bold" style={{ borderColor: colors.inputBorder }}>
+          <div
+            className="flex items-center justify-between pt-1 border-t font-bold"
+            style={{ borderColor: colors.inputBorder }}
+          >
             <span style={{ color: colors.textPrimary }}>{cotacaoAtiva.nomeExibicao}</span>
             <span className="font-black" style={{ color: colors.primary }}>
               R$ {cotacaoAtiva.precoBrl.toFixed(2).replace(".", ",")}

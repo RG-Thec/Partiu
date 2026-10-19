@@ -1,4 +1,5 @@
 # GO-LIVE ALPHA PROTOCOL — PARTIU (PRAÇA PILOTO)
+
 ### Procedimento Operacional Padrão de Entrada em Produção Controlada
 
 > **Comitê de Liberação:**  
@@ -7,16 +8,18 @@
 > • Principal SRE & Principal Security Engineers  
 > **Status:** 🟢 Documento Homologado para a Fase Alpha da Praça Piloto  
 > **Área Piloto:** Perímetro Restrito de 4 km² (Centro Comercial & Gastronômico)  
-> **Frota Piloto:** 50 Condutores Fundadores Homologados  
+> **Frota Piloto:** 50 Condutores Fundadores Homologados
 
 ---
 
 ## 1. CRITÉRIOS DE CORTE (GO / NO-GO CRITERIA)
+
 A liberação da Praça Piloto obedece à regra de tolerância zero com relação a:
-* **Integridade Contábil:** 0 centavos de divergência entre o total pago pelo passageiro e a soma do repasse líquido do condutor (88%) + taxa da plataforma (12%).
-* **Concorrência do Trip Radar:** 0 ocorrências de duplo aceite ou corridas fantasmas sob teste de estresse de colisão.
-* **Latência de Matching:** Menos de 2 segundos para propagação da oferta nos aparelhos de todos os motoristas em raio de até 4 km.
-* **Conexão Realtime:** 100% dos eventos fluindo via Supabase Realtime Channels (eliminado isolamento em `localStorage`).
+
+- **Integridade Contábil:** 0 centavos de divergência entre o total pago pelo passageiro e a soma do repasse líquido do condutor (88%) + taxa da plataforma (12%).
+- **Concorrência do Trip Radar:** 0 ocorrências de duplo aceite ou corridas fantasmas sob teste de estresse de colisão.
+- **Latência de Matching:** Menos de 2 segundos para propagação da oferta nos aparelhos de todos os motoristas em raio de até 4 km.
+- **Conexão Realtime:** 100% dos eventos fluindo via Supabase Realtime Channels (eliminado isolamento em `localStorage`).
 
 ---
 
@@ -52,7 +55,9 @@ A liberação da Praça Piloto obedece à regra de tolerância zero com relaçã
 ---
 
 ## 3. PROCEDIMENTO DE ROLLBACK EMERGENCIAL
+
 Caso ocorra inconsistência bancária ou falha de conectividade generalizada:
+
 1. **Gatilho de Rollback:** Mais de 3 falhas consecutivas no gateway PIX ou divergência de saldo superior a R$ 0,00.
 2. **Ação:** O NOC executa o travamento imediato de novas solicitações através do comando administrativo de congelamento temporário da praça.
 3. **Comunicação:** Disparo de notificação aos 50 condutores informando pausa técnica de manutenção com garantia de rendimentos do período.

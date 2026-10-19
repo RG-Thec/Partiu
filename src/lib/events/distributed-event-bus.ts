@@ -1,6 +1,6 @@
 /**
  * PARTIU TITANIUM SHIELD — DISTRIBUTED EVENT BUS (EVENT-DRIVEN ARCHITECTURE)
- * 
+ *
  * Barramento de Eventos Distribuído Agnóstico:
  * - Compatível com Apache Kafka, RabbitMQ, AWS SQS e Redis Streams
  * - Tópicos Estruturados:
@@ -13,26 +13,26 @@
  */
 
 export type DistributedTopic =
-  | 'trip.requested'
-  | 'trip.accepted'
-  | 'trip.started'
-  | 'trip.completed'
-  | 'trip.cancelled'
-  | 'payment.pix_received'
-  | 'payment.cashout_settled'
-  | 'payment.ledger_posted'
-  | 'driver.online'
-  | 'driver.offline'
-  | 'driver.location_ping'
-  | 'corporate.trip_approved'
-  | 'corporate.invoice_closed'
-  | 'franchise.royalty_accrued'
-  | 'franchise.metric_updated';
+  | "trip.requested"
+  | "trip.accepted"
+  | "trip.started"
+  | "trip.completed"
+  | "trip.cancelled"
+  | "payment.pix_received"
+  | "payment.cashout_settled"
+  | "payment.ledger_posted"
+  | "driver.online"
+  | "driver.offline"
+  | "driver.location_ping"
+  | "corporate.trip_approved"
+  | "corporate.invoice_closed"
+  | "franchise.royalty_accrued"
+  | "franchise.metric_updated";
 
 export interface DistributedEvent<T = any> {
   eventId: string;
   topic: DistributedTopic;
-  partitionKey: string;     // Ex: cityId ou driverId para afinidade de partição Kafka
+  partitionKey: string; // Ex: cityId ou driverId para afinidade de partição Kafka
   timestamp: number;
   correlationId: string;
   source: string;
@@ -43,7 +43,7 @@ export interface DistributedEvent<T = any> {
 export type DistributedEventHandler<T = any> = (event: DistributedEvent<T>) => Promise<void> | void;
 
 export interface BrokerAdapter {
-  name: 'KAFKA' | 'RABBITMQ' | 'AWS_SQS' | 'REDIS_STREAMS' | 'IN_MEMORY_CLUSTER';
+  name: "KAFKA" | "RABBITMQ" | "AWS_SQS" | "REDIS_STREAMS" | "IN_MEMORY_CLUSTER";
   publish(event: DistributedEvent): Promise<boolean>;
   subscribe(topic: DistributedTopic, handler: DistributedEventHandler): () => void;
 }
@@ -58,7 +58,7 @@ export class DistributedEventBus {
   private constructor() {
     // Adapter padrão in-memory com bufferização assíncrona
     this.activeAdapter = {
-      name: 'IN_MEMORY_CLUSTER',
+      name: "IN_MEMORY_CLUSTER",
       publish: async (event) => {
         const handlers = this.subscribers.get(event.topic);
         if (handlers) {
@@ -80,7 +80,7 @@ export class DistributedEventBus {
         return () => {
           this.subscribers.get(topic)?.delete(handler);
         };
-      }
+      },
     };
   }
 
@@ -106,7 +106,7 @@ export class DistributedEventBus {
     topic: DistributedTopic,
     partitionKey: string,
     payload: T,
-    correlationId?: string
+    correlationId?: string,
   ): Promise<DistributedEvent<T>> {
     const timestamp = Date.now();
     const eventId = `EVT-${timestamp}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
@@ -116,10 +116,11 @@ export class DistributedEventBus {
       topic,
       partitionKey,
       timestamp,
-      correlationId: correlationId || `corr_${timestamp}_${Math.random().toString(36).substring(2, 6)}`,
-      source: 'partiu.core-os',
+      correlationId:
+        correlationId || `corr_${timestamp}_${Math.random().toString(36).substring(2, 6)}`,
+      source: "partiu.core-os",
       payload,
-      retryCount: 0
+      retryCount: 0,
     };
 
     // Deduplicação de emissão
@@ -143,9 +144,12 @@ export class DistributedEventBus {
     const retries = (event.retryCount || 0) + 1;
     if (retries <= 3) {
       // Retry com backoff
-      setTimeout(() => {
-        void this.activeAdapter.publish({ ...event, retryCount: retries });
-      }, Math.pow(2, retries) * 100);
+      setTimeout(
+        () => {
+          void this.activeAdapter.publish({ ...event, retryCount: retries });
+        },
+        Math.pow(2, retries) * 100,
+      );
     } else {
       console.error(`[DistributedEventBus] Evento ${event.eventId} movido para DLQ. Erro:`, error);
       this.deadLetterQueue.push(event);
@@ -158,7 +162,7 @@ export class DistributedEventBus {
   public getDlqMetrics(): { dlqCount: number; processedCount: number } {
     return {
       dlqCount: this.deadLetterQueue.length,
-      processedCount: this.processedEventIds.size
+      processedCount: this.processedEventIds.size,
     };
   }
 }

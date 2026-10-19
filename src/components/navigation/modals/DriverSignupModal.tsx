@@ -170,16 +170,24 @@ export function DriverSignupModal({
               type="submit"
               disabled={enviando}
               className="w-full py-3 rounded-xl font-bold text-xs shadow-md active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
-              style={{ backgroundColor: corPrimaria || "#FF6B00", color: corTextoPrimaria || "#FFFFFF" }}
+              style={{
+                backgroundColor: corPrimaria || "#FF6B00",
+                color: corTextoPrimaria || "#FFFFFF",
+              }}
             >
               {enviando ? "Enviando Dados..." : "Enviar Candidatura Expressa"}
             </button>
 
             <p className="text-[10px] text-slate-400 text-center">
               Você também pode fazer o cadastro completo com CNH em{" "}
-              <Link to="/cadastro-motorista" onClick={onClose} className="underline font-bold text-slate-600">
+              <Link
+                to="/cadastro-motorista"
+                onClick={onClose}
+                className="underline font-bold text-slate-600"
+              >
                 cadastro completo
-              </Link>.
+              </Link>
+              .
             </p>
           </form>
         )}

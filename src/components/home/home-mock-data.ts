@@ -26,7 +26,8 @@ export interface UserProfileMock {
 // 1. Mock do Perfil do Usuário Oficial (Lealt Recomendado/2.png e 9.png)
 export const USER_PROFILE_MOCK: UserProfileMock = {
   nome: "Rodrigo Gomes",
-  avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+  avatarUrl:
+    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
   iniciais: "RG",
 };
 
@@ -43,7 +44,8 @@ export const PROMO_BANNERS_MOCK: PromoBannerItem[] = [
     cupom: "PARTIU20",
     corGradiente: "from-primary-600 via-primary-600 to-yellow-500 text-slate-950",
     tagCor: "bg-black text-primary-500",
-    imagemUrl: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&auto=format&fit=crop&q=80",
+    imagemUrl:
+      "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: "banner-2",
@@ -53,7 +55,8 @@ export const PROMO_BANNERS_MOCK: PromoBannerItem[] = [
     cupom: "FLASHENVIO",
     corGradiente: "from-slate-900 via-slate-800 to-slate-900 text-white",
     tagCor: "bg-primary-600 text-slate-950",
-    imagemUrl: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=800&auto=format&fit=crop&q=80",
+    imagemUrl:
+      "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: "banner-3",
@@ -63,6 +66,7 @@ export const PROMO_BANNERS_MOCK: PromoBannerItem[] = [
     cupom: "AMIGOPARTIU",
     corGradiente: "from-blue-600 via-indigo-600 to-indigo-800 text-white",
     tagCor: "bg-white text-blue-900",
-    imagemUrl: "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?w=800&auto=format&fit=crop&q=80",
+    imagemUrl:
+      "https://images.unsplash.com/photo-1512499617640-c74ae3a79d37?w=800&auto=format&fit=crop&q=80",
   },
 ];

@@ -119,7 +119,9 @@ describe("Coupon System & Driver Daily Fee Subsidy Lifecycle", () => {
 
       await couponService.saveAdminCoupon(newCoupon);
       let list = await couponService.listAdminCoupons();
-      expect(list.some((c) => c.codigo === "PROMOADMIN" || (c as any).code === "PROMOADMIN")).toBe(true);
+      expect(list.some((c) => c.codigo === "PROMOADMIN" || (c as any).code === "PROMOADMIN")).toBe(
+        true,
+      );
 
       // Toggle status (desativa)
       await couponService.toggleAdminCoupon("PROMOADMIN", false);
@@ -164,7 +166,7 @@ describe("Coupon System & Driver Daily Fee Subsidy Lifecycle", () => {
       const pixPayment = driverSubscriptionService.generatePixDailyPayment(
         driverId,
         "CARRO",
-        "DAILY"
+        "DAILY",
       );
 
       // Valor final do PIX deve ser R$ 19,90 - R$ 6,00 = R$ 13,90

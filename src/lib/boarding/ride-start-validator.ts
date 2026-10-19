@@ -1,6 +1,6 @@
 /**
  * SMART PASSENGER BOARDING ENGINE — RIDE START VALIDATOR
- * 
+ *
  * Validador anti-fraude para autorização de início de viagem.
  * Previne corridas fantasmas (ghost rides), início prematuro e desvios de geofence.
  */
@@ -61,11 +61,11 @@ export class RideStartValidator {
 
     // 1. Verificação de Status da Corrida
     // Apenas status CHEGOU (ou WAITING_PIN) permite início imediato
-    const validStatuses = ['CHEGOU', 'WAITING_PIN', 'AGUARDANDO_EMBARQUE'];
+    const validStatuses = ["CHEGOU", "WAITING_PIN", "AGUARDANDO_EMBARQUE"];
     const statusValid = validStatuses.includes(input.currentStatus);
 
     if (!statusValid) {
-      fraudFlags.push('STATUS_INVALIDO_PARA_INICIO');
+      fraudFlags.push("STATUS_INVALIDO_PARA_INICIO");
     }
 
     // 2. Verificação de Dwell Time (Tempo de permanência no local)
@@ -79,14 +79,17 @@ export class RideStartValidator {
     let geofencePassed = true;
 
     if (input.driverLocation && input.pickupLocation) {
-      distanceToPickupMeters = this.calculateDistanceMeters(input.driverLocation, input.pickupLocation);
+      distanceToPickupMeters = this.calculateDistanceMeters(
+        input.driverLocation,
+        input.pickupLocation,
+      );
 
       if (distanceToPickupMeters > maxGeofence) {
         if (input.isManualOverride) {
-          fraudFlags.push('GEOFENCE_OVERRIDE_GPS_DRIFT');
+          fraudFlags.push("GEOFENCE_OVERRIDE_GPS_DRIFT");
           geofencePassed = true;
         } else {
-          fraudFlags.push('GEOFENCE_EXCEEDED');
+          fraudFlags.push("GEOFENCE_EXCEEDED");
           geofencePassed = false;
         }
       }
@@ -99,10 +102,10 @@ export class RideStartValidator {
 
     if (!isApproved) {
       if (!statusValid) {
-        errorCode = 'ERR_RIDE_NOT_ARRIVED';
-        errorMessage = 'O motorista deve confirmar a chegada ao local antes de iniciar a viagem.';
+        errorCode = "ERR_RIDE_NOT_ARRIVED";
+        errorMessage = "O motorista deve confirmar a chegada ao local antes de iniciar a viagem.";
       } else if (!geofencePassed) {
-        errorCode = 'ERR_GEOFENCE_OUT_OF_BOUNDS';
+        errorCode = "ERR_GEOFENCE_OUT_OF_BOUNDS";
         errorMessage = `Distância do ponto de embarque (${distanceToPickupMeters}m) excede a cerca eletrônica (${maxGeofence}m).`;
       }
     }

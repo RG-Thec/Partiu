@@ -16,18 +16,18 @@ export interface MonochromaticPalette {
   description: string;
   isDefault?: boolean;
   colors: {
-    primary: string;         // Cor principal de ação, botões, ícones ativos
-    secondary: string;       // Cor de apoio, badges, acentos
-    accent: string;          // Destaque pontual harmônico
-    deep: string;            // Gradiente fim, títulos estruturais
-    vibrant: string;         // Destaque vibrante
-    soft: string;            // Fundo de inputs, cards suaves (50-level)
-    borderActive: string;    // Borda de foco e caixas ativas
-    background: string;      // Fundo neutro do app
-    surface: string;         // Fundo de cards brancos
-    textPrimary: string;     // Texto de alto contraste sobre fundos claros
-    textSecondary: string;   // Subtítulos
-    textOnPrimary: string;   // Texto legível sobre a cor primária (branco/preto)
+    primary: string; // Cor principal de ação, botões, ícones ativos
+    secondary: string; // Cor de apoio, badges, acentos
+    accent: string; // Destaque pontual harmônico
+    deep: string; // Gradiente fim, títulos estruturais
+    vibrant: string; // Destaque vibrante
+    soft: string; // Fundo de inputs, cards suaves (50-level)
+    borderActive: string; // Borda de foco e caixas ativas
+    background: string; // Fundo neutro do app
+    surface: string; // Fundo de cards brancos
+    textPrimary: string; // Texto de alto contraste sobre fundos claros
+    textSecondary: string; // Subtítulos
+    textOnPrimary: string; // Texto legível sobre a cor primária (branco/preto)
     headerGradientStart: string;
     headerGradientEnd: string;
   };

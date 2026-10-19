@@ -1,6 +1,6 @@
 /**
  * PARTIU MOBILIDADE URBANA — DELIVERY TRACKING SERVICE
- * 
+ *
  * Provides public and private tracking lookups for recipients and senders.
  * Resolves tracking codes (e.g., PT-4829-EXP or FLS-928172), provides real-time
  * telemetry updates, and formats progress milestones.
@@ -39,8 +39,12 @@ export function searchDeliveryByCode(rawCode: string): DeliverySearchResult {
   const activeSession = getActiveDeliverySession();
   if (activeSession) {
     const tracking = getDeliveryTrackingInfo(activeSession);
-    const idMatch = activeSession.id.toUpperCase().includes(query) || query.includes(activeSession.id.toUpperCase());
-    const codeMatch = tracking.trackingCode.toUpperCase().includes(query) || query.includes(tracking.trackingCode.toUpperCase());
+    const idMatch =
+      activeSession.id.toUpperCase().includes(query) ||
+      query.includes(activeSession.id.toUpperCase());
+    const codeMatch =
+      tracking.trackingCode.toUpperCase().includes(query) ||
+      query.includes(tracking.trackingCode.toUpperCase());
     const corridaMatch = activeSession.corridaId.toUpperCase().includes(query);
 
     if (idMatch || codeMatch || corridaMatch) {
@@ -69,18 +73,18 @@ export function searchDeliveryByCode(rawCode: string): DeliverySearchResult {
         matched.status === "aguardando_coleta"
           ? "AGUARDANDO_COLETA"
           : matched.status === "a_caminho"
-          ? "EM_ROTA_ENTREGA"
-          : matched.status === "entregue"
-          ? "ENTREGUE"
-          : "SOLICITADO",
+            ? "EM_ROTA_ENTREGA"
+            : matched.status === "entregue"
+              ? "ENTREGUE"
+              : "SOLICITADO",
       statusLabel:
         matched.status === "aguardando_coleta"
           ? "Aguardando Coleta do Pacote"
           : matched.status === "a_caminho"
-          ? "Em Transporte para Entrega"
-          : matched.status === "entregue"
-          ? "Pacote Entregue"
-          : "Solicitação Recebida",
+            ? "Em Transporte para Entrega"
+            : matched.status === "entregue"
+              ? "Pacote Entregue"
+              : "Solicitação Recebida",
       senderName: matched.remetenteNome,
       recipientName: matched.destinatarioNome,
       recipientAddress: matched.destino,
@@ -92,12 +96,7 @@ export function searchDeliveryByCode(rawCode: string): DeliverySearchResult {
       shareableUrl: `https://partiu.mobi/rastreio/${matched.codigoRastreio}`,
       pickupOtp: matched.pinEntrega,
       deliveryOtp: matched.pinEntrega,
-      progress:
-        matched.status === "entregue"
-          ? 100
-          : matched.status === "a_caminho"
-          ? 65
-          : 25,
+      progress: matched.status === "entregue" ? 100 : matched.status === "a_caminho" ? 65 : 25,
     };
 
     return {
@@ -117,7 +116,7 @@ export function searchDeliveryByCode(rawCode: string): DeliverySearchResult {
  * React hook or listener helper for delivery status synchronization
  */
 export function subscribeToDeliveryUpdates(
-  callback: (session: DeliverySession | null) => void
+  callback: (session: DeliverySession | null) => void,
 ): () => void {
   if (typeof window === "undefined") return () => {};
 

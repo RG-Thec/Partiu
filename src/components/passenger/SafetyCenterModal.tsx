@@ -55,14 +55,16 @@ export const SafetyCenterModal = memo(function SafetyCenterModal({
         destino: destination,
         driverName,
         vehiclePlate: driverPlate,
-        passengerName: (typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : "") || "Passageiro",
+        passengerName:
+          (typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : "") ||
+          "Passageiro",
       });
 
       const shareUrl = rideLiveTrackingService.buildShareUrl(trackingData.trackingToken);
       const shareMessage = rideLiveTrackingService.buildShareMessage(
         trackingData.trackingToken,
         "Veículo Parceiro",
-        driverPlate
+        driverPlate,
       );
 
       if (typeof navigator !== "undefined" && navigator.share) {
@@ -99,9 +101,10 @@ export const SafetyCenterModal = memo(function SafetyCenterModal({
       if (typeof navigator !== "undefined" && navigator.geolocation) {
         coords = await new Promise<string>((resolve) => {
           navigator.geolocation.getCurrentPosition(
-            (pos) => resolve(`${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`),
+            (pos) =>
+              resolve(`${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`),
             () => resolve(""),
-            { timeout: 1200, maximumAge: 10000 }
+            { timeout: 1200, maximumAge: 10000 },
           );
         });
       }
@@ -148,12 +151,7 @@ export const SafetyCenterModal = memo(function SafetyCenterModal({
       ariaLabel="Central de Segurança do Passageiro"
       showCloseButton
       footer={
-        <NativeButton
-          variant="tonal"
-          size="md"
-          fullWidth
-          onClick={onClose}
-        >
+        <NativeButton variant="tonal" size="md" fullWidth onClick={onClose}>
           Fechar Central de Segurança
         </NativeButton>
       }
@@ -166,8 +164,11 @@ export const SafetyCenterModal = memo(function SafetyCenterModal({
         >
           <Lock className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
           <div className="text-xs text-emerald-950 leading-relaxed font-medium">
-            <span className="font-black block text-emerald-900">Viagem Monitorada por Satélite</span>
-            Sua rota é transmitida em tempo real com telemetria ativa e criptografia de ponta a ponta.
+            <span className="font-black block text-emerald-900">
+              Viagem Monitorada por Satélite
+            </span>
+            Sua rota é transmitida em tempo real com telemetria ativa e criptografia de ponta a
+            ponta.
           </div>
         </div>
 
@@ -246,7 +247,8 @@ export const SafetyCenterModal = memo(function SafetyCenterModal({
               <h4 className="text-xs font-black">Ligar para a Polícia Militar (190)?</h4>
             </div>
             <p className="text-[11px] text-rose-800 leading-relaxed font-medium">
-              Esta chamada deve ser utilizada exclusivamente em situações de emergência de segurança.
+              Esta chamada deve ser utilizada exclusivamente em situações de emergência de
+              segurança.
             </p>
             <div className="flex items-center gap-2 pt-1">
               <button

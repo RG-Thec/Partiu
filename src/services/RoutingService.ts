@@ -35,7 +35,8 @@ export interface RouteMetrics {
   startAddress: string;
   endAddress: string;
 
-  provider: "google_directions" | "mapbox_directions" | "openrouteservice" | "calibrated_urban_network";
+  provider:
+    "google_directions" | "mapbox_directions" | "openrouteservice" | "calibrated_urban_network";
   cached?: boolean;
 }
 
@@ -162,7 +163,7 @@ export class RoutingService {
   public async getRoute(
     origin: [number, number],
     destination: [number, number],
-    options: RouteRequestOptions = {}
+    options: RouteRequestOptions = {},
   ): Promise<RouteMetrics> {
     // 0. Curto-circuito se origem e destino forem idênticos
     if (origin[0] === destination[0] && origin[1] === destination[1]) {
@@ -196,19 +197,24 @@ export class RoutingService {
     const effectiveGoogleKey = tenantMapConfig.hasOwnGoogleKey
       ? tenantMapConfig.effectiveGoogleApiKey
       : tenantMapConfig.isMatriz
-      ? this.googleApiKey
-      : "";
+        ? this.googleApiKey
+        : "";
 
     const effectiveMapboxToken = tenantMapConfig.hasOwnMapboxKey
       ? tenantMapConfig.effectiveMapboxToken
       : tenantMapConfig.isMatriz
-      ? (this.mapboxToken || MapboxConfig.getAccessToken())
-      : "";
+        ? this.mapboxToken || MapboxConfig.getAccessToken()
+        : "";
 
     // 2. Provedor 1: Google Directions API (Live Traffic)
     if (effectiveGoogleKey && effectiveGoogleKey.trim().length > 10) {
       try {
-        metrics = await this.fetchGoogleDirections(origin, destination, options, effectiveGoogleKey);
+        metrics = await this.fetchGoogleDirections(
+          origin,
+          destination,
+          options,
+          effectiveGoogleKey,
+        );
       } catch (err) {
         console.warn("[RoutingService] Google Directions API falhou, acionando fallback:", err);
       }
@@ -217,9 +223,17 @@ export class RoutingService {
     // 3. Provedor 2: Mapbox Directions API (Driving Traffic)
     if (!metrics && effectiveMapboxToken && effectiveMapboxToken.trim().length > 10) {
       try {
-        metrics = await this.fetchMapboxDirections(origin, destination, options, effectiveMapboxToken);
+        metrics = await this.fetchMapboxDirections(
+          origin,
+          destination,
+          options,
+          effectiveMapboxToken,
+        );
       } catch (err) {
-        console.warn("[RoutingService] Mapbox Directions API falhou, acionando fallback OSRM:", err);
+        console.warn(
+          "[RoutingService] Mapbox Directions API falhou, acionando fallback OSRM:",
+          err,
+        );
       }
     }
 
@@ -228,7 +242,10 @@ export class RoutingService {
       try {
         metrics = await this.fetchOsrmDirections(origin, destination, options);
       } catch (err) {
-        console.warn("[RoutingService] OSRM falhou, acionando Calibrated Urban Network Engine:", err);
+        console.warn(
+          "[RoutingService] OSRM falhou, acionando Calibrated Urban Network Engine:",
+          err,
+        );
       }
     }
 
@@ -250,7 +267,7 @@ export class RoutingService {
     origin: [number, number],
     destination: [number, number],
     options: RouteRequestOptions,
-    customApiKey?: string
+    customApiKey?: string,
   ): Promise<RouteMetrics> {
     const keyToUse = customApiKey || this.googleApiKey;
     const originStr = `${origin[1]},${origin[0]}`;
@@ -298,7 +315,7 @@ export class RoutingService {
     origin: [number, number],
     destination: [number, number],
     options: RouteRequestOptions,
-    customToken?: string
+    customToken?: string,
   ): Promise<RouteMetrics> {
     const tokenToUse = customToken || this.mapboxToken;
     const profile = options.trafficAware ? "driving-traffic" : "driving";
@@ -341,7 +358,7 @@ export class RoutingService {
   private async fetchOsrmDirections(
     origin: [number, number],
     destination: [number, number],
-    options: RouteRequestOptions
+    options: RouteRequestOptions,
   ): Promise<RouteMetrics> {
     const coordsStr = `${origin[0]},${origin[1]};${destination[0]},${destination[1]}`;
     const url = `https://router.project-osrm.org/route/v1/driving/${coordsStr}?overview=full&geometries=geojson`;
@@ -383,7 +400,7 @@ export class RoutingService {
   public generateCalibratedUrbanRoute(
     origin: [number, number],
     destination: [number, number],
-    options: RouteRequestOptions = {}
+    options: RouteRequestOptions = {},
   ): RouteMetrics {
     const waypoints = options.waypoints || [];
     const allLegPoints: [number, number][] = [origin, ...waypoints, destination];
@@ -444,8 +461,14 @@ export class RoutingService {
       const pA = allLegPoints[i];
       const pB = allLegPoints[i + 1];
       const mid1: [number, number] = [pA[0] + (pB[0] - pA[0]) * 0.4, pA[1] + (pB[1] - pA[1]) * 0.1];
-      const mid2: [number, number] = [pA[0] + (pB[0] - pA[0]) * 0.45, pA[1] + (pB[1] - pA[1]) * 0.65];
-      const mid3: [number, number] = [pA[0] + (pB[0] - pA[0]) * 0.85, pA[1] + (pB[1] - pA[1]) * 0.75];
+      const mid2: [number, number] = [
+        pA[0] + (pB[0] - pA[0]) * 0.45,
+        pA[1] + (pB[1] - pA[1]) * 0.65,
+      ];
+      const mid3: [number, number] = [
+        pA[0] + (pB[0] - pA[0]) * 0.85,
+        pA[1] + (pB[1] - pA[1]) * 0.75,
+      ];
       coordinates.push(pA, mid1, mid2, mid3);
     }
     coordinates.push(destination);

@@ -82,7 +82,7 @@ export function calculateBearing(p1: [number, number], p2: [number, number]): nu
 export function pointToSegmentProjection(
   p: [number, number],
   a: [number, number],
-  b: [number, number]
+  b: [number, number],
 ): { point: [number, number]; distanceMeters: number; t: number } {
   const [px, py] = p;
   const [ax, ay] = a;
@@ -100,7 +100,7 @@ export function pointToSegmentProjection(
   }
 
   // Projeção escalar com correção de latitude para metros planos locais
-  const latFactor = Math.cos(((ay + by) / 2 * Math.PI) / 180);
+  const latFactor = Math.cos((((ay + by) / 2) * Math.PI) / 180);
   const dxMeters = dx * latFactor;
   const dyMeters = dy;
 
@@ -136,7 +136,7 @@ export interface SnapToRouteResult {
  */
 export function snapPointToPolyline(
   rawCoords: [number, number],
-  routeCoords: [number, number][]
+  routeCoords: [number, number][],
 ): SnapToRouteResult {
   if (!routeCoords || routeCoords.length === 0) {
     return {
@@ -223,7 +223,7 @@ export function calculatePolylineLength(coordinates: [number, number][]): number
  */
 export function interpolateAlongPolyline(
   coordinates: [number, number][],
-  targetDistanceMeters: number
+  targetDistanceMeters: number,
 ): { coords: [number, number]; bearing: number; finished: boolean } {
   if (!coordinates || coordinates.length === 0) {
     return { coords: [0, 0], bearing: 0, finished: true };
@@ -244,10 +244,7 @@ export function interpolateAlongPolyline(
       const remaining = targetDistanceMeters - accumulated;
       const t = segLen > 0 ? remaining / segLen : 0;
 
-      const coords: [number, number] = [
-        pA[0] + t * (pB[0] - pA[0]),
-        pA[1] + t * (pB[1] - pA[1]),
-      ];
+      const coords: [number, number] = [pA[0] + t * (pB[0] - pA[0]), pA[1] + t * (pB[1] - pA[1])];
       const bearing = calculateBearing(pA, pB);
 
       return { coords, bearing, finished: false };
@@ -270,7 +267,7 @@ export function interpolateAlongPolyline(
  */
 export function calculateRemainingRouteDistance(
   currentCoords: [number, number],
-  routeCoords: [number, number][]
+  routeCoords: [number, number][],
 ): number {
   if (!routeCoords || routeCoords.length < 2) return 0;
   const snap = snapPointToPolyline(currentCoords, routeCoords);
@@ -278,4 +275,3 @@ export function calculateRemainingRouteDistance(
   const remaining = totalLength * (1 - snap.progressPercent);
   return Math.max(0, Math.round(remaining));
 }
-

@@ -105,7 +105,7 @@ export function usePartiuRidesRealtime() {
           },
           () => {
             void qc.invalidateQueries({ queryKey: CHAVES_PARTIU_RIDES });
-          }
+          },
         )
         .subscribe();
     } catch (err) {
@@ -134,7 +134,11 @@ export interface PartiuAdminMetrics {
 /**
  * Hook com métricas autênticas sem mocks ilusórios
  */
-export function usePartiuMetrics(rides: PartiuRideRecord[], sosCount: number, onlineDriversCount: number): PartiuAdminMetrics {
+export function usePartiuMetrics(
+  rides: PartiuRideRecord[],
+  sosCount: number,
+  onlineDriversCount: number,
+): PartiuAdminMetrics {
   const todayStr = new Date().toISOString().slice(0, 10);
 
   const ridesToday = rides.filter((r) => r.created_at && r.created_at.startsWith(todayStr));
@@ -143,14 +147,30 @@ export function usePartiuMetrics(rides: PartiuRideRecord[], sosCount: number, on
     .filter((r) => r.status === "COMPLETED")
     .reduce((acc, r) => acc + (Number(r.fare_brl) || 0), 0);
 
-  const corridasEmAndamento = rides.filter((r) =>
-    ["REQUESTED", "SEARCHING_R1", "SEARCHING_R2", "SEARCHING_R3", "DRIVER_ASSIGNED", "DRIVER_ARRIVING", "IN_PROGRESS"].includes(r.status) &&
-    !r.is_delivery
+  const corridasEmAndamento = rides.filter(
+    (r) =>
+      [
+        "REQUESTED",
+        "SEARCHING_R1",
+        "SEARCHING_R2",
+        "SEARCHING_R3",
+        "DRIVER_ASSIGNED",
+        "DRIVER_ARRIVING",
+        "IN_PROGRESS",
+      ].includes(r.status) && !r.is_delivery,
   ).length;
 
-  const entregasEmAndamento = rides.filter((r) =>
-    ["REQUESTED", "SEARCHING_R1", "SEARCHING_R2", "SEARCHING_R3", "DRIVER_ASSIGNED", "DRIVER_ARRIVING", "IN_PROGRESS"].includes(r.status) &&
-    r.is_delivery
+  const entregasEmAndamento = rides.filter(
+    (r) =>
+      [
+        "REQUESTED",
+        "SEARCHING_R1",
+        "SEARCHING_R2",
+        "SEARCHING_R3",
+        "DRIVER_ASSIGNED",
+        "DRIVER_ARRIVING",
+        "IN_PROGRESS",
+      ].includes(r.status) && r.is_delivery,
   ).length;
 
   const corridasFinalizadasHoje = ridesToday.filter((r) => r.status === "COMPLETED").length;

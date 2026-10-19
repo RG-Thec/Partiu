@@ -1,5 +1,14 @@
 import React, { memo, useState, useEffect } from "react";
-import { CheckCircle2, QrCode, Copy, Check, Banknote, ShieldCheck, ArrowRight, X } from "lucide-react";
+import {
+  CheckCircle2,
+  QrCode,
+  Copy,
+  Check,
+  Banknote,
+  ShieldCheck,
+  ArrowRight,
+  X,
+} from "lucide-react";
 import QRCode from "qrcode";
 import { buildStandardEmvPix } from "@/services/payment/PaymentProviderAdapter";
 import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
@@ -40,7 +49,9 @@ export const RidePaymentSettlementModal = memo(function RidePaymentSettlementMod
   onConfirmSettlement,
 }: RidePaymentSettlementModalProps) {
   const hasValidPixKey = Boolean(driverPixKey && driverPixKey.trim().length >= 4);
-  const [selectedMethod, setSelectedMethod] = useState<"PIX" | "DINHEIRO">(() => hasValidPixKey ? "PIX" : "DINHEIRO");
+  const [selectedMethod, setSelectedMethod] = useState<"PIX" | "DINHEIRO">(() =>
+    hasValidPixKey ? "PIX" : "DINHEIRO",
+  );
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
   const [pixPayload, setPixPayload] = useState<string>("");
   const [copied, setCopied] = useState(false);
@@ -108,8 +119,12 @@ export const RidePaymentSettlementModal = memo(function RidePaymentSettlementMod
               <QrCode className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-black text-slate-900 leading-tight">Acerto da Corrida</h3>
-              <p className="text-xs text-slate-700 font-semibold">Recebimento Direto (0% Comissão)</p>
+              <h3 className="text-base font-black text-slate-900 leading-tight">
+                Acerto da Corrida
+              </h3>
+              <p className="text-xs text-slate-700 font-semibold">
+                Recebimento Direto (0% Comissão)
+              </p>
             </div>
           </div>
           <button
@@ -130,7 +145,9 @@ export const RidePaymentSettlementModal = memo(function RidePaymentSettlementMod
             {amountBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
           </div>
           <div className="flex items-center justify-center gap-1.5 text-xs text-slate-800 font-semibold pt-1">
-            <span>Passageiro: <strong>{passengerName}</strong></span>
+            <span>
+              Passageiro: <strong>{passengerName}</strong>
+            </span>
             <span>•</span>
             <span>{distanceKm} km</span>
           </div>
@@ -140,16 +157,25 @@ export const RidePaymentSettlementModal = memo(function RidePaymentSettlementMod
               <div className="flex justify-between items-center text-[11px] font-semibold text-slate-600">
                 <span>Valor original da corrida:</span>
                 <span className="line-through">
-                  {(valorOriginal || (amountBrl + descontoCupom)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  {(valorOriginal || amountBrl + descontoCupom).toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs font-bold text-amber-700">
                 <span>Desconto Cupom ({codigoCupom || "PROMO"}):</span>
-                <span>- {descontoCupom.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+                <span>
+                  - {descontoCupom.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                </span>
               </div>
               <div className="pt-1.5 border-t border-amber-500/20 text-[11px] font-bold text-emerald-700 flex items-center gap-1">
                 <span>🎁</span>
-                <span>Subsídio de {descontoCupom.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} creditado na sua diária do app!</span>
+                <span>
+                  Subsídio de{" "}
+                  {descontoCupom.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}{" "}
+                  creditado na sua diária do app!
+                </span>
               </div>
             </div>
           )}
@@ -173,8 +199,8 @@ export const RidePaymentSettlementModal = memo(function RidePaymentSettlementMod
                 !hasValidPixKey
                   ? "border-slate-200 bg-slate-100 opacity-60 cursor-not-allowed"
                   : selectedMethod === "PIX"
-                  ? "border-emerald-600 bg-emerald-50/60 shadow-sm active:scale-95"
-                  : "border-slate-200 hover:border-slate-300 bg-white active:scale-95"
+                    ? "border-emerald-600 bg-emerald-50/60 shadow-sm active:scale-95"
+                    : "border-slate-200 hover:border-slate-300 bg-white active:scale-95"
               }`}
             >
               <div className="flex items-center justify-between">
@@ -190,7 +216,9 @@ export const RidePaymentSettlementModal = memo(function RidePaymentSettlementMod
                 </span>
               </div>
               <div className="mt-2">
-                <span className="text-xs font-black text-slate-900 block leading-tight">PIX Direto</span>
+                <span className="text-xs font-black text-slate-900 block leading-tight">
+                  PIX Direto
+                </span>
                 <span className="text-[11px] text-slate-600 font-semibold">
                   {hasValidPixKey ? "Na sua conta" : "Chave não configurada"}
                 </span>
@@ -218,11 +246,15 @@ export const RidePaymentSettlementModal = memo(function RidePaymentSettlementMod
                       : "border-slate-300"
                   }`}
                 >
-                  {selectedMethod === "DINHEIRO" && <Check className="w-3 h-3 text-white stroke-[3]" />}
+                  {selectedMethod === "DINHEIRO" && (
+                    <Check className="w-3 h-3 text-white stroke-[3]" />
+                  )}
                 </span>
               </div>
               <div className="mt-2">
-                <span className="text-xs font-black text-slate-900 block leading-tight">Dinheiro</span>
+                <span className="text-xs font-black text-slate-900 block leading-tight">
+                  Dinheiro
+                </span>
                 <span className="text-xs text-slate-700 font-semibold">Em mãos</span>
               </div>
             </button>
@@ -288,7 +320,11 @@ export const RidePaymentSettlementModal = memo(function RidePaymentSettlementMod
             </div>
             <h4 className="text-xs font-black text-amber-900">Cobrança em Espécie</h4>
             <p className="text-xs text-amber-950 font-medium leading-relaxed">
-              Receba os <strong>{amountBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong> em mãos e providencie o troco se necessário.
+              Receba os{" "}
+              <strong>
+                {amountBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+              </strong>{" "}
+              em mãos e providencie o troco se necessário.
             </p>
           </div>
         )}

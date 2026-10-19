@@ -25,8 +25,8 @@ import { cachedSource, clearSourceCache } from "../src/lib/network/sourceCache.t
 describe("🧭 SUÍTE OFICIAL V8: TECNOLOGIAS GEOESPACIAIS AVANÇADAS (OSIRIS)", () => {
   const sampleRoute: [number, number][] = [
     [-46.6565, -23.5615],
-    [-46.6540, -23.5630],
-    [-46.6510, -23.5650],
+    [-46.654, -23.563],
+    [-46.651, -23.565],
   ];
 
   test("1.1 cumulativeDistances calcula distâncias acumuladas da rota", () => {
@@ -38,7 +38,7 @@ describe("🧭 SUÍTE OFICIAL V8: TECNOLOGIAS GEOESPACIAIS AVANÇADAS (OSIRIS)",
   });
 
   test("1.2 snapToRoute projeta o ponto GPS ortogonalmente no segmento", () => {
-    const noisyGps = { lat: -23.5620, lng: -46.6550 };
+    const noisyGps = { lat: -23.562, lng: -46.655 };
     const snap = snapToRoute(sampleRoute, noisyGps.lat, noisyGps.lng);
 
     expect(snap.index).toBe(0);
@@ -50,24 +50,63 @@ describe("🧭 SUÍTE OFICIAL V8: TECNOLOGIAS GEOESPACIAIS AVANÇADAS (OSIRIS)",
 
   test("1.3 computeProgress detecta chegada ao destino (<35m) e desvio (>45m)", () => {
     const steps = [
-      { instruction: "Siga pela Avenida Paulista", distance: 300, duration: 60, location: sampleRoute[0], type: "depart" },
-      { instruction: "Vire à direita na Rua Peixoto Gomide", distance: 400, duration: 90, location: sampleRoute[1], type: "right" },
-      { instruction: "Você chegou ao destino", distance: 0, duration: 0, location: sampleRoute[2], type: "arrive" },
+      {
+        instruction: "Siga pela Avenida Paulista",
+        distance: 300,
+        duration: 60,
+        location: sampleRoute[0],
+        type: "depart",
+      },
+      {
+        instruction: "Vire à direita na Rua Peixoto Gomide",
+        distance: 400,
+        duration: 90,
+        location: sampleRoute[1],
+        type: "right",
+      },
+      {
+        instruction: "Você chegou ao destino",
+        distance: 0,
+        duration: 0,
+        location: sampleRoute[2],
+        type: "arrive",
+      },
     ];
     const cum = cumulativeDistances(sampleRoute);
     const stepAlong = [0, cum[1], cum[2]];
 
     // Início da rota
-    const pStart = computeProgress(sampleRoute, steps, stepAlong, 150, { lat: sampleRoute[0][1], lng: sampleRoute[0][0] }, cum);
+    const pStart = computeProgress(
+      sampleRoute,
+      steps,
+      stepAlong,
+      150,
+      { lat: sampleRoute[0][1], lng: sampleRoute[0][0] },
+      cum,
+    );
     expect(pStart.offRoute).toBe(false);
     expect(pStart.arrived).toBe(false);
 
     // Destino
-    const pEnd = computeProgress(sampleRoute, steps, stepAlong, 150, { lat: sampleRoute[2][1], lng: sampleRoute[2][0] }, cum);
+    const pEnd = computeProgress(
+      sampleRoute,
+      steps,
+      stepAlong,
+      150,
+      { lat: sampleRoute[2][1], lng: sampleRoute[2][0] },
+      cum,
+    );
     expect(pEnd.arrived).toBe(true);
 
     // Fora de rota
-    const pOff = computeProgress(sampleRoute, steps, stepAlong, 150, { lat: -23.5700, lng: -46.6600 }, cum);
+    const pOff = computeProgress(
+      sampleRoute,
+      steps,
+      stepAlong,
+      150,
+      { lat: -23.57, lng: -46.66 },
+      cum,
+    );
     expect(pOff.offRoute).toBe(true);
   });
 
@@ -78,7 +117,9 @@ describe("🧭 SUÍTE OFICIAL V8: TECNOLOGIAS GEOESPACIAIS AVANÇADAS (OSIRIS)",
     const b1 = shouldAnnounce(1, 380, spoken);
     expect(b1).toBe(400);
     spoken[1] = b1!;
-    expect(announcementText("Vire à direita na Rua Augusta", b1!)).toBe("Em 400 metros, vire à direita na Rua Augusta");
+    expect(announcementText("Vire à direita na Rua Augusta", b1!)).toBe(
+      "Em 400 metros, vire à direita na Rua Augusta",
+    );
 
     // Repetição na mesma faixa ignorada
     expect(shouldAnnounce(1, 350, spoken)).toBe(null);
@@ -89,8 +130,20 @@ describe("🧭 SUÍTE OFICIAL V8: TECNOLOGIAS GEOESPACIAIS AVANÇADAS (OSIRIS)",
 
   test("1.5 viaRoad extrai o nome da via principal", () => {
     const steps = [
-      { instruction: "Saia da garagem", distance: 20, duration: 5, location: [0, 0] as [number, number], type: "depart" },
-      { instruction: "Continue na Avenida Paulista por 3 km", distance: 3000, duration: 300, location: [0, 0] as [number, number], type: "straight" },
+      {
+        instruction: "Saia da garagem",
+        distance: 20,
+        duration: 5,
+        location: [0, 0] as [number, number],
+        type: "depart",
+      },
+      {
+        instruction: "Continue na Avenida Paulista por 3 km",
+        distance: 3000,
+        duration: 300,
+        location: [0, 0] as [number, number],
+        type: "straight",
+      },
     ];
     expect(viaRoad(steps)).toContain("Avenida Paulista");
   });
@@ -103,18 +156,18 @@ describe("🧭 SUÍTE OFICIAL V8: TECNOLOGIAS GEOESPACIAIS AVANÇADAS (OSIRIS)",
 
   test("2.1 pointInPolygon valida geofences com Ray-Casting", () => {
     const quad: number[][] = [
-      [-46.6600, -23.5600],
-      [-46.6500, -23.5600],
-      [-46.6500, -23.5700],
-      [-46.6600, -23.5700],
-      [-46.6600, -23.5600],
+      [-46.66, -23.56],
+      [-46.65, -23.56],
+      [-46.65, -23.57],
+      [-46.66, -23.57],
+      [-46.66, -23.56],
     ];
-    expect(pointInPolygon(-46.6550, -23.5650, quad)).toBe(true);
-    expect(pointInPolygon(-46.6700, -23.5800, quad)).toBe(false);
+    expect(pointInPolygon(-46.655, -23.565, quad)).toBe(true);
+    expect(pointInPolygon(-46.67, -23.58, quad)).toBe(false);
   });
 
   test("2.2 circleToRing gera círculos geodésicos reais", () => {
-    const circle = circleToRing([-46.6550, -23.5650], 2.0, 16);
+    const circle = circleToRing([-46.655, -23.565], 2.0, 16);
     expect(circle.length).toBe(17);
     const area = polygonArea(circle);
     expect(area).toBeGreaterThan(11.0);

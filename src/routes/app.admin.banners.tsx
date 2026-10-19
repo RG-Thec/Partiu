@@ -39,7 +39,8 @@ export const Route = createFileRoute("/app/admin/banners")({
       { title: "Gerenciador de Banners do App | PARTIU Admin" },
       {
         name: "description",
-        content: "Gerencie o carrossel de banners da tela inicial do aplicativo do passageiro em tempo real.",
+        content:
+          "Gerencie o carrossel de banners da tela inicial do aplicativo do passageiro em tempo real.",
       },
     ],
   }),
@@ -186,7 +187,8 @@ export function AdminBannersPage() {
             Carrossel de Imagens do Passageiro
           </h1>
           <p className="text-sm text-slate-300 mt-1 max-w-2xl">
-            Gerencie os slides promocionais dinâmicos exibidos na home do aplicativo. Sincronização em tempo real e visualização exata de como o usuário final enxerga.
+            Gerencie os slides promocionais dinâmicos exibidos na home do aplicativo. Sincronização
+            em tempo real e visualização exata de como o usuário final enxerga.
           </p>
         </div>
 
@@ -219,7 +221,9 @@ export function AdminBannersPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total de Slides</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+              Total de Slides
+            </span>
             <span className="text-xl font-black text-white mt-0.5 block">{banners.length}</span>
           </div>
           <Layers className="w-6 h-6 text-slate-600" />
@@ -227,7 +231,9 @@ export function AdminBannersPage() {
 
         <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider block">Ativos no App</span>
+            <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider block">
+              Ativos no App
+            </span>
             <span className="text-xl font-black text-emerald-400 mt-0.5 block">
               {banners.filter((b) => b.is_active).length}
             </span>
@@ -237,7 +243,9 @@ export function AdminBannersPage() {
 
         <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Pausados</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+              Pausados
+            </span>
             <span className="text-xl font-black text-slate-400 mt-0.5 block">
               {banners.filter((b) => !b.is_active).length}
             </span>
@@ -247,7 +255,9 @@ export function AdminBannersPage() {
 
         <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-primary uppercase tracking-wider block">Atualização</span>
+            <span className="text-[11px] font-bold text-primary uppercase tracking-wider block">
+              Atualização
+            </span>
             <span className="text-xs font-bold text-slate-200 mt-1 block flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               Tempo Real D+0
@@ -438,7 +448,9 @@ export function AdminBannersPage() {
                 type="button"
                 onClick={() => setFiltroCategoria("ALL")}
                 className={`px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${
-                  filtroCategoria === "ALL" ? "bg-primary text-slate-950" : "text-slate-400 hover:text-white"
+                  filtroCategoria === "ALL"
+                    ? "bg-primary text-slate-950"
+                    : "text-slate-400 hover:text-white"
                 }`}
               >
                 Todos
@@ -447,7 +459,9 @@ export function AdminBannersPage() {
                 type="button"
                 onClick={() => setFiltroCategoria("PASSENGER")}
                 className={`px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${
-                  filtroCategoria === "PASSENGER" ? "bg-primary text-slate-950" : "text-slate-400 hover:text-white"
+                  filtroCategoria === "PASSENGER"
+                    ? "bg-primary text-slate-950"
+                    : "text-slate-400 hover:text-white"
                 }`}
               >
                 Passageiro
@@ -456,7 +470,9 @@ export function AdminBannersPage() {
                 type="button"
                 onClick={() => setFiltroCategoria("DRIVER")}
                 className={`px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${
-                  filtroCategoria === "DRIVER" ? "bg-primary text-slate-950" : "text-slate-400 hover:text-white"
+                  filtroCategoria === "DRIVER"
+                    ? "bg-primary text-slate-950"
+                    : "text-slate-400 hover:text-white"
                 }`}
               >
                 Motorista
@@ -467,7 +483,9 @@ export function AdminBannersPage() {
           {bannersFiltrados.length === 0 ? (
             <div className="p-12 text-center rounded-2xl bg-slate-900/40 border border-slate-800/80 space-y-3">
               <ImageIcon className="w-10 h-10 text-slate-600 mx-auto" />
-              <p className="text-sm font-bold text-slate-400">Nenhum slide cadastrado nesta categoria.</p>
+              <p className="text-sm font-bold text-slate-400">
+                Nenhum slide cadastrado nesta categoria.
+              </p>
               <button
                 onClick={() => setFormAberto(true)}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-slate-950 font-bold text-xs"
@@ -562,7 +580,11 @@ export function AdminBannersPage() {
               onClick={() => setAutoPlaySimulador(!autoPlaySimulador)}
               className="text-xs text-slate-400 hover:text-white flex items-center gap-1 cursor-pointer font-bold"
             >
-              {autoPlaySimulador ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+              {autoPlaySimulador ? (
+                <Pause className="w-3.5 h-3.5" />
+              ) : (
+                <Play className="w-3.5 h-3.5" />
+              )}
               {autoPlaySimulador ? "Pausar" : "Girar"}
             </button>
           </div>
@@ -594,7 +616,10 @@ export function AdminBannersPage() {
                 {(() => {
                   const bAtual = bannersAtivos[slideSimuladorIdx % bannersAtivos.length];
                   return (
-                    <div key={bAtual.id} className="relative w-full h-full animate-in fade-in duration-300">
+                    <div
+                      key={bAtual.id}
+                      className="relative w-full h-full animate-in fade-in duration-300"
+                    >
                       <img
                         src={bAtual.image_url}
                         alt={bAtual.title}
@@ -630,7 +655,7 @@ export function AdminBannersPage() {
                       type="button"
                       onClick={() =>
                         setSlideSimuladorIdx(
-                          (prev) => (prev - 1 + bannersAtivos.length) % bannersAtivos.length
+                          (prev) => (prev - 1 + bannersAtivos.length) % bannersAtivos.length,
                         )
                       }
                       className="absolute left-1.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition cursor-pointer"
@@ -639,7 +664,9 @@ export function AdminBannersPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setSlideSimuladorIdx((prev) => (prev + 1) % bannersAtivos.length)}
+                      onClick={() =>
+                        setSlideSimuladorIdx((prev) => (prev + 1) % bannersAtivos.length)
+                      }
                       className="absolute right-1.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition cursor-pointer"
                     >
                       <ChevronRight className="w-3.5 h-3.5" />

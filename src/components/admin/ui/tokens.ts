@@ -17,31 +17,36 @@ export const adminTokens = {
     // Paleta Semântica para Status e Alertas
     success: {
       solid: "bg-emerald-600 text-white",
-      subtle: "bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60",
+      subtle:
+        "bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60",
       dot: "bg-emerald-500",
       icon: "text-emerald-600 dark:text-emerald-400",
     },
     warning: {
       solid: "bg-amber-500 text-white",
-      subtle: "bg-amber-50 text-amber-800 border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60",
+      subtle:
+        "bg-amber-50 text-amber-800 border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60",
       dot: "bg-amber-500",
       icon: "text-amber-600 dark:text-amber-400",
     },
     critical: {
       solid: "bg-rose-600 text-white",
-      subtle: "bg-rose-50 text-rose-700 border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/60",
+      subtle:
+        "bg-rose-50 text-rose-700 border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/60",
       dot: "bg-rose-500",
       icon: "text-rose-600 dark:text-rose-400",
     },
     info: {
       solid: "bg-blue-600 text-white",
-      subtle: "bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800/60",
+      subtle:
+        "bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800/60",
       dot: "bg-blue-500",
       icon: "text-blue-600 dark:text-blue-400",
     },
     neutral: {
       solid: "bg-slate-700 text-white",
-      subtle: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
+      subtle:
+        "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
       dot: "bg-slate-400",
       icon: "text-slate-500 dark:text-slate-400",
     },
@@ -76,7 +81,8 @@ export const adminTokens = {
     sectionTitle: "text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400",
     cardTitle: "text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100",
     cardSubtitle: "text-xs text-slate-500 dark:text-slate-400",
-    kpiValue: "text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight tabular-nums",
+    kpiValue:
+      "text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight tabular-nums",
     kpiLabel: "text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400",
     body: "text-sm text-slate-600 dark:text-slate-300 leading-relaxed",
     caption: "text-xs text-slate-400 dark:text-slate-500",

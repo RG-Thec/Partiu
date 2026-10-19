@@ -21,7 +21,8 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
           Módulo 2: Design System Manager
         </h2>
         <p className="text-xs text-slate-400 mt-1">
-          Altere cores primárias, secundárias, semântica, raios e sombras aplicados via variáveis CSS no :root.
+          Altere cores primárias, secundárias, semântica, raios e sombras aplicados via variáveis
+          CSS no :root.
         </p>
       </div>
 
@@ -36,9 +37,7 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Cor Primária */}
           <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
-            <label className="text-xs font-bold text-slate-300 block">
-              Cor Primária (Brand)
-            </label>
+            <label className="text-xs font-bold text-slate-300 block">Cor Primária (Brand)</label>
             <div className="flex items-center gap-3">
               <input
                 type="color"
@@ -208,9 +207,7 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
 
           {/* Cor de Texto Principal */}
           <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
-            <label className="text-xs font-bold text-slate-300 block">
-              Texto Sobre Primária
-            </label>
+            <label className="text-xs font-bold text-slate-300 block">Texto Sobre Primária</label>
             <div className="flex items-center gap-3">
               <input
                 type="color"
@@ -251,9 +248,7 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
 
           {/* Cor Fundo do App */}
           <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
-            <label className="text-xs font-bold text-slate-300 block">
-              Fundo das Páginas
-            </label>
+            <label className="text-xs font-bold text-slate-300 block">Fundo das Páginas</label>
             <div className="flex items-center gap-3">
               <input
                 type="color"
@@ -294,9 +289,7 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
 
           {/* Superfície Cards */}
           <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-2xl space-y-2">
-            <label className="text-xs font-bold text-slate-300 block">
-              Superfície dos Cards
-            </label>
+            <label className="text-xs font-bold text-slate-300 block">Superfície dos Cards</label>
             <div className="flex items-center gap-3">
               <input
                 type="color"
@@ -441,8 +434,12 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
                   if (currentlySynced) {
                     updateBranding({
                       footer_sync_with_header: false,
-                      footer_gradient_start: branding?.footer_gradient_start || branding?.header_gradient_start || "#0088FF",
-                      footer_gradient_end: branding?.footer_gradient_end || branding?.header_gradient_end || "#003366",
+                      footer_gradient_start:
+                        branding?.footer_gradient_start ||
+                        branding?.header_gradient_start ||
+                        "#0088FF",
+                      footer_gradient_end:
+                        branding?.footer_gradient_end || branding?.header_gradient_end || "#003366",
                     });
                   } else {
                     updateBranding({
@@ -483,7 +480,11 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
                   <div className="flex items-center gap-2.5">
                     <input
                       type="color"
-                      value={branding?.footer_gradient_start || branding?.header_gradient_start || "#0088FF"}
+                      value={
+                        branding?.footer_gradient_start ||
+                        branding?.header_gradient_start ||
+                        "#0088FF"
+                      }
                       onChange={(e) => {
                         updateBranding({ footer_gradient_start: e.target.value });
                         onSaveFeedback();
@@ -492,7 +493,11 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
                     />
                     <input
                       type="text"
-                      value={branding?.footer_gradient_start || branding?.header_gradient_start || "#0088FF"}
+                      value={
+                        branding?.footer_gradient_start ||
+                        branding?.header_gradient_start ||
+                        "#0088FF"
+                      }
                       onChange={(e) => {
                         updateBranding({ footer_gradient_start: e.target.value });
                         onSaveFeedback();
@@ -509,7 +514,9 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
                   <div className="flex items-center gap-2.5">
                     <input
                       type="color"
-                      value={branding?.footer_gradient_end || branding?.header_gradient_end || "#003366"}
+                      value={
+                        branding?.footer_gradient_end || branding?.header_gradient_end || "#003366"
+                      }
                       onChange={(e) => {
                         updateBranding({ footer_gradient_end: e.target.value });
                         onSaveFeedback();
@@ -518,7 +525,9 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
                     />
                     <input
                       type="text"
-                      value={branding?.footer_gradient_end || branding?.header_gradient_end || "#003366"}
+                      value={
+                        branding?.footer_gradient_end || branding?.header_gradient_end || "#003366"
+                      }
                       onChange={(e) => {
                         updateBranding({ footer_gradient_end: e.target.value });
                         onSaveFeedback();
@@ -567,8 +576,8 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
               {isSyncing
                 ? "Sincronizando com Supabase..."
                 : lastSyncedAt
-                ? `Sincronizado às ${lastSyncedAt.toLocaleTimeString()}`
-                : "Conectado ao Supabase Realtime"}
+                  ? `Sincronizado às ${lastSyncedAt.toLocaleTimeString()}`
+                  : "Conectado ao Supabase Realtime"}
             </span>
           </div>
           <button
@@ -576,14 +585,19 @@ export function DesignSystemTab({ onSaveFeedback }: DesignSystemTabProps) {
             onClick={async () => {
               await updateBranding({
                 primary_color: designSystem?.paletaPrimaria?.corPrincipal || branding.primary_color,
-                secondary_color: designSystem?.paletaPrimaria?.corSecundaria || branding.secondary_color,
-                background_color: designSystem?.paletaPrimaria?.corFundoApp || branding.background_color,
-                surface_color: designSystem?.paletaPrimaria?.corSuperficieCard || branding.surface_color,
-                text_primary: designSystem?.paletaPrimaria?.corTextoPrincipal || branding.text_primary,
+                secondary_color:
+                  designSystem?.paletaPrimaria?.corSecundaria || branding.secondary_color,
+                background_color:
+                  designSystem?.paletaPrimaria?.corFundoApp || branding.background_color,
+                surface_color:
+                  designSystem?.paletaPrimaria?.corSuperficieCard || branding.surface_color,
+                text_primary:
+                  designSystem?.paletaPrimaria?.corTextoPrincipal || branding.text_primary,
                 header_gradient_start: branding.header_gradient_start,
                 header_gradient_end: branding.header_gradient_end,
                 footer_sync_with_header: branding.footer_sync_with_header !== false,
-                footer_gradient_start: branding.footer_gradient_start || branding.header_gradient_start,
+                footer_gradient_start:
+                  branding.footer_gradient_start || branding.header_gradient_start,
                 footer_gradient_end: branding.footer_gradient_end || branding.header_gradient_end,
               });
               onSaveFeedback();

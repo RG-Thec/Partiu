@@ -1,6 +1,6 @@
 /**
  * PARTIU H3 SPATIAL INDEX & HEXAGONAL CLUSTERING ENGINE
- * 
+ *
  * Implementação algorítmica pura de tesselação hexagonal compatível com a lógica Uber H3.
  * Divide a malha urbana em hexágonos equidistantes, eliminando distorções de raio circular
  * e permitindo balanceamento preciso de liquidez célula a célula.
@@ -18,7 +18,7 @@ export interface H3CellLiquidity {
   motoristasPresentes: number;
   passageirosAguardando: number;
   taxaLiquidez: number; // motoristas / passageiros
-  statusLiquidez: 'DEFICIT_CRITICO' | 'DEFICIT_MODERADO' | 'EQUILIBRADO' | 'EXCESSO_OFERTA';
+  statusLiquidez: "DEFICIT_CRITICO" | "DEFICIT_MODERADO" | "EQUILIBRADO" | "EXCESSO_OFERTA";
   surgeRecomendado: number;
   densidadeDemanda: number; // 0.0 a 1.0
 }
@@ -28,7 +28,7 @@ export interface H3HeatmapCell {
   boundary: H3Coord[]; // 6 vértices do hexágono
   center: H3Coord;
   intensity: number;
-  tipo: 'DEMANDA' | 'OFERTA';
+  tipo: "DEMANDA" | "OFERTA";
 }
 
 import { h3SpatialIndex } from "./spatial";
@@ -38,14 +38,17 @@ export class H3SpatialEngine {
   private static readonly RES_SPACING: Record<number, number> = {
     7: 0.015, // ~1.5 km
     8: 0.005, // ~500 metros (Resolução padrão de Matching)
-    9: 0.002  // ~180 metros (Micro-hotspots)
+    9: 0.002, // ~180 metros (Micro-hotspots)
   };
 
-  private cellsData: Map<string, {
-    motoristasIds: Set<string>;
-    passageirosIds: Set<string>;
-    resolution: number;
-  }> = new Map();
+  private cellsData: Map<
+    string,
+    {
+      motoristasIds: Set<string>;
+      passageirosIds: Set<string>;
+      resolution: number;
+    }
+  > = new Map();
 
   /**
    * Converte coordenadas geográficas (lat, lng) para índice de célula hexagonal H3
@@ -57,8 +60,8 @@ export class H3SpatialEngine {
       const spacing = H3SpatialEngine.RES_SPACING[resolution] || 0.005;
       const x = (lng * Math.cos(lat * (Math.PI / 180))) / spacing;
       const y = lat / spacing;
-      const q = (Math.sqrt(3) / 3 * x - 1 / 3 * y);
-      const r = (2 / 3 * y);
+      const q = (Math.sqrt(3) / 3) * x - (1 / 3) * y;
+      const r = (2 / 3) * y;
       let rx = Math.round(q);
       let ry = Math.round(-q - r);
       let rz = Math.round(r);
@@ -84,22 +87,22 @@ export class H3SpatialEngine {
       const pt = h3SpatialIndex.cellToLatLng(cellIndex);
       return { lat: Number(pt.lat.toFixed(6)), lng: Number(pt.lng.toFixed(6)) };
     }
-    const parts = cellIndex.split('_');
-    const p1 = parts[1] ?? 'res8';
-    const p2 = parts[2] ?? '0';
-    const p3 = parts[3] ?? '0';
-    const resolution = parseInt(p1.replace('res', ''), 10) || 8;
+    const parts = cellIndex.split("_");
+    const p1 = parts[1] ?? "res8";
+    const p2 = parts[2] ?? "0";
+    const p3 = parts[3] ?? "0";
+    const resolution = parseInt(p1.replace("res", ""), 10) || 8;
     const q = parseInt(p2, 10) || 0;
     const r = parseInt(p3, 10) || 0;
     const spacing = H3SpatialEngine.RES_SPACING[resolution] || 0.005;
-    const y = (3 / 2 * r) * spacing;
+    const y = (3 / 2) * r * spacing;
     const lat = y;
     const cosLat = Math.cos(lat * (Math.PI / 180)) || 1;
-    const x = (Math.sqrt(3) * (q + r / 2)) * spacing;
+    const x = Math.sqrt(3) * (q + r / 2) * spacing;
     const lng = x / cosLat;
     return {
       lat: Number(lat.toFixed(6)),
-      lng: Number(lng.toFixed(6))
+      lng: Number(lng.toFixed(6)),
     };
   }
 
@@ -108,9 +111,9 @@ export class H3SpatialEngine {
    */
   public getH3HexagonBoundary(cellIndex: string): H3Coord[] {
     const center = this.h3ToGeo(cellIndex);
-    const parts = cellIndex.split('_');
-    const p1 = parts[1] ?? 'res8';
-    const resolution = parseInt(p1.replace('res', ''), 10) || 8;
+    const parts = cellIndex.split("_");
+    const p1 = parts[1] ?? "res8";
+    const resolution = parseInt(p1.replace("res", ""), 10) || 8;
     const radius = (H3SpatialEngine.RES_SPACING[resolution] || 0.005) * 0.58;
 
     const boundary: H3Coord[] = [];
@@ -121,7 +124,7 @@ export class H3SpatialEngine {
       const lng = center.lng + (radius * Math.cos(angleRad)) / cosLat;
       boundary.push({
         lat: Number(lat.toFixed(6)),
-        lng: Number(lng.toFixed(6))
+        lng: Number(lng.toFixed(6)),
       });
     }
 
@@ -132,18 +135,22 @@ export class H3SpatialEngine {
    * Retorna os vizinhos imediatos (anel k-ring 1) de uma célula hexagonal
    */
   public getH3Neighbors(cellIndex: string): string[] {
-    const parts = cellIndex.split('_');
-    const p1 = parts[1] ?? 'res8';
-    const p2 = parts[2] ?? '0';
-    const p3 = parts[3] ?? '0';
-    const resolution = parseInt(p1.replace('res', ''), 10) || 8;
+    const parts = cellIndex.split("_");
+    const p1 = parts[1] ?? "res8";
+    const p2 = parts[2] ?? "0";
+    const p3 = parts[3] ?? "0";
+    const resolution = parseInt(p1.replace("res", ""), 10) || 8;
     const q = parseInt(p2, 10) || 0;
     const r = parseInt(p3, 10) || 0;
 
     // 6 direções vizinhas no grid axial
     const directions: [number, number][] = [
-      [1, 0], [1, -1], [0, -1],
-      [-1, 0], [-1, 1], [0, 1]
+      [1, 0],
+      [1, -1],
+      [0, -1],
+      [-1, 0],
+      [-1, 1],
+      [0, 1],
     ];
 
     return directions.map(([dq, dr]) => `h3_res${resolution}_${q + dq}_${r + dr}`);
@@ -152,9 +159,14 @@ export class H3SpatialEngine {
   /**
    * Indexa a posição de um motorista em tempo real
    */
-  public indexDriverLocation(driverId: string, lat: number, lng: number, resolution: number = 8): string {
+  public indexDriverLocation(
+    driverId: string,
+    lat: number,
+    lng: number,
+    resolution: number = 8,
+  ): string {
     const cell = this.latLngToH3Index(lat, lng, resolution);
-    
+
     // Remove de célula anterior se houver
     this.cellsData.forEach((data) => data.motoristasIds.delete(driverId));
 
@@ -162,7 +174,7 @@ export class H3SpatialEngine {
       this.cellsData.set(cell, {
         motoristasIds: new Set([driverId]),
         passageirosIds: new Set(),
-        resolution
+        resolution,
       });
     } else {
       this.cellsData.get(cell)!.motoristasIds.add(driverId);
@@ -174,14 +186,19 @@ export class H3SpatialEngine {
   /**
    * Indexa a chamada de um passageiro em tempo real
    */
-  public indexPassengerRequest(passengerId: string, lat: number, lng: number, resolution: number = 8): string {
+  public indexPassengerRequest(
+    passengerId: string,
+    lat: number,
+    lng: number,
+    resolution: number = 8,
+  ): string {
     const cell = this.latLngToH3Index(lat, lng, resolution);
 
     if (!this.cellsData.has(cell)) {
       this.cellsData.set(cell, {
         motoristasIds: new Set(),
         passageirosIds: new Set([passengerId]),
-        resolution
+        resolution,
       });
     } else {
       this.cellsData.get(cell)!.passageirosIds.add(passengerId);
@@ -200,17 +217,17 @@ export class H3SpatialEngine {
 
     const taxa = passageiros > 0 ? motoristas / passageiros : motoristas > 0 ? 3.0 : 1.0;
 
-    let statusLiquidez: H3CellLiquidity['statusLiquidez'] = 'EQUILIBRADO';
+    let statusLiquidez: H3CellLiquidity["statusLiquidez"] = "EQUILIBRADO";
     let surgeRecomendado = 1.0;
 
     if (passageiros > 0 && taxa < 0.4) {
-      statusLiquidez = 'DEFICIT_CRITICO';
+      statusLiquidez = "DEFICIT_CRITICO";
       surgeRecomendado = 1.6;
     } else if (passageiros > 0 && taxa < 0.8) {
-      statusLiquidez = 'DEFICIT_MODERADO';
+      statusLiquidez = "DEFICIT_MODERADO";
       surgeRecomendado = 1.25;
     } else if (motoristas >= 4 && passageiros === 0) {
-      statusLiquidez = 'EXCESSO_OFERTA';
+      statusLiquidez = "EXCESSO_OFERTA";
       surgeRecomendado = 1.0;
     }
 
@@ -226,7 +243,7 @@ export class H3SpatialEngine {
       taxaLiquidez: Number(taxa.toFixed(2)),
       statusLiquidez,
       surgeRecomendado,
-      densidadeDemanda
+      densidadeDemanda,
     };
   }
 
@@ -237,7 +254,7 @@ export class H3SpatialEngine {
     const deficits: H3CellLiquidity[] = [];
     this.cellsData.forEach((_, cellIndex) => {
       const liq = this.calculateCellLiquidity(cellIndex);
-      if (liq.statusLiquidez === 'DEFICIT_CRITICO' || liq.statusLiquidez === 'DEFICIT_MODERADO') {
+      if (liq.statusLiquidez === "DEFICIT_CRITICO" || liq.statusLiquidez === "DEFICIT_MODERADO") {
         deficits.push(liq);
       }
     });
@@ -251,7 +268,7 @@ export class H3SpatialEngine {
     const surplus: H3CellLiquidity[] = [];
     this.cellsData.forEach((_, cellIndex) => {
       const liq = this.calculateCellLiquidity(cellIndex);
-      if (liq.statusLiquidez === 'EXCESSO_OFERTA') {
+      if (liq.statusLiquidez === "EXCESSO_OFERTA") {
         surplus.push(liq);
       }
     });
@@ -274,7 +291,7 @@ export class H3SpatialEngine {
           boundary,
           center,
           intensity: Math.min(1.0, data.passageirosIds.size / 8),
-          tipo: 'DEMANDA'
+          tipo: "DEMANDA",
         });
       }
 
@@ -284,7 +301,7 @@ export class H3SpatialEngine {
           boundary,
           center,
           intensity: Math.min(1.0, data.motoristasIds.size / 12),
-          tipo: 'OFERTA'
+          tipo: "OFERTA",
         });
       }
     });

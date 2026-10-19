@@ -58,7 +58,10 @@ export function PassengerSelectionModal({
         {viajanteOutraPessoa && (
           <div className="space-y-3 pt-1">
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: secondaryTextColor }}>
+              <label
+                className="text-xs font-bold uppercase tracking-wider block mb-1.5"
+                style={{ color: secondaryTextColor }}
+              >
                 Nome do passageiro
               </label>
               <input
@@ -77,7 +80,10 @@ export function PassengerSelectionModal({
             </div>
 
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider block mb-1.5" style={{ color: secondaryTextColor }}>
+              <label
+                className="text-xs font-bold uppercase tracking-wider block mb-1.5"
+                style={{ color: secondaryTextColor }}
+              >
                 Telefone de contato
               </label>
               <input
@@ -94,19 +100,19 @@ export function PassengerSelectionModal({
               />
             </div>
 
-            <NativeSurface elevation={1} padding="sm" className="text-xs font-medium text-slate-700">
-              💡 O motorista verá que a corrida foi pedida por você e poderá falar diretamente com quem vai embarcar.
+            <NativeSurface
+              elevation={1}
+              padding="sm"
+              className="text-xs font-medium text-slate-700"
+            >
+              💡 O motorista verá que a corrida foi pedida por você e poderá falar diretamente com
+              quem vai embarcar.
             </NativeSurface>
           </div>
         )}
 
         <div className="pt-2">
-          <NativeButton
-            variant="filled"
-            size="md"
-            fullWidth
-            onClick={onClose}
-          >
+          <NativeButton variant="filled" size="md" fullWidth onClick={onClose}>
             Concluir
           </NativeButton>
         </div>

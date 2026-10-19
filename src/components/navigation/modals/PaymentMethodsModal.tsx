@@ -23,13 +23,18 @@ export function PaymentMethodsModal({
           <div className="flex items-center gap-2">
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: `${corPrimaria || "#FF6B00"}15`, color: corPrimaria || "#FF6B00" }}
+              style={{
+                backgroundColor: `${corPrimaria || "#FF6B00"}15`,
+                color: corPrimaria || "#FF6B00",
+              }}
             >
               <QrCode className="h-4 w-4" />
             </div>
             <div>
               <h3 className="text-sm font-black text-slate-900">Como Pagar sua Viagem</h3>
-              <p className="text-[10px] text-slate-500 font-medium">Pagamento 100% direto ao condutor (Zero Custódia)</p>
+              <p className="text-[10px] text-slate-500 font-medium">
+                Pagamento 100% direto ao condutor (Zero Custódia)
+              </p>
             </div>
           </div>
           <button
@@ -45,7 +50,9 @@ export function PaymentMethodsModal({
         <div className="p-3 rounded-2xl bg-emerald-50/80 border border-emerald-200/70 mb-4 flex items-start gap-2.5">
           <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
           <p className="text-[11px] text-emerald-800 leading-relaxed font-medium">
-            <strong>Zero custódia e sem retenção de dados:</strong> O PARTIU não desconta valores no seu cartão in-app. O repasse é 100% direto entre você e o condutor parceiro ao desembarcar.
+            <strong>Zero custódia e sem retenção de dados:</strong> O PARTIU não desconta valores no
+            seu cartão in-app. O repasse é 100% direto entre você e o condutor parceiro ao
+            desembarcar.
           </p>
         </div>
 
@@ -58,13 +65,17 @@ export function PaymentMethodsModal({
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-bold text-slate-900">PIX QR Code no Final da Corrida</span>
+                <span className="text-xs font-bold text-slate-900">
+                  PIX QR Code no Final da Corrida
+                </span>
                 <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
                   Recomendado
                 </span>
               </div>
               <p className="text-[11px] text-slate-600 mt-1 leading-snug">
-                Ao chegar no destino, a tela do condutor exibe um <strong>QR Code instantâneo</strong> com o valor exato para você escanear pelo app do seu banco.
+                Ao chegar no destino, a tela do condutor exibe um{" "}
+                <strong>QR Code instantâneo</strong> com o valor exato para você escanear pelo app
+                do seu banco.
               </p>
             </div>
           </div>
@@ -75,9 +86,12 @@ export function PaymentMethodsModal({
               <CreditCard className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs font-bold text-slate-900 block">Maquininha do Motorista</span>
+              <span className="text-xs font-bold text-slate-900 block">
+                Maquininha do Motorista
+              </span>
               <p className="text-[11px] text-slate-600 mt-1 leading-snug">
-                Pague com seu cartão físico (débito, crédito ou aproximação) direto na maquininha do veículo no desembarque.
+                Pague com seu cartão físico (débito, crédito ou aproximação) direto na maquininha do
+                veículo no desembarque.
               </p>
             </div>
           </div>
@@ -90,7 +104,8 @@ export function PaymentMethodsModal({
             <div>
               <span className="text-xs font-bold text-slate-900 block">Dinheiro em Espécie</span>
               <p className="text-[11px] text-slate-600 mt-1 leading-snug">
-                Pague em notas ou moedas em mãos ao motorista. Você pode informar necessidade de troco ao solicitar a corrida.
+                Pague em notas ou moedas em mãos ao motorista. Você pode informar necessidade de
+                troco ao solicitar a corrida.
               </p>
             </div>
           </div>
@@ -103,7 +118,8 @@ export function PaymentMethodsModal({
             <div>
               <span className="text-xs font-bold text-slate-900 block">Chave PIX do Condutor</span>
               <p className="text-[11px] text-slate-600 mt-1 leading-snug">
-                O condutor também pode fornecer sua chave PIX direta (telefone, CPF ou e-mail) para transferência bancária no ato.
+                O condutor também pode fornecer sua chave PIX direta (telefone, CPF ou e-mail) para
+                transferência bancária no ato.
               </p>
             </div>
           </div>
@@ -113,7 +129,10 @@ export function PaymentMethodsModal({
           type="button"
           onClick={onClose}
           className="w-full mt-4 py-3 rounded-2xl font-bold text-xs shadow-md transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center"
-          style={{ backgroundColor: corPrimaria || "#FF6B00", color: corTextoPrimaria || "#FFFFFF" }}
+          style={{
+            backgroundColor: corPrimaria || "#FF6B00",
+            color: corTextoPrimaria || "#FFFFFF",
+          }}
         >
           Entendido
         </button>

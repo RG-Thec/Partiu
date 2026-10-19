@@ -20,7 +20,8 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "min-h-[40px] h-10 px-4 py-2 text-xs sm:text-[13px] font-semibold rounded-[var(--radius,12px)]",
+        default:
+          "min-h-[40px] h-10 px-4 py-2 text-xs sm:text-[13px] font-semibold rounded-[var(--radius,12px)]",
         sm: "min-h-[34px] h-8.5 px-3 py-1 text-[11px] font-semibold rounded-[calc(var(--radius,12px)-4px)]",
         lg: "min-h-[44px] h-11 px-4.5 py-2.5 text-xs sm:text-sm font-bold rounded-[var(--radius,12px)]",
         icon: "min-h-[38px] min-w-[38px] h-9.5 w-9.5 rounded-[var(--radius,12px)] [&_svg]:size-4.5",
@@ -50,4 +51,3 @@ Button.displayName = "Button";
 
 export { Button, buttonVariants };
 export { PrimaryButton, type PrimaryButtonProps } from "./PrimaryButton";
-

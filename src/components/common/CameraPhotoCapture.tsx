@@ -76,7 +76,7 @@ async function otimizarImagem(file: File): Promise<{ dataUrl: string; file: File
             }
           },
           "image/jpeg",
-          0.85
+          0.85,
         );
       };
       img.src = e.target?.result as string;
@@ -122,11 +122,11 @@ export const CameraPhotoCapture: React.FC<CameraPhotoCaptureProps> = ({
     value && value.trim().length > 0
       ? value
       : typeof window !== "undefined"
-      ? localStorage.getItem("partiu_user_avatar") ||
-        localStorage.getItem("partiu_user_foto") ||
-        localStorage.getItem("partiu_user_selfie") ||
-        ""
-      : "";
+        ? localStorage.getItem("partiu_user_avatar") ||
+          localStorage.getItem("partiu_user_foto") ||
+          localStorage.getItem("partiu_user_selfie") ||
+          ""
+        : "";
   const temFoto = Boolean(effectivePhoto && effectivePhoto.trim().length > 0);
 
   // Encerra os tracks da câmera
@@ -189,7 +189,8 @@ export const CameraPhotoCapture: React.FC<CameraPhotoCaptureProps> = ({
       console.warn("Erro ao iniciar câmera WebRTC:", err);
       let mensagem = "Não foi possível abrir a câmera em tempo real.";
       if (err?.name === "NotAllowedError" || err?.name === "PermissionDeniedError") {
-        mensagem = "Acesso à câmera bloqueado. Permita o uso da câmera nas configurações do navegador.";
+        mensagem =
+          "Acesso à câmera bloqueado. Permita o uso da câmera nas configurações do navegador.";
       } else if (err?.name === "NotFoundError" || err?.name === "DevicesNotFoundError") {
         mensagem = "Nenhuma câmera ou webcam detectada no dispositivo.";
       } else if (err?.name === "NotReadableError" || err?.name === "TrackStartError") {
@@ -273,7 +274,7 @@ export const CameraPhotoCapture: React.FC<CameraPhotoCaptureProps> = ({
               window.dispatchEvent(
                 new CustomEvent("partiu:user-profile-updated", {
                   detail: { avatarUrl: dataUrl },
-                })
+                }),
               );
             } catch {}
           }
@@ -288,7 +289,7 @@ export const CameraPhotoCapture: React.FC<CameraPhotoCaptureProps> = ({
           }
         },
         "image/jpeg",
-        0.88
+        0.88,
       );
 
       handleFecharModalCamera();
@@ -322,7 +323,7 @@ export const CameraPhotoCapture: React.FC<CameraPhotoCaptureProps> = ({
           window.dispatchEvent(
             new CustomEvent("partiu:user-profile-updated", {
               detail: { avatarUrl: dataUrl },
-            })
+            }),
           );
         } catch {}
       }
@@ -345,7 +346,7 @@ export const CameraPhotoCapture: React.FC<CameraPhotoCaptureProps> = ({
         window.dispatchEvent(
           new CustomEvent("partiu:user-profile-updated", {
             detail: { avatarUrl: "" },
-          })
+          }),
         );
       } catch {}
     }

@@ -108,31 +108,41 @@ export function snapToRoute(
 
   let best = { index: 0, deviation: Infinity, t: 0 };
   for (let i = 0; i < coords.length - 1; i++) {
-    const ax = coords[i][0] * mx, ay = coords[i][1] * my;
-    const bx = coords[i + 1][0] * mx, by = coords[i + 1][1] * my;
-    const vx = bx - ax, vy = by - ay;
+    const ax = coords[i][0] * mx,
+      ay = coords[i][1] * my;
+    const bx = coords[i + 1][0] * mx,
+      by = coords[i + 1][1] * my;
+    const vx = bx - ax,
+      vy = by - ay;
     const len2 = vx * vx + vy * vy;
     const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((px - ax) * vx + (py - ay) * vy) / len2));
-    const cx = ax + t * vx, cy = ay + t * vy;
+    const cx = ax + t * vx,
+      cy = ay + t * vy;
     const d = Math.hypot(px - cx, py - cy);
     if (d < best.deviation) best = { index: i, deviation: d, t };
   }
 
   const a = coords[best.index];
   const b = coords[best.index + 1];
-  const point: [number, number] = [
-    a[0] + (b[0] - a[0]) * best.t,
-    a[1] + (b[1] - a[1]) * best.t,
-  ];
+  const point: [number, number] = [a[0] + (b[0] - a[0]) * best.t, a[1] + (b[1] - a[1]) * best.t];
   const c = cum ?? cumulativeDistances(coords);
   const segLen = c[best.index + 1] - c[best.index];
-  return { index: best.index, deviation: best.deviation, along: c[best.index] + segLen * best.t, point };
+  return {
+    index: best.index,
+    deviation: best.deviation,
+    along: c[best.index] + segLen * best.t,
+    point,
+  };
 }
 
 /**
  * Posição ao longo da rota para cada etapa/manobra.
  */
-export function stepPositions(coords: [number, number][], steps: NavStep[], cum?: number[]): number[] {
+export function stepPositions(
+  coords: [number, number][],
+  steps: NavStep[],
+  cum?: number[],
+): number[] {
   const c = cum ?? cumulativeDistances(coords);
   return steps.map((s) => snapToRoute(coords, s.location[1], s.location[0], c).along);
 }
@@ -201,7 +211,7 @@ export function announcementBand(distance: number): number | null {
  * Formata o texto de voz da instrução para Português (Brasil).
  */
 export function announcementText(instruction: string, band: number): string {
-  const clean = instruction.trim().replace(/\.$/, '');
+  const clean = instruction.trim().replace(/\.$/, "");
   if (band <= 30) {
     return clean;
   }
@@ -234,7 +244,7 @@ export function viaRoad(steps: NavStep[]): string | null {
   for (const s of steps) {
     const m = s.instruction.match(/\b(?:em|na|no|pela|pelo|onto|on)\s+(.+?)(?:\.|,|$)/i);
     if (!m) continue;
-    const road = m[1].trim().replace(/\s+/g, ' ');
+    const road = m[1].trim().replace(/\s+/g, " ");
     if (!road || road.length < 3) continue;
     if (!best || s.distance > best.dist) best = { road, dist: s.distance };
   }

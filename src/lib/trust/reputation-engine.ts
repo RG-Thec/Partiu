@@ -1,6 +1,6 @@
 /**
  * PARTIU PASSENGER REPUTATION ENGINE
- * 
+ *
  * Histórico Reputacional, Integridade Financeira e Auditoria de Contestações.
  */
 
@@ -24,7 +24,7 @@ export class PassengerReputationEngine {
     reputationScore: number;
     isPrepaymentMandatory: boolean;
     isAccountRestricted: boolean;
-    financialRiskLevel: 'BAIXO' | 'MEDIO' | 'ALTO' | 'CRITICO';
+    financialRiskLevel: "BAIXO" | "MEDIO" | "ALTO" | "CRITICO";
   } {
     // Verificações cadastrais básicas (+30 pts)
     let score = 0;
@@ -41,31 +41,35 @@ export class PassengerReputationEngine {
 
     // Penalidades severas
     if (record.unpaidRidesDebtBrl > 0) score -= 35;
-    if (record.chargebacksCount > 0) score -= (record.chargebacksCount * 40);
-    if (record.severeIncidentsCount > 0) score -= (record.severeIncidentsCount * 60);
+    if (record.chargebacksCount > 0) score -= record.chargebacksCount * 40;
+    if (record.severeIncidentsCount > 0) score -= record.severeIncidentsCount * 60;
 
     const reputationScore = Math.max(0, Math.min(100, Math.round(score)));
 
-    let financialRiskLevel: 'BAIXO' | 'MEDIO' | 'ALTO' | 'CRITICO' = 'BAIXO';
+    let financialRiskLevel: "BAIXO" | "MEDIO" | "ALTO" | "CRITICO" = "BAIXO";
     let isPrepaymentMandatory = false;
     let isAccountRestricted = false;
 
     if (record.severeIncidentsCount > 0 || record.chargebacksCount >= 2 || reputationScore < 20) {
-      financialRiskLevel = 'CRITICO';
+      financialRiskLevel = "CRITICO";
       isAccountRestricted = true;
       isPrepaymentMandatory = true;
-    } else if (record.unpaidRidesDebtBrl > 0 || record.chargebacksCount === 1 || reputationScore < 50) {
-      financialRiskLevel = 'ALTO';
+    } else if (
+      record.unpaidRidesDebtBrl > 0 ||
+      record.chargebacksCount === 1 ||
+      reputationScore < 50
+    ) {
+      financialRiskLevel = "ALTO";
       isPrepaymentMandatory = true;
     } else if (reputationScore < 70) {
-      financialRiskLevel = 'MEDIO';
+      financialRiskLevel = "MEDIO";
     }
 
     return {
       reputationScore,
       isPrepaymentMandatory,
       isAccountRestricted,
-      financialRiskLevel
+      financialRiskLevel,
     };
   }
 }

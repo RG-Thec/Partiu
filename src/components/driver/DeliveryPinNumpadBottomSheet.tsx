@@ -50,7 +50,8 @@ export const DeliveryPinNumpadBottomSheet = memo(function DeliveryPinNumpadBotto
   onCancel,
   onStartReturn,
 }: DeliveryPinNumpadBottomSheetProps) {
-  const { nomeApp, corPrimaria, corTextoPrimaria, corCabecalhoInicio, corCabecalhoFim, branding } = useBrandTheme();
+  const { nomeApp, corPrimaria, corTextoPrimaria, corCabecalhoInicio, corCabecalhoFim, branding } =
+    useBrandTheme();
   const accentColor = branding?.accent_color || corPrimaria || "#0088FF";
   const brandGradient = `linear-gradient(135deg, var(--header-gradient-start, ${corCabecalhoInicio}) 0%, var(--header-gradient-end, ${corCabecalhoFim}) 100%)`;
 
@@ -171,7 +172,9 @@ export const DeliveryPinNumpadBottomSheet = memo(function DeliveryPinNumpadBotto
                 {isPickup ? "● ETAPA 1 — COLETA" : "● ETAPA 2 — ENTREGA FINAL"}
               </span>
               <h2 className="text-lg font-black text-slate-950 mt-1">{title}</h2>
-              <p className="text-xs text-slate-700 font-semibold mt-0.5 leading-relaxed">{subtitle}</p>
+              <p className="text-xs text-slate-700 font-semibold mt-0.5 leading-relaxed">
+                {subtitle}
+              </p>
             </div>
 
             {onCancel && (
@@ -202,10 +205,10 @@ export const DeliveryPinNumpadBottomSheet = memo(function DeliveryPinNumpadBotto
                     errorMessage
                       ? "bg-rose-50 text-rose-700 border-2 border-rose-500 shadow-sm"
                       : digit
-                      ? "bg-slate-50 text-slate-950 border-2 shadow-sm"
-                      : isCurrent
-                      ? "bg-white text-slate-950 border-2 border-slate-950 animate-pulse shadow-xs"
-                      : "bg-slate-100 text-slate-500 border border-slate-200"
+                        ? "bg-slate-50 text-slate-950 border-2 shadow-sm"
+                        : isCurrent
+                          ? "bg-white text-slate-950 border-2 border-slate-950 animate-pulse shadow-xs"
+                          : "bg-slate-100 text-slate-500 border border-slate-200"
                   }`}
                   style={digit ? { borderColor: corPrimaria } : {}}
                 >
@@ -302,7 +305,10 @@ export const DeliveryPinNumpadBottomSheet = memo(function DeliveryPinNumpadBotto
         <div className="fixed inset-0 z-60 bg-black/70 flex items-center justify-center p-4 animate-in fade-in">
           <div className="w-full max-w-sm bg-white rounded-3xl p-5 shadow-2xl border border-slate-200 space-y-4 text-left">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 font-black text-sm" style={{ color: corPrimaria }}>
+              <div
+                className="flex items-center gap-2 font-black text-sm"
+                style={{ color: corPrimaria }}
+              >
                 <AlertTriangle className="w-5 h-5" style={{ color: accentColor }} />
                 <span>Suporte ao Condutor</span>
               </div>
@@ -316,8 +322,8 @@ export const DeliveryPinNumpadBottomSheet = memo(function DeliveryPinNumpadBotto
             </div>
 
             <p className="text-xs text-slate-800 font-medium leading-relaxed">
-              Caso o cliente não saiba ou não tenha recebido a senha de 4 dígitos, escolha uma das opções
-              abaixo:
+              Caso o cliente não saiba ou não tenha recebido a senha de 4 dígitos, escolha uma das
+              opções abaixo:
             </p>
 
             <div className="space-y-2 pt-1">

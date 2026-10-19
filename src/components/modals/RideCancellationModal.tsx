@@ -1,9 +1,5 @@
 import React, { useState, useMemo } from "react";
-import {
-  AlertTriangle,
-  DollarSign,
-  CheckCircle2,
-} from "lucide-react";
+import { AlertTriangle, DollarSign, CheckCircle2 } from "lucide-react";
 import {
   cancellationPolicyService,
   CANCELLATION_REASONS_PASSENGER,
@@ -38,12 +34,10 @@ export function RideCancellationModal({
   const { colors, ui } = appConfig.branding;
 
   const reasons =
-    userType === "PASSENGER"
-      ? CANCELLATION_REASONS_PASSENGER
-      : CANCELLATION_REASONS_DRIVER;
+    userType === "PASSENGER" ? CANCELLATION_REASONS_PASSENGER : CANCELLATION_REASONS_DRIVER;
 
   const [selectedReasonCode, setSelectedReasonCode] = useState<string>(
-    reasons[0]?.code || "WAIT_TOO_LONG"
+    reasons[0]?.code || "WAIT_TOO_LONG",
   );
 
   const policy = useMemo(() => {
@@ -52,8 +46,7 @@ export function RideCancellationModal({
 
   if (!open) return null;
 
-  const selectedReason =
-    reasons.find((r) => r.code === selectedReasonCode) || reasons[0];
+  const selectedReason = reasons.find((r) => r.code === selectedReasonCode) || reasons[0];
 
   const isExemptByReason = !selectedReason?.appliesFeeWhenLate;
   const willChargeFee = policy.shouldChargeFee && !isExemptByReason && userType === "PASSENGER";

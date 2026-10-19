@@ -8,7 +8,7 @@ describe("Banner Service — Driver Recruitment Banner in APK", () => {
     expect(banners.length).toBeGreaterThanOrEqual(3);
 
     const driverBanner = banners.find(
-      (b) => b.id === "banner-motorista-saas" || b.link_url === "/cadastro-motorista"
+      (b) => b.id === "banner-motorista-saas" || b.link_url === "/cadastro-motorista",
     );
 
     expect(driverBanner).toBeDefined();

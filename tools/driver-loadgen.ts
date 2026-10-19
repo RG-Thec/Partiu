@@ -55,7 +55,11 @@ export function parseArgs(): DriverLoadGenConfig {
 /**
  * Retorna ponto aleatório dentro de um círculo com raio em metros
  */
-export function randInCircle(centerLat: number, centerLng: number, radiusM: number): { lat: number; lng: number } {
+export function randInCircle(
+  centerLat: number,
+  centerLng: number,
+  radiusM: number,
+): { lat: number; lng: number } {
   const r = radiusM * Math.sqrt(Math.random());
   const theta = Math.random() * 2 * Math.PI;
   const dx = r * Math.cos(theta);
@@ -68,7 +72,10 @@ export function randInCircle(centerLat: number, centerLng: number, radiusM: numb
 /**
  * Calcula rumo/azimute (bearing em graus 0-360)
  */
-export function calculateBearing(start: { lat: number; lng: number }, end: { lat: number; lng: number }): number {
+export function calculateBearing(
+  start: { lat: number; lng: number },
+  end: { lat: number; lng: number },
+): number {
   const startLng = (start.lng * Math.PI) / 180;
   const startLat = (start.lat * Math.PI) / 180;
   const endLng = (end.lng * Math.PI) / 180;
@@ -88,7 +95,7 @@ export function calculateBearing(start: { lat: number; lng: number }, end: { lat
 export function* pathGenerator(
   start: { lat: number; lng: number },
   center: { lat: number; lng: number },
-  radiusM: number
+  radiusM: number,
 ): Generator<{ lat: number; lng: number }, void, unknown> {
   let a = start;
   while (true) {
@@ -120,8 +127,12 @@ export async function runSimulation(config: DriverLoadGenConfig): Promise<{
   totalPings: number;
   durationMs: number;
 }> {
-  console.log(`[DriverLoadGen] Iniciando simulação: ${config.drivers} motoristas @ ${config.rateHz}Hz por ${config.durationSec}s`);
-  console.log(`[DriverLoadGen] Centro: [${config.centerLat}, ${config.centerLng}] | Raio: ${config.radiusM}m | Res H3: ${config.h3Res}`);
+  console.log(
+    `[DriverLoadGen] Iniciando simulação: ${config.drivers} motoristas @ ${config.rateHz}Hz por ${config.durationSec}s`,
+  );
+  console.log(
+    `[DriverLoadGen] Centro: [${config.centerLat}, ${config.centerLng}] | Raio: ${config.radiusM}m | Res H3: ${config.h3Res}`,
+  );
 
   const drivers: SimulatedDriver[] = [];
 
@@ -167,7 +178,7 @@ export async function runSimulation(config: DriverLoadGenConfig): Promise<{
 
         await redisLuaEngine.updateLocation(d.id, next.lat, next.lng, d.cell, Date.now());
         totalPings++;
-      })
+      }),
     );
 
     const elapsed = Date.now() - loopStart;
@@ -178,7 +189,9 @@ export async function runSimulation(config: DriverLoadGenConfig): Promise<{
   }
 
   const durationMs = Date.now() - t0;
-  console.log(`[DriverLoadGen] 🏁 Simulação concluída: ${totalPings} pings transmitidos em ${Math.round(durationMs / 1000)}s.`);
+  console.log(
+    `[DriverLoadGen] 🏁 Simulação concluída: ${totalPings} pings transmitidos em ${Math.round(durationMs / 1000)}s.`,
+  );
 
   return {
     totalDrivers: config.drivers,

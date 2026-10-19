@@ -119,9 +119,7 @@ export const LandingLiveCustomizer: React.FC<LandingLiveCustomizerProps> = ({
             <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-2">
                 <Palette className="w-4 h-4 text-sky-600" />
-                <h3 className="font-extrabold text-sm text-slate-900">
-                  Data-Binding Admin Panel
-                </h3>
+                <h3 className="font-extrabold text-sm text-slate-900">Data-Binding Admin Panel</h3>
               </div>
               <button
                 type="button"
@@ -177,13 +175,9 @@ export const LandingLiveCustomizer: React.FC<LandingLiveCustomizerProps> = ({
                               style={{ backgroundColor: palette.secondary }}
                             />
                           </div>
-                          <span className="text-xs text-slate-800">
-                            {palette.name}
-                          </span>
+                          <span className="text-xs text-slate-800">{palette.name}</span>
                         </div>
-                        {isSelected && (
-                          <Check className="w-3.5 h-3.5 text-sky-600 stroke-[3]" />
-                        )}
+                        {isSelected && <Check className="w-3.5 h-3.5 text-sky-600 stroke-[3]" />}
                       </button>
                     );
                   })}
@@ -270,9 +264,7 @@ export const LandingLiveCustomizer: React.FC<LandingLiveCustomizerProps> = ({
                 </label>
 
                 <div>
-                  <label className="block text-[11px] text-slate-500 mb-1">
-                    Nome da Marca:
-                  </label>
+                  <label className="block text-[11px] text-slate-500 mb-1">Nome da Marca:</label>
                   <input
                     type="text"
                     value={data.header.brandName}
@@ -282,9 +274,7 @@ export const LandingLiveCustomizer: React.FC<LandingLiveCustomizerProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-[11px] text-slate-500 mb-1">
-                    Headline Hero:
-                  </label>
+                  <label className="block text-[11px] text-slate-500 mb-1">Headline Hero:</label>
                   <textarea
                     rows={2}
                     value={data.hero.headline}

@@ -85,6 +85,7 @@ erDiagram
 ## 2. Tabelas Core do Modelo de Monetização SaaS
 
 ### A. Tabela `monetization_plans` (Catálogo de Planos)
+
 Armazena a definição dos planos periódicos que os motoristas podem assinar:
 
 ```sql
@@ -103,9 +104,11 @@ CREATE TABLE IF NOT EXISTS public.monetization_plans (
     CONSTRAINT ck_monetization_plans_zero_take_rate CHECK (platform_commission_percent = 0.00)
 );
 ```
+
 > **Nota de Blindagem:** A constraint `ck_monetization_plans_zero_take_rate` impede fisicamente a inserção de qualquer taxa de comissão maior que 0.00% no catálogo de planos.
 
 ### B. Tabela `driver_subscriptions` (Vigência de Acesso do Motorista)
+
 Registra o estado atual da assinatura de cada motorista:
 
 ```sql
@@ -113,7 +116,7 @@ CREATE TABLE IF NOT EXISTS public.driver_subscriptions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     driver_id UUID NOT NULL REFERENCES public.drivers(id) ON DELETE CASCADE,
     plan_code VARCHAR(64) NOT NULL REFERENCES public.monetization_plans(plan_code),
-    status VARCHAR(32) NOT NULL DEFAULT 'trial' 
+    status VARCHAR(32) NOT NULL DEFAULT 'trial'
         CHECK (status IN ('trial', 'active', 'past_due', 'blocked', 'cancelled')),
     start_date TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
     expires_at TIMESTAMPTZ NOT NULL,
@@ -123,13 +126,14 @@ CREATE TABLE IF NOT EXISTS public.driver_subscriptions (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
 
-CREATE INDEX IF NOT EXISTS idx_driver_subs_driver_status 
+CREATE INDEX IF NOT EXISTS idx_driver_subs_driver_status
     ON public.driver_subscriptions(driver_id, status);
-CREATE INDEX IF NOT EXISTS idx_driver_subs_expires 
+CREATE INDEX IF NOT EXISTS idx_driver_subs_expires
     ON public.driver_subscriptions(expires_at);
 ```
 
 ### C. Tabela `subscription_invoices` (Faturas Pix)
+
 Guarda o histórico de cobrança e identificação do Pix dinâmico:
 
 ```sql
@@ -138,7 +142,7 @@ CREATE TABLE IF NOT EXISTS public.subscription_invoices (
     subscription_id UUID NOT NULL REFERENCES public.driver_subscriptions(id) ON DELETE CASCADE,
     driver_id UUID NOT NULL REFERENCES public.drivers(id) ON DELETE CASCADE,
     amount_cents INTEGER NOT NULL CHECK (amount_cents > 0),
-    status VARCHAR(32) NOT NULL DEFAULT 'pending' 
+    status VARCHAR(32) NOT NULL DEFAULT 'pending'
         CHECK (status IN ('pending', 'paid', 'expired', 'cancelled', 'refunded')),
     gateway_provider VARCHAR(32) NOT NULL DEFAULT 'mercadopago',
     gateway_transaction_id VARCHAR(128),
@@ -164,8 +168,8 @@ CREATE TABLE IF NOT EXISTS public.rides (
     driver_id UUID REFERENCES public.drivers(id),
     category_id VARCHAR(32) NOT NULL DEFAULT 'economico',
     status VARCHAR(32) NOT NULL DEFAULT 'DRAFT'
-        CHECK (status IN ('DRAFT', 'REQUESTED', 'OFFERED', 'ACCEPTED', 
-                          'HEADING_TO_PICKUP', 'WAITING_PASSENGER', 
+        CHECK (status IN ('DRAFT', 'REQUESTED', 'OFFERED', 'ACCEPTED',
+                          'HEADING_TO_PICKUP', 'WAITING_PASSENGER',
                           'IN_TRANSIT', 'COMPLETED', 'CANCELLED')),
     origin_address TEXT NOT NULL,
     origin_geom GEOMETRY(Point, 4326) NOT NULL,
@@ -208,12 +212,12 @@ Para viabilizar pesquisas de proximidade geográfica submétricas em cidades den
 -- Índice GIST de Alta Velocidade para Posição Atual dos Motoristas:
 CREATE INDEX IF NOT EXISTS idx_drivers_spatial_location
     ON public.drivers USING GIST (location_geom)
-    WHERE status_operacional = 'ONLINE' 
+    WHERE status_operacional = 'ONLINE'
       AND status_assinatura IN ('active', 'trial');
 
 -- View Otimizada para Despacho Instantâneo de Corridas:
 CREATE OR REPLACE VIEW public.vw_nearby_eligible_drivers AS
-SELECT 
+SELECT
     d.id AS driver_id,
     d.tenant_id,
     d.user_id,
@@ -238,7 +242,8 @@ WHERE d.documentos_aprovados = true
 Todas as tabelas do ecossistema possuem `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;`.
 
 ### Exemplo de RLS em `rides`:
-```sql
+
+````sql
 -- 1. Passageiros podem ler suas próprias solicitações de corrida
 CREATE POLICY "passengers_select_own_rides"
     ON public.rides FOR SELECT
@@ -257,8 +262,8 @@ CREATE POLICY "admin_select_tenant_rides"
     TO authenticated
     USING (
         EXISTS (
-            SELECT 1 FROM public.admin_users au 
-            WHERE au.user_id = auth.uid() 
+            SELECT 1 FROM public.admin_users au
+            WHERE au.user_id = auth.uid()
               AND (au.is_super_admin = true OR au.tenant_id = rides.tenant_id)
         )
     );
@@ -307,5 +312,8 @@ CREATE TABLE IF NOT EXISTS public.franchise_territories (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(franchise_id, city_id)
 );
+````
+
 ```
+
 ```

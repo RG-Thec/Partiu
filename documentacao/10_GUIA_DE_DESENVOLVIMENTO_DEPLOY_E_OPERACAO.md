@@ -18,6 +18,7 @@ Para executar, testar e contribuir com o projeto **PARTIU MOBE**, certifique-se 
 ## 2. Instalação e Execução Local
 
 ### A. Clonar o Repositório e Instalar Dependências
+
 ```bash
 # 1. Clone o repositório
 git clone https://github.com/RG-Thec/Partiu.git
@@ -28,6 +29,7 @@ npm install
 ```
 
 ### B. Configuração de Variáveis de Ambiente
+
 Crie um arquivo `.env` na raiz do projeto baseado no modelo abaixo:
 
 ```env
@@ -62,9 +64,11 @@ NITRO_PRESET=vercel
 > **Aviso de Segurança (P0):** Nenhuma credencial de banco de dados ou chave privada deve ser commitada em código-fonte. O sistema rejeita strings de conexão estáticas e consome exclusivamente variáveis de ambiente (`DATABASE_URL`).
 
 ### C. Iniciar o Servidor de Desenvolvimento
+
 ```bash
 npm run dev
 ```
+
 A aplicação estará disponível em `http://localhost:8080`.
 
 ---
@@ -79,6 +83,7 @@ npm test
 ```
 
 ### Matriz de Cobertura das 39 Suítes de Teste:
+
 1. **Domain State Machines & Guard Invariants:** Transições estritas de Corridas, Bilhetes e Dispositivos.
 2. **Zero-Trust Multi-Tenancy & RLS:** Testes adversariais garantindo isolamento total entre franquias.
 3. **Global Idempotency Engine:** Prevenção de duplicidade em requisições financeiras e operacionais.
@@ -102,12 +107,12 @@ npm test
 21. **Cloud Ticket Persistence & Phone Normalization:** Formatação E.164 e mesclagem entre nuvem e cache local.
 22. **Broadcast Notifications & Multi-Category Routing:** Segmentação precisa por perfil de usuário.
 23. a 33. **Módulos de Domínio e Frotas Multicategoria.**
-34. **Monetização SaaS — Catálogo de Planos & Configurador de Trial (3, 7 e 30 dias).**
-35. **Monetização SaaS — Ciclo de Cobrança PIX & Idempotência Transacional.**
-36. **Monetização SaaS — Avaliação de Acesso & Controle de Vigência (`ACTIVE` vs `PAYMENT_PENDING`).**
-37. **Monetização SaaS — Auditoria Administrativa, Concessão de Cortesia & Separação Contábil.**
-38. **Monetização SaaS — Métricas Financeiras Executivas (MRR, ARR, LTV, CAC, Churn).**
-39. **Geofencing & Prioridade Territorial de Franquias:** Base canônica de cidades, Matriz Nacional irrestrita, bloqueio anti-invasão (`FORA_DO_PERIMETRO`) e expansão de cidades vizinhas.
+24. **Monetização SaaS — Catálogo de Planos & Configurador de Trial (3, 7 e 30 dias).**
+25. **Monetização SaaS — Ciclo de Cobrança PIX & Idempotência Transacional.**
+26. **Monetização SaaS — Avaliação de Acesso & Controle de Vigência (`ACTIVE` vs `PAYMENT_PENDING`).**
+27. **Monetização SaaS — Auditoria Administrativa, Concessão de Cortesia & Separação Contábil.**
+28. **Monetização SaaS — Métricas Financeiras Executivas (MRR, ARR, LTV, CAC, Churn).**
+29. **Geofencing & Prioridade Territorial de Franquias:** Base canônica de cidades, Matriz Nacional irrestrita, bloqueio anti-invasão (`FORA_DO_PERIMETRO`) e expansão de cidades vizinhas.
 
 ---
 
@@ -148,17 +153,20 @@ python docs/brand/lint.py
 ## 6. Build e Deploy em Produção (Vercel / Nitro SSR)
 
 ### A. Compilação do Artefato Serverless
+
 ```bash
 npm run build
 ```
+
 O build compila o frontend com Vite e gera o motor SSR Nitro em `.vercel/output/nitro.json` em menos de 3 segundos.
 
 ### B. Plataformas de Hospedagem e Configurações
-- **Vercel:**  
+
+- **Vercel:**
   - Conectar repositório GitHub.
   - Vercel detecta automaticamente a configuração Nitro/TanStack Start.
   - Variáveis de ambiente configuradas no painel: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_MAPBOX_TOKEN`, `DATABASE_URL` e `NITRO_PRESET=vercel`.
-- **Supabase Cloud:**  
+- **Supabase Cloud:**
   - Hospeda PostgreSQL 15+ com PostGIS, WebSockets Realtime, Edge Functions e autenticação.
 
 ---
@@ -166,6 +174,7 @@ O build compila o frontend com Vite e gera o motor SSR Nitro em `.vercel/output/
 ## 7. Observabilidade, Resiliência e Plano de Contingência
 
 ### Metas de Confiabilidade (SLO / SLA)
+
 - **Disponibilidade da API Core:** 99,95%
 - **Tempo de Resposta de Despacho (p95):** $< 100 \text{ ms}$
 - **Tempo de Ativação do Pix SaaS:** $< 2,0 \text{ segundos}$
@@ -173,5 +182,6 @@ O build compila o frontend com Vite e gera o motor SSR Nitro em `.vercel/output/
 - **RTO (Recovery Time Objective):** $< 15 \text{ minutos}$ em caso de contingência catastrófica
 
 ### Circuit Breakers e Degradação Graciosa
+
 - Caso a API Mapbox apresente indisponibilidade, a Edge Function `/functions/v1/verify-and-create-ride` aciona automaticamente o cálculo geodésico Haversine.
 - Caso o gateway primário Pix apresente instabilidade de rede, as requisições de checkout chaveiam dinamicamente para o gateway secundário configurado.

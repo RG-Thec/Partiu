@@ -48,7 +48,7 @@ export function RouteLoadingPendingScreen() {
           <span className="absolute inset-0 rounded-full border border-primary/30 animate-ping duration-1000" />
           <span className="absolute inset-4 rounded-full border border-primary/20 animate-pulse" />
           <span className="absolute inset-8 rounded-full bg-primary/10 backdrop-blur-sm" />
-          
+
           <div className="relative z-10 w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/30 flex items-center justify-center text-primary-foreground transform active:scale-95 transition-transform">
             <Navigation className="w-7 h-7 animate-pulse text-white" />
           </div>
@@ -69,7 +69,7 @@ export function RouteLoadingPendingScreen() {
       <footer className="relative z-10 w-full max-w-md mx-auto p-4">
         <div className="p-5 rounded-3xl bg-slate-900/90 border border-slate-800/80 backdrop-blur-2xl shadow-2xl space-y-4">
           <div className="w-10 h-1 bg-slate-700/80 rounded-full mx-auto" />
-          
+
           <div className="space-y-2">
             <div className="w-3/4 h-4 bg-slate-800 rounded-lg animate-pulse" />
             <div className="w-1/2 h-3 bg-slate-800/60 rounded-lg animate-pulse" />

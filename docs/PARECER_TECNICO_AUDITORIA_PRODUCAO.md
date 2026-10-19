@@ -1,4 +1,5 @@
 # LAUDO TÉCNICO DEFINITIVO DE HOMOLOGAÇÃO PARA PRODUÇÃO — PARTIU
+
 ### Parecer da Banca Técnica de Arquitetura, Engenharia, SRE, Segurança & FinOps
 
 > **Comitê de Avaliação & Auditoria Técnica:**  
@@ -11,11 +12,11 @@
 > • Principal QA Engineer  
 > • Principal DevOps Engineer  
 > • Principal FinOps Engineer  
-> • Principal Trust & Safety Engineer  
+> • Principal Trust & Safety Engineer
 >
 > **Data da Sessão:** 07 de Setembro de 2026  
 > **Classificação:** Relatório Técnico Forense de Pré-Lançamento  
-> **Veredito Oficial:** 🛑 **NÃO APROVADO PARA PRODUÇÃO IMEDIATA (RISCO CRÍTICO)**  
+> **Veredito Oficial:** 🛑 **NÃO APROVADO PARA PRODUÇÃO IMEDIATA (RISCO CRÍTICO)**
 
 ---
 
@@ -43,19 +44,22 @@ Avaliamos a prontidão do sistema em 11 pilares mandatórios para operação sob
 │ SCORE CONSOLIDADO GLOBAL           │ 100%     │ 54.4/100 │ 🛑 REPROVADO           │
 └────────────────────────────────────┴──────────┴──────────┴────────────────────────┘
 ```
-**Índice de Prontidão Operacional: 54.4 / 100** *(Mínimo para Go-Live: 95.0 / 100)*.
+
+**Índice de Prontidão Operacional: 54.4 / 100** _(Mínimo para Go-Live: 95.0 / 100)_.
 
 ---
 
 ## 🔍 ETAPA 2 — CODEBASE AUDIT (ANÁLISE ESTRUTURAL & DÍVIDA TÉCNICA)
 
 ### 2.1. Diagnóstico Estrutural
+
 O repositório apresenta uma excelente camada de UI/UX construída com Tailwind CSS, TanStack Router e componentes Radix. Os novos motores concebidos em `src/lib/` (`partiu-dispatch-engine.ts`, `partiu-financial-engine.ts`, etc.) possuem formulação matemática e algorítmica impecável e compilam com **0 erros de TypeScript**.
 
 Contudo, a camada de integração entre os componentes de tela e os serviços de dados sofre de um desacoplamento severo:
-* **Acoplamento Local (Crítico):** Os componentes de interface ainda consomem prioritariamente `localStorage` e eventos sintéticos do navegador (`CustomEvent`), operando em circuito fechado no mesmo dispositivo.
-* **Herança do UniVans (Médio):** Arquivos residuais do sistema anterior de transporte intermunicipal por vans coexistem com as rotas do PARTIU, gerando ruído de tipos e dependências cruzadas (ex: `admin-data.ts`, `telemetriaVeiculo`).
-* **Complexidade Ciclomática (Alto):** As rotas principais (`app.index.tsx` com 1.079 linhas e `app.motorista.tsx` com 656 linhas) acumulam estado de UI, orquestração de áudio, simulação de temporizadores e chamadas de tela em arquivos monolíticos.
+
+- **Acoplamento Local (Crítico):** Os componentes de interface ainda consomem prioritariamente `localStorage` e eventos sintéticos do navegador (`CustomEvent`), operando em circuito fechado no mesmo dispositivo.
+- **Herança do UniVans (Médio):** Arquivos residuais do sistema anterior de transporte intermunicipal por vans coexistem com as rotas do PARTIU, gerando ruído de tipos e dependências cruzadas (ex: `admin-data.ts`, `telemetriaVeiculo`).
+- **Complexidade Ciclomática (Alto):** As rotas principais (`app.index.tsx` com 1.079 linhas e `app.motorista.tsx` com 656 linhas) acumulam estado de UI, orquestração de áudio, simulação de temporizadores e chamadas de tela em arquivos monolíticos.
 
 ---
 
@@ -63,71 +67,71 @@ Contudo, a camada de integração entre os componentes de tela e os serviços de
 
 Mapeamos a totalidade de mocks, valores fixos e simulações que impedem o funcionamento entre dispositivos reais:
 
-| Arquivo Auditado | Trecho / Problema Identificado | Impacto Operacional Real | Correção Mandatória |
-| :--- | :--- | :--- | :--- |
-| [`src/lib/partiu-engine.ts`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/src/lib/partiu-engine.ts#L52-L65) | `STORAGE_KEY_CORRIDA = "partiu_corrida_ativa"` e `MOTORISTA_PADRAO` hardcoded. | **FATAL:** Se o passageiro pedir corrida no celular A, o motorista no celular B jamais receberá o chamado, pois `localStorage` não trafega pela internet. | Conectar a tabela Supabase `partiu_corridas` com canais WebSocket em tempo real. |
-| [`src/lib/partiu-engine.ts`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/src/lib/partiu-engine.ts#L248-L252) | `localStorage.setItem(STORAGE_KEY_GANHOS_MOTORISTA...)` com saldo base de R$ 284,50. | **FATAL:** O saldo do motorista é fictício e apaga caso ele limpe os cookies ou troque de aparelho. | Persistir carteira no banco com ledger de dupla entrada em centavos inteiros. |
-| [`src/routes/app.index.tsx`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/src/routes/app.index.tsx#L65-L100) | `DESTINOS_RECENTES_99` com endereços fixos de Itaperuna e valores cravados. | Passageiros em outras regiões ou trajetos diferentes recebem sugestões estáticas inválidas. | Alimentar histórico via query SQL baseada no `user_id` autenticado. |
-| [`src/lib/admin-data.ts`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/src/lib/admin-data.ts#L430-L460) | `encomendasMock`, `linhasMock`, `motoristasMock`. | A Central de Operações visualiza números e motoristas fantasmas em vez da frota de rua. | Migrar queries para tabelas relacionais do Supabase. |
-| [`src/lib/finops-pix-engine.ts`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/src/lib/finops-pix-engine.ts#L10-L40) | Carga útil Pix gerada localmente sem integração PSP de produção. | **FATAL:** O passageiro faz o Pix mas o dinheiro não entra na conta escrow do PARTIU, e o motorista não recebe via API bancária. | Integrar credenciais reais de produção do PSP (Asaas / Mercado Pago / Stark Bank). |
-| [`src/lib/superadmin-config.ts`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/src/lib/superadmin-config.ts#L174-L210) | `telemetriaVeiculosIniciais` com coordenadas de GPS estáticas. | Mapa do radar exibe veículos parados em coordenadas pré-definidas. | Conectar telemetria ao pipeline WebSocket de streaming GPS dos condutores. |
+| Arquivo Auditado                                                                                                                        | Trecho / Problema Identificado                                                       | Impacto Operacional Real                                                                                                                                  | Correção Mandatória                                                                |
+| :-------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------- |
+| [`src/lib/partiu-engine.ts`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/src/lib/partiu-engine.ts#L52-L65)           | `STORAGE_KEY_CORRIDA = "partiu_corrida_ativa"` e `MOTORISTA_PADRAO` hardcoded.       | **FATAL:** Se o passageiro pedir corrida no celular A, o motorista no celular B jamais receberá o chamado, pois `localStorage` não trafega pela internet. | Conectar a tabela Supabase `partiu_corridas` com canais WebSocket em tempo real.   |
+| [`src/lib/partiu-engine.ts`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/src/lib/partiu-engine.ts#L248-L252)         | `localStorage.setItem(STORAGE_KEY_GANHOS_MOTORISTA...)` com saldo base de R$ 284,50. | **FATAL:** O saldo do motorista é fictício e apaga caso ele limpe os cookies ou troque de aparelho.                                                       | Persistir carteira no banco com ledger de dupla entrada em centavos inteiros.      |
+| [`src/routes/app.index.tsx`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/src/routes/app.index.tsx#L65-L100)          | `DESTINOS_RECENTES_99` com endereços fixos de Itaperuna e valores cravados.          | Passageiros em outras regiões ou trajetos diferentes recebem sugestões estáticas inválidas.                                                               | Alimentar histórico via query SQL baseada no `user_id` autenticado.                |
+| [`src/lib/admin-data.ts`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/src/lib/admin-data.ts#L430-L460)               | `encomendasMock`, `linhasMock`, `motoristasMock`.                                    | A Central de Operações visualiza números e motoristas fantasmas em vez da frota de rua.                                                                   | Migrar queries para tabelas relacionais do Supabase.                               |
+| [`src/lib/finops-pix-engine.ts`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/src/lib/finops-pix-engine.ts#L10-L40)   | Carga útil Pix gerada localmente sem integração PSP de produção.                     | **FATAL:** O passageiro faz o Pix mas o dinheiro não entra na conta escrow do PARTIU, e o motorista não recebe via API bancária.                          | Integrar credenciais reais de produção do PSP (Asaas / Mercado Pago / Stark Bank). |
+| [`src/lib/superadmin-config.ts`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/src/lib/superadmin-config.ts#L174-L210) | `telemetriaVeiculosIniciais` com coordenadas de GPS estáticas.                       | Mapa do radar exibe veículos parados em coordenadas pré-definidas.                                                                                        | Conectar telemetria ao pipeline WebSocket de streaming GPS dos condutores.         |
 
 ---
 
 ## ⚡ ETAPA 4 — AUDITORIA DE PRODUÇÃO (CONCORRÊNCIA & BACKEND)
 
 1. **Persistência Volátil:** Viagens em andamento são descartadas se o processo do navegador sofrer crash ou reciclagem de memória pelo sistema operacional móvel.
-2. **Ausência de Locking Distribuído:** Quando o Trip Radar dispara uma corrida para múltiplos motoristas no raio, inexiste semáforo `Redlock` no servidor. Dois condutores podem clicar simultaneamente e ambos acreditarão que a corrida é sua (*double-booking*).
+2. **Ausência de Locking Distribuído:** Quando o Trip Radar dispara uma corrida para múltiplos motoristas no raio, inexiste semáforo `Redlock` no servidor. Dois condutores podem clicar simultaneamente e ambos acreditarão que a corrida é sua (_double-booking_).
 3. **Escrita Financeira Sem Idempotência:** Não há barreira transacional impedindo duplo clique no botão de saque, gerando risco iminente de saques duplicados do saldo do condutor.
 
 ---
 
 ## 🛡️ ETAPA 5 — SECURITY & COMPLIANCE AUDIT
 
-* **JWT & Autenticação:** A rota `/app` permite navegação em modo anônimo/convidado. Viagens e simulações operam sem validação de sessão autenticada com Supabase Auth.
-* **Row Level Security (RLS):** As políticas RLS existentes cobrem o schema antigo de vans (`univans_`), mas inexistem tabelas e políticas RLS para `partiu_corridas`, `partiu_entregas` e `partiu_wallets`.
-* **Rate Limiting:** Inexistência de limitador de taxa (Token Bucket / Leaky Bucket) no gateway para requisições de cotação de tarifa e criação de corridas. Risco de DoS e raspagem de preços por bots concorrentes.
-* **Conformidade LGPD:** Dados de geolocalização e histórico de trajetos trafegam sem criptografia em repouso configurada especificamente para telemetria vetorial.
+- **JWT & Autenticação:** A rota `/app` permite navegação em modo anônimo/convidado. Viagens e simulações operam sem validação de sessão autenticada com Supabase Auth.
+- **Row Level Security (RLS):** As políticas RLS existentes cobrem o schema antigo de vans (`univans_`), mas inexistem tabelas e políticas RLS para `partiu_corridas`, `partiu_entregas` e `partiu_wallets`.
+- **Rate Limiting:** Inexistência de limitador de taxa (Token Bucket / Leaky Bucket) no gateway para requisições de cotação de tarifa e criação de corridas. Risco de DoS e raspagem de preços por bots concorrentes.
+- **Conformidade LGPD:** Dados de geolocalização e histórico de trajetos trafegam sem criptografia em repouso configurada especificamente para telemetria vetorial.
 
 ---
 
 ## 🗄️ ETAPA 6 — DATABASE AUDIT (POSTGRESQL & SCHEMAS)
 
-* **Migrações Ausentes:** O diretório `supabase/migrations/` possui 15 migrações homologadas para o sistema de cooperativa de vans, mas **zero migrações aplicadas** para as entidades do PARTIU sob demanda (`partiu_corridas`, `partiu_driver_status`, `partiu_ledger_entries`, `partiu_corporate_accounts`).
-* **Índices Geoespaciais:** Necessidade mandatória de índices espaciais `GIST` em coordenadas de latitude/longitude para busca de proximidade em tempo hábil ($< 10\text{ms}$).
+- **Migrações Ausentes:** O diretório `supabase/migrations/` possui 15 migrações homologadas para o sistema de cooperativa de vans, mas **zero migrações aplicadas** para as entidades do PARTIU sob demanda (`partiu_corridas`, `partiu_driver_status`, `partiu_ledger_entries`, `partiu_corporate_accounts`).
+- **Índices Geoespaciais:** Necessidade mandatória de índices espaciais `GIST` em coordenadas de latitude/longitude para busca de proximidade em tempo hábil ($< 10\text{ms}$).
 
 ---
 
 ## 🚗 ETAPA 7 — MARKETPLACE DYNAMICS AUDIT
 
-* **O Trip Radar funciona entre telefones diferentes hoje?**  
+- **O Trip Radar funciona entre telefones diferentes hoje?**  
   **NÃO.** Como o despacho está baseado no `window.dispatchEvent` e `localStorage`, a oferta não sai do dispositivo que a gerou.
-* **O Surge Control funciona em tempo real?**  
+- **O Surge Control funciona em tempo real?**  
   A fórmula matemática está pronta no arquivo TypeScript, mas não há agregador em memória (Redis H3) computando a relação Demanda/Oferta por minuto na praça.
 
 ---
 
 ## 📱 ETAPA 8 — MOBILE EXPERIENCE AUDIT
 
-* **Pontos Fortes:** Ergonomia do cockpit de motorista e card de oferta com alta legibilidade; fluxo do passageiro visualmente atraente; PIN de 4 dígitos intuitivo.
-* **Gargalos de Usabilidade:**
-  * Falta de persistência de sessão: o motorista precisa reativar o botão de disponibilidade se o app for para segundo plano.
-  * O passageiro não recebe feedback sonoro em caso de rejeição ou timeout de corrida.
+- **Pontos Fortes:** Ergonomia do cockpit de motorista e card de oferta com alta legibilidade; fluxo do passageiro visualmente atraente; PIN de 4 dígitos intuitivo.
+- **Gargalos de Usabilidade:**
+  - Falta de persistência de sessão: o motorista precisa reativar o botão de disponibilidade se o app for para segundo plano.
+  - O passageiro não recebe feedback sonoro em caso de rejeição ou timeout de corrida.
 
 ---
 
 ## ⏱️ ETAPA 9 — PERFORMANCE AUDIT
 
-* **Bundle Size & Compilação:** 🟢 Aprovado. Compilador TypeScript aprovado com 0 erros (`tsc exit code: 0`). O bundle SSR via Nitro e Vite gera carregamento inicial rápido (< 1.2s).
-* **Consumo de Memória:** Estável (< 85 MB em repouso no navegador).
-* **Performance Score:** **78 / 100** (Excelente na camada de renderização de interface; reprimida pela ausência de queries de banco otimizadas).
+- **Bundle Size & Compilação:** 🟢 Aprovado. Compilador TypeScript aprovado com 0 erros (`tsc exit code: 0`). O bundle SSR via Nitro e Vite gera carregamento inicial rápido (< 1.2s).
+- **Consumo de Memória:** Estável (< 85 MB em repouso no navegador).
+- **Performance Score:** **78 / 100** (Excelente na camada de renderização de interface; reprimida pela ausência de queries de banco otimizadas).
 
 ---
 
 ## 📡 ETAPA 10 — SRE, LOGS & DISASTER RECOVERY
 
-* **Logs Estruturados:** O sistema possui um `structured-logger.ts` sofisticado, mas os eventos de corrida ainda geram `console.log` dispersos nos componentes React.
-* **Alertas & On-Call:** Ausência de integração ativa de PagerDuty / OpsGenie para notificar engenheiros de plantão caso o gateway de pagamento ou despacho caia na madrugada.
+- **Logs Estruturados:** O sistema possui um `structured-logger.ts` sofisticado, mas os eventos de corrida ainda geram `console.log` dispersos nos componentes React.
+- **Alertas & On-Call:** Ausência de integração ativa de PagerDuty / OpsGenie para notificar engenheiros de plantão caso o gateway de pagamento ou despacho caia na madrugada.
 
 ---
 
@@ -161,6 +165,7 @@ Mapeamos a totalidade de mocks, valores fixos e simulações que impedem o funci
 ## 🛑 ETAPA 12 — DECISÃO FINAL DA BANCA TÉCNICA
 
 ### ❓ "O PARTIU PODE ENTRAR EM OPERAÇÃO REAL HOJE?"
+
 # 🛑 RESPOSTA: **NÃO.**
 
 Colocar o aplicativo nas ruas no estado atual resultaria em **falência operacional no primeiro dia**: passageiros solicitariam corridas que jamais chegariam aos motoristas em outros aparelhos; motoristas veriam saldos que não existem em banco real; e pagamentos reais não seriam liquidados.
@@ -169,17 +174,18 @@ Colocar o aplicativo nas ruas no estado atual resultaria em **falência operacio
 
 ### ⚠️ Matriz de Bloqueadores Críticos (O que impede o Go-Live)
 
-| Bloqueador Crítico | Risco de Negócio / Operacional | Solução de Engenharia | Prioridade |
-| :--- | :--- | :--- | :---: |
-| **1. Estado Preso no `localStorage`** | **Falha Catastrófica de Matching:** O passageiro pede o carro e o motorista na esquina não recebe o sinal. | Conectar `app.index.tsx` e `app.motorista.tsx` ao PostgreSQL/Supabase com canais realtime de broadcast. | **P0 (Imediata)** |
-| **2. Ausência de Gateway PIX de Produção** | **Inviabilidade Financeira:** O motorista não recebe o repasse líquido de 88% e a plataforma não retém os 12%. | Implementar credenciais de produção do PSP (Asaas/Stark Bank) com webhooks de liquidação instantânea. | **P0 (Imediata)** |
-| **3. Falta de Lock Distribuído (Redlock)** | **Colisão de Corridas:** Dois motoristas aceitam a mesma corrida ao mesmo tempo, gerando conflito no local de embarque. | Provisionar Redis e ativar o Redlock de 12 segundos no endpoint de aceite de viagem. | **P0 (Imediata)** |
-| **4. Tabelas PARTIU Inexistentes no Banco** | **Perda Total de Dados:** Se o cliente recarregar a página, a viagem some. | Aplicar migration SQL criando `partiu_corridas`, `partiu_wallets` e `partiu_entregas`. | **P0 (Imediata)** |
+| Bloqueador Crítico                          | Risco de Negócio / Operacional                                                                                          | Solução de Engenharia                                                                                   |    Prioridade     |
+| :------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------ | :---------------: |
+| **1. Estado Preso no `localStorage`**       | **Falha Catastrófica de Matching:** O passageiro pede o carro e o motorista na esquina não recebe o sinal.              | Conectar `app.index.tsx` e `app.motorista.tsx` ao PostgreSQL/Supabase com canais realtime de broadcast. | **P0 (Imediata)** |
+| **2. Ausência de Gateway PIX de Produção**  | **Inviabilidade Financeira:** O motorista não recebe o repasse líquido de 88% e a plataforma não retém os 12%.          | Implementar credenciais de produção do PSP (Asaas/Stark Bank) com webhooks de liquidação instantânea.   | **P0 (Imediata)** |
+| **3. Falta de Lock Distribuído (Redlock)**  | **Colisão de Corridas:** Dois motoristas aceitam a mesma corrida ao mesmo tempo, gerando conflito no local de embarque. | Provisionar Redis e ativar o Redlock de 12 segundos no endpoint de aceite de viagem.                    | **P0 (Imediata)** |
+| **4. Tabelas PARTIU Inexistentes no Banco** | **Perda Total de Dados:** Se o cliente recarregar a página, a viagem some.                                              | Aplicar migration SQL criando `partiu_corridas`, `partiu_wallets` e `partiu_entregas`.                  | **P0 (Imediata)** |
 
 ---
 
 ## 🗓️ O PLANO DE GO-LIVE OFICIAL (CRONOGRAMA DE DESBLOQUEIO)
-*Uma vez executadas as correções dos 4 bloqueadores P0 acima, o plano de entrada em produção segue a régua executiva:*
+
+_Uma vez executadas as correções dos 4 bloqueadores P0 acima, o plano de entrada em produção segue a régua executiva:_
 
 ```
 T-30 DIAS: INFRAESTRUTURA RELACIONAL & BANCÁRIA
@@ -225,14 +231,17 @@ D+30: CONSOLIDAÇÃO DA PRAÇA PILOTO
 ---
 
 ### 📂 Registro Oficial no Repositório
+
 O laudo completo de auditoria e o plano de transição para produção foram registrados em:
-* [`docs/PARECER_TECNICO_AUDITORIA_PRODUCAO.md`](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/docs/PARECER_TECNICO_AUDITORIA_PRODUCAO.md)
-* Plano de 24 Sprints de Engenharia para saneamento dos bloqueadores: [`docs/PLANO_OPERACIONAL_EXECUCAO_ENGENHARIA_24_SPRINTS.md`](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/docs/PLANO_OPERACIONAL_EXECUCAO_ENGENHARIA_24_SPRINTS.md)
-* Compilação de código validada via `npx tsc --noEmit` (**0 erros**).
+
+- [`docs/PARECER_TECNICO_AUDITORIA_PRODUCAO.md`](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/docs/PARECER_TECNICO_AUDITORIA_PRODUCAO.md)
+- Plano de 24 Sprints de Engenharia para saneamento dos bloqueadores: [`docs/PLANO_OPERACIONAL_EXECUCAO_ENGENHARIA_24_SPRINTS.md`](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/docs/PLANO_OPERACIONAL_EXECUCAO_ENGENHARIA_24_SPRINTS.md)
+- Compilação de código validada via `npx tsc --noEmit` (**0 erros**).
 
 ---
 
 ## 🏁 ADENDO EXECUTIVO FINAL: HOMOLOGAÇÃO DE PRODUÇÃO V6.0 (OUTUBRO DE 2026)
+
 ### Parecer Final de Conclusão dos Bloqueadores e Liberação Operacional
 
 > **Data de Homologação:** 13 de Outubro de 2026  
@@ -240,6 +249,7 @@ O laudo completo de auditoria e o plano de transição para produção foram reg
 > **Veredito Oficial V6.0:** 🟢 **APROVADO PARA PRODUÇÃO (GO-LIVE HOMOLOGADO)**
 
 ### 1. Resolução Integral dos Bloqueadores Críticos (P0)
+
 1. **Estado Preso no `localStorage`:** 100% resolvido com integração completa ao Supabase Realtime e PostgreSQL.
 2. **Gateway PIX de Produção:** 100% integrado com múltiplos PSPs (Mercado Pago, Asaas, PicPay, EFI) com validação HMAC-SHA256 e idempotência estrita.
 3. **Lock Concorrente Anti-Colisão:** 100% resolvido com locks pessimistas atômicos em nível de linha no PostgreSQL (`SELECT FOR UPDATE`) e testes de concorrência massivos.
@@ -248,6 +258,7 @@ O laudo completo de auditoria e o plano de transição para produção foram reg
 6. **Edge Functions Resilientes (P0):** Correção de tratamento de exceções e fallback geodésico automático.
 
 ### 2. Scorecard de Produção Atualizado (V6.0 Enterprise)
+
 ```
                       PRODUCTION READINESS SCORECARD V6.0 (0–100)
 ┌────────────────────────────────────┬──────────┬──────────┬────────────────────────┐
@@ -270,7 +281,8 @@ O laudo completo de auditoria e o plano de transição para produção foram reg
 ```
 
 ### 3. Evidências de Teste Homologadas
-* **Suíte Automatizada:** 411/411 testes passando em 39 suítes com 0 falhas (`npm test`).
-* **Tipagem Estrita:** `npx tsc --noEmit` executado com 0 erros.
-* **Build de Produção:** Vite + Nitro SSR compilados para `.vercel/output/nitro.json`.
-* **Governança de UX & Brand:** `docs/ux/lint.py` e `docs/brand/lint.py` validados com exit code 0.
+
+- **Suíte Automatizada:** 411/411 testes passando em 39 suítes com 0 falhas (`npm test`).
+- **Tipagem Estrita:** `npx tsc --noEmit` executado com 0 erros.
+- **Build de Produção:** Vite + Nitro SSR compilados para `.vercel/output/nitro.json`.
+- **Governança de UX & Brand:** `docs/ux/lint.py` e `docs/brand/lint.py` validados com exit code 0.

@@ -60,16 +60,20 @@ export function DriverDrawer({
   onLogout,
 }: DriverDrawerProps) {
   const navigate = useNavigate();
-  const { nomeApp, corPrimaria, corSecundaria, corTextoPrimaria, geo, activeTenant, config } = useBrandTheme();
+  const { nomeApp, corPrimaria, corSecundaria, corTextoPrimaria, geo, activeTenant, config } =
+    useBrandTheme();
   const [confirmSairAberto, setConfirmSairAberto] = useState(false);
 
-  const cidadeExibicao = activeTenant?.cidadeNome && activeTenant?.uf
-    ? `${activeTenant.cidadeNome}, ${activeTenant.uf}`
-    : geo?.cidadeSede
-    ? `${geo.cidadeSede}, ${geo.estadoUf || "BR"}`
-    : "Operação Regional";
+  const cidadeExibicao =
+    activeTenant?.cidadeNome && activeTenant?.uf
+      ? `${activeTenant.cidadeNome}, ${activeTenant.uf}`
+      : geo?.cidadeSede
+        ? `${geo.cidadeSede}, ${geo.estadoUf || "BR"}`
+        : "Operação Regional";
 
-  const suporteUrl = config?.nativeApp?.suporteUrl || `https://wa.me/?text=${encodeURIComponent(`Olá! Sou motorista parceiro ${nomeApp} e preciso de suporte operacional.`)}`;
+  const suporteUrl =
+    config?.nativeApp?.suporteUrl ||
+    `https://wa.me/?text=${encodeURIComponent(`Olá! Sou motorista parceiro ${nomeApp} e preciso de suporte operacional.`)}`;
 
   // Fecha o drawer com a tecla ESC
   useEffect(() => {
@@ -248,7 +252,9 @@ export function DriverDrawer({
                     isOnline ? "bg-emerald-500 animate-ping" : "bg-slate-400"
                   }`}
                 />
-                <span>{isOnline ? "CONECTADO • RECEBENDO CHAMADAS" : "OFFLINE • TOQUE EM CONECTAR"}</span>
+                <span>
+                  {isOnline ? "CONECTADO • RECEBENDO CHAMADAS" : "OFFLINE • TOQUE EM CONECTAR"}
+                </span>
               </div>
               <span className="text-[10px] uppercase font-black px-1.5 py-0.5 rounded bg-white/70">
                 {isOnline ? "Ativo" : "Pausa"}
@@ -316,7 +322,8 @@ export function DriverDrawer({
                         Central Financeira &amp; Metas
                       </span>
                       <span className="text-xs text-emerald-700 font-bold mt-1 block">
-                        Ganhos hoje: {ganhosHoje.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                        Ganhos hoje:{" "}
+                        {ganhosHoje.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                       </span>
                     </div>
                   </div>
@@ -349,7 +356,9 @@ export function DriverDrawer({
                         Planos &amp; Diária SaaS
                       </span>
                       <span className="text-xs text-slate-700 font-semibold mt-1 block">
-                        {diariaCountdownTexto ? `Tempo: ${diariaCountdownTexto}` : "Acesso 0% Comissão"}
+                        {diariaCountdownTexto
+                          ? `Tempo: ${diariaCountdownTexto}`
+                          : "Acesso 0% Comissão"}
                       </span>
                     </div>
                   </div>
@@ -554,11 +563,15 @@ export function DriverDrawer({
               <LogOut className="w-7 h-7 stroke-[2.2]" />
             </div>
             <div className="space-y-1.5">
-              <h3 id="confirm-sair-titulo" className="text-lg font-black text-slate-900 tracking-tight">
+              <h3
+                id="confirm-sair-titulo"
+                className="text-lg font-black text-slate-900 tracking-tight"
+              >
                 Encerrar Plantão de Motorista?
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                Ao sair da sua conta, você ficará offline e deixará de receber ofertas de corridas no {nomeApp}.
+                Ao sair da sua conta, você ficará offline e deixará de receber ofertas de corridas
+                no {nomeApp}.
               </p>
             </div>
             <div className="space-y-2 pt-2">

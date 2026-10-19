@@ -29,7 +29,9 @@ export class DeliveryProofEngine {
    */
   public registerProof(input: RegisterProofInput): DeliveryProof {
     if (!input.photoUrl || input.photoUrl.trim().length === 0) {
-      throw new Error("A foto de comprovação é estritamente obrigatória para conclusão desta etapa.");
+      throw new Error(
+        "A foto de comprovação é estritamente obrigatória para conclusão desta etapa.",
+      );
     }
 
     if (input.latitude === 0 && input.longitude === 0) {

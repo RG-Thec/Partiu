@@ -13,7 +13,10 @@
  * ==============================================================================
  */
 
-import { h3SpatialIndex, DEFAULT_H3_MATCHING_RESOLUTION } from "../src/lib/spatial/h3-spatial-index";
+import {
+  h3SpatialIndex,
+  DEFAULT_H3_MATCHING_RESOLUTION,
+} from "../src/lib/spatial/h3-spatial-index";
 import { H3DispatchEngine } from "../src/lib/spatial/h3-dispatch-engine";
 import { spatialStore } from "../src/lib/spatial/redis-spatial-store";
 import { redisLuaEngine } from "../src/lib/spatial/redis-lua-engine";
@@ -57,7 +60,11 @@ function parseArgs(): SimArgs {
   };
 }
 
-function randInCircle(centerLat: number, centerLng: number, radiusM: number): { lat: number; lng: number } {
+function randInCircle(
+  centerLat: number,
+  centerLng: number,
+  radiusM: number,
+): { lat: number; lng: number } {
   const r = radiusM * Math.sqrt(Math.random());
   const theta = Math.random() * 2 * Math.PI;
   const dx = r * Math.cos(theta);
@@ -70,7 +77,9 @@ function randInCircle(centerLat: number, centerLng: number, radiusM: number): { 
   };
 }
 
-async function seedDrivers(config: SimArgs): Promise<{ driverIds: string[]; cellDistribution: Map<string, number> }> {
+async function seedDrivers(
+  config: SimArgs,
+): Promise<{ driverIds: string[]; cellDistribution: Map<string, number> }> {
   const driverIds: string[] = [];
   const cellDistribution = new Map<string, number>();
 
@@ -201,14 +210,18 @@ if (typeof process !== "undefined" && process.argv[1]?.endsWith("simulate-h3-dis
   console.log(`📍 Centro: ${cfg.centerLat}, ${cfg.centerLng} (Raio: ${cfg.radiusM / 1000} km)`);
   console.log(`🚗 População de Condutores: ${cfg.drivers} condutores`);
   console.log(`📲 Corridas Concorrentes: ${cfg.requests} solicitações`);
-  console.log(`🌊 Ondas de Despacho: ${cfg.maxWaves} ondas de ${cfg.waveSize} condutores (TTL 10s)`);
+  console.log(
+    `🌊 Ondas de Despacho: ${cfg.maxWaves} ondas de ${cfg.waveSize} condutores (TTL 10s)`,
+  );
   console.log(`🎲 Taxa de Aceite Simulado: ${(cfg.acceptProb * 100).toFixed(0)}%\n`);
 
   runDispatchBenchmark(cfg).then((res) => {
     console.log("--------------------------------------------------------------------------------");
     console.log("📊 RESULTADOS DO BENCHMARK:");
     console.log("--------------------------------------------------------------------------------");
-    console.log(`  Taxa de Sucesso de Pareamento:  ${res.matchedCount}/${res.totalRequests} (${res.matchRatePercent}%)`);
+    console.log(
+      `  Taxa de Sucesso de Pareamento:  ${res.matchedCount}/${res.totalRequests} (${res.matchRatePercent}%)`,
+    );
     console.log(`  Corridas Sem Condutor (Timeout): ${res.unmatchedCount}`);
     console.log(`  Latência Média por Corrida:     ${res.avgLatencyMs} ms`);
     console.log(`  Percentil 50 (p50):             ${res.p50} ms`);
@@ -220,6 +233,8 @@ if (typeof process !== "undefined" && process.argv[1]?.endsWith("simulate-h3-dis
     console.log(`  Onda 2 (+10s):                  ${res.wavesCountDistribution[2] || 0} corridas`);
     console.log(`  Onda 3 (+20s):                  ${res.wavesCountDistribution[3] || 0} corridas`);
     console.log(`  Onda 4 (+30s):                  ${res.wavesCountDistribution[4] || 0} corridas`);
-    console.log("================================================================================\n");
+    console.log(
+      "================================================================================\n",
+    );
   });
 }

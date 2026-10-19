@@ -136,7 +136,11 @@ export function CentralOperacaoAdminPage() {
   useAlertasSOSRealtime();
   usePartiuRidesRealtime();
   const { data: alertasBanco = [], refetch: recarregarSOS } = useAlertasSOS();
-  const { data: ridesBanco = [], isLoading: carregandoRides, refetch: recarregarRides } = usePartiuRides(100);
+  const {
+    data: ridesBanco = [],
+    isLoading: carregandoRides,
+    refetch: recarregarRides,
+  } = usePartiuRides(100);
   const { data: motoristasBanco = [], refetch: recarregarMotoristas } = useMotoristas();
   const atualizarStatusSOS = useAtualizarStatusSOS();
   const { pracaAtiva, isNacional, selecionarPraca } = useAdminCity();
@@ -164,9 +168,18 @@ export function CentralOperacaoAdminPage() {
     const ridesOnly = ridesBanco.filter((r) => !r.is_delivery);
     return ridesOnly.map((r) => {
       let st: CorridaOperacional["status"] = "FINALIZADA";
-      if (r.status === "REQUESTED" || r.status === "SEARCHING_R1" || r.status === "SEARCHING_R2" || r.status === "SEARCHING_R3") {
+      if (
+        r.status === "REQUESTED" ||
+        r.status === "SEARCHING_R1" ||
+        r.status === "SEARCHING_R2" ||
+        r.status === "SEARCHING_R3"
+      ) {
         st = "SOLICITADA";
-      } else if (r.status === "DRIVER_ASSIGNED" || r.status === "DRIVER_ARRIVING" || r.status === "IN_PROGRESS") {
+      } else if (
+        r.status === "DRIVER_ASSIGNED" ||
+        r.status === "DRIVER_ARRIVING" ||
+        r.status === "IN_PROGRESS"
+      ) {
         st = "EM_ANDAMENTO";
       } else if (r.status === "CANCELLED" || r.status === "TIMEOUT") {
         st = "CANCELADA";
@@ -202,7 +215,12 @@ export function CentralOperacaoAdminPage() {
         status: st,
         valor: Number(r.fare_brl || 0),
         duracaoEstimadaMin: r.duration_minutes || 10,
-        iniciadaEm: r.created_at ? new Date(r.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "Agora",
+        iniciadaEm: r.created_at
+          ? new Date(r.created_at).toLocaleTimeString("pt-BR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "Agora",
         criadaEmData: isoDate,
         criadaEmFormatada: formatada,
       };
@@ -214,7 +232,11 @@ export function CentralOperacaoAdminPage() {
     const deliveriesOnly = ridesBanco.filter((r) => r.is_delivery);
     return deliveriesOnly.map((d) => {
       let st: EntregaOperacional["status"] = "CONCLUIDA";
-      if (d.status === "REQUESTED" || d.status === "SEARCHING_R1" || d.status === "DRIVER_ASSIGNED") {
+      if (
+        d.status === "REQUESTED" ||
+        d.status === "SEARCHING_R1" ||
+        d.status === "DRIVER_ASSIGNED"
+      ) {
         st = "COLETANDO";
       } else if (d.status === "DRIVER_ARRIVING" || d.status === "IN_PROGRESS") {
         st = "EM_TRANSITO";
@@ -243,7 +265,12 @@ export function CentralOperacaoAdminPage() {
         valor: Number(d.fare_brl || 0),
         pickupPin: d.pickup_otp || "----",
         dropoffPin: d.delivery_otp || "----",
-        solicitadaEm: d.created_at ? new Date(d.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "Agora",
+        solicitadaEm: d.created_at
+          ? new Date(d.created_at).toLocaleTimeString("pt-BR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "Agora",
       };
     });
   }, [ridesBanco, pracaAtiva]);
@@ -263,9 +290,19 @@ export function CentralOperacaoAdminPage() {
         usuarioTelefone: a.solicitante_telefone || "Não informado",
         motoristaNome: a.motorista_nome || "Veículo em Trânsito",
         cidade: "Rede PARTIU",
-        status: a.status === "resolvido" ? "RESOLVIDO" : a.status === "em_atendimento" ? "EM_ATENDIMENTO" : "ABERTO",
+        status:
+          a.status === "resolvido"
+            ? "RESOLVIDO"
+            : a.status === "em_atendimento"
+              ? "EM_ATENDIMENTO"
+              : "ABERTO",
         descricao: `Alerta de Pânico SOS 190 disparado durante viagem. Localização transmitida via satélite.`,
-        criadoEm: a.created_at ? new Date(a.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "Agora",
+        criadoEm: a.created_at
+          ? new Date(a.created_at).toLocaleTimeString("pt-BR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "Agora",
         tempoEsperaMin: 2 + idx * 3,
       });
     });
@@ -296,7 +333,8 @@ export function CentralOperacaoAdminPage() {
         motoristaNome: "Marcos Lima",
         cidade: "Zona Sul",
         status: "EM_ATENDIMENTO",
-        descricao: "Cobrança divergente: corrida finalizada com valor superior à estimativa prévia.",
+        descricao:
+          "Cobrança divergente: corrida finalizada com valor superior à estimativa prévia.",
         criadoEm: "13:45",
         tempoEsperaMin: 40,
       },
@@ -313,7 +351,7 @@ export function CentralOperacaoAdminPage() {
         descricao: "Dúvida sobre cupom promocional que não aplicou o desconto de R$ 5,00.",
         criadoEm: "12:30",
         tempoEsperaMin: 0,
-      }
+      },
     );
 
     // ORDENAÇÃO AUTOMÁTICA E ESTRITA POR CRITICIDADE:
@@ -371,8 +409,13 @@ export function CentralOperacaoAdminPage() {
       if (dataFim && c.criadaEmData.slice(0, 10) > dataFim) return false;
 
       // Busca cruzada dedicada
-      if (buscaMotorista && !c.motoristaNome.toLowerCase().includes(buscaMotorista.toLowerCase())) return false;
-      if (buscaPassageiro && !c.passageiroNome.toLowerCase().includes(buscaPassageiro.toLowerCase())) return false;
+      if (buscaMotorista && !c.motoristaNome.toLowerCase().includes(buscaMotorista.toLowerCase()))
+        return false;
+      if (
+        buscaPassageiro &&
+        !c.passageiroNome.toLowerCase().includes(buscaPassageiro.toLowerCase())
+      )
+        return false;
 
       if (busca) {
         const q = busca.toLowerCase();
@@ -387,7 +430,17 @@ export function CentralOperacaoAdminPage() {
       }
       return true;
     });
-  }, [corridas, filtroCorrida, busca, isNacional, pracaAtiva.nome, dataInicio, dataFim, buscaMotorista, buscaPassageiro]);
+  }, [
+    corridas,
+    filtroCorrida,
+    busca,
+    isNacional,
+    pracaAtiva.nome,
+    dataInicio,
+    dataFim,
+    buscaMotorista,
+    buscaPassageiro,
+  ]);
 
   // Filtragem de Entregas
   const entregasFiltradas = useMemo(() => {
@@ -396,7 +449,12 @@ export function CentralOperacaoAdminPage() {
         const nomeCidade = pracaAtiva.nome.toLowerCase();
         if (!e.cidade.toLowerCase().includes(nomeCidade)) return false;
       }
-      if (filtroEntrega === "EM_ANDAMENTO" && e.status !== "EM_TRANSITO" && e.status !== "COLETANDO") return false;
+      if (
+        filtroEntrega === "EM_ANDAMENTO" &&
+        e.status !== "EM_TRANSITO" &&
+        e.status !== "COLETANDO"
+      )
+        return false;
       if (filtroEntrega === "CONCLUIDAS" && e.status !== "CONCLUIDA") return false;
       if (filtroEntrega === "CANCELADAS" && e.status !== "CANCELADA") return false;
       if (busca) {
@@ -417,7 +475,8 @@ export function CentralOperacaoAdminPage() {
     return ticketsSuporte.filter((t) => {
       if (!isNacional) {
         const nomeCidade = pracaAtiva.nome.toLowerCase();
-        if (!t.cidade.toLowerCase().includes(nomeCidade) && t.cidade !== "Rede PARTIU") return false;
+        if (!t.cidade.toLowerCase().includes(nomeCidade) && t.cidade !== "Rede PARTIU")
+          return false;
       }
       if (filtroSuporte !== "TODOS" && t.prioridade !== filtroSuporte) return false;
       if (busca) {
@@ -433,7 +492,9 @@ export function CentralOperacaoAdminPage() {
     });
   }, [ticketsSuporte, filtroSuporte, busca, isNacional, pracaAtiva.nome]);
 
-  const sosCount = ticketsSuporte.filter((t) => t.prioridade === "SOS_CRITICAL" && t.status !== "RESOLVIDO").length;
+  const sosCount = ticketsSuporte.filter(
+    (t) => t.prioridade === "SOS_CRITICAL" && t.status !== "RESOLVIDO",
+  ).length;
 
   return (
     <div className="w-full space-y-5 pb-12">
@@ -443,7 +504,10 @@ export function CentralOperacaoAdminPage() {
           <div className="flex items-center gap-2 mb-1">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              Cockpit Operacional • {isFranqueado(adminRole) ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
+              Cockpit Operacional •{" "}
+              {isFranqueado(adminRole)
+                ? `Franquia ${pracaAtiva?.nome || "Regional"}`
+                : "Gestão Nacional"}
             </span>
           </div>
           <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
@@ -458,7 +522,8 @@ export function CentralOperacaoAdminPage() {
             )}
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Supervisão de viagens ativas, entregas flash e atendimento de ocorrências {isNacional ? "em todas as praças" : `em ${pracaAtiva.nome}`}.
+            Supervisão de viagens ativas, entregas flash e atendimento de ocorrências{" "}
+            {isNacional ? "em todas as praças" : `em ${pracaAtiva.nome}`}.
           </p>
         </div>
 
@@ -492,7 +557,8 @@ export function CentralOperacaoAdminPage() {
           <div className="flex items-center gap-2">
             <MapPin className="h-4 w-4 text-[#0088FF] shrink-0" />
             <span className="font-bold">
-              Fila Operacional filtrada pela praça: <strong>{pracaAtiva.labelCompleto}</strong> ({pracaAtiva.raioKm} km de raio)
+              Fila Operacional filtrada pela praça: <strong>{pracaAtiva.labelCompleto}</strong> (
+              {pracaAtiva.raioKm} km de raio)
             </span>
           </div>
           {!isFranqueado(adminRole) && (
@@ -521,9 +587,11 @@ export function CentralOperacaoAdminPage() {
           >
             <Car className="h-3.5 w-3.5 text-[#0088FF]" />
             <span>Corridas</span>
-            <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
-              abaAtiva === "corridas" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
-            }`}>
+            <span
+              className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
+                abaAtiva === "corridas" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+              }`}
+            >
               {corridas.length}
             </span>
           </button>
@@ -539,9 +607,11 @@ export function CentralOperacaoAdminPage() {
           >
             <Package className="h-3.5 w-3.5 text-[#0088FF]" />
             <span>Entregas Flash</span>
-            <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
-              abaAtiva === "entregas" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
-            }`}>
+            <span
+              className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
+                abaAtiva === "entregas" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+              }`}
+            >
               {entregas.length}
             </span>
           </button>
@@ -562,9 +632,11 @@ export function CentralOperacaoAdminPage() {
                 {sosCount} SOS
               </span>
             ) : (
-              <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
-                abaAtiva === "suporte" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
-              }`}>
+              <span
+                className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
+                  abaAtiva === "suporte" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+                }`}
+              >
                 {ticketsSuporte.length}
               </span>
             )}
@@ -601,14 +673,41 @@ export function CentralOperacaoAdminPage() {
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-                <span className="text-xs font-black text-slate-500 uppercase tracking-wider shrink-0 mr-1">Status:</span>
+                <span className="text-xs font-black text-slate-500 uppercase tracking-wider shrink-0 mr-1">
+                  Status:
+                </span>
                 {(
                   [
-                    { key: "TODAS", label: "Todas", count: contadoresStatus.todas, color: "bg-slate-900" },
-                    { key: "SOLICITADAS", label: "🟡 Solicitadas", count: contadoresStatus.solicitadas, color: "bg-amber-600" },
-                    { key: "EM_ANDAMENTO", label: "🟢 Em Andamento", count: contadoresStatus.emAndamento, color: "bg-emerald-600" },
-                    { key: "FINALIZADAS", label: "🏁 Finalizadas", count: contadoresStatus.finalizadas, color: "bg-blue-600" },
-                    { key: "CANCELADAS", label: "❌ Canceladas", count: contadoresStatus.canceladas, color: "bg-red-600" },
+                    {
+                      key: "TODAS",
+                      label: "Todas",
+                      count: contadoresStatus.todas,
+                      color: "bg-slate-900",
+                    },
+                    {
+                      key: "SOLICITADAS",
+                      label: "🟡 Solicitadas",
+                      count: contadoresStatus.solicitadas,
+                      color: "bg-amber-600",
+                    },
+                    {
+                      key: "EM_ANDAMENTO",
+                      label: "🟢 Em Andamento",
+                      count: contadoresStatus.emAndamento,
+                      color: "bg-emerald-600",
+                    },
+                    {
+                      key: "FINALIZADAS",
+                      label: "🏁 Finalizadas",
+                      count: contadoresStatus.finalizadas,
+                      color: "bg-blue-600",
+                    },
+                    {
+                      key: "CANCELADAS",
+                      label: "❌ Canceladas",
+                      count: contadoresStatus.canceladas,
+                      color: "bg-red-600",
+                    },
                   ] as const
                 ).map(({ key, label, count, color }) => (
                   <button
@@ -624,7 +723,9 @@ export function CentralOperacaoAdminPage() {
                     <span>{label}</span>
                     <span
                       className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
-                        filtroCorrida === key ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700"
+                        filtroCorrida === key
+                          ? "bg-white/20 text-white"
+                          : "bg-slate-100 text-slate-700"
                       }`}
                     >
                       {count}
@@ -687,7 +788,7 @@ export function CentralOperacaoAdminPage() {
                         c.status,
                         c.valor.toFixed(2),
                         c.duracaoEstimadaMin,
-                      ])
+                      ]),
                     );
                   }}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 transition-all cursor-pointer shadow-xs shrink-0"
@@ -787,12 +888,19 @@ export function CentralOperacaoAdminPage() {
               </div>
             ) : (
               corridasFiltradas.map((c) => (
-                <div key={c.id} className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-xs space-y-2.5">
+                <div
+                  key={c.id}
+                  className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-xs space-y-2.5"
+                >
                   <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-black shrink-0 ${
-                        c.modal === "CARRO" ? "bg-amber-50 text-amber-800 border border-amber-200/60" : "bg-blue-50 text-blue-800 border border-blue-200/60"
-                      }`}>
+                      <span
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-black shrink-0 ${
+                          c.modal === "CARRO"
+                            ? "bg-amber-50 text-amber-800 border border-amber-200/60"
+                            : "bg-blue-50 text-blue-800 border border-blue-200/60"
+                        }`}
+                      >
                         {c.modal}
                       </span>
                       <p className="font-black text-slate-900 text-xs truncate">{c.cidade}</p>
@@ -804,12 +912,16 @@ export function CentralOperacaoAdminPage() {
 
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
-                      <span className="text-[10px] font-black uppercase text-slate-400 block">Passageiro</span>
+                      <span className="text-[10px] font-black uppercase text-slate-400 block">
+                        Passageiro
+                      </span>
                       <p className="font-bold text-slate-900 truncate">{c.passageiroNome}</p>
                       <span className="text-[11px] text-slate-500">{c.passageiroTelefone}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] font-black uppercase text-slate-400 block">Motorista</span>
+                      <span className="text-[10px] font-black uppercase text-slate-400 block">
+                        Motorista
+                      </span>
                       <p className="font-bold text-slate-900 truncate">{c.motoristaNome}</p>
                       <span className="text-[11px] text-slate-500">{c.motoristaTelefone}</span>
                     </div>
@@ -825,16 +937,20 @@ export function CentralOperacaoAdminPage() {
                   </div>
 
                   <div className="flex items-center justify-between gap-2 pt-0.5">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                      c.status === "EM_ANDAMENTO"
-                        ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
-                        : c.status === "FINALIZADA"
-                        ? "bg-slate-100 text-slate-700"
-                        : c.status === "CANCELADA"
-                        ? "bg-red-50 text-red-700 border border-red-200/60"
-                        : "bg-amber-50 text-amber-800 border border-amber-200/60"
-                    }`}>
-                      {c.status === "EM_ANDAMENTO" && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />}
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                        c.status === "EM_ANDAMENTO"
+                          ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
+                          : c.status === "FINALIZADA"
+                            ? "bg-slate-100 text-slate-700"
+                            : c.status === "CANCELADA"
+                              ? "bg-red-50 text-red-700 border border-red-200/60"
+                              : "bg-amber-50 text-amber-800 border border-amber-200/60"
+                      }`}
+                    >
+                      {c.status === "EM_ANDAMENTO" && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                      )}
                       {c.status.replace("_", " ")}
                     </span>
 
@@ -878,18 +994,26 @@ export function CentralOperacaoAdminPage() {
                       <tr key={c.id} className="hover:bg-slate-50/70 transition-colors">
                         <td className="py-3 px-4">
                           <p className="font-black text-slate-900 text-xs">{c.passageiroNome}</p>
-                          <span className="text-[11px] text-slate-500 font-medium">{c.passageiroTelefone}</span>
+                          <span className="text-[11px] text-slate-500 font-medium">
+                            {c.passageiroTelefone}
+                          </span>
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
-                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-black shrink-0 ${
-                              c.modal === "CARRO" ? "bg-amber-50 text-amber-800 border border-amber-200/60" : "bg-blue-50 text-blue-800 border border-blue-200/60"
-                            }`}>
+                            <span
+                              className={`px-2 py-0.5 rounded-md text-[10px] font-black shrink-0 ${
+                                c.modal === "CARRO"
+                                  ? "bg-amber-50 text-amber-800 border border-amber-200/60"
+                                  : "bg-blue-50 text-blue-800 border border-blue-200/60"
+                              }`}
+                            >
                               {c.modal}
                             </span>
                             <div>
                               <p className="font-black text-slate-900 text-xs">{c.motoristaNome}</p>
-                              <span className="text-[11px] text-slate-500 font-medium">{c.motoristaTelefone}</span>
+                              <span className="text-[11px] text-slate-500 font-medium">
+                                {c.motoristaTelefone}
+                              </span>
                             </div>
                           </div>
                         </td>
@@ -900,16 +1024,20 @@ export function CentralOperacaoAdminPage() {
                           </p>
                         </td>
                         <td className="py-3 px-4">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                            c.status === "EM_ANDAMENTO"
-                              ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
-                              : c.status === "FINALIZADA"
-                              ? "bg-slate-100 text-slate-700"
-                              : c.status === "CANCELADA"
-                              ? "bg-red-50 text-red-700 border border-red-200/60"
-                              : "bg-amber-50 text-amber-800 border border-amber-200/60"
-                          }`}>
-                            {c.status === "EM_ANDAMENTO" && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />}
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                              c.status === "EM_ANDAMENTO"
+                                ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
+                                : c.status === "FINALIZADA"
+                                  ? "bg-slate-100 text-slate-700"
+                                  : c.status === "CANCELADA"
+                                    ? "bg-red-50 text-red-700 border border-red-200/60"
+                                    : "bg-amber-50 text-amber-800 border border-amber-200/60"
+                            }`}
+                          >
+                            {c.status === "EM_ANDAMENTO" && (
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                            )}
                             {c.status.replace("_", " ")}
                           </span>
                         </td>
@@ -942,24 +1070,28 @@ export function CentralOperacaoAdminPage() {
           {/* Filtros Rápidos de Entrega e Exportação CSV */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-              <span className="text-xs font-black text-slate-500 uppercase tracking-wider shrink-0 mr-1">Filtrar:</span>
-              {(["TODAS", "EM_ANDAMENTO", "CONCLUIDAS", "CANCELADAS"] as FiltroStatusEntrega[]).map((f) => (
-                <button
-                  key={f}
-                  type="button"
-                  onClick={() => setFiltroEntrega(f)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
-                    filtroEntrega === f
-                      ? "bg-slate-900 text-white shadow-xs"
-                      : "bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-50"
-                  }`}
-                >
-                  {f === "TODAS" && "Todas"}
-                  {f === "EM_ANDAMENTO" && "📦 Em Andamento"}
-                  {f === "CONCLUIDAS" && "✅ Concluídas"}
-                  {f === "CANCELADAS" && "❌ Canceladas"}
-                </button>
-              ))}
+              <span className="text-xs font-black text-slate-500 uppercase tracking-wider shrink-0 mr-1">
+                Filtrar:
+              </span>
+              {(["TODAS", "EM_ANDAMENTO", "CONCLUIDAS", "CANCELADAS"] as FiltroStatusEntrega[]).map(
+                (f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setFiltroEntrega(f)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                      filtroEntrega === f
+                        ? "bg-slate-900 text-white shadow-xs"
+                        : "bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-50"
+                    }`}
+                  >
+                    {f === "TODAS" && "Todas"}
+                    {f === "EM_ANDAMENTO" && "📦 Em Andamento"}
+                    {f === "CONCLUIDAS" && "✅ Concluídas"}
+                    {f === "CANCELADAS" && "❌ Canceladas"}
+                  </button>
+                ),
+              )}
             </div>
 
             <button
@@ -967,7 +1099,23 @@ export function CentralOperacaoAdminPage() {
               onClick={() => {
                 exportarParaCSV(
                   "entregas_flash",
-                  ["ID", "Remetente", "Telefone Remetente", "Destinatário", "Telefone Destinatário", "Entregador", "Modal", "Cidade", "Origem", "Destino", "Status", "Valor R$", "PIN Coleta", "PIN Entrega", "Horário"],
+                  [
+                    "ID",
+                    "Remetente",
+                    "Telefone Remetente",
+                    "Destinatário",
+                    "Telefone Destinatário",
+                    "Entregador",
+                    "Modal",
+                    "Cidade",
+                    "Origem",
+                    "Destino",
+                    "Status",
+                    "Valor R$",
+                    "PIN Coleta",
+                    "PIN Entrega",
+                    "Horário",
+                  ],
                   entregasFiltradas.map((e) => [
                     e.id,
                     e.remetenteNome,
@@ -984,7 +1132,7 @@ export function CentralOperacaoAdminPage() {
                     e.pickupPin,
                     e.dropoffPin,
                     e.solicitadaEm,
-                  ])
+                  ]),
                 );
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 transition-all cursor-pointer shadow-xs shrink-0"
@@ -1003,7 +1151,10 @@ export function CentralOperacaoAdminPage() {
               </div>
             ) : (
               entregasFiltradas.map((e) => (
-                <div key={e.id} className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-xs space-y-2.5">
+                <div
+                  key={e.id}
+                  className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-xs space-y-2.5"
+                >
                   <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
                     <div className="min-w-0">
                       <span className="text-[10px] font-black uppercase text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
@@ -1017,19 +1168,25 @@ export function CentralOperacaoAdminPage() {
 
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
-                      <span className="text-[10px] font-black uppercase text-slate-400 block">Remetente</span>
+                      <span className="text-[10px] font-black uppercase text-slate-400 block">
+                        Remetente
+                      </span>
                       <p className="font-bold text-slate-900 truncate">{e.remetenteNome}</p>
                       <span className="text-[11px] text-slate-500">{e.remetenteTelefone}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] font-black uppercase text-slate-400 block">Destinatário</span>
+                      <span className="text-[10px] font-black uppercase text-slate-400 block">
+                        Destinatário
+                      </span>
                       <p className="font-bold text-slate-900 truncate">{e.destinatarioNome}</p>
                       <span className="text-[11px] text-slate-500">{e.destinatarioTelefone}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs">
-                    <span className="text-[10px] font-black uppercase text-slate-500">Duplo PIN:</span>
+                    <span className="text-[10px] font-black uppercase text-slate-500">
+                      Duplo PIN:
+                    </span>
                     <div className="flex items-center gap-1.5">
                       <span className="px-2 py-0.5 bg-amber-50 border border-amber-200/60 text-amber-900 font-mono font-black text-[11px] rounded-md">
                         PIN 1: {e.pickupPin}
@@ -1041,13 +1198,15 @@ export function CentralOperacaoAdminPage() {
                   </div>
 
                   <div className="flex items-center justify-between gap-2 pt-0.5">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                      e.status === "EM_TRANSITO" || e.status === "COLETANDO"
-                        ? "bg-blue-50 text-blue-800 border border-blue-300"
-                        : e.status === "CONCLUIDA"
-                        ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
-                        : "bg-red-50 text-red-700 border border-red-200/60"
-                    }`}>
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                        e.status === "EM_TRANSITO" || e.status === "COLETANDO"
+                          ? "bg-blue-50 text-blue-800 border border-blue-300"
+                          : e.status === "CONCLUIDA"
+                            ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
+                            : "bg-red-50 text-red-700 border border-red-200/60"
+                      }`}
+                    >
                       {e.status}
                     </span>
 
@@ -1092,11 +1251,15 @@ export function CentralOperacaoAdminPage() {
                       <tr key={e.id} className="hover:bg-slate-50/70 transition-colors">
                         <td className="py-3 px-4">
                           <p className="font-black text-slate-900 text-xs">{e.remetenteNome}</p>
-                          <span className="text-[11px] text-slate-500 font-medium">{e.remetenteTelefone}</span>
+                          <span className="text-[11px] text-slate-500 font-medium">
+                            {e.remetenteTelefone}
+                          </span>
                         </td>
                         <td className="py-3 px-4">
                           <p className="font-black text-slate-900 text-xs">{e.destinatarioNome}</p>
-                          <span className="text-[11px] text-slate-500 font-medium">{e.destinatarioTelefone}</span>
+                          <span className="text-[11px] text-slate-500 font-medium">
+                            {e.destinatarioTelefone}
+                          </span>
                         </td>
                         <td className="py-3 px-4">
                           <p className="font-black text-slate-900 text-xs">{e.entregadorNome}</p>
@@ -1104,22 +1267,30 @@ export function CentralOperacaoAdminPage() {
                         </td>
                         <td className="py-3 px-4 text-center">
                           <div className="inline-flex items-center gap-1.5">
-                            <span className="px-2 py-0.5 bg-amber-50 border border-amber-200/60 text-amber-900 font-mono font-black text-[10px] rounded-md" title="PIN 1 (Coleta)">
+                            <span
+                              className="px-2 py-0.5 bg-amber-50 border border-amber-200/60 text-amber-900 font-mono font-black text-[10px] rounded-md"
+                              title="PIN 1 (Coleta)"
+                            >
                               P1: {e.pickupPin}
                             </span>
-                            <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200/60 text-emerald-900 font-mono font-black text-[10px] rounded-md" title="PIN 2 (Entrega)">
+                            <span
+                              className="px-2 py-0.5 bg-emerald-50 border border-emerald-200/60 text-emerald-900 font-mono font-black text-[10px] rounded-md"
+                              title="PIN 2 (Entrega)"
+                            >
                               P2: {e.dropoffPin}
                             </span>
                           </div>
                         </td>
                         <td className="py-3 px-4">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                            e.status === "EM_TRANSITO" || e.status === "COLETANDO"
-                              ? "bg-blue-50 text-blue-800 border border-blue-300"
-                              : e.status === "CONCLUIDA"
-                              ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
-                              : "bg-red-50 text-red-700 border border-red-200/60"
-                          }`}>
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                              e.status === "EM_TRANSITO" || e.status === "COLETANDO"
+                                ? "bg-blue-50 text-blue-800 border border-blue-300"
+                                : e.status === "CONCLUIDA"
+                                  ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
+                                  : "bg-red-50 text-red-700 border border-red-200/60"
+                            }`}
+                          >
                             {e.status}
                           </span>
                         </td>
@@ -1151,27 +1322,31 @@ export function CentralOperacaoAdminPage() {
         <div className="space-y-4">
           {/* Filtros de Prioridade da Fila */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-            <span className="text-xs font-black text-slate-500 uppercase tracking-wider shrink-0 mr-1">Criticidade:</span>
-            {(["TODOS", "SOS_CRITICAL", "ALTA", "MEDIA", "BAIXA"] as FiltroPrioridadeSuporte[]).map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setFiltroSuporte(p)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
-                  filtroSuporte === p
-                    ? p === "SOS_CRITICAL"
-                      ? "bg-rose-600 text-white shadow-xs"
-                      : "bg-slate-900 text-white shadow-xs"
-                    : "bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-50"
-                }`}
-              >
-                {p === "TODOS" && "Todos os Chamados"}
-                {p === "SOS_CRITICAL" && "🚨 SOS CRÍTICO"}
-                {p === "ALTA" && "⚠️ Alta"}
-                {p === "MEDIA" && "🟡 Média"}
-                {p === "BAIXA" && "🟢 Baixa"}
-              </button>
-            ))}
+            <span className="text-xs font-black text-slate-500 uppercase tracking-wider shrink-0 mr-1">
+              Criticidade:
+            </span>
+            {(["TODOS", "SOS_CRITICAL", "ALTA", "MEDIA", "BAIXA"] as FiltroPrioridadeSuporte[]).map(
+              (p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setFiltroSuporte(p)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
+                    filtroSuporte === p
+                      ? p === "SOS_CRITICAL"
+                        ? "bg-rose-600 text-white shadow-xs"
+                        : "bg-slate-900 text-white shadow-xs"
+                      : "bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-50"
+                  }`}
+                >
+                  {p === "TODOS" && "Todos os Chamados"}
+                  {p === "SOS_CRITICAL" && "🚨 SOS CRÍTICO"}
+                  {p === "ALTA" && "⚠️ Alta"}
+                  {p === "MEDIA" && "🟡 Média"}
+                  {p === "BAIXA" && "🟢 Baixa"}
+                </button>
+              ),
+            )}
           </div>
 
           {/* Cards da Fila Ordenada por Criticidade */}
@@ -1191,21 +1366,23 @@ export function CentralOperacaoAdminPage() {
                       isSos
                         ? "bg-rose-50/95 border-rose-300 shadow-sm shadow-rose-500/10"
                         : t.status === "RESOLVIDO"
-                        ? "bg-slate-50 border-slate-200 opacity-75"
-                        : "bg-white border-slate-200/90 shadow-xs hover:border-slate-300"
+                          ? "bg-slate-50 border-slate-200 opacity-75"
+                          : "bg-white border-slate-200/90 shadow-xs hover:border-slate-300"
                     }`}
                   >
                     <div className="space-y-1.5 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                          isSos
-                            ? "bg-rose-600 text-white animate-pulse"
-                            : t.prioridade === "ALTA"
-                            ? "bg-amber-500 text-slate-950"
-                            : t.prioridade === "MEDIA"
-                            ? "bg-amber-100 text-amber-900"
-                            : "bg-slate-200 text-slate-700"
-                        }`}>
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                            isSos
+                              ? "bg-rose-600 text-white animate-pulse"
+                              : t.prioridade === "ALTA"
+                                ? "bg-amber-500 text-slate-950"
+                                : t.prioridade === "MEDIA"
+                                  ? "bg-amber-100 text-amber-900"
+                                  : "bg-slate-200 text-slate-700"
+                          }`}
+                        >
                           {isSos ? "🚨 SOS 190 (EMERGÊNCIA)" : `${t.prioridade} PRIORIDADE`}
                         </span>
 
@@ -1213,17 +1390,27 @@ export function CentralOperacaoAdminPage() {
                           {t.protocolo}
                         </span>
 
-                        <span className="text-[11px] text-slate-400 font-medium">• Criado às {t.criadoEm}</span>
+                        <span className="text-[11px] text-slate-400 font-medium">
+                          • Criado às {t.criadoEm}
+                        </span>
                       </div>
 
-                      <p className={`text-sm sm:text-base font-black leading-snug ${isSos ? "text-rose-950" : "text-slate-900"}`}>
+                      <p
+                        className={`text-sm sm:text-base font-black leading-snug ${isSos ? "text-rose-950" : "text-slate-900"}`}
+                      >
                         {t.descricao}
                       </p>
 
                       <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pt-0.5">
-                        <span><strong>Passageiro:</strong> {t.usuarioNome} ({t.usuarioTelefone})</span>
-                        <span><strong>Motorista:</strong> {t.motoristaNome}</span>
-                        <span><strong>Cidade:</strong> {t.cidade}</span>
+                        <span>
+                          <strong>Passageiro:</strong> {t.usuarioNome} ({t.usuarioTelefone})
+                        </span>
+                        <span>
+                          <strong>Motorista:</strong> {t.motoristaNome}
+                        </span>
+                        <span>
+                          <strong>Cidade:</strong> {t.cidade}
+                        </span>
                       </div>
                     </div>
 
@@ -1267,460 +1454,544 @@ export function CentralOperacaoAdminPage() {
       )}
 
       {/* MODAL DETALHE DA CORRIDA (RAIO-X COMPLETO DE ALTA DENSIDADE) */}
-      {corridaDetalhe && (() => {
-        const isCarro = corridaDetalhe.modal === "CARRO";
-        const tarifaBase = isCarro ? 5.00 : 4.00;
-        const taxaKm = isCarro ? 2.00 : 1.20;
-        const taxaMin = isCarro ? 0.30 : 0.20;
-        const distanciaKm = Math.max(1.2, Math.round((corridaDetalhe.duracaoEstimadaMin * 0.45) * 10) / 10);
-        const tempoMin = corridaDetalhe.duracaoEstimadaMin;
-        const valorKm = Math.round(distanciaKm * taxaKm * 100) / 100;
-        const valorTempo = Math.round(tempoMin * taxaMin * 100) / 100;
-        const subtotal = Math.round((tarifaBase + valorKm + valorTempo) * 100) / 100;
-        const precoFinal = corridaDetalhe.valor > 0 ? corridaDetalhe.valor : subtotal;
-        const taxaAppValor = 0; // ZERO TAXA / ZERO COMISSÃO (100% Repasse D+0)
-        const liquidoMotorista = precoFinal; // Repasse Integral ao Condutor
+      {corridaDetalhe &&
+        (() => {
+          const isCarro = corridaDetalhe.modal === "CARRO";
+          const tarifaBase = isCarro ? 5.0 : 4.0;
+          const taxaKm = isCarro ? 2.0 : 1.2;
+          const taxaMin = isCarro ? 0.3 : 0.2;
+          const distanciaKm = Math.max(
+            1.2,
+            Math.round(corridaDetalhe.duracaoEstimadaMin * 0.45 * 10) / 10,
+          );
+          const tempoMin = corridaDetalhe.duracaoEstimadaMin;
+          const valorKm = Math.round(distanciaKm * taxaKm * 100) / 100;
+          const valorTempo = Math.round(tempoMin * taxaMin * 100) / 100;
+          const subtotal = Math.round((tarifaBase + valorKm + valorTempo) * 100) / 100;
+          const precoFinal = corridaDetalhe.valor > 0 ? corridaDetalhe.valor : subtotal;
+          const taxaAppValor = 0; // ZERO TAXA / ZERO COMISSÃO (100% Repasse D+0)
+          const liquidoMotorista = precoFinal; // Repasse Integral ao Condutor
 
-        return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
-            <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl border border-slate-200 overflow-hidden flex flex-col my-auto max-h-[90vh]">
-              {/* Header do Modal */}
-              <div className="flex items-center justify-between border-b border-slate-200 px-4 sm:px-5 py-3 bg-slate-50/80 shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <div className={`h-8 w-8 rounded-xl flex items-center justify-center font-black ${
-                    isCarro ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"
-                  }`}>
-                    {isCarro ? <Car className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm sm:text-base font-black text-slate-900">
-                        Corrida #{corridaDetalhe.id}
-                      </h3>
-                      <span className={`px-2 py-0.2 rounded-full text-[10px] font-black uppercase ${
-                        corridaDetalhe.status === "EM_ANDAMENTO"
-                          ? "bg-emerald-100 text-emerald-800 border border-emerald-300 animate-pulse"
-                          : corridaDetalhe.status === "FINALIZADA"
-                          ? "bg-slate-100 text-slate-700"
-                          : corridaDetalhe.status === "CANCELADA"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-amber-100 text-amber-800"
-                      }`}>
-                        {corridaDetalhe.status.replace("_", " ")}
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
+              <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl border border-slate-200 overflow-hidden flex flex-col my-auto max-h-[90vh]">
+                {/* Header do Modal */}
+                <div className="flex items-center justify-between border-b border-slate-200 px-4 sm:px-5 py-3 bg-slate-50/80 shrink-0">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className={`h-8 w-8 rounded-xl flex items-center justify-center font-black ${
+                        isCarro ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"
+                      }`}
+                    >
+                      {isCarro ? <Car className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm sm:text-base font-black text-slate-900">
+                          Corrida #{corridaDetalhe.id}
+                        </h3>
+                        <span
+                          className={`px-2 py-0.2 rounded-full text-[10px] font-black uppercase ${
+                            corridaDetalhe.status === "EM_ANDAMENTO"
+                              ? "bg-emerald-100 text-emerald-800 border border-emerald-300 animate-pulse"
+                              : corridaDetalhe.status === "FINALIZADA"
+                                ? "bg-slate-100 text-slate-700"
+                                : corridaDetalhe.status === "CANCELADA"
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-amber-100 text-amber-800"
+                          }`}
+                        >
+                          {corridaDetalhe.status.replace("_", " ")}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        {corridaDetalhe.cidade} • Solicitada às {corridaDetalhe.iniciadaEm}
                       </span>
                     </div>
-                    <span className="text-[11px] text-slate-500 font-medium">{corridaDetalhe.cidade} • Solicitada às {corridaDetalhe.iniciadaEm}</span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => window.print()}
+                      className="h-8 px-2.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                      title="Imprimir Comprovante"
+                    >
+                      <Printer className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline text-xs">Recibo</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCorridaDetalhe(null)}
+                      className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-slate-200 text-slate-500 transition-all cursor-pointer"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => window.print()}
-                    className="h-8 px-2.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
-                    title="Imprimir Comprovante"
-                  >
-                    <Printer className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline text-xs">Recibo</span>
-                  </button>
+                {/* Corpo em 2 Colunas */}
+                <div className="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                    {/* Coluna Esquerda: Trajeto, Passageiro, Motorista (7 colunas) */}
+                    <div className="lg:col-span-7 space-y-3">
+                      {/* Trajeto Completo */}
+                      <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+                        <div className="flex items-center justify-between border-b border-slate-200/80 pb-1.5">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                            <MapPin className="h-3.5 w-3.5 text-emerald-600" /> Itinerário de
+                            Corrida
+                          </span>
+                          <span className="text-[11px] font-bold text-slate-600 font-mono">
+                            {distanciaKm} km • ~{tempoMin} min
+                          </span>
+                        </div>
+
+                        <div className="space-y-2 text-xs">
+                          <div className="flex items-start gap-2">
+                            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 mt-1 shrink-0" />
+                            <div>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase block">
+                                Origem
+                              </span>
+                              <p className="font-bold text-slate-900 leading-snug">
+                                {corridaDetalhe.origem}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-start gap-2">
+                            <span className="h-2.5 w-2.5 rounded-full bg-red-500 mt-1 shrink-0" />
+                            <div>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase block">
+                                Destino
+                              </span>
+                              <p className="font-bold text-slate-900 leading-snug">
+                                {corridaDetalhe.destino}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Cards dos Envolvidos */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {/* Passageiro */}
+                        <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+                          <div className="flex items-center gap-2">
+                            <div className="h-8 w-8 rounded-lg bg-amber-50 text-amber-800 flex items-center justify-center font-black shrink-0">
+                              <User className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">
+                                Passageiro
+                              </span>
+                              <p className="font-black text-slate-900 text-xs truncate">
+                                {corridaDetalhe.passageiroNome}
+                              </p>
+                              <span className="text-[10px] text-slate-500">
+                                {corridaDetalhe.passageiroTelefone}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100">
+                            <a
+                              href={`tel:${corridaDetalhe.passageiroTelefone.replace(/\D/g, "")}`}
+                              className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold transition-all"
+                            >
+                              <Phone className="h-3 w-3" /> Ligar
+                            </a>
+                            <a
+                              href={`https://wa.me/55${corridaDetalhe.passageiroTelefone.replace(/\D/g, "")}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold transition-all border border-emerald-200/80"
+                            >
+                              <MessageSquare className="h-3 w-3 text-emerald-600" /> WhatsApp
+                            </a>
+                          </div>
+                        </div>
+
+                        {/* Motorista */}
+                        <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+                          <div className="flex items-center gap-2">
+                            <div className="h-8 w-8 rounded-lg bg-blue-50 text-blue-800 flex items-center justify-center font-black shrink-0">
+                              {isCarro ? <Car className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
+                            </div>
+                            <div className="min-w-0">
+                              <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">
+                                Motorista • {corridaDetalhe.modal}
+                              </span>
+                              <p className="font-black text-slate-900 text-xs truncate">
+                                {corridaDetalhe.motoristaNome}
+                              </p>
+                              <span className="text-[10px] text-slate-500">
+                                {corridaDetalhe.motoristaTelefone}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100">
+                            <a
+                              href={`tel:${corridaDetalhe.motoristaTelefone.replace(/\D/g, "")}`}
+                              className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold transition-all"
+                            >
+                              <Phone className="h-3 w-3" /> Ligar
+                            </a>
+                            <a
+                              href={`https://wa.me/55${corridaDetalhe.motoristaTelefone.replace(/\D/g, "")}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold transition-all border border-emerald-200/80"
+                            >
+                              <MessageSquare className="h-3 w-3 text-emerald-600" /> WhatsApp
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Coluna Direita: Resumo Financeiro / Raio-X Contábil (5 colunas) */}
+                    <div className="lg:col-span-5 space-y-3">
+                      <div className="p-3.5 rounded-xl bg-slate-950 text-white border border-slate-800 space-y-2.5 shadow-xs">
+                        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1">
+                            <Receipt className="h-3.5 w-3.5 text-amber-400" /> Resumo Financeiro
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.2 rounded-md bg-slate-800 text-slate-300">
+                            {isCarro ? "Carro Popular" : "Moto Flash"}
+                          </span>
+                        </div>
+
+                        <div className="space-y-1.5 text-xs font-medium text-slate-300">
+                          <div className="flex justify-between">
+                            <span className="text-slate-400">Tarifa Base:</span>
+                            <span className="font-mono text-white">
+                              R$ {tarifaBase.toFixed(2).replace(".", ",")}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-400">Distância ({distanciaKm} km):</span>
+                            <span className="font-mono text-white">
+                              R$ {valorKm.toFixed(2).replace(".", ",")}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-400">Tempo ({tempoMin} min):</span>
+                            <span className="font-mono text-white">
+                              R$ {valorTempo.toFixed(2).replace(".", ",")}
+                            </span>
+                          </div>
+                          <div className="flex justify-between border-t border-slate-800/80 pt-1">
+                            <span className="text-slate-400">Subtotal:</span>
+                            <span className="font-mono font-bold text-white">
+                              R$ {subtotal.toFixed(2).replace(".", ",")}
+                            </span>
+                          </div>
+
+                          <div className="border-t border-slate-800 pt-2 flex items-center justify-between">
+                            <span className="text-xs font-black text-white">Preço Final:</span>
+                            <span className="text-base font-black text-amber-400 font-mono">
+                              R$ {precoFinal.toFixed(2).replace(".", ",")}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/30 space-y-1.5 text-[11px]">
+                          <div className="flex justify-between items-center text-emerald-400 font-bold">
+                            <span className="flex items-center gap-1">
+                              <ShieldCheck className="h-3 w-3" /> Comissão PARTIU (0%):
+                            </span>
+                            <span className="font-mono bg-emerald-900/60 text-emerald-300 px-1.5 py-0.2 rounded text-[10px]">
+                              R$ 0,00 (Isento)
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center text-slate-100 font-black border-t border-emerald-800/40 pt-1">
+                            <span>Repasse Líquido Motorista:</span>
+                            <span className="font-mono text-emerald-300 text-xs font-black">
+                              100% (R$ {liquidoMotorista.toFixed(2).replace(".", ",")})
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-slate-400 pt-0.5 border-t border-slate-800 flex items-center justify-between">
+                            <span>Monetização Plataforma:</span>
+                            <span className="text-amber-400 font-semibold">
+                              Assinatura SaaS / Diária Ativa
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
+                          <span>Pagamento:</span>
+                          <span className="font-bold text-white">PIX / Dinheiro Direto</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rodapé do Modal */}
+                <div className="px-4 sm:px-5 py-2.5 bg-slate-50 border-t border-slate-200 flex justify-end shrink-0">
                   <button
                     type="button"
                     onClick={() => setCorridaDetalhe(null)}
-                    className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-slate-200 text-slate-500 transition-all cursor-pointer"
+                    className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer shadow-xs transition-all"
                   >
-                    <X className="h-4 w-4" />
+                    Fechar
                   </button>
                 </div>
               </div>
-
-              {/* Corpo em 2 Colunas */}
-              <div className="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                  {/* Coluna Esquerda: Trajeto, Passageiro, Motorista (7 colunas) */}
-                  <div className="lg:col-span-7 space-y-3">
-                    {/* Trajeto Completo */}
-                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
-                      <div className="flex items-center justify-between border-b border-slate-200/80 pb-1.5">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1">
-                          <MapPin className="h-3.5 w-3.5 text-emerald-600" /> Itinerário de Corrida
-                        </span>
-                        <span className="text-[11px] font-bold text-slate-600 font-mono">
-                          {distanciaKm} km • ~{tempoMin} min
-                        </span>
-                      </div>
-
-                      <div className="space-y-2 text-xs">
-                        <div className="flex items-start gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 mt-1 shrink-0" />
-                          <div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase block">Origem</span>
-                            <p className="font-bold text-slate-900 leading-snug">{corridaDetalhe.origem}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-start gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full bg-red-500 mt-1 shrink-0" />
-                          <div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase block">Destino</span>
-                            <p className="font-bold text-slate-900 leading-snug">{corridaDetalhe.destino}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Cards dos Envolvidos */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {/* Passageiro */}
-                      <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
-                        <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-lg bg-amber-50 text-amber-800 flex items-center justify-center font-black shrink-0">
-                            <User className="h-4 w-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Passageiro</span>
-                            <p className="font-black text-slate-900 text-xs truncate">{corridaDetalhe.passageiroNome}</p>
-                            <span className="text-[10px] text-slate-500">{corridaDetalhe.passageiroTelefone}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100">
-                          <a
-                            href={`tel:${corridaDetalhe.passageiroTelefone.replace(/\D/g, "")}`}
-                            className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold transition-all"
-                          >
-                            <Phone className="h-3 w-3" /> Ligar
-                          </a>
-                          <a
-                            href={`https://wa.me/55${corridaDetalhe.passageiroTelefone.replace(/\D/g, "")}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold transition-all border border-emerald-200/80"
-                          >
-                            <MessageSquare className="h-3 w-3 text-emerald-600" /> WhatsApp
-                          </a>
-                        </div>
-                      </div>
-
-                      {/* Motorista */}
-                      <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
-                        <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-lg bg-blue-50 text-blue-800 flex items-center justify-center font-black shrink-0">
-                            {isCarro ? <Car className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
-                          </div>
-                          <div className="min-w-0">
-                            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Motorista • {corridaDetalhe.modal}</span>
-                            <p className="font-black text-slate-900 text-xs truncate">{corridaDetalhe.motoristaNome}</p>
-                            <span className="text-[10px] text-slate-500">{corridaDetalhe.motoristaTelefone}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100">
-                          <a
-                            href={`tel:${corridaDetalhe.motoristaTelefone.replace(/\D/g, "")}`}
-                            className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold transition-all"
-                          >
-                            <Phone className="h-3 w-3" /> Ligar
-                          </a>
-                          <a
-                            href={`https://wa.me/55${corridaDetalhe.motoristaTelefone.replace(/\D/g, "")}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold transition-all border border-emerald-200/80"
-                          >
-                            <MessageSquare className="h-3 w-3 text-emerald-600" /> WhatsApp
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Coluna Direita: Resumo Financeiro / Raio-X Contábil (5 colunas) */}
-                  <div className="lg:col-span-5 space-y-3">
-                    <div className="p-3.5 rounded-xl bg-slate-950 text-white border border-slate-800 space-y-2.5 shadow-xs">
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1">
-                          <Receipt className="h-3.5 w-3.5 text-amber-400" /> Resumo Financeiro
-                        </span>
-                        <span className="text-[10px] font-bold px-2 py-0.2 rounded-md bg-slate-800 text-slate-300">
-                          {isCarro ? "Carro Popular" : "Moto Flash"}
-                        </span>
-                      </div>
-
-                      <div className="space-y-1.5 text-xs font-medium text-slate-300">
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Tarifa Base:</span>
-                          <span className="font-mono text-white">R$ {tarifaBase.toFixed(2).replace(".", ",")}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Distância ({distanciaKm} km):</span>
-                          <span className="font-mono text-white">R$ {valorKm.toFixed(2).replace(".", ",")}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Tempo ({tempoMin} min):</span>
-                          <span className="font-mono text-white">R$ {valorTempo.toFixed(2).replace(".", ",")}</span>
-                        </div>
-                        <div className="flex justify-between border-t border-slate-800/80 pt-1">
-                          <span className="text-slate-400">Subtotal:</span>
-                          <span className="font-mono font-bold text-white">R$ {subtotal.toFixed(2).replace(".", ",")}</span>
-                        </div>
-
-                        <div className="border-t border-slate-800 pt-2 flex items-center justify-between">
-                          <span className="text-xs font-black text-white">Preço Final:</span>
-                          <span className="text-base font-black text-amber-400 font-mono">
-                            R$ {precoFinal.toFixed(2).replace(".", ",")}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/30 space-y-1.5 text-[11px]">
-                        <div className="flex justify-between items-center text-emerald-400 font-bold">
-                          <span className="flex items-center gap-1">
-                            <ShieldCheck className="h-3 w-3" /> Comissão PARTIU (0%):
-                          </span>
-                          <span className="font-mono bg-emerald-900/60 text-emerald-300 px-1.5 py-0.2 rounded text-[10px]">
-                            R$ 0,00 (Isento)
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center text-slate-100 font-black border-t border-emerald-800/40 pt-1">
-                          <span>Repasse Líquido Motorista:</span>
-                          <span className="font-mono text-emerald-300 text-xs font-black">
-                            100% (R$ {liquidoMotorista.toFixed(2).replace(".", ",")})
-                          </span>
-                        </div>
-                        <div className="text-[10px] text-slate-400 pt-0.5 border-t border-slate-800 flex items-center justify-between">
-                          <span>Monetização Plataforma:</span>
-                          <span className="text-amber-400 font-semibold">Assinatura SaaS / Diária Ativa</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
-                        <span>Pagamento:</span>
-                        <span className="font-bold text-white">PIX / Dinheiro Direto</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Rodapé do Modal */}
-              <div className="px-4 sm:px-5 py-2.5 bg-slate-50 border-t border-slate-200 flex justify-end shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setCorridaDetalhe(null)}
-                  className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer shadow-xs transition-all"
-                >
-                  Fechar
-                </button>
-              </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       {/* MODAL DETALHE DA ENTREGA (DUPLO PIN & CONTROLE COMPLETO) */}
-      {entregaDetalhe && (() => {
-        const taxaAppValor = 0; // ZERO TAXA / ZERO COMISSÃO (100% Repasse D+0)
-        const liquidoEntregador = entregaDetalhe.valor; // Repasse Integral ao Entregador
+      {entregaDetalhe &&
+        (() => {
+          const taxaAppValor = 0; // ZERO TAXA / ZERO COMISSÃO (100% Repasse D+0)
+          const liquidoEntregador = entregaDetalhe.valor; // Repasse Integral ao Entregador
 
-        return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
-            <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl border border-slate-200 overflow-hidden flex flex-col my-auto max-h-[90vh]">
-              {/* Header do Modal */}
-              <div className="flex items-center justify-between border-b border-slate-200 px-4 sm:px-5 py-3 bg-slate-50/80 shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-black">
-                    <Package className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm sm:text-base font-black text-slate-900">
-                        Entrega Flash #{entregaDetalhe.id}
-                      </h3>
-                      <span className={`px-2 py-0.2 rounded-full text-[10px] font-black uppercase ${
-                        entregaDetalhe.status === "EM_TRANSITO" || entregaDetalhe.status === "COLETANDO"
-                          ? "bg-blue-100 text-blue-800 border border-blue-300 animate-pulse"
-                          : entregaDetalhe.status === "CONCLUIDA"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-red-100 text-red-700"
-                      }`}>
-                        {entregaDetalhe.status}
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 sm:p-4 backdrop-blur-xs overflow-y-auto">
+              <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl border border-slate-200 overflow-hidden flex flex-col my-auto max-h-[90vh]">
+                {/* Header do Modal */}
+                <div className="flex items-center justify-between border-b border-slate-200 px-4 sm:px-5 py-3 bg-slate-50/80 shrink-0">
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-8 w-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-black">
+                      <Package className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm sm:text-base font-black text-slate-900">
+                          Entrega Flash #{entregaDetalhe.id}
+                        </h3>
+                        <span
+                          className={`px-2 py-0.2 rounded-full text-[10px] font-black uppercase ${
+                            entregaDetalhe.status === "EM_TRANSITO" ||
+                            entregaDetalhe.status === "COLETANDO"
+                              ? "bg-blue-100 text-blue-800 border border-blue-300 animate-pulse"
+                              : entregaDetalhe.status === "CONCLUIDA"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {entregaDetalhe.status}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        {entregaDetalhe.cidade} • Solicitada às {entregaDetalhe.solicitadaEm}
                       </span>
                     </div>
-                    <span className="text-[11px] text-slate-500 font-medium">{entregaDetalhe.cidade} • Solicitada às {entregaDetalhe.solicitadaEm}</span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setEntregaDetalhe(null)}
+                      className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-slate-200 text-slate-500 transition-all cursor-pointer"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5">
+                {/* Corpo */}
+                <div className="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs">
+                  {/* Validação de Segurança Duplo PIN */}
+                  <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 block">
+                        Segurança de Custódia • Validação Duplo PIN
+                      </span>
+                      <p className="text-[11px] text-amber-800 mt-0.5">
+                        O entregador só libera o pacote mediante validação dos PINs de coleta e
+                        entrega.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="px-3 py-1.5 bg-white border border-amber-300 rounded-xl text-center shadow-2xs">
+                        <span className="text-[9px] font-black uppercase text-slate-400 block">
+                          PIN 1 (Coleta)
+                        </span>
+                        <span className="text-sm font-mono font-black text-amber-900">
+                          {entregaDetalhe.pickupPin}
+                        </span>
+                      </div>
+                      <div className="px-3 py-1.5 bg-emerald-50 border border-emerald-300 rounded-xl text-center shadow-2xs">
+                        <span className="text-[9px] font-black uppercase text-emerald-700 block">
+                          PIN 2 (Entrega)
+                        </span>
+                        <span className="text-sm font-mono font-black text-emerald-950">
+                          {entregaDetalhe.dropoffPin}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                    {/* Trajeto & Envolvidos */}
+                    <div className="lg:col-span-7 space-y-3">
+                      <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                          <MapPin className="h-3.5 w-3.5 text-[#0088FF]" /> Itinerário do Pacote
+                        </span>
+                        <div className="space-y-2 text-xs">
+                          <div className="flex items-start gap-2">
+                            <span className="h-2.5 w-2.5 rounded-full bg-amber-500 mt-1 shrink-0" />
+                            <div>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase block">
+                                Coleta (Origem)
+                              </span>
+                              <p className="font-bold text-slate-900 leading-snug">
+                                {entregaDetalhe.origem}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 mt-1 shrink-0" />
+                            <div>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase block">
+                                Entrega (Destino)
+                              </span>
+                              <p className="font-bold text-slate-900 leading-snug">
+                                {entregaDetalhe.destino}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {/* Remetente */}
+                        <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+                          <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">
+                            Remetente
+                          </span>
+                          <p className="font-black text-slate-900 text-xs truncate">
+                            {entregaDetalhe.remetenteNome}
+                          </p>
+                          <span className="text-[10px] text-slate-500 block">
+                            {entregaDetalhe.remetenteTelefone}
+                          </span>
+                          <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100">
+                            <a
+                              href={`tel:${entregaDetalhe.remetenteTelefone.replace(/\D/g, "")}`}
+                              className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold"
+                            >
+                              <Phone className="h-3 w-3" /> Ligar
+                            </a>
+                            <a
+                              href={`https://wa.me/55${entregaDetalhe.remetenteTelefone.replace(/\D/g, "")}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200/80"
+                            >
+                              <MessageSquare className="h-3 w-3 text-emerald-600" /> WhatsApp
+                            </a>
+                          </div>
+                        </div>
+
+                        {/* Destinatário */}
+                        <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+                          <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">
+                            Destinatário
+                          </span>
+                          <p className="font-black text-slate-900 text-xs truncate">
+                            {entregaDetalhe.destinatarioNome}
+                          </p>
+                          <span className="text-[10px] text-slate-500 block">
+                            {entregaDetalhe.destinatarioTelefone}
+                          </span>
+                          <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100">
+                            <a
+                              href={`tel:${entregaDetalhe.destinatarioTelefone.replace(/\D/g, "")}`}
+                              className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold"
+                            >
+                              <Phone className="h-3 w-3" /> Ligar
+                            </a>
+                            <a
+                              href={`https://wa.me/55${entregaDetalhe.destinatarioTelefone.replace(/\D/g, "")}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200/80"
+                            >
+                              <MessageSquare className="h-3 w-3 text-emerald-600" /> WhatsApp
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Entregador & Financeiro */}
+                    <div className="lg:col-span-5 space-y-3">
+                      <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+                        <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">
+                          Entregador Responsável
+                        </span>
+                        <p className="font-black text-slate-900 text-xs">
+                          {entregaDetalhe.entregadorNome}
+                        </p>
+                        <span className="text-[10px] text-slate-500 block">
+                          Modal {entregaDetalhe.modal} • {entregaDetalhe.cidade}
+                        </span>
+                      </div>
+
+                      <div className="p-3.5 rounded-xl bg-slate-950 text-white border border-slate-800 space-y-2.5 shadow-xs">
+                        <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1">
+                            <Receipt className="h-3.5 w-3.5 text-amber-400" /> Resumo Financeiro
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.2 rounded-md bg-slate-800 text-slate-300">
+                            Flash Express
+                          </span>
+                        </div>
+
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-slate-400">Valor Total do Frete:</span>
+                          <span className="text-base font-black text-amber-400 font-mono">
+                            R$ {entregaDetalhe.valor.toFixed(2).replace(".", ",")}
+                          </span>
+                        </div>
+
+                        <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/30 space-y-1.5 text-[11px]">
+                          <div className="flex justify-between items-center text-emerald-400 font-bold">
+                            <span className="flex items-center gap-1">
+                              <ShieldCheck className="h-3 w-3" /> Comissão PARTIU (0%):
+                            </span>
+                            <span className="font-mono bg-emerald-900/60 text-emerald-300 px-1.5 py-0.2 rounded text-[10px]">
+                              R$ 0,00 (Isento)
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center text-slate-100 font-black border-t border-emerald-800/40 pt-1">
+                            <span>Repasse Líquido Entregador:</span>
+                            <span className="font-mono text-emerald-300 text-xs font-black">
+                              100% (R$ {liquidoEntregador.toFixed(2).replace(".", ",")})
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-slate-400 pt-0.5 border-t border-slate-800 flex items-center justify-between">
+                            <span>Monetização Plataforma:</span>
+                            <span className="text-amber-400 font-semibold">
+                              Assinatura SaaS / Diária Ativa
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rodapé do Modal */}
+                <div className="px-4 sm:px-5 py-2.5 bg-slate-50 border-t border-slate-200 flex justify-end shrink-0">
                   <button
                     type="button"
                     onClick={() => setEntregaDetalhe(null)}
-                    className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-slate-200 text-slate-500 transition-all cursor-pointer"
+                    className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer shadow-xs transition-all"
                   >
-                    <X className="h-4 w-4" />
+                    Fechar
                   </button>
                 </div>
               </div>
-
-              {/* Corpo */}
-              <div className="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs">
-                {/* Validação de Segurança Duplo PIN */}
-                <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 block">
-                      Segurança de Custódia • Validação Duplo PIN
-                    </span>
-                    <p className="text-[11px] text-amber-800 mt-0.5">
-                      O entregador só libera o pacote mediante validação dos PINs de coleta e entrega.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <div className="px-3 py-1.5 bg-white border border-amber-300 rounded-xl text-center shadow-2xs">
-                      <span className="text-[9px] font-black uppercase text-slate-400 block">PIN 1 (Coleta)</span>
-                      <span className="text-sm font-mono font-black text-amber-900">{entregaDetalhe.pickupPin}</span>
-                    </div>
-                    <div className="px-3 py-1.5 bg-emerald-50 border border-emerald-300 rounded-xl text-center shadow-2xs">
-                      <span className="text-[9px] font-black uppercase text-emerald-700 block">PIN 2 (Entrega)</span>
-                      <span className="text-sm font-mono font-black text-emerald-950">{entregaDetalhe.dropoffPin}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                  {/* Trajeto & Envolvidos */}
-                  <div className="lg:col-span-7 space-y-3">
-                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1">
-                        <MapPin className="h-3.5 w-3.5 text-[#0088FF]" /> Itinerário do Pacote
-                      </span>
-                      <div className="space-y-2 text-xs">
-                        <div className="flex items-start gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full bg-amber-500 mt-1 shrink-0" />
-                          <div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase block">Coleta (Origem)</span>
-                            <p className="font-bold text-slate-900 leading-snug">{entregaDetalhe.origem}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 mt-1 shrink-0" />
-                          <div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase block">Entrega (Destino)</span>
-                            <p className="font-bold text-slate-900 leading-snug">{entregaDetalhe.destino}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {/* Remetente */}
-                      <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
-                        <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Remetente</span>
-                        <p className="font-black text-slate-900 text-xs truncate">{entregaDetalhe.remetenteNome}</p>
-                        <span className="text-[10px] text-slate-500 block">{entregaDetalhe.remetenteTelefone}</span>
-                        <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100">
-                          <a
-                            href={`tel:${entregaDetalhe.remetenteTelefone.replace(/\D/g, "")}`}
-                            className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold"
-                          >
-                            <Phone className="h-3 w-3" /> Ligar
-                          </a>
-                          <a
-                            href={`https://wa.me/55${entregaDetalhe.remetenteTelefone.replace(/\D/g, "")}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200/80"
-                          >
-                            <MessageSquare className="h-3 w-3 text-emerald-600" /> WhatsApp
-                          </a>
-                        </div>
-                      </div>
-
-                      {/* Destinatário */}
-                      <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
-                        <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Destinatário</span>
-                        <p className="font-black text-slate-900 text-xs truncate">{entregaDetalhe.destinatarioNome}</p>
-                        <span className="text-[10px] text-slate-500 block">{entregaDetalhe.destinatarioTelefone}</span>
-                        <div className="flex items-center gap-1.5 pt-1 border-t border-slate-100">
-                          <a
-                            href={`tel:${entregaDetalhe.destinatarioTelefone.replace(/\D/g, "")}`}
-                            className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold"
-                          >
-                            <Phone className="h-3 w-3" /> Ligar
-                          </a>
-                          <a
-                            href={`https://wa.me/55${entregaDetalhe.destinatarioTelefone.replace(/\D/g, "")}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200/80"
-                          >
-                            <MessageSquare className="h-3 w-3 text-emerald-600" /> WhatsApp
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Entregador & Financeiro */}
-                  <div className="lg:col-span-5 space-y-3">
-                    <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
-                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Entregador Responsável</span>
-                      <p className="font-black text-slate-900 text-xs">{entregaDetalhe.entregadorNome}</p>
-                      <span className="text-[10px] text-slate-500 block">Modal {entregaDetalhe.modal} • {entregaDetalhe.cidade}</span>
-                    </div>
-
-                    <div className="p-3.5 rounded-xl bg-slate-950 text-white border border-slate-800 space-y-2.5 shadow-xs">
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1">
-                          <Receipt className="h-3.5 w-3.5 text-amber-400" /> Resumo Financeiro
-                        </span>
-                        <span className="text-[10px] font-bold px-2 py-0.2 rounded-md bg-slate-800 text-slate-300">
-                          Flash Express
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="text-slate-400">Valor Total do Frete:</span>
-                        <span className="text-base font-black text-amber-400 font-mono">
-                          R$ {entregaDetalhe.valor.toFixed(2).replace(".", ",")}
-                        </span>
-                      </div>
-
-                      <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/30 space-y-1.5 text-[11px]">
-                        <div className="flex justify-between items-center text-emerald-400 font-bold">
-                          <span className="flex items-center gap-1">
-                            <ShieldCheck className="h-3 w-3" /> Comissão PARTIU (0%):
-                          </span>
-                          <span className="font-mono bg-emerald-900/60 text-emerald-300 px-1.5 py-0.2 rounded text-[10px]">
-                            R$ 0,00 (Isento)
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center text-slate-100 font-black border-t border-emerald-800/40 pt-1">
-                          <span>Repasse Líquido Entregador:</span>
-                          <span className="font-mono text-emerald-300 text-xs font-black">
-                            100% (R$ {liquidoEntregador.toFixed(2).replace(".", ",")})
-                          </span>
-                        </div>
-                        <div className="text-[10px] text-slate-400 pt-0.5 border-t border-slate-800 flex items-center justify-between">
-                          <span>Monetização Plataforma:</span>
-                          <span className="text-amber-400 font-semibold">Assinatura SaaS / Diária Ativa</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Rodapé do Modal */}
-              <div className="px-4 sm:px-5 py-2.5 bg-slate-50 border-t border-slate-200 flex justify-end shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setEntregaDetalhe(null)}
-                  className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer shadow-xs transition-all"
-                >
-                  Fechar
-                </button>
-              </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       {/* MODAL DETALHE DO TICKET DE SUPORTE */}
       {ticketDetalhe && (
@@ -1729,7 +2000,9 @@ export function CentralOperacaoAdminPage() {
             <div className="flex items-center justify-between border-b pb-2.5">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                <h3 className="text-sm font-black text-slate-900">Atendimento {ticketDetalhe.protocolo}</h3>
+                <h3 className="text-sm font-black text-slate-900">
+                  Atendimento {ticketDetalhe.protocolo}
+                </h3>
               </div>
               <button
                 type="button"
@@ -1742,12 +2015,16 @@ export function CentralOperacaoAdminPage() {
 
             <div className="space-y-2.5 text-xs">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
-                <span className="text-[10px] font-black uppercase text-slate-400 block">Descrição da Ocorrência</span>
+                <span className="text-[10px] font-black uppercase text-slate-400 block">
+                  Descrição da Ocorrência
+                </span>
                 <p className="font-bold text-slate-900 mt-0.5">{ticketDetalhe.descricao}</p>
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">Nota de Resolução do Atendente:</label>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Nota de Resolução do Atendente:
+                </label>
                 <textarea
                   rows={3}
                   placeholder="Descreva a ação tomada para encerrar o chamado..."

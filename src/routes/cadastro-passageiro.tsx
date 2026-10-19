@@ -19,11 +19,7 @@ import {
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
-import {
-  NativeButton,
-  NativeInput,
-  NativeSurface,
-} from "@/components/native";
+import { NativeButton, NativeInput, NativeSurface } from "@/components/native";
 import { CameraPhotoCapture } from "@/components/common/CameraPhotoCapture";
 import { whiteLabelEngine } from "@/lib/white-label";
 
@@ -103,7 +99,7 @@ export function CadastroPassageiroPage() {
           setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         },
         () => {},
-        { enableHighAccuracy: false, timeout: 5000 }
+        { enableHighAccuracy: false, timeout: 5000 },
       );
     }
   }, []);
@@ -174,9 +170,10 @@ export function CadastroPassageiroPage() {
 
       setSucesso(true);
       const targetTenant = tenantParam || whiteLabelEngine.getActiveTenantId() || "default";
-      const dest = targetTenant && targetTenant !== "default"
-        ? `/app?tenant=${encodeURIComponent(targetTenant)}`
-        : "/app";
+      const dest =
+        targetTenant && targetTenant !== "default"
+          ? `/app?tenant=${encodeURIComponent(targetTenant)}`
+          : "/app";
       setTimeout(() => {
         void navigate({ to: dest as any, replace: true });
       }, 1200);
@@ -320,11 +317,14 @@ export function CadastroPassageiroPage() {
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
-                    if (erroCadastro?.includes("e-mail") || erroCadastro?.includes("E-mail")) setErroCadastro(null);
+                    if (erroCadastro?.includes("e-mail") || erroCadastro?.includes("E-mail"))
+                      setErroCadastro(null);
                   }}
                   onBlur={async () => {
                     if (email.includes("@") && email.includes(".")) {
-                      const check = await supabaseAuthService.isEmailOrCpfRegistered(email.trim().toLowerCase());
+                      const check = await supabaseAuthService.isEmailOrCpfRegistered(
+                        email.trim().toLowerCase(),
+                      );
                       if (check.registered && check.field === "email") {
                         setErroCadastro(check.message || "Este e-mail já está cadastrado.");
                       }
@@ -457,11 +457,10 @@ export function CadastroPassageiroPage() {
             </div>
 
             <div className="space-y-1">
-              <h2 className="text-xl font-black text-slate-900">
-                Conta criada com sucesso
-              </h2>
+              <h2 className="text-xl font-black text-slate-900">Conta criada com sucesso</h2>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Bem-vindo ao {appName}, <span className="font-bold text-slate-900">{nome}</span>. Seu cadastro está ativo.
+                Bem-vindo ao {appName}, <span className="font-bold text-slate-900">{nome}</span>.
+                Seu cadastro está ativo.
               </p>
             </div>
 

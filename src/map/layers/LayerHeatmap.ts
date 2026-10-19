@@ -41,43 +41,29 @@ export class LayerHeatmap {
           source: MAP_SOURCES.HEATMAP_DEMAND,
           maxzoom: 17,
           paint: {
-            "heatmap-weight": [
-              "interpolate",
-              ["linear"],
-              ["get", "intensity"],
-              0, 0,
-              5, 1,
-            ],
-            "heatmap-intensity": [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              9, 1,
-              15, 3,
-            ],
+            "heatmap-weight": ["interpolate", ["linear"], ["get", "intensity"], 0, 0, 5, 1],
+            "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 9, 1, 15, 3],
             "heatmap-color": [
               "interpolate",
               ["linear"],
               ["heatmap-density"],
-              0, "rgba(0, 136, 255, 0)",
-              0.2, "rgba(0, 198, 255, 0.4)",
-              0.4, "rgba(16, 185, 129, 0.6)",
-              0.7, "rgba(245, 158, 11, 0.8)",
-              1.0, "rgba(239, 68, 68, 0.95)",
+              0,
+              "rgba(0, 136, 255, 0)",
+              0.2,
+              "rgba(0, 198, 255, 0.4)",
+              0.4,
+              "rgba(16, 185, 129, 0.6)",
+              0.7,
+              "rgba(245, 158, 11, 0.8)",
+              1.0,
+              "rgba(239, 68, 68, 0.95)",
             ],
-            "heatmap-radius": [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              9, 15,
-              13, 25,
-              16, 40,
-            ],
+            "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 9, 15, 13, 25, 16, 40],
             "heatmap-opacity": 0.65,
           },
         },
         // Posicionado abaixo das linhas de rota e marcadores de veículos
-        map.getLayer("partiu-layer-drivers-cluster") ? "partiu-layer-drivers-cluster" : undefined
+        map.getLayer("partiu-layer-drivers-cluster") ? "partiu-layer-drivers-cluster" : undefined,
       );
     }
 
@@ -88,7 +74,8 @@ export class LayerHeatmap {
   public updateDemand(points: DemandPoint[]): void {
     if (!this.map || !this.isInitialized) return;
 
-    const source = this.map.getSource(MAP_SOURCES.HEATMAP_DEMAND) as mapboxgl.GeoJSONSource | undefined;
+    const source = this.map.getSource(MAP_SOURCES.HEATMAP_DEMAND) as
+      mapboxgl.GeoJSONSource | undefined;
     if (source) {
       source.setData({
         type: "FeatureCollection",

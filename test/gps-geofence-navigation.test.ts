@@ -45,15 +45,30 @@ describe("SUITE 50: GPS, GEOFENCE (<50m) & EXTERNAL NAVIGATION (WAZE / MAPS)", (
     const driverLoc = { lat: -21.2051, lng: -41.888 }; // ~11 metros
 
     // Primeiro acionamento: deve retornar true
-    const primeiroDisparo = geofenceArrivalService.shouldTriggerArrival(rideId, driverLoc, pickup, 50);
+    const primeiroDisparo = geofenceArrivalService.shouldTriggerArrival(
+      rideId,
+      driverLoc,
+      pickup,
+      50,
+    );
     expect(primeiroDisparo).toBe(true);
 
     // Segundo acionamento repetido (próximo ping de GPS): deve ser bloqueado
-    const segundoDisparo = geofenceArrivalService.shouldTriggerArrival(rideId, driverLoc, pickup, 50);
+    const segundoDisparo = geofenceArrivalService.shouldTriggerArrival(
+      rideId,
+      driverLoc,
+      pickup,
+      50,
+    );
     expect(segundoDisparo).toBe(false);
 
     // Terceiro acionamento: continua bloqueado
-    const terceiroDisparo = geofenceArrivalService.shouldTriggerArrival(rideId, driverLoc, pickup, 50);
+    const terceiroDisparo = geofenceArrivalService.shouldTriggerArrival(
+      rideId,
+      driverLoc,
+      pickup,
+      50,
+    );
     expect(terceiroDisparo).toBe(false);
 
     // Limpa a corrida ao finalizar
@@ -88,17 +103,17 @@ describe("SUITE 50: GPS, GEOFENCE (<50m) & EXTERNAL NAVIGATION (WAZE / MAPS)", (
   test("4. Cálculo de Rumo (Bearing): Retorna orientação em graus (0° a 360°) correta", () => {
     // Norte: latitude aumenta, longitude constante -> ~0° ou 360°
     const start = { lat: -21.205, lng: -41.888 };
-    const norte = { lat: -21.200, lng: -41.888 };
+    const norte = { lat: -21.2, lng: -41.888 };
     const bearingNorte = calculateBearing(start, norte);
-    expect(bearingNorte >= 0 && bearingNorte <= 10 || bearingNorte >= 350).toBe(true);
+    expect((bearingNorte >= 0 && bearingNorte <= 10) || bearingNorte >= 350).toBe(true);
 
     // Leste: longitude aumenta para a direita -> ~90°
-    const leste = { lat: -21.205, lng: -41.880 };
+    const leste = { lat: -21.205, lng: -41.88 };
     const bearingLeste = calculateBearing(start, leste);
     expect(Math.round(bearingLeste)).toBe(90);
 
     // Sul: latitude diminui -> ~180°
-    const sul = { lat: -21.210, lng: -41.888 };
+    const sul = { lat: -21.21, lng: -41.888 };
     const bearingSul = calculateBearing(start, sul);
     expect(Math.round(bearingSul)).toBe(180);
 
@@ -117,7 +132,7 @@ describe("SUITE 50: GPS, GEOFENCE (<50m) & EXTERNAL NAVIGATION (WAZE / MAPS)", (
       const p = randInCircle(centerLat, centerLng, radiusM);
       const dist = geofenceArrivalService.calculateDistanceMeters(
         { lat: centerLat, lng: centerLng },
-        p
+        p,
       );
       // Ponto gerado deve respeitar o raio máximo estipulado
       expect(dist <= radiusM + 50).toBe(true);

@@ -64,12 +64,15 @@ export class SupabaseService {
    * As coordenadas geradas pelo Mapbox são convertidas para Geography(Point, 4326)
    * e acompanhadas da Polyline encriptada original.
    */
-  public async createRideRequest(payload: RideRequestPayload): Promise<{ success: boolean; ride: RideRequestPayload; error?: string }> {
+  public async createRideRequest(
+    payload: RideRequestPayload,
+  ): Promise<{ success: boolean; ride: RideRequestPayload; error?: string }> {
     const rideId = payload.id || `ride_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    
+
     // Tradução Espacial para WKT PostGIS
     const originWkt = payload.origin_geography || toPostGISPoint(payload.origin_coords);
-    const destinationWkt = payload.destination_geography || toPostGISPoint(payload.destination_coords);
+    const destinationWkt =
+      payload.destination_geography || toPostGISPoint(payload.destination_coords);
 
     const enrichedPayload: RideRequestPayload = {
       ...payload,
@@ -107,7 +110,10 @@ export class SupabaseService {
           .single();
 
         if (error) {
-          console.warn("[SupabaseService] Erro ao persistir ride no Supabase, mantendo buffer local:", error.message);
+          console.warn(
+            "[SupabaseService] Erro ao persistir ride no Supabase, mantendo buffer local:",
+            error.message,
+          );
         } else if (data) {
           return { success: true, ride: { ...enrichedPayload, ...(data as any) } };
         }
@@ -154,7 +160,7 @@ export class SupabaseService {
    */
   public subscribeToDriverLocation(
     driverId: string,
-    onUpdate: (update: DriverLocationUpdate) => void
+    onUpdate: (update: DriverLocationUpdate) => void,
   ): () => void {
     if (!this.activeSubscriptions.has(driverId)) {
       this.activeSubscriptions.set(driverId, new Set());
@@ -202,7 +208,7 @@ export class SupabaseService {
                   this.notifySubscribers(driverId, update);
                 }
               }
-            }
+            },
           )
           .subscribe();
       } catch (err) {
@@ -247,7 +253,7 @@ export class SupabaseService {
     origin: [number, number],
     radiusMeters: number,
     category = "PARTIU_CARRO",
-    tenantId = "00000000-0000-0000-0000-000000000000"
+    tenantId = "00000000-0000-0000-0000-000000000000",
   ): Promise<CandidateDriverProfile[]> {
     return matchingEngine.findBestDrivers({
       passengerLng: origin[0],

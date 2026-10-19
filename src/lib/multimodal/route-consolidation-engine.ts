@@ -1,6 +1,6 @@
 /**
  * PARTIU ROUTE CONSOLIDATION ENGINE
- * 
+ *
  * Motor de Consolidação de Rotas e Eliminação de Quilometragem Vazia (Deadhead).
  * Responsável por:
  * - Agrupamento espaço-temporal de passageiros em viagens com trajetórias comuns
@@ -26,7 +26,7 @@ export interface RouteTripLeg {
   passengerCount: number;
   cargoPackagesCount: number;
   isBackhaulLeg: boolean;
-  status: 'PLANEJADA' | 'EM_ROTA' | 'CONCLUIDA';
+  status: "PLANEJADA" | "EM_ROTA" | "CONCLUIDA";
 }
 
 export interface ConsolidatedRoutePlan {
@@ -37,18 +37,18 @@ export interface ConsolidatedRoutePlan {
   totalDistanceKm: number;
   totalPassengersMoved: number;
   totalCargoPackagesMoved: number;
-  
+
   // Métricas Antes vs Depois da Consolidação
   ocupacaoPreConsolidacaoPct: number;
   ocupacaoPosConsolidacaoPct: number;
   ganhoOcupacaoPct: number;
-  
+
   // Eficiência Operacional
   kmVazioEvitadoKm: number;
   reducaoCustoOperacionalBrl: number;
   reducaoEmissoesCo2Kg: number;
   lucratividadeAdicionalBrl: number;
-  
+
   generatedTimestamp: number;
 }
 
@@ -68,28 +68,36 @@ export class RouteConsolidationEngine {
     idaCargoPackages: number,
     voltaPassengersCandidate: number,
     voltaCargoCandidate: number,
-    maxVehicleCapacitySeats: number = 16
+    maxVehicleCapacitySeats: number = 16,
   ): ConsolidatedRoutePlan {
     const planId = `RCP-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
     // Sem consolidação (cenário base): o veículo levaria apenas ida e voltaria vazio (deadhead de 100%)
-    const ocupacaoPreConsolidacaoPct = Number(((idaPassengers / maxVehicleCapacitySeats) * 50).toFixed(1)); // 50% max porque volta é vazia
+    const ocupacaoPreConsolidacaoPct = Number(
+      ((idaPassengers / maxVehicleCapacitySeats) * 50).toFixed(1),
+    ); // 50% max porque volta é vazia
 
     // Com consolidação: emparelhamento de passageiros e encomendas na volta
     const voltaPassengers = Math.min(maxVehicleCapacitySeats, voltaPassengersCandidate);
     const totalPassengers = idaPassengers + voltaPassengers;
     const totalCargo = idaCargoPackages + voltaCargoCandidate;
 
-    const ocupacaoPosConsolidacaoPct = Number((((idaPassengers + voltaPassengers) / (maxVehicleCapacitySeats * 2)) * 100).toFixed(1));
-    const ganhoOcupacaoPct = Number((ocupacaoPosConsolidacaoPct - ocupacaoPreConsolidacaoPct).toFixed(1));
+    const ocupacaoPosConsolidacaoPct = Number(
+      (((idaPassengers + voltaPassengers) / (maxVehicleCapacitySeats * 2)) * 100).toFixed(1),
+    );
+    const ganhoOcupacaoPct = Number(
+      (ocupacaoPosConsolidacaoPct - ocupacaoPreConsolidacaoPct).toFixed(1),
+    );
 
     // Métricas de Impacto
     const kmVazioEvitadoKm = distanceKm; // Evitou rodar a volta vazia
     const reducaoCustoOperacionalBrl = Number((kmVazioEvitadoKm * 1.15).toFixed(2)); // Economia de combustível/custo marginal
-    const lucratividadeAdicionalBrl = Number(((voltaPassengers * 38.0) + (voltaCargoCandidate * 18.50)).toFixed(2));
-    
+    const lucratividadeAdicionalBrl = Number(
+      (voltaPassengers * 38.0 + voltaCargoCandidate * 18.5).toFixed(2),
+    );
+
     // 1 km rodado por veículo leve/médio emite em média 165g de CO2
-    const reducaoEmissoesCo2Kg = Number(((kmVazioEvitadoKm * 0.165)).toFixed(2));
+    const reducaoEmissoesCo2Kg = Number((kmVazioEvitadoKm * 0.165).toFixed(2));
 
     const legIda: RouteTripLeg = {
       legId: `LEG-${planId}-OUTBOUND`,
@@ -101,7 +109,7 @@ export class RouteConsolidationEngine {
       passengerCount: idaPassengers,
       cargoPackagesCount: idaCargoPackages,
       isBackhaulLeg: false,
-      status: 'PLANEJADA'
+      status: "PLANEJADA",
     };
 
     const legVolta: RouteTripLeg = {
@@ -114,7 +122,7 @@ export class RouteConsolidationEngine {
       passengerCount: voltaPassengers,
       cargoPackagesCount: voltaCargoCandidate,
       isBackhaulLeg: true,
-      status: 'PLANEJADA'
+      status: "PLANEJADA",
     };
 
     const plan: ConsolidatedRoutePlan = {
@@ -132,7 +140,7 @@ export class RouteConsolidationEngine {
       reducaoCustoOperacionalBrl,
       reducaoEmissoesCo2Kg,
       lucratividadeAdicionalBrl,
-      generatedTimestamp: Date.now()
+      generatedTimestamp: Date.now(),
     };
 
     this.consolidatedPlans.set(planId, plan);

@@ -46,7 +46,7 @@ export interface UseRideEstimationResult {
 export function useRideEstimation(
   originCoords: [number, number] | null | undefined,
   destinationCoords: [number, number] | null | undefined,
-  options: UseRideEstimationOptions = {}
+  options: UseRideEstimationOptions = {},
 ): UseRideEstimationResult {
   const {
     originAddress = "Local de Embarque",

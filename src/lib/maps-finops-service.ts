@@ -267,8 +267,7 @@ export function calcularMetricasFinOps(logs?: ApiRequestLog[]): FinOpsMetricas {
   });
 
   const custoTotalSemCacheUsd = custoRealGastoUsd + totalEconomizadoUsd;
-  const taxaRetencaoPercent =
-    totalRequisicoes > 0 ? (totalCacheHits / totalRequisicoes) * 100 : 0;
+  const taxaRetencaoPercent = totalRequisicoes > 0 ? (totalCacheHits / totalRequisicoes) * 100 : 0;
   const totalEconomizadoBrl = totalEconomizadoUsd * config.cotacaoDolarBrl;
   const tempoMedioRespostaMs = Math.round(somaLatencia / totalRequisicoes);
 

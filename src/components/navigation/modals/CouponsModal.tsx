@@ -25,7 +25,10 @@ export function CouponsModal({
 }: CouponsModalProps) {
   const [inputCupom, setInputCupom] = useState("");
   const [validandoCupom, setValidandoCupom] = useState(false);
-  const [cupomMensagem, setCupomMensagem] = useState<{ tipo: "sucesso" | "erro"; texto: string } | null>(null);
+  const [cupomMensagem, setCupomMensagem] = useState<{
+    tipo: "sucesso" | "erro";
+    texto: string;
+  } | null>(null);
   const [cupomCopiado, setCupomCopiado] = useState<string | null>(null);
 
   if (!open) return null;
@@ -64,13 +67,18 @@ export function CouponsModal({
           <div className="flex items-center gap-2">
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: `${corPrimaria || "#FF6B00"}15`, color: corPrimaria || "#FF6B00" }}
+              style={{
+                backgroundColor: `${corPrimaria || "#FF6B00"}15`,
+                color: corPrimaria || "#FF6B00",
+              }}
             >
               <Tag className="h-4 w-4" />
             </div>
             <div>
               <h3 className="text-sm font-black text-slate-900">Cupons de Desconto</h3>
-              <p className="text-[10px] text-slate-500 font-medium">Promoções ativas da plataforma</p>
+              <p className="text-[10px] text-slate-500 font-medium">
+                Promoções ativas da plataforma
+              </p>
             </div>
           </div>
           <button
@@ -100,7 +108,10 @@ export function CouponsModal({
               disabled={validandoCupom}
               onClick={handleResgatar}
               className="px-4 py-2.5 rounded-xl text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50"
-              style={{ backgroundColor: corPrimaria || "#FF6B00", color: corTextoPrimaria || "#FFFFFF" }}
+              style={{
+                backgroundColor: corPrimaria || "#FF6B00",
+                color: corTextoPrimaria || "#FFFFFF",
+              }}
             >
               {validandoCupom ? "..." : "Resgatar"}
             </button>
@@ -127,7 +138,9 @@ export function CouponsModal({
             <div className="text-center py-6 bg-slate-50 rounded-2xl border border-slate-100">
               <Tag className="w-6 h-6 text-slate-300 mx-auto mb-1.5" />
               <p className="text-xs font-bold text-slate-700">Nenhum cupom ativo no momento</p>
-              <p className="text-[10px] text-slate-400 mt-0.5">Fique atento às notificações do aplicativo!</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                Fique atento às notificações do aplicativo!
+              </p>
             </div>
           ) : (
             promocoesDisponiveis.map((cupom) => {

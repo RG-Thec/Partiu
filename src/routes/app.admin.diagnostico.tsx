@@ -64,8 +64,8 @@ export function AdminDiagnosticoPage() {
             Auditoria de Telemetria e WebGL em Produção
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
-            Inspeção técnica isolada de precisão de sinal, taxa de quadros (FPS), canal WebSocket
-            e integridade de renderização da malha viária.
+            Inspeção técnica isolada de precisão de sinal, taxa de quadros (FPS), canal WebSocket e
+            integridade de renderização da malha viária.
           </p>
         </div>
 
@@ -76,7 +76,9 @@ export function AdminDiagnosticoPage() {
             disabled={recarregando}
             className="flex h-10 items-center gap-2 bg-slate-900 hover:bg-slate-800 text-slate-200 px-3.5 rounded-xl text-xs font-bold border border-slate-800 transition-all cursor-pointer"
           >
-            <RefreshCw className={`h-3.5 w-3.5 text-blue-400 ${recarregando ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`h-3.5 w-3.5 text-blue-400 ${recarregando ? "animate-spin" : ""}`}
+            />
             <span>Atualizar Telemetria</span>
           </button>
         </div>
@@ -160,15 +162,15 @@ export function AdminDiagnosticoPage() {
                           v.status === "em_rota"
                             ? "bg-emerald-100 text-emerald-800"
                             : v.status === "parado"
-                            ? "bg-slate-100 text-slate-700"
-                            : "bg-red-100 text-red-800"
+                              ? "bg-slate-100 text-slate-700"
+                              : "bg-red-100 text-red-800"
                         }`}
                       >
                         {v.status === "em_rota"
                           ? "Em Rota"
                           : v.status === "parado"
-                          ? "Disponível"
-                          : "Alerta SOS"}
+                            ? "Disponível"
+                            : "Alerta SOS"}
                       </span>
                     </td>
                     <td className="py-2.5 px-3 font-mono text-slate-700">{v.velocidadeKmH} km/h</td>

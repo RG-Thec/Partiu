@@ -4,9 +4,7 @@ import {
   type RideMessage,
   type SenderType,
 } from "../src/services/ChatRealtimeService.ts";
-import {
-  getContextualReplies,
-} from "../src/components/chat/SmartReplyChips.tsx";
+import { getContextualReplies } from "../src/components/chat/SmartReplyChips.tsx";
 
 describe("SUITE 44: PARTIU REALTIME CHAT ENGINE — Security, Rate-Limiting & Ephemeral Lifecycle", () => {
   test("1. PII Sanitization: Máscara contra vazamento de cartões de crédito, CVV e senhas", () => {
@@ -81,7 +79,9 @@ describe("SUITE 44: PARTIU REALTIME CHAT ENGINE — Security, Rate-Limiting & Ep
 
     // Sugestões para Passageiro em 'CHEGOU'
     const passChegou = getContextualReplies("PASSENGER", "CHEGOU");
-    expect(passChegou.some((r) => r.includes("portão") || r.includes("saindo") || r.includes("minuto"))).toBe(true);
+    expect(
+      passChegou.some((r) => r.includes("portão") || r.includes("saindo") || r.includes("minuto")),
+    ).toBe(true);
   });
 
   test("4. Fila de Saída Offline (Outbox Queue): Enfileiramento com fallback e resincronização", () => {

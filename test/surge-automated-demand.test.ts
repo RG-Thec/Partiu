@@ -172,7 +172,7 @@ describe("⚡ Inteligência de Demanda Automática & Sobretaxa Imediata (Padrão
 
       const surgeAposDesativar = surgeEngine.calculateSurge(
         { demandCount: 2, availableDriversCount: 5, isNightTime: false, isRaining: false },
-        "default"
+        "default",
       );
       expect(surgeAposDesativar.multiplier).toBe(1.0);
       expect(surgeAposDesativar.isLiveOverride).toBe(false);
@@ -189,7 +189,7 @@ describe("⚡ Inteligência de Demanda Automática & Sobretaxa Imediata (Padrão
           liveOverrideMultiplicador: 1.8,
           liveOverrideExpiraEm: timestampPassado,
         },
-        "default"
+        "default",
       );
       surgeEngine.clearAdminOverride("default");
 
@@ -201,7 +201,7 @@ describe("⚡ Inteligência de Demanda Automática & Sobretaxa Imediata (Padrão
       // O cálculo volta para a inteligência de mercado
       const surge = surgeEngine.calculateSurge(
         { demandCount: 5, availableDriversCount: 10, isNightTime: false, isRaining: false },
-        "default"
+        "default",
       );
       expect(surge.multiplier).toBe(1.0);
       expect(surge.isLiveOverride).toBe(false);
@@ -222,7 +222,7 @@ describe("⚡ Inteligência de Demanda Automática & Sobretaxa Imediata (Padrão
       // Praça Itaperuna deve continuar independente (1.0x se em equilíbrio)
       const surgeItaperuna = surgeEngine.calculateSurge(
         { demandCount: 2, availableDriversCount: 10, isNightTime: false, isRaining: false },
-        "tenant-itaperuna"
+        "tenant-itaperuna",
       );
       expect(surgeItaperuna.multiplier).toBe(1.0);
       expect(surgeItaperuna.isLiveOverride).toBe(false);
@@ -231,7 +231,7 @@ describe("⚡ Inteligência de Demanda Automática & Sobretaxa Imediata (Padrão
       // Praça Default (Super Admin) permanece independente
       const surgeDefault = surgeEngine.calculateSurge(
         { demandCount: 3, availableDriversCount: 10, isNightTime: false, isRaining: false },
-        "default"
+        "default",
       );
       expect(surgeDefault.multiplier).toBe(1.0);
       expect(surgeDefault.isLiveOverride).toBe(false);
@@ -256,13 +256,16 @@ describe("⚡ Inteligência de Demanda Automática & Sobretaxa Imediata (Padrão
       expect(statsItaperuna.availableDriversCount).toBe(10);
 
       // Cálculo de surge automático reflete o mercado específico de cada praça
-      const surgeBH = surgeEngine.calculateSurge({ isNightTime: false, isRaining: false }, "tenant-bh");
+      const surgeBH = surgeEngine.calculateSurge(
+        { isNightTime: false, isRaining: false },
+        "tenant-bh",
+      );
       expect(surgeBH.multiplier).toBe(1.8); // 3.0 ratio -> 1.8x
       expect(surgeBH.tenantId).toBe("tenant-bh");
 
       const surgeItaperuna = surgeEngine.calculateSurge(
         { isNightTime: false, isRaining: false },
-        "tenant-itaperuna"
+        "tenant-itaperuna",
       );
       expect(surgeItaperuna.multiplier).toBe(1.0);
       expect(surgeItaperuna.tenantId).toBe("tenant-itaperuna");
@@ -404,7 +407,7 @@ describe("⚡ Inteligência de Demanda Automática & Sobretaxa Imediata (Padrão
           isNightTime: false,
           isRaining: false,
         },
-        "tenant-itaperuna"
+        "tenant-itaperuna",
       );
 
       expect(res.multiplier).toBe(1.0);
@@ -442,7 +445,7 @@ describe("⚡ Inteligência de Demanda Automática & Sobretaxa Imediata (Padrão
           isNightTime: false,
           isRaining: false,
         },
-        "tenant-itaperuna"
+        "tenant-itaperuna",
       );
 
       expect(res.multiplier).toBe(1.6);
@@ -458,14 +461,14 @@ describe("⚡ Inteligência de Demanda Automática & Sobretaxa Imediata (Padrão
       // BH desativado -> 1.0x
       const resBH = surgeEngine.calculateSurge(
         { demandCount: 30, availableDriversCount: 10, isNightTime: false, isRaining: false },
-        "tenant-bh"
+        "tenant-bh",
       );
       expect(resBH.multiplier).toBe(1.0);
 
       // Itaperuna ativado -> 1.8x (R = 3.0)
       const resItaperuna = surgeEngine.calculateSurge(
         { demandCount: 30, availableDriversCount: 10, isNightTime: false, isRaining: false },
-        "tenant-itaperuna"
+        "tenant-itaperuna",
       );
       expect(resItaperuna.multiplier).toBe(1.8);
 

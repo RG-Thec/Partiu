@@ -24,14 +24,8 @@ import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
-import {
-  NativeButton,
-  NativeInput,
-  NativeSurface,
-} from "@/components/native";
-import {
-  WhiteLabelProgressBar,
-} from "@/components/ui/white-label";
+import { NativeButton, NativeInput, NativeSurface } from "@/components/native";
+import { WhiteLabelProgressBar } from "@/components/ui/white-label";
 import { CameraPhotoCapture } from "@/components/common/CameraPhotoCapture";
 import { whiteLabelEngine } from "@/lib/white-label";
 
@@ -66,11 +60,7 @@ export function CadastroMotoristaPage() {
     }
   }, [tenantParam]);
 
-  const {
-    nomeApp,
-    corPrimaria,
-    corTextoPrimaria,
-  } = useBrandTheme();
+  const { nomeApp, corPrimaria, corTextoPrimaria } = useBrandTheme();
   const { appConfig } = useTheme();
   const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
   const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
@@ -119,16 +109,22 @@ export function CadastroMotoristaPage() {
   const [senha, setSenha] = useState(() => draftSalvo?.senha || "");
 
   // Etapa 2: Veículo & Categoria
-  const [tipoVeiculo, setTipoVeiculo] = useState<"carro" | "moto">(() => draftSalvo?.tipoVeiculo || "carro");
+  const [tipoVeiculo, setTipoVeiculo] = useState<"carro" | "moto">(
+    () => draftSalvo?.tipoVeiculo || "carro",
+  );
   const [veiculoModelo, setVeiculoModelo] = useState(() => draftSalvo?.veiculoModelo || "");
   const [veiculoAno, setVeiculoAno] = useState(() => draftSalvo?.veiculoAno || "");
   const [veiculoPlaca, setVeiculoPlaca] = useState(() => draftSalvo?.veiculoPlaca || "");
   const [veiculoCor, setVeiculoCor] = useState(() => draftSalvo?.veiculoCor || "");
-  const [temArCondicionado, setTemArCondicionado] = useState(() => draftSalvo?.temArCondicionado ?? true);
+  const [temArCondicionado, setTemArCondicionado] = useState(
+    () => draftSalvo?.temArCondicionado ?? true,
+  );
 
   // Etapa 3: Habilitação, Documentos & Repasse PIX
   const [cnh, setCnh] = useState(() => draftSalvo?.cnh || "");
-  const [categoriaCNH, setCategoriaCNH] = useState<"B" | "A" | "AB">(() => draftSalvo?.categoriaCNH || "B");
+  const [categoriaCNH, setCategoriaCNH] = useState<"B" | "A" | "AB">(
+    () => draftSalvo?.categoriaCNH || "B",
+  );
   const [possuiEAR, setPossuiEAR] = useState(() => draftSalvo?.possuiEAR ?? true);
   const [cnhUrl, setCnhUrl] = useState<string>(() => draftSalvo?.cnhUrl || "");
   const [crlvUrl, setCrlvUrl] = useState<string>(() => draftSalvo?.crlvUrl || "");
@@ -146,7 +142,7 @@ export function CadastroMotoristaPage() {
           setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         },
         () => {},
-        { enableHighAccuracy: false, timeout: 5000 }
+        { enableHighAccuracy: false, timeout: 5000 },
       );
     }
   }, []);
@@ -180,13 +176,28 @@ export function CadastroMotoristaPage() {
           cnhUrl,
           crlvUrl,
           fotoPerfilUrl,
-        })
+        }),
       );
     } catch {}
   }, [
-    sucesso, etapa, nome, cpf, whatsapp, email,
-    tipoVeiculo, veiculoModelo, veiculoAno, veiculoPlaca, veiculoCor,
-    temArCondicionado, cnh, categoriaCNH, possuiEAR, cnhUrl, crlvUrl, fotoPerfilUrl
+    sucesso,
+    etapa,
+    nome,
+    cpf,
+    whatsapp,
+    email,
+    tipoVeiculo,
+    veiculoModelo,
+    veiculoAno,
+    veiculoPlaca,
+    veiculoCor,
+    temArCondicionado,
+    cnh,
+    categoriaCNH,
+    possuiEAR,
+    cnhUrl,
+    crlvUrl,
+    fotoPerfilUrl,
   ]);
 
   // Alerta de proteção contra fechamento acidental
@@ -215,10 +226,7 @@ export function CadastroMotoristaPage() {
     void preencherDeSessaoGoogle();
   }, []);
 
-  async function handleUploadArquivo(
-    e: React.ChangeEvent<HTMLInputElement>,
-    tipo: "cnh" | "crlv"
-  ) {
+  async function handleUploadArquivo(e: React.ChangeEvent<HTMLInputElement>, tipo: "cnh" | "crlv") {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -236,9 +244,7 @@ export function CadastroMotoristaPage() {
           .upload(filePath, file, { cacheControl: "3600", upsert: true });
 
         if (!upErr) {
-          const { data: pubUrl } = supabase.storage
-            .from("driver-documents")
-            .getPublicUrl(filePath);
+          const { data: pubUrl } = supabase.storage.from("driver-documents").getPublicUrl(filePath);
           if (pubUrl?.publicUrl) {
             url = pubUrl.publicUrl;
           }
@@ -342,7 +348,9 @@ export function CadastroMotoristaPage() {
       localStorage.setItem("partiu_motoristas_store", JSON.stringify(armazenados));
       localStorage.setItem("partiu_motorista_ativo", JSON.stringify(motoristaNovo));
       if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("partiu:driver_registered", { detail: motoristaNovo }));
+        window.dispatchEvent(
+          new CustomEvent("partiu:driver_registered", { detail: motoristaNovo }),
+        );
       }
     } catch (err) {
       silentCatchWarn("cadastro-motorista", err);
@@ -361,9 +369,10 @@ export function CadastroMotoristaPage() {
 
     setSucesso(true);
     const targetTenant = tenantParam || whiteLabelEngine.getActiveTenantId() || "default";
-    const dest = targetTenant && targetTenant !== "default"
-      ? `/app/motorista?tenant=${encodeURIComponent(targetTenant)}`
-      : "/app/motorista";
+    const dest =
+      targetTenant && targetTenant !== "default"
+        ? `/app/motorista?tenant=${encodeURIComponent(targetTenant)}`
+        : "/app/motorista";
     setTimeout(() => {
       void navigate({ to: dest as any, replace: true });
     }, 1800);
@@ -443,11 +452,7 @@ export function CadastroMotoristaPage() {
                 currentStep={etapa}
                 totalSteps={3}
                 stepTitle={
-                  etapa === 1
-                    ? "Dados Pessoais"
-                    : etapa === 2
-                    ? "Veículo"
-                    : "Habilitação & Repasse"
+                  etapa === 1 ? "Dados Pessoais" : etapa === 2 ? "Veículo" : "Habilitação & Repasse"
                 }
               />
             </div>
@@ -548,7 +553,9 @@ export function CadastroMotoristaPage() {
                       try {
                         const check = await supabaseAuthService.isEmailOrCpfRegistered(email, cpf);
                         if (check.registered) {
-                          setErroValidacao(check.message || "E-mail ou CPF já cadastrado no sistema.");
+                          setErroValidacao(
+                            check.message || "E-mail ou CPF já cadastrado no sistema.",
+                          );
                           return;
                         }
                       } catch (err) {
@@ -641,7 +648,9 @@ export function CadastroMotoristaPage() {
                   required
                   value={veiculoModelo}
                   onChange={(e) => setVeiculoModelo(e.target.value)}
-                  placeholder={tipoVeiculo === "carro" ? "Ex: Chevrolet Onix 1.0" : "Ex: Honda CG 160 Fan"}
+                  placeholder={
+                    tipoVeiculo === "carro" ? "Ex: Chevrolet Onix 1.0" : "Ex: Honda CG 160 Fan"
+                  }
                   leftIcon={<Car className="w-4 h-4 text-slate-400" />}
                 />
 
@@ -678,7 +687,10 @@ export function CadastroMotoristaPage() {
                       style={{ accentColor: colors.primary }}
                       className="h-4 w-4 rounded cursor-pointer shrink-0"
                     />
-                    <label htmlFor="arCond" className="text-xs text-slate-700 font-medium cursor-pointer">
+                    <label
+                      htmlFor="arCond"
+                      className="text-xs text-slate-700 font-medium cursor-pointer"
+                    >
                       Possui ar-condicionado em funcionamento
                     </label>
                   </div>
@@ -728,7 +740,10 @@ export function CadastroMotoristaPage() {
 
             {/* ETAPA 3: HABILITAÇÃO, DOCUMENTOS & REPASSE PIX */}
             {etapa === 3 && (
-              <form onSubmit={handleFinalizarCadastro} className="space-y-3.5 pt-2 animate-in fade-in-50 duration-200 text-left">
+              <form
+                onSubmit={handleFinalizarCadastro}
+                className="space-y-3.5 pt-2 animate-in fade-in-50 duration-200 text-left"
+              >
                 <NativeInput
                   label="Número do registro da CNH"
                   required
@@ -781,7 +796,10 @@ export function CadastroMotoristaPage() {
                     style={{ accentColor: colors.primary }}
                     className="h-4 w-4 rounded cursor-pointer shrink-0"
                   />
-                  <label htmlFor="temEar" className="text-xs text-slate-700 font-medium cursor-pointer">
+                  <label
+                    htmlFor="temEar"
+                    className="text-xs text-slate-700 font-medium cursor-pointer"
+                  >
                     Possui observação <strong>EAR</strong> (Exerce Atividade Remunerada) na CNH
                   </label>
                 </div>
@@ -794,7 +812,10 @@ export function CadastroMotoristaPage() {
                     value={fotoPerfilUrl}
                     onChange={(capturedUrl) => {
                       setFotoPerfilUrl(capturedUrl);
-                      if (erroValidacao?.includes("foto") || erroValidacao?.includes("identificação")) {
+                      if (
+                        erroValidacao?.includes("foto") ||
+                        erroValidacao?.includes("identificação")
+                      ) {
                         setErroValidacao(null);
                       }
                     }}
@@ -946,7 +967,9 @@ export function CadastroMotoristaPage() {
               <h2 className="text-xl font-black text-slate-900">Cadastro em análise</h2>
               <p className="text-xs text-slate-600 leading-relaxed">
                 Parabéns, <span className="font-bold text-slate-900">{nome}</span>. Seu veículo{" "}
-                <strong style={{ color: colors.primary }}>{veiculoModelo} ({veiculoPlaca.toUpperCase()})</strong>{" "}
+                <strong style={{ color: colors.primary }}>
+                  {veiculoModelo} ({veiculoPlaca.toUpperCase()})
+                </strong>{" "}
                 foi registrado na rede {nomeApp}.
               </p>
             </div>
@@ -957,7 +980,8 @@ export function CadastroMotoristaPage() {
                 <span>Auditoria operacional em andamento</span>
               </div>
               <p className="text-[11px] leading-relaxed text-slate-500">
-                A aprovação dos dados é realizada pela equipe de moderação. Assim que aprovado, seu acesso ao Cockpit fica ativo.
+                A aprovação dos dados é realizada pela equipe de moderação. Assim que aprovado, seu
+                acesso ao Cockpit fica ativo.
               </p>
             </div>
 

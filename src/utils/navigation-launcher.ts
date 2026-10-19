@@ -31,7 +31,7 @@ export function getGoogleMapsUrl(target: NavigationTarget): string {
 
 export function openExternalNavigation(
   target: NavigationTarget,
-  provider: NavigationProvider = "google_maps"
+  provider: NavigationProvider = "google_maps",
 ): void {
   if (typeof window === "undefined") return;
 

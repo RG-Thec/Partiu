@@ -28,11 +28,7 @@ import {
 } from "lucide-react";
 import { normalizarTelefoneBR } from "@/lib/passenger-cloud-sync";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
-import {
-  NativeButton,
-  NativeInput,
-  NativeSurface,
-} from "@/components/native";
+import { NativeButton, NativeInput, NativeSurface } from "@/components/native";
 import {
   WhiteLabelToggle,
   WhiteLabelProgressBar,
@@ -69,7 +65,8 @@ export function PartiuAppAuthGate({
     if (initialTenantId && initialTenantId.trim()) return initialTenantId.trim();
     if (typeof window !== "undefined") {
       try {
-        const param = new URLSearchParams(window.location.search).get("tenant") ||
+        const param =
+          new URLSearchParams(window.location.search).get("tenant") ||
           new URLSearchParams(window.location.search).get("tenant_id");
         if (param && param.trim()) return param.trim();
       } catch {}
@@ -149,7 +146,10 @@ export function PartiuAppAuthGate({
 
   // Validação Territorial Proativa para Novos Usuários
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [territorialBlock, setTerritorialBlock] = useState<{ blocked: boolean; message: string } | null>(null);
+  const [territorialBlock, setTerritorialBlock] = useState<{
+    blocked: boolean;
+    message: string;
+  } | null>(null);
 
   // Consulta proativa de GPS para validação territorial de novos cadastros
   useEffect(() => {
@@ -166,7 +166,7 @@ export function PartiuAppAuthGate({
               targetTenant,
               coords,
               null,
-              whiteLabelEngine.getAllTenants()
+              whiteLabelEngine.getAllTenants(),
             );
             if (!check.permitido) {
               setTerritorialBlock({ blocked: true, message: check.mensagem });
@@ -178,7 +178,7 @@ export function PartiuAppAuthGate({
         () => {
           /* Fallback silencioso caso GPS não seja compartilhado */
         },
-        { enableHighAccuracy: false, timeout: 5000 }
+        { enableHighAccuracy: false, timeout: 5000 },
       );
     }
   }, [currentTenantId]);
@@ -194,8 +194,8 @@ export function PartiuAppAuthGate({
             (activeSession.role === "MOTORISTA"
               ? `/app/motorista?tenant=${encodeURIComponent(currentTenantId)}`
               : activeSession.role === "ADMIN"
-              ? "/app/admin"
-              : `/app?tenant=${encodeURIComponent(currentTenantId)}`);
+                ? "/app/admin"
+                : `/app?tenant=${encodeURIComponent(currentTenantId)}`);
           void navigate({ to: dest, replace: true });
           return;
         }
@@ -236,7 +236,10 @@ export function PartiuAppAuthGate({
     const digitsOnly = val.replace(/\D/g, "");
     const hasAtSign = val.includes("@");
 
-    if (hasAtSign || (val.length > 0 && isNaN(Number(val[0])) && val[0] !== "(" && val[0] !== "+")) {
+    if (
+      hasAtSign ||
+      (val.length > 0 && isNaN(Number(val[0])) && val[0] !== "(" && val[0] !== "+")
+    ) {
       // É digitado como e-mail
       setContactInput(val);
       setDetectedContactType("EMAIL");
@@ -299,7 +302,11 @@ export function PartiuAppAuthGate({
 
     setLoading(true);
     try {
-      const checkResult = await supabaseAuthService.checkContactExists(cleanInput, activeRole, currentTenantId);
+      const checkResult = await supabaseAuthService.checkContactExists(
+        cleanInput,
+        activeRole,
+        currentTenantId,
+      );
       setLoading(false);
 
       setDetectedContactType(checkResult.contactType);
@@ -310,7 +317,9 @@ export function PartiuAppAuthGate({
         setEmail(cleanInput);
         setPassengerStep("LOGIN_PASSWORD");
         if (checkResult.userName) {
-          setSuccessMessage(`Conta reconhecida! Olá, ${checkResult.userName}. Digite sua senha para entrar.`);
+          setSuccessMessage(
+            `Conta reconhecida! Olá, ${checkResult.userName}. Digite sua senha para entrar.`,
+          );
         } else {
           setSuccessMessage("Conta encontrada! Digite sua senha de acesso para entrar.");
         }
@@ -374,7 +383,8 @@ export function PartiuAppAuthGate({
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    const loginIdentifier = activeRole === "MOTORISTA" ? email || contactInput : email || contactInput;
+    const loginIdentifier =
+      activeRole === "MOTORISTA" ? email || contactInput : email || contactInput;
 
     if (!loginIdentifier) {
       setErrorMessage("Informe seu e-mail ou celular de acesso.");
@@ -556,7 +566,6 @@ export function PartiuAppAuthGate({
       {/* 2. ÁREA CENTRAL DO NOVO FLUXO UNIFICADO (MAGIC FLOW)                  */}
       {/* ===================================================================== */}
       <main className="flex-1 w-full max-w-md mx-auto px-3.5 sm:px-6 py-2 sm:py-4 flex flex-col justify-start pb-6 sm:pb-8">
-        
         {/* Toggle Sutil no Topo com Animação Fluida (Passageiro vs Motorista) */}
         <div className="mb-4 sm:mb-6">
           <WhiteLabelToggle
@@ -651,10 +660,7 @@ export function PartiuAppAuthGate({
                     >
                       Acesso do Passageiro
                     </h1>
-                    <p
-                      className="text-xs mt-1 font-normal"
-                      style={{ color: colors.textSecondary }}
-                    >
+                    <p className="text-xs mt-1 font-normal" style={{ color: colors.textSecondary }}>
                       Informe seu celular ou e-mail para acessar ou criar sua conta.
                     </p>
                     {/* Barra de destaque na cor primária do Franqueado */}
@@ -736,7 +742,10 @@ export function PartiuAppAuthGate({
                         style={{ color: colors.textSecondary }}
                       >
                         Não tem uma conta?{" "}
-                        <span className="ml-1 font-bold underline" style={{ color: colors.primary }}>
+                        <span
+                          className="ml-1 font-bold underline"
+                          style={{ color: colors.primary }}
+                        >
                           Cadastre-se
                         </span>
                       </Link>
@@ -754,9 +763,13 @@ export function PartiuAppAuthGate({
 
               {/* ETAPA 2A: LOGIN COM CÓDIGO SMS */}
               {passengerStep === "LOGIN_OTP" && (
-                <form onSubmit={handleVerifyOtp} className="space-y-4 animate-in fade-in duration-200">
+                <form
+                  onSubmit={handleVerifyOtp}
+                  className="space-y-4 animate-in fade-in duration-200"
+                >
                   <div className="text-center">
-                    <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-2"
+                    <div
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-2"
                       style={{
                         backgroundColor: colors.inputBackground,
                         color: colors.textPrimary,
@@ -801,12 +814,30 @@ export function PartiuAppAuthGate({
                       autoFocus
                     >
                       <InputOTPGroup className="gap-2 sm:gap-2.5">
-                        <InputOTPSlot index={0} className="w-10 h-12 sm:w-12 sm:h-14 text-lg sm:text-xl font-black rounded-xl border-2 border-slate-200 dark:border-slate-800 focus:border-primary shadow-xs transition-all" />
-                        <InputOTPSlot index={1} className="w-10 h-12 sm:w-12 sm:h-14 text-lg sm:text-xl font-black rounded-xl border-2 border-slate-200 dark:border-slate-800 focus:border-primary shadow-xs transition-all" />
-                        <InputOTPSlot index={2} className="w-10 h-12 sm:w-12 sm:h-14 text-lg sm:text-xl font-black rounded-xl border-2 border-slate-200 dark:border-slate-800 focus:border-primary shadow-xs transition-all" />
-                        <InputOTPSlot index={3} className="w-10 h-12 sm:w-12 sm:h-14 text-lg sm:text-xl font-black rounded-xl border-2 border-slate-200 dark:border-slate-800 focus:border-primary shadow-xs transition-all" />
-                        <InputOTPSlot index={4} className="w-10 h-12 sm:w-12 sm:h-14 text-lg sm:text-xl font-black rounded-xl border-2 border-slate-200 dark:border-slate-800 focus:border-primary shadow-xs transition-all" />
-                        <InputOTPSlot index={5} className="w-10 h-12 sm:w-12 sm:h-14 text-lg sm:text-xl font-black rounded-xl border-2 border-slate-200 dark:border-slate-800 focus:border-primary shadow-xs transition-all" />
+                        <InputOTPSlot
+                          index={0}
+                          className="w-10 h-12 sm:w-12 sm:h-14 text-lg sm:text-xl font-black rounded-xl border-2 border-slate-200 dark:border-slate-800 focus:border-primary shadow-xs transition-all"
+                        />
+                        <InputOTPSlot
+                          index={1}
+                          className="w-10 h-12 sm:w-12 sm:h-14 text-lg sm:text-xl font-black rounded-xl border-2 border-slate-200 dark:border-slate-800 focus:border-primary shadow-xs transition-all"
+                        />
+                        <InputOTPSlot
+                          index={2}
+                          className="w-10 h-12 sm:w-12 sm:h-14 text-lg sm:text-xl font-black rounded-xl border-2 border-slate-200 dark:border-slate-800 focus:border-primary shadow-xs transition-all"
+                        />
+                        <InputOTPSlot
+                          index={3}
+                          className="w-10 h-12 sm:w-12 sm:h-14 text-lg sm:text-xl font-black rounded-xl border-2 border-slate-200 dark:border-slate-800 focus:border-primary shadow-xs transition-all"
+                        />
+                        <InputOTPSlot
+                          index={4}
+                          className="w-10 h-12 sm:w-12 sm:h-14 text-lg sm:text-xl font-black rounded-xl border-2 border-slate-200 dark:border-slate-800 focus:border-primary shadow-xs transition-all"
+                        />
+                        <InputOTPSlot
+                          index={5}
+                          className="w-10 h-12 sm:w-12 sm:h-14 text-lg sm:text-xl font-black rounded-xl border-2 border-slate-200 dark:border-slate-800 focus:border-primary shadow-xs transition-all"
+                        />
                       </InputOTPGroup>
                     </InputOTP>
                   </div>
@@ -856,9 +887,13 @@ export function PartiuAppAuthGate({
 
               {/* ETAPA 2B: LOGIN COM SENHA */}
               {passengerStep === "LOGIN_PASSWORD" && (
-                <form onSubmit={handlePasswordLogin} className="space-y-4 animate-in fade-in duration-200">
+                <form
+                  onSubmit={handlePasswordLogin}
+                  className="space-y-4 animate-in fade-in duration-200"
+                >
                   <div className="text-center">
-                    <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-2"
+                    <div
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-2"
                       style={{
                         backgroundColor: colors.inputBackground,
                         color: colors.textPrimary,
@@ -883,7 +918,9 @@ export function PartiuAppAuthGate({
                       className="text-xl sm:text-[22px] font-black tracking-tight"
                       style={{ color: colors.textPrimary }}
                     >
-                      {recognizedUserName ? `Olá, ${recognizedUserName.split(" ")[0]}!` : "Bem-vindo de Volta"}
+                      {recognizedUserName
+                        ? `Olá, ${recognizedUserName.split(" ")[0]}!`
+                        : "Bem-vindo de Volta"}
                     </h2>
                     <p className="text-xs mt-1 font-normal" style={{ color: colors.textSecondary }}>
                       Digite sua senha para acessar sua conta de passageiro.
@@ -917,7 +954,11 @@ export function PartiuAppAuthGate({
                         aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer p-0.5"
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -977,7 +1018,10 @@ export function PartiuAppAuthGate({
 
               {/* ETAPA 2C: CADASTRO STEP 1 (DADOS PESSOAIS) */}
               {passengerStep === "SIGNUP_STEP_1" && (
-                <form onSubmit={handlePassengerSignUp} className="space-y-3.5 animate-in fade-in duration-200">
+                <form
+                  onSubmit={handlePassengerSignUp}
+                  className="space-y-3.5 animate-in fade-in duration-200"
+                >
                   <div className="text-center">
                     <h2
                       className="text-xl sm:text-[22px] font-black tracking-tight"
@@ -999,14 +1043,15 @@ export function PartiuAppAuthGate({
                     <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-2.5 animate-in fade-in">
                       <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                       <div className="min-w-0">
-                        <p className="font-bold text-amber-950 dark:text-amber-100">Área de Atendimento Exclusiva</p>
+                        <p className="font-bold text-amber-950 dark:text-amber-100">
+                          Área de Atendimento Exclusiva
+                        </p>
                         <p className="text-[11px] text-amber-800 dark:text-amber-300 mt-0.5 leading-relaxed">
                           {territorialBlock.message}
                         </p>
                       </div>
                     </div>
                   )}
-
 
                   {/* Foto Oficial de Identificação */}
                   <CameraPhotoCapture
@@ -1084,7 +1129,11 @@ export function PartiuAppAuthGate({
                         aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer p-0.5"
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -1124,7 +1173,10 @@ export function PartiuAppAuthGate({
                         style={{ color: colors.textSecondary }}
                       >
                         Já tem uma conta?{" "}
-                        <span className="font-extrabold underline ml-1" style={{ color: colors.primary }}>
+                        <span
+                          className="font-extrabold underline ml-1"
+                          style={{ color: colors.primary }}
+                        >
                           Ir para o login
                         </span>
                       </button>
@@ -1181,10 +1233,7 @@ export function PartiuAppAuthGate({
                       Dirija com a {appName}
                     </h1>
 
-                    <p
-                      className="text-xs mt-1 font-normal"
-                      style={{ color: colors.textSecondary }}
-                    >
+                    <p className="text-xs mt-1 font-normal" style={{ color: colors.textSecondary }}>
                       Planos a partir de 0% de taxa e repasse imediato via PIX D+0.
                     </p>
                     <div
@@ -1195,9 +1244,7 @@ export function PartiuAppAuthGate({
 
                   {/* Benefícios Rápidos em Grid Compacta */}
                   <div className="grid grid-cols-2 gap-2 text-left">
-                    <div
-                      className="flex flex-col items-start gap-1 p-3 rounded-xl border border-slate-200/80 bg-slate-50/50"
-                    >
+                    <div className="flex flex-col items-start gap-1 p-3 rounded-xl border border-slate-200/80 bg-slate-50/50">
                       <span
                         className="px-1.5 py-0.5 rounded font-black text-[10px] inline-block"
                         style={{
@@ -1207,7 +1254,10 @@ export function PartiuAppAuthGate({
                       >
                         0% Taxa
                       </span>
-                      <h4 className="text-xs font-bold leading-tight" style={{ color: colors.textPrimary }}>
+                      <h4
+                        className="text-xs font-bold leading-tight"
+                        style={{ color: colors.textPrimary }}
+                      >
                         Plano Diário
                       </h4>
                       <p className="text-[10px] leading-tight text-slate-500">
@@ -1215,9 +1265,7 @@ export function PartiuAppAuthGate({
                       </p>
                     </div>
 
-                    <div
-                      className="flex flex-col items-start gap-1 p-3 rounded-xl border border-slate-200/80 bg-slate-50/50"
-                    >
+                    <div className="flex flex-col items-start gap-1 p-3 rounded-xl border border-slate-200/80 bg-slate-50/50">
                       <span
                         className="px-1.5 py-0.5 rounded font-black text-[10px] inline-block"
                         style={{
@@ -1227,7 +1275,10 @@ export function PartiuAppAuthGate({
                       >
                         Pix D+0
                       </span>
-                      <h4 className="text-xs font-bold leading-tight" style={{ color: colors.textPrimary }}>
+                      <h4
+                        className="text-xs font-bold leading-tight"
+                        style={{ color: colors.textPrimary }}
+                      >
                         Repasse Imediato
                       </h4>
                       <p className="text-[10px] leading-tight text-slate-500">
@@ -1238,10 +1289,7 @@ export function PartiuAppAuthGate({
 
                   {/* BOTÃO PRINCIPAL: CADASTRO DE VEÍCULO */}
                   <div className="space-y-2 pt-2">
-                    <Link
-                      to="/cadastro-motorista"
-                      className="w-full block"
-                    >
+                    <Link to="/cadastro-motorista" className="w-full block">
                       <button
                         type="button"
                         style={{
@@ -1282,7 +1330,10 @@ export function PartiuAppAuthGate({
 
               {/* VISÃO 2: LOGIN DO MOTORISTA PARCEIRO */}
               {driverView === "LOGIN" && (
-                <form onSubmit={handlePasswordLogin} className="space-y-4 animate-in fade-in duration-200">
+                <form
+                  onSubmit={handlePasswordLogin}
+                  className="space-y-4 animate-in fade-in duration-200"
+                >
                   <div className="text-center">
                     <h2
                       className="text-xl sm:text-[22px] font-black tracking-tight"
@@ -1342,7 +1393,11 @@ export function PartiuAppAuthGate({
                         aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer p-0.5"
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -1425,8 +1480,14 @@ export function PartiuAppAuthGate({
                 borderColor: colors.inputBorder,
               }}
             >
-              <ShieldCheck className="w-4 h-4 mb-0.5 stroke-[2]" style={{ color: colors.primary }} />
-              <span className="text-[11px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
+              <ShieldCheck
+                className="w-4 h-4 mb-0.5 stroke-[2]"
+                style={{ color: colors.primary }}
+              />
+              <span
+                className="text-[11px] font-bold leading-tight"
+                style={{ color: colors.textPrimary }}
+              >
                 Seguro
               </span>
               <span className="text-[9px] leading-tight" style={{ color: colors.textSecondary }}>
@@ -1442,7 +1503,10 @@ export function PartiuAppAuthGate({
               }}
             >
               <Zap className="w-4 h-4 mb-0.5 stroke-[2]" style={{ color: colors.primary }} />
-              <span className="text-[11px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
+              <span
+                className="text-[11px] font-bold leading-tight"
+                style={{ color: colors.textPrimary }}
+              >
                 Rápido
               </span>
               <span className="text-[9px] leading-tight" style={{ color: colors.textSecondary }}>
@@ -1458,7 +1522,10 @@ export function PartiuAppAuthGate({
               }}
             >
               <MapPin className="w-4 h-4 mb-0.5 stroke-[2]" style={{ color: colors.primary }} />
-              <span className="text-[11px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
+              <span
+                className="text-[11px] font-bold leading-tight"
+                style={{ color: colors.textPrimary }}
+              >
                 Na sua cidade
               </span>
               <span className="text-[9px] leading-tight" style={{ color: colors.textSecondary }}>
@@ -1473,8 +1540,14 @@ export function PartiuAppAuthGate({
                 borderColor: colors.inputBorder,
               }}
             >
-              <CheckCircle2 className="w-4 h-4 mb-0.5 stroke-[2]" style={{ color: colors.primary }} />
-              <span className="text-[11px] font-bold leading-tight" style={{ color: colors.textPrimary }}>
+              <CheckCircle2
+                className="w-4 h-4 mb-0.5 stroke-[2]"
+                style={{ color: colors.primary }}
+              />
+              <span
+                className="text-[11px] font-bold leading-tight"
+                style={{ color: colors.textPrimary }}
+              >
                 Tarifa Justa
               </span>
               <span className="text-[9px] leading-tight" style={{ color: colors.textSecondary }}>

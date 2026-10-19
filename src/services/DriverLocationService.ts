@@ -67,7 +67,13 @@ export class DriverLocationService {
   private timerInterval: NodeJS.Timeout | null = null;
 
   private lastTransmittedPosition: { lat: number; lng: number; time: number } | null = null;
-  private currentRawPosition: { lat: number; lng: number; heading: number; speedKmh: number; accuracy: number } | null = null;
+  private currentRawPosition: {
+    lat: number;
+    lng: number;
+    heading: number;
+    speedKmh: number;
+    accuracy: number;
+  } | null = null;
 
   private listeners: Set<(payload: LocationTelemetryPayload) => void> = new Set();
   private wakeLockSentinel: any = null;
@@ -97,7 +103,13 @@ export class DriverLocationService {
     return this.profile;
   }
 
-  public getCurrentPosition(): { lat: number; lng: number; heading: number; speedKmh: number; accuracy: number } | null {
+  public getCurrentPosition(): {
+    lat: number;
+    lng: number;
+    heading: number;
+    speedKmh: number;
+    accuracy: number;
+  } | null {
     return this.currentRawPosition;
   }
 
@@ -118,7 +130,9 @@ export class DriverLocationService {
   /**
    * Inicia o serviço de localização no estado especificado
    */
-  public async goOnline(initialState: "ONLINE_IDLE" | "ONLINE_MOVING" | "ON_TRIP" = "ONLINE_IDLE"): Promise<boolean> {
+  public async goOnline(
+    initialState: "ONLINE_IDLE" | "ONLINE_MOVING" | "ON_TRIP" = "ONLINE_IDLE",
+  ): Promise<boolean> {
     if (!this.canTransmit()) {
       console.warn("[DriverLocationService] Bloqueado: Motorista não elegível para ficar online.");
       return false;
@@ -180,7 +194,9 @@ export class DriverLocationService {
     if (this.wakeLockSentinel) {
       try {
         this.wakeLockSentinel.release();
-      } catch (err) { silentCatchWarn("DriverLocationService", err); }
+      } catch (err) {
+        silentCatchWarn("DriverLocationService", err);
+      }
       this.wakeLockSentinel = null;
     }
   }
@@ -195,7 +211,11 @@ export class DriverLocationService {
 
     if (typeof window === "undefined") return;
     try {
-      if (typeof navigator !== "undefined" && "mediaSession" in navigator && typeof (globalThis as any).MediaMetadata !== "undefined") {
+      if (
+        typeof navigator !== "undefined" &&
+        "mediaSession" in navigator &&
+        typeof (globalThis as any).MediaMetadata !== "undefined"
+      ) {
         navigator.mediaSession.metadata = new (globalThis as any).MediaMetadata({
           title: "PARTIU — Condutor em Rota",
           artist: `${this.profile?.name || "Motorista Parceiro"} • GPS Contínuo`,
@@ -207,7 +227,11 @@ export class DriverLocationService {
       const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
       if (AudioCtx) {
         this.audioContext = new AudioCtx();
-        const buffer = this.audioContext.createBuffer(1, this.audioContext.sampleRate, this.audioContext.sampleRate);
+        const buffer = this.audioContext.createBuffer(
+          1,
+          this.audioContext.sampleRate,
+          this.audioContext.sampleRate,
+        );
         const source = this.audioContext.createBufferSource();
         source.buffer = buffer;
         source.loop = true;
@@ -230,7 +254,9 @@ export class DriverLocationService {
     if (this.audioContext) {
       try {
         this.audioContext.close();
-      } catch (err) { silentCatchWarn("DriverLocationService", err); }
+      } catch (err) {
+        silentCatchWarn("DriverLocationService", err);
+      }
       this.audioContext = null;
     }
     if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
@@ -323,12 +349,16 @@ export class DriverLocationService {
       (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
-        const speedKmh = pos.coords.speed !== null && pos.coords.speed >= 0 ? Math.round(pos.coords.speed * 3.6) : 0;
-        
+        const speedKmh =
+          pos.coords.speed !== null && pos.coords.speed >= 0
+            ? Math.round(pos.coords.speed * 3.6)
+            : 0;
+
         // ETAPA 6 — HEADING REAL: Prioriza coords.heading do hardware GPS
-        let heading = pos.coords.heading !== null && !isNaN(pos.coords.heading) && pos.coords.heading > 0 
-          ? pos.coords.heading 
-          : 0;
+        let heading =
+          pos.coords.heading !== null && !isNaN(pos.coords.heading) && pos.coords.heading > 0
+            ? pos.coords.heading
+            : 0;
 
         // Fallback geodésico rigoroso entre os dois últimos pontos
         if ((!heading || heading === 0) && this.currentRawPosition) {
@@ -336,14 +366,14 @@ export class DriverLocationService {
             this.currentRawPosition.lat,
             this.currentRawPosition.lng,
             lat,
-            lng
+            lng,
           );
           if (distMeters >= 2) {
             heading = this.calculateGeodesicBearing(
               this.currentRawPosition.lat,
               this.currentRawPosition.lng,
               lat,
-              lng
+              lng,
             );
           } else {
             // Preserva o último heading conhecido quando o veículo estiver parado
@@ -360,7 +390,10 @@ export class DriverLocationService {
         };
 
         // Transição automática entre IDLE e MOVING se não estiver em viagem
-        const isEmViagem = this.state === "ON_TRIP" || this.state === "HEADING_TO_PICKUP" || this.state === "IN_PROGRESS";
+        const isEmViagem =
+          this.state === "ON_TRIP" ||
+          this.state === "HEADING_TO_PICKUP" ||
+          this.state === "IN_PROGRESS";
         if (!isEmViagem) {
           if (speedKmh >= 3 && this.state !== "ONLINE_MOVING") {
             this.state = "ONLINE_MOVING";
@@ -380,7 +413,7 @@ export class DriverLocationService {
         enableHighAccuracy: true,
         maximumAge: 2000,
         timeout: 10000,
-      }
+      },
     );
   }
 
@@ -432,7 +465,7 @@ export class DriverLocationService {
         this.lastTransmittedPosition.lat,
         this.lastTransmittedPosition.lng,
         this.currentRawPosition.lat,
-        this.currentRawPosition.lng
+        this.currentRawPosition.lng,
       );
 
       // Regra: se em movimento e percorreu >= 30 metros, transmite imediatamente
@@ -468,15 +501,25 @@ export class DriverLocationService {
       if (typeof window !== "undefined") {
         window.dispatchEvent(
           new CustomEvent("partiu:driver_location_updated", {
-            detail: { coords: [payload.lng, payload.lat], heading: payload.heading, speed: payload.speedKmh },
-          })
+            detail: {
+              coords: [payload.lng, payload.lat],
+              heading: payload.heading,
+              speed: payload.speedKmh,
+            },
+          }),
         );
       }
 
       // Sincroniza imediatamente com o Índice Espacial Hexagonal H3 / Redis
       if (this.profile?.driverId) {
         const h3Cell = h3SpatialIndex.latLngToCell(payload.lat, payload.lng);
-        void redisLuaEngine.updateLocation(this.profile.driverId, payload.lat, payload.lng, h3Cell, now);
+        void redisLuaEngine.updateLocation(
+          this.profile.driverId,
+          payload.lat,
+          payload.lng,
+          h3Cell,
+          now,
+        );
       }
 
       // Sincroniza com o Supabase
@@ -497,7 +540,7 @@ export class DriverLocationService {
         "VEHICLE_PRIMARY",
         "ACTIVE_TRIP",
         "GPS_TELEMETRY",
-        payload
+        payload,
       );
       this.offlineTelemetryCount++;
       return;
@@ -517,13 +560,16 @@ export class DriverLocationService {
       });
     } catch (err) {
       // Em caso de falha transitória (timeout, troca de torre 4G), persiste na fila durável
-      console.warn("[DriverLocationService] Sincronização Supabase em contingência, salvando na fila offline:", err);
+      console.warn(
+        "[DriverLocationService] Sincronização Supabase em contingência, salvando na fila offline:",
+        err,
+      );
       enqueueDurableOfflineEvent(
         `drv_${this.profile.driverId}`,
         "VEHICLE_PRIMARY",
         "ACTIVE_TRIP",
         "GPS_TELEMETRY",
-        payload
+        payload,
       );
       this.offlineTelemetryCount++;
     }
@@ -551,7 +597,10 @@ export class DriverLocationService {
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return Math.round(R * c);
   }
@@ -565,7 +614,8 @@ export class DriverLocationService {
     const deltaLambda = ((lng2 - lng1) * Math.PI) / 180;
 
     const y = Math.sin(deltaLambda) * Math.cos(phi2);
-    const x = Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(deltaLambda);
+    const x =
+      Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(deltaLambda);
     const theta = Math.atan2(y, x);
     return ((theta * 180) / Math.PI + 360) % 360;
   }
@@ -573,7 +623,9 @@ export class DriverLocationService {
   private setupLifecycleHooks(): void {
     if (typeof window !== "undefined") {
       window.addEventListener("online", () => {
-        console.log("[DriverLocationService] Conexão restabelecida, descarregando telemetria offline.");
+        console.log(
+          "[DriverLocationService] Conexão restabelecida, descarregando telemetria offline.",
+        );
         void this.flushOfflineQueue();
       });
     }
@@ -600,13 +652,16 @@ export class DriverLocationService {
                   lat: pos.coords.latitude,
                   lng: pos.coords.longitude,
                   heading: pos.coords.heading || 0,
-                  speedKmh: pos.coords.speed !== null && pos.coords.speed >= 0 ? Math.round(pos.coords.speed * 3.6) : 0,
+                  speedKmh:
+                    pos.coords.speed !== null && pos.coords.speed >= 0
+                      ? Math.round(pos.coords.speed * 3.6)
+                      : 0,
                   accuracy: pos.coords.accuracy || 10,
                 };
                 this.evaluateAndTransmit(true);
               },
               () => {},
-              { enableHighAccuracy: true, timeout: 5000, maximumAge: 2000 }
+              { enableHighAccuracy: true, timeout: 5000, maximumAge: 2000 },
             );
           }
         }

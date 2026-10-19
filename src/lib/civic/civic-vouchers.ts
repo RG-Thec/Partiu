@@ -1,6 +1,6 @@
 /**
  * CIVIC VOUCHERS & SOCIAL PASS ENGINE
- * 
+ *
  * Emissão, validação criptográfica e resgate de vouchers sociais:
  * - Vale Transporte Social / Municipal
  * - Passe Livre de Saúde (hemodiálise, oncologia)
@@ -10,13 +10,13 @@
  */
 
 export type CivicVoucherType =
-  | 'VALE_TRANSPORTE_SOCIAL'
-  | 'PASSE_LIVRE_SAUDE'
-  | 'PASSE_ESTUDANTIL_MUNICIPAL'
-  | 'TARIFA_ZERO_EVENTO'
-  | 'BENEFICIO_PCD_IDOSO';
+  | "VALE_TRANSPORTE_SOCIAL"
+  | "PASSE_LIVRE_SAUDE"
+  | "PASSE_ESTUDANTIL_MUNICIPAL"
+  | "TARIFA_ZERO_EVENTO"
+  | "BENEFICIO_PCD_IDOSO";
 
-export type CivicVoucherStatus = 'ATIVO' | 'ESGOTADO' | 'EXPIRADO' | 'BLOQUEADO';
+export type CivicVoucherStatus = "ATIVO" | "ESGOTADO" | "EXPIRADO" | "BLOQUEADO";
 
 export interface CivicVoucher {
   voucherId: string;
@@ -32,7 +32,7 @@ export interface CivicVoucher {
   totalCreditsIssued: number;
   creditsRemaining: number;
   creditValueBrl: number; // Valor coberto por corrida (ex: R$ 8,00 ou integral)
-  subsidizedPct: number;  // 100% ou parcial
+  subsidizedPct: number; // 100% ou parcial
   validFrom: string;
   validUntil: string;
   status: CivicVoucherStatus;
@@ -71,46 +71,46 @@ export class CivicVouchersEngine {
   private seedDefaultVouchers(): void {
     const defaultVouchers: CivicVoucher[] = [
       {
-        voucherId: 'VOUCH-ITAP-001',
-        voucherCode: 'VOUCH-SOC-ITAP-101',
-        citizenId: 'CITIZEN-001',
-        citizenName: 'Maria Silva Santos',
-        citizenCpfMasked: '***.456.789-**',
-        contractId: 'CIV-ITAP-001',
-        cityId: 'itaperuna-rj',
-        voucherType: 'VALE_TRANSPORTE_SOCIAL',
+        voucherId: "VOUCH-ITAP-001",
+        voucherCode: "VOUCH-SOC-ITAP-101",
+        citizenId: "CITIZEN-001",
+        citizenName: "Maria Silva Santos",
+        citizenCpfMasked: "***.456.789-**",
+        contractId: "CIV-ITAP-001",
+        cityId: "itaperuna-rj",
+        voucherType: "VALE_TRANSPORTE_SOCIAL",
         maxRidesPerDay: 4,
         ridesUsedToday: 1,
         totalCreditsIssued: 44,
         creditsRemaining: 32,
         creditValueBrl: 15.0,
         subsidizedPct: 100.0,
-        validFrom: '2026-01-01',
-        validUntil: '2026-12-31',
-        status: 'ATIVO',
+        validFrom: "2026-01-01",
+        validUntil: "2026-12-31",
+        status: "ATIVO",
       },
       {
-        voucherId: 'VOUCH-ITAP-002',
-        voucherCode: 'VOUCH-MED-ITAP-202',
-        citizenId: 'CITIZEN-002',
-        citizenName: 'Carlos Alberto Ferreira',
-        citizenCpfMasked: '***.123.987-**',
-        contractId: 'CIV-ITAP-002',
-        cityId: 'itaperuna-rj',
-        voucherType: 'PASSE_LIVRE_SAUDE',
+        voucherId: "VOUCH-ITAP-002",
+        voucherCode: "VOUCH-MED-ITAP-202",
+        citizenId: "CITIZEN-002",
+        citizenName: "Carlos Alberto Ferreira",
+        citizenCpfMasked: "***.123.987-**",
+        contractId: "CIV-ITAP-002",
+        cityId: "itaperuna-rj",
+        voucherType: "PASSE_LIVRE_SAUDE",
         maxRidesPerDay: 2,
         ridesUsedToday: 0,
         totalCreditsIssued: 30,
         creditsRemaining: 24,
         creditValueBrl: 25.0,
         subsidizedPct: 100.0,
-        validFrom: '2026-01-01',
-        validUntil: '2026-12-31',
-        status: 'ATIVO',
-      }
+        validFrom: "2026-01-01",
+        validUntil: "2026-12-31",
+        status: "ATIVO",
+      },
     ];
 
-    defaultVouchers.forEach(v => {
+    defaultVouchers.forEach((v) => {
       this.vouchers.set(v.voucherCode, v);
       const list = this.vouchersByCitizen.get(v.citizenId) || [];
       list.push(v.voucherCode);
@@ -131,7 +131,7 @@ export class CivicVouchersEngine {
 
   public getCitizenVouchers(citizenId: string): CivicVoucher[] {
     const codes = this.vouchersByCitizen.get(citizenId) || [];
-    return codes.map(c => this.vouchers.get(c)!).filter(Boolean);
+    return codes.map((c) => this.vouchers.get(c)!).filter(Boolean);
   }
 
   public redeemVoucher(request: RedeemVoucherRequest): RedeemVoucherResult {
@@ -142,17 +142,17 @@ export class CivicVouchersEngine {
         subsidizedValueBrl: 0,
         copayValueBrl: request.rideValueBrl,
         remainingCredits: 0,
-        rejectionReason: 'Voucher cívico não encontrado no registro municipal.'
+        rejectionReason: "Voucher cívico não encontrado no registro municipal.",
       };
     }
 
-    if (voucher.status !== 'ATIVO') {
+    if (voucher.status !== "ATIVO") {
       return {
         success: false,
         subsidizedValueBrl: 0,
         copayValueBrl: request.rideValueBrl,
         remainingCredits: voucher.creditsRemaining,
-        rejectionReason: `Voucher está ${voucher.status}.`
+        rejectionReason: `Voucher está ${voucher.status}.`,
       };
     }
 
@@ -162,18 +162,18 @@ export class CivicVouchersEngine {
         subsidizedValueBrl: 0,
         copayValueBrl: request.rideValueBrl,
         remainingCredits: voucher.creditsRemaining,
-        rejectionReason: 'Voucher nominal intransferível. Cidadão divergente.'
+        rejectionReason: "Voucher nominal intransferível. Cidadão divergente.",
       };
     }
 
     if (voucher.creditsRemaining <= 0) {
-      voucher.status = 'ESGOTADO';
+      voucher.status = "ESGOTADO";
       return {
         success: false,
         subsidizedValueBrl: 0,
         copayValueBrl: request.rideValueBrl,
         remainingCredits: 0,
-        rejectionReason: 'Créditos do voucher cívico esgotados.'
+        rejectionReason: "Créditos do voucher cívico esgotados.",
       };
     }
 
@@ -183,13 +183,14 @@ export class CivicVouchersEngine {
         subsidizedValueBrl: 0,
         copayValueBrl: request.rideValueBrl,
         remainingCredits: voucher.creditsRemaining,
-        rejectionReason: `Limite diário atingido (${voucher.maxRidesPerDay} viagens/dia).`
+        rejectionReason: `Limite diário atingido (${voucher.maxRidesPerDay} viagens/dia).`,
       };
     }
 
     // Calcula cobertura
     const maxSubsidized = voucher.creditValueBrl;
-    const actualSubsidized = Math.min(request.rideValueBrl, maxSubsidized) * (voucher.subsidizedPct / 100);
+    const actualSubsidized =
+      Math.min(request.rideValueBrl, maxSubsidized) * (voucher.subsidizedPct / 100);
     const copay = Math.max(0, request.rideValueBrl - actualSubsidized);
 
     voucher.creditsRemaining -= 1;
@@ -197,7 +198,7 @@ export class CivicVouchersEngine {
     voucher.lastUsedTimestamp = Date.now();
 
     if (voucher.creditsRemaining === 0) {
-      voucher.status = 'ESGOTADO';
+      voucher.status = "ESGOTADO";
     }
 
     const redemptionToken = `CIVIC-RED-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
@@ -208,7 +209,7 @@ export class CivicVouchersEngine {
       subsidizedValueBrl: Number(actualSubsidized.toFixed(2)),
       copayValueBrl: Number(copay.toFixed(2)),
       remainingCredits: voucher.creditsRemaining,
-      redemptionToken
+      redemptionToken,
     };
   }
 }

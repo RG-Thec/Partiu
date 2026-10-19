@@ -22,7 +22,8 @@ export function AdminCitySelector() {
 
   // Se o usuário for FRANQUEADO, a interface é hardcoded para a praça dele sem dropdown/seletor
   if (isFranqueado) {
-    const nomeExibicao = contaAtiva?.tenantNome || (pracaAtiva.id !== "todas" ? pracaAtiva.nome : "Praça Regional");
+    const nomeExibicao =
+      contaAtiva?.tenantNome || (pracaAtiva.id !== "todas" ? pracaAtiva.nome : "Praça Regional");
     return (
       <div
         className="flex items-center gap-1.5 px-2.5 py-1 h-8 rounded-lg border border-blue-200 bg-blue-50/90 text-blue-950 select-none shadow-xs"
@@ -68,7 +69,7 @@ export function AdminCitySelector() {
       (p) =>
         p.nome.toLowerCase().includes(termo) ||
         p.uf.toLowerCase().includes(termo) ||
-        p.labelCompleto.toLowerCase().includes(termo)
+        p.labelCompleto.toLowerCase().includes(termo),
     );
   }, [pracas, busca]);
 
@@ -177,8 +178,8 @@ export function AdminCitySelector() {
                         selecionada
                           ? "bg-primary-500 text-slate-950"
                           : isGlobal
-                          ? "bg-slate-200 text-slate-700"
-                          : "bg-blue-100 text-blue-800"
+                            ? "bg-slate-200 text-slate-700"
+                            : "bg-blue-100 text-blue-800"
                       }`}
                     >
                       {isGlobal ? <Globe className="h-4 w-4" /> : p.uf}
@@ -197,7 +198,9 @@ export function AdminCitySelector() {
                           selecionada ? "text-slate-300" : "text-slate-500"
                         }`}
                       >
-                        {isGlobal ? "Todas as praças integradas" : `Raio de ${p.raioKm} km • UF ${p.uf}`}
+                        {isGlobal
+                          ? "Todas as praças integradas"
+                          : `Raio de ${p.raioKm} km • UF ${p.uf}`}
                       </span>
                     </div>
                   </div>

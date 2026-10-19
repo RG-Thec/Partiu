@@ -2,7 +2,7 @@ import { silentCatchWarn } from "@/lib/structured-logger";
 
 /**
  * PARTIU TITANIUM SHIELD — ZERO TRUST AUTH SERVICE
- * 
+ *
  * Autenticação Server-Side e Edge com tokens JWT assinados criptograficamente.
  * - Assinatura e verificação HMAC-SHA256
  * - Validação estrita de claims (sub, role, tenantId, permissions, exp, nbf, jti)
@@ -11,48 +11,48 @@ import { silentCatchWarn } from "@/lib/structured-logger";
  * - Eliminação definitiva de autenticação baseada em flags inseguras de localStorage
  */
 
-export type AdminRole = 'SUPER_ADMIN' | 'FRANQUEADO';
+export type AdminRole = "SUPER_ADMIN" | "FRANQUEADO";
 
 export type AdminPermission =
-  | 'financial:view_revenue'
-  | 'financial:view_profit'
-  | 'financial:view_splits'
-  | 'financial:manage_cash_closing'
-  | 'financial:configure_gateways'
-  | 'financial:configure_fees'
-  | 'financial:process_refunds'
-  | 'financial:export_ledger'
-  | 'governance:manage_admins'
-  | 'governance:manage_permissions'
-  | 'governance:view_audit_logs'
-  | 'governance:edit_security_rules'
-  | 'operations:view_radar'
-  | 'operations:manage_sos'
-  | 'operations:manage_trips'
-  | 'operations:manage_routes'
-  | 'operations:manage_stops'
-  | 'operations:manage_fleet'
-  | 'operations:manage_drivers'
-  | 'operations:manage_passengers'
-  | 'operations:manage_cargo'
-  | 'operations:view_operational_kpis'
-  | 'app:manage_banners'
-  | 'app:manage_announcements'
-  | 'app:manage_affiliates'
-  | 'app:configure_system_parameters'
-  | 'whitelabel:manage';
+  | "financial:view_revenue"
+  | "financial:view_profit"
+  | "financial:view_splits"
+  | "financial:manage_cash_closing"
+  | "financial:configure_gateways"
+  | "financial:configure_fees"
+  | "financial:process_refunds"
+  | "financial:export_ledger"
+  | "governance:manage_admins"
+  | "governance:manage_permissions"
+  | "governance:view_audit_logs"
+  | "governance:edit_security_rules"
+  | "operations:view_radar"
+  | "operations:manage_sos"
+  | "operations:manage_trips"
+  | "operations:manage_routes"
+  | "operations:manage_stops"
+  | "operations:manage_fleet"
+  | "operations:manage_drivers"
+  | "operations:manage_passengers"
+  | "operations:manage_cargo"
+  | "operations:view_operational_kpis"
+  | "app:manage_banners"
+  | "app:manage_announcements"
+  | "app:manage_affiliates"
+  | "app:configure_system_parameters"
+  | "whitelabel:manage";
 
 export interface TokenPayload {
-  sub: string;               // User ID
+  sub: string; // User ID
   email: string;
   role: AdminRole;
   tenantId?: string | undefined;
   permissions: AdminPermission[];
-  iat: number;               // Timestamp emitido (segundos)
-  exp: number;               // Timestamp expiração (segundos)
-  nbf: number;               // Not Before
-  jti: string;               // JWT ID único para proteção contra replay
-  issuer: 'partiu-titanium-shield';
+  iat: number; // Timestamp emitido (segundos)
+  exp: number; // Timestamp expiração (segundos)
+  nbf: number; // Not Before
+  jti: string; // JWT ID único para proteção contra replay
+  issuer: "partiu-titanium-shield";
 }
 
 export interface AuthSession {
@@ -68,7 +68,7 @@ export interface AuthSession {
   };
 }
 
-const STORAGE_KEY_JWT_PERSISTENT = 'partiu_titanium_jwt_key_v1';
+const STORAGE_KEY_JWT_PERSISTENT = "partiu_titanium_jwt_key_v1";
 
 /**
  * Retorna a chave mestra de assinatura JWT.
@@ -76,18 +76,18 @@ const STORAGE_KEY_JWT_PERSISTENT = 'partiu_titanium_jwt_key_v1';
  * idêntica entre recarregamentos de página (F5), mantendo a sessão permanente até o logout explícito.
  */
 export function getJwtSecret(): string {
-  if (typeof process !== 'undefined' && process.env && process.env['JWT_SECRET']) {
-    return process.env['JWT_SECRET'];
+  if (typeof process !== "undefined" && process.env && process.env["JWT_SECRET"]) {
+    return process.env["JWT_SECRET"];
   }
-  if (typeof import.meta !== 'undefined' && import.meta.env) {
-    if (import.meta.env['VITE_JWT_SECRET']) return import.meta.env['VITE_JWT_SECRET'] as string;
-    if (import.meta.env['JWT_SECRET']) return import.meta.env['JWT_SECRET'] as string;
+  if (typeof import.meta !== "undefined" && import.meta.env) {
+    if (import.meta.env["VITE_JWT_SECRET"]) return import.meta.env["VITE_JWT_SECRET"] as string;
+    if (import.meta.env["JWT_SECRET"]) return import.meta.env["JWT_SECRET"] as string;
   }
-  if (typeof window !== 'undefined' && window.localStorage) {
+  if (typeof window !== "undefined" && window.localStorage) {
     try {
       let storedKey = window.localStorage.getItem(STORAGE_KEY_JWT_PERSISTENT);
       if (!storedKey) {
-        storedKey = `titanium_key_${typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now()}`;
+        storedKey = `titanium_key_${typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Date.now()}`;
         window.localStorage.setItem(STORAGE_KEY_JWT_PERSISTENT, storedKey);
       }
       return storedKey;
@@ -95,7 +95,7 @@ export function getJwtSecret(): string {
       // Fallback seguro caso haja restrição ao localStorage
     }
   }
-  return 'partiu_titanium_master_jwt_secret_default_2026';
+  return "partiu_titanium_master_jwt_secret_default_2026";
 }
 
 const JWT_SECRET = getJwtSecret();
@@ -105,30 +105,35 @@ const REVOKED_TOKENS = new Map<string, number>();
 
 // Helpers de codificação Base64URL
 function base64UrlEncode(str: string): string {
-  if (typeof btoa !== 'undefined') {
-    return btoa(unescape(encodeURIComponent(str))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  if (typeof btoa !== "undefined") {
+    return btoa(unescape(encodeURIComponent(str)))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
   }
-  return Buffer.from(str, 'utf-8').toString('base64url');
+  return Buffer.from(str, "utf-8").toString("base64url");
 }
 
 function base64UrlDecode(str: string): string {
-  let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
   while (base64.length % 4) {
-    base64 += '=';
+    base64 += "=";
   }
-  if (typeof atob !== 'undefined') {
+  if (typeof atob !== "undefined") {
     return decodeURIComponent(escape(atob(base64)));
   }
-  return Buffer.from(base64, 'base64').toString('utf8');
+  return Buffer.from(base64, "base64").toString("utf8");
 }
 
 // Assinatura HMAC-SHA256
 function signHmacSha256(data: string, secret: string): string {
-  if (typeof require !== 'undefined') {
+  if (typeof require !== "undefined") {
     try {
-      const crypto = require('crypto');
-      return crypto.createHmac('sha256', secret).update(data).digest('base64url');
-    } catch (err) { silentCatchWarn("auth-service", err); }
+      const crypto = require("crypto");
+      return crypto.createHmac("sha256", secret).update(data).digest("base64url");
+    } catch (err) {
+      silentCatchWarn("auth-service", err);
+    }
   }
 
   // Hash determinístico para ambientes sem módulo crypto
@@ -169,7 +174,7 @@ export class AuthService {
     const expSec = nowSec + 365 * 24 * 3600; // 365 dias de validade (sessão permanente até logout)
     const jti = `jti_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
-    const header = { alg: 'HS256', typ: 'JWT' };
+    const header = { alg: "HS256", typ: "JWT" };
     const payload: TokenPayload = {
       sub: user.id,
       email: user.email,
@@ -180,7 +185,7 @@ export class AuthService {
       exp: expSec,
       nbf: nowSec,
       jti,
-      issuer: 'partiu-titanium-shield'
+      issuer: "partiu-titanium-shield",
     };
 
     const secret = getJwtSecret();
@@ -195,7 +200,7 @@ export class AuthService {
       role: user.role,
       jti: refreshJti,
       exp: nowSec + 400 * 24 * 3600, // > 1 ano
-      issuer: 'partiu-titanium-shield'
+      issuer: "partiu-titanium-shield",
     };
     const refHeaderEnc = base64UrlEncode(JSON.stringify(header));
     const refPayloadEnc = base64UrlEncode(JSON.stringify(refreshPayload));
@@ -205,21 +210,25 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-      expiresAt: expSec * 1000
+      expiresAt: expSec * 1000,
     };
   }
 
   /**
    * Valida integralmente um token JWT e extrai os claims com garantias criptográficas
    */
-  public verifyToken(token: string): { valid: boolean; payload?: TokenPayload | undefined; reason?: string | undefined } {
-    if (!token || typeof token !== 'string') {
-      return { valid: false, reason: 'TOKEN_EMPTY' };
+  public verifyToken(token: string): {
+    valid: boolean;
+    payload?: TokenPayload | undefined;
+    reason?: string | undefined;
+  } {
+    if (!token || typeof token !== "string") {
+      return { valid: false, reason: "TOKEN_EMPTY" };
     }
 
-    const parts = token.split('.');
+    const parts = token.split(".");
     if (parts.length !== 3) {
-      return { valid: false, reason: 'TOKEN_MALFORMED' };
+      return { valid: false, reason: "TOKEN_MALFORMED" };
     }
 
     const headerEnc = parts[0]!;
@@ -229,7 +238,7 @@ export class AuthService {
     const expectedSig = signHmacSha256(`${headerEnc}.${payloadEnc}`, secret);
 
     if (signature !== expectedSig) {
-      return { valid: false, reason: 'INVALID_SIGNATURE' };
+      return { valid: false, reason: "INVALID_SIGNATURE" };
     }
 
     try {
@@ -237,20 +246,20 @@ export class AuthService {
       const nowSec = Math.floor(Date.now() / 1000);
 
       if (payload.exp && payload.exp < nowSec) {
-        return { valid: false, reason: 'TOKEN_EXPIRED' };
+        return { valid: false, reason: "TOKEN_EXPIRED" };
       }
 
       if (payload.nbf && payload.nbf > nowSec) {
-        return { valid: false, reason: 'TOKEN_NOT_YET_VALID' };
+        return { valid: false, reason: "TOKEN_NOT_YET_VALID" };
       }
 
       if (REVOKED_TOKENS.has(payload.jti)) {
-        return { valid: false, reason: 'TOKEN_REVOKED' };
+        return { valid: false, reason: "TOKEN_REVOKED" };
       }
 
       return { valid: true, payload };
     } catch {
-      return { valid: false, reason: 'PAYLOAD_DESERIALIZATION_FAILED' };
+      return { valid: false, reason: "PAYLOAD_DESERIALIZATION_FAILED" };
     }
   }
 

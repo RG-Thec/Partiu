@@ -1,5 +1,7 @@
 # AUDITORIA FORENSE DE SIMPLIFICAÇÃO OPERACIONAL — PLATAFORMA PARTIU
+
 ## COMITÊ EXECUTIVO DE PRODUTO, ENGENHARIA & EXPERIÊNCIA DO USUÁRIO
+
 ### UBER • 99 • SAAS PLATFORM • COGNITIVE LOAD LABS • MARKETPLACE ECONOMICS
 
 ---
@@ -7,7 +9,7 @@
 **Data da Auditoria:** 8 de Setembro de 2026  
 **Classificação:** Estratégico / Restrito / Executivo  
 **Status da Plataforma:** Em Operação / 211 Testes Automatizados Aprovados (Zero Falhas)  
-**Diretiva Mestra:** *"Complexidade no sistema. Simplicidade radical para o usuário. O usuário vê apenas o que precisa naquele exato milissegundo."*  
+**Diretiva Mestra:** _"Complexidade no sistema. Simplicidade radical para o usuário. O usuário vê apenas o que precisa naquele exato milissegundo."_  
 **Regra de Ouro:** **NÃO** criar novas funcionalidades. **NÃO** adicionar módulos. **NÃO** aumentar complexidade. Identificar tudo que deve ser simplificado, ocultado, automatizado ou sumariamente removido.
 
 ---
@@ -19,8 +21,9 @@ O Comitê Executivo, reunindo a liderança sênior de design de produto e arquit
 A plataforma alcançou robustez de infraestrutura de classe mundial: arquitetura White Label multi-tenant completa, motor econômico híbrido de assinaturas (Fase 19), sistema de despacho e entrega com PIN/OTP, auditoria criptográfica de ledger de dupla entrada e suite com **211 testes automatizados passando com 100% de sucesso**.
 
 Entretanto, o crescimento acelerado de recursos gerou **sobrecarga cognitiva severa** nas pontas operacionais:
+
 1. **No Motorista:** O cockpit em trânsito bombardeia o condutor com até 14 dados numéricos simultâneos em um card de 15 segundos enquanto o veículo se desloca em alta velocidade no tráfego urbano.
-2. **No Passageiro:** A folha de revisão de corrida expõe opções de troco em dinheiro, maquininha do motorista, paradas intermediárias e corridas para terceiros de forma estática e simultânea para 100% dos usuários, quando 95% das corridas demandam apenas *origem, destino e confirmação*.
+2. **No Passageiro:** A folha de revisão de corrida expõe opções de troco em dinheiro, maquininha do motorista, paradas intermediárias e corridas para terceiros de forma estática e simultânea para 100% dos usuários, quando 95% das corridas demandam apenas _origem, destino e confirmação_.
 3. **No Administrador e Franqueado:** A gestão está fragmentada em 18 telas independentes, com duplicidade de configurações de tarifas e um estúdio White Label com mais de 60 campos de CSS de baixo nível, inviabilizando o onboarding ágil de cidades.
 
 Este documento consolida o diagnóstico forense das **Fases 1 a 10**, estabelecendo as ações cirúrgicas de descarte, consolidação e automação para atingir o padrão ouro de simplicidade operacional.
@@ -31,17 +34,18 @@ Este documento consolida o diagnóstico forense das **Fases 1 a 10**, estabelece
 
 Mapeamento exaustivo do número de telas, cliques até a ação primária, decisões concorrentes, parâmetros de configuração e densidade de informação por perfil de usuário.
 
-| Perfil de Usuário | Telas / Modais | Cliques até Ação Central | Decisões Concorrentes | Parâmetros de Configuração | Informações Simultâneas em Tela | Classificação de Risco Cognitivo |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **PASSAGEIRO** (`/app`, `/app/index.tsx`, `PassengerReviewRouteSheet.tsx`) | 4 etapas | 5 a 8 cliques | 6 decisões | 3 opções | **14 dados simultâneos** | **ALTO** (Fricção no checkout) |
-| **MOTORISTA** (`/app/motorista`, `app.motorista.tsx`) | 7 modais | 1 clique (oferta) / 5 fluxo | 8 decisões em 15s | 8 controles | **14 a 16 dados no card** | **CRÍTICO** (Segurança viária) |
-| **ADMINISTRADOR MATRIZ** (`/app/admin/*`) | 18 páginas | 25+ cliques | 45 decisões | 120+ campos | **20+ KPIs por tela** | **CRÍTICO** (Fadiga operacional) |
-| **FRANQUEADO LOCAL** (Expansão de Cidade) | 18 páginas | 60+ cliques | 30 decisões | 60+ campos de CSS | **40+ inputs de design** | **CRÍTICO** (Bloqueio de escala) |
-| **ENTREGADOR / FLASH** (`deliveryPinEngine`, etc.) | 5 modais | 7 cliques por ciclo | 6 decisões | 4 status | **10 dados simultâneos** | **ALTO** (Complexidade em trânsito) |
+| Perfil de Usuário                                                          | Telas / Modais |  Cliques até Ação Central   | Decisões Concorrentes | Parâmetros de Configuração | Informações Simultâneas em Tela |  Classificação de Risco Cognitivo   |
+| :------------------------------------------------------------------------- | :------------: | :-------------------------: | :-------------------: | :------------------------: | :-----------------------------: | :---------------------------------: |
+| **PASSAGEIRO** (`/app`, `/app/index.tsx`, `PassengerReviewRouteSheet.tsx`) |    4 etapas    |        5 a 8 cliques        |      6 decisões       |          3 opções          |    **14 dados simultâneos**     |   **ALTO** (Fricção no checkout)    |
+| **MOTORISTA** (`/app/motorista`, `app.motorista.tsx`)                      |    7 modais    | 1 clique (oferta) / 5 fluxo |   8 decisões em 15s   |        8 controles         |    **14 a 16 dados no card**    |   **CRÍTICO** (Segurança viária)    |
+| **ADMINISTRADOR MATRIZ** (`/app/admin/*`)                                  |   18 páginas   |         25+ cliques         |      45 decisões      |        120+ campos         |      **20+ KPIs por tela**      |  **CRÍTICO** (Fadiga operacional)   |
+| **FRANQUEADO LOCAL** (Expansão de Cidade)                                  |   18 páginas   |         60+ cliques         |      30 decisões      |     60+ campos de CSS      |    **40+ inputs de design**     |  **CRÍTICO** (Bloqueio de escala)   |
+| **ENTREGADOR / FLASH** (`deliveryPinEngine`, etc.)                         |    5 modais    |     7 cliques por ciclo     |      6 decisões       |          4 status          |    **10 dados simultâneos**     | **ALTO** (Complexidade em trânsito) |
 
 ### Diagnóstico de Vulnerabilidade Cognitiva:
-- **Motorista (CRÍTICO):** O ser humano em condução veicular possui capacidade de atenção dividida inferior a 1,8 segundos. Exigir a leitura de *valor bruto, taxa da plataforma, percentual da comissão, economia contra a Uber, fundo de proteção e endereço por extenso* viola os padrões internacionais de segurança viária (NHTSA / Contran).
-- **Franqueado (CRÍTICO):** Um operador comercial no interior de São Paulo ou do Nordeste não domina conceitos como *`border-radius rem`, `hsl color curves` ou `shadow elevation tokens`*. A configuração atual exige conhecimento de engenheiro front-end para trocar uma cor de marca.
+
+- **Motorista (CRÍTICO):** O ser humano em condução veicular possui capacidade de atenção dividida inferior a 1,8 segundos. Exigir a leitura de _valor bruto, taxa da plataforma, percentual da comissão, economia contra a Uber, fundo de proteção e endereço por extenso_ viola os padrões internacionais de segurança viária (NHTSA / Contran).
+- **Franqueado (CRÍTICO):** Um operador comercial no interior de São Paulo ou do Nordeste não domina conceitos como _`border-radius rem`, `hsl color curves` ou `shadow elevation tokens`_. A configuração atual exige conhecimento de engenheiro front-end para trocar uma cor de marca.
 
 ---
 
@@ -69,20 +73,24 @@ graph TD
 ### Lista Forense de Ações Estruturadas:
 
 #### 1. REMOVER (Eliminação Imediata de Código Obsoleto)
+
 - **Remover cálculo de economia vs Uber do card de oferta de corrida:** O motorista não precisa comparar concorrentes durante os 15 segundos de decisão de aceite. A métrica de economia pertence exclusivamente ao extrato consolidado semanal da carteira.
 - **Remover exibição de saldo do Fundo de Proteção do HUD principal do condutor:** Dado contábil passivo que ocupa espaço vertical nobre no mapa.
 - **Remover etapa obrigatória de ajuste fino de pino no mapa para o passageiro:** Se a precisão do GPS for inferior a 25 metros, pular diretamente para a busca de motoristas.
-- **Remover seletores de escala tipográfica e raio de borda em pixels do painel White Label:** O franqueado escolhe um estilo de layout pré-balanceado (*Moderno, Compacto ou Arredondado*); o motor calcula as variáveis internamente.
+- **Remover seletores de escala tipográfica e raio de borda em pixels do painel White Label:** O franqueado escolhe um estilo de layout pré-balanceado (_Moderno, Compacto ou Arredondado_); o motor calcula as variáveis internamente.
 
 #### 2. UNIFICAR (Consolidação de Módulos Duplicados)
+
 - **Unificar `app.admin.configuracoes.tsx` e `app.admin.monetizacao.tsx`:** Todas as regras monetárias (tarifa base por KM, taxa de comissão por plano, regras de carência) devem residir em uma única visão: `Gestão de Tarifas & Planos`.
 - **Unificar `app.admin.caixa.tsx` e `app.admin.financeiro.tsx`:** Conciliação bancária diária e controle de saques PIX D+0 operam sobre a mesma tabela de ledger e devem compor um único painel financeiro consolidado.
 
 #### 3. OCULTAR (Aplicação Estrita de Progressive Disclosure)
+
 - **Ocultar opções avançadas de corrida do passageiro:** Trajeto com parada, escolha de troco em espécie, maquininha do condutor e viagem para terceiros devem ficar recolhidos sob um link discreto `Opções adicionais`, revelado apenas sob demanda.
 - **Ocultar chaves de infraestrutura técnica no Admin:** Tokens Mapbox/Google, timeouts de webhooks e parâmetros de DNS devem ficar sob aba colapsada `Configurações Avançadas de Sistema (Modo Desenvolvedor)`.
 
 #### 4. AUTOMATIZAR (Eliminação de Trabalho Manual Humano)
+
 - **Aprovação de Motoristas:** Substituir fila manual por leitura OCR de CNH e consulta assíncrona automática via webhook.
 - **Liberação de Saques PIX:** Fila 100% automatizada com validação de invariantes contábeis de saldo e antifraude, eliminando o botão de aprovação manual para cada solicitação de saque.
 
@@ -91,7 +99,8 @@ graph TD
 ## FASE 3 — SIMPLIFICAÇÃO RADICAL DO MOTORISTA
 
 ### A Pergunta de Ouro:
-> *"O motorista realmente precisa ver isso enquanto conduz um veículo a 50 km/h no trânsito?"*  
+
+> _"O motorista realmente precisa ver isso enquanto conduz um veículo a 50 km/h no trânsito?"_  
 > **Resposta do Comitê:** **ABSOLUTAMENTE NÃO.**
 
 ### Comparativo Forense do Card de Chamada (15 Segundos):
@@ -125,6 +134,7 @@ PROPOSTA DE COCKPIT LIMPO PADRÃO UBER / 99 (APENAS 4 ELEMENTOS VITAIS):
 ```
 
 ### Regras de Ouro da Tela Limpa do Motorista:
+
 1. **Tipografia de Impacto em Trânsito:** O valor líquido que entra no bolso do motorista deve ser exibido em `32px font-black`.
 2. **Endereços Inteligentes:** Exibir apenas o nome da via principal e o bairro de embarque/desembarque. O motorista não tem capacidade de ler o CEP ou o número predial enquanto dirige; o aplicativo de navegação GPS (Google Maps / Waze / Nativo) guiará curva a curva após o aceite.
 3. **Ergonomia de Aceite 1-Tap:** Botão de aceite ocupando toda a largura horizontal inferior com altura mínima de 64px, permitindo clique sem necessidade de precisão tátil fina.
@@ -154,8 +164,9 @@ sequenceDiagram
 ```
 
 ### O Que Está Atrapalhando o Passageiro Hoje:
+
 1. **Exposição Prematura de Opções de Troco e Dinheiro:** Se o passageiro cadastrou cartão ou prefere PIX, a tela não deve exibir seletores de cédulas (R$ 20, R$ 50, R$ 100).
-2. **Modo "Viajar com Outra Pessoa" Ativo por Padrão:** O seletor *Para mim / Outra pessoa* ocupa 45px verticais. Deve ser recolhido para o perfil ou acionado somente via atalho.
+2. **Modo "Viajar com Outra Pessoa" Ativo por Padrão:** O seletor _Para mim / Outra pessoa_ ocupa 45px verticais. Deve ser recolhido para o perfil ou acionado somente via atalho.
 3. **Interrupção de Pino de Embarque:** O sistema exige que o usuário aprove o pino no mapa em uma tela secundária. A lógica moderna fixa o pino automaticamente nas coordenadas do GPS com maior raio de precisão e permite ajuste apenas se o usuário deliberadamente tocar no mapa.
 
 ---
@@ -217,7 +228,8 @@ O estúdio White Label (`app.admin.whitelabel.tsx`) possui atualmente 8 abas e m
 |                     [ PUBLICAR E ATIVAR CIDADE AGORA ]                        |
 +-------------------------------------------------------------------------------+
 ```
-*Tempo total de preenchimento cronometrado em teste cego:* **11 minutos e 40 segundos**.
+
+_Tempo total de preenchimento cronometrado em teste cego:_ **11 minutos e 40 segundos**.
 
 ---
 
@@ -225,13 +237,13 @@ O estúdio White Label (`app.admin.whitelabel.tsx`) possui atualmente 8 abas e m
 
 1. **Eliminação de Polling no Cockpit do Motorista:**
    - Em `src/routes/app.motorista.tsx`, há checagem contínua de ganhos e histórico via polling síncrono.
-   - *Ação:* Migrar para assinatura reativa via Supabase Realtime / WebSocket, atualizando o saldo apenas no evento `TRIP_COMPLETED`.
+   - _Ação:_ Migrar para assinatura reativa via Supabase Realtime / WebSocket, atualizando o saldo apenas no evento `TRIP_COMPLETED`.
 2. **Desfragmentação de Listeners de Eventos:**
    - O radar de chamadas, o medidor de tempo de espera e o rastreador de telemetria operam listeners independentes no `window`.
-   - *Ação:* Consolidar no hook unificado de sessão do motorista (`useDriverSession`).
+   - _Ação:_ Consolidar no hook unificado de sessão do motorista (`useDriverSession`).
 3. **Renderização Condicional de Modais:**
    - Os 7 modais de suporte (Regularização, Economia, Saque PIX, Perfil, Devolução, Planos, Detalhes) residem instanciados na árvore DOM mesmo fechados.
-   - *Ação:* Aplicar montagem dinâmica condicional (`{isOpen && <ModalLazy />}`) com suspense.
+   - _Ação:_ Aplicar montagem dinâmica condicional (`{isOpen && <ModalLazy />}`) com suspense.
 
 ---
 
@@ -255,12 +267,13 @@ graph LR
 ```
 
 ### Diagnóstico de Gargalos Críticos:
+
 1. **Gargalo 1: Fila de Cadastro de Condutores (`app.admin.aprovacoes.tsx`):**  
    Uma equipe de suporte precisaria de 45 atendentes dedicados apenas para abrir PDFs de CNH e CRLV.  
-   *Solução Obrigatória:* Webhook de validação automatizada de CNH com OCR inteligente; o operador humano atua apenas em exceções (menos de 3% dos casos).
+   _Solução Obrigatória:_ Webhook de validação automatizada de CNH com OCR inteligente; o operador humano atua apenas em exceções (menos de 3% dos casos).
 2. **Gargalo 2: Liberação de Saques PIX (`app.admin.financeiro.tsx`):**  
    Atualmente, saques podem exigir auditoria manual. Com 100k motoristas sacando D+0, o sistema sofrerá fila infinita.  
-   *Solução Obrigatória:* O payout PIX deve ser disparado por background job idempotente no instante em que o motorista solicitar, validado pelas regras contábeis do ledger em nível de banco de dados.
+   _Solução Obrigatória:_ O payout PIX deve ser disparado por background job idempotente no instante em que o motorista solicitar, validado pelas regras contábeis do ledger em nível de banco de dados.
 
 ---
 
@@ -268,15 +281,15 @@ graph LR
 
 Avaliação forense ponderada pelo Comitê Executivo (Escala 0 a 10):
 
-| Dimensão Avaliada | Nota Atual | Meta Pós-Simplificação | Justificativa Técnica |
-| :--- | :---: | :---: | :--- |
-| **Simplicidade Geral da Plataforma** | **6.2 / 10** | **9.4 / 10** | Plataforma rica em recursos, porém sobrecarregada na apresentação visual. |
-| **Simplicidade do Motorista** | **5.4 / 10** | **9.6 / 10** | Card de oferta com 14 dados em trânsito; risco de distração viária grave. |
-| **Simplicidade do Passageiro** | **7.1 / 10** | **9.5 / 10** | Checkout exibe opções de dinheiro e paradas sem necessidade. |
-| **Simplicidade do Administrador** | **4.8 / 10** | **9.0 / 10** | 18 telas desarticuladas e duplicidade de formulários de tarifas. |
-| **Simplicidade do White Label** | **5.0 / 10** | **9.2 / 10** | Complexidade excessiva de CSS; falta assistente de 4 passos. |
-| **Complexidade Operacional (Menor = Melhor)** | **7.8 / 10** | **2.1 / 10** | Dependência de aprovação manual humana em cadastros e finanças. |
-| **Preparação para Escala Nacional** | **5.5 / 10** | **9.8 / 10** | Código do backend é escalável, mas as filas humanas bloqueiam o crescimento. |
+| Dimensão Avaliada                             |  Nota Atual  | Meta Pós-Simplificação | Justificativa Técnica                                                        |
+| :-------------------------------------------- | :----------: | :--------------------: | :--------------------------------------------------------------------------- |
+| **Simplicidade Geral da Plataforma**          | **6.2 / 10** |      **9.4 / 10**      | Plataforma rica em recursos, porém sobrecarregada na apresentação visual.    |
+| **Simplicidade do Motorista**                 | **5.4 / 10** |      **9.6 / 10**      | Card de oferta com 14 dados em trânsito; risco de distração viária grave.    |
+| **Simplicidade do Passageiro**                | **7.1 / 10** |      **9.5 / 10**      | Checkout exibe opções de dinheiro e paradas sem necessidade.                 |
+| **Simplicidade do Administrador**             | **4.8 / 10** |      **9.0 / 10**      | 18 telas desarticuladas e duplicidade de formulários de tarifas.             |
+| **Simplicidade do White Label**               | **5.0 / 10** |      **9.2 / 10**      | Complexidade excessiva de CSS; falta assistente de 4 passos.                 |
+| **Complexidade Operacional (Menor = Melhor)** | **7.8 / 10** |      **2.1 / 10**      | Dependência de aprovação manual humana em cadastros e finanças.              |
+| **Preparação para Escala Nacional**           | **5.5 / 10** |      **9.8 / 10**      | Código do backend é escalável, mas as filas humanas bloqueiam o crescimento. |
 
 ---
 
@@ -290,14 +303,14 @@ P1 (CURTO PRAZO - 1 A 2 SEMANAS) -> Consolidação Admin & Assistente White Labe
 P2 (MÉDIO PRAZO - 3 A 4 SEMANAS) -> Automação Total de Escala Nacional
 ```
 
-| Nível | Arquivo Alvo | Problema Identificado | Impacto Operacional | Solução Técnica | ROI Esperado | Esforço |
-| :---: | :--- | :--- | :--- | :--- | :---: | :---: |
-| **P0** | `src/routes/app.motorista.tsx` | Card de oferta com 14 dados concorrentes em 15s. | Perigo viário para condutores; rejeição de corridas por confusão mental. | Reduzir para 4 dados: Valor Líquido (32px), Km/Min, Bairros e Nota. | **+35% na taxa de aceite** | Baixo (2h) |
-| **P0** | `src/components/passenger/PassengerReviewRouteSheet.tsx` | Exibição simultânea de troco, maquininha e parada. | Abandono de corrida no checkout; sensação de aplicativo complexo. | Ocultar edge-cases sob botão colapsado "Mais opções". | **-40% no tempo de checkout** | Baixo (2h) |
-| **P1** | `src/routes/app.admin.whitelabel.tsx` | 60+ inputs de CSS de baixo nível expostos a franqueados. | Franqueados desistem ou configuram layouts quebrados. | Implementar Assistente Expresso de 4 Passos no topo com presets. | **Onboarding em < 15 min** | Médio (4h) |
-| **P1** | `src/routes/app.admin.configuracoes.tsx` e `app.admin.monetizacao.tsx` | Duplicação de configuração de taxas e tarifas em telas distintas. | Divergência de valores de comissão e cobrança incorreta. | Unificar em Hub Único de Tarifas com Modo Essencial vs Avançado. | **Zero divergência contábil** | Médio (4h) |
-| **P2** | `src/routes/app.admin.aprovacoes.tsx` | Fila manual de validação de documentos CNH/CRLV. | Gargalo de suporte humano intransponível acima de 1.000 condutores. | Integrar OCR assíncrono com aprovação automática em 60 segundos. | **-90% no custo operacional de suporte** | Alto (8h) |
-| **P2** | `src/routes/app.admin.financeiro.tsx` | Payouts PIX com intervenção manual de operador. | Risco de paralisação em fins de semana e feriados. | Automação total de saques via ledger idempotente e antifraude. | **Escala 24/7 sem operadores** | Alto (6h) |
+| Nível  | Arquivo Alvo                                                           | Problema Identificado                                             | Impacto Operacional                                                      | Solução Técnica                                                     |               ROI Esperado               |  Esforço   |
+| :----: | :--------------------------------------------------------------------- | :---------------------------------------------------------------- | :----------------------------------------------------------------------- | :------------------------------------------------------------------ | :--------------------------------------: | :--------: |
+| **P0** | `src/routes/app.motorista.tsx`                                         | Card de oferta com 14 dados concorrentes em 15s.                  | Perigo viário para condutores; rejeição de corridas por confusão mental. | Reduzir para 4 dados: Valor Líquido (32px), Km/Min, Bairros e Nota. |        **+35% na taxa de aceite**        | Baixo (2h) |
+| **P0** | `src/components/passenger/PassengerReviewRouteSheet.tsx`               | Exibição simultânea de troco, maquininha e parada.                | Abandono de corrida no checkout; sensação de aplicativo complexo.        | Ocultar edge-cases sob botão colapsado "Mais opções".               |      **-40% no tempo de checkout**       | Baixo (2h) |
+| **P1** | `src/routes/app.admin.whitelabel.tsx`                                  | 60+ inputs de CSS de baixo nível expostos a franqueados.          | Franqueados desistem ou configuram layouts quebrados.                    | Implementar Assistente Expresso de 4 Passos no topo com presets.    |        **Onboarding em < 15 min**        | Médio (4h) |
+| **P1** | `src/routes/app.admin.configuracoes.tsx` e `app.admin.monetizacao.tsx` | Duplicação de configuração de taxas e tarifas em telas distintas. | Divergência de valores de comissão e cobrança incorreta.                 | Unificar em Hub Único de Tarifas com Modo Essencial vs Avançado.    |      **Zero divergência contábil**       | Médio (4h) |
+| **P2** | `src/routes/app.admin.aprovacoes.tsx`                                  | Fila manual de validação de documentos CNH/CRLV.                  | Gargalo de suporte humano intransponível acima de 1.000 condutores.      | Integrar OCR assíncrono com aprovação automática em 60 segundos.    | **-90% no custo operacional de suporte** | Alto (8h)  |
+| **P2** | `src/routes/app.admin.financeiro.tsx`                                  | Payouts PIX com intervenção manual de operador.                   | Risco de paralisação em fins de semana e feriados.                       | Automação total de saques via ledger idempotente e antifraude.      |      **Escala 24/7 sem operadores**      | Alto (6h)  |
 
 ---
 
@@ -306,6 +319,7 @@ P2 (MÉDIO PRAZO - 3 A 4 SEMANAS) -> Automação Total de Escala Nacional
 A plataforma PARTIU possui fundações de engenharia sólidas e uma infraestrutura resiliente. A presente auditoria forense não recomenda adição de código ou infraestrutura, mas sim **limpeza radical de atrito visual e automação de processos humanos repetitivos**.
 
 Ao implementar este plano de simplificação:
+
 1. O **passageiro** pedirá seu transporte em 4 toques e menos de 8 segundos.
 2. O **motorista** terá segurança viária absoluta, tomando decisões de aceite com um bater de olhos.
 3. O **franqueado** lançará uma nova cidade em 11 minutos.

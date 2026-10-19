@@ -103,7 +103,11 @@ export class RevenueNotificationEngine {
   /**
    * 5. Upgrade Disponível (Oportunidade de Maior Margem)
    */
-  public notifyUpgradeAvailable(payload: { driverId: string; suggestedPlan: string; potentialSavingsBrl: number }): void {
+  public notifyUpgradeAvailable(payload: {
+    driverId: string;
+    suggestedPlan: string;
+    potentialSavingsBrl: number;
+  }): void {
     salvarNotificacaoBroadcast({
       id: `NOTIF-UPG-${Date.now()}`,
       titulo: `🚀 Economize até R$ ${payload.potentialSavingsBrl.toFixed(2)} mudando para o Plano ${payload.suggestedPlan}`,

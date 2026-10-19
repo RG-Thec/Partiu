@@ -84,7 +84,11 @@ export class LiveTrackingEngine {
   /**
    * Recebe nova telemetria do motorista (via Supabase Realtime ou GPS nativo)
    */
-  public pushUpdate(newCoords: [number, number], bearing?: number, durationMs: number = 3000): void {
+  public pushUpdate(
+    newCoords: [number, number],
+    bearing?: number,
+    durationMs: number = 3000,
+  ): void {
     const now = Date.now();
     const newLng = newCoords[0];
     const newLat = newCoords[1];
@@ -106,7 +110,7 @@ export class LiveTrackingEngine {
       this.currentPos.lat,
       this.currentPos.lng,
       newLat,
-      newLng
+      newLng,
     );
 
     if (distMeters > 500) {
@@ -166,7 +170,7 @@ export class LiveTrackingEngine {
     const interpolatedBearing = this.lerpAngle(
       this.previousPos.bearing,
       this.targetPos.bearing,
-      eased
+      eased,
     );
 
     this.currentPos = {
@@ -202,12 +206,7 @@ export class LiveTrackingEngine {
     return (startAngle + diff * t + 360) % 360;
   }
 
-  private calculateHaversineMeters(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ): number {
+  private calculateHaversineMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371e3; // Raio da Terra em metros
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
@@ -239,7 +238,7 @@ export class LiveTrackingEngine {
       window.dispatchEvent(
         new CustomEvent("partiu:smooth_tracking_position", {
           detail: pos,
-        })
+        }),
       );
     }
   }

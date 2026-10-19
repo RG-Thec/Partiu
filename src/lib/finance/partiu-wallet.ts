@@ -1,6 +1,6 @@
 /**
  * PARTIU MONEY — CARTEIRA DIGITAL NATIVA & SPLIT FINANCEIRO
- * 
+ *
  * Infraestrutura de carteira digital e split automático de transações:
  * - Carteira Digital Multiusuário (Motoristas, Passageiros e Plataforma)
  * - Gestão de Saldos: Total, Disponível, Pendente e Cashback
@@ -11,21 +11,20 @@
 import { transactionalLedger } from "../fintech-hardened/transactional-ledger";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
-
-export type WalletUserType = 'DRIVER' | 'PASSENGER' | 'MERCHANT' | 'PLATFORM_TREASURY';
+export type WalletUserType = "DRIVER" | "PASSENGER" | "MERCHANT" | "PLATFORM_TREASURY";
 
 export type TransactionType =
-  | 'RIDE_PAYMENT'
-  | 'RIDE_SPLIT_CREDIT'
-  | 'RIDE_SPLIT_PLATFORM_FEE'
-  | 'PIX_CASH_IN'
-  | 'PIX_CASH_OUT'
-  | 'CASHBACK_EARNED'
-  | 'CASHBACK_REDEEMED'
-  | 'PROMOTIONAL_BONUS'
-  | 'FUEL_ASSISTANCE_CREDIT'
-  | 'MICROCREDIT_DISBURSEMENT'
-  | 'MICROCREDIT_REPAYMENT';
+  | "RIDE_PAYMENT"
+  | "RIDE_SPLIT_CREDIT"
+  | "RIDE_SPLIT_PLATFORM_FEE"
+  | "PIX_CASH_IN"
+  | "PIX_CASH_OUT"
+  | "CASHBACK_EARNED"
+  | "CASHBACK_REDEEMED"
+  | "PROMOTIONAL_BONUS"
+  | "FUEL_ASSISTANCE_CREDIT"
+  | "MICROCREDIT_DISBURSEMENT"
+  | "MICROCREDIT_REPAYMENT";
 
 export interface WalletTransaction {
   transactionId: string;
@@ -40,19 +39,19 @@ export interface WalletTransaction {
   description: string;
   metadata?: Record<string, any>;
   timestamp: number;
-  status: 'COMPLETED' | 'PENDING' | 'REVERSED' | 'FAILED';
+  status: "COMPLETED" | "PENDING" | "REVERSED" | "FAILED";
 }
 
 export interface DigitalWallet {
   walletId: string;
   userId: string;
   userType: WalletUserType;
-  currency: 'BRL';
+  currency: "BRL";
   balance: number; // Saldo total contábil
   availableBalance: number; // Saldo livre para saque instantâneo
   pendingBalance: number; // Saldo em liquidação ou caução
   cashbackBalance: number; // Saldo de recompensas aplicável em corridas
-  status: 'ACTIVE' | 'FROZEN' | 'SUSPENDED';
+  status: "ACTIVE" | "FROZEN" | "SUSPENDED";
   chavePixCadastrada?: string;
   createdAt: number;
   updatedAt: number;
@@ -68,7 +67,7 @@ export interface RideSplitResult {
   platformWalletBalanceAfter: number;
   passengerCashbackBalanceAfter: number;
   timestamp: number;
-  status: 'SETTLED_INSTANT';
+  status: "SETTLED_INSTANT";
 }
 
 export class PartiuWalletEngine {
@@ -78,7 +77,7 @@ export class PartiuWalletEngine {
 
   constructor() {
     // Inicialização da Carteira Master da Tesouraria PARTIU
-    this.createWallet('treasury-master', 'PLATFORM_TREASURY', 0.0);
+    this.createWallet("treasury-master", "PLATFORM_TREASURY", 0.0);
   }
 
   /**
@@ -92,20 +91,24 @@ export class PartiuWalletEngine {
     return wallet;
   }
 
-  private createWallet(userId: string, userType: WalletUserType, initialBalance = 0): DigitalWallet {
+  private createWallet(
+    userId: string,
+    userType: WalletUserType,
+    initialBalance = 0,
+  ): DigitalWallet {
     const timestamp = Date.now();
     const wallet: DigitalWallet = {
       walletId: `WLT-${userType.substring(0, 3)}-${userId}`,
       userId,
       userType,
-      currency: 'BRL',
+      currency: "BRL",
       balance: initialBalance,
       availableBalance: initialBalance,
       pendingBalance: 0,
       cashbackBalance: 0,
-      status: 'ACTIVE',
+      status: "ACTIVE",
       createdAt: timestamp,
-      updatedAt: timestamp
+      updatedAt: timestamp,
     };
     this.wallets.set(userId, wallet);
     this.transactions.set(wallet.walletId, []);
@@ -132,9 +135,9 @@ export class PartiuWalletEngine {
     const idempotency = `SPLIT-${params.idempotencyKey}`;
     if (this.processedIdempotencyKeys.has(idempotency)) {
       // Idempotência garantida: previne crédito duplicado
-      const driverWallet = this.getOrCreateWallet(params.driverId, 'DRIVER');
-      const treasuryWallet = this.getOrCreateWallet('treasury-master', 'PLATFORM_TREASURY');
-      const passWallet = this.getOrCreateWallet(params.passengerId, 'PASSENGER');
+      const driverWallet = this.getOrCreateWallet(params.driverId, "DRIVER");
+      const treasuryWallet = this.getOrCreateWallet("treasury-master", "PLATFORM_TREASURY");
+      const passWallet = this.getOrCreateWallet(params.passengerId, "PASSENGER");
       const cachedPlatformShare = Number(((params.totalAmountBrl * takeRate) / 100.0).toFixed(2));
       const cachedDriverShare = Number((params.totalAmountBrl - cachedPlatformShare).toFixed(2));
       return {
@@ -147,7 +150,7 @@ export class PartiuWalletEngine {
         platformWalletBalanceAfter: treasuryWallet.availableBalance,
         passengerCashbackBalanceAfter: passWallet.cashbackBalance,
         timestamp: Date.now(),
-        status: 'SETTLED_INSTANT'
+        status: "SETTLED_INSTANT",
       };
     }
 
@@ -155,9 +158,9 @@ export class PartiuWalletEngine {
     const driverShare = Number((params.totalAmountBrl - platformShare).toFixed(2));
     const cashback = Number(((params.totalAmountBrl * cashbackRate) / 100.0).toFixed(2));
 
-    const driverWallet = this.getOrCreateWallet(params.driverId, 'DRIVER');
-    const treasuryWallet = this.getOrCreateWallet('treasury-master', 'PLATFORM_TREASURY');
-    const passengerWallet = this.getOrCreateWallet(params.passengerId, 'PASSENGER');
+    const driverWallet = this.getOrCreateWallet(params.driverId, "DRIVER");
+    const treasuryWallet = this.getOrCreateWallet("treasury-master", "PLATFORM_TREASURY");
+    const passengerWallet = this.getOrCreateWallet(params.passengerId, "PASSENGER");
 
     const now = Date.now();
 
@@ -169,7 +172,7 @@ export class PartiuWalletEngine {
       transactionId: `TX-DRV-${params.rideId}`,
       walletId: driverWallet.walletId,
       userId: params.driverId,
-      type: 'RIDE_SPLIT_CREDIT',
+      type: "RIDE_SPLIT_CREDIT",
       amountBrl: driverShare,
       feeBrl: 0,
       netAmountBrl: driverShare,
@@ -177,7 +180,7 @@ export class PartiuWalletEngine {
       idempotencyKey: `${idempotency}-DRV`,
       description: `Repasse líquido corrida ${params.rideId}`,
       timestamp: now,
-      status: 'COMPLETED'
+      status: "COMPLETED",
     });
 
     // 2. Crédito da taxa de serviço na tesouraria da plataforma
@@ -187,8 +190,8 @@ export class PartiuWalletEngine {
     this.recordTransaction({
       transactionId: `TX-TRZ-${params.rideId}`,
       walletId: treasuryWallet.walletId,
-      userId: 'treasury-master',
-      type: 'RIDE_SPLIT_PLATFORM_FEE',
+      userId: "treasury-master",
+      type: "RIDE_SPLIT_PLATFORM_FEE",
       amountBrl: platformShare,
       feeBrl: 0,
       netAmountBrl: platformShare,
@@ -196,7 +199,7 @@ export class PartiuWalletEngine {
       idempotencyKey: `${idempotency}-TRZ`,
       description: `Taxa da plataforma (${takeRate}%) corrida ${params.rideId}`,
       timestamp: now,
-      status: 'COMPLETED'
+      status: "COMPLETED",
     });
 
     // 3. Crédito de cashback promocional na carteira do passageiro
@@ -207,7 +210,7 @@ export class PartiuWalletEngine {
         transactionId: `TX-CSH-${params.rideId}`,
         walletId: passengerWallet.walletId,
         userId: params.passengerId,
-        type: 'CASHBACK_EARNED',
+        type: "CASHBACK_EARNED",
         amountBrl: cashback,
         feeBrl: 0,
         netAmountBrl: cashback,
@@ -215,7 +218,7 @@ export class PartiuWalletEngine {
         idempotencyKey: `${idempotency}-CSH`,
         description: `Cashback ${cashbackRate}% corrida ${params.rideId}`,
         timestamp: now,
-        status: 'COMPLETED'
+        status: "COMPLETED",
       });
     }
 
@@ -231,28 +234,30 @@ export class PartiuWalletEngine {
         description: `Split Contábil da Corrida ${params.rideId}`,
         postings: [
           {
-            accountId: '2.1.01_ESCROW_TRIPS',
-            entryType: 'DEBIT',
+            accountId: "2.1.01_ESCROW_TRIPS",
+            entryType: "DEBIT",
             amountCents: totalCents,
-            description: `Liberação de custódia da corrida ${params.rideId}`
+            description: `Liberação de custódia da corrida ${params.rideId}`,
           },
           {
-            accountId: '2.1.02_DRIVER_PAYABLE',
-            entryType: 'CREDIT',
+            accountId: "2.1.02_DRIVER_PAYABLE",
+            entryType: "CREDIT",
             amountCents: driverCents,
-            description: `Repasse líquido D+0 motorista ${params.driverId}`
+            description: `Repasse líquido D+0 motorista ${params.driverId}`,
           },
           {
-            accountId: '3.1.01_PLATFORM_TAKE_RATE',
-            entryType: 'CREDIT',
+            accountId: "3.1.01_PLATFORM_TAKE_RATE",
+            entryType: "CREDIT",
             amountCents: platformCents,
-            description: `Taxa de serviço plataforma PARTIU (${takeRate}%)`
-          }
-        ]
+            description: `Taxa de serviço plataforma PARTIU (${takeRate}%)`,
+          },
+        ],
       });
       // Postagem assíncrona garantindo consistência
       void transactionalLedger.commitTransaction(prep.transactionId).catch(() => {});
-    } catch (err) { silentCatchWarn("partiu-wallet", err); }
+    } catch (err) {
+      silentCatchWarn("partiu-wallet", err);
+    }
 
     this.processedIdempotencyKeys.add(idempotency);
 
@@ -266,7 +271,7 @@ export class PartiuWalletEngine {
       platformWalletBalanceAfter: treasuryWallet.availableBalance,
       passengerCashbackBalanceAfter: passengerWallet.cashbackBalance,
       timestamp: now,
-      status: 'SETTLED_INSTANT'
+      status: "SETTLED_INSTANT",
     };
   }
 
@@ -282,11 +287,14 @@ export class PartiuWalletEngine {
   /**
    * Obtém o extrato financeiro completo de uma carteira
    */
-  public getWalletStatement(userId: string, limit = 50): {
+  public getWalletStatement(
+    userId: string,
+    limit = 50,
+  ): {
     wallet: DigitalWallet;
     transactions: WalletTransaction[];
   } {
-    const wallet = this.getOrCreateWallet(userId, 'DRIVER');
+    const wallet = this.getOrCreateWallet(userId, "DRIVER");
     const txs = (this.transactions.get(wallet.walletId) || []).slice(0, limit);
     return { wallet, transactions: txs };
   }

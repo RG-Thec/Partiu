@@ -32,7 +32,6 @@ import { reverseGeocodingService } from "@/services/ReverseGeocodingService";
 import { UserService } from "@/services/UserService";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
-
 export interface EnderecoRecenteItem {
   id: string;
   endereco: string;
@@ -121,7 +120,9 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(salvo);
         if (Array.isArray(parsed)) return parsed;
       }
-    } catch (err) { silentCatchWarn("DeliveryContext", err); }
+    } catch (err) {
+      silentCatchWarn("DeliveryContext", err);
+    }
     return [];
   });
 
@@ -140,7 +141,8 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
       try {
         const perfil = await UserService.getInstance().getCurrentUserProfile();
         const nomePax = perfil?.name || localStorage.getItem("partiu_user_nome") || "";
-        const telPax = perfil?.phone?.replace(/\D/g, "") || localStorage.getItem("partiu_user_telefone") || "";
+        const telPax =
+          perfil?.phone?.replace(/\D/g, "") || localStorage.getItem("partiu_user_telefone") || "";
 
         if (typeof navigator !== "undefined" && navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(
@@ -149,7 +151,9 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
               const coords: [number, number] = [pos.coords.longitude, pos.coords.latitude];
               try {
                 const revResult = await reverseGeocodingService.reverseGeocode(coords);
-                const enderecoGps = revResult?.formattedAddress || (await geocodingService.geocodificarReverso(coords));
+                const enderecoGps =
+                  revResult?.formattedAddress ||
+                  (await geocodingService.geocodificarReverso(coords));
                 if (enderecoGps && ativo) {
                   try {
                     localStorage.setItem("partiu_saved_origin_address", enderecoGps);
@@ -166,19 +170,27 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
                   };
                   setLocalizacaoUsuario(pontoAtualizado);
                   setOrigem((prev) => {
-                    if (abaAcao === "enviar" && (!prev.endereco || prev.endereco === "Localizando via GPS...")) {
+                    if (
+                      abaAcao === "enviar" &&
+                      (!prev.endereco || prev.endereco === "Localizando via GPS...")
+                    ) {
                       return pontoAtualizado;
                     }
                     return prev;
                   });
                   setDestino((prev) => {
-                    if (abaAcao === "receber" && (!prev.endereco || prev.endereco === "Localizando via GPS...")) {
+                    if (
+                      abaAcao === "receber" &&
+                      (!prev.endereco || prev.endereco === "Localizando via GPS...")
+                    ) {
                       return pontoAtualizado;
                     }
                     return prev;
                   });
                 }
-              } catch (err) { silentCatchWarn("DeliveryContext", err); }
+              } catch (err) {
+                silentCatchWarn("DeliveryContext", err);
+              }
             },
             (geoErr) => {
               silentCatchWarn("DeliveryContext:GPS", geoErr);
@@ -194,10 +206,12 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
                 setOrigem(fallback);
               }
             },
-            { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 }
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 },
           );
         }
-      } catch (err) { silentCatchWarn("DeliveryContext", err); }
+      } catch (err) {
+        silentCatchWarn("DeliveryContext", err);
+      }
     }
 
     detectarLocalizacao();
@@ -221,7 +235,7 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
         setDestino(localizacaoUsuario);
       }
     },
-    [localizacaoUsuario]
+    [localizacaoUsuario],
   );
 
   // Ordem ativa e ciclo de vida
@@ -250,15 +264,10 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
     let distanciaKm = 5.2;
     let duracaoMin = 16;
 
-    if (
-      origem.latitude &&
-      origem.longitude &&
-      destino.latitude &&
-      destino.longitude
-    ) {
+    if (origem.latitude && origem.longitude && destino.latitude && destino.longitude) {
       const distLinhaReta = calculateHaversineKm(
         { latitude: origem.latitude, longitude: origem.longitude },
-        { latitude: destino.latitude, longitude: destino.longitude }
+        { latitude: destino.latitude, longitude: destino.longitude },
       );
       // Fator de malha urbana real (1.35) com piso de 1.0 km
       distanciaKm = Math.max(1.0, Number((distLinhaReta * 1.35).toFixed(1)));
@@ -310,7 +319,7 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
       if (info.endereco && info.contatoNome) {
         setEnderecosRecentes((prev) => {
           const filtrados = prev.filter(
-            (r) => r.endereco.trim().toLowerCase() !== info.endereco.trim().toLowerCase()
+            (r) => r.endereco.trim().toLowerCase() !== info.endereco.trim().toLowerCase(),
           );
           const novoRecente: EnderecoRecenteItem = {
             id: `rec-${Date.now()}`,
@@ -324,14 +333,16 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
           const listaAtualizada = [novoRecente, ...filtrados].slice(0, 10);
           try {
             localStorage.setItem(STORAGE_KEY_RECENTS, JSON.stringify(listaAtualizada));
-          } catch (err) { silentCatchWarn("DeliveryContext", err); }
+          } catch (err) {
+            silentCatchWarn("DeliveryContext", err);
+          }
           return listaAtualizada;
         });
       }
 
       setIsAddressModalOpen(false);
     },
-    [addressModalTarget]
+    [addressModalTarget],
   );
 
   // Iniciar Nova Ordem de Entrega (Transição SETUP -> AWAITING_PICKUP com PIN 1 & PIN 2)
@@ -408,7 +419,7 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
       }
       return { sucesso: resultado.sucesso, mensagem: resultado.mensagem };
     },
-    [ordemAtiva]
+    [ordemAtiva],
   );
 
   // Simular Motorista Validando o PIN 1 na Coleta
@@ -438,7 +449,7 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
       }
       return { sucesso: resultado.sucesso, mensagem: resultado.mensagem };
     },
-    [ordemAtiva]
+    [ordemAtiva],
   );
 
   // Simular Motorista Validando o PIN 2 na Entrega
@@ -529,7 +540,7 @@ export function DeliveryProvider({ children }: { children: ReactNode }) {
       simularMotoristaValidarPin2,
       cancelarEntregaAtiva,
       reiniciarParaNovaEntrega,
-    ]
+    ],
   );
 
   return <DeliveryContext.Provider value={value}>{children}</DeliveryContext.Provider>;

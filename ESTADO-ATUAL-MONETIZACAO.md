@@ -40,6 +40,7 @@ Auditoria técnica do sistema de monetização da plataforma de mobilidade urban
 No repositório existem quatro catálogos de planos coexistindo em arquivos distintos:
 
 #### Catálogo A: Banco de Dados Canônico e PixBillingService
+
 - **Arquivos:** `supabase/migrations/20260909_partiu_driver_access_engine_v4.sql`, linhas 33-103 e `src/services/subscription/PixBillingService.ts`, linhas 64-131 (`monetization_plans` e `DEFAULT_MONETIZATION_PLANS`).
 - **Planos:**
   1. `plano-diaria-essencial` ("Diária Essencial - Partiu Flex"):
@@ -62,6 +63,7 @@ No repositório existem quatro catálogos de planos coexistindo em arquivos dist
      - Duração: 3 dias. Carência: 1 dia. Comissão: 0.0%.
 
 #### Catálogo B: Parametrização Super Admin e Franqueados
+
 - **Arquivo:** `src/lib/superadmin-config.ts`, linhas 180-218 (`ConfigMonetizacaoWhiteLabel` e `configMonetizacaoInicial`).
 - **Planos e Tarifas:**
   1. Diária: Carro R$ 19,90 / Moto R$ 11,90 (duração 24 horas).
@@ -70,6 +72,7 @@ No repositório existem quatro catálogos de planos coexistindo em arquivos dist
   4. Degustação (Trial): 3 dias gratuitos (`trialDias: 3`, `trialAtivo: true`).
 
 #### Catálogo C: Revenue OS Local
+
 - **Arquivo:** `src/lib/revenue/subscription-engine.ts`, linhas 84-183 (`INITIAL_DRIVER_PLANS`).
 - **Planos:**
   1. `plano-livre`: Mensalidade R$ 0,00, trial de 7 dias, comissão 0.0%.
@@ -78,6 +81,7 @@ No repositório existem quatro catálogos de planos coexistindo em arquivos dist
   4. `plano-ouro`: Diária R$ 4,90, semanal R$ 29,90, mensal R$ 99,90, comissão 0.0%.
 
 #### Catálogo D: White Label Engine Base
+
 - **Arquivo:** `src/lib/white-label/white-label-engine.ts`, linhas 363-426 (`monetization.planos`).
 - **Planos:**
   1. `plano-livre`: R$ 0,00/mês, comissão 5.0%.
@@ -159,15 +163,15 @@ No entanto, foram identificados **fluxos e estruturas ativas com retenção de c
 
 ### Mapeamento de tabelas, enums e serviços por estado
 
-| Estado | Tabela no Banco de Dados | Campo / Enum | Serviço / Função Responsável |
-|---|---|---|---|
-| **Cadastro** | `public.driver_profiles` / `public.drivers` | `status_assinatura` (`ACTIVE`) | `supabaseAuthService` e migration `20261007` |
-| **Trial** | `public.driver_subscriptions` | `cycle_type = 'TRIAL'`, `status = 'ACTIVE'` | `driverSubscriptionService.activateTrial` |
-| **Ativação** | `public.driver_subscriptions` / `public.driver_billing` | `status = 'ACTIVE'`, `status = 'PAID'` | `fn_process_driver_pix_confirmation` |
-| **Renovação** | `public.driver_subscriptions` | `status = 'ACTIVE'`, nova `expires_at` | `driverSubscriptionService.renewManually` / `fn_activate_driver_subscription` |
-| **Vencimento** | `public.driver_subscriptions` | `status = 'EXPIRED'` | `fn_driver_evaluate_access` (avaliado just-in-time) |
-| **Carência** | `public.driver_subscriptions` | `status = 'GRACE_PERIOD'` | `fn_driver_evaluate_access` e `subscriptionEngine.evaluateSubscriptionStatus` |
-| **Bloqueio** | `public.driver_subscriptions` / `public.driver_profiles` | `status = 'SUSPENDED'` / `bloqueio_inadimplencia = true` | `driverSubscriptionService.blockDriverAccess` / `subscriptionEngine` |
+| Estado         | Tabela no Banco de Dados                                 | Campo / Enum                                             | Serviço / Função Responsável                                                  |
+| -------------- | -------------------------------------------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| **Cadastro**   | `public.driver_profiles` / `public.drivers`              | `status_assinatura` (`ACTIVE`)                           | `supabaseAuthService` e migration `20261007`                                  |
+| **Trial**      | `public.driver_subscriptions`                            | `cycle_type = 'TRIAL'`, `status = 'ACTIVE'`              | `driverSubscriptionService.activateTrial`                                     |
+| **Ativação**   | `public.driver_subscriptions` / `public.driver_billing`  | `status = 'ACTIVE'`, `status = 'PAID'`                   | `fn_process_driver_pix_confirmation`                                          |
+| **Renovação**  | `public.driver_subscriptions`                            | `status = 'ACTIVE'`, nova `expires_at`                   | `driverSubscriptionService.renewManually` / `fn_activate_driver_subscription` |
+| **Vencimento** | `public.driver_subscriptions`                            | `status = 'EXPIRED'`                                     | `fn_driver_evaluate_access` (avaliado just-in-time)                           |
+| **Carência**   | `public.driver_subscriptions`                            | `status = 'GRACE_PERIOD'`                                | `fn_driver_evaluate_access` e `subscriptionEngine.evaluateSubscriptionStatus` |
+| **Bloqueio**   | `public.driver_subscriptions` / `public.driver_profiles` | `status = 'SUSPENDED'` / `bloqueio_inadimplencia = true` | `driverSubscriptionService.blockDriverAccess` / `subscriptionEngine`          |
 
 ---
 
@@ -205,6 +209,7 @@ No entanto, foram identificados **fluxos e estruturas ativas com retenção de c
 ### Webhooks recebidos de gateways de pagamento
 
 #### 1. Endpoint Server-Side: `supabase/functions/payment-webhook/index.ts`
+
 - **Origens mapeadas:** Mercado Pago, Asaas e Efí Bank.
 - **Payload esperado:**
   - Mercado Pago: `{ type: "payment", data: { id: "123456" }, action: "payment.created" }`.
@@ -219,10 +224,12 @@ No entanto, foram identificados **fluxos e estruturas ativas com retenção de c
   - Executa a RPC PostgreSQL `fn_process_driver_pix_confirmation(p_billing_id, p_gateway_reference, p_amount)`.
 
 #### 2. Engine HMAC de Referência: `src/lib/payment-webhook-engine.ts`
+
 - **Validação:** Linhas 87-143 (`verificarWebhookHmac`). Utiliza `crypto.createHmac("sha256")`, verifica janela de tolerância de 300 segundos contra Replay Attacks e realiza comparação em tempo constante via `crypto.timingSafeEqual`.
 - **Ação:** Linhas 164-177 atualizam a tabela `payment_intents` para `SUCCEEDED`.
 
 #### 3. Motor Transacional Idempotente: `src/lib/fintech-hardened/idempotent-pix.ts`
+
 - **Validação:** Linhas 52-64 (`verifyWebhookSignature`).
 - **Ação:** Linhas 69-127 (`processPixInSettlement`). Verifica duplicidade por `endToEndId`, debita conta clearing e credita custódia escrow no `transactionalLedger`.
 
@@ -247,6 +254,7 @@ No entanto, foram identificados **fluxos e estruturas ativas com retenção de c
 ### Tabelas e coleções envolvidas
 
 #### 1. Tabelas Ativas no Supabase (Driver Access Engine V4 & SaaS Pure Migration)
+
 - `public.monetization_plans`:
   - **Campos principais:** `id`, `plan_name`, `description`, `monthly_fee`, `weekly_fee`, `daily_fee`, `commission_percent`, `trial_days`, `grace_days`, `priority_weight`, `features`, `badge_color`, `is_popular`, `is_default`, `active`.
   - **Migration:** `20260909_partiu_driver_access_engine_v4.sql`, linha 12.
@@ -270,6 +278,7 @@ No entanto, foram identificados **fluxos e estruturas ativas com retenção de c
   - **Migration:** `20261003_mercadopago_settings.sql`.
 
 #### 2. Tabelas do Modelo Híbrido Anterior (Driver Revenue System V1)
+
 - `public.partiu_driver_plans` (`20260908_partiu_driver_revenue_system.sql`, linha 18).
 - `public.partiu_driver_subscriptions` (`20260908_partiu_driver_revenue_system.sql`, linha 124).
 - `public.partiu_driver_wallets` (`20260908_partiu_driver_revenue_system.sql`, linha 149).
@@ -281,6 +290,7 @@ No entanto, foram identificados **fluxos e estruturas ativas com retenção de c
 - `public.partiu_driver_revenue_metrics` (`20260908_partiu_driver_revenue_system.sql`, linha 298).
 
 #### 3. Estruturas Locais e Chaves de LocalStorage
+
 - `partiu_driver_subscriptions_store`: cache de assinaturas ativas em `driver-subscription-service.ts`.
 - `partiu_driver_subscription_accounts_store`: cache de contas SaaS de motoristas em `driver-subscription-service.ts`.
 - `partiu_driver_plans_v1`: catálogo de planos em `subscription-engine.ts`.
@@ -382,6 +392,7 @@ No entanto, foram identificados **fluxos e estruturas ativas com retenção de c
 ### Mecanismo de apuração dos cálculos
 
 > **Constatação de observabilidade:**
+>
 > - Os cálculos de KPIs **existem exclusivamente como queries e reduções ad-hoc in-process no frontend** (funções TypeScript operando sobre coleções em memória e `localStorage`).
 > - Na migration `supabase/migrations/20260908_partiu_driver_revenue_system.sql`, linhas 298-318, foi criada a tabela `public.partiu_driver_revenue_metrics` contendo colunas para MRR, ARR, GMV, Churn, LTV e CAC. Contudo, **não existe nenhuma trigger, view materializada ou job agendado no PostgreSQL inserindo snapshots históricos diários** nessa tabela.
 > - A **taxa de conversão de trial** (conversão de condutores em degustação para planos pagos) **não é calculada em nenhum ponto do código**.
@@ -425,6 +436,7 @@ No entanto, foram identificados **fluxos e estruturas ativas com retenção de c
 ## Resumo Executivo
 
 ### O que está pronto e funcional
+
 - **Geração de Pix Dinâmico Server-Side:** Edge Function integrada com a API oficial do Mercado Pago e contingência Asaas, com emissão de QR Code e Copia e Cola.
 - **Fallback Resiliente de EMV BACEN:** Algoritmo local compatível com o Banco Central que calcula o CRC-16 e gera QR Code mesmo sem gateway online.
 - **Validação Criptográfica de Webhooks:** Endpoint server-side com checagem de assinatura HMAC-SHA256, proteção anti-replay de timestamp e bloqueio fail-closed.
@@ -432,10 +444,12 @@ No entanto, foram identificados **fluxos e estruturas ativas com retenção de c
 - **Isolamento de Credenciais Bancárias:** Tabela protegida por RLS (`admin_gateway_secrets`) isolando chaves privadas de adquirentes do cliente web.
 
 ### O que está parcial
+
 - **Ciclo de Vida de Assinatura Multi-Tenant:** Implementado funcionalmente no frontend e banco, mas fragmentado entre três tabelas concorrentes e com alta dependência de `localStorage`.
 - **Pix Manual com Comprovante:** Interface de listagem, aprovação e rejeição administrativa pronta, porém os dados operam em armazenamento local sem persistência de arquivos no Supabase Storage.
 - **Trilha de Auditoria Administrativa:** Ações via webhook geram eventos em `subscription_events`, mas bloqueios e cortesias executados manualmente pelo suporte não são gravados no banco.
 
 ### O que não existe
+
 - **Jobs Agendados de Expiração e Notificação:** Inexistência de cron jobs ou workers em background no servidor para expirar planos ou disparar notificações de vencimento de forma autônoma.
 - **Cobrança Recorrente por Cartão de Crédito:** Inexistência de integração real com adquirentes para tokenização e cobrança automática em cartão, operando apenas como simulação mockada.

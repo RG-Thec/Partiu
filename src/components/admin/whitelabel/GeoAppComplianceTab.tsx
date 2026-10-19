@@ -46,13 +46,18 @@ export function GeoAppComplianceTab({
 
   // Estados de teste e visualização de chaves de mapas
   const [testandoMapa, setTestandoMapa] = useState(false);
-  const [resultadoTesteMapa, setResultadoTesteMapa] = useState<{ valid: boolean; message: string } | null>(null);
+  const [resultadoTesteMapa, setResultadoTesteMapa] = useState<{
+    valid: boolean;
+    message: string;
+  } | null>(null);
   const [mostrarToken, setMostrarToken] = useState(false);
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
+  const origin =
+    typeof window !== "undefined" ? window.location.origin : "https://partiumobe.com.br";
   const tenantId = activeTenant?.tenantId || "default";
-  const passengerUrl = tenantId && tenantId !== "default"
-    ? `${origin}/?tenant=${encodeURIComponent(tenantId)}`
-    : `${origin}/`;
+  const passengerUrl =
+    tenantId && tenantId !== "default"
+      ? `${origin}/?tenant=${encodeURIComponent(tenantId)}`
+      : `${origin}/`;
   const driverUrl = `${origin}/app/motorista?tenant=${encodeURIComponent(tenantId)}`;
 
   function handleCopiarLink(url: string, label: string) {
@@ -62,10 +67,15 @@ export function GeoAppComplianceTab({
 
   function handleCompartilharWhatsApp(url: string, tipo: "PASSAGEIRO" | "MOTORISTA") {
     const nomeApp = appConfig?.nomeAppExibicao || branding?.app_name || "PARTIU";
-    const texto = tipo === "MOTORISTA"
-      ? `🚗 Venha dirigir no aplicativo ${nomeApp}! Repasse no PIX D+0 e suporte local. Cadastre-se: ${url}`
-      : `📲 Peça sua viagem no ${nomeApp}! Mais conforto, preço justo e segurança na cidade: ${url}`;
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, "_blank", "noopener,noreferrer");
+    const texto =
+      tipo === "MOTORISTA"
+        ? `🚗 Venha dirigir no aplicativo ${nomeApp}! Repasse no PIX D+0 e suporte local. Cadastre-se: ${url}`
+        : `📲 Peça sua viagem no ${nomeApp}! Mais conforto, preço justo e segurança na cidade: ${url}`;
+    window.open(
+      `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
   }
 
   async function handleTestarChaveMapa() {
@@ -86,7 +96,10 @@ export function GeoAppComplianceTab({
         if (res.valid) toast.success(res.message);
         else toast.error(res.message);
       } else {
-        const res = { valid: true, message: "Camada gratuita CARTO/OSM ativa (sem consumo de cota)." };
+        const res = {
+          valid: true,
+          message: "Camada gratuita CARTO/OSM ativa (sem consumo de cota).",
+        };
         setResultadoTesteMapa(res);
         toast.success(res.message);
       }
@@ -117,8 +130,14 @@ export function GeoAppComplianceTab({
   }
 
   function handleGerarFaviconDaPaleta() {
-    const primary = (brand as any)?.designSystem?.paletaPrimaria?.corPrincipal || branding?.primary_color || "#FF6B00";
-    const secondary = (brand as any)?.designSystem?.paletaPrimaria?.corSecundaria || branding?.secondary_color || "#FFB800";
+    const primary =
+      (brand as any)?.designSystem?.paletaPrimaria?.corPrincipal ||
+      branding?.primary_color ||
+      "#FF6B00";
+    const secondary =
+      (brand as any)?.designSystem?.paletaPrimaria?.corSecundaria ||
+      branding?.secondary_color ||
+      "#FFB800";
     const svgUri = generateSvgFavicon(primary, secondary);
     handleApplyCustomFavicon(svgUri);
     setFaviconTestFeedback(true);
@@ -184,7 +203,8 @@ export function GeoAppComplianceTab({
             Módulo 9: App Center, Compliance LGPD &amp; Mobile Assets
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Geolocalização regional, publicação nas lojas, contratos de compliance e studio de assets nativos.
+            Geolocalização regional, publicação nas lojas, contratos de compliance e studio de
+            assets nativos.
           </p>
         </div>
 
@@ -249,10 +269,12 @@ export function GeoAppComplianceTab({
               <div>
                 <h3 className="text-xs font-black uppercase tracking-wider text-[#003366] flex items-center gap-1.5">
                   <Globe className="w-4 h-4 text-[#0088FF]" />
-                  Links Personalizados do Aplicativo ({activeTenant?.cidadeNome || "Praça Regional"})
+                  Links Personalizados do Aplicativo ({activeTenant?.cidadeNome || "Praça Regional"}
+                  )
                 </h3>
                 <p className="text-[11px] text-slate-500 mt-0.5">
-                  URLs com identificador exclusivo que travam a marca, cores, catálogo e tarifas desta praça para passageiros e motoristas.
+                  URLs com identificador exclusivo que travam a marca, cores, catálogo e tarifas
+                  desta praça para passageiros e motoristas.
                 </p>
               </div>
               <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200 self-start sm:self-auto">
@@ -354,9 +376,7 @@ export function GeoAppComplianceTab({
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Cidade Sede
-                </label>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Cidade Sede</label>
                 <input
                   type="text"
                   value={geo?.cidadeSede || ""}
@@ -372,9 +392,7 @@ export function GeoAppComplianceTab({
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Estado (UF)
-                </label>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Estado (UF)</label>
                 <input
                   type="text"
                   value={geo?.estadoUf || ""}
@@ -391,9 +409,7 @@ export function GeoAppComplianceTab({
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Fuso Horário
-                </label>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Fuso Horário</label>
                 <input
                   type="text"
                   value={geo?.fusoHorario || "America/Sao_Paulo"}
@@ -408,9 +424,7 @@ export function GeoAppComplianceTab({
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Moeda Oficial
-                </label>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Moeda Oficial</label>
                 <input
                   type="text"
                   value={`${geo?.moedaSimbolo || "R$"} (${geo?.moedaCodigo || "BRL"})`}
@@ -466,7 +480,8 @@ export function GeoAppComplianceTab({
                     Conectar APIs de Mapas Própria (Isolamento de Cotas)
                   </h4>
                   <p className="text-[11px] text-slate-500 mt-0.5">
-                    Cada franqueado conecta sua própria chave Google Maps ou Mapbox para isolar faturamento e consumo da matriz.
+                    Cada franqueado conecta sua própria chave Google Maps ou Mapbox para isolar
+                    faturamento e consumo da matriz.
                   </p>
                 </div>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 self-start sm:self-auto">
@@ -478,7 +493,13 @@ export function GeoAppComplianceTab({
               <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-800 flex items-start gap-2.5">
                 <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
                 <p className="text-[11px] leading-relaxed">
-                  <strong>Política de Proteção de Cotas:</strong> A chave do sistema principal é restrita à Matriz do Super Administrador. Para habilitar mapas com alta precisão e rotas de tráfego na sua praça, insira seu Token Mapbox (<code className="font-mono text-[10px]">pk.*</code>) ou sua Chave Google Maps Platform (<code className="font-mono text-[10px]">AIzaSy*</code>). Caso não configure uma chave, seu aplicativo utilizará a camada gratuita pública OpenStreetMap/CARTO.
+                  <strong>Política de Proteção de Cotas:</strong> A chave do sistema principal é
+                  restrita à Matriz do Super Administrador. Para habilitar mapas com alta precisão e
+                  rotas de tráfego na sua praça, insira seu Token Mapbox (
+                  <code className="font-mono text-[10px]">pk.*</code>) ou sua Chave Google Maps
+                  Platform (<code className="font-mono text-[10px]">AIzaSy*</code>). Caso não
+                  configure uma chave, seu aplicativo utilizará a camada gratuita pública
+                  OpenStreetMap/CARTO.
                 </p>
               </div>
 
@@ -649,7 +670,10 @@ export function GeoAppComplianceTab({
               <div className="mb-4 p-3.5 rounded-2xl bg-blue-50/80 border border-blue-200 text-xs text-blue-900 flex items-start gap-2.5">
                 <ShieldCheck className="w-4 h-4 shrink-0 text-[#0088FF] mt-0.5" />
                 <p className="text-[11px] leading-relaxed">
-                  <strong>Governança de Builds Nativos:</strong> Os identificadores de compilação (Package Android, Bundle iOS e Versão Mínima) são padronizados centralmente pelo Super Admin. Como operador regional, você tem liberdade para cadastrar os links das lojas e o canal de suporte da sua praça.
+                  <strong>Governança de Builds Nativos:</strong> Os identificadores de compilação
+                  (Package Android, Bundle iOS e Versão Mínima) são padronizados centralmente pelo
+                  Super Admin. Como operador regional, você tem liberdade para cadastrar os links
+                  das lojas e o canal de suporte da sua praça.
                 </p>
               </div>
             )}
@@ -821,9 +845,7 @@ export function GeoAppComplianceTab({
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Razão Social
-                </label>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Razão Social</label>
                 <input
                   type="text"
                   value={appConfig?.razaoSocial || branding?.company_name || ""}
@@ -839,9 +861,7 @@ export function GeoAppComplianceTab({
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  Nome Fantasia
-                </label>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Nome Fantasia</label>
                 <input
                   type="text"
                   value={appConfig?.nomeFantasia || branding?.app_name || ""}
@@ -857,9 +877,7 @@ export function GeoAppComplianceTab({
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">
-                  CNPJ
-                </label>
+                <label className="text-xs font-bold text-slate-700 block mb-1">CNPJ</label>
                 <input
                   type="text"
                   value={appConfig?.cnpj || ""}
@@ -924,7 +942,9 @@ export function GeoAppComplianceTab({
             </div>
 
             <div className="p-3 bg-blue-50/60 border border-blue-200/80 rounded-2xl mb-4 text-xs text-slate-700 leading-relaxed">
-              <strong>Requisito Legal:</strong> O Encarregado pelo Tratamento de Dados Pessoais (DPO) deve ser identificado no aplicativo com canal direto para solicitações dos titulares (acesso, correção, revogação e exclusão de dados).
+              <strong>Requisito Legal:</strong> O Encarregado pelo Tratamento de Dados Pessoais
+              (DPO) deve ser identificado no aplicativo com canal direto para solicitações dos
+              titulares (acesso, correção, revogação e exclusão de dados).
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1125,7 +1145,9 @@ export function GeoAppComplianceTab({
               <div className="flex items-center gap-2 pt-1">
                 <label className="flex items-center gap-2 bg-[#0088FF] hover:bg-blue-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition shadow-2xs">
                   <Upload className="w-3.5 h-3.5" />
-                  <span>{uploadingField === "app_icon" ? "Enviando..." : "Upload Ícone (512x512)"}</span>
+                  <span>
+                    {uploadingField === "app_icon" ? "Enviando..." : "Upload Ícone (512x512)"}
+                  </span>
                   <input
                     type="file"
                     accept="image/png,image/jpeg,image/webp"
@@ -1177,9 +1199,16 @@ export function GeoAppComplianceTab({
                   }}
                   className="w-12 h-20 rounded-xl p-1 shadow-md border border-slate-300 flex items-center justify-center shrink-0 overflow-hidden"
                 >
-                  {appConfig?.splashAndroidUrl || brand?.splash?.splashAndroidUrl || branding?.splash_logo_url ? (
+                  {appConfig?.splashAndroidUrl ||
+                  brand?.splash?.splashAndroidUrl ||
+                  branding?.splash_logo_url ? (
                     <img
-                      src={appConfig?.splashAndroidUrl || brand?.splash?.splashAndroidUrl || branding?.splash_logo_url || ""}
+                      src={
+                        appConfig?.splashAndroidUrl ||
+                        brand?.splash?.splashAndroidUrl ||
+                        branding?.splash_logo_url ||
+                        ""
+                      }
                       alt="Splash Preview"
                       className="w-full h-full object-contain"
                     />
@@ -1264,7 +1293,9 @@ export function GeoAppComplianceTab({
               <div className="flex items-center gap-2 pt-1">
                 <label className="flex items-center gap-2 bg-[#0088FF] hover:bg-blue-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition shadow-2xs">
                   <Upload className="w-3.5 h-3.5" />
-                  <span>{uploadingField === "splash" ? "Enviando..." : "Upload Splash (1080x1920)"}</span>
+                  <span>
+                    {uploadingField === "splash" ? "Enviando..." : "Upload Splash (1080x1920)"}
+                  </span>
                   <input
                     type="file"
                     accept="image/png,image/jpeg,image/webp"
@@ -1319,7 +1350,9 @@ export function GeoAppComplianceTab({
               </div>
 
               <div className="p-3 bg-amber-50/80 border border-amber-200/90 rounded-xl text-[11px] text-amber-900 leading-relaxed">
-                ⚠️ <strong>Diretriz Técnica Android:</strong> Ícones coloridos são renderizados como quadrados brancos no Android 5.0+. Use uma silhueta branca sobre fundo totalmente transparente.
+                ⚠️ <strong>Diretriz Técnica Android:</strong> Ícones coloridos são renderizados como
+                quadrados brancos no Android 5.0+. Use uma silhueta branca sobre fundo totalmente
+                transparente.
               </div>
 
               <div className="space-y-2">
@@ -1343,7 +1376,9 @@ export function GeoAppComplianceTab({
               <div className="flex items-center gap-2 pt-1">
                 <label className="flex items-center gap-2 bg-[#0088FF] hover:bg-blue-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition shadow-2xs">
                   <Upload className="w-3.5 h-3.5" />
-                  <span>{uploadingField === "push_icon" ? "Enviando..." : "Upload Push Icon (96x96)"}</span>
+                  <span>
+                    {uploadingField === "push_icon" ? "Enviando..." : "Upload Push Icon (96x96)"}
+                  </span>
                   <input
                     type="file"
                     accept="image/png"
@@ -1386,7 +1421,9 @@ export function GeoAppComplianceTab({
                 {/* Preview Favicon */}
                 <div className="w-12 h-12 rounded-xl bg-white p-2 shadow-md border border-slate-200 flex items-center justify-center shrink-0">
                   <img
-                    src={brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || "/favicon.svg"}
+                    src={
+                      brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || "/favicon.svg"
+                    }
                     alt="Favicon"
                     className="w-7 h-7 object-contain"
                   />
@@ -1394,12 +1431,12 @@ export function GeoAppComplianceTab({
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-700 block">
-                  Favicon Atual
-                </label>
+                <label className="text-xs font-semibold text-slate-700 block">Favicon Atual</label>
                 <input
                   type="text"
-                  value={brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || "/favicon.svg"}
+                  value={
+                    brand?.favicons?.faviconDesktopUrl || branding?.favicon_url || "/favicon.svg"
+                  }
                   disabled
                   className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-500 cursor-not-allowed font-mono truncate"
                 />
@@ -1427,7 +1464,8 @@ export function GeoAppComplianceTab({
 
               {faviconTestFeedback && (
                 <p className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
-                  <Check className="w-3.5 h-3.5" /> Favicon injetado dinamicamente na aba do navegador!
+                  <Check className="w-3.5 h-3.5" /> Favicon injetado dinamicamente na aba do
+                  navegador!
                 </p>
               )}
             </div>

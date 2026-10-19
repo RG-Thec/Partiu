@@ -39,7 +39,9 @@ async function createFranchisee() {
   const email = "franquiateste@gmail.com";
   const password = "123456";
 
-  const existingUserRes = await client.query(`SELECT id FROM auth.users WHERE email = $1;`, [email]);
+  const existingUserRes = await client.query(`SELECT id FROM auth.users WHERE email = $1;`, [
+    email,
+  ]);
   let userId = existingUserRes.rows[0]?.id;
 
   if (!userId) {
@@ -48,9 +50,9 @@ async function createFranchisee() {
     const userMetadata = JSON.stringify({
       sub: userId,
       email: email,
-      role: 'FRANQUEADO',
-      full_name: 'Gestor Franquia Teste (BH)',
-      tenant_id: 'tenant-bh',
+      role: "FRANQUEADO",
+      full_name: "Gestor Franquia Teste (BH)",
+      tenant_id: "tenant-bh",
       email_verified: true,
     });
     await client.query(
@@ -81,7 +83,7 @@ async function createFranchisee() {
         NOW()
       );
       `,
-      [userId, email, password, userMetadata]
+      [userId, email, password, userMetadata],
     );
     console.log("✅ Usuário criado com sucesso em auth.users com senha criptografada via bcrypt!");
   } else {
@@ -89,9 +91,9 @@ async function createFranchisee() {
     const userMetadata = JSON.stringify({
       sub: userId,
       email: email,
-      role: 'FRANQUEADO',
-      full_name: 'Gestor Franquia Teste (BH)',
-      tenant_id: 'tenant-bh',
+      role: "FRANQUEADO",
+      full_name: "Gestor Franquia Teste (BH)",
+      tenant_id: "tenant-bh",
       email_verified: true,
     });
     await client.query(
@@ -110,7 +112,7 @@ async function createFranchisee() {
           updated_at = NOW()
       WHERE id = $1::uuid;
       `,
-      [userId, password, userMetadata]
+      [userId, password, userMetadata],
     );
     console.log("✅ Senha atualizada em auth.users com bcrypt 10 rounds!");
   }
@@ -118,15 +120,15 @@ async function createFranchisee() {
   // 3.5. Garante registro obrigatório em auth.identities para GoTrue
   const existingIdent = await client.query(
     `SELECT id FROM auth.identities WHERE user_id = $1::uuid;`,
-    [userId]
+    [userId],
   );
   const identityData = JSON.stringify({
     sub: userId,
     email: email,
     email_verified: true,
-    full_name: 'Gestor Franquia Teste (BH)',
-    role: 'FRANQUEADO',
-    tenant_id: 'tenant-bh',
+    full_name: "Gestor Franquia Teste (BH)",
+    role: "FRANQUEADO",
+    tenant_id: "tenant-bh",
   });
 
   if (existingIdent.rows.length === 0) {
@@ -152,7 +154,7 @@ async function createFranchisee() {
         NOW()
       );
       `,
-      [userId, identityData]
+      [userId, identityData],
     );
     console.log("✅ Identidade inserida com sucesso em auth.identities!");
   } else {
@@ -163,7 +165,7 @@ async function createFranchisee() {
           updated_at = NOW()
       WHERE user_id = $1::uuid;
       `,
-      [userId, identityData]
+      [userId, identityData],
     );
     console.log("✅ Identidade sincronizada em auth.identities!");
   }
@@ -172,7 +174,8 @@ async function createFranchisee() {
   await client.query(`
     ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64);
   `);
-  await client.query(`
+  await client.query(
+    `
     INSERT INTO public.profiles (
       id,
       email,
@@ -196,13 +199,15 @@ async function createFranchisee() {
       approval_status = 'aprovado',
       tenant_id = 'tenant-bh',
       updated_at = NOW();
-  `, [userId, email]);
+  `,
+    [userId, email],
+  );
   console.log("✅ Perfil do franqueado sincronizado em public.profiles.");
 
   // 5. Garante permissão em public.admin_users
   const existingAdmin = await client.query(
     `SELECT id FROM public.admin_users WHERE email = $1 OR user_id = $2::uuid;`,
-    [email, userId]
+    [email, userId],
   );
   if (existingAdmin.rows.length > 0) {
     await client.query(
@@ -217,7 +222,7 @@ async function createFranchisee() {
           updated_at = NOW()
       WHERE id = $2;
       `,
-      [userId, existingAdmin.rows[0].id]
+      [userId, existingAdmin.rows[0].id],
     );
   } else {
     await client.query(
@@ -244,7 +249,7 @@ async function createFranchisee() {
         NOW()
       );
       `,
-      [userId, email]
+      [userId, email],
     );
   }
   console.log("✅ Permissão de franqueado associada em public.admin_users.");
@@ -252,7 +257,7 @@ async function createFranchisee() {
   // 6. Teste de validação com crypt
   const testRes = await client.query(
     `SELECT id, email, (encrypted_password = crypt($2, encrypted_password)) as password_matches FROM auth.users WHERE email = $1;`,
-    [email, password]
+    [email, password],
   );
   console.log("\n🔍 Resultado da verificação:", testRes.rows[0]);
 

@@ -147,7 +147,7 @@ export class RideLiveTrackingService {
       window.dispatchEvent(
         new CustomEvent("partiu:ride-tracking-updated", {
           detail: trackingData,
-        })
+        }),
       );
     }
 
@@ -188,9 +188,10 @@ export class RideLiveTrackingService {
    * Constrói a URL pública canônica para compartilhamento
    */
   public buildShareUrl(token: string): string {
-    const origin = typeof window !== "undefined" && window.location.origin
-      ? window.location.origin
-      : "https://partiumobilidade.com.br";
+    const origin =
+      typeof window !== "undefined" && window.location.origin
+        ? window.location.origin
+        : "https://partiumobilidade.com.br";
     return `${origin}/rastreio/${encodeURIComponent(token)}`;
   }
 
@@ -200,7 +201,7 @@ export class RideLiveTrackingService {
   public buildShareMessage(
     token: string,
     vehicleModel = "Carro Parceiro",
-    vehiclePlate?: string
+    vehiclePlate?: string,
   ): string {
     const url = this.buildShareUrl(token);
     const plateText = vehiclePlate ? ` (Placa ${vehiclePlate})` : "";

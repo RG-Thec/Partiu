@@ -1,10 +1,10 @@
 /**
  * PARTIU MOBILIDADE URBANA — DELIVERY ORCHESTRATOR ENGINE
  * Bridges partiu-flash-engine.ts ↔ partiu-engine.ts
- * 
+ *
  * Manages the full delivery lifecycle:
  * SOLICITADO → A_CAMINHO_COLETA → COLETADO → EM_ROTA_ENTREGA → ENTREGUE | CANCELADO
- * 
+ *
  * Provides: Pickup OTP validation, Delivery OTP validation, Geofence enforcement,
  * Proof of Delivery (POD), Insurance calculation, and forensic audit trail.
  */
@@ -86,9 +86,7 @@ function persistSession(session: DeliverySession | null): void {
   } else {
     localStorage.removeItem(STORAGE_KEY_DELIVERY_SESSION);
   }
-  window.dispatchEvent(
-    new CustomEvent("partiu:delivery-atualizada", { detail: session })
-  );
+  window.dispatchEvent(new CustomEvent("partiu:delivery-atualizada", { detail: session }));
 }
 
 export function getActiveDeliverySession(): DeliverySession | null {
@@ -173,8 +171,12 @@ export function createDeliverySession(params: CreateDeliveryParams): DeliverySes
     auditLog: [],
   };
 
-  addAuditEntry(session, "DELIVERY_CREATED", "SISTEMA",
-    `Entrega ${flashOrder.id} criada. Pickup OTP: ${flashOrder.pickupOtp}, Delivery OTP: ${flashOrder.deliveryOtp}`);
+  addAuditEntry(
+    session,
+    "DELIVERY_CREATED",
+    "SISTEMA",
+    `Entrega ${flashOrder.id} criada. Pickup OTP: ${flashOrder.pickupOtp}, Delivery OTP: ${flashOrder.deliveryOtp}`,
+  );
 
   persistSession(session);
   return session;
@@ -194,8 +196,12 @@ export function courierHeadingToPickup(
   session.flashOrder.driverId = driverId;
   session.flashOrder.driverName = driverName;
 
-  addAuditEntry(session, "COURIER_HEADING_PICKUP", "MOTORISTA",
-    `Entregador ${driverName} (${driverId}) a caminho da coleta`);
+  addAuditEntry(
+    session,
+    "COURIER_HEADING_PICKUP",
+    "MOTORISTA",
+    `Entregador ${driverName} (${driverId}) a caminho da coleta`,
+  );
 
   persistSession(session);
   return session;
@@ -207,7 +213,8 @@ export function courierArrivedAtPickup(
   driverLocation?: GeoCoordinate | undefined,
 ): DeliverySession | null {
   const session = getActiveDeliverySession();
-  if (!session || (session.status !== "A_CAMINHO_COLETA" && session.status !== "SOLICITADO")) return null;
+  if (!session || (session.status !== "A_CAMINHO_COLETA" && session.status !== "SOLICITADO"))
+    return null;
 
   session.status = "AGUARDANDO_COLETA";
 
@@ -217,17 +224,29 @@ export function courierArrivedAtPickup(
     session.pickupGeofencePassed = dist <= PICKUP_GEOFENCE_METERS;
     session.pickupDriverLocation = driverLocation;
 
-    addAuditEntry(session, "PICKUP_GEOFENCE_CHECK", "SISTEMA",
+    addAuditEntry(
+      session,
+      "PICKUP_GEOFENCE_CHECK",
+      "SISTEMA",
       `Geofence de coleta: ${dist.toFixed(0)}m (limite: ${PICKUP_GEOFENCE_METERS}m). ${session.pickupGeofencePassed ? "APROVADO" : "FORA DO PERÍMETRO"}`,
-      driverLocation);
+      driverLocation,
+    );
   } else {
     session.pickupGeofencePassed = true;
-    addAuditEntry(session, "PICKUP_GEOFENCE_SKIP", "SISTEMA",
-      "Geofence de coleta ignorado — GPS do motorista indisponível");
+    addAuditEntry(
+      session,
+      "PICKUP_GEOFENCE_SKIP",
+      "SISTEMA",
+      "Geofence de coleta ignorado — GPS do motorista indisponível",
+    );
   }
 
-  addAuditEntry(session, "COURIER_ARRIVED_PICKUP", "MOTORISTA",
-    `Entregador chegou ao local de coleta: ${session.flashOrder.senderAddress}`);
+  addAuditEntry(
+    session,
+    "COURIER_ARRIVED_PICKUP",
+    "MOTORISTA",
+    `Entregador chegou ao local de coleta: ${session.flashOrder.senderAddress}`,
+  );
 
   persistSession(session);
   return session;
@@ -252,15 +271,26 @@ export function confirmPickup(
   }
 
   if (session.status !== "AGUARDANDO_COLETA" && session.status !== "A_CAMINHO_COLETA") {
-    return { success: false, message: `Status inválido para confirmação de coleta: ${session.status}` };
+    return {
+      success: false,
+      message: `Status inválido para confirmação de coleta: ${session.status}`,
+    };
   }
 
   // Validate OTP
   if (enteredOtp.trim() !== session.flashOrder.pickupOtp) {
-    addAuditEntry(session, "PICKUP_OTP_FAILED", "MOTORISTA",
-      `PIN de coleta incorreto: "${enteredOtp}" (esperado: ${session.flashOrder.pickupOtp})`, driverLocation);
+    addAuditEntry(
+      session,
+      "PICKUP_OTP_FAILED",
+      "MOTORISTA",
+      `PIN de coleta incorreto: "${enteredOtp}" (esperado: ${session.flashOrder.pickupOtp})`,
+      driverLocation,
+    );
     persistSession(session);
-    return { success: false, message: "PIN de coleta incorreto! Solicite o código de 4 dígitos ao remetente." };
+    return {
+      success: false,
+      message: "PIN de coleta incorreto! Solicite o código de 4 dígitos ao remetente.",
+    };
   }
 
   // Mark pickup as confirmed
@@ -274,9 +304,13 @@ export function confirmPickup(
     session.pickupDriverLocation = driverLocation;
   }
 
-  addAuditEntry(session, "PICKUP_CONFIRMED", "MOTORISTA",
+  addAuditEntry(
+    session,
+    "PICKUP_CONFIRMED",
+    "MOTORISTA",
     `Coleta confirmada com PIN ${enteredOtp}. Foto: ${photoUrl ? "SIM" : "NÃO"}. Timestamp: ${new Date().toISOString()}`,
-    driverLocation);
+    driverLocation,
+  );
 
   persistSession(session);
   return { success: true, message: "Coleta confirmada! Dirija-se ao destinatário.", session };
@@ -291,8 +325,12 @@ export function courierHeadingToDelivery(): DeliverySession | null {
   session.status = "EM_ROTA_ENTREGA";
   session.flashOrder.status = "EM_ROTA_ENTREGA";
 
-  addAuditEntry(session, "COURIER_HEADING_DELIVERY", "MOTORISTA",
-    `Entregador a caminho do destino: ${session.flashOrder.recipientAddress}`);
+  addAuditEntry(
+    session,
+    "COURIER_HEADING_DELIVERY",
+    "MOTORISTA",
+    `Entregador a caminho do destino: ${session.flashOrder.recipientAddress}`,
+  );
 
   persistSession(session);
   return session;
@@ -304,27 +342,41 @@ export function courierArrivedAtDelivery(
   driverLocation?: GeoCoordinate | undefined,
 ): DeliverySession | null {
   const session = getActiveDeliverySession();
-  if (!session || (session.status !== "EM_ROTA_ENTREGA" && session.status !== "COLETADO")) return null;
+  if (!session || (session.status !== "EM_ROTA_ENTREGA" && session.status !== "COLETADO"))
+    return null;
 
   session.status = "AGUARDANDO_ENTREGA";
 
   // Geofence check for delivery
   if (driverLocation) {
-    const dist = calculateHaversineKm(driverLocation, session.flashOrder.recipientCoordinates) * 1000;
+    const dist =
+      calculateHaversineKm(driverLocation, session.flashOrder.recipientCoordinates) * 1000;
     session.deliveryGeofencePassed = dist <= DELIVERY_GEOFENCE_METERS;
     session.deliveryDriverLocation = driverLocation;
 
-    addAuditEntry(session, "DELIVERY_GEOFENCE_CHECK", "SISTEMA",
+    addAuditEntry(
+      session,
+      "DELIVERY_GEOFENCE_CHECK",
+      "SISTEMA",
       `Geofence de entrega: ${dist.toFixed(0)}m (limite: ${DELIVERY_GEOFENCE_METERS}m). ${session.deliveryGeofencePassed ? "APROVADO" : "FORA DO PERÍMETRO"}`,
-      driverLocation);
+      driverLocation,
+    );
   } else {
     session.deliveryGeofencePassed = true;
-    addAuditEntry(session, "DELIVERY_GEOFENCE_SKIP", "SISTEMA",
-      "Geofence de entrega ignorado — GPS indisponível");
+    addAuditEntry(
+      session,
+      "DELIVERY_GEOFENCE_SKIP",
+      "SISTEMA",
+      "Geofence de entrega ignorado — GPS indisponível",
+    );
   }
 
-  addAuditEntry(session, "COURIER_ARRIVED_DELIVERY", "MOTORISTA",
-    `Entregador chegou ao local de entrega: ${session.flashOrder.recipientAddress}`);
+  addAuditEntry(
+    session,
+    "COURIER_ARRIVED_DELIVERY",
+    "MOTORISTA",
+    `Entregador chegou ao local de entrega: ${session.flashOrder.recipientAddress}`,
+  );
 
   persistSession(session);
   return session;
@@ -349,21 +401,35 @@ export function confirmDelivery(
   }
 
   if (session.status !== "AGUARDANDO_ENTREGA" && session.status !== "EM_ROTA_ENTREGA") {
-    return { success: false, message: `Status inválido para confirmação de entrega: ${session.status}` };
+    return {
+      success: false,
+      message: `Status inválido para confirmação de entrega: ${session.status}`,
+    };
   }
 
   // Validate delivery OTP
   if (enteredOtp.trim() !== session.flashOrder.deliveryOtp) {
-    addAuditEntry(session, "DELIVERY_OTP_FAILED", "MOTORISTA",
-      `PIN de entrega incorreto: "${enteredOtp}" (esperado: ${session.flashOrder.deliveryOtp})`, driverLocation);
+    addAuditEntry(
+      session,
+      "DELIVERY_OTP_FAILED",
+      "MOTORISTA",
+      `PIN de entrega incorreto: "${enteredOtp}" (esperado: ${session.flashOrder.deliveryOtp})`,
+      driverLocation,
+    );
     persistSession(session);
-    return { success: false, message: "PIN de entrega incorreto! Solicite o código de 4 dígitos ao destinatário." };
+    return {
+      success: false,
+      message: "PIN de entrega incorreto! Solicite o código de 4 dígitos ao destinatário.",
+    };
   }
 
   // Use flash engine's proof function
   const proofResult = confirmDeliveryWithProof(session.flashOrder, enteredOtp, photoUrl);
   if (!proofResult.success) {
-    return { success: false, message: proofResult.errorMessage || "Falha na confirmação de entrega." };
+    return {
+      success: false,
+      message: proofResult.errorMessage || "Falha na confirmação de entrega.",
+    };
   }
 
   // Mark delivery as completed
@@ -377,9 +443,13 @@ export function confirmDelivery(
     session.deliveryDriverLocation = driverLocation;
   }
 
-  addAuditEntry(session, "DELIVERY_CONFIRMED", "MOTORISTA",
+  addAuditEntry(
+    session,
+    "DELIVERY_CONFIRMED",
+    "MOTORISTA",
     `Entrega confirmada com PIN ${enteredOtp}. Foto POD: ${photoUrl ? "SIM" : "NÃO"}. Timestamp: ${new Date().toISOString()}`,
-    driverLocation);
+    driverLocation,
+  );
 
   persistSession(session);
   return { success: true, message: "Entrega confirmada com sucesso!", session };
@@ -398,8 +468,12 @@ export function cancelDeliverySession(
   session.status = "CANCELADO";
   session.flashOrder.status = "CANCELADO";
 
-  addAuditEntry(session, "DELIVERY_CANCELLED", actor,
-    `Entrega cancelada. Motivo: ${reason}. Status anterior: ${previousStatus}`);
+  addAuditEntry(
+    session,
+    "DELIVERY_CANCELLED",
+    actor,
+    `Entrega cancelada. Motivo: ${reason}. Status anterior: ${previousStatus}`,
+  );
 
   persistSession(null);
   return session;

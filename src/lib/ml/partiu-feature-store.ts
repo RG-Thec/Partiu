@@ -1,6 +1,6 @@
 /**
  * PARTIU ML FEATURE STORE
- * 
+ *
  * Repositório centralizado de features online e offline para modelos de Machine Learning.
  * Garante consistência temporal estrita (point-in-time) entre inferência em tempo real e re-treinamento.
  */
@@ -68,7 +68,7 @@ export interface HotspotFeatures {
 
 export interface WeatherFeatures {
   cityId: string;
-  condition: 'LIMPO' | 'CHUVA_LEVE' | 'CHUVA_MODERADA' | 'TEMPESTADE';
+  condition: "LIMPO" | "CHUVA_LEVE" | "CHUVA_MODERADA" | "TEMPESTADE";
   rainIntensityMm: number;
   temperatureCelsius: number;
   speedReductionFactor: number; // 1.0 (normal) a 0.65 (tempestade)
@@ -88,7 +88,7 @@ export class PartiuFeatureStore {
   private seedDefaultFeatures(): void {
     // Default baseline driver
     this.setDriverFeatures({
-      driverId: 'mot-1',
+      driverId: "mot-1",
       acceptanceRatePct: 94.5,
       cancellationRatePct: 2.8,
       completedTripsTotal: 3840,
@@ -96,13 +96,13 @@ export class PartiuFeatureStore {
       lifetimeDays: 420,
       idleTimeRatio: 0.18,
       averageSpeedKmH: 28.5,
-      earningsPerActiveHourBrl: 38.40,
-      lastUpdated: Date.now()
+      earningsPerActiveHourBrl: 38.4,
+      lastUpdated: Date.now(),
     });
 
     // Default city marketplace features (Itaperuna)
     this.setCityFeatures({
-      cityId: 'itaperuna-rj',
+      cityId: "itaperuna-rj",
       activeOnlineDrivers: 48,
       busyDriversCount: 31,
       waitingPassengersCount: 7,
@@ -110,16 +110,16 @@ export class PartiuFeatureStore {
       cancellationRatePct: 3.8,
       averageEtaMinutes: 4.2,
       liquidityRatio: 2.4,
-      lastUpdated: Date.now()
+      lastUpdated: Date.now(),
     });
 
     // Default weather
     this.setWeatherFeatures({
-      cityId: 'itaperuna-rj',
-      condition: 'LIMPO',
+      cityId: "itaperuna-rj",
+      condition: "LIMPO",
       rainIntensityMm: 0,
       temperatureCelsius: 26,
-      speedReductionFactor: 1.0
+      speedReductionFactor: 1.0,
     });
   }
 
@@ -136,12 +136,12 @@ export class PartiuFeatureStore {
         acceptanceRatePct: 90.0,
         cancellationRatePct: 4.0,
         completedTripsTotal: 50,
-        averageRating: 4.90,
+        averageRating: 4.9,
         lifetimeDays: 30,
         idleTimeRatio: 0.25,
         averageSpeedKmH: 26.0,
         earningsPerActiveHourBrl: 32.0,
-        lastUpdated: Date.now()
+        lastUpdated: Date.now(),
       };
     }
     return f;
@@ -158,12 +158,12 @@ export class PartiuFeatureStore {
         passengerId,
         totalTripsLifetime: 12,
         cancellationRatePct: 5.0,
-        averageTicketBrl: 18.50,
+        averageTicketBrl: 18.5,
         daysSinceLastRide: 3,
         disputeCount: 0,
         ratingAverage: 4.95,
-        preferredCategory: 'POP',
-        lastUpdated: Date.now()
+        preferredCategory: "POP",
+        lastUpdated: Date.now(),
       };
     }
     return f;
@@ -185,7 +185,7 @@ export class PartiuFeatureStore {
         cancellationRatePct: 4.0,
         averageEtaMinutes: 4.5,
         liquidityRatio: 2.0,
-        lastUpdated: Date.now()
+        lastUpdated: Date.now(),
       };
     }
     return f;
@@ -200,10 +200,10 @@ export class PartiuFeatureStore {
     if (!f) {
       return {
         cityId,
-        condition: 'LIMPO',
+        condition: "LIMPO",
         rainIntensityMm: 0,
         temperatureCelsius: 25,
-        speedReductionFactor: 1.0
+        speedReductionFactor: 1.0,
       };
     }
     return f;
@@ -213,10 +213,10 @@ export class PartiuFeatureStore {
    * Monta o vetor unificado de features normalizadas para inferência de Machine Learning
    */
   public buildInferenceVector(
-    driverId: string, 
-    passengerId: string, 
-    trip: TripFeatures, 
-    cityId: string
+    driverId: string,
+    passengerId: string,
+    trip: TripFeatures,
+    cityId: string,
   ): Float32Array {
     const driver = this.getDriverFeatures(driverId);
     const passenger = this.getPassengerFeatures(passengerId);

@@ -1,4 +1,15 @@
-import { Power, Wallet, Compass, Car, Flame, ArrowUpRight, ChevronRight, Target, TrendingUp, Clock } from "lucide-react";
+import {
+  Power,
+  Wallet,
+  Compass,
+  Car,
+  Flame,
+  ArrowUpRight,
+  ChevronRight,
+  Target,
+  TrendingUp,
+  Clock,
+} from "lucide-react";
 import type { DriverDestination } from "@/services/DriverDestinationModeService";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
 
@@ -84,9 +95,7 @@ export function IdleState({
       </div>
 
       {/* Linha 2: Resumo de Faturamento Direto P2P (100% Seu • 0% Comissão) */}
-      <div
-        className="flex items-center justify-between p-3.5 rounded-3xl bg-card border border-border shadow-[0_4px_16px_rgba(0,0,0,0.03)] gap-3"
-      >
+      <div className="flex items-center justify-between p-3.5 rounded-3xl bg-card border border-border shadow-[0_4px_16px_rgba(0,0,0,0.03)] gap-3">
         <button
           type="button"
           onClick={handleOpenFinance}
@@ -167,8 +176,12 @@ export function IdleState({
               </span>
             </div>
             <div className="mt-2">
-              <span className="text-xs font-extrabold text-foreground block leading-tight">Modo destino</span>
-              <span className="text-[10.5px] text-muted-foreground font-medium">Direcionar trajeto</span>
+              <span className="text-xs font-extrabold text-foreground block leading-tight">
+                Modo destino
+              </span>
+              <span className="text-[10.5px] text-muted-foreground font-medium">
+                Direcionar trajeto
+              </span>
             </div>
           </button>
         )}
@@ -193,8 +206,12 @@ export function IdleState({
             </span>
           </div>
           <div className="mt-2">
-            <span className="text-xs font-extrabold text-foreground block leading-tight">Taxímetro</span>
-            <span className="text-[10.5px] text-muted-foreground font-medium">Passageiro de rua</span>
+            <span className="text-xs font-extrabold text-foreground block leading-tight">
+              Taxímetro
+            </span>
+            <span className="text-[10.5px] text-muted-foreground font-medium">
+              Passageiro de rua
+            </span>
           </div>
         </button>
       </div>

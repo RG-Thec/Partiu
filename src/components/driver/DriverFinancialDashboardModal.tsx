@@ -18,8 +18,14 @@ import {
   Check,
   Calendar,
 } from "lucide-react";
-import { driverFinancialService, type DriverFinancialMetrics } from "@/services/driverFinancialService";
-import { driverSubscriptionService, type DriverSubscriptionRecord } from "@/lib/ecosystem/driver-subscription-service";
+import {
+  driverFinancialService,
+  type DriverFinancialMetrics,
+} from "@/services/driverFinancialService";
+import {
+  driverSubscriptionService,
+  type DriverSubscriptionRecord,
+} from "@/lib/ecosystem/driver-subscription-service";
 import { getMonetizacaoConfig } from "@/lib/superadmin-config";
 import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
 
@@ -41,10 +47,10 @@ export const DriverFinancialDashboardModal = memo(function DriverFinancialDashbo
   onOpenSubscriptionPlans,
 }: DriverFinancialDashboardModalProps) {
   const [metrics, setMetrics] = useState<DriverFinancialMetrics>(() =>
-    driverFinancialService.getMetrics(driverId, vehicleType)
+    driverFinancialService.getMetrics(driverId, vehicleType),
   );
   const [subscription, setSubscription] = useState<DriverSubscriptionRecord | null>(() =>
-    driverSubscriptionService.getSubscription(driverId)
+    driverSubscriptionService.getSubscription(driverId),
   );
 
   // Estados de edição da meta diária
@@ -107,7 +113,9 @@ export const DriverFinancialDashboardModal = memo(function DriverFinancialDashbo
               <TrendingUp className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-black text-slate-900 leading-tight">Central Financeira &amp; Metas</h3>
+              <h3 className="text-base font-black text-slate-900 leading-tight">
+                Central Financeira &amp; Metas
+              </h3>
               <p className="text-xs text-slate-700 font-semibold">Gestão P2P com 0% de Retenção</p>
             </div>
           </div>
@@ -236,10 +244,17 @@ export const DriverFinancialDashboardModal = memo(function DriverFinancialDashbo
             <div className="flex items-baseline justify-between pt-1">
               <div>
                 <span className="text-3xl font-black text-emerald-400 leading-tight">
-                  {metrics.todayGrossBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  {metrics.todayGrossBrl.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
                 </span>
                 <span className="text-xs text-slate-300 font-medium ml-2">
-                  de {metrics.dailyGoalProgress.targetBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  de{" "}
+                  {metrics.dailyGoalProgress.targetBrl.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
                 </span>
               </div>
               <span className="text-xs font-black text-white px-2 py-0.5 rounded-full bg-white/10">
@@ -275,7 +290,8 @@ export const DriverFinancialDashboardModal = memo(function DriverFinancialDashbo
                     currency: "BRL",
                   })}
                 </strong>{" "}
-                para bater sua meta hoje (~{Math.ceil(metrics.dailyGoalProgress.remainingBrl / 22)} corridas).
+                para bater sua meta hoje (~{Math.ceil(metrics.dailyGoalProgress.remainingBrl / 22)}{" "}
+                corridas).
               </span>
             )}
           </div>
@@ -288,7 +304,9 @@ export const DriverFinancialDashboardModal = memo(function DriverFinancialDashbo
           {/* Card PIX Direto */}
           <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase text-emerald-800">⚡ PIX Direto</span>
+              <span className="text-[10px] font-black uppercase text-emerald-800">
+                ⚡ PIX Direto
+              </span>
               <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/60 px-1.5 py-0.2 rounded-md">
                 No Banco
               </span>
@@ -308,7 +326,10 @@ export const DriverFinancialDashboardModal = memo(function DriverFinancialDashbo
               </span>
             </div>
             <div className="text-xl font-black text-amber-700">
-              {metrics.todayDinheiroBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+              {metrics.todayDinheiroBrl.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              })}
             </div>
             <p className="text-xs text-slate-700 font-semibold">Recebido dos passageiros</p>
           </div>
@@ -323,27 +344,34 @@ export const DriverFinancialDashboardModal = memo(function DriverFinancialDashbo
               Eficiência Operacional de Hoje
             </span>
             <span className="text-xs font-bold text-slate-700">
-              {metrics.todayTripsCount} {metrics.todayTripsCount === 1 ? "corrida" : "corridas"} concluídas
+              {metrics.todayTripsCount} {metrics.todayTripsCount === 1 ? "corrida" : "corridas"}{" "}
+              concluídas
             </span>
           </div>
 
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs">
-              <span className="text-[10px] text-slate-600 font-extrabold block uppercase tracking-wider">Distância</span>
+              <span className="text-[10px] text-slate-600 font-extrabold block uppercase tracking-wider">
+                Distância
+              </span>
               <span className="text-sm font-black text-slate-900 mt-0.5 block">
                 {metrics.todayDistanceKm.toFixed(1)} km
               </span>
             </div>
 
             <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs">
-              <span className="text-[10px] text-slate-600 font-extrabold block uppercase tracking-wider">Por KM</span>
+              <span className="text-[10px] text-slate-600 font-extrabold block uppercase tracking-wider">
+                Por KM
+              </span>
               <span className="text-sm font-black text-emerald-600 mt-0.5 block">
                 R$ {metrics.reaisPerKm.toFixed(2)}
               </span>
             </div>
 
             <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs">
-              <span className="text-[10px] text-slate-600 font-extrabold block uppercase tracking-wider">Por Hora</span>
+              <span className="text-[10px] text-slate-600 font-extrabold block uppercase tracking-wider">
+                Por Hora
+              </span>
               <span className="text-sm font-black text-brand-primary-deep mt-0.5 block">
                 R$ {metrics.reaisPerHour.toFixed(2)}
               </span>
@@ -364,31 +392,49 @@ export const DriverFinancialDashboardModal = memo(function DriverFinancialDashbo
             <div className="flex justify-between items-center text-slate-800 font-medium">
               <span>(+) Faturamento Bruto de Hoje:</span>
               <span className="font-bold text-slate-900">
-                {metrics.todayGrossBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                {metrics.todayGrossBrl.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
               </span>
             </div>
 
             <div className="flex justify-between items-center text-slate-700 font-semibold">
               <span>(-) Custo Estimado de Combustível:</span>
               <span className="font-bold text-rose-600">
-                -{metrics.estimatedFuelCostBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                -
+                {metrics.estimatedFuelCostBrl.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
               </span>
             </div>
 
             <div className="flex justify-between items-center text-slate-700 font-semibold">
               <span>(-) Custo da Diária PARTIU ({vehicleType}):</span>
               <span className="font-bold text-rose-600">
-                -{metrics.dailyFeeAmortizedBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                -
+                {metrics.dailyFeeAmortizedBrl.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
               </span>
             </div>
 
             <div className="pt-2 border-t border-slate-200 flex justify-between items-center">
               <div>
-                <span className="text-xs font-black text-slate-900 block">(=) Lucro Líquido no Seu Bolso:</span>
-                <span className="text-xs text-slate-700 font-semibold">Livre de despesas operacionais</span>
+                <span className="text-xs font-black text-slate-900 block">
+                  (=) Lucro Líquido no Seu Bolso:
+                </span>
+                <span className="text-xs text-slate-700 font-semibold">
+                  Livre de despesas operacionais
+                </span>
               </div>
               <span className="text-xl font-black text-emerald-700">
-                {metrics.realNetProfitBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                {metrics.realNetProfitBrl.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
               </span>
             </div>
           </div>
@@ -406,7 +452,9 @@ export const DriverFinancialDashboardModal = memo(function DriverFinancialDashbo
               <h4 className="text-xs font-black text-emerald-950 uppercase tracking-tight">
                 Economia Real no PARTIU
               </h4>
-              <p className="text-[11px] text-emerald-900 font-bold">Comparativo contra taxas de 25% de outros apps</p>
+              <p className="text-[11px] text-emerald-900 font-bold">
+                Comparativo contra taxas de 25% de outros apps
+              </p>
             </div>
           </div>
 
@@ -414,19 +462,31 @@ export const DriverFinancialDashboardModal = memo(function DriverFinancialDashbo
             <div className="flex justify-between text-slate-800 font-medium">
               <span>Se você rodasse no app tradicional (25% taxa):</span>
               <span className="font-bold text-rose-700">
-                -{(metrics.todayGrossBrl * 0.25).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                -
+                {(metrics.todayGrossBrl * 0.25).toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
               </span>
             </div>
             <div className="flex justify-between text-slate-800 font-medium">
               <span>No PARTIU você pagou apenas a diária:</span>
               <span className="font-bold text-emerald-700">
-                -{metrics.dailyFeeAmortizedBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                -
+                {metrics.dailyFeeAmortizedBrl.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
               </span>
             </div>
             <div className="pt-1.5 border-t border-emerald-200 flex justify-between items-center font-black text-emerald-900">
               <span>Você economizou hoje:</span>
               <span className="text-base text-emerald-700">
-                +{metrics.savingsVersusTraditionalAppsBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                +
+                {metrics.savingsVersusTraditionalAppsBrl.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
               </span>
             </div>
           </div>
@@ -473,9 +533,14 @@ export const DriverFinancialDashboardModal = memo(function DriverFinancialDashbo
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-sm font-black text-slate-900 block">
-                      {trip.amountBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      {trip.amountBrl.toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                      })}
                     </span>
-                    <span className="text-xs font-black text-emerald-700 block">✓ Repasse 100%</span>
+                    <span className="text-xs font-black text-emerald-700 block">
+                      ✓ Repasse 100%
+                    </span>
                   </div>
                 </div>
               ))}

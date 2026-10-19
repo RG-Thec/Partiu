@@ -120,7 +120,7 @@ class GoogleAuthService {
         atob(base64)
           .split("")
           .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-          .join("")
+          .join(""),
       );
       return JSON.parse(jsonPayload) as GoogleUserProfile;
     } catch {
@@ -154,8 +154,7 @@ class GoogleAuthService {
     redirectUrl?: string;
   }): Promise<GoogleAuthResult> {
     const role = params?.role || "PASSAGEIRO";
-    const redirectUrl =
-      params?.redirectUrl || (role === "MOTORISTA" ? "/app/motorista" : "/app");
+    const redirectUrl = params?.redirectUrl || (role === "MOTORISTA" ? "/app/motorista" : "/app");
 
     // 1. Prioridade A: Supabase com Provedor Google configurado
     if (isSupabaseConfigured()) {
@@ -196,7 +195,7 @@ class GoogleAuthService {
         window.dispatchEvent(
           new CustomEvent("partiu:request_google_client_id", {
             detail: { role, redirectUrl },
-          })
+          }),
         );
       }
       return {
@@ -261,9 +260,9 @@ class GoogleAuthService {
         const redirectUri = `${origin}/auth`;
 
         const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
-          clientId
+          clientId,
         )}&redirect_uri=${encodeURIComponent(
-          redirectUri
+          redirectUri,
         )}&response_type=token%20id_token&scope=openid%20profile%20email&state=${state}&nonce=${nonce}&prompt=select_account`;
 
         const width = 500;
@@ -274,7 +273,7 @@ class GoogleAuthService {
         const popup = window.open(
           authUrl,
           "google-oauth-popup",
-          `width=${width},height=${height},left=${left},top=${top},status=no,resizable=yes`
+          `width=${width},height=${height},left=${left},top=${top},status=no,resizable=yes`,
         );
 
         if (!popup) {

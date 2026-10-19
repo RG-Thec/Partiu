@@ -18,7 +18,6 @@ import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
-
 export type SenderType = "PASSENGER" | "DRIVER" | "SYSTEM";
 export type MessageType = "TEXT" | "SMART_REPLY" | "SYSTEM";
 
@@ -154,7 +153,7 @@ export class ChatRealtimeService {
     rideId: string,
     currentUserType: SenderType,
     onMessages: ChatMessageListener,
-    onUnreadChange?: UnreadCountListener
+    onUnreadChange?: UnreadCountListener,
   ): () => void {
     // 1. Registra listeners
     if (!this.messageListeners.has(rideId)) {
@@ -273,7 +272,7 @@ export class ChatRealtimeService {
         },
         (payload) => {
           this.handleIncomingMessage(payload.new, currentUserType);
-        }
+        },
       )
       // Escuta atualizações de leitura (UPDATE read_at)
       .on(
@@ -286,7 +285,7 @@ export class ChatRealtimeService {
         },
         (payload) => {
           this.handleMessageUpdate(payload.new);
-        }
+        },
       )
       // Broadcast rápido in-process para contingência em tempo real
       .on("broadcast", { event: "new_message" }, ({ payload }) => {
@@ -422,7 +421,7 @@ export class ChatRealtimeService {
   // ============================================================================
 
   private handleIncomingMessage(raw: any, currentUserType: SenderType) {
-    if (!raw || !raw.ride_id && !raw.rideId) return;
+    if (!raw || (!raw.ride_id && !raw.rideId)) return;
 
     const rideId = raw.ride_id || raw.rideId;
     const clientMsgId = raw.client_msg_id || raw.clientMsgId;
@@ -431,7 +430,7 @@ export class ChatRealtimeService {
 
     // Deduplicação pelo clientMsgId ou ID
     const existingIndex = list.findIndex(
-      (m) => (clientMsgId && m.clientMsgId === clientMsgId) || m.id === raw.id
+      (m) => (clientMsgId && m.clientMsgId === clientMsgId) || m.id === raw.id,
     );
 
     const formatted: RideMessage = {
@@ -478,7 +477,11 @@ export class ChatRealtimeService {
     }
   }
 
-  private handleMessagesReadBroadcast(payload: { rideId: string; readAt: string; readerType: SenderType }) {
+  private handleMessagesReadBroadcast(payload: {
+    rideId: string;
+    readAt: string;
+    readerType: SenderType;
+  }) {
     const list = this.messagesByRide.get(payload.rideId);
     if (!list) return;
 
@@ -548,7 +551,7 @@ export class ChatRealtimeService {
   public getUnreadCount(rideId: string, currentUserType: SenderType): number {
     const list = this.messagesByRide.get(rideId) || this.getStoredMessages(rideId);
     return list.filter(
-      (m) => m.senderType !== currentUserType && m.senderType !== "SYSTEM" && !m.readAt
+      (m) => m.senderType !== currentUserType && m.senderType !== "SYSTEM" && !m.readAt,
     ).length;
   }
 
@@ -591,7 +594,9 @@ export class ChatRealtimeService {
 
       osc1.start(now);
       osc1.stop(now + 0.3);
-    } catch (err) { silentCatchWarn("ChatRealtimeService", err); }
+    } catch (err) {
+      silentCatchWarn("ChatRealtimeService", err);
+    }
   }
 
   /**
@@ -601,7 +606,9 @@ export class ChatRealtimeService {
     if (typeof window !== "undefined" && typeof navigator.vibrate === "function") {
       try {
         navigator.vibrate([30, 40, 30]);
-      } catch (err) { silentCatchWarn("ChatRealtimeService", err); }
+      } catch (err) {
+        silentCatchWarn("ChatRealtimeService", err);
+      }
     }
   }
 
@@ -623,7 +630,7 @@ export class ChatRealtimeService {
     }
     try {
       const raw = localStorage.getItem(this.getOutboxKey(rideId));
-      return raw ? JSON.parse(raw) : (this.memoryOutbox.get(rideId) || []);
+      return raw ? JSON.parse(raw) : this.memoryOutbox.get(rideId) || [];
     } catch {
       return this.memoryOutbox.get(rideId) || [];
     }
@@ -638,7 +645,9 @@ export class ChatRealtimeService {
       } else {
         localStorage.setItem(this.getOutboxKey(rideId), JSON.stringify(items));
       }
-    } catch (err) { silentCatchWarn("ChatRealtimeService", err); }
+    } catch (err) {
+      silentCatchWarn("ChatRealtimeService", err);
+    }
   }
 
   private queueInOutbox(rideId: string, message: RideMessage) {
@@ -699,7 +708,7 @@ export class ChatRealtimeService {
     }
     try {
       const raw = localStorage.getItem(this.getMessagesStorageKey(rideId));
-      return raw ? JSON.parse(raw) : (this.memoryStoredMessages.get(rideId) || []);
+      return raw ? JSON.parse(raw) : this.memoryStoredMessages.get(rideId) || [];
     } catch {
       return this.memoryStoredMessages.get(rideId) || [];
     }
@@ -712,7 +721,9 @@ export class ChatRealtimeService {
     if (typeof window === "undefined") return;
     try {
       localStorage.setItem(this.getMessagesStorageKey(rideId), JSON.stringify(slice));
-    } catch (err) { silentCatchWarn("ChatRealtimeService", err); }
+    } catch (err) {
+      silentCatchWarn("ChatRealtimeService", err);
+    }
   }
 
   private mergeMessages(remote: RideMessage[], pending: RideMessage[]): RideMessage[] {
@@ -724,7 +735,7 @@ export class ChatRealtimeService {
       }
     });
     return Array.from(map.values()).sort(
-      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     );
   }
 
@@ -733,7 +744,7 @@ export class ChatRealtimeService {
       window.dispatchEvent(
         new CustomEvent("partiu:chat_local_message", {
           detail: { rideId, message: msg },
-        })
+        }),
       );
     }
   }

@@ -19,7 +19,7 @@ export interface ScrollInterpolationReturn {
  * Utiliza requestAnimationFrame e passive listeners para 60-120fps nativos.
  */
 export function useScrollInterpolation(
-  options: ScrollInterpolationOptions = {}
+  options: ScrollInterpolationOptions = {},
 ): ScrollInterpolationReturn {
   const { maxRadius = 28, threshold = 80 } = options;
   const [scrollY, setScrollY] = useState(0);

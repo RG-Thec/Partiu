@@ -11,10 +11,7 @@
  */
 
 import { MapboxConfig } from "@/config/MapboxConfig";
-import {
-  LUGARES_CURADOS_ITAPERUNA,
-  calcularDistanciaHaversineMetros,
-} from "./GeocodingService";
+import { LUGARES_CURADOS_ITAPERUNA, calcularDistanciaHaversineMetros } from "./GeocodingService";
 
 function isHighwayOrExpressway(name: string): boolean {
   return /\b(RJ-\d+|BR-\d+|Rodovia|Estrada|Via Expressa|Highway)\b/i.test(name);
@@ -57,7 +54,7 @@ export class ReverseGeocodingService {
    */
   public async reverseGeocode(
     coordsOrLat: [number, number] | { lat: number; lng: number } | number,
-    lngParam?: number
+    lngParam?: number,
   ): Promise<ReverseGeocodedAddress> {
     let lat: number;
     let lng: number;
@@ -101,7 +98,8 @@ export class ReverseGeocodingService {
         neighborhood: bairro,
         city: "Itaperuna",
         state: "RJ",
-        formattedAddress: bestCurated.endereco || `${bestCurated.label} - ${bairro}, Itaperuna - RJ`,
+        formattedAddress:
+          bestCurated.endereco || `${bestCurated.label} - ${bairro}, Itaperuna - RJ`,
         coords: [lng, lat],
       };
       this.cache.set(cacheKey, { address: result, timestamp: Date.now() });
@@ -127,12 +125,34 @@ export class ReverseGeocodingService {
           const street = addr.road || addr.pedestrian || addr.street || addr.suburb || "Rua Local";
           const number = addr.house_number || "";
           const neighborhood =
-            addr.neighbourhood || addr.suburb || addr.quarter || addr.district || (minCuratedDist <= 100 ? bestCurated?.bairro : "") || "";
-          const city = addr.city || addr.town || addr.municipality || addr.village || addr.county || (minCuratedDist <= 100 ? "Itaperuna" : "");
-          const state = addr.state ? (addr.state.length === 2 ? addr.state.toUpperCase() : addr.state) : (minCuratedDist <= 100 ? "RJ" : "");
+            addr.neighbourhood ||
+            addr.suburb ||
+            addr.quarter ||
+            addr.district ||
+            (minCuratedDist <= 100 ? bestCurated?.bairro : "") ||
+            "";
+          const city =
+            addr.city ||
+            addr.town ||
+            addr.municipality ||
+            addr.village ||
+            addr.county ||
+            (minCuratedDist <= 100 ? "Itaperuna" : "");
+          const state = addr.state
+            ? addr.state.length === 2
+              ? addr.state.toUpperCase()
+              : addr.state
+            : minCuratedDist <= 100
+              ? "RJ"
+              : "";
           const streetPart = number ? `${street}, ${number}` : street;
-          const locParts = [streetPart, neighborhood, city ? (state ? `${city} - ${state}` : city) : ""].filter(Boolean);
-          const formattedAddress = locParts.join(", ") || `Coordenadas (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+          const locParts = [
+            streetPart,
+            neighborhood,
+            city ? (state ? `${city} - ${state}` : city) : "",
+          ].filter(Boolean);
+          const formattedAddress =
+            locParts.join(", ") || `Coordenadas (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
 
           candidateNominatim = {
             street,
@@ -195,12 +215,18 @@ export class ReverseGeocodingService {
           }
 
           const city =
-            context.find((c: any) => c.id.startsWith("place"))?.text || (minCuratedDist <= 100 ? "Itaperuna" : "");
+            context.find((c: any) => c.id.startsWith("place"))?.text ||
+            (minCuratedDist <= 100 ? "Itaperuna" : "");
           const postalCode = context.find((c: any) => c.id.startsWith("postcode"))?.text;
 
           const streetPart = number ? `${street}, ${number}` : street;
-          const locParts = [streetPart, neighborhood, city ? (state ? `${city} - ${state}` : city) : ""].filter(Boolean);
-          const formattedAddress = locParts.join(", ") || `Coordenadas (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+          const locParts = [
+            streetPart,
+            neighborhood,
+            city ? (state ? `${city} - ${state}` : city) : "",
+          ].filter(Boolean);
+          const formattedAddress =
+            locParts.join(", ") || `Coordenadas (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
 
           candidateMapbox = {
             street,
@@ -232,7 +258,8 @@ export class ReverseGeocodingService {
           neighborhood: bairro,
           city: "Itaperuna",
           state: "RJ",
-          formattedAddress: bestCurated.endereco || `${bestCurated.label} - ${bairro}, Itaperuna - RJ`,
+          formattedAddress:
+            bestCurated.endereco || `${bestCurated.label} - ${bairro}, Itaperuna - RJ`,
           coords: [lng, lat],
         };
         this.cache.set(cacheKey, { address: resCurated, timestamp: Date.now() });
@@ -258,13 +285,16 @@ export class ReverseGeocodingService {
 
     // 5. Fallback Final contextual (apenas usa catálogo se estiver em raio próximo de 200m)
     if (bestCurated && minCuratedDist <= 200) {
-      const bairro = bestCurated.bairro || (bestCurated.sublabel ? bestCurated.sublabel.split("—")[0]?.trim() : "Centro");
+      const bairro =
+        bestCurated.bairro ||
+        (bestCurated.sublabel ? bestCurated.sublabel.split("—")[0]?.trim() : "Centro");
       const fallbackResult: ReverseGeocodedAddress = {
         street: bestCurated.label || "Rua Local",
         neighborhood: bairro,
         city: "Itaperuna",
         state: "RJ",
-        formattedAddress: bestCurated.endereco || `${bestCurated.label} - ${bairro}, Itaperuna - RJ`,
+        formattedAddress:
+          bestCurated.endereco || `${bestCurated.label} - ${bairro}, Itaperuna - RJ`,
         coords: [lng, lat],
       };
       return fallbackResult;
@@ -301,7 +331,8 @@ export class ReverseGeocodingService {
 
     // Apenas se estiver fisicamente no polo de proximidade (< 1000m)
     if (bestMatch && minDistanceMetros <= 1000) {
-      const bairro = bestMatch.bairro || (bestMatch.sublabel ? bestMatch.sublabel.split("—")[0]?.trim() : "");
+      const bairro =
+        bestMatch.bairro || (bestMatch.sublabel ? bestMatch.sublabel.split("—")[0]?.trim() : "");
       if (minDistanceMetros <= 120) {
         return bestMatch.endereco || `${bestMatch.label}${bairro ? ` - ${bairro}` : ""}`;
       }

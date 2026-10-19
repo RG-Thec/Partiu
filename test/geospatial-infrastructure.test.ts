@@ -22,7 +22,13 @@ describe("SUITE 47: PARTIU GEOSPATIAL INFRASTRUCTURE — Config & Clean Mapbox A
   });
 
   test("2. MapboxConfig: Estilos canônicos Uber/99 Studio", () => {
-    expect(["mapbox://styles/mapbox/streets-v12", "mapbox://styles/mapbox/standard", "mapbox://styles/mapbox/light-v11"].includes(MapboxConfig.STYLES.cleanDay)).toBe(true);
+    expect(
+      [
+        "mapbox://styles/mapbox/streets-v12",
+        "mapbox://styles/mapbox/standard",
+        "mapbox://styles/mapbox/light-v11",
+      ].includes(MapboxConfig.STYLES.cleanDay),
+    ).toBe(true);
     expect(MapboxConfig.STYLES.cleanNight).toBe("mapbox://styles/mapbox/dark-v11");
     expect(MapboxConfig.STYLES.navigationTraffic).toBe("mapbox://styles/mapbox/navigation-day-v1");
   });
@@ -86,7 +92,9 @@ describe("SUITE 48: PARTIU GEOSPATIAL INFRASTRUCTURE — Directions Engine (driv
     expect(result.durationMinutes >= 1).toBe(true);
     expect(result.coordinates.length >= 2).toBe(true);
     expect(result.geometry.length > 10).toBe(true);
-    expect(["low", "moderate", "heavy", "severe"].includes(result.trafficCongestion || "low")).toBe(true);
+    expect(["low", "moderate", "heavy", "severe"].includes(result.trafficCongestion || "low")).toBe(
+      true,
+    );
   });
 
   test("3. DirectionsService: Cache com deadband espacial", async () => {
@@ -108,7 +116,10 @@ describe("SUITE 49: PARTIU GEOSPATIAL INFRASTRUCTURE — Geocoding & Reverse Geo
     expect(results.length > 0).toBe(true);
 
     const first = results[0];
-    expect(first.label.toLowerCase().includes("cardoso") || first.endereco.toLowerCase().includes("cardoso")).toBe(true);
+    expect(
+      first.label.toLowerCase().includes("cardoso") ||
+        first.endereco.toLowerCase().includes("cardoso"),
+    ).toBe(true);
     expect(first.coords[0]).toBeCloseTo(-41.8835, 1);
   });
 
@@ -155,7 +166,10 @@ describe("SUITE 51: PARTIU GEOSPATIAL INFRASTRUCTURE — Mass Scale 10,000 Drive
       id: `drv-${i}`,
       name: `Condutor ${i}`,
       category: i % 3 === 0 ? ("MOTO" as const) : ("CARRO" as const),
-      coords: [-41.888 + (Math.random() - 0.5) * 0.08, -21.205 + (Math.random() - 0.5) * 0.08] as [number, number],
+      coords: [-41.888 + (Math.random() - 0.5) * 0.08, -21.205 + (Math.random() - 0.5) * 0.08] as [
+        number,
+        number,
+      ],
       heading: Math.floor(Math.random() * 360),
       status: "ONLINE" as const,
     }));

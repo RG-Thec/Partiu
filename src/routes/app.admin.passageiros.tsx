@@ -50,7 +50,8 @@ export const Route = createFileRoute("/app/admin/passageiros")({
       { property: "og:title", content: "Gestão de Passageiros & LTV | PARTIU Admin" },
       {
         property: "og:description",
-        content: "Gestão de passageiros, LTV acumulado, controle de bloqueio cautelar e auditoria de viagens.",
+        content:
+          "Gestão de passageiros, LTV acumulado, controle de bloqueio cautelar e auditoria de viagens.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -84,7 +85,10 @@ function AdminPassageiros() {
         const res = await listar();
         if (Array.isArray(res) && res.length > 0) return res;
       } catch (err) {
-        console.warn("[app.admin.passageiros] Falha na server function listar, aplicando fallback cliente:", err);
+        console.warn(
+          "[app.admin.passageiros] Falha na server function listar, aplicando fallback cliente:",
+          err,
+        );
       }
 
       // 2. Consulta direta resiliente à tabela profiles via Supabase Client
@@ -92,13 +96,18 @@ function AdminPassageiros() {
         try {
           const { data, error: sbError } = await (supabase as any)
             .from("profiles")
-            .select("id, full_name, email, cpf, phone, created_at, is_active, approval_status, role")
+            .select(
+              "id, full_name, email, cpf, phone, created_at, is_active, approval_status, role",
+            )
             .order("created_at", { ascending: false })
             .limit(200);
 
           if (!sbError && Array.isArray(data) && data.length > 0) {
             return data
-              .filter((p: any) => p.role !== "motorista" && p.role !== "driver" && p.role !== "franqueado")
+              .filter(
+                (p: any) =>
+                  p.role !== "motorista" && p.role !== "driver" && p.role !== "franqueado",
+              )
               .map((p: any) => ({
                 id: p.id,
                 email: p.email || null,
@@ -106,7 +115,9 @@ function AdminPassageiros() {
                 cpf: p.cpf || null,
                 phone: p.phone || null,
                 created_at: p.created_at || new Date().toISOString(),
-                status: (p.is_active === false || p.approval_status === "suspenso" ? "bloqueado" : "ativo") as "ativo" | "bloqueado" | "inativo",
+                status: (p.is_active === false || p.approval_status === "suspenso"
+                  ? "bloqueado"
+                  : "ativo") as "ativo" | "bloqueado" | "inativo",
               }));
           }
         } catch (err) {
@@ -118,7 +129,9 @@ function AdminPassageiros() {
       if (todasCorridas && todasCorridas.length > 0) {
         const mapPax = new Map<string, PassageiroAdmin>();
         todasCorridas.forEach((r) => {
-          const pid = r.passenger_id || `pax_${(r.passenger_name || "cliente").toLowerCase().replace(/\s+/g, "_")}`;
+          const pid =
+            r.passenger_id ||
+            `pax_${(r.passenger_name || "cliente").toLowerCase().replace(/\s+/g, "_")}`;
           if (!mapPax.has(pid)) {
             mapPax.set(pid, {
               id: pid,
@@ -154,7 +167,10 @@ function AdminPassageiros() {
       try {
         return await cadastrar({ data: dados });
       } catch (err) {
-        console.warn("[app.admin.passageiros] Falha ao cadastrar via server function, tentando client Supabase:", err);
+        console.warn(
+          "[app.admin.passageiros] Falha ao cadastrar via server function, tentando client Supabase:",
+          err,
+        );
         if (isSupabaseConfigured()) {
           const newId = crypto.randomUUID();
           const { error: insErr } = await (supabase as any).from("profiles").upsert({
@@ -184,7 +200,10 @@ function AdminPassageiros() {
       try {
         return await atualizar({ data: dados });
       } catch (err) {
-        console.warn("[app.admin.passageiros] Falha na edição via server function, tentando client Supabase:", err);
+        console.warn(
+          "[app.admin.passageiros] Falha na edição via server function, tentando client Supabase:",
+          err,
+        );
         if (isSupabaseConfigured()) {
           const { error: updErr } = await (supabase as any)
             .from("profiles")
@@ -206,7 +225,10 @@ function AdminPassageiros() {
       try {
         return await alternarStatus({ data: dados });
       } catch (err) {
-        console.warn("[app.admin.passageiros] Falha ao alternar status via server function, tentando client Supabase:", err);
+        console.warn(
+          "[app.admin.passageiros] Falha ao alternar status via server function, tentando client Supabase:",
+          err,
+        );
         if (isSupabaseConfigured()) {
           const { error: stErr } = await (supabase as any)
             .from("profiles")
@@ -225,7 +247,7 @@ function AdminPassageiros() {
       void qc.invalidateQueries({ queryKey: ["admin", "passageiros"] });
       if (passageiroDetalhe) {
         setPassageiroDetalhe((ant) =>
-          ant ? { ...ant, status: ant.status === "bloqueado" ? "ativo" : "bloqueado" } : null
+          ant ? { ...ant, status: ant.status === "bloqueado" ? "ativo" : "bloqueado" } : null,
         );
       }
       setMotivoBloqueio("");
@@ -240,7 +262,7 @@ function AdminPassageiros() {
           (r.passenger_id && r.passenger_id === p.id) ||
           (r.passenger_name &&
             p.full_name &&
-            r.passenger_name.toLowerCase().trim() === p.full_name.toLowerCase().trim())
+            r.passenger_name.toLowerCase().trim() === p.full_name.toLowerCase().trim()),
       );
       const totalCorridas = viagensDoPassageiro.length;
       const ltvBrl = viagensDoPassageiro.reduce((acc, r) => acc + Number(r.fare_brl || 0), 0);
@@ -259,9 +281,10 @@ function AdminPassageiros() {
     if (isNacional) return passageirosComMetricas;
     const nomeCidade = pracaAtiva.nome.toLowerCase();
     return passageirosComMetricas.filter((p) => {
-      const temViagemNaCidade = p.viagens.some((r) =>
-        (r.pickup_address && r.pickup_address.toLowerCase().includes(nomeCidade)) ||
-        (r.destination_address && r.destination_address.toLowerCase().includes(nomeCidade))
+      const temViagemNaCidade = p.viagens.some(
+        (r) =>
+          (r.pickup_address && r.pickup_address.toLowerCase().includes(nomeCidade)) ||
+          (r.destination_address && r.destination_address.toLowerCase().includes(nomeCidade)),
       );
       const cidadeUsuario = ((p as any).cidade || (p as any).city || "").toLowerCase();
       return temViagemNaCidade || cidadeUsuario.includes(nomeCidade);
@@ -275,7 +298,9 @@ function AdminPassageiros() {
     const totalViagens = passageirosDaPraca.reduce((acc, p) => acc + (p.total_corridas || 0), 0);
     const mediaViagens = total > 0 ? (totalViagens / total).toFixed(1) : "0.0";
     const hojeStr = new Date().toISOString().slice(0, 10);
-    const novosHoje = passageirosDaPraca.filter((p) => p.created_at.slice(0, 10) === hojeStr).length;
+    const novosHoje = passageirosDaPraca.filter(
+      (p) => p.created_at.slice(0, 10) === hojeStr,
+    ).length;
 
     return { total, ltvTotal, mediaViagens, novosHoje };
   }, [passageirosDaPraca]);
@@ -307,7 +332,8 @@ function AdminPassageiros() {
         (r.passenger_id && r.passenger_id === passageiroDetalhe.id) ||
         (r.passenger_name &&
           passageiroDetalhe.full_name &&
-          r.passenger_name.toLowerCase().trim() === passageiroDetalhe.full_name.toLowerCase().trim())
+          r.passenger_name.toLowerCase().trim() ===
+            passageiroDetalhe.full_name.toLowerCase().trim()),
     );
   }, [passageiroDetalhe, todasCorridas]);
 
@@ -319,7 +345,10 @@ function AdminPassageiros() {
           <div className="flex items-center gap-2 mb-1">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              Gestão de Clientes • {isFranqueado(adminRole) ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
+              Gestão de Clientes •{" "}
+              {isFranqueado(adminRole)
+                ? `Franquia ${pracaAtiva?.nome || "Regional"}`
+                : "Gestão Nacional"}
             </span>
           </div>
           <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
@@ -329,7 +358,8 @@ function AdminPassageiros() {
             </span>
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Métricas de LTV, histórico de corridas, conformidade e governança de bloqueio {isNacional ? "em âmbito nacional" : `em ${pracaAtiva.nome}`}.
+            Métricas de LTV, histórico de corridas, conformidade e governança de bloqueio{" "}
+            {isNacional ? "em âmbito nacional" : `em ${pracaAtiva.nome}`}.
           </p>
         </div>
 
@@ -348,7 +378,17 @@ function AdminPassageiros() {
             onClick={() => {
               exportarParaCSV(
                 `passageiros_partiu_${new Date().toISOString().slice(0, 10)}`,
-                ["ID", "Nome Completo", "E-mail", "CPF", "WhatsApp", "Status", "Total de Corridas", "LTV Acumulado R$", "Data de Cadastro"],
+                [
+                  "ID",
+                  "Nome Completo",
+                  "E-mail",
+                  "CPF",
+                  "WhatsApp",
+                  "Status",
+                  "Total de Corridas",
+                  "LTV Acumulado R$",
+                  "Data de Cadastro",
+                ],
                 passageirosFiltrados.map((p) => [
                   p.id,
                   p.full_name || "Sem nome",
@@ -359,7 +399,7 @@ function AdminPassageiros() {
                   p.total_corridas || 0,
                   (p.ltv_brl || 0).toFixed(2),
                   new Date(p.created_at).toLocaleDateString("pt-BR"),
-                ])
+                ]),
               );
             }}
             className="flex h-10 items-center gap-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 px-3.5 text-xs font-bold border border-emerald-300 shadow-xs transition-all cursor-pointer"
@@ -404,7 +444,9 @@ function AdminPassageiros() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Base na Praça</span>
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+              Base na Praça
+            </span>
             <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0088FF] flex items-center justify-center">
               <Users className="w-4 h-4" />
             </div>
@@ -417,7 +459,9 @@ function AdminPassageiros() {
 
         <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">LTV Acumulado (GMV)</span>
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+              LTV Acumulado (GMV)
+            </span>
             <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <DollarSign className="w-4 h-4" />
             </div>
@@ -432,20 +476,26 @@ function AdminPassageiros() {
 
         <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Frequência Média</span>
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+              Frequência Média
+            </span>
             <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-xl sm:text-2xl font-black text-slate-900">{kpis.mediaViagens}</span>
+            <span className="text-xl sm:text-2xl font-black text-slate-900">
+              {kpis.mediaViagens}
+            </span>
             <span className="text-[11px] font-medium text-slate-500">viagens/usuário</span>
           </div>
         </div>
 
         <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Novos Cadastros</span>
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+              Novos Cadastros
+            </span>
             <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
               <UserPlus className="w-4 h-4" />
             </div>
@@ -509,9 +559,7 @@ function AdminPassageiros() {
           <h2 className="text-sm sm:text-base font-black text-slate-800">
             Passageiros Cadastrados ({passageirosFiltrados.length})
           </h2>
-          <span className="text-xs font-bold text-slate-500">
-            Ordenados por data de cadastro
-          </span>
+          <span className="text-xs font-bold text-slate-500">Ordenados por data de cadastro</span>
         </div>
 
         {isLoading && <p className="p-6 text-sm text-slate-500">Carregando passageiros...</p>}
@@ -543,7 +591,9 @@ function AdminPassageiros() {
                   return (
                     <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="py-4 px-6">
-                        <p className="font-black text-slate-900 text-sm">{p.full_name ?? "Sem nome"}</p>
+                        <p className="font-black text-slate-900 text-sm">
+                          {p.full_name ?? "Sem nome"}
+                        </p>
                         <span className="text-xs text-slate-500">{p.email ?? "—"}</span>
                       </td>
                       <td className="py-4 px-6 text-xs text-slate-600">
@@ -568,7 +618,11 @@ function AdminPassageiros() {
                               : "bg-emerald-50 text-emerald-700 border border-emerald-200"
                           }`}
                         >
-                          {isBloqueado ? <Lock className="h-3 w-3" /> : <ShieldCheck className="h-3 w-3" />}
+                          {isBloqueado ? (
+                            <Lock className="h-3 w-3" />
+                          ) : (
+                            <ShieldCheck className="h-3 w-3" />
+                          )}
                           {isBloqueado ? "Bloqueado" : "Ativo"}
                         </span>
                       </td>
@@ -606,7 +660,10 @@ function AdminPassageiros() {
           {passageirosFiltrados.map((p) => {
             const isBloqueado = p.status === "bloqueado";
             return (
-              <div key={p.id} className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2.5 shadow-2xs">
+              <div
+                key={p.id}
+                className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2.5 shadow-2xs"
+              >
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="font-black text-slate-900 text-sm">{p.full_name ?? "Sem nome"}</p>
@@ -623,11 +680,15 @@ function AdminPassageiros() {
 
                 <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-xl text-slate-600">
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Viagens:</span>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                      Viagens:
+                    </span>
                     <span className="font-bold text-slate-900">{p.total_corridas}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">LTV:</span>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                      LTV:
+                    </span>
                     <span className="font-bold text-emerald-700">
                       R$ {(p.ltv_brl || 0).toFixed(2).replace(".", ",")}
                     </span>
@@ -737,8 +798,12 @@ function AdminPassageiros() {
                   {(passageiroDetalhe.full_name || "P").charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base font-black leading-tight">{passageiroDetalhe.full_name ?? "Passageiro PARTIU"}</h3>
-                  <p className="text-[11px] text-slate-400 leading-tight">{passageiroDetalhe.email ?? "—"}</p>
+                  <h3 className="text-sm sm:text-base font-black leading-tight">
+                    {passageiroDetalhe.full_name ?? "Passageiro PARTIU"}
+                  </h3>
+                  <p className="text-[11px] text-slate-400 leading-tight">
+                    {passageiroDetalhe.email ?? "—"}
+                  </p>
                 </div>
               </div>
               <button
@@ -781,7 +846,9 @@ function AdminPassageiros() {
                       passageiroDetalhe.status === "bloqueado" ? "text-red-600" : "text-emerald-600"
                     }`}
                   >
-                    {passageiroDetalhe.status === "bloqueado" ? "Bloqueado Cautelar" : "Ativo Regular"}
+                    {passageiroDetalhe.status === "bloqueado"
+                      ? "Bloqueado Cautelar"
+                      : "Ativo Regular"}
                   </p>
                 </div>
               </div>
@@ -790,11 +857,15 @@ function AdminPassageiros() {
               <div className="bg-white p-4 rounded-2xl border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div>
                   <span className="text-slate-400 font-bold block">CPF Vinculado</span>
-                  <span className="font-bold text-slate-800">{passageiroDetalhe.cpf ?? "Não informado"}</span>
+                  <span className="font-bold text-slate-800">
+                    {passageiroDetalhe.cpf ?? "Não informado"}
+                  </span>
                 </div>
                 <div>
                   <span className="text-slate-400 font-bold block">WhatsApp</span>
-                  <span className="font-bold text-slate-800">{passageiroDetalhe.phone ?? "Não informado"}</span>
+                  <span className="font-bold text-slate-800">
+                    {passageiroDetalhe.phone ?? "Não informado"}
+                  </span>
                 </div>
                 <div>
                   <span className="text-slate-400 font-bold block">Cadastrado em</span>
@@ -825,12 +896,18 @@ function AdminPassageiros() {
                             {v.pickup_address || "Origem"} → {v.destination_address || "Destino"}
                           </p>
                           <span className="text-[11px] text-slate-500">
-                            Motorista: {v.driver_name || "Aguardando"} • {v.created_at ? new Date(v.created_at).toLocaleDateString("pt-BR") : "Hoje"}
+                            Motorista: {v.driver_name || "Aguardando"} •{" "}
+                            {v.created_at
+                              ? new Date(v.created_at).toLocaleDateString("pt-BR")
+                              : "Hoje"}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <span className="font-mono font-bold text-slate-900">
-                            R$ {Number(v.fare_brl || 0).toFixed(2).replace(".", ",")}
+                            R${" "}
+                            {Number(v.fare_brl || 0)
+                              .toFixed(2)
+                              .replace(".", ",")}
                           </span>
                           <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-slate-200 text-slate-700">
                             {v.status}
@@ -851,7 +928,9 @@ function AdminPassageiros() {
                   </h4>
                 </div>
                 <p className="text-xs text-amber-800 leading-relaxed">
-                  O bloqueio cautelar suspende temporariamente a permissão do passageiro de solicitar novas corridas sem apagar seus dados históricos nem relatórios financeiros.
+                  O bloqueio cautelar suspende temporariamente a permissão do passageiro de
+                  solicitar novas corridas sem apagar seus dados históricos nem relatórios
+                  financeiros.
                 </p>
 
                 {passageiroDetalhe.status === "bloqueado" ? (
@@ -922,8 +1001,12 @@ function AdminPassageiros() {
                   <UserPlus className="h-4.5 w-4.5" />
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-slate-900 leading-tight">Cadastrar Novo Passageiro</h3>
-                  <p className="text-[11px] text-slate-500 leading-tight">Cadastre e libere acesso imediato ao aplicativo</p>
+                  <h3 className="text-sm sm:text-base font-black text-slate-900 leading-tight">
+                    Cadastrar Novo Passageiro
+                  </h3>
+                  <p className="text-[11px] text-slate-500 leading-tight">
+                    Cadastre e libere acesso imediato ao aplicativo
+                  </p>
                 </div>
               </div>
               <button

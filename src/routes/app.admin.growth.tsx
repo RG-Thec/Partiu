@@ -57,12 +57,20 @@ export function GrowthAndRetentionCenter() {
   const { corPrimaria, corTextoPrimaria } = useBrandTheme();
 
   // Estados dos Motores
-  const [tabAtiva, setTabAtiva] = useState<"RETENCAO" | "INDICACOES" | "FIDELIDADE" | "SIMULADOR">("RETENCAO");
-  const [retentionRecords, setRetentionRecords] = useState(() => retentionIntelligenceEngine.getAllRecords());
-  const [retentionMetrics, setRetentionMetrics] = useState(() => retentionIntelligenceEngine.getMetrics());
+  const [tabAtiva, setTabAtiva] = useState<"RETENCAO" | "INDICACOES" | "FIDELIDADE" | "SIMULADOR">(
+    "RETENCAO",
+  );
+  const [retentionRecords, setRetentionRecords] = useState(() =>
+    retentionIntelligenceEngine.getAllRecords(),
+  );
+  const [retentionMetrics, setRetentionMetrics] = useState(() =>
+    retentionIntelligenceEngine.getMetrics(),
+  );
   const [referrals, setReferrals] = useState(() => referralEngine.getAllReferrals());
   const [referralMetrics, setReferralMetrics] = useState(() => referralEngine.getMetrics());
-  const [referralConfig, setReferralConfig] = useState<ReferralRewardConfig>(() => referralEngine.getConfig());
+  const [referralConfig, setReferralConfig] = useState<ReferralRewardConfig>(() =>
+    referralEngine.getConfig(),
+  );
   const [loyaltyTiers] = useState<LoyaltyTierThreshold[]>(() => driverLoyaltyEngine.getAllTiers());
 
   // Estado do Simulador Econômico
@@ -82,7 +90,7 @@ export function GrowthAndRetentionCenter() {
   });
 
   const [simOutput, setSimOutput] = useState<EconomicSimulatorOutput>(() =>
-    commissionEngine.simulatePlatformEconomics(simInput)
+    commissionEngine.simulatePlatformEconomics(simInput),
   );
 
   const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
@@ -127,7 +135,8 @@ export function GrowthAndRetentionCenter() {
             </h1>
           </div>
           <p className="text-xs text-slate-500 mt-1 font-medium">
-            Monitoramento de churn, viralidade por indicações, tiers de fidelidade e simulador financeiro.
+            Monitoramento de churn, viralidade por indicações, tiers de fidelidade e simulador
+            financeiro.
           </p>
         </div>
 
@@ -163,7 +172,9 @@ export function GrowthAndRetentionCenter() {
             Taxa de Churn Mensal
           </span>
           <div className="flex items-baseline justify-between mt-1">
-            <span className="text-2xl font-black text-slate-900">{retentionMetrics.churnRatePercent}%</span>
+            <span className="text-2xl font-black text-slate-900">
+              {retentionMetrics.churnRatePercent}%
+            </span>
             <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
               Ideal &lt; 5%
             </span>
@@ -178,7 +189,9 @@ export function GrowthAndRetentionCenter() {
             Motoristas Monitorados
           </span>
           <div className="flex items-baseline justify-between mt-1">
-            <span className="text-2xl font-black text-slate-900">{retentionMetrics.totalMonitored}</span>
+            <span className="text-2xl font-black text-slate-900">
+              {retentionMetrics.totalMonitored}
+            </span>
             <span className="text-[10px] font-bold text-primary-700 bg-primary-50 px-1.5 py-0.5 rounded">
               {retentionMetrics.atRiskCount} em alerta
             </span>
@@ -193,7 +206,9 @@ export function GrowthAndRetentionCenter() {
             Programa de Indicações
           </span>
           <div className="flex items-baseline justify-between mt-1">
-            <span className="text-2xl font-black text-slate-900">{referralMetrics.totalReferrals}</span>
+            <span className="text-2xl font-black text-slate-900">
+              {referralMetrics.totalReferrals}
+            </span>
             <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
               K={referralMetrics.kFactor}
             </span>
@@ -310,8 +325,8 @@ export function GrowthAndRetentionCenter() {
                         {r.status === "CAMPAIGN_SENT"
                           ? "📢 Campanha enviada"
                           : r.status === "RECOVERED"
-                          ? "✅ Recuperado"
-                          : "⚠️ Identificado"}
+                            ? "✅ Recuperado"
+                            : "⚠️ Identificado"}
                       </div>
                     </td>
                     <td className="py-3 px-3 font-bold text-slate-700">
@@ -324,7 +339,8 @@ export function GrowthAndRetentionCenter() {
                         <span className="font-bold text-emerald-600">Estável</span>
                       )}
                       <div className="text-[10px] text-slate-400">
-                        R$ {r.weeklyEarningsBrl.toFixed(0)} vs R$ {r.previousWeekEarningsBrl.toFixed(0)}
+                        R$ {r.weeklyEarningsBrl.toFixed(0)} vs R${" "}
+                        {r.previousWeekEarningsBrl.toFixed(0)}
                       </div>
                     </td>
                     <td className="py-3 px-3">
@@ -333,8 +349,8 @@ export function GrowthAndRetentionCenter() {
                           r.riskLevel === "CRITICO"
                             ? "bg-rose-100 text-rose-800 border border-rose-200"
                             : r.riskLevel === "ALTO"
-                            ? "bg-primary-50 text-amber-900 border border-amber-200"
-                            : "bg-slate-100 text-slate-700"
+                              ? "bg-primary-50 text-amber-900 border border-amber-200"
+                              : "bg-slate-100 text-slate-700"
                         }`}
                       >
                         {r.riskLevel} ({r.riskScore})
@@ -406,9 +422,7 @@ export function GrowthAndRetentionCenter() {
                         <div className="font-black text-slate-950">{ref.referrerName}</div>
                         <div className="text-[10px] text-slate-400">{ref.referrerRole}</div>
                       </td>
-                      <td className="py-3 px-3 font-semibold text-slate-800">
-                        {ref.referredName}
-                      </td>
+                      <td className="py-3 px-3 font-semibold text-slate-800">{ref.referredName}</td>
                       <td className="py-3 px-3">
                         <span className="px-2 py-0.5 rounded font-mono font-bold bg-slate-100 text-slate-800">
                           {ref.referralCode}
@@ -436,15 +450,15 @@ export function GrowthAndRetentionCenter() {
                             ref.status === "PAID"
                               ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                               : ref.status === "PENDING"
-                              ? "bg-primary-50 text-amber-900 border border-amber-200"
-                              : "bg-rose-100 text-rose-800 border border-rose-200"
+                                ? "bg-primary-50 text-amber-900 border border-amber-200"
+                                : "bg-rose-100 text-rose-800 border border-rose-200"
                           }`}
                         >
                           {ref.status === "PAID"
                             ? "PAGO D+0"
                             : ref.status === "PENDING"
-                            ? "PENDENTE"
-                            : "BLOQUEADO (FRAUDE)"}
+                              ? "PENDENTE"
+                              : "BLOQUEADO (FRAUDE)"}
                         </span>
                         {ref.fraudSignals.length > 0 && (
                           <div className="text-[9px] text-rose-600 font-bold mt-0.5">
@@ -494,7 +508,8 @@ export function GrowthAndRetentionCenter() {
                   className="w-full px-3 py-2 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-400"
                 />
                 <span className="text-[10px] text-slate-400 block mt-0.5">
-                  Bônus liberado somente após o indicado completar {referralConfig.driverTargetTrips} viagens.
+                  Bônus liberado somente após o indicado completar{" "}
+                  {referralConfig.driverTargetTrips} viagens.
                 </span>
               </div>
 
@@ -506,7 +521,9 @@ export function GrowthAndRetentionCenter() {
                   type="number"
                   value={referralConfig.passengerDiscountBonusBrl}
                   onChange={(e) =>
-                    handleUpdateReferralConfig({ passengerDiscountBonusBrl: Number(e.target.value) })
+                    handleUpdateReferralConfig({
+                      passengerDiscountBonusBrl: Number(e.target.value),
+                    })
                   }
                   className="w-full px-3 py-2 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-400"
                 />
@@ -526,7 +543,8 @@ export function GrowthAndRetentionCenter() {
                   />
                 </div>
                 <span className="text-[10px] text-amber-800 font-medium block">
-                  Aplica multiplicador de {referralConfig.temporaryCampaignMultiplier}x em todos os bônus.
+                  Aplica multiplicador de {referralConfig.temporaryCampaignMultiplier}x em todos os
+                  bônus.
                 </span>
               </div>
             </div>
@@ -538,9 +556,12 @@ export function GrowthAndRetentionCenter() {
       {tabAtiva === "FIDELIDADE" && (
         <div className="space-y-4">
           <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm">
-            <h3 className="text-base font-black text-slate-950">Níveis de Fidelidade dos Condutores</h3>
+            <h3 className="text-base font-black text-slate-950">
+              Níveis de Fidelidade dos Condutores
+            </h3>
             <p className="text-xs text-slate-500">
-              Progressão baseada em mérito, regularidade e satisfação dos passageiros. Sem alteração de taxas ou ganhos.
+              Progressão baseada em mérito, regularidade e satisfação dos passageiros. Sem alteração
+              de taxas ou ganhos.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
@@ -551,14 +572,18 @@ export function GrowthAndRetentionCenter() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-2xl">{tier.badgeIcon}</span>
-                    <span className={`px-2 py-0.5 rounded-md font-black text-[10px] ${tier.badgeColor}`}>
+                    <span
+                      className={`px-2 py-0.5 rounded-md font-black text-[10px] ${tier.badgeColor}`}
+                    >
                       {tier.name}
                     </span>
                   </div>
 
                   <div>
                     <h4 className="text-sm font-black text-slate-950">{tier.badgeLabel}</h4>
-                    <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">{tier.description}</p>
+                    <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                      {tier.description}
+                    </p>
                   </div>
 
                   {/* Requisitos de Entrada */}
@@ -608,7 +633,8 @@ export function GrowthAndRetentionCenter() {
               <h3 className="text-base font-black text-slate-950">Parâmetros da Simulação</h3>
             </div>
             <p className="text-xs text-slate-500">
-              Ajuste as premissas de condutores e ticket médio para testar o equilíbrio financeiro da operação.
+              Ajuste as premissas de condutores e ticket médio para testar o equilíbrio financeiro
+              da operação.
             </p>
 
             <div className="space-y-4 pt-2">
@@ -623,7 +649,9 @@ export function GrowthAndRetentionCenter() {
                   max="2000"
                   step="25"
                   value={simInput.activeDriversCount}
-                  onChange={(e) => handleRecalcularSimulador({ activeDriversCount: Number(e.target.value) })}
+                  onChange={(e) =>
+                    handleRecalcularSimulador({ activeDriversCount: Number(e.target.value) })
+                  }
                   className="w-full accent-amber-500"
                 />
               </div>
@@ -631,7 +659,9 @@ export function GrowthAndRetentionCenter() {
               <div>
                 <div className="flex items-center justify-between text-xs font-bold mb-1">
                   <span className="text-slate-700">Corridas / Motorista / Mês</span>
-                  <span className="font-black text-primary-700">{simInput.avgTripsPerDriverPerMonth}</span>
+                  <span className="font-black text-primary-700">
+                    {simInput.avgTripsPerDriverPerMonth}
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -639,7 +669,9 @@ export function GrowthAndRetentionCenter() {
                   max="300"
                   step="10"
                   value={simInput.avgTripsPerDriverPerMonth}
-                  onChange={(e) => handleRecalcularSimulador({ avgTripsPerDriverPerMonth: Number(e.target.value) })}
+                  onChange={(e) =>
+                    handleRecalcularSimulador({ avgTripsPerDriverPerMonth: Number(e.target.value) })
+                  }
                   className="w-full accent-amber-500"
                 />
               </div>
@@ -647,7 +679,9 @@ export function GrowthAndRetentionCenter() {
               <div>
                 <div className="flex items-center justify-between text-xs font-bold mb-1">
                   <span className="text-slate-700">Ticket Médio da Corrida (R$)</span>
-                  <span className="font-black text-primary-700">R$ {simInput.avgGrossFareBrl.toFixed(2)}</span>
+                  <span className="font-black text-primary-700">
+                    R$ {simInput.avgGrossFareBrl.toFixed(2)}
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -655,7 +689,9 @@ export function GrowthAndRetentionCenter() {
                   max="45"
                   step="1"
                   value={simInput.avgGrossFareBrl}
-                  onChange={(e) => handleRecalcularSimulador({ avgGrossFareBrl: Number(e.target.value) })}
+                  onChange={(e) =>
+                    handleRecalcularSimulador({ avgGrossFareBrl: Number(e.target.value) })
+                  }
                   className="w-full accent-amber-500"
                 />
               </div>
@@ -680,7 +716,9 @@ export function GrowthAndRetentionCenter() {
           <div className="lg:col-span-2 bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-5">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-black text-slate-950">Demonstração de Resultados (DRE Mensal)</h3>
+                <h3 className="text-base font-black text-slate-950">
+                  Demonstração de Resultados (DRE Mensal)
+                </h3>
                 <p className="text-xs text-slate-500">
                   GMV total movimentado (100% dos motoristas) e receita SaaS recorrente da franquia.
                 </p>
@@ -692,7 +730,9 @@ export function GrowthAndRetentionCenter() {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                <span className="text-[10px] font-black uppercase text-slate-400 block">GMV Total (Frota)</span>
+                <span className="text-[10px] font-black uppercase text-slate-400 block">
+                  GMV Total (Frota)
+                </span>
                 <span className="text-xl font-black text-slate-900 block mt-1">
                   R$ {(simOutput.totalMarketplaceGMVBrl / 1000).toFixed(1)}k
                 </span>
@@ -700,7 +740,9 @@ export function GrowthAndRetentionCenter() {
               </div>
 
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                <span className="text-[10px] font-black uppercase text-slate-400 block">Receita SaaS Plataforma</span>
+                <span className="text-[10px] font-black uppercase text-slate-400 block">
+                  Receita SaaS Plataforma
+                </span>
                 <span className="text-xl font-black text-slate-900 block mt-1">
                   R$ {simOutput.saasSubscriptionRevenueBrl.toLocaleString("pt-BR")}
                 </span>
@@ -708,11 +750,13 @@ export function GrowthAndRetentionCenter() {
               </div>
 
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                <span className="text-[10px] font-black uppercase text-slate-400 block">Comissão PARTIU</span>
-                <span className="text-xl font-black text-emerald-700 block mt-1">
-                  R$ 0,00
+                <span className="text-[10px] font-black uppercase text-slate-400 block">
+                  Comissão PARTIU
                 </span>
-                <span className="text-[10px] text-emerald-700 font-bold">Isento nas Corridas (0%)</span>
+                <span className="text-xl font-black text-emerald-700 block mt-1">R$ 0,00</span>
+                <span className="text-[10px] text-emerald-700 font-bold">
+                  Isento nas Corridas (0%)
+                </span>
               </div>
             </div>
 
@@ -746,7 +790,8 @@ export function GrowthAndRetentionCenter() {
             {/* Ponto de Equilíbrio & Sustentabilidade */}
             <div className="flex items-center justify-between text-xs text-slate-600 pt-2 border-t border-slate-100">
               <span>
-                Ponto de Equilíbrio (Breakeven): <b>{simOutput.breakevenDriversCount} motoristas ativos</b>
+                Ponto de Equilíbrio (Breakeven):{" "}
+                <b>{simOutput.breakevenDriversCount} motoristas ativos</b>
               </span>
               <span className="text-emerald-700 font-black">
                 Sustentabilidade Financeira Comprovada ✓

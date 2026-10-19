@@ -48,7 +48,6 @@ import crypto from "crypto";
 import { supabase } from "@/integrations/supabase/client";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
-
 const LOCAL_FALLBACK_STORE = new Map<string, IdempotencyRecord>();
 const DEFAULT_EXPIRATION_HOURS = 24;
 
@@ -100,7 +99,9 @@ export async function getIdempotencyRecord<T>(key: string): Promise<IdempotencyR
         expiresAt: data.expires_at,
       };
     }
-  } catch (err) { silentCatchWarn("global-idempotency", err); }
+  } catch (err) {
+    silentCatchWarn("global-idempotency", err);
+  }
 
   return null;
 }
@@ -175,7 +176,9 @@ export async function executeWithIdempotency<T>(
         status: "IN_FLIGHT",
         expires_at: expires.toISOString(),
       });
-    } catch (err) { silentCatchWarn("global-idempotency", err); }
+    } catch (err) {
+      silentCatchWarn("global-idempotency", err);
+    }
   }
 
   try {
@@ -196,7 +199,9 @@ export async function executeWithIdempotency<T>(
             response_payload: (result as any) ?? null,
           })
           .eq("key", idempotencyKey);
-      } catch (err) { silentCatchWarn("global-idempotency", err); }
+      } catch (err) {
+        silentCatchWarn("global-idempotency", err);
+      }
     }
 
     return { executed: true, duplicate: false, result };
@@ -212,7 +217,9 @@ export async function executeWithIdempotency<T>(
             status: "REJECTED",
           })
           .eq("key", idempotencyKey);
-      } catch (dbErr) { silentCatchWarn("global-idempotency", dbErr); }
+      } catch (dbErr) {
+        silentCatchWarn("global-idempotency", dbErr);
+      }
     }
 
     throw err;

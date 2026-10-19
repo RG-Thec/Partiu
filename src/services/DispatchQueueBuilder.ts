@@ -66,7 +66,7 @@ export class DispatchQueueBuilder {
       window.dispatchEvent(
         new CustomEvent("partiu:dispatch_session_updated", {
           detail: { ...session },
-        })
+        }),
       );
     }
   }
@@ -82,7 +82,8 @@ export class DispatchQueueBuilder {
     fareBrl: number;
     initialCandidates?: CandidateDriverProfile[] | undefined;
   }): Promise<DispatchSession> {
-    const { rideId, category, pickupCoords, destinationCoords, fareBrl, initialCandidates } = params;
+    const { rideId, category, pickupCoords, destinationCoords, fareBrl, initialCandidates } =
+      params;
 
     // Cancela sessão prévia se houver
     this.cancelCascade(rideId);
@@ -170,7 +171,7 @@ export class DispatchQueueBuilder {
             distanceMeters: candidate.distanceMeters,
             countdownSeconds: this.DRIVER_TIMEOUT_SECONDS,
           },
-        })
+        }),
       );
     }
 
@@ -200,7 +201,10 @@ export class DispatchQueueBuilder {
   /**
    * Avança a fila para o próximo motorista da cascata
    */
-  public advanceToNextDriver(rideId: string, reason: "TIMEOUT" | "DECLINED" | "OFFLINE" = "TIMEOUT"): void {
+  public advanceToNextDriver(
+    rideId: string,
+    reason: "TIMEOUT" | "DECLINED" | "OFFLINE" = "TIMEOUT",
+  ): void {
     const session = this.activeSessions.get(rideId);
     if (!session || session.status !== "DISPATCHING") return;
 
@@ -231,7 +235,9 @@ export class DispatchQueueBuilder {
     this.clearTimer(rideId);
 
     const acceptedDriver =
-      session.candidates.find((c) => c.driverId === driverId) || session.currentCandidate || session.candidates[0];
+      session.candidates.find((c) => c.driverId === driverId) ||
+      session.currentCandidate ||
+      session.candidates[0];
 
     session.status = "ACCEPTED";
     session.acceptedDriver = acceptedDriver;
@@ -245,7 +251,7 @@ export class DispatchQueueBuilder {
             rideId,
             driver: acceptedDriver,
           },
-        })
+        }),
       );
     }
 
@@ -288,7 +294,7 @@ export class DispatchQueueBuilder {
       window.dispatchEvent(
         new CustomEvent("partiu:dispatch_queue_exhausted", {
           detail: { rideId: session.rideId },
-        })
+        }),
       );
     }
   }

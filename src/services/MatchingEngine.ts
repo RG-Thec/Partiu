@@ -96,7 +96,7 @@ export class MatchingEngine {
       rating: number;
       cancellationRate: number;
     },
-    maxRadiusMeters = 8000
+    maxRadiusMeters = 8000,
   ): number {
     // 1. Distância (40%): mais perto = maior score
     const distanceNorm = Math.max(0, 1.0 - driver.distanceMeters / maxRadiusMeters);
@@ -117,18 +117,21 @@ export class MatchingEngine {
     const planScore = (planWeights[driver.subscriptionPlan] || 0.2) * 15.0;
 
     // 4. Taxa de Aceitação (10%): aceita tanto 0-100 quanto 0-1.0
-    const rawAcceptance = driver.acceptanceRate <= 1.0 ? driver.acceptanceRate * 100 : driver.acceptanceRate;
+    const rawAcceptance =
+      driver.acceptanceRate <= 1.0 ? driver.acceptanceRate * 100 : driver.acceptanceRate;
     const acceptanceScore = (Math.min(100, Math.max(0, rawAcceptance)) / 100.0) * 10.0;
 
     // 5. Avaliação (5%):
     const ratingScore = (Math.min(5.0, Math.max(1.0, driver.rating)) / 5.0) * 5.0;
 
     // 6. Taxa de Cancelamento (5%): menor cancelamento = maior pontuação
-    const rawCancel = driver.cancellationRate <= 1.0 ? driver.cancellationRate * 100 : driver.cancellationRate;
+    const rawCancel =
+      driver.cancellationRate <= 1.0 ? driver.cancellationRate * 100 : driver.cancellationRate;
     const cancelNorm = Math.max(0, 1.0 - rawCancel / 100.0);
     const cancelScore = cancelNorm * 5.0;
 
-    const total = distanceScore + etaScore + planScore + acceptanceScore + ratingScore + cancelScore;
+    const total =
+      distanceScore + etaScore + planScore + acceptanceScore + ratingScore + cancelScore;
     return Math.round(total * 100) / 100;
   }
 
@@ -152,9 +155,10 @@ export class MatchingEngine {
           subscriptionStatus?: string;
           validadeAssinatura?: string;
           subscriptionExpiresAt?: string;
-        }
+        },
   ): boolean {
-    const status = typeof driverOrStatus === "string" ? driverOrStatus : (driverOrStatus.status || "ONLINE");
+    const status =
+      typeof driverOrStatus === "string" ? driverOrStatus : driverOrStatus.status || "ONLINE";
     const ineligibleStatuses = [
       "OFFLINE",
       "SUSPENDED",
@@ -174,13 +178,16 @@ export class MatchingEngine {
       if (driverOrStatus.isBlocked || driverOrStatus.isSuspended) return false;
 
       // 1. Documentação Obrigatória Aprovada
-      if (driverOrStatus.documentosAprovados === false || driverOrStatus.documentsApproved === false) {
+      if (
+        driverOrStatus.documentosAprovados === false ||
+        driverOrStatus.documentsApproved === false
+      ) {
         return false;
       }
 
       // 2. Taxa de cancelamento excessiva
       const cancelRate = driverOrStatus.cancellationRate ?? 0;
-      if ((cancelRate > 0.20 && cancelRate <= 1.0) || cancelRate > 20) return false;
+      if ((cancelRate > 0.2 && cancelRate <= 1.0) || cancelRate > 20) return false;
 
       // 3. Status de Assinatura SaaS / Taxa Zero
       const rawSub = driverOrStatus.statusAssinatura || driverOrStatus.subscriptionStatus;
@@ -205,7 +212,12 @@ export class MatchingEngine {
           (driverOrStatus as any).subscriptionPlan &&
           ["OURO", "PRATA", "BRONZE"].includes((driverOrStatus as any).subscriptionPlan);
 
-        if (!hasActivePlanProp && driverSubscriptionService.getAllSubscriptions().some((s) => s.driver_id === driverOrStatus.driverId)) {
+        if (
+          !hasActivePlanProp &&
+          driverSubscriptionService
+            .getAllSubscriptions()
+            .some((s) => s.driver_id === driverOrStatus.driverId)
+        ) {
           if (!driverSubscriptionService.isDriverUnlocked(driverOrStatus.driverId)) {
             return false;
           }
@@ -223,7 +235,9 @@ export class MatchingEngine {
     const passengerLng = request.passengerLng ?? request.pickupCoords?.[0];
 
     if (passengerLat === undefined || passengerLng === undefined) {
-      console.warn("[MatchingEngine] Coordenadas de embarque ausentes (LOCATION_UNAVAILABLE). Rejeitando busca sem GPS real.");
+      console.warn(
+        "[MatchingEngine] Coordenadas de embarque ausentes (LOCATION_UNAVAILABLE). Rejeitando busca sem GPS real.",
+      );
       return [];
     }
 
@@ -235,13 +249,19 @@ export class MatchingEngine {
     // 0. Validação de Fronteira Territorial e Não-Canibalização da Franquia
     const targetTenant =
       request.tenantId && request.tenantId !== "00000000-0000-0000-0000-000000000000"
-        ? (whiteLabelEngine.getTenantById(request.tenantId) || whiteLabelEngine.getActiveTenant())
+        ? whiteLabelEngine.getTenantById(request.tenantId) || whiteLabelEngine.getActiveTenant()
         : whiteLabelEngine.getActiveTenant();
 
     if (targetTenant) {
-      const checagemTerritorial = validarAcessoTerritorial(targetTenant, passengerLat, passengerLng);
+      const checagemTerritorial = validarAcessoTerritorial(
+        targetTenant,
+        passengerLat,
+        passengerLng,
+      );
       if (!checagemTerritorial.permitido) {
-        console.warn(`[MatchingEngine] Chamada de corrida fora da área autorizada: ${checagemTerritorial.motivo}`);
+        console.warn(
+          `[MatchingEngine] Chamada de corrida fora da área autorizada: ${checagemTerritorial.motivo}`,
+        );
         return [];
       }
     }
@@ -262,7 +282,10 @@ export class MatchingEngine {
 
       // Filtro de Segurança Bloqueio Mútuo
       if (request.blockedDriverIds && request.blockedDriverIds.length > 0) {
-        h3Candidates = h3DispatchEngine.filterBlockedDrivers(h3Candidates, new Set(request.blockedDriverIds));
+        h3Candidates = h3DispatchEngine.filterBlockedDrivers(
+          h3Candidates,
+          new Set(request.blockedDriverIds),
+        );
       }
 
       if (h3Candidates.length > 0) {
@@ -277,7 +300,7 @@ export class MatchingEngine {
               rating: 4.95,
               cancellationRate: 1.0,
             },
-            radiusMeters
+            radiusMeters,
           );
 
           return {
@@ -366,7 +389,7 @@ export class MatchingEngine {
     passengerLng: number,
     category: string,
     radiusMeters: number,
-    limit: number
+    limit: number,
   ): CandidateDriverProfile[] {
     const plans: ("OURO" | "PRATA" | "BRONZE" | "FREE")[] = ["OURO", "PRATA", "BRONZE", "FREE"];
     const candidates: CandidateDriverProfile[] = [];
@@ -386,7 +409,7 @@ export class MatchingEngine {
           rating: 5.0 - i * 0.1,
           cancellationRate: 1.0 + i * 0.5,
         },
-        radiusMeters
+        radiusMeters,
       );
 
       candidates.push({
@@ -407,7 +430,9 @@ export class MatchingEngine {
       });
     }
 
-    candidates.sort((a, b) => (b.finalScore ?? b.dispatchScore) - (a.finalScore ?? a.dispatchScore));
+    candidates.sort(
+      (a, b) => (b.finalScore ?? b.dispatchScore) - (a.finalScore ?? a.dispatchScore),
+    );
     return candidates;
   }
 
@@ -419,7 +444,7 @@ export class MatchingEngine {
     rideId: string,
     request: MatchRequest,
     config: Partial<WaveDispatchConfig> = {},
-    checkRideStatus?: () => Promise<string | null>
+    checkRideStatus?: () => Promise<string | null>,
   ): Promise<WaveDispatchResult> {
     // 1. Busca os candidatos elegíveis ordenados
     const drivers = await this.findBestDrivers(request);

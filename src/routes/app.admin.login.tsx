@@ -163,9 +163,7 @@ function AdminLoginPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#374151] mb-1.5">
-                  Senha
-                </label>
+                <label className="block text-xs font-semibold text-[#374151] mb-1.5">Senha</label>
                 <div className="relative group">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF] group-focus-within:text-[#FF7A00] transition-colors duration-200 pointer-events-none" />
                   <input
@@ -182,11 +180,7 @@ function AdminLoginPage() {
                     aria-label={mostrarSenha ? "Ocultar senha" : "Ver senha"}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#FF7A00] focus:outline-none cursor-pointer p-0.5 transition-colors duration-200"
                   >
-                    {mostrarSenha ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                    {mostrarSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
@@ -249,13 +243,11 @@ function AdminLoginPage() {
             <div className="w-11 h-11 rounded-2xl bg-orange-50 text-[#FF7A00] flex items-center justify-center mx-auto border border-orange-100 shadow-xs">
               <HelpCircle className="h-5 w-5" />
             </div>
-            <h2 className="text-base font-black text-[#1E2022]">
-              Recuperação de Credencial
-            </h2>
+            <h2 className="text-base font-black text-[#1E2022]">Recuperação de Credencial</h2>
             <p className="text-xs text-[#6B7280] leading-relaxed">
-              Por motivos de segurança operacional, a redefinição de acesso
-              administrativo deve ser solicitada diretamente ao Administrador
-              Titular da plataforma ou ao suporte corporativo.
+              Por motivos de segurança operacional, a redefinição de acesso administrativo deve ser
+              solicitada diretamente ao Administrador Titular da plataforma ou ao suporte
+              corporativo.
             </p>
             <div className="pt-2">
               <button

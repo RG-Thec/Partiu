@@ -57,7 +57,8 @@ describe("SUITE: Super Admin Franchisee Governance, Kill Switch & Mapbox Isolati
     });
 
     test("should use franchisee's own Mapbox key when properly configured", () => {
-      const customFranchiseKey = "pk.eyJ1IjoiZnJhbnF1aWFkby1jYW1wb3MiLCJhIjoiY2x4eXoxMjM0NTY3In0.ZXhhbXBsZV9mcmFucXVpYV9rZXk";
+      const customFranchiseKey =
+        "pk.eyJ1IjoiZnJhbnF1aWFkby1jYW1wb3MiLCJhIjoiY2x4eXoxMjM0NTY3In0.ZXhhbXBsZV9mcmFucXVpYV9rZXk";
       const config = wlEngine.getTenantConfig("tenant-campos");
 
       wlEngine.updateActiveConfig({
@@ -136,7 +137,7 @@ describe("SUITE: Super Admin Franchisee Governance, Kill Switch & Mapbox Isolati
         "tenant-resende",
         "Resende",
         "RJ",
-        "PARTIU Resende Sul"
+        "PARTIU Resende Sul",
       );
 
       expect(novaFranquia.tenantId).toBe("tenant-resende");
@@ -171,7 +172,7 @@ describe("SUITE: Super Admin Franchisee Governance, Kill Switch & Mapbox Isolati
         (t) =>
           t.tenantId.toLowerCase().includes("macae") ||
           t.cidadeNome.toLowerCase().includes("macaé") ||
-          t.cidadeNome.toLowerCase().includes("macae")
+          t.cidadeNome.toLowerCase().includes("macae"),
       );
       expect(macaeFound).toBe(false);
     });
@@ -202,7 +203,7 @@ describe("SUITE: Super Admin Franchisee Governance, Kill Switch & Mapbox Isolati
       const atualizado = wlEngine.updateTenantCredentials(
         "tenant-bhmob",
         "gestao@bhmob.com.br",
-        "NovaSenhaForte2026!"
+        "NovaSenhaForte2026!",
       );
       expect(atualizado).toBe(true);
 
@@ -211,7 +212,10 @@ describe("SUITE: Super Admin Franchisee Governance, Kill Switch & Mapbox Isolati
       expect(tenantApos?.adminSenha).toBe("NovaSenhaForte2026!");
 
       // Agora autentica com as novas credenciais
-      const tenantNovo = wlEngine.getTenantByCredentials("gestao@bhmob.com.br", "NovaSenhaForte2026!");
+      const tenantNovo = wlEngine.getTenantByCredentials(
+        "gestao@bhmob.com.br",
+        "NovaSenhaForte2026!",
+      );
       expect(tenantNovo?.tenantId).toBe("tenant-bhmob");
 
       // E restaura para padrão
@@ -226,14 +230,17 @@ describe("SUITE: Super Admin Franchisee Governance, Kill Switch & Mapbox Isolati
         "MG",
         "Uberlândia Mob",
         "contato@uberlandiamob.app",
-        "Uberlandia2026!"
+        "Uberlandia2026!",
       );
 
       expect(novaFranquia.tenantId).toBe("tenant-uberlandia");
       expect(novaFranquia.adminEmail).toBe("contato@uberlandiamob.app");
       expect(novaFranquia.adminSenha).toBe("Uberlandia2026!");
 
-      const authNovo = wlEngine.getTenantByCredentials("contato@uberlandiamob.app", "Uberlandia2026!");
+      const authNovo = wlEngine.getTenantByCredentials(
+        "contato@uberlandiamob.app",
+        "Uberlandia2026!",
+      );
       expect(authNovo?.tenantId).toBe("tenant-uberlandia");
 
       // Limpeza
@@ -241,4 +248,3 @@ describe("SUITE: Super Admin Franchisee Governance, Kill Switch & Mapbox Isolati
     });
   });
 });
-

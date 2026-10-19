@@ -18,13 +18,7 @@
  */
 
 export type FontFamilyOption =
-  | "Plus Jakarta Sans"
-  | "Inter"
-  | "Poppins"
-  | "Roboto"
-  | "Montserrat"
-  | "Nunito"
-  | "Open Sans";
+  "Plus Jakarta Sans" | "Inter" | "Poppins" | "Roboto" | "Montserrat" | "Nunito" | "Open Sans";
 
 export type SpacingScale = "COMPACT" | "DEFAULT" | "SPACIOUS";
 

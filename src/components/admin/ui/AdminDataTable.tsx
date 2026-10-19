@@ -55,11 +55,7 @@ export function AdminDataTable<T>({
 
   if (!loading && data.length === 0) {
     return (
-      <AdminEmptyState
-        title={emptyTitle}
-        description={emptyDescription}
-        action={emptyAction}
-      />
+      <AdminEmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} />
     );
   }
 
@@ -83,8 +79,8 @@ export function AdminDataTable<T>({
                 const stickyThClass = isStickyRight
                   ? "sticky right-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.08)] dark:shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.35)]"
                   : isStickyLeft
-                  ? "sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-[6px_0_10px_-4px_rgba(0,0,0,0.08)]"
-                  : "";
+                    ? "sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-[6px_0_10px_-4px_rgba(0,0,0,0.08)]"
+                    : "";
 
                 return (
                   <th
@@ -115,8 +111,8 @@ export function AdminDataTable<T>({
                   const stickyTdClass = isStickyRight
                     ? "sticky right-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.08)] dark:shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.35)]"
                     : isStickyLeft
-                    ? "sticky left-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 shadow-[6px_0_10px_-4px_rgba(0,0,0,0.08)]"
-                    : "";
+                      ? "sticky left-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 shadow-[6px_0_10px_-4px_rgba(0,0,0,0.08)]"
+                      : "";
 
                   return (
                     <td
@@ -125,9 +121,7 @@ export function AdminDataTable<T>({
                         alignStyles[col.align || "left"]
                       } ${stickyTdClass}`}
                     >
-                      {col.render
-                        ? col.render(row, idx)
-                        : (row as Record<string, any>)[col.key]}
+                      {col.render ? col.render(row, idx) : (row as Record<string, any>)[col.key]}
                     </td>
                   );
                 })}

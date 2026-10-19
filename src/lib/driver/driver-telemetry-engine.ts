@@ -83,9 +83,7 @@ export class DriverTelemetryEngine {
     const dLng = ((p2.lng - p1.lng) * Math.PI) / 180;
 
     const y = Math.sin(dLng) * Math.cos(lat2);
-    const x =
-      Math.cos(lat1) * Math.sin(lat2) -
-      Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
     const brng = (Math.atan2(y, x) * 180) / Math.PI;
     return (brng + 360) % 360;
   }
@@ -115,7 +113,7 @@ export class DriverTelemetryEngine {
 
     const distanceDelta = this.calculateDistanceMeters(
       { lat: previous.lat, lng: previous.lng },
-      { lat: raw.lat, lng: raw.lng }
+      { lat: raw.lat, lng: raw.lng },
     );
     const timeDeltaSeconds = Math.max(1, (raw.timestamp - previous.timestamp) / 1000);
     const effectiveSpeedMps = distanceDelta / timeDeltaSeconds;
@@ -128,16 +126,15 @@ export class DriverTelemetryEngine {
 
     // 2. Deadband filter: se moveu menos de 15 metros e não tem velocidade relatada alta, considera jitter
     const isJitterFiltered =
-      distanceDelta < DEADBAND_MIN_DISTANCE_METERS &&
-      (raw.speedKmh ?? effectiveSpeedKmh) < 5;
+      distanceDelta < DEADBAND_MIN_DISTANCE_METERS && (raw.speedKmh ?? effectiveSpeedKmh) < 5;
 
     const bearing =
       distanceDelta >= 5
         ? this.calculateBearing(
             { lat: previous.lat, lng: previous.lng },
-            { lat: raw.lat, lng: raw.lng }
+            { lat: raw.lat, lng: raw.lng },
           )
-        : raw.heading ?? previous.heading ?? 0;
+        : (raw.heading ?? previous.heading ?? 0);
 
     // Atualiza posição se passou nos critérios de sanidade
     if (isSpeedSanityPassed) {
@@ -166,7 +163,7 @@ export class DriverTelemetryEngine {
   public isWithinArrivalGeofence(
     driverPos: LatLng,
     targetPos: LatLng,
-    radiusMeters: number = GEOFENCE_ARRIVAL_RADIUS_METERS
+    radiusMeters: number = GEOFENCE_ARRIVAL_RADIUS_METERS,
   ): boolean {
     const distance = this.calculateDistanceMeters(driverPos, targetPos);
     return distance <= radiusMeters;
@@ -178,7 +175,7 @@ export class DriverTelemetryEngine {
   public startWaitingTimer(
     driverId: string,
     rideId: string,
-    gracePeriodSeconds: number = DEFAULT_GRACE_PERIOD_SECONDS
+    gracePeriodSeconds: number = DEFAULT_GRACE_PERIOD_SECONDS,
   ): WaitingTimerStatus {
     const now = Date.now();
     const status: WaitingTimerStatus = {

@@ -51,14 +51,17 @@ export function calculateZoneLiquidity(
   busyDrivers: number,
   activeRequests: number,
   fulfilledTrips: number,
-  cancelledTrips: number
+  cancelledTrips: number,
 ): { liquidityRatio: number; utilizationRate: number; fulfillmentRate: number } {
   const idleDrivers = Math.max(0, onlineDrivers - busyDrivers);
-  const liquidityRatio = activeRequests === 0 ? 10.0 : Number((idleDrivers / activeRequests).toFixed(2));
-  const utilizationRate = onlineDrivers === 0 ? 0 : Number((busyDrivers / onlineDrivers).toFixed(2));
-  
+  const liquidityRatio =
+    activeRequests === 0 ? 10.0 : Number((idleDrivers / activeRequests).toFixed(2));
+  const utilizationRate =
+    onlineDrivers === 0 ? 0 : Number((busyDrivers / onlineDrivers).toFixed(2));
+
   const totalRequests = fulfilledTrips + cancelledTrips;
-  const fulfillmentRate = totalRequests === 0 ? 1.0 : Number((fulfilledTrips / totalRequests).toFixed(2));
+  const fulfillmentRate =
+    totalRequests === 0 ? 1.0 : Number((fulfilledTrips / totalRequests).toFixed(2));
 
   return { liquidityRatio, utilizationRate, fulfillmentRate };
 }
@@ -71,7 +74,7 @@ export function calculateZoneLiquidity(
 export function generateZoneHeatIntensity(
   activeRequests: number,
   idleDrivers: number,
-  historicalPeakRequests: number = 30
+  historicalPeakRequests: number = 30,
 ): number {
   if (activeRequests === 0) return 0.05;
   const deficit = Math.max(0, activeRequests - idleDrivers);
@@ -88,7 +91,7 @@ export function evaluateSupplyRebalancingNudges(
   driverId: string,
   driverLocation: GeoCoordinate,
   isDriverIdle: boolean,
-  zones: ZoneMarketplaceMetric[]
+  zones: ZoneMarketplaceMetric[],
 ): DriverNudgeRecommendation | null {
   if (!isDriverIdle) return null;
 
@@ -126,7 +129,7 @@ export function evaluateSupplyRebalancingNudges(
 export function forecastZoneDemand(
   hourOfDay: number,
   isWeekend: boolean,
-  rainProbability: number = 0.0
+  rainProbability: number = 0.0,
 ): DemandPredictionPoint {
   // Curva de demanda brasileira padrão (picos: 07h-09h e 17h-19h30, mais alta sexta/sábado)
   let baseDemand = 12;
@@ -146,7 +149,7 @@ export function forecastZoneDemand(
   // Fator de chuva eleva a demanda em até +45%
   const rainMultiplier = 1.0 + Math.min(0.45, rainProbability * 0.45);
   const expectedTrips = Math.round(baseDemand * rainMultiplier);
-  
+
   // Taxa ideal: ~1.2 motoristas por viagem esperada no slot de 1 hora
   const recommendedDriverCount = Math.round(expectedTrips * 1.15);
 
@@ -180,7 +183,13 @@ export function calcularTarifaDinamica(params: {
   solicitacoesAtivasNaZona: number;
   motoristasDisponiveisNaZona: number;
 }): TarifaDinamicaResult {
-  const { distanciaKm, duracaoMin, categoria, solicitacoesAtivasNaZona, motoristasDisponiveisNaZona } = params;
+  const {
+    distanciaKm,
+    duracaoMin,
+    categoria,
+    solicitacoesAtivasNaZona,
+    motoristasDisponiveisNaZona,
+  } = params;
 
   // Parâmetros base da tarifa PARTIU
   const tarifasBase = {
@@ -191,7 +200,8 @@ export function calcularTarifaDinamica(params: {
   };
 
   const regra = tarifasBase[categoria];
-  const valorBaseCalculado = regra.bandeirada + distanciaKm * regra.valorKm + duracaoMin * regra.valorMin;
+  const valorBaseCalculado =
+    regra.bandeirada + distanciaKm * regra.valorKm + duracaoMin * regra.valorMin;
   const valorBase = Math.max(regra.minimo, Number(valorBaseCalculado.toFixed(2)));
 
   const ratio = solicitacoesAtivasNaZona / Math.max(1, motoristasDisponiveisNaZona);
@@ -213,7 +223,8 @@ export function calcularTarifaDinamica(params: {
   } else if (ratio > 1.2) {
     multiplicador = 1.2;
     nivel = "MODERADO";
-    mensagemTransparente = "Região com procura moderadamente alta. Ajuste leve para garantir rapidez no embarque.";
+    mensagemTransparente =
+      "Região com procura moderadamente alta. Ajuste leve para garantir rapidez no embarque.";
   }
 
   const valorFinalBrl = Number((valorBase * multiplicador).toFixed(2));
@@ -251,9 +262,16 @@ export function calcularDriverHealthScore(params: {
   kmComPassageiroHoje: number;
   corridasRecusadasConsecutivas: number;
 }): DriverHealthResult {
-  const { ganhosHojeBrl, horasOnlineHoje, kmRodadosHoje, kmComPassageiroHoje, corridasRecusadasConsecutivas } = params;
+  const {
+    ganhosHojeBrl,
+    horasOnlineHoje,
+    kmRodadosHoje,
+    kmComPassageiroHoje,
+    corridasRecusadasConsecutivas,
+  } = params;
 
-  const ganhosPorHoraBrl = horasOnlineHoje > 0 ? Number((ganhosHojeBrl / horasOnlineHoje).toFixed(2)) : 0;
+  const ganhosPorHoraBrl =
+    horasOnlineHoje > 0 ? Number((ganhosHojeBrl / horasOnlineHoje).toFixed(2)) : 0;
   const ganhosPorKmBrl = kmRodadosHoje > 0 ? Number((ganhosHojeBrl / kmRodadosHoje).toFixed(2)) : 0;
 
   const tempoOciosoPercent =
@@ -293,16 +311,22 @@ export function calcularDriverHealthScore(params: {
   } else if (score >= 60) {
     status = "ESTAVEL";
     fatorRiscoChurn = 0.2;
-    recomendacoesRetencao.push("Oferecer corridas encadeadas (Predictive Chaining) para diminuir ociosidade.");
+    recomendacoesRetencao.push(
+      "Oferecer corridas encadeadas (Predictive Chaining) para diminuir ociosidade.",
+    );
   } else if (score >= 35) {
     status = "RISCO_EVASAO";
     fatorRiscoChurn = 0.65;
     recomendacoesRetencao.push("Ativar Missão de Bônus: +R$ 35 ao completar 5 corridas no pico.");
-    recomendacoesRetencao.push("Redirecionar para área de calor (Hotspot) com garantia de piso de R$ 40/h.");
+    recomendacoesRetencao.push(
+      "Redirecionar para área de calor (Hotspot) com garantia de piso de R$ 40/h.",
+    );
   } else {
     status = "CRITICO";
     fatorRiscoChurn = 0.92;
-    recomendacoesRetencao.push("Intervenção operacional urgente: contato humano de apoio ao parceiro.");
+    recomendacoesRetencao.push(
+      "Intervenção operacional urgente: contato humano de apoio ao parceiro.",
+    );
     recomendacoesRetencao.push("Garantia de complementação tarifária D+0.");
   }
 
@@ -334,7 +358,8 @@ export function calcularPassengerLoyaltyScore(params: {
   ticketMedioBrl: number;
   diasSemViajar: number;
 }): PassengerLoyaltyResult {
-  const { viagensConcluidasMes, taxaCancelamentoPassageiro, ticketMedioBrl, diasSemViajar } = params;
+  const { viagensConcluidasMes, taxaCancelamentoPassageiro, ticketMedioBrl, diasSemViajar } =
+    params;
 
   let score = 20;
 
@@ -405,7 +430,9 @@ export interface CityHealthDashboardData {
   }[];
 }
 
-export function obterPainelSaudeCidade(dadosReais?: Partial<CityHealthDashboardData>): CityHealthDashboardData {
+export function obterPainelSaudeCidade(
+  dadosReais?: Partial<CityHealthDashboardData>,
+): CityHealthDashboardData {
   return {
     motoristasOnline: dadosReais?.motoristasOnline ?? 0,
     motoristasEmViagem: dadosReais?.motoristasEmViagem ?? 0,

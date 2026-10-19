@@ -30,7 +30,7 @@ function carregarDestinosReais(): SavedLocation[] {
             item.id &&
             !item.id.startsWith("mock-") &&
             item.endereco &&
-            !item.endereco.includes("Itaperuna")
+            !item.endereco.includes("Itaperuna"),
         );
         if (validos.length > 0) {
           return validos.slice(0, 2).map((item: any) => ({
@@ -90,7 +90,7 @@ export function PassengerIdleCard({ userName = "Passageiro" }: PassengerIdleCard
 
   // Destinos Recentes/Frequentes autênticos (vazio para novo usuário)
   const [destinosFrequentes, setDestinosFrequentes] = useState<SavedLocation[]>(() =>
-    carregarDestinosReais()
+    carregarDestinosReais(),
   );
 
   useEffect(() => {
@@ -118,7 +118,6 @@ export function PassengerIdleCard({ userName = "Passageiro" }: PassengerIdleCard
         style={{ borderRadius: `${ui.borderRadius} ${ui.borderRadius} 0 0` }}
         className="bg-card shadow-[0_-12px_40px_rgba(0,0,0,0.14)] border-t border-border sm:border p-4 pb-6 sm:pb-5 space-y-3 text-left"
       >
-        
         {/* Handle de arraste sutil (Mobile) */}
         <div className="w-10 h-1 rounded-full bg-muted-foreground/30 mx-auto -mt-1 mb-2" />
 

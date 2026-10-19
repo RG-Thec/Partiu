@@ -67,10 +67,25 @@ async function runTestSuite() {
   const initialConfig = whiteLabelEngine.getActiveConfig();
 
   assert(!!initialConfig, "Configuração ativa inicial não deve ser nula");
-  assertEqual(initialConfig.brandCenter.nomePlataforma, "PARTIU", "Nome da plataforma padrão deve ser PARTIU");
-  assertEqual(initialConfig.brandCenter.slogan, "Mobilidade inteligente para sua cidade", "Slogan padrão deve ser preservado");
-  assert(initialConfig.brandCenter.logos.logoPrincipalUrl.length > 0, "URL do logotipo principal deve estar preenchida");
-  assertEqual(initialConfig.brandCenter.emailContato, "contato@partiumobilidade.com.br", "Email de suporte configurado");
+  assertEqual(
+    initialConfig.brandCenter.nomePlataforma,
+    "PARTIU",
+    "Nome da plataforma padrão deve ser PARTIU",
+  );
+  assertEqual(
+    initialConfig.brandCenter.slogan,
+    "Mobilidade inteligente para sua cidade",
+    "Slogan padrão deve ser preservado",
+  );
+  assert(
+    initialConfig.brandCenter.logos.logoPrincipalUrl.length > 0,
+    "URL do logotipo principal deve estar preenchida",
+  );
+  assertEqual(
+    initialConfig.brandCenter.emailContato,
+    "contato@partiumobilidade.com.br",
+    "Email de suporte configurado",
+  );
 
   // ----------------------------------------------------------------------------
   // TESTE 2: DESIGN SYSTEM & INJEÇÃO DE VARIÁVEIS CSS NO :ROOT
@@ -99,11 +114,22 @@ async function runTestSuite() {
 
   whiteLabelEngine.applyTheme(initialConfig);
 
-  assertEqual(dummyStyle["--brand-primary"], "#FF6B00", "Injeção de --brand-primary correta no :root");
-  assertEqual(dummyStyle["--color-primary"], "#FF6B00", "Injeção de --color-primary Tailwind v4 correta");
+  assertEqual(
+    dummyStyle["--brand-primary"],
+    "#FF6B00",
+    "Injeção de --brand-primary correta no :root",
+  );
+  assertEqual(
+    dummyStyle["--color-primary"],
+    "#FF6B00",
+    "Injeção de --color-primary Tailwind v4 correta",
+  );
   assertEqual(dummyStyle["--color-secondary"], "#FFB800", "Injeção de --color-secondary correta");
   assertEqual(dummyStyle["--radius"], "1rem", "Injeção de --radius 'xl' (1rem) padrão correta");
-  assert(dummyStyle["--font-sans"].includes("Plus Jakarta Sans"), "Injeção de --font-sans inclui Plus Jakarta Sans");
+  assert(
+    dummyStyle["--font-sans"].includes("Plus Jakarta Sans"),
+    "Injeção de --font-sans inclui Plus Jakarta Sans",
+  );
 
   // ----------------------------------------------------------------------------
   // TESTE 3: ALTERAÇÃO DINÂMICA DE CORES SEM CÓDIGO
@@ -119,9 +145,17 @@ async function runTestSuite() {
     },
   });
 
-  assertEqual(updatedTheme.designSystem.paletaPrimaria.corPrincipal, "#00E5FF", "Cor primária customizada com sucesso");
+  assertEqual(
+    updatedTheme.designSystem.paletaPrimaria.corPrincipal,
+    "#00E5FF",
+    "Cor primária customizada com sucesso",
+  );
   whiteLabelEngine.applyTheme(updatedTheme);
-  assertEqual(dummyStyle["--brand-primary"], "#00E5FF", "Variável CSS --brand-primary atualizada reativamente para #00E5FF");
+  assertEqual(
+    dummyStyle["--brand-primary"],
+    "#00E5FF",
+    "Variável CSS --brand-primary atualizada reativamente para #00E5FF",
+  );
 
   // ----------------------------------------------------------------------------
   // TESTE 4: TYPOGRAPHY CENTER
@@ -136,9 +170,16 @@ async function runTestSuite() {
   });
 
   assertEqual(updatedTypo.typography.familiaPrincipal, "Inter", "Fonte alterada para Inter");
-  assertEqual(updatedTypo.typography.tamanhoTitulosRem, 2.0, "Tamanho do título alterado para 2.0rem");
+  assertEqual(
+    updatedTypo.typography.tamanhoTitulosRem,
+    2.0,
+    "Tamanho do título alterado para 2.0rem",
+  );
   whiteLabelEngine.applyTheme(updatedTypo);
-  assert(dummyStyle["--font-sans"].includes("Inter"), "CSS Variable --font-sans reflete fonte Inter");
+  assert(
+    dummyStyle["--font-sans"].includes("Inter"),
+    "CSS Variable --font-sans reflete fonte Inter",
+  );
 
   // ----------------------------------------------------------------------------
   // TESTE 5: HOME PAGE BUILDER (REORDENAÇÃO DE BLOCOS)
@@ -164,17 +205,24 @@ async function runTestSuite() {
   console.log("\n🧭 MÓDULO 6: Menu & Navigation Builder");
   const menuConfig = initialConfig.menuBuilder;
   assert(menuConfig.itensDrawer.length > 0, "Drawer deve conter itens de menu configurados");
-  assert(menuConfig.abasNavegacaoInferior.length >= 2, "Navegação inferior deve conter abas ativas");
+  assert(
+    menuConfig.abasNavegacaoInferior.length >= 2,
+    "Navegação inferior deve conter abas ativas",
+  );
 
   // Atualiza rótulo de um item do drawer
   const novoDrawer = menuConfig.itensDrawer.map((item) =>
-    item.id === "m1" ? { ...item, rotulo: "Minhas Viagens VIP" } : item
+    item.id === "m1" ? { ...item, rotulo: "Minhas Viagens VIP" } : item,
   );
   const updatedMenu = whiteLabelEngine.updateActiveConfig({
     menuBuilder: { ...menuConfig, itensDrawer: novoDrawer },
   });
   const itemAtualizado = updatedMenu.menuBuilder.itensDrawer.find((i) => i.id === "m1");
-  assertEqual(itemAtualizado?.rotulo, "Minhas Viagens VIP", "Rótulo do item no drawer alterado dinamicamente");
+  assertEqual(
+    itemAtualizado?.rotulo,
+    "Minhas Viagens VIP",
+    "Rótulo do item no drawer alterado dinamicamente",
+  );
 
   // ----------------------------------------------------------------------------
   // TESTE 7: BUSINESS MODEL ENGINE (11 VERTICAIS OPERACIONAIS)
@@ -202,24 +250,36 @@ async function runTestSuite() {
   // Desativa e reativa vertical
   whiteLabelEngine.toggleBusinessModel("SCHOOL_BUS", false);
   let configPosToggle = whiteLabelEngine.getActiveConfig();
-  assertEqual(configPosToggle.businessModels.verticais.SCHOOL_BUS.ativo, false, "Vertical SCHOOL_BUS desativada");
+  assertEqual(
+    configPosToggle.businessModels.verticais.SCHOOL_BUS.ativo,
+    false,
+    "Vertical SCHOOL_BUS desativada",
+  );
 
   whiteLabelEngine.toggleBusinessModel("SCHOOL_BUS", true);
   configPosToggle = whiteLabelEngine.getActiveConfig();
-  assertEqual(configPosToggle.businessModels.verticais.SCHOOL_BUS.ativo, true, "Vertical SCHOOL_BUS reativada");
+  assertEqual(
+    configPosToggle.businessModels.verticais.SCHOOL_BUS.ativo,
+    true,
+    "Vertical SCHOOL_BUS reativada",
+  );
 
   // ----------------------------------------------------------------------------
   // TESTE 8: PLANOS & MONETIZAÇÃO
   // ----------------------------------------------------------------------------
   console.log("\n💎 MÓDULO 8: Planos & Monetização Sem Código");
   const planos = initialConfig.monetization.planos;
-  assertEqual(planos.length, 5, "Devem existir 5 planos estruturados (Gratuito, Bronze, Prata, Ouro, Pro)");
-  
+  assertEqual(
+    planos.length,
+    5,
+    "Devem existir 5 planos estruturados (Gratuito, Bronze, Prata, Ouro, Pro)",
+  );
+
   const planoOuro = planos.find((p) => p.id === "plano-ouro");
   assert(!!planoOuro, "Plano Ouro deve existir");
   assertEqual(planoOuro?.comissaoPercentual, 0, "Plano Ouro tem 0% de comissão (Taxa Zero)");
   assertEqual(planoOuro?.mensalidadeBrl, 99.9, "Plano Ouro mensalidade R$ 99,90");
-  assertEqual(planoOuro?.pesoDespacho, 1.50, "Plano Ouro prioridade equilibrada 1.50x no despacho");
+  assertEqual(planoOuro?.pesoDespacho, 1.5, "Plano Ouro prioridade equilibrada 1.50x no despacho");
 
   // ----------------------------------------------------------------------------
   // TESTE 9: BANNER CMS ENTERPRISE
@@ -229,12 +289,22 @@ async function runTestSuite() {
   assert(cms.campanhas.length > 0, "CMS deve conter campanhas ativas configuradas");
   const campanhaCupom = cms.campanhas.find((c) => c.id === "camp-01");
   assert(!!campanhaCupom, "Campanha de cupom existe");
-  assert(campanhaCupom?.cidadesAlvo.includes("*") === true, "Campanha de cupom abrange todas as cidades");
-  assertEqual(campanhaCupom?.segmentoPublico, "NOVOS_USUARIOS", "Segmento de novos usuários correto");
+  assert(
+    campanhaCupom?.cidadesAlvo.includes("*") === true,
+    "Campanha de cupom abrange todas as cidades",
+  );
+  assertEqual(
+    campanhaCupom?.segmentoPublico,
+    "NOVOS_USUARIOS",
+    "Segmento de novos usuários correto",
+  );
 
   const campanhaAviso = cms.campanhas.find((c) => c.id === "camp-02");
   assert(!!campanhaAviso, "Campanha de aviso existe");
-  assert(campanhaAviso?.cidadesAlvo.includes("itaperuna-rj") === true, "Campanha segmentada para Itaperuna");
+  assert(
+    campanhaAviso?.cidadesAlvo.includes("itaperuna-rj") === true,
+    "Campanha segmentada para Itaperuna",
+  );
   assertEqual(campanhaAviso?.segmentoPublico, "TODOS", "Segmento de público correto");
 
   // ----------------------------------------------------------------------------
@@ -256,7 +326,10 @@ async function runTestSuite() {
   assertEqual(nativeApp.pacoteAndroid, "br.com.partiumobilidade.app", "Pacote Android configurado");
   assertEqual(nativeApp.bundleIos, "br.com.partiumobilidade.ios", "Bundle iOS configurado");
   assert(nativeApp.termosUsoUrl.length > 0, "Termos de Uso URL preenchida");
-  assert(nativeApp.politicaPrivacidadeLgpdUrl.length > 0, "Política de Privacidade LGPD preenchida");
+  assert(
+    nativeApp.politicaPrivacidadeLgpdUrl.length > 0,
+    "Política de Privacidade LGPD preenchida",
+  );
 
   // ----------------------------------------------------------------------------
   // TESTE 12: MULTI-TENANT & CLONAGEM DE CIDADES COM 1-CLICK
@@ -270,7 +343,7 @@ async function runTestSuite() {
     "tenant-itaperuna",
     "tenant-campos",
     "Campos dos Goytacazes",
-    "RJ"
+    "RJ",
   );
 
   assertEqual(novoTenant.tenantId, "tenant-campos", "ID do novo tenant gerado com sucesso");
@@ -279,13 +352,17 @@ async function runTestSuite() {
   assertEqual(
     novoTenant.configuracaoCompleta.geo.cidadeSede,
     "Campos dos Goytacazes",
-    "Geo config da cidade clonada atualizada automaticamente"
+    "Geo config da cidade clonada atualizada automaticamente",
   );
 
   // Alternar para o novo tenant
   const switched = whiteLabelEngine.switchTenant("tenant-campos");
   assert(!!switched, "Alternância para novo tenant foi bem sucedida");
-  assertEqual(whiteLabelEngine.getActiveTenant().tenantId, "tenant-campos", "Novo tenant ativo confirmado");
+  assertEqual(
+    whiteLabelEngine.getActiveTenant().tenantId,
+    "tenant-campos",
+    "Novo tenant ativo confirmado",
+  );
 
   // ----------------------------------------------------------------------------
   // TESTE 13: PRESETS CONSAGRADOS DE DESIGN SYSTEM (1-CLICK)
@@ -296,18 +373,34 @@ async function runTestSuite() {
   // Aplica preset 'uber-tech'
   whiteLabelEngine.applyPreset("uber-tech");
   let cfgUber = whiteLabelEngine.getActiveConfig();
-  assertEqual(cfgUber.designSystem.paletaPrimaria.corPrincipal, "#000000", "Preset Uber aplicou preto (#000000) como primária");
-  assertEqual(cfgUber.typography.familiaPrincipal, "Roboto", "Preset Uber aplicou tipografia Roboto");
+  assertEqual(
+    cfgUber.designSystem.paletaPrimaria.corPrincipal,
+    "#000000",
+    "Preset Uber aplicou preto (#000000) como primária",
+  );
+  assertEqual(
+    cfgUber.typography.familiaPrincipal,
+    "Roboto",
+    "Preset Uber aplicou tipografia Roboto",
+  );
 
   // Aplica preset 'indrive-verde'
   whiteLabelEngine.applyPreset("indrive-verde");
   let cfgInDrive = whiteLabelEngine.getActiveConfig();
-  assertEqual(cfgInDrive.designSystem.paletaPrimaria.corPrincipal, "#B2F35F", "Preset inDrive aplicou verde neon (#B2F35F)");
+  assertEqual(
+    cfgInDrive.designSystem.paletaPrimaria.corPrincipal,
+    "#B2F35F",
+    "Preset inDrive aplicou verde neon (#B2F35F)",
+  );
 
   // Aplica preset 'cabify-roxo'
   whiteLabelEngine.applyPreset("cabify-roxo");
   let cfgCabify = whiteLabelEngine.getActiveConfig();
-  assertEqual(cfgCabify.designSystem.paletaPrimaria.corPrincipal, "#7145D6", "Preset Cabify aplicou roxo (#7145D6)");
+  assertEqual(
+    cfgCabify.designSystem.paletaPrimaria.corPrincipal,
+    "#7145D6",
+    "Preset Cabify aplicou roxo (#7145D6)",
+  );
 
   // ----------------------------------------------------------------------------
   // TESTE 14: EXPORTAÇÃO, IMPORTAÇÃO & BACKUP JSON
@@ -319,14 +412,18 @@ async function runTestSuite() {
 
   // Restaura padrão e depois reimporta o JSON
   whiteLabelEngine.resetToDefaults();
-  assertEqual(whiteLabelEngine.getActiveConfig().designSystem.paletaPrimaria.corPrincipal, "#FF6B00", "Restaurado padrão PARTIU");
+  assertEqual(
+    whiteLabelEngine.getActiveConfig().designSystem.paletaPrimaria.corPrincipal,
+    "#FF6B00",
+    "Restaurado padrão PARTIU",
+  );
 
   const importResult = whiteLabelEngine.importThemeJson(jsonExportado);
   assert(!!importResult, "Tema JSON reimportado com sucesso");
   assertEqual(
     importResult.designSystem.paletaPrimaria.corPrincipal,
     "#7145D6",
-    "Cor do preset Cabify restaurada com fidelidade a partir do JSON"
+    "Cor do preset Cabify restaurada com fidelidade a partir do JSON",
   );
 
   // ----------------------------------------------------------------------------
@@ -336,7 +433,11 @@ async function runTestSuite() {
   const tenantBH = whiteLabelEngine.switchTenant("tenant-bh");
   assert(!!tenantBH, "Tenant tenant-bh deve ser resolvido com sucesso");
   assertEqual(tenantBH.tenantId, "tenant-bh", "Tenant ID deve ser tenant-bh");
-  assertEqual(whiteLabelEngine.getActiveTenantId(), "tenant-bh", "Active tenant deve ser tenant-bh");
+  assertEqual(
+    whiteLabelEngine.getActiveTenantId(),
+    "tenant-bh",
+    "Active tenant deve ser tenant-bh",
+  );
 
   const tenantBHMob = whiteLabelEngine.switchTenant("tenant-bhmob");
   assert(!!tenantBHMob, "Tenant tenant-bhmob deve ser resolvido");
@@ -344,8 +445,15 @@ async function runTestSuite() {
 
   const tenantDesconhecido = whiteLabelEngine.switchTenant("tenant-arbitrario-xyz");
   assert(!!tenantDesconhecido, "Tenant desconhecido não deve lançar exceção e sim auto-curar");
-  assertEqual(tenantDesconhecido.tenantId, "tenant-arbitrario-xyz", "ID auto-curado deve coincidir");
-  assert(!!tenantDesconhecido.configuracaoCompleta, "Configuração completa sintetizada deve existir");
+  assertEqual(
+    tenantDesconhecido.tenantId,
+    "tenant-arbitrario-xyz",
+    "ID auto-curado deve coincidir",
+  );
+  assert(
+    !!tenantDesconhecido.configuracaoCompleta,
+    "Configuração completa sintetizada deve existir",
+  );
 
   // ----------------------------------------------------------------------------
   // TESTE 15: BENCHMARK DE PERFORMANCE & ZERO-CODE GUARANTEE
@@ -358,8 +466,13 @@ async function runTestSuite() {
   const endBenchmark = performance.now();
   const tempoMedioInjecaoMs = (endBenchmark - startBenchmark) / 50;
 
-  console.log(`  ⏱️ Tempo médio de injeção atômica CSS: ${tempoMedioInjecaoMs.toFixed(3)}ms (Meta: < 5.0ms)`);
-  assert(tempoMedioInjecaoMs < 5.0, "Injeção atômica de variáveis CSS atende meta de < 5.0ms por ciclo");
+  console.log(
+    `  ⏱️ Tempo médio de injeção atômica CSS: ${tempoMedioInjecaoMs.toFixed(3)}ms (Meta: < 5.0ms)`,
+  );
+  assert(
+    tempoMedioInjecaoMs < 5.0,
+    "Injeção atômica de variáveis CSS atende meta de < 5.0ms por ciclo",
+  );
 
   const startSwitch = performance.now();
   for (let i = 0; i < 50; i++) {
@@ -368,7 +481,9 @@ async function runTestSuite() {
   const endSwitch = performance.now();
   const tempoMedioSwitchMs = (endSwitch - startSwitch) / 50;
 
-  console.log(`  ⏱️ Tempo médio de alternância de Tenant: ${tempoMedioSwitchMs.toFixed(3)}ms (Meta: < 10.0ms)`);
+  console.log(
+    `  ⏱️ Tempo médio de alternância de Tenant: ${tempoMedioSwitchMs.toFixed(3)}ms (Meta: < 10.0ms)`,
+  );
   assert(tempoMedioSwitchMs < 10.0, "Alternância de Tenant atende meta de < 10.0ms");
 
   // Restaura padrão limpo
@@ -380,7 +495,9 @@ async function runTestSuite() {
   console.log(`   Total de Testes Executados: ${passedCount + failedCount}`);
   console.log(`   Testes Aprovados: ${passedCount}`);
   console.log(`   Testes Falhados: ${failedCount}`);
-  console.log(`   Taxa de Sucesso: ${((passedCount / (passedCount + failedCount)) * 100).toFixed(1)}%`);
+  console.log(
+    `   Taxa de Sucesso: ${((passedCount / (passedCount + failedCount)) * 100).toFixed(1)}%`,
+  );
   console.log("==============================================================================");
 
   if (failedCount > 0) {

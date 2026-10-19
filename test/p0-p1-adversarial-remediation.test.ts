@@ -18,14 +18,14 @@ describe("🛡️ PARTIU — P0/P1 FORENSIC ADVERSARIAL REMEDIATION CERTIFICATIO
       origem: "Rua Dez de Maio, 100",
       destino: "Avenida Cardoso Moreira, 500",
       status: "PROCURANDO",
-      valor: 24.50,
+      valor: 24.5,
       distanciaKm: 4.2,
       duracaoMin: 9,
       dataCriacao: new Date().toISOString(),
       categoriaVeiculo: "CARRO",
       formaPagamento: "PIX",
       origemCoords: { lat: -21.205, lng: -41.888 },
-      destinoCoords: { lat: -21.210, lng: -41.892 },
+      destinoCoords: { lat: -21.21, lng: -41.892 },
     };
 
     // Motorista recebe a oferta diretamente do servidor e aceita
@@ -63,7 +63,7 @@ describe("🛡️ PARTIU — P0/P1 FORENSIC ADVERSARIAL REMEDIATION CERTIFICATIO
       categoriaVeiculo: "CARRO",
       formaPagamento: "CARTAO",
       origemCoords: { lat: -21.205, lng: -41.888 },
-      destinoCoords: { lat: -21.210, lng: -41.892 },
+      destinoCoords: { lat: -21.21, lng: -41.892 },
     };
 
     const motoristaLegitimo: MotoristaInfo = {
@@ -114,12 +114,20 @@ describe("🛡️ PARTIU — P0/P1 FORENSIC ADVERSARIAL REMEDIATION CERTIFICATIO
       categoriaVeiculo: "CARRO",
       formaPagamento: "DINHEIRO",
       origemCoords: { lat: -21.205, lng: -41.888 },
-      destinoCoords: { lat: -21.210, lng: -41.892 },
+      destinoCoords: { lat: -21.21, lng: -41.892 },
     };
 
     // Motorista anônimo (sem ID)
-    const anonDriver = { id: "", nome: "", telefone: "", avaliacao: 0, totalViagens: 0, veiculo: "", placa: "" };
-    
+    const anonDriver = {
+      id: "",
+      nome: "",
+      telefone: "",
+      avaliacao: 0,
+      totalViagens: 0,
+      veiculo: "",
+      placa: "",
+    };
+
     // Tenta claim com identidade vazia
     let blocked = false;
     try {
@@ -148,7 +156,7 @@ describe("🛡️ PARTIU — P0/P1 FORENSIC ADVERSARIAL REMEDIATION CERTIFICATIO
       categoriaVeiculo: "CARRO",
       formaPagamento: "PIX",
       origemCoords: { lat: -21.205, lng: -41.888 },
-      destinoCoords: { lat: -21.210, lng: -41.892 },
+      destinoCoords: { lat: -21.21, lng: -41.892 },
     };
 
     const driver1: MotoristaInfo = {
@@ -209,7 +217,7 @@ describe("🛡️ PARTIU — P0/P1 FORENSIC ADVERSARIAL REMEDIATION CERTIFICATIO
       rideId: "test-authority-shield",
       category: "CARRO",
       pickupCoords: [-41.888, -21.205],
-      destinationCoords: [-41.892, -21.210],
+      destinationCoords: [-41.892, -21.21],
       fareBrl: 25.0,
     });
 
@@ -301,7 +309,10 @@ describe("🛡️ PARTIU — P0/P1 FORENSIC ADVERSARIAL REMEDIATION CERTIFICATIO
   test("10. Realtime Channel RLS Isolation: Offers can only be read by the designated driver", () => {
     // Invariante RLS da política drivers_can_read_assigned_offers:
     // (offered_driver_id = auth.uid() OR driver_id = auth.uid() OR passenger_id = auth.uid())
-    const canDriverViewOffer = (authUid: string, row: { offered_driver_id?: string; driver_id?: string }) => {
+    const canDriverViewOffer = (
+      authUid: string,
+      row: { offered_driver_id?: string; driver_id?: string },
+    ) => {
       return row.offered_driver_id === authUid || row.driver_id === authUid;
     };
 
@@ -315,4 +326,3 @@ describe("🛡️ PARTIU — P0/P1 FORENSIC ADVERSARIAL REMEDIATION CERTIFICATIO
     expect(canDriverViewOffer("", offerRow)).toBe(false);
   });
 });
-

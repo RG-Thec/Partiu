@@ -28,11 +28,7 @@ export interface LocationData {
 }
 
 export type LocationOperationalMode =
-  | "PASSENGER_IDLE"
-  | "PASSENGER_ACTIVE"
-  | "DRIVER_STOPPED"
-  | "DRIVER_MOVING"
-  | "DRIVER_ACTIVE_TRIP";
+  "PASSENGER_IDLE" | "PASSENGER_ACTIVE" | "DRIVER_STOPPED" | "DRIVER_MOVING" | "DRIVER_ACTIVE_TRIP";
 
 export interface LocationWatchOptions {
   mode?: LocationOperationalMode;
@@ -111,9 +107,7 @@ export class LocationService {
   /**
    * Obtém a localização pontual com prioridade Highest / BestForNavigation
    */
-  public async getCurrentPosition(
-    options?: PositionOptions
-  ): Promise<LocationData> {
+  public async getCurrentPosition(options?: PositionOptions): Promise<LocationData> {
     return new Promise((resolve) => {
       if (typeof navigator === "undefined" || !navigator.geolocation) {
         const fallback = this.getFallbackLocation();
@@ -144,7 +138,7 @@ export class LocationService {
           timeout: 8000,
           maximumAge: 5000,
           ...options,
-        }
+        },
       );
     });
   }
@@ -154,7 +148,7 @@ export class LocationService {
    */
   public watchPositionAsync(
     callback: (location: LocationData) => void,
-    options: LocationWatchOptions = {}
+    options: LocationWatchOptions = {},
   ): () => void {
     if (options.mode) {
       this.currentMode = options.mode;
@@ -223,7 +217,7 @@ export class LocationService {
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 2000,
-      }
+      },
     );
   }
 

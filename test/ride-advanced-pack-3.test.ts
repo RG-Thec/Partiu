@@ -11,14 +11,8 @@ import {
   fareCalculationEngine,
   FareCalculationEngine,
 } from "../src/lib/pricing/fare-calculation-engine.ts";
-import {
-  directionsService,
-  DirectionsService,
-} from "../src/services/DirectionsService.ts";
-import {
-  routingService,
-  RoutingService,
-} from "../src/services/RoutingService.ts";
+import { directionsService, DirectionsService } from "../src/services/DirectionsService.ts";
+import { routingService, RoutingService } from "../src/services/RoutingService.ts";
 import {
   criarNovaCorrida,
   isCorridaElegivelParaMotorista,
@@ -38,11 +32,10 @@ describe("SUITE 54: MODO DESTINO, ANTI-FAKE GPS, MULTI-PARADAS & FALLBACK GEODÉ
     expect(service.getActiveDestination(driverId)).toBe(null);
 
     // 1º Uso do dia
-    const dest1 = service.setDestination(
-      driverId,
-      "Rua Buarque de Nazareth, 120 - Centro",
-      { lat: -21.205, lng: -41.888 }
-    );
+    const dest1 = service.setDestination(driverId, "Rua Buarque de Nazareth, 120 - Centro", {
+      lat: -21.205,
+      lng: -41.888,
+    });
     expect(dest1.success).toBe(true);
     expect(dest1.destination?.address).toBe("Rua Buarque de Nazareth, 120 - Centro");
     expect(service.getRemainingUses(driverId)).toBe(1);
@@ -56,20 +49,18 @@ describe("SUITE 54: MODO DESTINO, ANTI-FAKE GPS, MULTI-PARADAS & FALLBACK GEODÉ
     expect(service.getActiveDestination(driverId)).toBe(null);
 
     // 2º Uso do dia
-    const dest2 = service.setDestination(
-      driverId,
-      "Minha Casa - Bairro Aeroporto",
-      { lat: -21.218, lng: -41.875 }
-    );
+    const dest2 = service.setDestination(driverId, "Minha Casa - Bairro Aeroporto", {
+      lat: -21.218,
+      lng: -41.875,
+    });
     expect(dest2.success).toBe(true);
     expect(service.getRemainingUses(driverId)).toBe(0);
 
     // 3º Uso do dia DEVE ser rejeitado (regra padrão Uber/99: máx 2/dia)
-    const dest3 = service.setDestination(
-      driverId,
-      "Outro Destino Impossível",
-      { lat: -21.2, lng: -41.8 }
-    );
+    const dest3 = service.setDestination(driverId, "Outro Destino Impossível", {
+      lat: -21.2,
+      lng: -41.8,
+    });
     expect(dest3.success).toBe(false);
     expect(dest3.message?.includes("Limite diário")).toBe(true);
 
@@ -84,11 +75,7 @@ describe("SUITE 54: MODO DESTINO, ANTI-FAKE GPS, MULTI-PARADAS & FALLBACK GEODÉ
 
     // Motorista define destino: Centro de Itaperuna (-21.205, -41.888)
     const targetDestination = { lat: -21.205, lng: -41.888 };
-    service.setDestination(
-      driverId,
-      "Centro de Itaperuna",
-      targetDestination
-    );
+    service.setDestination(driverId, "Centro de Itaperuna", targetDestination);
 
     const driverCurrentLocation = { lat: -21.23, lng: -41.895 }; // 3 km ao sul
 
@@ -99,7 +86,7 @@ describe("SUITE 54: MODO DESTINO, ANTI-FAKE GPS, MULTI-PARADAS & FALLBACK GEODÉ
       driverCurrentLocation,
       rideA_Origem,
       rideA_Destino,
-      targetDestination
+      targetDestination,
     );
     expect(convergeA).toBe(true);
 
@@ -110,7 +97,7 @@ describe("SUITE 54: MODO DESTINO, ANTI-FAKE GPS, MULTI-PARADAS & FALLBACK GEODÉ
       driverCurrentLocation,
       rideB_Origem,
       rideB_Destino,
-      targetDestination
+      targetDestination,
     );
     expect(convergeB).toBe(false);
 
@@ -239,33 +226,36 @@ describe("SUITE 54: MODO DESTINO, ANTI-FAKE GPS, MULTI-PARADAS & FALLBACK GEODÉ
   // ============================================================================
   // 4. ROTEAMENTO RESILIENTE COM FALLBACK GEODÉSICO (DIRECTIONS & ROUTING SERVICE)
   // ============================================================================
-  testAsync("6. Resiliência de Direções: Fallback geodésico calibrado quando API remota aborta", async () => {
-    const origin: [number, number] = [-41.888, -21.205];
-    const destination: [number, number] = [-41.875, -21.218];
-    const waypoints: [number, number][] = [[-41.88, -21.21]];
+  testAsync(
+    "6. Resiliência de Direções: Fallback geodésico calibrado quando API remota aborta",
+    async () => {
+      const origin: [number, number] = [-41.888, -21.205];
+      const destination: [number, number] = [-41.875, -21.218];
+      const waypoints: [number, number][] = [[-41.88, -21.21]];
 
-    // DirectionsService com timeout de 1ms para forçar abort e ativação imediata do fallback
-    const result = await directionsService.getRoute(origin, destination, {
-      waypoints,
-      timeoutMs: 1,
-      skipCache: true,
-    });
+      // DirectionsService com timeout de 1ms para forçar abort e ativação imediata do fallback
+      const result = await directionsService.getRoute(origin, destination, {
+        waypoints,
+        timeoutMs: 1,
+        skipCache: true,
+      });
 
-    expect(result).not.toBe(null);
-    expect(result.source).toBe("calibrated_urban_network");
-    expect(result.isFallback).toBe(true);
-    expect(result.distanceKm).toBeGreaterThan(0);
-    expect(result.durationMinutes).toBeGreaterThan(0);
-    expect(result.coordinates.length).toBeGreaterThan(2);
+      expect(result).not.toBe(null);
+      expect(result.source).toBe("calibrated_urban_network");
+      expect(result.isFallback).toBe(true);
+      expect(result.distanceKm).toBeGreaterThan(0);
+      expect(result.durationMinutes).toBeGreaterThan(0);
+      expect(result.coordinates.length).toBeGreaterThan(2);
 
-    // RoutingService fallback offline
-    const urbanMetrics = routingService.generateCalibratedUrbanRoute(origin, destination, {
-      waypoints,
-    });
-    expect(urbanMetrics.provider).toBe("calibrated_urban_network");
-    expect(urbanMetrics.distanceKm).toBeGreaterThan(0);
-    expect(urbanMetrics.coordinates?.length).toBeGreaterThan(3);
-  });
+      // RoutingService fallback offline
+      const urbanMetrics = routingService.generateCalibratedUrbanRoute(origin, destination, {
+        waypoints,
+      });
+      expect(urbanMetrics.provider).toBe("calibrated_urban_network");
+      expect(urbanMetrics.distanceKm).toBeGreaterThan(0);
+      expect(urbanMetrics.coordinates?.length).toBeGreaterThan(3);
+    },
+  );
 
   // ============================================================================
   // 5. INTEGRAÇÃO PARTIU-ENGINE: PARADAS, MODO DESTINO E FILTRO DE MOTORISTA
@@ -310,7 +300,7 @@ describe("SUITE 54: MODO DESTINO, ANTI-FAKE GPS, MULTI-PARADAS & FALLBACK GEODÉ
     driverDestService.setDestination(
       motoristaId,
       "Destino no Norte",
-      { lat: -21.1, lng: -41.8 } // Vai para o norte, corrida vai para o sul
+      { lat: -21.1, lng: -41.8 }, // Vai para o norte, corrida vai para o sul
     );
 
     const elegivelComDestinoOposto = isCorridaElegivelParaMotorista({

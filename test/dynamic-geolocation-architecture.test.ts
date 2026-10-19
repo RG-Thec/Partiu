@@ -47,7 +47,7 @@ describe("SUITE 53: 🌐 DYNAMIC GEOLOCATION & LOCATION-AGNOSTIC ADAPTATION", ()
     expect(settingsItap.tenantId).toBe("tenant-itaperuna");
     expect(settingsItap.isWithinServiceArea).toBe(true);
 
-    const coordsFora: [number, number] = [-46.633, -23.550]; // São Paulo
+    const coordsFora: [number, number] = [-46.633, -23.55]; // São Paulo
     const settingsSP = pricingService.getPricingSettings(coordsFora);
     expect(settingsSP.isWithinServiceArea).toBe(false);
   });

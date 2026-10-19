@@ -11,4 +11,3 @@ export function HomeHeader(props: HomeHeaderProps) {
 }
 
 export default HomeHeader;
-

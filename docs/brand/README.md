@@ -9,14 +9,14 @@ post. One voice, many registers.
 Owned by the `brand-voice` skill. Written by `copywriting`. Checked by
 `python3 docs/brand/lint.py` and by `/ux-audit copy`.
 
-| File | Holds |
-|---|---|
-| `voice.md` | the identity: pack, five axes, narrative, invariants |
-| `terminology.md` | our words, banned words, entity and tier names |
-| `facts.md` | canonical numbers and proof — the only source of a figure |
-| `channels.md` | one record per surface: register, limits, bans |
-| `strings.md` | interface string registry → `file:line` → scenario |
-| `locales/<code>.md` | per-locale delta |
+| File                | Holds                                                     |
+| ------------------- | --------------------------------------------------------- |
+| `voice.md`          | the identity: pack, five axes, narrative, invariants      |
+| `terminology.md`    | our words, banned words, entity and tier names            |
+| `facts.md`          | canonical numbers and proof — the only source of a figure |
+| `channels.md`       | one record per surface: register, limits, bans            |
+| `strings.md`        | interface string registry → `file:line` → scenario        |
+| `locales/<code>.md` | per-locale delta                                          |
 
 ## Sources
 
@@ -33,10 +33,10 @@ Any change to public-facing text updates this folder in the same change, and
 
 ## Commands
 
-| Command | Does |
-|---|---|
-| `/brand` | status across every file, then one recommended action |
-| `/brand-init` | pick a voice pack and calibrate it to this product |
-| `/brand-update` | recalibrate after positioning or personas changed |
-| `/brand-lint` | run the linter |
-| `/copy` | write or edit copy for a named surface |
+| Command         | Does                                                  |
+| --------------- | ----------------------------------------------------- |
+| `/brand`        | status across every file, then one recommended action |
+| `/brand-init`   | pick a voice pack and calibrate it to this product    |
+| `/brand-update` | recalibrate after positioning or personas changed     |
+| `/brand-lint`   | run the linter                                        |
+| `/copy`         | write or edit copy for a named surface                |

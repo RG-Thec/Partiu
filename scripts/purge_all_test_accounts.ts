@@ -12,7 +12,10 @@ envText.split("\n").forEach((line) => {
     const idx = trimmed.indexOf("=");
     if (idx !== -1) {
       let val = trimmed.slice(idx + 1).trim();
-      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+      if (
+        (val.startsWith('"') && val.endsWith('"')) ||
+        (val.startsWith("'") && val.endsWith("'"))
+      ) {
         val = val.slice(1, -1);
       }
       env[trimmed.slice(0, idx).trim()] = val;
@@ -36,10 +39,12 @@ async function safeDelete(table: string, condition: string = "", params: any[] =
   try {
     const check = await client.query(
       "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = $1",
-      [table]
+      [table],
     );
     if (check.rows.length === 0) return 0;
-    const q = condition ? `DELETE FROM public."${table}" WHERE ${condition}` : `DELETE FROM public."${table}"`;
+    const q = condition
+      ? `DELETE FROM public."${table}" WHERE ${condition}`
+      : `DELETE FROM public."${table}"`;
     const res = await client.query(q, params);
     console.log(`Deleted ${res.rowCount} rows from public."${table}"`);
     return res.rowCount;
@@ -76,7 +81,7 @@ async function purge() {
     `DELETE FROM public.profiles 
      WHERE email NOT IN ($1, $2, $3, $4)
         OR email IS NULL`,
-    PRESERVED_ADMIN_EMAILS
+    PRESERVED_ADMIN_EMAILS,
   );
   console.log(`Deleted ${delProfiles.rowCount} test profiles from public.profiles`);
 
@@ -85,7 +90,7 @@ async function purge() {
     `DELETE FROM auth.users 
      WHERE email NOT IN ($1, $2, $3, $4)
         OR email IS NULL`,
-    PRESERVED_ADMIN_EMAILS
+    PRESERVED_ADMIN_EMAILS,
   );
   console.log(`Deleted ${delAuth.rowCount} test users from auth.users`);
 
@@ -94,11 +99,15 @@ async function purge() {
   // Conferência final
   const remainingUsers = await client.query("SELECT id, email, created_at FROM auth.users");
   console.log("\nUsuários remanescentes no banco (apenas Admins):");
-  remainingUsers.rows.forEach(u => console.log(`- ${u.email} (${u.id})`));
+  remainingUsers.rows.forEach((u) => console.log(`- ${u.email} (${u.id})`));
 
-  const remainingProfiles = await client.query("SELECT id, email, full_name, role FROM public.profiles");
+  const remainingProfiles = await client.query(
+    "SELECT id, email, full_name, role FROM public.profiles",
+  );
   console.log("\nPerfis remanescentes no banco:");
-  remainingProfiles.rows.forEach(p => console.log(`- ${p.email} | ${p.full_name} | Role: ${p.role}`));
+  remainingProfiles.rows.forEach((p) =>
+    console.log(`- ${p.email} | ${p.full_name} | Role: ${p.role}`),
+  );
 
   await client.end();
 }

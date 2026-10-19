@@ -445,7 +445,10 @@ export function getCityOSDashboard(cityId: string = "itaperuna-rj"): CityOperati
   const city = getCityConfig(cityId);
 
   // Simulação empírica calibrada com base no volume e maturidade de cada cidade
-  const baseMultipliers: Record<string, { tripsHr: number; dailyRev: number; eta: number; aceit: number; canc: number }> = {
+  const baseMultipliers: Record<
+    string,
+    { tripsHr: number; dailyRev: number; eta: number; aceit: number; canc: number }
+  > = {
     "itaperuna-rj": { tripsHr: 42, dailyRev: 5240, eta: 3.4, aceit: 94.5, canc: 2.6 },
     "campos-rj": { tripsHr: 168, dailyRev: 21450, eta: 4.2, aceit: 91.8, canc: 3.8 },
     "macae-rj": { tripsHr: 115, dailyRev: 16890, eta: 4.6, aceit: 92.4, canc: 3.2 },
@@ -612,7 +615,7 @@ export function gerarNudgesReposicionamento(
   driverId: string,
   driverLocation: GeoCoordinate,
   isDriverIdle: boolean,
-  cityId: string = "itaperuna-rj"
+  cityId: string = "itaperuna-rj",
 ): SmartNudge | null {
   if (!isDriverIdle) return null;
 
@@ -669,12 +672,20 @@ export function analisarOtimizacaoReceita(cityId: string = "itaperuna-rj"): Reve
   const oportunidades: string[] = [];
 
   if (cityId === "itaperuna-rj") {
-    oportunidades.push("Expandir modalidade Partiu Mulher: demanda reprimida de 18% nos finais de tarde.");
-    oportunidades.push("Acelerar Entregas Flash corporativas com convênio em drogarias e autopeças.");
+    oportunidades.push(
+      "Expandir modalidade Partiu Mulher: demanda reprimida de 18% nos finais de tarde.",
+    );
+    oportunidades.push(
+      "Acelerar Entregas Flash corporativas com convênio em drogarias e autopeças.",
+    );
   } else if (cityId === "campos-rj") {
-    oportunidades.push("Pico noturno em Pelinca com Surge médio de 1.4x pouco aproveitado pela frota.");
+    oportunidades.push(
+      "Pico noturno em Pelinca com Surge médio de 1.4x pouco aproveitado pela frota.",
+    );
   } else if (cityId === "macae-rj") {
-    oportunidades.push("Corridas corporativas B2B Offshore com ticket médio 65% acima da média regional.");
+    oportunidades.push(
+      "Corridas corporativas B2B Offshore com ticket médio 65% acima da média regional.",
+    );
   }
 
   return {
@@ -715,8 +726,14 @@ export function classificarSaudeMotorista(params: {
   taxaAceitePercent: number;
   taxaCancelamentoPercent: number;
 }): DriverFleetHealthProfile {
-  const { driverId, driverName, horasOnlineSemana, ganhosSemanaBrl, taxaAceitePercent, taxaCancelamentoPercent } =
-    params;
+  const {
+    driverId,
+    driverName,
+    horasOnlineSemana,
+    ganhosSemanaBrl,
+    taxaAceitePercent,
+    taxaCancelamentoPercent,
+  } = params;
 
   const ganhosPorHora = horasOnlineSemana > 0 ? ganhosSemanaBrl / horasOnlineSemana : 0;
 
@@ -805,7 +822,8 @@ export interface NocIncidentAlert {
   id: string;
   cidade: string;
   severidade: "INFORMATIVO" | "ATENCAO" | "CRITICO";
-  tipo: "ETA_DRIFT" | "HIGH_CANCELLATION" | "SUPPLY_DEFICIT" | "FRAUD_ALERT" | "REALTIME_DISCONNECT";
+  tipo:
+    "ETA_DRIFT" | "HIGH_CANCELLATION" | "SUPPLY_DEFICIT" | "FRAUD_ALERT" | "REALTIME_DISCONNECT";
   mensagem: string;
   horario: string;
   resolucaoAutomatica: string;
@@ -855,13 +873,16 @@ export interface AiOperationalPrescription {
   impactoEsperadoReceitaPercent: number;
 }
 
-export function executarPartiuAIOperations(cityId: string = "itaperuna-rj"): AiOperationalPrescription {
+export function executarPartiuAIOperations(
+  cityId: string = "itaperuna-rj",
+): AiOperationalPrescription {
   const city = getCityConfig(cityId);
 
   return {
     cidade: city.cityName,
     diagnosticoIa: `Janela de alta demanda identificada entre 17h30 e 19h30 com liquidez limítrofe em ${city.hotspots[0]?.name}.`,
-    causaRaiz: "Fim do expediente bancário e comercial com retorno domiciliar de 420 passageiros simultâneos.",
+    causaRaiz:
+      "Fim do expediente bancário e comercial com retorno domiciliar de 420 passageiros simultâneos.",
     acaoPrescritivaAutomatica:
       "Emitir Missão Relâmpago: 'Complete 5 corridas entre 17h30 e 19h30 e receba R$ 40 de bônus imediato D+0'.",
     impactoEsperadoReceitaPercent: 18.5,
@@ -885,7 +906,7 @@ export function benchmarkScale100k(): ScaleBenchmarkResult[] {
 
   return checkpoints.map((qtd) => {
     // Estimativa baseada no desempenho real medido em V8 (3.5 microsegundos por condutor)
-    const tempoEstimadoMs = Number(((qtd * 0.0035) + 0.5).toFixed(2));
+    const tempoEstimadoMs = Number((qtd * 0.0035 + 0.5).toFixed(2));
     const throughput = Math.round(qtd / (tempoEstimadoMs / 1000));
 
     return {

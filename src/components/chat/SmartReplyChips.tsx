@@ -17,7 +17,12 @@ export function getContextualReplies(userType: SenderType, rideStatus: string): 
 
   // 1. Perfil MOTORISTA
   if (userType === "DRIVER") {
-    if (normStatus === "A_CAMINHO" || normStatus === "ARRIVING" || normStatus === "ACEITA" || normStatus === "ACCEPTED") {
+    if (
+      normStatus === "A_CAMINHO" ||
+      normStatus === "ARRIVING" ||
+      normStatus === "ACEITA" ||
+      normStatus === "ACCEPTED"
+    ) {
       return [
         "Estou chegando",
         "Trânsito intenso na via",
@@ -44,17 +49,16 @@ export function getContextualReplies(userType: SenderType, rideStatus: string): 
     }
 
     // Default Motorista
-    return [
-      "Estou chegando",
-      "Estou no local",
-      "Pode vir",
-      "Trânsito intenso",
-      "Aguarde 1 minuto",
-    ];
+    return ["Estou chegando", "Estou no local", "Pode vir", "Trânsito intenso", "Aguarde 1 minuto"];
   }
 
   // 2. Perfil PASSAGEIRO
-  if (normStatus === "A_CAMINHO" || normStatus === "ARRIVING" || normStatus === "ACEITA" || normStatus === "ACCEPTED") {
+  if (
+    normStatus === "A_CAMINHO" ||
+    normStatus === "ARRIVING" ||
+    normStatus === "ACEITA" ||
+    normStatus === "ACCEPTED"
+  ) {
     return [
       "Estou descendo",
       "Estou na portaria",
@@ -82,20 +86,14 @@ export function getContextualReplies(userType: SenderType, rideStatus: string): 
   }
 
   // Default Passageiro
-  return [
-    "Estou descendo",
-    "Estou na portaria",
-    "Camisa vermelha",
-    "Já estou saindo",
-    "OK",
-  ];
+  return ["Estou descendo", "Estou na portaria", "Camisa vermelha", "Já estou saindo", "OK"];
 }
 
 export const SmartReplyChips: React.FC<SmartReplyChipsProps> = React.memo(
   ({ userType, rideStatus, onSelectReply, disabled = false }) => {
     const replies = useMemo(
       () => getContextualReplies(userType, rideStatus),
-      [userType, rideStatus]
+      [userType, rideStatus],
     );
 
     if (replies.length === 0) return null;
@@ -122,7 +120,7 @@ export const SmartReplyChips: React.FC<SmartReplyChipsProps> = React.memo(
         </div>
       </div>
     );
-  }
+  },
 );
 
 SmartReplyChips.displayName = "SmartReplyChips";

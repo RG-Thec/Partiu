@@ -121,7 +121,7 @@ export class RedisLuaEngine {
     lng: number,
     newCell: string,
     now: number = Date.now(),
-    ttlMs: number = this.locTtlMs
+    ttlMs: number = this.locTtlMs,
   ): Promise<number> {
     const sKey = this.stateKey(driverId);
     const lKey = this.locKey(driverId);
@@ -203,7 +203,9 @@ export class RedisLuaEngine {
   /**
    * Retorna a última localização gravada no Redis
    */
-  public async getDriverLocation(driverId: string): Promise<{ lat: number; lng: number; cell: string; ts: number } | null> {
+  public async getDriverLocation(
+    driverId: string,
+  ): Promise<{ lat: number; lng: number; cell: string; ts: number } | null> {
     const data = await this.store.hgetall(this.locKey(driverId));
     if (!data.lat || !data.lng) return null;
     return {

@@ -31,10 +31,7 @@ class PassengerGeocodingService {
    * Busca preditiva de endereços e pontos de interesse (Autocomplete em tempo real)
    * Aceita coordenadas de origem para priorizar bairros e vias próximas ao passageiro.
    */
-  async buscarLugares(
-    termo: string,
-    coordsOrigem?: [number, number]
-  ): Promise<GeocodedPlace[]> {
+  async buscarLugares(termo: string, coordsOrigem?: [number, number]): Promise<GeocodedPlace[]> {
     return geocodingServiceCore.buscarLugares(termo, coordsOrigem);
   }
 

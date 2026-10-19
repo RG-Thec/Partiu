@@ -1,23 +1,23 @@
 /**
  * PARTIU NATIONAL AI BRAIN
- * 
+ *
  * Cérebro de Inteligência Artificial Unificado do Ecossistema PARTIU.
  * Consolidador de todos os motores de Machine Learning, Digital Twin, City OS,
  * Control Tower, Reinforcement Learning Dispatch, Deep ETA e Detecção de Fraude.
- * 
+ *
  * Emite a 'NationalMarketplaceIntelligence' a cada 60 segundos com diagnósticos e prescrições automáticas.
  */
 
-import { listAllCities } from '../partiu-city-os';
-import { digitalTwinEngine } from '../partiu-digital-twin';
-import { marketplaceControlTower, NationalEcosystemState } from '../partiu-control-tower';
-import { deepEtaEngine } from './partiu-deep-eta';
-import { dispatchPolicyEngine } from './partiu-rl-dispatch';
-import { surgeAiEngine } from './partiu-surge-ai';
-import { demandForecastingEngineV2 } from './partiu-demand-forecast';
-import { driverChurnEngine } from './partiu-driver-churn';
-import { fraudAiEngine } from './partiu-fraud-ai';
-import { modelObservabilityEngine } from './partiu-model-observability';
+import { listAllCities } from "../partiu-city-os";
+import { digitalTwinEngine } from "../partiu-digital-twin";
+import { marketplaceControlTower, NationalEcosystemState } from "../partiu-control-tower";
+import { deepEtaEngine } from "./partiu-deep-eta";
+import { dispatchPolicyEngine } from "./partiu-rl-dispatch";
+import { surgeAiEngine } from "./partiu-surge-ai";
+import { demandForecastingEngineV2 } from "./partiu-demand-forecast";
+import { driverChurnEngine } from "./partiu-driver-churn";
+import { fraudAiEngine } from "./partiu-fraud-ai";
+import { modelObservabilityEngine } from "./partiu-model-observability";
 
 export interface NationalMarketplaceIntelligence {
   timestamp: number;
@@ -25,7 +25,7 @@ export interface NationalMarketplaceIntelligence {
   statusGeral: string;
   totalCidadesAtivas: number;
   totalCondutoresOnline: number;
-  
+
   // Modelos Operando em Produção
   modelosAtivos: {
     deepEtaVersion: string;
@@ -33,17 +33,17 @@ export interface NationalMarketplaceIntelligence {
     surgeAiStatus: string;
     fraudModelConfidence: number;
   };
-  
+
   // Prescrições e Inteligência Preditiva
   previsaoDemandaProximaHoraNacional: number;
   alertasPreditivos: string[];
   acoesRecomendadas: Array<{
     cidadeId: string;
     tipo: string;
-    prioridade: 'P0' | 'P1' | 'P2';
+    prioridade: "P0" | "P1" | "P2";
     justificativa: string;
   }>;
-  
+
   // Resumo Executivo Gerado por IA
   briefingExecutivoIa: string;
 }
@@ -61,24 +61,29 @@ export class NationalAIBrain {
     const rlWeights = dispatchPolicyEngine.getCurrentPolicyWeights();
 
     let previsaoProximaHoraTotal = 0;
-    const acoesRecomendadas: NationalMarketplaceIntelligence['acoesRecomendadas'] = [];
+    const acoesRecomendadas: NationalMarketplaceIntelligence["acoesRecomendadas"] = [];
     const alertasPreditivos: string[] = [];
 
     cities.forEach((city) => {
       const twin = digitalTwinEngine.getCityTwin(city.cityId);
-      
+
       // Projeção de Demanda para a cidade
       const forecast = demandForecastingEngineV2.preverDemandaMultiHorizonte({
         cityId: city.cityId,
         baseDemandPerHour: Math.max(10, Math.round(twin.motoristasOnline * 0.8)),
-        clima: twin.climaAtual === 'TEMPESTADE' ? 'TEMPESTADE' : twin.climaAtual === 'CHUVA_LEVE' ? 'CHUVA_LEVE' : 'LIMPO',
+        clima:
+          twin.climaAtual === "TEMPESTADE"
+            ? "TEMPESTADE"
+            : twin.climaAtual === "CHUVA_LEVE"
+              ? "CHUVA_LEVE"
+              : "LIMPO",
         isFeriado: false,
         eventosProximosCount: twin.eventosAtivos.length,
         diaSemana: new Date().getDay(),
-        horaAtual: new Date().getHours()
+        horaAtual: new Date().getHours(),
       });
 
-      const h1 = forecast.horizons['1_HORA'];
+      const h1 = forecast.horizons["1_HORA"];
       if (h1) {
         previsaoProximaHoraTotal += h1.expectedRidesCount;
       }
@@ -86,21 +91,33 @@ export class NationalAIBrain {
       // Avaliação de Surge Preditivo por IA
       const surgePred = surgeAiEngine.calcularSurgePreditivo({
         cityId: city.cityId,
-        demandaPrevistaProximos15m: Math.round(twin.passageirosAguardando * 1.5 + twin.corridasEmAndamento * 0.8),
-        ofertaDisponivelProjetada15m: Math.max(1, twin.motoristasOnline - twin.motoristasOcupados + 5),
-        clima: twin.climaAtual === 'TEMPESTADE' ? 'TEMPESTADE' : twin.climaAtual === 'CHUVA_LEVE' ? 'CHUVA_LEVE' : 'LIMPO',
+        demandaPrevistaProximos15m: Math.round(
+          twin.passageirosAguardando * 1.5 + twin.corridasEmAndamento * 0.8,
+        ),
+        ofertaDisponivelProjetada15m: Math.max(
+          1,
+          twin.motoristasOnline - twin.motoristasOcupados + 5,
+        ),
+        clima:
+          twin.climaAtual === "TEMPESTADE"
+            ? "TEMPESTADE"
+            : twin.climaAtual === "CHUVA_LEVE"
+              ? "CHUVA_LEVE"
+              : "LIMPO",
         temEventosOuFeriados: twin.eventosAtivos.length > 0,
         horaDoDia: new Date().getHours(),
-        taxaCancelamentoRecentePct: twin.taxaCancelamentoPercentual
+        taxaCancelamentoRecentePct: twin.taxaCancelamentoPercentual,
       });
 
       if (surgePred.deveAtivarAgora && surgePred.multiplier > 1.15) {
-        alertasPreditivos.push(`Surge Preditivo de ${surgePred.multiplier}x recomendado para ${city.cityName} antes do pico de 15m.`);
+        alertasPreditivos.push(
+          `Surge Preditivo de ${surgePred.multiplier}x recomendado para ${city.cityName} antes do pico de 15m.`,
+        );
         acoesRecomendadas.push({
           cidadeId: city.cityId,
-          tipo: 'APLICAR_SURGE_PREDITIVO',
-          prioridade: surgePred.multiplier > 1.4 ? 'P0' : 'P1',
-          justificativa: surgePred.justificativa
+          tipo: "APLICAR_SURGE_PREDITIVO",
+          prioridade: surgePred.multiplier > 1.4 ? "P0" : "P1",
+          justificativa: surgePred.justificativa,
         });
       }
     });
@@ -114,15 +131,15 @@ export class NationalAIBrain {
       totalCidadesAtivas: cities.length,
       totalCondutoresOnline: nationalState.totalMotoristasOnline,
       modelosAtivos: {
-        deepEtaVersion: 'deep-eta-v2.4.0',
+        deepEtaVersion: "deep-eta-v2.4.0",
         rlDispatchEpisodes: rlWeights.episodesCount,
-        surgeAiStatus: 'PREDICTIVE_ONLINE',
-        fraudModelConfidence: 0.985
+        surgeAiStatus: "PREDICTIVE_ONLINE",
+        fraudModelConfidence: 0.985,
       },
       previsaoDemandaProximaHoraNacional: previsaoProximaHoraTotal,
       alertasPreditivos,
       acoesRecomendadas,
-      briefingExecutivoIa
+      briefingExecutivoIa,
     };
 
     this.lastIntelligence = intelligence;
@@ -131,7 +148,7 @@ export class NationalAIBrain {
   }
 
   public getLastIntelligence(): NationalMarketplaceIntelligence {
-    if (!this.lastIntelligence || (Date.now() - this.lastComputedTimestamp > 60000)) {
+    if (!this.lastIntelligence || Date.now() - this.lastComputedTimestamp > 60000) {
       return this.generateNationalIntelligence();
     }
     return this.lastIntelligence;

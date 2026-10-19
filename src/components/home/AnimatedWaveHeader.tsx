@@ -15,4 +15,3 @@ export function AnimatedWaveHeader(props: AnimatedWaveHeaderProps) {
 
 export { AnimatedWaveHeader as FloatingIslandHeader };
 export default AnimatedWaveHeader;
-

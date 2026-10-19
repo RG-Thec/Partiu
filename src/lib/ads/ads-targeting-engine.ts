@@ -1,11 +1,11 @@
 /**
  * PARTIU ADS TARGETING ENGINE
- * 
+ *
  * Motor de Segmentação Geográfica e Contextual Hiperlocal.
  * Direciona anúncios do comércio local baseando-se no raio de proximidade e rota do passageiro.
  */
 
-import { LocalAdCampaign } from './ads-auction-engine';
+import { LocalAdCampaign } from "./ads-auction-engine";
 
 export class AdsTargetingEngine {
   /**
@@ -16,9 +16,9 @@ export class AdsTargetingEngine {
     cityId: string,
     passengerLatitude: number,
     passengerLongitude: number,
-    categoryFilter?: LocalAdCampaign['category']
+    categoryFilter?: LocalAdCampaign["category"],
   ): LocalAdCampaign[] {
-    return allCampaigns.filter(c => {
+    return allCampaigns.filter((c) => {
       if (!c.isActive) return false;
       if (c.cityId !== cityId) return false;
       if (categoryFilter && c.category !== categoryFilter) return false;
@@ -39,7 +39,7 @@ export class AdsTargetingEngine {
     passengerLat: number,
     passengerLng: number,
     adLat: number,
-    adLng: number
+    adLng: number,
   ): number {
     const latDiff = Math.abs(adLat - passengerLat) * 111.0;
     const lngDiff = Math.abs(adLng - passengerLng) * 102.0;

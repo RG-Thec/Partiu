@@ -29,7 +29,7 @@ export const WhiteLabelInput = React.forwardRef<HTMLInputElement, WhiteLabelInpu
       style,
       ...props
     },
-    ref
+    ref,
   ) => {
     const id = useId();
     const inputId = props.id || id;
@@ -83,9 +83,7 @@ export const WhiteLabelInput = React.forwardRef<HTMLInputElement, WhiteLabelInpu
           }`}
         >
           {leftIcon && (
-            <div className="mr-3 shrink-0 flex items-center text-slate-500">
-              {leftIcon}
-            </div>
+            <div className="mr-3 shrink-0 flex items-center text-slate-500">{leftIcon}</div>
           )}
 
           <div className="relative flex-1 flex flex-col justify-center h-full">
@@ -99,11 +97,7 @@ export const WhiteLabelInput = React.forwardRef<HTMLInputElement, WhiteLabelInpu
                     : "top-1/2 -translate-y-1/2 text-sm"
                 }`}
                 style={{
-                  color: error
-                    ? "#EF4444"
-                    : isFocused
-                    ? colors.primary
-                    : colors.textSecondary,
+                  color: error ? "#EF4444" : isFocused ? colors.primary : colors.textSecondary,
                 }}
               >
                 {label}
@@ -134,9 +128,7 @@ export const WhiteLabelInput = React.forwardRef<HTMLInputElement, WhiteLabelInpu
           </div>
 
           {rightIcon && (
-            <div className="ml-2.5 shrink-0 flex items-center text-slate-500">
-              {rightIcon}
-            </div>
+            <div className="ml-2.5 shrink-0 flex items-center text-slate-500">{rightIcon}</div>
           )}
         </div>
 
@@ -156,7 +148,7 @@ export const WhiteLabelInput = React.forwardRef<HTMLInputElement, WhiteLabelInpu
         ) : null}
       </div>
     );
-  }
+  },
 );
 
 WhiteLabelInput.displayName = "WhiteLabelInput";

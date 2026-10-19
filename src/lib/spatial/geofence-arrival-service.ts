@@ -47,9 +47,7 @@ export class GeofenceArrivalService {
     const sinDLat = Math.sin(dLat / 2);
     const sinDLng = Math.sin(dLng / 2);
 
-    const x =
-      sinDLat * sinDLat +
-      Math.cos(lat1) * Math.cos(lat2) * sinDLng * sinDLng;
+    const x = sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLng * sinDLng;
     const c = 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
 
     return Math.round(R * c);
@@ -61,7 +59,7 @@ export class GeofenceArrivalService {
   public checkArrival(
     driverLoc: LatLngPoint,
     targetLoc: LatLngPoint,
-    thresholdMeters = 50
+    thresholdMeters = 50,
   ): GeofenceCheckResult {
     const distanceMeters = this.calculateDistanceMeters(driverLoc, targetLoc);
     return {
@@ -78,7 +76,7 @@ export class GeofenceArrivalService {
     rideId: string,
     driverLoc: LatLngPoint,
     targetLoc: LatLngPoint,
-    thresholdMeters = 50
+    thresholdMeters = 50,
   ): boolean {
     if (this.triggeredRides.has(rideId)) {
       return false; // Já acionado anteriormente

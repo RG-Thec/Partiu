@@ -162,14 +162,14 @@ export function DataGovernanceAdminPage() {
       categoriaPurga === "TELEMETRIA_GPS"
         ? "Telemetria GPS Bruta"
         : categoriaPurga === "CORRIDAS_FINALIZADAS"
-        ? "Corridas Finalizadas Antigas"
-        : categoriaPurga === "NOTIFICACOES_LOGS"
-        ? "Notificações & Logs"
-        : "Chamados de Suporte";
+          ? "Corridas Finalizadas Antigas"
+          : categoriaPurga === "NOTIFICACOES_LOGS"
+            ? "Notificações & Logs"
+            : "Chamados de Suporte";
 
     if (
       window.confirm(
-        `Confirma a execução de purga e arquivamento para [${catLabel}] com corte anterior a ${janelaDiasPurga} dias? Aproximadamente ${estimativaPurga.registrosEstimados} registros serão arquivados.`
+        `Confirma a execução de purga e arquivamento para [${catLabel}] com corte anterior a ${janelaDiasPurga} dias? Aproximadamente ${estimativaPurga.registrosEstimados} registros serão arquivados.`,
       )
     ) {
       executarPurgaColdStorage(categoriaPurga, janelaDiasPurga, "Super Admin");
@@ -226,7 +226,9 @@ export function DataGovernanceAdminPage() {
               Governança, Cold Storage & Backup Preventivo
             </h1>
             <p className="text-xs text-slate-600 max-w-2xl">
-              Compliance estrito com a LGPD através de soft delete (exclusão lógica sem perda de histórico contábil), arquivamento de telemetria bruta e ferramenta de dumps preventivos.
+              Compliance estrito com a LGPD através de soft delete (exclusão lógica sem perda de
+              histórico contábil), arquivamento de telemetria bruta e ferramenta de dumps
+              preventivos.
             </p>
           </div>
           <button
@@ -347,7 +349,9 @@ export function DataGovernanceAdminPage() {
                         <tr key={item.id} className="hover:bg-slate-50/70 transition">
                           <td className="py-3 px-2">
                             <div className="font-bold text-slate-950">{item.nome}</div>
-                            <div className="font-mono text-[10px] text-slate-400">#{item.entidadeId}</div>
+                            <div className="font-mono text-[10px] text-slate-400">
+                              #{item.entidadeId}
+                            </div>
                           </td>
                           <td className="py-3 px-2">
                             <span
@@ -361,8 +365,12 @@ export function DataGovernanceAdminPage() {
                             </span>
                           </td>
                           <td className="py-3 px-2">
-                            <div className="font-mono text-slate-600">{item.documentoMascarado}</div>
-                            <div className="text-[11px] text-slate-500">{item.telefoneMascarado}</div>
+                            <div className="font-mono text-slate-600">
+                              {item.documentoMascarado}
+                            </div>
+                            <div className="text-[11px] text-slate-500">
+                              {item.telefoneMascarado}
+                            </div>
                           </td>
                           <td className="py-3 px-2">
                             <div className="text-slate-800 max-w-sm truncate" title={item.motivo}>
@@ -422,7 +430,8 @@ export function DataGovernanceAdminPage() {
                     Configurar Janela de Arquivamento
                   </h2>
                   <p className="text-[11px] text-slate-500">
-                    Mova dados antigos para Cold Storage para economizar disco e acelerar queries do banco operacional.
+                    Mova dados antigos para Cold Storage para economizar disco e acelerar queries do
+                    banco operacional.
                   </p>
                 </div>
 
@@ -436,10 +445,18 @@ export function DataGovernanceAdminPage() {
                       onChange={(e) => setCategoriaPurga(e.target.value as CategoriaPurga)}
                       className="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
                     >
-                      <option value="TELEMETRIA_GPS">Telemetria GPS Bruta (Waypoints de Tracking)</option>
-                      <option value="CORRIDAS_FINALIZADAS">Corridas Encerradas Antigas (Cold Storage)</option>
-                      <option value="NOTIFICACOES_LOGS">Notificações Push e Logs Operacionais</option>
-                      <option value="CHAMADOS_SUPORTE">Chamados de Suporte e Ocorrências Resolvidas</option>
+                      <option value="TELEMETRIA_GPS">
+                        Telemetria GPS Bruta (Waypoints de Tracking)
+                      </option>
+                      <option value="CORRIDAS_FINALIZADAS">
+                        Corridas Encerradas Antigas (Cold Storage)
+                      </option>
+                      <option value="NOTIFICACOES_LOGS">
+                        Notificações Push e Logs Operacionais
+                      </option>
+                      <option value="CHAMADOS_SUPORTE">
+                        Chamados de Suporte e Ocorrências Resolvidas
+                      </option>
                     </select>
                   </div>
 
@@ -563,7 +580,8 @@ export function DataGovernanceAdminPage() {
                   Dumps Relacionais Preventivos
                 </h2>
                 <p className="text-[11px] text-slate-500">
-                  Gere cópias de segurança instantâneas das tabelas e esquemas relacionais da plataforma com integridade SHA-256.
+                  Gere cópias de segurança instantâneas das tabelas e esquemas relacionais da
+                  plataforma com integridade SHA-256.
                 </p>
               </div>
 
@@ -607,7 +625,10 @@ export function DataGovernanceAdminPage() {
                       </div>
                     </div>
 
-                    <div className="text-[10px] font-mono text-slate-400 truncate" title={b.checksumSha256}>
+                    <div
+                      className="text-[10px] font-mono text-slate-400 truncate"
+                      title={b.checksumSha256}
+                    >
                       SHA256: {b.checksumSha256}
                     </div>
                   </div>

@@ -57,7 +57,7 @@ export function DriverApprovalAuditModal({
   onRejeitar,
 }: DriverApprovalAuditModalProps) {
   const [categoria, setCategoria] = useState<"CARRO" | "MOTO" | "PLUS" | "MULHER">(
-    solicitacao?.categoriaVeiculo || "CARRO"
+    solicitacao?.categoriaVeiculo || "CARRO",
   );
   const [motivoRejeicao, setMotivoRejeicao] = useState("");
   const [mostrarRejeicaoInput, setMostrarRejeicaoInput] = useState(false);
@@ -88,11 +88,21 @@ export function DriverApprovalAuditModal({
         } else {
           onClose();
         }
-      } else if (e.key.toLowerCase() === "a" && !imagemZoom && !mostrarRejeicaoInput && solicitacao) {
+      } else if (
+        e.key.toLowerCase() === "a" &&
+        !imagemZoom &&
+        !mostrarRejeicaoInput &&
+        solicitacao
+      ) {
         e.preventDefault();
         onAprovar(solicitacao.id, categoria);
         onClose();
-      } else if (e.key.toLowerCase() === "r" && !imagemZoom && !mostrarRejeicaoInput && solicitacao) {
+      } else if (
+        e.key.toLowerCase() === "r" &&
+        !imagemZoom &&
+        !mostrarRejeicaoInput &&
+        solicitacao
+      ) {
         e.preventDefault();
         setMostrarRejeicaoInput(true);
       }
@@ -131,7 +141,11 @@ export function DriverApprovalAuditModal({
       date: solicitacao.dataSolicitacao,
       variant: solicitacao.possuiEAR ? "success" : "warning",
       badge: solicitacao.possuiEAR ? "CONFORME" : "REQUER ATENÇÃO",
-      icon: solicitacao.possuiEAR ? <ShieldCheck className="h-3 w-3 text-white" /> : <ShieldAlert className="h-3 w-3 text-white" />,
+      icon: solicitacao.possuiEAR ? (
+        <ShieldCheck className="h-3 w-3 text-white" />
+      ) : (
+        <ShieldAlert className="h-3 w-3 text-white" />
+      ),
     },
   ];
 
@@ -180,8 +194,8 @@ export function DriverApprovalAuditModal({
               solicitacao.status === "aprovado"
                 ? "success"
                 : solicitacao.status === "rejeitado"
-                ? "critical"
-                : "warning"
+                  ? "critical"
+                  : "warning"
             }
             size="sm"
           >
@@ -206,7 +220,9 @@ export function DriverApprovalAuditModal({
                   onClick={() => setMostrarRejeicaoInput(true)}
                 >
                   Reprovar Cadastro
-                  <kbd className="ml-1.5 px-1 py-0.2 rounded text-[9px] bg-rose-800 text-rose-100 font-mono">R</kbd>
+                  <kbd className="ml-1.5 px-1 py-0.2 rounded text-[9px] bg-rose-800 text-rose-100 font-mono">
+                    R
+                  </kbd>
                 </AdminActionButton>
 
                 <AdminActionButton
@@ -219,7 +235,9 @@ export function DriverApprovalAuditModal({
                   }}
                 >
                   Aprovar Credenciamento
-                  <kbd className="ml-1.5 px-1 py-0.2 rounded text-[9px] bg-emerald-800 text-emerald-100 font-mono">A</kbd>
+                  <kbd className="ml-1.5 px-1 py-0.2 rounded text-[9px] bg-emerald-800 text-emerald-100 font-mono">
+                    A
+                  </kbd>
                 </AdminActionButton>
               </>
             ) : (
@@ -270,7 +288,10 @@ export function DriverApprovalAuditModal({
                 CPF: {solicitacao.cpf} • CNH: {solicitacao.cnhNumero || "Não informada"}
               </p>
               <p className="text-xs text-slate-500">
-                Chave Pix: <strong className="text-slate-700 dark:text-slate-300">{solicitacao.chavePix}</strong>
+                Chave Pix:{" "}
+                <strong className="text-slate-700 dark:text-slate-300">
+                  {solicitacao.chavePix}
+                </strong>
               </p>
             </div>
           </div>
@@ -293,7 +314,9 @@ export function DriverApprovalAuditModal({
               Motivo da Reprovação (será enviado ao condutor):
             </label>
             <div className="flex flex-wrap gap-1.5">
-              <span className="text-[10px] font-bold text-rose-700 dark:text-rose-300 w-full">Motivos rápidos (1 clique):</span>
+              <span className="text-[10px] font-bold text-rose-700 dark:text-rose-300 w-full">
+                Motivos rápidos (1 clique):
+              </span>
               {MOTIVOS_RAPIDOS.map((motivo) => (
                 <button
                   key={motivo}
@@ -484,7 +507,8 @@ export function DriverApprovalAuditModal({
                   {imagemZoom.titulo}
                 </h4>
                 <p className="text-[10px] text-slate-500 font-mono">
-                  Inspeção Documental • {Math.round(imagemZoom.escala * 100)}% • {imagemZoom.rotacao}°
+                  Inspeção Documental • {Math.round(imagemZoom.escala * 100)}% •{" "}
+                  {imagemZoom.rotacao}°
                 </p>
               </div>
 
@@ -494,7 +518,7 @@ export function DriverApprovalAuditModal({
                   type="button"
                   onClick={() =>
                     setImagemZoom((prev) =>
-                      prev ? { ...prev, rotacao: (prev.rotacao + 90) % 360 } : null
+                      prev ? { ...prev, rotacao: (prev.rotacao + 90) % 360 } : null,
                     )
                   }
                   className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition cursor-pointer"
@@ -508,7 +532,7 @@ export function DriverApprovalAuditModal({
                   type="button"
                   onClick={() =>
                     setImagemZoom((prev) =>
-                      prev ? { ...prev, escala: Math.min(prev.escala + 0.25, 3) } : null
+                      prev ? { ...prev, escala: Math.min(prev.escala + 0.25, 3) } : null,
                     )
                   }
                   className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition cursor-pointer"
@@ -521,7 +545,7 @@ export function DriverApprovalAuditModal({
                   type="button"
                   onClick={() =>
                     setImagemZoom((prev) =>
-                      prev ? { ...prev, escala: Math.max(prev.escala - 0.25, 0.75) } : null
+                      prev ? { ...prev, escala: Math.max(prev.escala - 0.25, 0.75) } : null,
                     )
                   }
                   className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition cursor-pointer"
@@ -533,9 +557,7 @@ export function DriverApprovalAuditModal({
                 <button
                   type="button"
                   onClick={() =>
-                    setImagemZoom((prev) =>
-                      prev ? { ...prev, escala: 1, rotacao: 0 } : null
-                    )
+                    setImagemZoom((prev) => (prev ? { ...prev, escala: 1, rotacao: 0 } : null))
                   }
                   className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition cursor-pointer"
                   title="Redefinir Zoom e Rotação"

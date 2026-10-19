@@ -33,7 +33,7 @@ export const FloatingChatButton: React.FC<FloatingChatButtonProps> = ({
       },
       (count) => {
         setUnreadCount(count);
-      }
+      },
     );
 
     return cleanup;

@@ -40,9 +40,7 @@ export interface UseDriverTrackingResult {
   telemetry: DriverLocationUpdate | null;
 }
 
-export function useDriverTracking(
-  options: UseDriverTrackingOptions = {}
-): UseDriverTrackingResult {
+export function useDriverTracking(options: UseDriverTrackingOptions = {}): UseDriverTrackingResult {
   const {
     driverId,
     routeCoordinates,
@@ -148,17 +146,14 @@ export function useDriverTracking(
         }
       }
     },
-    [enableSnapToRoute, routeCoordinates, currentCoords, stepAnimation]
+    [enableSnapToRoute, routeCoordinates, currentCoords, stepAnimation],
   );
 
   // Conexão com Supabase Realtime
   useEffect(() => {
     if (!driverId) return;
 
-    const unsubscribe = supabaseService.subscribeToDriverLocation(
-      driverId,
-      handleLocationUpdate
-    );
+    const unsubscribe = supabaseService.subscribeToDriverLocation(driverId, handleLocationUpdate);
 
     return () => {
       unsubscribe();

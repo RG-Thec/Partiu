@@ -85,8 +85,7 @@ export function ApiFinOpsAdminPage() {
 
   const logsFiltrados = useMemo(() => {
     return logs.filter((l) => {
-      const matchCat =
-        filtroCategoria === "TODAS" || l.categoria === filtroCategoria;
+      const matchCat = filtroCategoria === "TODAS" || l.categoria === filtroCategoria;
       const matchBusca =
         buscaTexto === "" ||
         l.parametros.toLowerCase().includes(buscaTexto.toLowerCase()) ||
@@ -97,7 +96,11 @@ export function ApiFinOpsAdminPage() {
   }, [logs, filtroCategoria, buscaTexto]);
 
   const handleLimparCache = () => {
-    if (window.confirm("Deseja realmente purgar todo o cache local de rotas e geocoding? Novas requisições farão chamadas diretas ao provedor.")) {
+    if (
+      window.confirm(
+        "Deseja realmente purgar todo o cache local de rotas e geocoding? Novas requisições farão chamadas diretas ao provedor.",
+      )
+    ) {
       limparCacheMapas();
       recarregarDados();
       mostrarToast("Cache de mapas e histórico de requisições purgados!");
@@ -111,11 +114,12 @@ export function ApiFinOpsAdminPage() {
   };
 
   const handleExportarCsv = () => {
-    const headers = "ID,Data/Hora,Categoria,Provedor,Endpoint,Status,Latencia(ms),Custo(USD),Economia(USD),Parametros\n";
+    const headers =
+      "ID,Data/Hora,Categoria,Provedor,Endpoint,Status,Latencia(ms),Custo(USD),Economia(USD),Parametros\n";
     const rows = logsFiltrados
       .map(
         (l) =>
-          `"${l.id}","${new Date(l.timestamp).toISOString()}","${l.categoria}","${l.provedor}","${l.endpoint}","${l.status}",${l.latenciaMs},${l.custoEstimadoUsd},${l.economiaEstimadaUsd},"${l.parametros.replace(/"/g, '""')}"`
+          `"${l.id}","${new Date(l.timestamp).toISOString()}","${l.categoria}","${l.provedor}","${l.endpoint}","${l.status}",${l.latenciaMs},${l.custoEstimadoUsd},${l.economiaEstimadaUsd},"${l.parametros.replace(/"/g, '""')}"`,
       )
       .join("\n");
     const blob = new Blob([headers + rows], { type: "text/csv;charset=utf-8;" });
@@ -132,7 +136,10 @@ export function ApiFinOpsAdminPage() {
       categoria: status === "HIT" ? "CORRIDA" : "GOOGLE MAPS",
       provedor: status === "HIT" ? "CACHE_LOCAL" : "GOOGLE_MAPS",
       endpoint: "Directions",
-      parametros: status === "HIT" ? "Simulação de rota frequente (Cache Hit)" : "Simulação de nova rota (Google Directions API)",
+      parametros:
+        status === "HIT"
+          ? "Simulação de rota frequente (Cache Hit)"
+          : "Simulação de nova rota (Google Directions API)",
       status,
       latenciaMs: status === "HIT" ? 12 : 210,
     });
@@ -161,7 +168,9 @@ export function ApiFinOpsAdminPage() {
               Observabilidade de APIs & Google Maps Cache
             </h1>
             <p className="text-xs text-slate-600 max-w-2xl">
-              Monitore a contenção de custos de APIs de geolocalização através do cache determinístico de rotas (Directions) e geocodificação (Places), com métricas de retenção e stream de logs em tempo real.
+              Monitore a contenção de custos de APIs de geolocalização através do cache
+              determinístico de rotas (Directions) e geocodificação (Places), com métricas de
+              retenção e stream de logs em tempo real.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -233,9 +242,7 @@ export function ApiFinOpsAdminPage() {
             <div className="text-2xl font-black text-blue-700">
               {metricas.tempoMedioRespostaMs} ms
             </div>
-            <span className="text-[10px] text-blue-700 font-bold">
-              Sub-50ms no Cache Local
-            </span>
+            <span className="text-[10px] text-blue-700 font-bold">Sub-50ms no Cache Local</span>
           </div>
         </div>
 
@@ -376,7 +383,8 @@ export function ApiFinOpsAdminPage() {
                   Stream de Requisições de Mapas em Tempo Real
                 </h2>
                 <p className="text-[11px] text-slate-500">
-                  Categorização de tráfego por chamadas de corrida, servidor, geocoding e cache local.
+                  Categorização de tráfego por chamadas de corrida, servidor, geocoding e cache
+                  local.
                 </p>
               </div>
 
@@ -451,19 +459,20 @@ export function ApiFinOpsAdminPage() {
                                 log.categoria === "CORRIDA"
                                   ? "bg-amber-100 text-amber-900"
                                   : log.categoria === "GOOGLE MAPS"
-                                  ? "bg-blue-100 text-blue-900"
-                                  : log.categoria === "SALVAR"
-                                  ? "bg-purple-100 text-purple-900"
-                                  : "bg-slate-100 text-slate-800"
+                                    ? "bg-blue-100 text-blue-900"
+                                    : log.categoria === "SALVAR"
+                                      ? "bg-purple-100 text-purple-900"
+                                      : "bg-slate-100 text-slate-800"
                               }`}
                             >
                               {log.categoria}
                             </span>
                           </td>
-                          <td className="py-2.5 px-2 font-bold text-slate-800">
-                            {log.endpoint}
-                          </td>
-                          <td className="py-2.5 px-2 text-slate-600 truncate max-w-xs text-[11px]" title={log.parametros}>
+                          <td className="py-2.5 px-2 font-bold text-slate-800">{log.endpoint}</td>
+                          <td
+                            className="py-2.5 px-2 text-slate-600 truncate max-w-xs text-[11px]"
+                            title={log.parametros}
+                          >
                             {log.parametros}
                           </td>
                           <td className="py-2.5 px-2">

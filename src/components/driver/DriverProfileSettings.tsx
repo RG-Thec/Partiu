@@ -62,16 +62,16 @@ export function DriverProfileSettings({
 
   // Estados do Veículo
   const [veiculoMarcaModelo, setVeiculoMarcaModelo] = useState(
-    driverProfile.veiculoMarcaModelo || ""
+    driverProfile.veiculoMarcaModelo || "",
   );
   const [veiculoPlaca, setVeiculoPlaca] = useState(driverProfile.veiculoPlaca || "");
   const [veiculoCor, setVeiculoCor] = useState(driverProfile.veiculoCor || "");
   const [veiculoAno, setVeiculoAno] = useState<number>(
-    driverProfile.veiculoAno || new Date().getFullYear()
+    driverProfile.veiculoAno || new Date().getFullYear(),
   );
-  const [categoriaVeiculo, setCategoriaVeiculo] = useState<
-    "CARRO" | "MOTO" | "PLUS" | "MULHER"
-  >(driverProfile.categoriaVeiculo || "CARRO");
+  const [categoriaVeiculo, setCategoriaVeiculo] = useState<"CARRO" | "MOTO" | "PLUS" | "MULHER">(
+    driverProfile.categoriaVeiculo || "CARRO",
+  );
 
   // Estado de controle de upload e persistência
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -329,7 +329,12 @@ export function DriverProfileSettings({
                     }}
                   />
                 ) : (
-                  <span className="text-xl font-black" style={{ color: corPrimaria || "var(--brand-primary, #FF6B00)" }}>{iniciais}</span>
+                  <span
+                    className="text-xl font-black"
+                    style={{ color: corPrimaria || "var(--brand-primary, #FF6B00)" }}
+                  >
+                    {iniciais}
+                  </span>
                 )}
               </div>
 
@@ -365,9 +370,7 @@ export function DriverProfileSettings({
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <h3 className="text-sm font-bold text-slate-900 truncate">
-                  {nome || "Seu Nome"}
-                </h3>
+                <h3 className="text-sm font-bold text-slate-900 truncate">{nome || "Seu Nome"}</h3>
                 <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                   <ShieldCheck className="w-3 h-3 text-emerald-600" />
                   Verificado
@@ -518,9 +521,7 @@ export function DriverProfileSettings({
 
             {/* Modelo / Marca — Somente Leitura */}
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-700 block">
-                Modelo e Marca
-              </label>
+              <label className="text-xs font-bold text-slate-700 block">Modelo e Marca</label>
               <div className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 flex items-center">
                 {veiculoMarcaModelo || "Não informado"}
               </div>
@@ -530,9 +531,7 @@ export function DriverProfileSettings({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               {/* Placa */}
               <div className="space-y-1 sm:col-span-1">
-                <label className="text-xs font-bold text-slate-700 block">
-                  Placa
-                </label>
+                <label className="text-xs font-bold text-slate-700 block">Placa</label>
                 <div className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-mono font-bold text-slate-700 uppercase flex items-center">
                   {veiculoPlaca || "—"}
                 </div>
@@ -540,9 +539,7 @@ export function DriverProfileSettings({
 
               {/* Cor */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 block">
-                  Cor
-                </label>
+                <label className="text-xs font-bold text-slate-700 block">Cor</label>
                 <div className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 flex items-center">
                   {veiculoCor || "—"}
                 </div>
@@ -550,9 +547,7 @@ export function DriverProfileSettings({
 
               {/* Ano */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 block">
-                  Ano
-                </label>
+                <label className="text-xs font-bold text-slate-700 block">Ano</label>
                 <div className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium text-slate-700 flex items-center">
                   {veiculoAno}
                 </div>
@@ -566,9 +561,9 @@ export function DriverProfileSettings({
                 <span>Dados gerenciados pela operação</span>
               </div>
               <p className="text-[11px] leading-relaxed text-blue-700">
-                A categoria de atendimento e os dados do veículo são definidos e auditados
-                pela equipe administrativa. Para solicitar alterações, entre em contato com
-                o suporte da plataforma.
+                A categoria de atendimento e os dados do veículo são definidos e auditados pela
+                equipe administrativa. Para solicitar alterações, entre em contato com o suporte da
+                plataforma.
               </p>
             </div>
           </div>
@@ -646,7 +641,10 @@ export function DriverProfileSettings({
               <LogOut className="w-7 h-7 stroke-[2.2]" />
             </div>
             <div className="space-y-1.5">
-              <h3 id="confirm-sair-perfil-titulo" className="text-lg font-black text-slate-900 tracking-tight">
+              <h3
+                id="confirm-sair-perfil-titulo"
+                className="text-lg font-black text-slate-900 tracking-tight"
+              >
                 Sair da Conta de Motorista?
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed font-medium">

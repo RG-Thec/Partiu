@@ -51,10 +51,10 @@ export function PublicTrackingPage() {
   const ui = branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
 
   const [rideData, setRideData] = useState<PublicRideTrackingData | null>(() =>
-    rideLiveTrackingService.getPublicTrackingView(token)
+    rideLiveTrackingService.getPublicTrackingView(token),
   );
   const [deliveryData, setDeliveryData] = useState<PublicTrackingData | null>(() =>
-    deliveryTrackingEngine.getPublicTrackingView(token)
+    deliveryTrackingEngine.getPublicTrackingView(token),
   );
   const [copiado, setCopiado] = useState(false);
 
@@ -99,7 +99,7 @@ export function PublicTrackingPage() {
       const msg = rideLiveTrackingService.buildShareMessage(
         rideData.trackingToken,
         rideData.vehicleModel,
-        rideData.vehiclePlate
+        rideData.vehiclePlate,
       );
       if (typeof navigator !== "undefined" && navigator.share) {
         navigator
@@ -158,10 +158,7 @@ export function PublicTrackingPage() {
           >
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground font-semibold">Status do Trajeto</span>
-              <span
-                style={{ color: colors.primary }}
-                className="text-[11px] font-bold"
-              >
+              <span style={{ color: colors.primary }} className="text-[11px] font-bold">
                 {rideData.distanceKm ? `${rideData.distanceKm.toFixed(1)} km` : "Monitorado"}
               </span>
             </div>
@@ -185,14 +182,18 @@ export function PublicTrackingPage() {
               <div className="flex items-start gap-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1 shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold block">Embarque:</span>
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold block">
+                    Embarque:
+                  </span>
                   <p className="font-semibold text-foreground truncate">{rideData.origem}</p>
                 </div>
               </div>
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-3.5 h-3.5 text-rose-500 mt-0.5 shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold block">Destino:</span>
+                  <span className="text-[10px] text-muted-foreground uppercase font-bold block">
+                    Destino:
+                  </span>
                   <p className="font-semibold text-foreground truncate">{rideData.destino}</p>
                 </div>
               </div>
@@ -227,9 +228,7 @@ export function PublicTrackingPage() {
                   </div>
                 )}
                 <div>
-                  <h3 className="text-sm font-black text-foreground">
-                    {rideData.driverName}
-                  </h3>
+                  <h3 className="text-sm font-black text-foreground">{rideData.driverName}</h3>
                   <p className="text-xs text-muted-foreground">
                     {rideData.vehicleModel} •{" "}
                     <span className="font-mono font-bold" style={{ color: colors.primary }}>
@@ -258,7 +257,8 @@ export function PublicTrackingPage() {
               <span>Viagem Monitorada por Satélite</span>
             </div>
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              O trajeto e a velocidade do veículo estão sendo registrados em tempo real no Centro de Controle de Operações da plataforma {nomeApp}.
+              O trajeto e a velocidade do veículo estão sendo registrados em tempo real no Centro de
+              Controle de Operações da plataforma {nomeApp}.
             </p>
           </div>
 
@@ -335,11 +335,10 @@ export function PublicTrackingPage() {
             className="p-4 bg-card border border-border shadow-sm space-y-3"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground font-semibold">Status da Encomenda</span>
-              <span
-                style={{ color: colors.primary }}
-                className="text-[11px] font-bold"
-              >
+              <span className="text-xs text-muted-foreground font-semibold">
+                Status da Encomenda
+              </span>
+              <span style={{ color: colors.primary }} className="text-[11px] font-bold">
                 {deliveryData.vehicleType}
               </span>
             </div>
@@ -362,7 +361,8 @@ export function PublicTrackingPage() {
               >
                 <span className="font-bold block">⚠️ Devolução em Andamento</span>
                 <p className="text-[11px] text-rose-600/80">
-                  O entregador não conseguiu localizar o destinatário e está retornando a encomenda ao remetente ({deliveryData.senderFirstName}).
+                  O entregador não conseguiu localizar o destinatário e está retornando a encomenda
+                  ao remetente ({deliveryData.senderFirstName}).
                 </p>
               </div>
             )}
@@ -377,58 +377,70 @@ export function PublicTrackingPage() {
             >
               <MapPin className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
               <div className="min-w-0 flex-1">
-                <span className="text-[10px] text-muted-foreground uppercase font-bold block">Destino Atual:</span>
-                <p className="font-semibold text-foreground truncate">{deliveryData.currentStopAddress}</p>
+                <span className="text-[10px] text-muted-foreground uppercase font-bold block">
+                  Destino Atual:
+                </span>
+                <p className="font-semibold text-foreground truncate">
+                  {deliveryData.currentStopAddress}
+                </p>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
-                  Destinatário: <span className="text-foreground font-bold">{deliveryData.recipientName}</span> ({deliveryData.recipientMaskedPhone})
+                  Destinatário:{" "}
+                  <span className="text-foreground font-bold">{deliveryData.recipientName}</span> (
+                  {deliveryData.recipientMaskedPhone})
                 </p>
               </div>
             </div>
           </div>
 
-          {deliveryData.expectedOtp && !deliveryData.isReturnActive && deliveryData.status !== "COMPLETED" && (
-            <div
-              style={{
-                borderRadius: ui.borderRadius,
-                borderColor: colors.primary,
-                backgroundColor: `${colors.primary}0D`,
-              }}
-              className="p-4 border-2 shadow-sm text-center space-y-2"
-            >
+          {deliveryData.expectedOtp &&
+            !deliveryData.isReturnActive &&
+            deliveryData.status !== "COMPLETED" && (
               <div
-                style={{ color: colors.primary }}
-                className="flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-wider"
+                style={{
+                  borderRadius: ui.borderRadius,
+                  borderColor: colors.primary,
+                  backgroundColor: `${colors.primary}0D`,
+                }}
+                className="p-4 border-2 shadow-sm text-center space-y-2"
               >
-                <KeyRound className="w-4 h-4" />
-                <span>Seu Código de Liberação</span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Informe estes 4 dígitos ao entregador para receber seu pacote:
-              </p>
-              <div className="flex items-center justify-center gap-3 py-1">
-                <span
-                  style={{
-                    borderRadius: ui.borderRadius,
-                    borderColor: colors.inputBorder,
-                    backgroundColor: colors.surface,
-                    color: colors.primary,
-                  }}
-                  className="font-mono text-3xl font-black tracking-widest px-4 py-2 border shadow-inner"
+                <div
+                  style={{ color: colors.primary }}
+                  className="flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-wider"
                 >
-                  {deliveryData.expectedOtp}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleCopiarPin}
-                  style={{ borderRadius: ui.borderRadius }}
-                  className="p-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border active:scale-95 transition cursor-pointer"
-                  title="Copiar código"
-                >
-                  {copiado ? <Check className="w-5 h-5 text-emerald-500" /> : <Copy className="w-5 h-5" />}
-                </button>
+                  <KeyRound className="w-4 h-4" />
+                  <span>Seu Código de Liberação</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Informe estes 4 dígitos ao entregador para receber seu pacote:
+                </p>
+                <div className="flex items-center justify-center gap-3 py-1">
+                  <span
+                    style={{
+                      borderRadius: ui.borderRadius,
+                      borderColor: colors.inputBorder,
+                      backgroundColor: colors.surface,
+                      color: colors.primary,
+                    }}
+                    className="font-mono text-3xl font-black tracking-widest px-4 py-2 border shadow-inner"
+                  >
+                    {deliveryData.expectedOtp}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleCopiarPin}
+                    style={{ borderRadius: ui.borderRadius }}
+                    className="p-2.5 bg-muted text-foreground hover:bg-muted/80 border border-border active:scale-95 transition cursor-pointer"
+                    title="Copiar código"
+                  >
+                    {copiado ? (
+                      <Check className="w-5 h-5 text-emerald-500" />
+                    ) : (
+                      <Copy className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {deliveryData.driverInfo && (
             <div

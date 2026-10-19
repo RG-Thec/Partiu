@@ -31,7 +31,8 @@ export interface BannerItem {
 export const SEED_BANNERS: BannerItem[] = [
   {
     id: "banner-corridas-seguras",
-    image_url: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&auto=format&fit=crop&q=80",
+    image_url:
+      "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&auto=format&fit=crop&q=80",
     link_url: "/app",
     order_index: 1,
     is_active: true,
@@ -42,7 +43,8 @@ export const SEED_BANNERS: BannerItem[] = [
   },
   {
     id: "banner-entregas-flash",
-    image_url: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800&auto=format&fit=crop&q=80",
+    image_url:
+      "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800&auto=format&fit=crop&q=80",
     link_url: "/app/encomendas",
     order_index: 2,
     is_active: true,
@@ -53,7 +55,8 @@ export const SEED_BANNERS: BannerItem[] = [
   },
   {
     id: "banner-motorista-saas",
-    image_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
+    image_url:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
     link_url: "/cadastro-motorista",
     order_index: 3,
     is_active: true,
@@ -161,9 +164,7 @@ class BannerService {
     try {
       const limpos = this.banners.filter((b) => !isLegacyVanBanner(b));
       localStorage.setItem(BANNERS_STORAGE_KEY, JSON.stringify(limpos));
-      window.dispatchEvent(
-        new CustomEvent("partiu:banners-updated", { detail: limpos })
-      );
+      window.dispatchEvent(new CustomEvent("partiu:banners-updated", { detail: limpos }));
     } catch (e) {
       console.warn("[BannerService] Falha ao salvar cache:", e);
     }
@@ -201,8 +202,8 @@ class BannerService {
               b.is_active !== undefined
                 ? Boolean(b.is_active)
                 : b.ativo !== undefined
-                ? Boolean(b.ativo)
-                : true,
+                  ? Boolean(b.ativo)
+                  : true,
             category: (b.category as BannerCategory) || "PASSENGER",
             title: b.title || b.titulo || "Partiu Mobilidade",
             subtitle: b.subtitle || b.subtitulo || "",
@@ -252,12 +253,12 @@ class BannerService {
       (b) =>
         b.is_active &&
         !isLegacyVanBanner(b) &&
-        (b.category === category || b.category === "ALL" || b.link_url === "/cadastro-motorista")
+        (b.category === category || b.category === "ALL" || b.link_url === "/cadastro-motorista"),
     );
   }
 
   public async createBanner(
-    data: Omit<BannerItem, "id" | "created_at" | "updated_at">
+    data: Omit<BannerItem, "id" | "created_at" | "updated_at">,
   ): Promise<BannerItem> {
     const newBanner: BannerItem = {
       ...data,
@@ -405,8 +406,14 @@ class BannerService {
    * - Largura mínima: 300px
    */
   public async validateBannerDimensions(
-    imageUrl: string
-  ): Promise<{ isValid: boolean; message: string; width?: number; height?: number; aspectRatio?: number }> {
+    imageUrl: string,
+  ): Promise<{
+    isValid: boolean;
+    message: string;
+    width?: number;
+    height?: number;
+    aspectRatio?: number;
+  }> {
     if (!imageUrl || !imageUrl.startsWith("http")) {
       return { isValid: false, message: "URL de imagem inválida ou em formato desconhecido." };
     }
@@ -457,7 +464,8 @@ class BannerService {
         // Se falhar o carregamento por CORS ou URL bloqueada, não bloqueia o usuário mas avisa
         resolve({
           isValid: true,
-          message: "Não foi possível inspecionar as dimensões via navegador (possível proteção CORS). O banner foi salvo normalmente.",
+          message:
+            "Não foi possível inspecionar as dimensões via navegador (possível proteção CORS). O banner foi salvo normalmente.",
         });
       };
 

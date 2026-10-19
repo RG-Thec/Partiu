@@ -20,32 +20,32 @@ Tratamento padrão por você, equilibrando proximidade respeitosa com clareza pr
 
 Expressões que não devem ser adotadas como jargões estrangeiros no Brasil:
 
-| Primary | Replacement | Job it does |
-|---|---|---|
+| Primary         | Replacement                      | Job it does                                          |
+| --------------- | -------------------------------- | ---------------------------------------------------- |
 | "surge pricing" | "tarifa proporcional de demanda" | explicar variação de alta demanda sem gerar rejeição |
-| "ride hailing" | "solicitação de corrida" | descrever o ato de chamar um motorista |
+| "ride hailing"  | "solicitação de corrida"         | descrever o ato de chamar um motorista               |
 
 ## Keywords
 
 Termos orgânicos de maior relevância no ecossistema brasileiro de transporte sob demanda:
 
-| Term | Volume | Where it is used |
-|---|---|---|
-| corrida barata e segura | alto | landing page e marketing |
-| motorista parceiro app | alto | cadastro de condutores |
-| mobilidade urbana regional | médio | institucional e whitelabel |
+| Term                       | Volume | Where it is used           |
+| -------------------------- | ------ | -------------------------- |
+| corrida barata e segura    | alto   | landing page e marketing   |
+| motorista parceiro app     | alto   | cadastro de condutores     |
+| mobilidade urbana regional | médio  | institucional e whitelabel |
 
 ## Legal differences
 
 Exigências da legislação brasileira de mobilidade urbana (Lei Federal 13.640/2018):
 
-| Requirement | Text or reference |
-|---|---|
-| Seguro APP | Cobertura de Acidentes Pessoais a Passageiros ativa durante todo o percurso da corrida |
-| Verificação de condutor | Certidão negativa de antecedentes criminais e CNH com observação EAR |
+| Requirement             | Text or reference                                                                      |
+| ----------------------- | -------------------------------------------------------------------------------------- |
+| Seguro APP              | Cobertura de Acidentes Pessoais a Passageiros ativa durante todo o percurso da corrida |
+| Verificação de condutor | Certidão negativa de antecedentes criminais e CNH com observação EAR                   |
 
 ## Length notes
 
-| Surface | Primary limit | Effective limit | Note |
-|---|---|---|---|
-| Botões de ação rápida | 24 | 24 | Manter no máximo duas palavras de impacto |
+| Surface               | Primary limit | Effective limit | Note                                      |
+| --------------------- | ------------- | --------------- | ----------------------------------------- |
+| Botões de ação rápida | 24            | 24              | Manter no máximo duas palavras de impacto |

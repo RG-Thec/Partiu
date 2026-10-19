@@ -132,10 +132,12 @@ export class CancellationPolicyService {
   public evaluatePolicy(
     acceptedAtInput?: string | number | Date | null,
     customToleranceMinutes?: number,
-    customFeeBrl?: number
+    customFeeBrl?: number,
   ): CancellationPolicy {
     const acceptedAt =
-      typeof acceptedAtInput === "number" || typeof acceptedAtInput === "string" || acceptedAtInput instanceof Date
+      typeof acceptedAtInput === "number" ||
+      typeof acceptedAtInput === "string" ||
+      acceptedAtInput instanceof Date
         ? new Date(acceptedAtInput)
         : new Date();
     const tolerance = customToleranceMinutes ?? this.config.defaultToleranceMinutes;

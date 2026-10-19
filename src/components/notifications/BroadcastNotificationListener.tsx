@@ -22,7 +22,6 @@ import {
 import { getBeneficiarioGratuidade } from "@/lib/passagens-store";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
-
 function tocarSinalNotificacao() {
   try {
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
@@ -39,7 +38,9 @@ function tocarSinalNotificacao() {
     gain.connect(ctx.destination);
     osc.start();
     osc.stop(ctx.currentTime + 0.35);
-  } catch (err) { silentCatchWarn("BroadcastNotificationListener", err); }
+  } catch (err) {
+    silentCatchWarn("BroadcastNotificationListener", err);
+  }
 }
 
 export function BroadcastNotificationListener() {
@@ -138,8 +139,16 @@ export function BroadcastNotificationListener() {
   > = {
     todos: { label: "COMUNICADO GERAL", bg: "bg-slate-800", text: "text-slate-100 font-black" },
     usuario: { label: "PASSAGEIROS PARTIU", bg: "bg-[#0088FF]", text: "text-slate-950 font-black" },
-    gratis: { label: "CUPONS & BENEFÍCIOS", bg: "bg-emerald-500", text: "text-slate-950 font-black" },
-    motorista: { label: "CONDUTORES & ENTREGADORES", bg: "bg-cyan-400", text: "text-slate-950 font-black" },
+    gratis: {
+      label: "CUPONS & BENEFÍCIOS",
+      bg: "bg-emerald-500",
+      text: "text-slate-950 font-black",
+    },
+    motorista: {
+      label: "CONDUTORES & ENTREGADORES",
+      bg: "bg-cyan-400",
+      text: "text-slate-950 font-black",
+    },
   };
 
   const estilosUrgencia = {

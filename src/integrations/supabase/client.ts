@@ -4,7 +4,9 @@ import type { Database } from "./types";
 import { brokeredPreviewStorage } from "./previewAuthStorage";
 
 function isNewSupabaseApiKey(value: string): boolean {
-  return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_") || value.startsWith("eyJ");
+  return (
+    value.startsWith("sb_publishable_") || value.startsWith("sb_secret_") || value.startsWith("eyJ")
+  );
 }
 
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
@@ -36,14 +38,13 @@ function createSupabaseClient() {
 
   const envKey =
     (typeof import.meta !== "undefined" &&
-      (import.meta.env?.["VITE_SUPABASE_ANON_KEY"] || import.meta.env?.["VITE_SUPABASE_PUBLISHABLE_KEY"])) ||
+      (import.meta.env?.["VITE_SUPABASE_ANON_KEY"] ||
+        import.meta.env?.["VITE_SUPABASE_PUBLISHABLE_KEY"])) ||
     (typeof process !== "undefined" &&
       (process.env?.["SUPABASE_ANON_KEY"] || process.env?.["SUPABASE_PUBLISHABLE_KEY"]));
 
-  const SUPABASE_URL =
-    envUrl || "https://wlmnwazdntayhrsndfor.supabase.co";
-  const SUPABASE_PUBLISHABLE_KEY =
-    envKey || "sb_publishable_cifMsHi21KuC2S3aiGbw9w_AmHZqIcE";
+  const SUPABASE_URL = envUrl || "https://wlmnwazdntayhrsndfor.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = envKey || "sb_publishable_cifMsHi21KuC2S3aiGbw9w_AmHZqIcE";
 
   const isConfigured = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
 

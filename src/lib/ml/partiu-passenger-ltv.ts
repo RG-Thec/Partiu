@@ -1,11 +1,11 @@
 /**
  * PARTIU PASSENGER LTV ENGINE
- * 
+ *
  * Modela o Lifetime Value (LTV) preditivo e classifica usuários nos tiers RFM
  * (Bronze, Prata, Ouro, Black, VIP), parametrizando cashback inteligente e retenção.
  */
 
-export type PassengerTier = 'BRONZE' | 'PRATA' | 'OURO' | 'BLACK' | 'VIP';
+export type PassengerTier = "BRONZE" | "PRATA" | "OURO" | "BLACK" | "VIP";
 
 export interface PassengerLtvInput {
   passengerId: string;
@@ -61,24 +61,25 @@ export class PassengerLtvEngine {
     else if (input.frequenciaMediaCorridasPorMes >= 2) fScore = 2;
 
     let mScore = 1;
-    const ticketMedio = input.totalCorridasHistorico > 0 ? input.gastoTotalBrl / input.totalCorridasHistorico : 18;
+    const ticketMedio =
+      input.totalCorridasHistorico > 0 ? input.gastoTotalBrl / input.totalCorridasHistorico : 18;
     if (input.gastoTotalBrl >= 1500 || ticketMedio >= 35) mScore = 5;
     else if (input.gastoTotalBrl >= 800 || ticketMedio >= 28) mScore = 4;
     else if (input.gastoTotalBrl >= 350 || ticketMedio >= 22) mScore = 3;
     else if (input.gastoTotalBrl >= 100) mScore = 2;
 
-    const compositeScore = Math.round((rScore * 0.35 + fScore * 0.35 + mScore * 0.30) * 20);
+    const compositeScore = Math.round((rScore * 0.35 + fScore * 0.35 + mScore * 0.3) * 20);
 
     // 2. Classificação de Tier
-    let tier: PassengerTier = 'BRONZE';
+    let tier: PassengerTier = "BRONZE";
     if (compositeScore >= 88 || input.gastoTotalBrl > 2000) {
-      tier = 'VIP';
+      tier = "VIP";
     } else if (compositeScore >= 74) {
-      tier = 'BLACK';
+      tier = "BLACK";
     } else if (compositeScore >= 55) {
-      tier = 'OURO';
+      tier = "OURO";
     } else if (compositeScore >= 35) {
-      tier = 'PRATA';
+      tier = "PRATA";
     }
 
     // 3. Projeção de LTV para 12 meses (Margem Líquida da Plataforma = 5% do GMV no Modelo Híbrido)
@@ -93,55 +94,55 @@ export class PassengerLtvEngine {
         cashbackPercentual: 8.0,
         descontoExclusivoPercentual: 10.0,
         prioridadeAtendimentoSuporte: true,
-        matchingPrioritario: true
+        matchingPrioritario: true,
       },
       BLACK: {
         cashbackPercentual: 5.0,
         descontoExclusivoPercentual: 7.0,
         prioridadeAtendimentoSuporte: true,
-        matchingPrioritario: true
+        matchingPrioritario: true,
       },
       OURO: {
         cashbackPercentual: 3.5,
         descontoExclusivoPercentual: 5.0,
         prioridadeAtendimentoSuporte: false,
-        matchingPrioritario: false
+        matchingPrioritario: false,
       },
       PRATA: {
         cashbackPercentual: 2.0,
         descontoExclusivoPercentual: 0.0,
         prioridadeAtendimentoSuporte: false,
-        matchingPrioritario: false
+        matchingPrioritario: false,
       },
       BRONZE: {
         cashbackPercentual: 1.0,
         descontoExclusivoPercentual: 0.0,
         prioridadeAtendimentoSuporte: false,
-        matchingPrioritario: false
-      }
+        matchingPrioritario: false,
+      },
     }[tier];
 
     // Campanha personalizada
     let campanha = {
-      nome: 'Boas-Vindas PARTIU',
-      cupom: 'BEMVINDO5',
+      nome: "Boas-Vindas PARTIU",
+      cupom: "BEMVINDO5",
       descontoBrl: 5.0,
-      descricao: 'Desconto de R$ 5 na sua próxima corrida.'
+      descricao: "Desconto de R$ 5 na sua próxima corrida.",
     };
 
-    if (tier === 'VIP' || tier === 'BLACK') {
+    if (tier === "VIP" || tier === "BLACK") {
       campanha = {
-        nome: 'Recompensa Fidelidade Platinum',
-        cupom: 'PARTIUVIP',
+        nome: "Recompensa Fidelidade Platinum",
+        cupom: "PARTIUVIP",
         descontoBrl: 12.0,
-        descricao: 'R$ 12,00 OFF em corridas Confort e B2B para usuários premium.'
+        descricao: "R$ 12,00 OFF em corridas Confort e B2B para usuários premium.",
       };
     } else if (input.diasDesdeUltimaCorrida > 14) {
       campanha = {
-        nome: 'Saudades de Você no PARTIU',
-        cupom: 'VOLTAPARTIU',
+        nome: "Saudades de Você no PARTIU",
+        cupom: "VOLTAPARTIU",
         descontoBrl: 8.0,
-        descricao: 'R$ 8,00 OFF para você retornar a viajar com agilidade.'
+        descricao: "R$ 8,00 OFF para você retornar a viajar com agilidade.",
       };
     }
 
@@ -153,10 +154,10 @@ export class PassengerLtvEngine {
         recencyScore: rScore,
         frequencyScore: fScore,
         monetaryScore: mScore,
-        compositeScore
+        compositeScore,
       },
       beneficiosAtivos: beneficios,
-      campanhaSugerida: campanha
+      campanhaSugerida: campanha,
     };
   }
 }

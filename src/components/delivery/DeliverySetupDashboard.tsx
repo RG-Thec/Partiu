@@ -56,10 +56,7 @@ export function DeliverySetupDashboard({
   const appName = nomeApp || "Partiu";
 
   const rotaPronta = Boolean(
-    origem.endereco &&
-    origem.contatoNome &&
-    destino.endereco &&
-    destino.contatoNome
+    origem.endereco && origem.contatoNome && destino.endereco && destino.contatoNome,
   );
 
   const precoMoto = cotacaoMoto.precoBrl;
@@ -80,11 +77,7 @@ export function DeliverySetupDashboard({
           {/* Avatar Redondo */}
           <div className="w-8.5 h-8.5 rounded-full overflow-hidden border border-white/80 shadow-2xs bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0">
             {userAvatarUrl ? (
-              <img
-                src={userAvatarUrl}
-                alt={primeiroNome}
-                className="w-full h-full object-cover"
-              />
+              <img src={userAvatarUrl} alt={primeiroNome} className="w-full h-full object-cover" />
             ) : (
               <User className="w-4.5 h-4.5 text-white/90" />
             )}
@@ -370,9 +363,7 @@ export function DeliverySetupDashboard({
                         : {}
                     }
                     className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                      veiculo === "MOTO"
-                        ? "font-black"
-                        : "bg-slate-100 text-slate-600"
+                      veiculo === "MOTO" ? "font-black" : "bg-slate-100 text-slate-600"
                     }`}
                   >
                     <Bike className="w-4 h-4 stroke-[2.2]" />
@@ -429,9 +420,7 @@ export function DeliverySetupDashboard({
                         : {}
                     }
                     className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                      veiculo === "CARRO"
-                        ? "font-black"
-                        : "bg-slate-100 text-slate-600"
+                      veiculo === "CARRO" ? "font-black" : "bg-slate-100 text-slate-600"
                     }`}
                   >
                     <Car className="w-4 h-4 stroke-[2.2]" />
@@ -473,9 +462,13 @@ export function DeliverySetupDashboard({
                 className="w-full py-3.5 px-4 font-bold text-sm sm:text-base active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer hover:brightness-105"
               >
                 <span>
-                  Confirmar {veiculo === "MOTO" ? "Moto Flash" : "Carro Baú"} • R$ {precoAtual.toFixed(2).replace(".", ",")}
+                  Confirmar {veiculo === "MOTO" ? "Moto Flash" : "Carro Baú"} • R${" "}
+                  {precoAtual.toFixed(2).replace(".", ",")}
                 </span>
-                <ArrowRight className="w-4 h-4 stroke-[2.5]" style={{ color: corTextoPrimaria || "#FFFFFF" }} />
+                <ArrowRight
+                  className="w-4 h-4 stroke-[2.5]"
+                  style={{ color: corTextoPrimaria || "#FFFFFF" }}
+                />
               </button>
             </div>
           </div>

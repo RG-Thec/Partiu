@@ -11,11 +11,7 @@ import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
 export type TicketCategory =
-  | "LOST_ITEM"
-  | "PAYMENT_DISPUTE"
-  | "SAFETY_BEHAVIOR"
-  | "APP_HELP"
-  | "GENERAL";
+  "LOST_ITEM" | "PAYMENT_DISPUTE" | "SAFETY_BEHAVIOR" | "APP_HELP" | "GENERAL";
 
 export type TicketStatus = "OPEN" | "IN_REVIEW" | "RESOLVED" | "CLOSED";
 export type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
@@ -160,7 +156,11 @@ export class SupportTicketService {
   /**
    * Atualiza status de um chamado
    */
-  public async updateStatus(ticketId: string, status: TicketStatus, adminNotes?: string): Promise<boolean> {
+  public async updateStatus(
+    ticketId: string,
+    status: TicketStatus,
+    adminNotes?: string,
+  ): Promise<boolean> {
     const local = this.localTickets.get(ticketId);
     if (local) {
       local.status = status;

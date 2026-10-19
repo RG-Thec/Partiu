@@ -7,8 +7,7 @@ export const Route = createFileRoute("/landing")({
       { title: "PARTIU • Mobilidade Urbana & Entregas Inteligentes" },
       {
         name: "description",
-        content:
-          "Conectamos você ao seu destino com segurança, conforto e rapidez. Sempre.",
+        content: "Conectamos você ao seu destino com segurança, conforto e rapidez. Sempre.",
       },
     ],
   }),

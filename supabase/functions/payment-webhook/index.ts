@@ -29,7 +29,7 @@ serve(async (req) => {
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
     // Consulta configurações do admin para pegar Access Token e Webhook Secret configurados no painel
@@ -60,9 +60,7 @@ serve(async (req) => {
       req.headers.get("asaas-access-token") ||
       "";
     const signatureHeader =
-      req.headers.get("x-webhook-signature") ||
-      req.headers.get("x-signature") ||
-      "";
+      req.headers.get("x-webhook-signature") || req.headers.get("x-signature") || "";
     const apikeyHeader = req.headers.get("apikey") || "";
 
     let isAuthorized = false;
@@ -87,18 +85,18 @@ serve(async (req) => {
             encoder.encode(webhookSecret),
             { name: "HMAC", hash: "SHA-256" },
             false,
-            ["verify"]
+            ["verify"],
           );
           const cleanSig = signatureHeader.replace(/^sha256=/, "").trim();
           const sigBytes = new Uint8Array(
-            cleanSig.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || []
+            cleanSig.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || [],
           );
           if (sigBytes.length > 0) {
             isAuthorized = await crypto.subtle.verify(
               "HMAC",
               key,
               sigBytes,
-              encoder.encode(rawBody)
+              encoder.encode(rawBody),
             );
           }
         } catch {
@@ -106,12 +104,14 @@ serve(async (req) => {
         }
       }
     } else if (!webhookSecret && !serviceRoleKey) {
-      console.error("🚨 [payment-webhook] ERRO CRÍTICO: PAYMENT_WEBHOOK_SECRET e SUPABASE_SERVICE_ROLE_KEY não configurados. Bloqueio fail-closed acionado.");
+      console.error(
+        "🚨 [payment-webhook] ERRO CRÍTICO: PAYMENT_WEBHOOK_SECRET e SUPABASE_SERVICE_ROLE_KEY não configurados. Bloqueio fail-closed acionado.",
+      );
       return new Response(
         JSON.stringify({
           error: "Internal Server Error: Webhook signing secret not configured on server.",
         }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -120,7 +120,7 @@ serve(async (req) => {
         JSON.stringify({
           error: "Unauthorized: Assinatura ou token do webhook inválido ou ausente.",
         }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -140,11 +140,15 @@ serve(async (req) => {
     let amount = Number(payment.value || payment.transaction_amount || body.amount || 0);
 
     // Se for notificação Mercado Pago Webhook (v1/v2), consulta o status oficial na API
-    if ((eventType === "payment" || String(eventType).startsWith("payment.")) && gatewayReference && mpAccessToken) {
+    if (
+      (eventType === "payment" || String(eventType).startsWith("payment.")) &&
+      gatewayReference &&
+      mpAccessToken
+    ) {
       try {
         const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${gatewayReference}`, {
           headers: {
-            "Authorization": `Bearer ${mpAccessToken}`,
+            Authorization: `Bearer ${mpAccessToken}`,
           },
         });
         if (mpRes.ok) {
@@ -154,8 +158,10 @@ serve(async (req) => {
             amount = Number(mpData.transaction_amount || amount);
           } else {
             return new Response(
-              JSON.stringify({ message: `Pagamento Mercado Pago ainda não aprovado: ${mpData.status}` }),
-              { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+              JSON.stringify({
+                message: `Pagamento Mercado Pago ainda não aprovado: ${mpData.status}`,
+              }),
+              { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
             );
           }
         }
@@ -177,10 +183,10 @@ serve(async (req) => {
     ];
 
     if (!validEvents.includes(eventType)) {
-      return new Response(
-        JSON.stringify({ message: `Evento ignorado: ${eventType}` }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ message: `Evento ignorado: ${eventType}` }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Chama a RPC atômica idempotente no PostgreSQL
@@ -199,12 +205,12 @@ serve(async (req) => {
         success: true,
         data,
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error: any) {
     return new Response(
       JSON.stringify({ error: error.message || "Erro no processamento do webhook" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });

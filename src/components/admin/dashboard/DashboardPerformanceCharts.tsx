@@ -26,8 +26,7 @@ export interface DashboardPerformanceChartsProps {
   };
 }
 
-const brl = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export function DashboardPerformanceCharts({
   dados7Dias,
@@ -46,10 +45,7 @@ export function DashboardPerformanceCharts({
         <div className="pt-4">
           <div className="flex items-end justify-between gap-2 h-44 px-2">
             {dados7Dias.dias.map((d, idx) => {
-              const alturaPct = Math.max(
-                Math.round((d.total / dados7Dias.maxTotal) * 100),
-                8
-              );
+              const alturaPct = Math.max(Math.round((d.total / dados7Dias.maxTotal) * 100), 8);
               const isHoje = idx === dados7Dias.dias.length - 1;
 
               return (
@@ -71,9 +67,7 @@ export function DashboardPerformanceCharts({
 
                   <span
                     className={`text-[11px] font-bold ${
-                      isHoje
-                        ? "text-primary"
-                        : "text-slate-500 dark:text-slate-400"
+                      isHoje ? "text-primary" : "text-slate-500 dark:text-slate-400"
                     }`}
                   >
                     {d.label}

@@ -62,7 +62,9 @@ export function cachedSource<T>(
       } catch (err) {
         // Se já tínhamos dados anteriores no cache, servimos stale em vez de quebrar a UI
         if (entry?.data !== null && entry?.data !== undefined) {
-          console.warn(`[PartiuCache] Falha ao atualizar ${key} — servindo dados em cache anteriores.`);
+          console.warn(
+            `[PartiuCache] Falha ao atualizar ${key} — servindo dados em cache anteriores.`,
+          );
           cacheStore.set(key, { data: entry.data, expiresAt: now + 30_000, inflight: null });
           return entry.data;
         }

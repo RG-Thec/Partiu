@@ -138,7 +138,7 @@ export class VehicleCapabilityEngine {
   public validatePackageCompatibility(
     packageSpec: PackageSpec,
     vehicleType: DeliveryVehicleType,
-    additionalStopsCount: number = 0
+    additionalStopsCount: number = 0,
   ): PackageValidationResult {
     const capability = VEHICLE_CAPABILITIES[vehicleType];
     const reasons: string[] = [];
@@ -147,7 +147,7 @@ export class VehicleCapabilityEngine {
     // 1. Limite de Peso
     if (packageSpec.weightKg > capability.maxWeightKg) {
       reasons.push(
-        `Peso (${packageSpec.weightKg} kg) excede a capacidade máxima de ${vehicleType} (${capability.maxWeightKg} kg)`
+        `Peso (${packageSpec.weightKg} kg) excede a capacidade máxima de ${vehicleType} (${capability.maxWeightKg} kg)`,
       );
     }
 
@@ -158,38 +158,40 @@ export class VehicleCapabilityEngine {
       packageSpec.dimensionsCm.height > capability.maxHeightCm
     ) {
       reasons.push(
-        `Dimensões do pacote (${packageSpec.dimensionsCm.length}x${packageSpec.dimensionsCm.width}x${packageSpec.dimensionsCm.height}cm) excedem o compartimento de ${vehicleType} (${capability.maxLengthCm}x${capability.maxWidthCm}x${capability.maxHeightCm}cm)`
+        `Dimensões do pacote (${packageSpec.dimensionsCm.length}x${packageSpec.dimensionsCm.width}x${packageSpec.dimensionsCm.height}cm) excedem o compartimento de ${vehicleType} (${capability.maxLengthCm}x${capability.maxWidthCm}x${capability.maxHeightCm}cm)`,
       );
     }
 
     // 3. Limite de Volume Cúbico
     if (volumeLiters > capability.maxVolumeLiters) {
       reasons.push(
-        `Volume cúbico (${volumeLiters} L) excede o espaço de carga de ${vehicleType} (${capability.maxVolumeLiters} L)`
+        `Volume cúbico (${volumeLiters} L) excede o espaço de carga de ${vehicleType} (${capability.maxVolumeLiters} L)`,
       );
     }
 
     // 4. Categoria do Pacote Permitida
     if (!capability.allowedCategories.includes(packageSpec.category)) {
       reasons.push(
-        `Categoria "${packageSpec.category}" não é permitida para a modalidade ${vehicleType}`
+        `Categoria "${packageSpec.category}" não é permitida para a modalidade ${vehicleType}`,
       );
     }
 
     // 5. Múltiplas Paradas
     if (additionalStopsCount > 0 && !capability.multipleStopsAllowed) {
       reasons.push(
-        `A modalidade ${vehicleType} não permite entregas fracionadas com múltiplas paradas`
+        `A modalidade ${vehicleType} não permite entregas fracionadas com múltiplas paradas`,
       );
     } else if (additionalStopsCount > capability.maxStops) {
       reasons.push(
-        `Quantidade de paradas adicionais (${additionalStopsCount}) excede o limite de ${vehicleType} (máximo de ${capability.maxStops} paradas)`
+        `Quantidade de paradas adicionais (${additionalStopsCount}) excede o limite de ${vehicleType} (máximo de ${capability.maxStops} paradas)`,
       );
     }
 
     // 6. Carga Frágil em Moto
     if (vehicleType === "MOTO" && packageSpec.isFragile) {
-      reasons.push("Itens declarados como FRÁGIL exigem transporte automotivo com estabilização (Carro ou Utilitário)");
+      reasons.push(
+        "Itens declarados como FRÁGIL exigem transporte automotivo com estabilização (Carro ou Utilitário)",
+      );
     }
 
     const isCompatible = reasons.length === 0;
@@ -212,15 +214,9 @@ export class VehicleCapabilityEngine {
    */
   public suggestOptimalVehicle(
     packageSpec: PackageSpec,
-    additionalStopsCount: number = 0
+    additionalStopsCount: number = 0,
   ): DeliveryVehicleType {
-    const hierarchy: DeliveryVehicleType[] = [
-      "MOTO",
-      "CARRO",
-      "UTILITARIO",
-      "VAN",
-      "CARRETO",
-    ];
+    const hierarchy: DeliveryVehicleType[] = ["MOTO", "CARRO", "UTILITARIO", "VAN", "CARRETO"];
 
     for (const vType of hierarchy) {
       const cap = VEHICLE_CAPABILITIES[vType];
@@ -233,7 +229,8 @@ export class VehicleCapabilityEngine {
         packageSpec.dimensionsCm.height <= cap.maxHeightCm &&
         volume <= cap.maxVolumeLiters &&
         cap.allowedCategories.includes(packageSpec.category) &&
-        (additionalStopsCount === 0 || (cap.multipleStopsAllowed && additionalStopsCount <= cap.maxStops)) &&
+        (additionalStopsCount === 0 ||
+          (cap.multipleStopsAllowed && additionalStopsCount <= cap.maxStops)) &&
         !(vType === "MOTO" && packageSpec.isFragile)
       ) {
         return vType;

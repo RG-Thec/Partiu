@@ -65,7 +65,9 @@ export class CallAlertService {
         if (this.audioCtx.state !== "closed") {
           this.audioCtx.close();
         }
-      } catch (err) { silentCatchWarn("CallAlertService", err); }
+      } catch (err) {
+        silentCatchWarn("CallAlertService", err);
+      }
       this.audioCtx = null;
     }
 
@@ -77,7 +79,9 @@ export class CallAlertService {
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
       try {
         navigator.vibrate(0);
-      } catch (err) { silentCatchWarn("CallAlertService", err); }
+      } catch (err) {
+        silentCatchWarn("CallAlertService", err);
+      }
     }
 
     // Liberar Wake Lock
@@ -135,7 +139,9 @@ export class CallAlertService {
       gain2.connect(ctx.destination);
       osc2.start(now + 0.15);
       osc2.stop(now + 0.45);
-    } catch (err) { silentCatchWarn("CallAlertService", err); }
+    } catch (err) {
+      silentCatchWarn("CallAlertService", err);
+    }
   }
 
   private startAudioLoop(): void {
@@ -152,13 +158,17 @@ export class CallAlertService {
     const pattern = [500, 300, 500]; // 500ms vibra, 300ms pausa, 500ms vibra
     try {
       navigator.vibrate(pattern);
-    } catch (err) { silentCatchWarn("CallAlertService", err); }
+    } catch (err) {
+      silentCatchWarn("CallAlertService", err);
+    }
 
     this.vibrationInterval = setInterval(() => {
       if (!this.isAlerting) return;
       try {
         navigator.vibrate(pattern);
-      } catch (err) { silentCatchWarn("CallAlertService", err); }
+      } catch (err) {
+        silentCatchWarn("CallAlertService", err);
+      }
     }, 1500);
   }
 
@@ -167,14 +177,18 @@ export class CallAlertService {
 
     try {
       this.wakeLockSentinel = await (navigator as any).wakeLock.request("screen");
-    } catch (err) { silentCatchWarn("CallAlertService", err); }
+    } catch (err) {
+      silentCatchWarn("CallAlertService", err);
+    }
   }
 
   private releaseWakeLock(): void {
     if (this.wakeLockSentinel) {
       try {
         this.wakeLockSentinel.release();
-      } catch (err) { silentCatchWarn("CallAlertService", err); }
+      } catch (err) {
+        silentCatchWarn("CallAlertService", err);
+      }
       this.wakeLockSentinel = null;
     }
   }

@@ -19,7 +19,7 @@ export const LandingReasonSection: React.FC<LandingReasonSectionProps> = ({
 
   const activeUser = useMemo(() => {
     return typeof window !== "undefined"
-      ? (supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null)
+      ? supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null
       : null;
   }, []);
 
@@ -27,7 +27,12 @@ export const LandingReasonSection: React.FC<LandingReasonSectionProps> = ({
     let target = reasonSection?.ctaUrl || "/app";
     if (target === "/app") {
       if (activeUser) {
-        target = activeUser.role === "MOTORISTA" ? "/app/motorista" : activeUser.role === "ADMIN" ? "/app/admin" : "/app";
+        target =
+          activeUser.role === "MOTORISTA"
+            ? "/app/motorista"
+            : activeUser.role === "ADMIN"
+              ? "/app/admin"
+              : "/app";
       } else {
         target = "/cadastro-passageiro";
       }
@@ -69,10 +74,7 @@ export const LandingReasonSection: React.FC<LandingReasonSectionProps> = ({
         {/* Cabeçalho da Seção de Categorias */}
         <div className="flex flex-col items-center text-center max-w-2xl mx-auto space-y-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-200/80 text-[11px] font-black uppercase tracking-wider text-slate-700">
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: primaryColor }}
-            />
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: primaryColor }} />
             <span>{reasonSection?.titlePrefix || "Por que escolher a"}</span>
           </div>
 
@@ -151,7 +153,9 @@ export const LandingReasonSection: React.FC<LandingReasonSectionProps> = ({
               boxShadow: `0 4px 14px ${primaryColor}35`,
             }}
           >
-            <span>{reasonSection?.ctaText || (activeUser ? "Pedir corrida agora" : "Começar agora")}</span>
+            <span>
+              {reasonSection?.ctaText || (activeUser ? "Pedir corrida agora" : "Começar agora")}
+            </span>
             <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>

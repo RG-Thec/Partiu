@@ -18,7 +18,6 @@ import { billingEngine } from "../revenue/billing-engine";
 import { financialAuditEngine } from "../revenue/financial-audit";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
-
 export type DriverLedgerEntryType =
   | "RIDE_EARNING"
   | "PLATFORM_FEE"
@@ -101,7 +100,9 @@ export class DriverLedgerEngine {
     if (typeof window === "undefined") return;
     try {
       localStorage.setItem(STORAGE_KEY_DRIVER_LEDGER, JSON.stringify(this.entries));
-    } catch (err) { silentCatchWarn("driver-ledger-engine", err); }
+    } catch (err) {
+      silentCatchWarn("driver-ledger-engine", err);
+    }
   }
 
   /**
@@ -129,7 +130,7 @@ export class DriverLedgerEngine {
     rideId: string,
     grossFareBrl: number,
     modalidade: string = "POP",
-    idempotencyKey?: string | undefined
+    idempotencyKey?: string | undefined,
   ) {
     return this.settleRideEarnings({
       driverId,
@@ -188,7 +189,7 @@ export class DriverLedgerEngine {
     // Invariante Contábil Estrita
     if (driverCreditCents + platformFeeCents !== settlement.grossFareCents) {
       throw new Error(
-        `INVARIANTE_VIOLADA: Split contábil não confere com o total da corrida (${driverCreditCents} + ${platformFeeCents} !== ${settlement.grossFareCents})`
+        `INVARIANTE_VIOLADA: Split contábil não confere com o total da corrida (${driverCreditCents} + ${platformFeeCents} !== ${settlement.grossFareCents})`,
       );
     }
 
@@ -240,7 +241,7 @@ export class DriverLedgerEngine {
         }
       | string,
     amountBrlOrChavePix?: number | string | undefined,
-    chavePixParam?: string | undefined
+    chavePixParam?: string | undefined,
   ): PixWithdrawalResult {
     let params: {
       driverId: string;
@@ -285,7 +286,8 @@ export class DriverLedgerEngine {
       };
     }
 
-    const totalDeductionsCents = check.subscriptionDeductionCents + check.pendingDebtsDeductionCents;
+    const totalDeductionsCents =
+      check.subscriptionDeductionCents + check.pendingDebtsDeductionCents;
     const requestedNetBrl = params.amountBrl
       ? Math.min(params.amountBrl, check.netWithdrawalAvailableBrl)
       : check.netWithdrawalAvailableBrl;

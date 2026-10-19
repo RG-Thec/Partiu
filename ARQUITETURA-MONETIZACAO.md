@@ -27,12 +27,12 @@ Para garantir suporte à operação multi-tenant sem divergências entre franqui
 
 ### Tabela canônica de planos padrão
 
-| Identificador | Nome do Plano | Ciclo | Duração | Carência | Comissão | Preço BRL |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `plano-diaria-essencial` | Diária Essencial (Partiu Flex) | `DAILY` | 24 horas | 2 dias | 0.0% | R$ 14,90 / dia |
-| `plano-semanal-pro` | Semanal Pro (7 Dias) | `WEEKLY` | 7 dias | 3 dias | 0.0% | R$ 69,90 / sem (R$ 249,00 / mês) |
-| `plano-mensal-ouro` | Mensal Ouro (30 Dias) | `MONTHLY` | 30 dias | 5 dias | 0.0% | R$ 199,90 / mês (R$ 9,90 / dia equiv.) |
-| `plano-trial-boas-vindas` | Degustação Boas-Vindas | `TRIAL` | 3 dias | 1 dia | 0.0% | R$ 0,00 |
+| Identificador             | Nome do Plano                  | Ciclo     | Duração  | Carência | Comissão | Preço BRL                              |
+| :------------------------ | :----------------------------- | :-------- | :------- | :------- | :------- | :------------------------------------- |
+| `plano-diaria-essencial`  | Diária Essencial (Partiu Flex) | `DAILY`   | 24 horas | 2 dias   | 0.0%     | R$ 14,90 / dia                         |
+| `plano-semanal-pro`       | Semanal Pro (7 Dias)           | `WEEKLY`  | 7 dias   | 3 dias   | 0.0%     | R$ 69,90 / sem (R$ 249,00 / mês)       |
+| `plano-mensal-ouro`       | Mensal Ouro (30 Dias)          | `MONTHLY` | 30 dias  | 5 dias   | 0.0%     | R$ 199,90 / mês (R$ 9,90 / dia equiv.) |
+| `plano-trial-boas-vindas` | Degustação Boas-Vindas         | `TRIAL`   | 3 dias   | 1 dia    | 0.0%     | R$ 0,00                                |
 
 ---
 
@@ -85,18 +85,19 @@ Para garantir suporte à operação multi-tenant sem divergências entre franqui
 
 O ciclo de vida da assinatura no Partiu é gerido pelos seguintes estados determinísticos:
 
-| Estado | Significado Operacional | Acesso ao Cockpit | Despacho de Corridas |
-| :--- | :--- | :--- | :--- |
-| `TRIAL` | Período de degustação gratuita inicial (3 dias) | Liberado | Habilitado |
-| `ACTIVE` | Assinatura regular quitada e dentro do prazo de vigência | Liberado | Habilitado |
-| `GRACE_PERIOD` | Prazo vencido, operando na carência de tolerância (2 a 5 dias) | Liberado com aviso | Habilitado |
-| `PAYMENT_PENDING` | Ordem Pix emitida aguardando liquidação bancária | Bloqueado | Desabilitado |
-| `EXPIRED` | Vigência encerrada e carência esgotada | Bloqueado com paywall | Desabilitado |
-| `SUSPENDED` | Conta bloqueada por inadimplência ou decisão administrativa | Bloqueado | Desabilitado |
-| `DEBT_BLOCKED` | Bloqueio preventivo por saldo devedor em carteira | Bloqueado | Desabilitado |
-| `CANCELLED` | Assinatura cancelada por encerramento de vínculo | Bloqueado | Desabilitado |
+| Estado            | Significado Operacional                                        | Acesso ao Cockpit     | Despacho de Corridas |
+| :---------------- | :------------------------------------------------------------- | :-------------------- | :------------------- |
+| `TRIAL`           | Período de degustação gratuita inicial (3 dias)                | Liberado              | Habilitado           |
+| `ACTIVE`          | Assinatura regular quitada e dentro do prazo de vigência       | Liberado              | Habilitado           |
+| `GRACE_PERIOD`    | Prazo vencido, operando na carência de tolerância (2 a 5 dias) | Liberado com aviso    | Habilitado           |
+| `PAYMENT_PENDING` | Ordem Pix emitida aguardando liquidação bancária               | Bloqueado             | Desabilitado         |
+| `EXPIRED`         | Vigência encerrada e carência esgotada                         | Bloqueado com paywall | Desabilitado         |
+| `SUSPENDED`       | Conta bloqueada por inadimplência ou decisão administrativa    | Bloqueado             | Desabilitado         |
+| `DEBT_BLOCKED`    | Bloqueio preventivo por saldo devedor em carteira              | Bloqueado             | Desabilitado         |
+| `CANCELLED`       | Assinatura cancelada por encerramento de vínculo               | Bloqueado             | Desabilitado         |
 
 ### Processamento autônomo de expirações
+
 - Executado via RPC PostgreSQL `fn_driver_expire_subscriptions_batch()`.
 - Varre registros com `clock_timestamp() > expires_at` e transiciona para `GRACE_PERIOD` ou `EXPIRED` de forma idempotente, registrando eventos na tabela `subscription_events`.
 

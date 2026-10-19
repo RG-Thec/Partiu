@@ -27,7 +27,10 @@ async function runMigration() {
     await client.connect();
     console.log("✅ Conectado ao PostgreSQL com sucesso!");
 
-    const sqlPath = path.resolve(process.cwd(), "supabase/migrations/20261011_sync_rides_fare_cents.sql");
+    const sqlPath = path.resolve(
+      process.cwd(),
+      "supabase/migrations/20261011_sync_rides_fare_cents.sql",
+    );
     const sql = fs.readFileSync(sqlPath, "utf-8");
 
     await client.query(sql);
@@ -43,7 +46,9 @@ async function runMigration() {
     `);
 
     if (checkRes.rows.length > 0) {
-      console.log(`✅ Coluna public.rides.fare_cents verificada: tipo ${checkRes.rows[0].data_type}`);
+      console.log(
+        `✅ Coluna public.rides.fare_cents verificada: tipo ${checkRes.rows[0].data_type}`,
+      );
     } else {
       console.warn("⚠️ Coluna fare_cents não encontrada após a migração.");
     }

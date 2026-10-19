@@ -20,14 +20,16 @@ export interface PublicTrackingData {
   recipientMaskedPhone: string;
   vehicleType: string;
   currentStopAddress: string;
-  driverInfo?: {
-    firstName: string;
-    vehicleModel: string;
-    vehiclePlate: string;
-    rating: number;
-    latitude?: number | undefined;
-    longitude?: number | undefined;
-  } | undefined;
+  driverInfo?:
+    | {
+        firstName: string;
+        vehicleModel: string;
+        vehiclePlate: string;
+        rating: number;
+        latitude?: number | undefined;
+        longitude?: number | undefined;
+      }
+    | undefined;
   expectedOtp?: string | undefined; // Visível apenas para o destinatário na URL segura dele
   stopsTimeline: {
     sequence: number;

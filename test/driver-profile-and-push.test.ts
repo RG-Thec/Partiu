@@ -140,9 +140,7 @@ describe("📱 SUÍTE OFICIAL: GESTÃO DE PERFIL DO MOTORISTA & MOTOR DE PUSH NO
       placaOriginal.trim().toUpperCase() !== novaPlacaInformada.trim().toUpperCase();
     expect(houveAlteracao).toBe(true);
 
-    const statusAprovacaoCalculado = houveAlteracao
-      ? "pending_vehicle_approval"
-      : "aprovado";
+    const statusAprovacaoCalculado = houveAlteracao ? "pending_vehicle_approval" : "aprovado";
 
     expect(statusAprovacaoCalculado).toBe("pending_vehicle_approval");
   });
@@ -155,9 +153,7 @@ describe("📱 SUÍTE OFICIAL: GESTÃO DE PERFIL DO MOTORISTA & MOTOR DE PUSH NO
       placaOriginal.trim().toUpperCase() !== mesmaPlacaComEspacos.trim().toUpperCase();
     expect(houveAlteracao).toBe(false);
 
-    const statusAprovacaoCalculado = houveAlteracao
-      ? "pending_vehicle_approval"
-      : "aprovado";
+    const statusAprovacaoCalculado = houveAlteracao ? "pending_vehicle_approval" : "aprovado";
 
     expect(statusAprovacaoCalculado).toBe("aprovado");
   });

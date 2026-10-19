@@ -103,7 +103,14 @@ export function carregarPracasDisponiveis(): AdminPracaOperacao[] {
       if (rawCustom) {
         const parsed = JSON.parse(rawCustom);
         if (Array.isArray(parsed)) {
-          const dummyIds = ["itp", "cmp", "tenant-itaperuna", "tenant-campos", "tenant-bhmob", "macae"];
+          const dummyIds = [
+            "itp",
+            "cmp",
+            "tenant-itaperuna",
+            "tenant-campos",
+            "tenant-bhmob",
+            "macae",
+          ];
           parsed.forEach((item: any) => {
             const id = item.id || `cidade_${item.nome?.toLowerCase().replace(/\s+/g, "_")}`;
             if (dummyIds.includes(id) || dummyIds.some((d) => id.includes(d))) return;
@@ -174,7 +181,7 @@ export function setPracaAtiva(pracaId: string): AdminPracaOperacao {
       window.dispatchEvent(
         new CustomEvent("partiu:praca-changed", {
           detail: novaPraca,
-        })
+        }),
       );
     } catch {}
   }
@@ -200,7 +207,7 @@ export function salvarNovaPraca(dados: {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]/g, "_")
     .slice(0, 20);
-  
+
   const id = `praca_${slug}_${ufLimpa.toLowerCase()}_${Date.now().toString(36)}`;
   const novaPraca: AdminPracaOperacao = {
     id,
@@ -241,7 +248,7 @@ export function atualizarPraca(pracaAtualizada: AdminPracaOperacao): AdminPracaO
     try {
       const rawCustom = localStorage.getItem(STORAGE_KEY_PRACAS_CUSTOM);
       let existentes: AdminPracaOperacao[] = rawCustom ? JSON.parse(rawCustom) : [];
-      
+
       const idx = existentes.findIndex((p) => p.id === pracaAtualizada.id);
       if (idx >= 0) {
         existentes[idx] = {
@@ -261,9 +268,7 @@ export function atualizarPraca(pracaAtualizada: AdminPracaOperacao): AdminPracaO
 
       // Se a praça atualizada for a praça ativa, atualiza o contexto global
       if (getPracaAtivaId() === pracaAtualizada.id) {
-        window.dispatchEvent(
-          new CustomEvent("partiu:praca-changed", { detail: pracaAtualizada })
-        );
+        window.dispatchEvent(new CustomEvent("partiu:praca-changed", { detail: pracaAtualizada }));
       }
 
       window.dispatchEvent(new CustomEvent("partiu:pracas-list-updated"));
@@ -325,7 +330,15 @@ export function alternarStatusPraca(id: string): AdminPracaOperacao | null {
  */
 export function exportarPracasCSV(): void {
   const pracas = carregarPracasDisponiveis().filter((p) => p.id !== "todas");
-  const headers = ["ID", "Nome da Cidade", "UF", "Status", "Latitude", "Longitude", "Raio de Atendimento (km)"];
+  const headers = [
+    "ID",
+    "Nome da Cidade",
+    "UF",
+    "Status",
+    "Latitude",
+    "Longitude",
+    "Raio de Atendimento (km)",
+  ];
   const rows = pracas.map((p) => [
     p.id,
     `"${p.nome}"`,
@@ -341,9 +354,11 @@ export function exportarPracasCSV(): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.setAttribute("href", url);
-  link.setAttribute("download", `pracas_operacao_partiu_${new Date().toISOString().slice(0, 10)}.csv`);
+  link.setAttribute(
+    "download",
+    `pracas_operacao_partiu_${new Date().toISOString().slice(0, 10)}.csv`,
+  );
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 }
-

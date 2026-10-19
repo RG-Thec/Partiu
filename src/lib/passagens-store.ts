@@ -375,19 +375,14 @@ export function validarEmbarquePeloQRDaVan(
     window.dispatchEvent(new CustomEvent("partiu:embarque-confirmado", { detail: eventDetail }));
 
     // Também salvar no histórico para persistência
-    const historicoEmbarques = JSON.parse(
-      localStorage.getItem(STORAGE_HISTORICO_TOTEM) || "[]",
-    );
+    const historicoEmbarques = JSON.parse(localStorage.getItem(STORAGE_HISTORICO_TOTEM) || "[]");
     historicoEmbarques.unshift({
       id: "emb-" + Date.now(),
       bilheteId: bilheteAtualizado.id,
       passageiroNome: bilheteAtualizado.passageiroNome,
       timestamp: agoraIso,
     });
-    localStorage.setItem(
-      STORAGE_HISTORICO_TOTEM,
-      JSON.stringify(historicoEmbarques.slice(0, 50)),
-    );
+    localStorage.setItem(STORAGE_HISTORICO_TOTEM, JSON.stringify(historicoEmbarques.slice(0, 50)));
 
     return {
       sucesso: true,

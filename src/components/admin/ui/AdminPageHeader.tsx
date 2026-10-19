@@ -28,12 +28,16 @@ export function AdminPageHeader({
   className = "",
 }: AdminPageHeaderProps) {
   return (
-    <div className={`space-y-4 pb-2 border-b border-slate-200/60 dark:border-slate-800/60 ${className}`}>
+    <div
+      className={`space-y-4 pb-2 border-b border-slate-200/60 dark:border-slate-800/60 ${className}`}
+    >
       {breadcrumbs && breadcrumbs.length > 0 && (
         <nav className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 font-medium">
           {breadcrumbs.map((crumb, idx) => (
             <React.Fragment key={idx}>
-              {idx > 0 && <ChevronRight className="h-3 w-3 shrink-0 text-slate-300 dark:text-slate-600" />}
+              {idx > 0 && (
+                <ChevronRight className="h-3 w-3 shrink-0 text-slate-300 dark:text-slate-600" />
+              )}
               {crumb.to ? (
                 <Link
                   to={crumb.to}
@@ -42,7 +46,9 @@ export function AdminPageHeader({
                   {crumb.label}
                 </Link>
               ) : (
-                <span className="text-slate-600 dark:text-slate-300 font-semibold">{crumb.label}</span>
+                <span className="text-slate-600 dark:text-slate-300 font-semibold">
+                  {crumb.label}
+                </span>
               )}
             </React.Fragment>
           ))}

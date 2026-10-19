@@ -70,13 +70,16 @@ export function PassengerConfirmDestinationPin() {
                 Destino Selecionado no Mapa
               </span>
               <p className="text-xs sm:text-sm font-black text-foreground truncate mt-0.5">
-                {isResolvingAddress ? "Localizando endereço exato..." : (destino || "Ponto selecionado no mapa")}
+                {isResolvingAddress
+                  ? "Localizando endereço exato..."
+                  : destino || "Ponto selecionado no mapa"}
               </p>
             </div>
           </div>
 
           <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
-            Mova e amplie o mapa livremente. O pino central marca exatamente o seu local de desembarque.
+            Mova e amplie o mapa livremente. O pino central marca exatamente o seu local de
+            desembarque.
           </p>
 
           <button

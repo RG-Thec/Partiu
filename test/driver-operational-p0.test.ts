@@ -6,10 +6,7 @@ import {
   driverTelemetryEngine,
   type CorridaPartiu,
 } from "../src/lib/partiu-engine.ts";
-import {
-  getWazeUrl,
-  getGoogleMapsUrl,
-} from "../src/utils/navigation-launcher.ts";
+import { getWazeUrl, getGoogleMapsUrl } from "../src/utils/navigation-launcher.ts";
 import { atomicMatchingEngine } from "../src/lib/dispatch-atomic/atomic-matching.ts";
 import { DRIVER_CANCEL_REASONS } from "../src/components/driver/DriverCancelBottomSheet.tsx";
 
@@ -165,7 +162,12 @@ describe("🚖 P0 DRIVER OPERATIONAL RESILIENCE & LIFECYCLE CERTIFICATION", () =
     driverStateMachine.initDriverSession(driverId, "ONLINE");
 
     // Salto ilegal intencional (ONLINE -> COMPLETING)
-    const recovered = driverStateMachine.safeTransitionRide("COMPLETING", driverId, rideId, "SYSTEM");
+    const recovered = driverStateMachine.safeTransitionRide(
+      "COMPLETING",
+      driverId,
+      rideId,
+      "SYSTEM",
+    );
     expect(recovered).toBe("ONLINE");
     expect(driverStateMachine.getCurrentState()).toBe("ONLINE");
   });

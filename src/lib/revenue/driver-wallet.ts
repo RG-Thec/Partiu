@@ -16,7 +16,6 @@ import { billingEngine } from "./billing-engine";
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { computePixCrc16 } from "@/services/payment/PaymentProviderAdapter";
 
-
 export interface DriverWalletTransaction {
   id: string;
   driverId: string;
@@ -100,21 +99,23 @@ export class DriverWalletEngine {
           this.wallets.set(driverId, parsed);
           return parsed;
         }
-      } catch (err) { silentCatchWarn("driver-wallet", err); }
+      } catch (err) {
+        silentCatchWarn("driver-wallet", err);
+      }
     }
 
     // Carteira inicial para demonstração transparente
     const sub = subscriptionEngine.getDriverSubscription(driverId);
     const initial: DriverWallet = {
       driverId,
-      availableBalanceBrl: 284.50,
+      availableBalanceBrl: 284.5,
       availableBalanceCents: 28450,
-      protectionFundBalanceBrl: 18.60,
+      protectionFundBalanceBrl: 18.6,
       protectionFundBalanceCents: 1860,
-      totalGrossEarnedBrl: 5400.00,
-      totalNetEarnedBrl: 5130.00,
-      totalPlatformFeesPaidBrl: 162.00,
-      totalSavingsVersusUberBrl: 918.00, // Exemplo do prompt: R$ 5.400 * 20% = R$ 1.080 vs R$ 162 = R$ 918 economia!
+      totalGrossEarnedBrl: 5400.0,
+      totalNetEarnedBrl: 5130.0,
+      totalPlatformFeesPaidBrl: 162.0,
+      totalSavingsVersusUberBrl: 918.0, // Exemplo do prompt: R$ 5.400 * 20% = R$ 1.080 vs R$ 162 = R$ 918 economia!
       todayCompletedTrips: 9,
       monthCompletedTrips: 74,
       pendingDebtsBrl: sub.accumulatedDebtBrl,
@@ -131,13 +132,12 @@ export class DriverWalletEngine {
     this.wallets.set(wallet.driverId, wallet);
     if (typeof window !== "undefined") {
       try {
-        localStorage.setItem(
-          `${STORAGE_WALLET_PREFIX}${wallet.driverId}`,
-          JSON.stringify(wallet)
-        );
+        localStorage.setItem(`${STORAGE_WALLET_PREFIX}${wallet.driverId}`, JSON.stringify(wallet));
         // Sincroniza cache legado para compatibilidade do cockpit
         localStorage.setItem("partiu_motorista_ganhos_hoje", wallet.availableBalanceBrl.toFixed(2));
-      } catch (err) { silentCatchWarn("driver-wallet", err); }
+      } catch (err) {
+        silentCatchWarn("driver-wallet", err);
+      }
     }
   }
 
@@ -153,7 +153,9 @@ export class DriverWalletEngine {
           this.transactions.set(driverId, parsed);
           return parsed;
         }
-      } catch (err) { silentCatchWarn("driver-wallet", err); }
+      } catch (err) {
+        silentCatchWarn("driver-wallet", err);
+      }
     }
 
     return [];
@@ -165,9 +167,11 @@ export class DriverWalletEngine {
       try {
         localStorage.setItem(
           `${STORAGE_TRANSACTIONS_PREFIX}${driverId}`,
-          JSON.stringify(txs.slice(0, 100))
+          JSON.stringify(txs.slice(0, 100)),
         );
-      } catch (err) { silentCatchWarn("driver-wallet", err); }
+      } catch (err) {
+        silentCatchWarn("driver-wallet", err);
+      }
     }
   }
 
@@ -252,7 +256,8 @@ export class DriverWalletEngine {
       };
     }
 
-    const totalDeductionsCents = check.subscriptionDeductionCents + check.pendingDebtsDeductionCents;
+    const totalDeductionsCents =
+      check.subscriptionDeductionCents + check.pendingDebtsDeductionCents;
     const requestedNetBrl = params.amountBrl
       ? Math.min(params.amountBrl, check.netWithdrawalAvailableBrl)
       : check.netWithdrawalAvailableBrl;
@@ -349,7 +354,9 @@ export class DriverWalletEngine {
     const isBlocked = debtCents >= DriverWalletEngine.MAX_ALLOWED_DEBT_CENTS;
     const isWarning =
       !isBlocked &&
-      debtCents >= DriverWalletEngine.MAX_ALLOWED_DEBT_CENTS * DriverWalletEngine.DEBT_WARNING_THRESHOLD_PERCENT;
+      debtCents >=
+        DriverWalletEngine.MAX_ALLOWED_DEBT_CENTS *
+          DriverWalletEngine.DEBT_WARNING_THRESHOLD_PERCENT;
 
     const rawEmv = `00020126580014br.gov.bcb.pix0136RECARGA-${driverId}-${Date.now()}520400005303986540${debtBrl.toFixed(2)}5802BR5913PARTIU CENTRAL6008SAO PAULO62070503***6304`;
     const pixPayload = `${rawEmv}${computePixCrc16(rawEmv)}`;
@@ -375,7 +382,10 @@ export class DriverWalletEngine {
   /**
    * Registra quitação de débito via PIX pelo condutor parceiro
    */
-  public payDebtViaPix(driverId: string = "mot-001", amountBrl: number): { success: boolean; newDebtBrl: number } {
+  public payDebtViaPix(
+    driverId: string = "mot-001",
+    amountBrl: number,
+  ): { success: boolean; newDebtBrl: number } {
     const wallet = this.getWallet(driverId);
     const amountCents = Math.round(amountBrl * 100);
     const cleared = Math.min(wallet.pendingDebtsCents, amountCents);

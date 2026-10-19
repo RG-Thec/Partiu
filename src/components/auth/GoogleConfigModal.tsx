@@ -38,15 +38,9 @@ export const GoogleConfigModal: React.FC = () => {
       setIsOpen(true);
     };
 
-    window.addEventListener(
-      "partiu:request_google_client_id" as any,
-      handleRequest as any
-    );
+    window.addEventListener("partiu:request_google_client_id" as any, handleRequest as any);
     return () => {
-      window.removeEventListener(
-        "partiu:request_google_client_id" as any,
-        handleRequest as any
-      );
+      window.removeEventListener("partiu:request_google_client_id" as any, handleRequest as any);
     };
   }, []);
 
@@ -63,7 +57,7 @@ export const GoogleConfigModal: React.FC = () => {
 
     if (!cleanId.includes(".apps.googleusercontent.com") && cleanId.length < 15) {
       setErrorMessage(
-        "Formato inválido. O Google Client ID geralmente termina com '.apps.googleusercontent.com'."
+        "Formato inválido. O Google Client ID geralmente termina com '.apps.googleusercontent.com'.",
       );
       return;
     }
@@ -112,7 +106,14 @@ export const GoogleConfigModal: React.FC = () => {
             <span>Configuração do Provedor Google</span>
           </div>
           <p className="text-[11px] leading-relaxed text-amber-800 dark:text-amber-300">
-            Para que a janela oficial do Google abra e você possa selecionar sua conta real, insira abaixo o seu <strong>Google Client ID</strong> (ou defina <code className="font-mono bg-white/70 dark:bg-black/30 px-1 py-0.5 rounded">VITE_GOOGLE_CLIENT_ID</code> no arquivo <code className="font-mono bg-white/70 dark:bg-black/30 px-1 py-0.5 rounded">.env</code>).
+            Para que a janela oficial do Google abra e você possa selecionar sua conta real, insira
+            abaixo o seu <strong>Google Client ID</strong> (ou defina{" "}
+            <code className="font-mono bg-white/70 dark:bg-black/30 px-1 py-0.5 rounded">
+              VITE_GOOGLE_CLIENT_ID
+            </code>{" "}
+            no arquivo{" "}
+            <code className="font-mono bg-white/70 dark:bg-black/30 px-1 py-0.5 rounded">.env</code>
+            ).
           </p>
         </div>
 
@@ -176,8 +177,13 @@ export const GoogleConfigModal: React.FC = () => {
                     Google Cloud Console <ExternalLink className="w-3 h-3 inline" />
                   </a>
                 </li>
-                <li>Clique em <strong>Criar Credenciais</strong> &gt; <strong>ID do cliente OAuth</strong>.</li>
-                <li>Selecione o tipo <strong>Aplicativo da Web</strong>.</li>
+                <li>
+                  Clique em <strong>Criar Credenciais</strong> &gt;{" "}
+                  <strong>ID do cliente OAuth</strong>.
+                </li>
+                <li>
+                  Selecione o tipo <strong>Aplicativo da Web</strong>.
+                </li>
                 <li>
                   Em <strong>Origens JavaScript autorizadas</strong>, adicione:
                   <div className="font-mono bg-slate-100 dark:bg-slate-800 p-1 rounded mt-0.5 text-[10px]">
@@ -190,7 +196,9 @@ export const GoogleConfigModal: React.FC = () => {
                     http://localhost:8080/auth
                   </div>
                 </li>
-                <li>Copie o <strong>ID do cliente</strong> gerado e cole no campo acima.</li>
+                <li>
+                  Copie o <strong>ID do cliente</strong> gerado e cole no campo acima.
+                </li>
               </ol>
             </div>
           )}
@@ -198,12 +206,7 @@ export const GoogleConfigModal: React.FC = () => {
 
         {/* Ações */}
         <div className="flex items-center justify-end gap-2.5 pt-2">
-          <NativeButton
-            type="button"
-            variant="outlined"
-            size="md"
-            onClick={() => setIsOpen(false)}
-          >
+          <NativeButton type="button" variant="outlined" size="md" onClick={() => setIsOpen(false)}>
             Cancelar
           </NativeButton>
           <NativeButton

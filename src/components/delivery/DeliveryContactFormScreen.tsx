@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  ArrowLeft,
-  ChevronRight,
-  User,
-  MapPin,
-  Pencil,
-  Search,
-  X,
-  Check,
-} from "lucide-react";
+import { ArrowLeft, ChevronRight, User, MapPin, Pencil, Search, X, Check } from "lucide-react";
 import { useDelivery, type EnderecoRecenteItem } from "@/contexts/DeliveryContext";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { geocodingService, type GeocodedPlace } from "@/lib/passenger/geocoding-service";
@@ -136,9 +127,7 @@ export function DeliveryContactFormScreen() {
   }
 
   const isFormValido = Boolean(
-    endereco.trim() &&
-    nome.trim() &&
-    telefone.replace(/\D/g, "").length >= 10
+    endereco.trim() && nome.trim() && telefone.replace(/\D/g, "").length >= 10,
   );
 
   return (
@@ -179,7 +168,9 @@ export function DeliveryContactFormScreen() {
               onFocus={() => {
                 if (sugestoes.length > 0) setMostrarDropdown(true);
               }}
-              placeholder={isDestino ? "Selecionar endereço de entrega" : "Selecionar endereço de coleta"}
+              placeholder={
+                isDestino ? "Selecionar endereço de entrega" : "Selecionar endereço de coleta"
+              }
               className="w-full pr-10 py-2.5 text-sm font-semibold text-slate-900 border-b border-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-amber-500 bg-transparent transition"
             />
             {endereco ? (
@@ -211,9 +202,7 @@ export function DeliveryContactFormScreen() {
                 >
                   <MapPin className="w-4 h-4 text-primary-700 shrink-0 mt-0.5" />
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold text-slate-900 truncate">
-                      {sug.label}
-                    </p>
+                    <p className="text-xs font-bold text-slate-900 truncate">{sug.label}</p>
                     <p className="text-[11px] text-slate-500 truncate">
                       {sug.sublabel || sug.endereco}
                     </p>
@@ -226,9 +215,7 @@ export function DeliveryContactFormScreen() {
 
         {/* CAMPO 2: DETALHES DO ENDEREÇO (COMPLEMENTO) */}
         <div className="space-y-1">
-          <label className="text-xs font-bold text-slate-700 block">
-            Detalhes do endereço
-          </label>
+          <label className="text-xs font-bold text-slate-700 block">Detalhes do endereço</label>
           <input
             type="text"
             value={complemento}
@@ -248,7 +235,9 @@ export function DeliveryContactFormScreen() {
               type="text"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              placeholder={isDestino ? "Digite o nome do destinatário" : "Digite o nome do remetente"}
+              placeholder={
+                isDestino ? "Digite o nome do destinatário" : "Digite o nome do remetente"
+              }
               className="w-full pr-10 py-2.5 text-sm font-semibold text-slate-900 border-b border-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-amber-500 bg-transparent transition"
             />
             <div className="absolute right-1 text-slate-400">

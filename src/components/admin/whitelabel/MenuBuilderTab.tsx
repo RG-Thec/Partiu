@@ -17,7 +17,8 @@ export function MenuBuilderTab({ onSaveFeedback }: MenuBuilderTabProps) {
           Módulo 5: Menu &amp; Navigation Builder
         </h2>
         <p className="text-xs text-slate-400 mt-1">
-          Adicione, renomeie ou ordene itens no Menu Drawer lateral e abas da barra de navegação inferior.
+          Adicione, renomeie ou ordene itens no Menu Drawer lateral e abas da barra de navegação
+          inferior.
         </p>
       </div>
 
@@ -50,7 +51,7 @@ export function MenuBuilderTab({ onSaveFeedback }: MenuBuilderTabProps) {
                   type="button"
                   onClick={() => {
                     const updated = menuBuilder.itensDrawer.map((i) =>
-                      i.id === item.id ? { ...i, visivel: !i.visivel } : i
+                      i.id === item.id ? { ...i, visivel: !i.visivel } : i,
                     );
                     updateConfig({
                       menuBuilder: { ...menuBuilder, itensDrawer: updated },

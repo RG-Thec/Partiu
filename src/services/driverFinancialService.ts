@@ -122,7 +122,9 @@ export class DriverFinancialService {
     };
     if (typeof window !== "undefined") {
       localStorage.setItem(`${STORAGE_KEY_PREFIX_GOALS}${driverId}`, JSON.stringify(updated));
-      window.dispatchEvent(new CustomEvent("partiu:driver-financial-updated", { detail: { driverId } }));
+      window.dispatchEvent(
+        new CustomEvent("partiu:driver-financial-updated", { detail: { driverId } }),
+      );
     }
     return updated;
   }
@@ -183,7 +185,7 @@ export class DriverFinancialService {
    */
   public recordSettledTrip(
     driverId: string,
-    trip: Omit<SettledTripRecord, "id" | "timestamp">
+    trip: Omit<SettledTripRecord, "id" | "timestamp">,
   ): SettledTripRecord {
     const trips = this.getSettledTrips(driverId);
     const newRecord: SettledTripRecord = {
@@ -194,8 +196,13 @@ export class DriverFinancialService {
 
     trips.unshift(newRecord);
     if (typeof window !== "undefined") {
-      localStorage.setItem(`${STORAGE_KEY_PREFIX_TRIPS}${driverId}`, JSON.stringify(trips.slice(0, 100)));
-      window.dispatchEvent(new CustomEvent("partiu:driver-financial-updated", { detail: { driverId } }));
+      localStorage.setItem(
+        `${STORAGE_KEY_PREFIX_TRIPS}${driverId}`,
+        JSON.stringify(trips.slice(0, 100)),
+      );
+      window.dispatchEvent(
+        new CustomEvent("partiu:driver-financial-updated", { detail: { driverId } }),
+      );
     }
     return newRecord;
   }
@@ -203,7 +210,10 @@ export class DriverFinancialService {
   /**
    * Calcula todas as métricas financeiras consolidadas do motorista
    */
-  public getMetrics(driverId: string, vehicleType: "CARRO" | "MOTO" = "CARRO"): DriverFinancialMetrics {
+  public getMetrics(
+    driverId: string,
+    vehicleType: "CARRO" | "MOTO" = "CARRO",
+  ): DriverFinancialMetrics {
     const goals = this.getGoals(driverId);
     const trips = this.getSettledTrips(driverId);
     const monetizacaoConfig = getMonetizacaoConfig();
@@ -236,7 +246,7 @@ export class DriverFinancialService {
     // Estimativa de tempo online (mínimo 60 min se houver corridas)
     const todayOnlineMinutes = Math.max(
       60,
-      todayTrips.reduce((acc, t) => acc + (t.durationMinutes || 15), 0) + todayTripsCount * 10
+      todayTrips.reduce((acc, t) => acc + (t.durationMinutes || 15), 0) + todayTripsCount * 10,
     );
     const onlineHours = todayOnlineMinutes / 60;
 
@@ -254,21 +264,30 @@ export class DriverFinancialService {
       vehicleType === "MOTO" ? monetizacaoConfig.diariaMoto : monetizacaoConfig.diariaCarro;
 
     // Lucro Líquido Real = Faturamento Bruto - Combustível - Diária
-    const realNetProfitBrl = Math.max(0, todayGrossBrl - estimatedFuelCostBrl - dailyFeeAmortizedBrl);
+    const realNetProfitBrl = Math.max(
+      0,
+      todayGrossBrl - estimatedFuelCostBrl - dailyFeeAmortizedBrl,
+    );
 
     // Comparativo: Nas concorrentes (Uber/99), a taxa média é 25% do faturamento bruto
     const traditionalAppCommissionBrl = todayGrossBrl * 0.25;
     const savingsVersusTraditionalAppsBrl = Math.max(
       0,
-      traditionalAppCommissionBrl - dailyFeeAmortizedBrl
+      traditionalAppCommissionBrl - dailyFeeAmortizedBrl,
     );
 
     // Progresso das Metas
-    const dailyPercent = Math.min(100, Math.round((todayGrossBrl / (goals.dailyGoalBrl || 1)) * 100));
+    const dailyPercent = Math.min(
+      100,
+      Math.round((todayGrossBrl / (goals.dailyGoalBrl || 1)) * 100),
+    );
     const dailyRemaining = Math.max(0, goals.dailyGoalBrl - todayGrossBrl);
 
     const weekGrossBrl = weekTrips.reduce((acc, t) => acc + t.amountBrl, 0);
-    const weeklyPercent = Math.min(100, Math.round((weekGrossBrl / (goals.weeklyGoalBrl || 1)) * 100));
+    const weeklyPercent = Math.min(
+      100,
+      Math.round((weekGrossBrl / (goals.weeklyGoalBrl || 1)) * 100),
+    );
     const weeklyRemaining = Math.max(0, goals.weeklyGoalBrl - weekGrossBrl);
 
     return {

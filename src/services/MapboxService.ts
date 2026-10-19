@@ -29,18 +29,32 @@ export class MapboxService {
   }
 
   public getStyleUrl(
-    variant: "googleClone99" | "customStudio" | "cleanDay" | "streets" | "cleanNight" | "navigationTraffic" | "satelliteStreets" = "streets"
+    variant:
+      | "googleClone99"
+      | "customStudio"
+      | "cleanDay"
+      | "streets"
+      | "cleanNight"
+      | "navigationTraffic"
+      | "satelliteStreets" = "streets",
   ): string {
     const url = (MapboxConfig.STYLES as any)[variant];
     if (variant === "googleClone99") {
-      if (url && url !== "COLE_SUA_URL_GOOGLE_CLONE_DO_MAPBOX_STUDIO_AQUI" && url.startsWith("mapbox://")) {
+      if (
+        url &&
+        url !== "COLE_SUA_URL_GOOGLE_CLONE_DO_MAPBOX_STUDIO_AQUI" &&
+        url.startsWith("mapbox://")
+      ) {
         return url;
       }
       // Fallback para streets-v12 com aplicação programática da paleta Google Maps (99)
       return MapboxConfig.STYLES.cleanDay;
     }
     // Se o usuário ainda não colou a URL do Mapbox Studio, retorna o fallback cleanDay
-    if (variant === "customStudio" && (!url || url === "COLE_SUA_URL_DO_MAPBOX_STUDIO_AQUI" || !url.startsWith("mapbox://"))) {
+    if (
+      variant === "customStudio" &&
+      (!url || url === "COLE_SUA_URL_DO_MAPBOX_STUDIO_AQUI" || !url.startsWith("mapbox://"))
+    ) {
       return MapboxConfig.STYLES.cleanDay;
     }
     return url || MapboxConfig.STYLES.cleanDay;
@@ -178,9 +192,7 @@ export class MapboxService {
       sources: {
         "osm-tiles": {
           type: "raster",
-          tiles: [
-            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-          ],
+          tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
           tileSize: 256,
           attribution: "© OpenStreetMap contributors",
         },
@@ -252,7 +264,7 @@ export class MapboxService {
    */
   public resolveMapStyleForTenant(
     tenantId?: string,
-    variant: "streets" | "traffic" | "satellite" | "night" = "streets"
+    variant: "streets" | "traffic" | "satellite" | "night" = "streets",
   ): any {
     const config = MapboxConfig.getTenantMapConfig(tenantId);
 
@@ -436,15 +448,16 @@ export class MapboxService {
       // Se for camada de símbolo, filtra ícones de restaurantes, lojas e entretenimento
       if (layer.type === "symbol" && layer.layout) {
         const iconImage = layer.layout["icon-image"];
-        if (typeof iconImage === "string" && (
-          iconImage.includes("restaurant") ||
-          iconImage.includes("cafe") ||
-          iconImage.includes("bar") ||
-          iconImage.includes("fast-food") ||
-          iconImage.includes("clothing-store") ||
-          iconImage.includes("cinema") ||
-          iconImage.includes("attraction")
-        )) {
+        if (
+          typeof iconImage === "string" &&
+          (iconImage.includes("restaurant") ||
+            iconImage.includes("cafe") ||
+            iconImage.includes("bar") ||
+            iconImage.includes("fast-food") ||
+            iconImage.includes("clothing-store") ||
+            iconImage.includes("cinema") ||
+            iconImage.includes("attraction"))
+        ) {
           return false;
         }
       }
@@ -636,7 +649,12 @@ export class MapboxService {
               }
             }
             // Ruas locais e residenciais: cinza claro visível
-            else if (id.includes("street") || id.includes("local") || id.includes("minor") || id.includes("service")) {
+            else if (
+              id.includes("street") ||
+              id.includes("local") ||
+              id.includes("minor") ||
+              id.includes("service")
+            ) {
               if (id.includes("case") || id.includes("casing")) {
                 map.setPaintProperty(layer.id, "line-color", "#D8DCE2");
               } else {
@@ -665,7 +683,6 @@ export class MapboxService {
             map.setPaintProperty(layer.id, "text-halo-color", "#EAECF0");
             map.setPaintProperty(layer.id, "text-halo-width", 1.2);
           }
-
         } catch (_) {
           // Camadas individuais podem não suportar a propriedade — silencia
         }

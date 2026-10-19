@@ -7,10 +7,7 @@ interface LandingTopBarProps {
   time?: string;
 }
 
-export const LandingTopBar: React.FC<LandingTopBarProps> = ({
-  theme,
-  time = "9:41",
-}) => {
+export const LandingTopBar: React.FC<LandingTopBarProps> = ({ theme, time = "9:41" }) => {
   return (
     <div
       className="w-full flex items-center justify-between px-6 pt-3 pb-1 select-none text-xs font-semibold tracking-tight transition-colors z-30"
@@ -35,9 +32,7 @@ export const LandingTopBar: React.FC<LandingTopBarProps> = ({
         {/* Ícone de Bateria Estilizado com Preenchimento */}
         <div className="relative flex items-center">
           <Battery className="w-5 h-5 stroke-[2]" />
-          <div
-            className="absolute left-[3px] top-[6.5px] w-[9px] h-[7px] rounded-xs bg-current"
-          />
+          <div className="absolute left-[3px] top-[6.5px] w-[9px] h-[7px] rounded-xs bg-current" />
         </div>
       </div>
     </div>

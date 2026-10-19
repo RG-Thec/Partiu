@@ -3,20 +3,22 @@ import { Star, Eye, ShieldCheck, Car, Clock, Navigation } from "lucide-react";
 import { type DriverViewingProfile } from "@/services/ProgressiveDispatchEngine";
 
 interface DriverViewing99CardProps {
-  driver: DriverViewingProfile | {
-    id: string;
-    name: string;
-    firstName: string;
-    avatarUrl: string;
-    rating: number;
-    category?: string;
-    vehicleModel: string;
-    vehicleColor?: string;
-    licensePlate: string;
-    distanceKm: number;
-    etaMinutes: number;
-    cascadeSecondsRemaining?: number;
-  };
+  driver:
+    | DriverViewingProfile
+    | {
+        id: string;
+        name: string;
+        firstName: string;
+        avatarUrl: string;
+        rating: number;
+        category?: string;
+        vehicleModel: string;
+        vehicleColor?: string;
+        licensePlate: string;
+        distanceKm: number;
+        etaMinutes: number;
+        cascadeSecondsRemaining?: number;
+      };
   totalViewingCount?: number;
   isTransitioning?: boolean;
 }
@@ -83,7 +85,10 @@ export const DriverViewing99Card = memo(function DriverViewing99Card({
         {/* Avatar com radar visual */}
         <div className="relative shrink-0 mt-0.5">
           <img
-            src={driver.avatarUrl || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"}
+            src={
+              driver.avatarUrl ||
+              "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
+            }
             alt={firstName}
             className="w-13 h-13 rounded-2xl object-cover border-2 border-amber-400 shadow-md"
           />
@@ -109,7 +114,9 @@ export const DriverViewing99Card = memo(function DriverViewing99Card({
           {/* Veículo, Cor e Placa */}
           <div className="flex items-center gap-1.5 text-xs text-slate-800 font-bold truncate">
             <Car className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-            <span className="truncate">{vehicleModel} {vehicleColor}</span>
+            <span className="truncate">
+              {vehicleModel} {vehicleColor}
+            </span>
             <span className="text-slate-400">•</span>
             <span className="px-1.5 py-0.2 rounded bg-slate-100 border border-slate-300 text-xs font-mono font-black text-slate-900 shrink-0">
               {licensePlate}
@@ -130,7 +137,8 @@ export const DriverViewing99Card = memo(function DriverViewing99Card({
       {/* 3. RODAPÉ DO CARD: FRASE EM TEMPO REAL NO PADRÃO 99 */}
       <div className="mt-3 pt-2 border-t border-amber-200/50 flex items-center justify-between gap-2">
         <p className="text-xs font-black text-amber-950 leading-tight flex-1">
-          <span className="text-amber-800 font-extrabold">{firstName}</span> está vendo a sua solicitação em tempo real!
+          <span className="text-amber-800 font-extrabold">{firstName}</span> está vendo a sua
+          solicitação em tempo real!
         </p>
 
         {secondsRemaining > 0 && (

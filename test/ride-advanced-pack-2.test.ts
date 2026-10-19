@@ -154,7 +154,7 @@ describe("SUITE 53: SIGA MINHA VIAGEM, FARE ENGINE & ESTRUTURA DE CANCELAMENTO",
     expect(CANCELLATION_REASONS_DRIVER.length).toBeGreaterThan(4);
 
     const driverStationary = CANCELLATION_REASONS_PASSENGER.find(
-      (r) => r.code === "DRIVER_STATIONARY"
+      (r) => r.code === "DRIVER_STATIONARY",
     );
     expect(driverStationary?.appliesFeeWhenLate).toBe(false); // Não pune o passageiro se condutor estiver parado!
 
@@ -175,7 +175,9 @@ describe("SUITE 53: SIGA MINHA VIAGEM, FARE ENGINE & ESTRUTURA DE CANCELAMENTO",
     expect(policyLate.isGracePeriodActive).toBe(false);
     expect(policyLate.shouldChargeFee).toBe(true);
     expect(policyLate.timeRemainingSeconds).toBe(0);
-    expect(service.getCancellationNoticeText(policyLate).includes("Taxa de cancelamento")).toBe(true);
+    expect(service.getCancellationNoticeText(policyLate).includes("Taxa de cancelamento")).toBe(
+      true,
+    );
   });
 
   // ============================================================================

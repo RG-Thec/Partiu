@@ -70,7 +70,7 @@ export const LOYALTY_TIER_THRESHOLDS: LoyaltyTierThreshold[] = [
     tier: "PROFISSIONAL",
     name: "Profissional",
     minCompletedTrips: 50,
-    minRating: 4.80,
+    minRating: 4.8,
     maxCancellationRatePercent: 8.0,
     minOnlineHours: 40,
     badgeLabel: "🥈 Profissional",
@@ -88,7 +88,7 @@ export const LOYALTY_TIER_THRESHOLDS: LoyaltyTierThreshold[] = [
     tier: "ELITE",
     name: "Elite",
     minCompletedTrips: 200,
-    minRating: 4.90,
+    minRating: 4.9,
     maxCancellationRatePercent: 4.0,
     minOnlineHours: 150,
     badgeLabel: "🥇 Elite",
@@ -147,7 +147,9 @@ export class DriverLoyaltyEngine {
         const parsed = JSON.parse(raw) as Record<string, DriverLoyaltyProfile>;
         Object.entries(parsed).forEach(([id, prof]) => this.profiles.set(id, prof));
       }
-    } catch (err) { silentCatchWarn("driver-loyalty-engine", err); }
+    } catch (err) {
+      silentCatchWarn("driver-loyalty-engine", err);
+    }
   }
 
   private saveProfiles(): void {
@@ -158,7 +160,9 @@ export class DriverLoyaltyEngine {
         obj[id] = p;
       });
       localStorage.setItem(STORAGE_LOYALTY_KEY, JSON.stringify(obj));
-    } catch (err) { silentCatchWarn("driver-loyalty-engine", err); }
+    } catch (err) {
+      silentCatchWarn("driver-loyalty-engine", err);
+    }
   }
 
   public getAllTiers(): LoyaltyTierThreshold[] {
@@ -197,7 +201,9 @@ export class DriverLoyaltyEngine {
     }
 
     // Identifica o próximo Tier para meta de progresso
-    const currentIndex = LOYALTY_TIER_THRESHOLDS.findIndex((t) => t.tier === currentTierThreshold.tier);
+    const currentIndex = LOYALTY_TIER_THRESHOLDS.findIndex(
+      (t) => t.tier === currentTierThreshold.tier,
+    );
     const nextTier: LoyaltyTierThreshold | null =
       currentIndex >= 0 && currentIndex < LOYALTY_TIER_THRESHOLDS.length - 1
         ? (LOYALTY_TIER_THRESHOLDS[currentIndex + 1] ?? null)
@@ -230,7 +236,8 @@ export class DriverLoyaltyEngine {
       nextTierProgressPercent,
       tripsToNextTier,
       hasPrioritySupport: currentTierThreshold.tier !== "INICIANTE",
-      hasExclusiveCampaigns: currentTierThreshold.tier === "ELITE" || currentTierThreshold.tier === "LENDARIO",
+      hasExclusiveCampaigns:
+        currentTierThreshold.tier === "ELITE" || currentTierThreshold.tier === "LENDARIO",
       updatedAt: Date.now(),
     };
 

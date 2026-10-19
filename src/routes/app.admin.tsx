@@ -40,11 +40,7 @@ import {
   Zap,
   Columns3,
 } from "lucide-react";
-import {
-  useAlertasSOS,
-  useAlertasSOSRealtime,
-  useMotoristas,
-} from "@/lib/partiu-db";
+import { useAlertasSOS, useAlertasSOSRealtime, useMotoristas } from "@/lib/partiu-db";
 import {
   getAdminRole,
   getRoleMetadata,
@@ -259,26 +255,110 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
  * Catálogo completo de módulos corporativos na Command Palette (Ctrl+K)
  */
 const TODOS_MODULOS_SISTEMA = [
-  { to: "/app/admin", label: "Dashboard Geral", categoriaTitulo: "Operação", icon: LayoutDashboard },
-  { to: "/app/admin/despacho", label: "Corridas & Radar ao Vivo", categoriaTitulo: "Operação", icon: Radio },
-  { to: "/app/admin/sos", label: "Central SOS 190 (Emergências)", categoriaTitulo: "Operação", icon: ShieldAlert },
-  { to: "/app/admin/motoristas", label: "Frota & Condutores", categoriaTitulo: "Motoristas", icon: Users },
-  { to: "/app/admin/motoristas?aba=crm", label: "Pipeline CRM Kanban (Ciclo de Vida)", categoriaTitulo: "Motoristas", icon: Columns3 },
-  { to: "/app/admin/aprovacoes", label: "Fila de Aprovações (CNH/CRLV)", categoriaTitulo: "Motoristas", icon: UserCheck },
-  { to: "/app/admin/passageiros", label: "Passageiros Cadastrados", categoriaTitulo: "Passageiros", icon: User },
-  { to: "/app/admin/veiculo", label: "Categorias & Frota", categoriaTitulo: "Motoristas", icon: Car },
-  { to: "/app/admin/monetizacao", label: "Planos SaaS & Diárias Pix (0% Taxa)", categoriaTitulo: "Monetização", icon: CreditCard },
-  { to: "/app/admin/financeiro", label: "Cockpit Financeiro & Receita", categoriaTitulo: "Monetização", icon: DollarSign },
-  { to: "/app/admin/franqueados", label: "Franquias & Multi-Tenant", categoriaTitulo: "Monetização", icon: Building2 },
-  { to: "/app/admin/meu-aplicativo", label: "Meu Aplicativo & PWA / APK", categoriaTitulo: "Aplicativo", icon: Smartphone },
-  { to: "/app/admin/whitelabel", label: "White Label Studio", categoriaTitulo: "Marca", icon: Palette },
-  { to: "/app/admin/banners", label: "Banners do Aplicativo", categoriaTitulo: "Marketing", icon: Megaphone },
-  { to: "/app/admin/dominios", label: "Domínios & DNS (White-Label)", categoriaTitulo: "Sistema", icon: Globe },
+  {
+    to: "/app/admin",
+    label: "Dashboard Geral",
+    categoriaTitulo: "Operação",
+    icon: LayoutDashboard,
+  },
+  {
+    to: "/app/admin/despacho",
+    label: "Corridas & Radar ao Vivo",
+    categoriaTitulo: "Operação",
+    icon: Radio,
+  },
+  {
+    to: "/app/admin/sos",
+    label: "Central SOS 190 (Emergências)",
+    categoriaTitulo: "Operação",
+    icon: ShieldAlert,
+  },
+  {
+    to: "/app/admin/motoristas",
+    label: "Frota & Condutores",
+    categoriaTitulo: "Motoristas",
+    icon: Users,
+  },
+  {
+    to: "/app/admin/motoristas?aba=crm",
+    label: "Pipeline CRM Kanban (Ciclo de Vida)",
+    categoriaTitulo: "Motoristas",
+    icon: Columns3,
+  },
+  {
+    to: "/app/admin/aprovacoes",
+    label: "Fila de Aprovações (CNH/CRLV)",
+    categoriaTitulo: "Motoristas",
+    icon: UserCheck,
+  },
+  {
+    to: "/app/admin/passageiros",
+    label: "Passageiros Cadastrados",
+    categoriaTitulo: "Passageiros",
+    icon: User,
+  },
+  {
+    to: "/app/admin/veiculo",
+    label: "Categorias & Frota",
+    categoriaTitulo: "Motoristas",
+    icon: Car,
+  },
+  {
+    to: "/app/admin/monetizacao",
+    label: "Planos SaaS & Diárias Pix (0% Taxa)",
+    categoriaTitulo: "Monetização",
+    icon: CreditCard,
+  },
+  {
+    to: "/app/admin/financeiro",
+    label: "Cockpit Financeiro & Receita",
+    categoriaTitulo: "Monetização",
+    icon: DollarSign,
+  },
+  {
+    to: "/app/admin/franqueados",
+    label: "Franquias & Multi-Tenant",
+    categoriaTitulo: "Monetização",
+    icon: Building2,
+  },
+  {
+    to: "/app/admin/meu-aplicativo",
+    label: "Meu Aplicativo & PWA / APK",
+    categoriaTitulo: "Aplicativo",
+    icon: Smartphone,
+  },
+  {
+    to: "/app/admin/whitelabel",
+    label: "White Label Studio",
+    categoriaTitulo: "Marca",
+    icon: Palette,
+  },
+  {
+    to: "/app/admin/banners",
+    label: "Banners do Aplicativo",
+    categoriaTitulo: "Marketing",
+    icon: Megaphone,
+  },
+  {
+    to: "/app/admin/dominios",
+    label: "Domínios & DNS (White-Label)",
+    categoriaTitulo: "Sistema",
+    icon: Globe,
+  },
   { to: "/app/admin/locais", label: "Cidades & Praças", categoriaTitulo: "Operação", icon: MapPin },
-  { to: "/app/admin/configuracoes", label: "Configurações Globais", categoriaTitulo: "Sistema", icon: Sliders },
-  { to: "/app/admin/governanca", label: "Governança & LGPD", categoriaTitulo: "Sistema", icon: ShieldCheck },
+  {
+    to: "/app/admin/configuracoes",
+    label: "Configurações Globais",
+    categoriaTitulo: "Sistema",
+    icon: Sliders,
+  },
+  {
+    to: "/app/admin/governanca",
+    label: "Governança & LGPD",
+    categoriaTitulo: "Sistema",
+    icon: ShieldCheck,
+  },
 ];
-
 
 function getContrastTextColor(hexColor: string): string {
   if (!hexColor || !hexColor.startsWith("#")) return "#FFFFFF";
@@ -330,9 +410,15 @@ function SuperAdminLayout() {
 
   function toggleTelaCheia() {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().then(() => setIsTelaCheia(true)).catch(() => {});
+      document.documentElement
+        .requestFullscreen()
+        .then(() => setIsTelaCheia(true))
+        .catch(() => {});
     } else {
-      document.exitFullscreen().then(() => setIsTelaCheia(false)).catch(() => {});
+      document
+        .exitFullscreen()
+        .then(() => setIsTelaCheia(false))
+        .catch(() => {});
     }
   }
 
@@ -360,7 +446,9 @@ function SuperAdminLayout() {
   }, [alertasSOS]);
 
   const motoristasPendentes = useMemo(() => {
-    return motoristasBanco.filter((m: any) => m.status_aprovacao === "pendente" || m.status === "pendente").length;
+    return motoristasBanco.filter(
+      (m: any) => m.status_aprovacao === "pendente" || m.status === "pendente",
+    ).length;
   }, [motoristasBanco]);
 
   const locationState = useRouterState({ select: (s) => s.location });
@@ -395,7 +483,6 @@ function SuperAdminLayout() {
     };
   }, []);
 
-
   function handleLogout() {
     logoutAdmin();
     void navigate({ to: "/app/admin/login" });
@@ -429,38 +516,36 @@ function SuperAdminLayout() {
 
   // Filtrar categorias e itens estritamente pelos módulos autorizados no RBAC e aplicar badges dinâmicos
   const categoriasFiltradas: CategoriaMenuAdmin[] = useMemo(() => {
-    return CATEGORIAS_MENU_ADMIN
-      .map((cat) => {
-        const itensAutorizados = cat.itens
-          .filter((item) => canAccessModule(item.moduleId, roleAtiva))
-          .map((item) => {
-            if (item.to === "/app/admin/sos" || item.to === "/app/admin/operacao") {
-              if (chamadosSOSAtivos > 0) {
-                return {
-                  ...item,
-                  badge: `${chamadosSOSAtivos} SOS`,
-                  badgeVariant: "critical" as const,
-                };
-              }
+    return CATEGORIAS_MENU_ADMIN.map((cat) => {
+      const itensAutorizados = cat.itens
+        .filter((item) => canAccessModule(item.moduleId, roleAtiva))
+        .map((item) => {
+          if (item.to === "/app/admin/sos" || item.to === "/app/admin/operacao") {
+            if (chamadosSOSAtivos > 0) {
+              return {
+                ...item,
+                badge: `${chamadosSOSAtivos} SOS`,
+                badgeVariant: "critical" as const,
+              };
             }
-            if (item.to === "/app/admin/aprovacoes") {
-              if (motoristasPendentes > 0) {
-                return {
-                  ...item,
-                  badge: `${motoristasPendentes}`,
-                  badgeVariant: "warning" as const,
-                };
-              }
+          }
+          if (item.to === "/app/admin/aprovacoes") {
+            if (motoristasPendentes > 0) {
+              return {
+                ...item,
+                badge: `${motoristasPendentes}`,
+                badgeVariant: "warning" as const,
+              };
             }
-            return item;
-          });
+          }
+          return item;
+        });
 
-        return {
-          ...cat,
-          itens: itensAutorizados,
-        };
-      })
-      .filter((cat) => cat.itens.length > 0);
+      return {
+        ...cat,
+        itens: itensAutorizados,
+      };
+    }).filter((cat) => cat.itens.length > 0);
   }, [roleAtiva, chamadosSOSAtivos, motoristasPendentes]);
 
   // Lista de módulos para a Command Palette (Ctrl+K)
@@ -484,7 +569,7 @@ function SuperAdminLayout() {
       (it) =>
         it.label.toLowerCase().includes(q) ||
         it.categoriaTitulo.toLowerCase().includes(q) ||
-        it.to.toLowerCase().includes(q)
+        it.to.toLowerCase().includes(q),
     );
   }, [roleAtiva, termoBuscaRapida]);
 
@@ -532,12 +617,16 @@ function SuperAdminLayout() {
                       boxShadow: ui.buttonShadow,
                     }}
                   >
-                    <Zap className="h-5 w-5 stroke-[2.5]" style={{ fill: primaryContrastColor, stroke: primaryContrastColor }} />
+                    <Zap
+                      className="h-5 w-5 stroke-[2.5]"
+                      style={{ fill: primaryContrastColor, stroke: primaryContrastColor }}
+                    />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
                       <p className="text-xs font-black tracking-tight leading-none text-white truncate">
-                        {branding.appName.toUpperCase()} <span style={{ color: colors.primary }}>OPS</span>
+                        {branding.appName.toUpperCase()}{" "}
+                        <span style={{ color: colors.primary }}>OPS</span>
                       </p>
                       <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9px] font-bold text-emerald-400">
                         SaaS
@@ -562,7 +651,10 @@ function SuperAdminLayout() {
                     }}
                     title={`${branding.appName} OPS • ${roleMeta.titulo}`}
                   >
-                    <Zap className="h-5 w-5 stroke-[2.5]" style={{ fill: primaryContrastColor, stroke: primaryContrastColor }} />
+                    <Zap
+                      className="h-5 w-5 stroke-[2.5]"
+                      style={{ fill: primaryContrastColor, stroke: primaryContrastColor }}
+                    />
                   </div>
                 </div>
               )}
@@ -575,7 +667,11 @@ function SuperAdminLayout() {
                 }`}
                 title={recolhido ? "Expandir Menu" : "Recolher Menu"}
               >
-                {recolhido ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+                {recolhido ? (
+                  <PanelLeftOpen className="h-4 w-4" />
+                ) : (
+                  <PanelLeftClose className="h-4 w-4" />
+                )}
               </button>
             </div>
 
@@ -622,8 +718,9 @@ function SuperAdminLayout() {
                     const isAtivo = item.search?.aba
                       ? href === item.to && searchStr.includes(`aba=${item.search.aba}`)
                       : item.exact
-                      ? (href === item.to || href === item.to + "/") && !searchStr.includes("aba=")
-                      : href.startsWith(item.to) && !searchStr.includes("aba=");
+                        ? (href === item.to || href === item.to + "/") &&
+                          !searchStr.includes("aba=")
+                        : href.startsWith(item.to) && !searchStr.includes("aba=");
 
                     return (
                       <Link
@@ -680,14 +777,14 @@ function SuperAdminLayout() {
                               item.badgeVariant === "critical"
                                 ? "bg-red-600 text-white animate-pulse"
                                 : item.badgeVariant === "warning"
-                                ? "bg-amber-400 text-slate-950 font-black"
-                                : item.badge === "0% Taxa"
-                                ? isAtivo
-                                  ? "bg-slate-950/80 text-emerald-300 font-extrabold"
-                                  : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-extrabold"
-                                : isAtivo
-                                ? "bg-slate-950/70 text-white"
-                                : "bg-slate-800 text-slate-300"
+                                  ? "bg-amber-400 text-slate-950 font-black"
+                                  : item.badge === "0% Taxa"
+                                    ? isAtivo
+                                      ? "bg-slate-950/80 text-emerald-300 font-extrabold"
+                                      : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-extrabold"
+                                    : isAtivo
+                                      ? "bg-slate-950/70 text-white"
+                                      : "bg-slate-800 text-slate-300"
                             }`}
                           >
                             {item.badge}
@@ -714,8 +811,12 @@ function SuperAdminLayout() {
                     {contaAtiva.nome ? contaAtiva.nome.charAt(0).toUpperCase() : "A"}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[11px] font-bold text-white truncate leading-tight">{contaAtiva.nome}</p>
-                    <p className="text-[9px] text-slate-400 truncate leading-tight">{contaAtiva.email}</p>
+                    <p className="text-[11px] font-bold text-white truncate leading-tight">
+                      {contaAtiva.nome}
+                    </p>
+                    <p className="text-[9px] text-slate-400 truncate leading-tight">
+                      {contaAtiva.email}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
@@ -775,9 +876,13 @@ function SuperAdminLayout() {
 
               {/* Breadcrumb contextual e Seletor de Praça */}
               <div className="hidden lg:flex items-center gap-1.5 text-xs font-semibold text-slate-500 mr-1 shrink-0">
-                <span className="text-slate-400 font-extrabold tracking-wider uppercase text-[10px]">PARTIU OPS</span>
+                <span className="text-slate-400 font-extrabold tracking-wider uppercase text-[10px]">
+                  PARTIU OPS
+                </span>
                 <ChevronRight className="h-3 w-3 text-slate-300 shrink-0" />
-                <span className="text-slate-800 font-bold max-w-[140px] truncate">{roleMeta.titulo}</span>
+                <span className="text-slate-800 font-bold max-w-[140px] truncate">
+                  {roleMeta.titulo}
+                </span>
               </div>
 
               {/* Seletor Global Interativo de Cidade / Praça de Operação */}
@@ -846,7 +951,11 @@ function SuperAdminLayout() {
                 className="hidden md:flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-600 hover:text-slate-900 transition-all border border-slate-200 cursor-pointer shadow-2xs"
                 title={isTelaCheia ? "Restaurar Tela (ESC)" : "Maximizar Painel em Tela Cheia"}
               >
-                {isTelaCheia ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+                {isTelaCheia ? (
+                  <Minimize2 className="h-3.5 w-3.5" />
+                ) : (
+                  <Maximize2 className="h-3.5 w-3.5" />
+                )}
               </button>
 
               {/* Conta / Perfil */}
@@ -857,7 +966,9 @@ function SuperAdminLayout() {
                 title="Configurar Perfil"
               >
                 <Key className="h-3.5 w-3.5 text-amber-600 shrink-0" />
-                <span className="hidden sm:inline">{contaAtiva.nome ? contaAtiva.nome.split(" ")[0] : "Admin"}</span>
+                <span className="hidden sm:inline">
+                  {contaAtiva.nome ? contaAtiva.nome.split(" ")[0] : "Admin"}
+                </span>
               </button>
 
               {/* Sair */}
@@ -899,10 +1010,15 @@ function SuperAdminLayout() {
                         borderRadius: ui.borderRadius,
                       }}
                     >
-                      <Zap className="h-4 w-4 stroke-[2.5]" style={{ fill: primaryContrastColor, stroke: primaryContrastColor }} />
+                      <Zap
+                        className="h-4 w-4 stroke-[2.5]"
+                        style={{ fill: primaryContrastColor, stroke: primaryContrastColor }}
+                      />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-black text-white leading-tight truncate">{branding.appName} OPS</p>
+                      <p className="text-xs font-black text-white leading-tight truncate">
+                        {branding.appName} OPS
+                      </p>
                       <span
                         className="text-[10px] font-bold uppercase truncate block mt-0.5"
                         style={{ color: colors.primary }}
@@ -924,7 +1040,9 @@ function SuperAdminLayout() {
 
                 {/* Seletor Mobile de Praça de Operação */}
                 <div className="space-y-1">
-                  <span className="text-[10px] font-bold uppercase text-slate-400 block">Praça Operacional:</span>
+                  <span className="text-[10px] font-bold uppercase text-slate-400 block">
+                    Praça Operacional:
+                  </span>
                   <AdminCitySelector />
                 </div>
 
@@ -941,8 +1059,9 @@ function SuperAdminLayout() {
                           const isAtivo = item.search?.aba
                             ? href === item.to && searchStr.includes(`aba=${item.search.aba}`)
                             : item.exact
-                            ? (href === item.to || href === item.to + "/") && !searchStr.includes("aba=")
-                            : href.startsWith(item.to) && !searchStr.includes("aba=");
+                              ? (href === item.to || href === item.to + "/") &&
+                                !searchStr.includes("aba=")
+                              : href.startsWith(item.to) && !searchStr.includes("aba=");
 
                           return (
                             <Link
@@ -970,18 +1089,22 @@ function SuperAdminLayout() {
                                   className={`h-4 w-4 ${isAtivo ? "stroke-[2.5]" : "text-slate-400"}`}
                                   style={isAtivo ? { color: primaryContrastColor } : undefined}
                                 />
-                                <span style={isAtivo ? { color: primaryContrastColor } : undefined}>{item.label}</span>
+                                <span style={isAtivo ? { color: primaryContrastColor } : undefined}>
+                                  {item.label}
+                                </span>
                               </div>
                               {item.badge && (
-                                <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider ${
-                                  item.badgeVariant === "critical"
-                                    ? "bg-red-600 text-white animate-pulse"
-                                    : item.badgeVariant === "warning"
-                                    ? "bg-amber-400 text-slate-950 font-black"
-                                    : item.badge === "0% Taxa"
-                                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-extrabold"
-                                    : "bg-slate-900 text-primary-500"
-                                }`}>
+                                <span
+                                  className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider ${
+                                    item.badgeVariant === "critical"
+                                      ? "bg-red-600 text-white animate-pulse"
+                                      : item.badgeVariant === "warning"
+                                        ? "bg-amber-400 text-slate-950 font-black"
+                                        : item.badge === "0% Taxa"
+                                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-extrabold"
+                                          : "bg-slate-900 text-primary-500"
+                                  }`}
+                                >
                                   {item.badge}
                                 </span>
                               )}
@@ -1024,7 +1147,9 @@ function SuperAdminLayout() {
                     <Key className="h-4 w-4" />
                   </div>
                   <div>
-                    <h3 className="text-sm sm:text-base font-black text-white">Credenciais Administrativas</h3>
+                    <h3 className="text-sm sm:text-base font-black text-white">
+                      Credenciais Administrativas
+                    </h3>
                     <p className="text-[10px] sm:text-[11px] text-slate-400 leading-tight">
                       Gerencie os dados de acesso do perfil administrativo
                     </p>
@@ -1210,7 +1335,8 @@ function SuperAdminLayout() {
                                   )}
                                 </div>
                                 <span className="text-[10px] text-slate-400 truncate block">
-                                  {modelo ? `${modelo} • ` : ""}{fone || "Tel não informado"}
+                                  {modelo ? `${modelo} • ` : ""}
+                                  {fone || "Tel não informado"}
                                 </span>
                               </div>
                             </div>
@@ -1257,7 +1383,9 @@ function SuperAdminLayout() {
                               </span>
                             </div>
                           </div>
-                          <span className="text-[10px] text-slate-500 group-hover:text-slate-300">Ir →</span>
+                          <span className="text-[10px] text-slate-500 group-hover:text-slate-300">
+                            Ir →
+                          </span>
                         </Link>
                       );
                     })}
@@ -1266,7 +1394,8 @@ function SuperAdminLayout() {
 
                 {itensBuscaRapida.length === 0 && motoristasEncontrados.length === 0 && (
                   <div className="py-8 text-center text-slate-500 text-xs px-4">
-                    Nenhum módulo ou motorista encontrado para &quot;{termoBuscaRapida}&quot;. Digite o nome de um motorista, placa, ou termos como{" "}
+                    Nenhum módulo ou motorista encontrado para &quot;{termoBuscaRapida}&quot;.
+                    Digite o nome de um motorista, placa, ou termos como{" "}
                     <strong className="text-slate-400">diárias</strong>,{" "}
                     <strong className="text-slate-400">caixa</strong> ou{" "}
                     <strong className="text-slate-400">sos</strong>.

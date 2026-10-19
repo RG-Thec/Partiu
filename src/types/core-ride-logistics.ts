@@ -67,7 +67,7 @@ export interface RideRequestPayload {
   passenger_id?: string;
   passenger_name?: string;
   passenger_phone?: string;
-  
+
   // Categoria de veículo solicitada
   category:
     | "PARTIU_MOTO"
@@ -93,14 +93,14 @@ export interface RideRequestPayload {
   distance_km: number;
   estimated_time_mins: number;
   calculated_price: number;
-  
+
   // Polyline encriptada gerada pelo Mapbox para traçado imutável
   encoded_polyline: string;
   route_coordinates?: [number, number][];
 
   // Método de pagamento
   payment_method: "PIX" | "DINHEIRO" | "CARTAO" | string;
-  
+
   // Estado da corrida
   status?:
     | "REQUESTED"

@@ -35,12 +35,8 @@ export function HomeBuilderTab({ onSaveFeedback }: HomeBuilderTabProps) {
                   {bloco.ordem}
                 </span>
                 <div>
-                  <span className="text-xs font-bold text-white block">
-                    {bloco.titulo}
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-mono">
-                    Tipo: {bloco.tipo}
-                  </span>
+                  <span className="text-xs font-bold text-white block">{bloco.titulo}</span>
+                  <span className="text-[10px] text-slate-400 font-mono">Tipo: {bloco.tipo}</span>
                 </div>
               </div>
 
@@ -50,7 +46,7 @@ export function HomeBuilderTab({ onSaveFeedback }: HomeBuilderTabProps) {
                   type="button"
                   onClick={() => {
                     const updatedBlocos = homePage.blocos.map((b) =>
-                      b.id === bloco.id ? { ...b, ativo: !b.ativo } : b
+                      b.id === bloco.id ? { ...b, ativo: !b.ativo } : b,
                     );
                     reorderHomeBlocks(updatedBlocos);
                     onSaveFeedback();

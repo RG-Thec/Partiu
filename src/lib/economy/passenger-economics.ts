@@ -1,6 +1,6 @@
 /**
  * PASSENGER LIFETIME ECONOMY ENGINE
- * 
+ *
  * Modela a economia individual e de coorte dos passageiros da plataforma:
  * - LTV (Lifetime Value) preditivo com desconto temporal
  * - Matriz RFM (Recência, Frequência, Valor Monetário)
@@ -31,22 +31,22 @@ export interface PassengerEconomicProfile {
   ticketMedioBrl: number;
   ltvEstimado12MesesBrl: number;
   margemContribuicaoLtvBrl: number;
-  
+
   // Elasticidades Microeconômicas
   elasticidadePreco: number; // Sensibilidade a Surge e preço base
   elasticidadeTempoEspera: number; // Sensibilidade a minutos de ETA
-  
+
   // Risco e Valor
   probabilidadeAbandonoPct: number; // 0 a 100%
   passengerValueScore: number; // 0 a 100
-  segmentoComportamental: 
-    | 'PLATINUM_VIP'
-    | 'HIGH_VALUE_REGULAR'
-    | 'FREQUENTE_PRECO_SENSIVEL'
-    | 'OCASIONAL'
-    | 'EM_RISCO_CHURN'
-    | 'DORMENTE_INATIVO';
-  
+  segmentoComportamental:
+    | "PLATINUM_VIP"
+    | "HIGH_VALUE_REGULAR"
+    | "FREQUENTE_PRECO_SENSIVEL"
+    | "OCASIONAL"
+    | "EM_RISCO_CHURN"
+    | "DORMENTE_INATIVO";
+
   estrategiaRetencaoSugerida: string;
 }
 
@@ -61,12 +61,15 @@ export class PassengerEconomicsEngine {
 
     // 1. Sensibilidade e Elasticidades
     // Sensibilidade a preço: proporção de vezes que desistiu com surge elevado
-    const sensibilidadeSurgeRatio = history.rejeitouSurgeCount / Math.max(1, history.corridasUltimos30Dias + history.rejeitouSurgeCount);
+    const sensibilidadeSurgeRatio =
+      history.rejeitouSurgeCount /
+      Math.max(1, history.corridasUltimos30Dias + history.rejeitouSurgeCount);
     const ep = Number((-0.85 - sensibilidadeSurgeRatio * 1.5).toFixed(2));
 
     // Sensibilidade ao tempo de espera: despesas canceladas por demora de motorista
-    const sensibilidadeEtaRatio = history.desistenciaPorEtaElevadoCount / Math.max(1, history.totalCorridasHistorico);
-    const eEta = Number((-0.50 - sensibilidadeEtaRatio * 1.8).toFixed(2));
+    const sensibilidadeEtaRatio =
+      history.desistenciaPorEtaElevadoCount / Math.max(1, history.totalCorridasHistorico);
+    const eEta = Number((-0.5 - sensibilidadeEtaRatio * 1.8).toFixed(2));
 
     // 2. Probabilidade de Abandono (Modelo de Sobrevivência / Churn Preditivo)
     // Curva sigmoide com base na recência em dias e queda de frequência
@@ -95,34 +98,41 @@ export class PassengerEconomicsEngine {
     const scoreFreq = Math.max(0, Math.min(100, (freqMensal / 15.0) * 100));
     const scoreRecencia = Math.max(0, Math.min(100, 100 - recencia * 3.5));
     const scoreTicket = Math.max(0, Math.min(100, (ticket / 35.0) * 100));
-    const scoreConfiabilidade = Math.max(0, Math.min(100, 100 - history.taxaCancelamentoPassageiroPct * 3));
+    const scoreConfiabilidade = Math.max(
+      0,
+      Math.min(100, 100 - history.taxaCancelamentoPassageiroPct * 3),
+    );
 
-    const valueScore = Math.max(5, Math.min(99, Math.round(
-      scoreFreq * 0.35 +
-      scoreRecencia * 0.25 +
-      scoreTicket * 0.25 +
-      scoreConfiabilidade * 0.15
-    )));
+    const valueScore = Math.max(
+      5,
+      Math.min(
+        99,
+        Math.round(
+          scoreFreq * 0.35 + scoreRecencia * 0.25 + scoreTicket * 0.25 + scoreConfiabilidade * 0.15,
+        ),
+      ),
+    );
 
     // 5. Segmentação Comportamental
-    let segmento: PassengerEconomicProfile['segmentoComportamental'] = 'OCASIONAL';
-    let estrategia = 'Comunicação padrão de novidades da plataforma.';
+    let segmento: PassengerEconomicProfile["segmentoComportamental"] = "OCASIONAL";
+    let estrategia = "Comunicação padrão de novidades da plataforma.";
 
     if (recencia > 35) {
-      segmento = 'DORMENTE_INATIVO';
-      estrategia = 'Disparar cupom de reativação de R$ 7,00 exclusivo para retorno imediato.';
+      segmento = "DORMENTE_INATIVO";
+      estrategia = "Disparar cupom de reativação de R$ 7,00 exclusivo para retorno imediato.";
     } else if (riscoChurn >= 50) {
-      segmento = 'EM_RISCO_CHURN';
-      estrategia = 'Ofertar desconto dinâmico em horários de pico e garantir ETA prioritário.';
+      segmento = "EM_RISCO_CHURN";
+      estrategia = "Ofertar desconto dinâmico em horários de pico e garantir ETA prioritário.";
     } else if (valueScore >= 80 && freqMensal >= 8) {
-      segmento = 'PLATINUM_VIP';
-      estrategia = 'Prioridade máxima no despacho, suporte VIP e atendimento sem taxa de cancelamento.';
+      segmento = "PLATINUM_VIP";
+      estrategia =
+        "Prioridade máxima no despacho, suporte VIP e atendimento sem taxa de cancelamento.";
     } else if (valueScore >= 60 && freqMensal >= 4) {
-      segmento = 'HIGH_VALUE_REGULAR';
-      estrategia = 'Incentivar programa de fidelidade para consolidar uso diário.';
+      segmento = "HIGH_VALUE_REGULAR";
+      estrategia = "Incentivar programa de fidelidade para consolidar uso diário.";
     } else if (Math.abs(ep) > 1.5) {
-      segmento = 'FREQUENTE_PRECO_SENSIVEL';
-      estrategia = 'Direcionar corridas para horários de vale com tarifas reduzidas.';
+      segmento = "FREQUENTE_PRECO_SENSIVEL";
+      estrategia = "Direcionar corridas para horários de vale com tarifas reduzidas.";
     }
 
     return {
@@ -138,7 +148,7 @@ export class PassengerEconomicsEngine {
       probabilidadeAbandonoPct: riscoChurn,
       passengerValueScore: valueScore,
       segmentoComportamental: segmento,
-      estrategiaRetencaoSugerida: estrategia
+      estrategiaRetencaoSugerida: estrategia,
     };
   }
 }

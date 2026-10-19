@@ -1,6 +1,6 @@
 /**
  * PARTIU TITANIUM SHIELD — BANKING GRADE TRANSACTIONAL LEDGER (2PC)
- * 
+ *
  * Motor Contábil Estrito de Partidas Dobradas (Double-Entry Bookkeeping):
  * - Plano de Contas: Ativo (Assets), Passivo (Liabilities), Patrimônio Líquido (Equity), Receitas (Revenue), Despesas (Expense).
  * - Invariante Contábil Inegociável: SUM(Débitos) === SUM(Créditos)
@@ -11,8 +11,8 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-export type AccountCategory = 'ASSET' | 'LIABILITY' | 'EQUITY' | 'REVENUE' | 'EXPENSE';
-export type EntryType = 'DEBIT' | 'CREDIT';
+export type AccountCategory = "ASSET" | "LIABILITY" | "EQUITY" | "REVENUE" | "EXPENSE";
+export type EntryType = "DEBIT" | "CREDIT";
 
 export interface ChartOfAccount {
   accountNumber: string;
@@ -24,84 +24,84 @@ export interface ChartOfAccount {
 
 export const OFFICIAL_CHART_OF_ACCOUNTS: Record<string, ChartOfAccount> = {
   // 1. ATIVO (ASSETS)
-  '1.1.01_PSP_CLEARING': {
-    accountNumber: '1.1.01',
-    accountName: 'PSP Clearing Pix em Trânsito',
-    category: 'ASSET',
-    normalBalance: 'DEBIT',
-    description: 'Recursos recebidos via PIX em custódia no banco liquidante'
+  "1.1.01_PSP_CLEARING": {
+    accountNumber: "1.1.01",
+    accountName: "PSP Clearing Pix em Trânsito",
+    category: "ASSET",
+    normalBalance: "DEBIT",
+    description: "Recursos recebidos via PIX em custódia no banco liquidante",
   },
-  '1.1.02_BANK_RESERVE': {
-    accountNumber: '1.1.02',
-    accountName: 'Conta Reserva Operacional',
-    category: 'ASSET',
-    normalBalance: 'DEBIT',
-    description: 'Saldo bancário disponível em conta corrente da plataforma'
+  "1.1.02_BANK_RESERVE": {
+    accountNumber: "1.1.02",
+    accountName: "Conta Reserva Operacional",
+    category: "ASSET",
+    normalBalance: "DEBIT",
+    description: "Saldo bancário disponível em conta corrente da plataforma",
   },
 
   // 2. PASSIVO (LIABILITIES)
-  '2.1.01_ESCROW_TRIPS': {
-    accountNumber: '2.1.01',
-    accountName: 'Custódia de Viagens em Andamento (Escrow)',
-    category: 'LIABILITY',
-    normalBalance: 'CREDIT',
-    description: 'Valores pagos por passageiros retidos até a conclusão do trajeto'
+  "2.1.01_ESCROW_TRIPS": {
+    accountNumber: "2.1.01",
+    accountName: "Custódia de Viagens em Andamento (Escrow)",
+    category: "LIABILITY",
+    normalBalance: "CREDIT",
+    description: "Valores pagos por passageiros retidos até a conclusão do trajeto",
   },
-  '2.1.02_DRIVER_PAYABLE': {
-    accountNumber: '2.1.02',
-    accountName: 'Repasse a Motoristas e Entregadores Parceiros (D+0)',
-    category: 'LIABILITY',
-    normalBalance: 'CREDIT',
-    description: 'Obrigação líquida de repasse aos condutores'
+  "2.1.02_DRIVER_PAYABLE": {
+    accountNumber: "2.1.02",
+    accountName: "Repasse a Motoristas e Entregadores Parceiros (D+0)",
+    category: "LIABILITY",
+    normalBalance: "CREDIT",
+    description: "Obrigação líquida de repasse aos condutores",
   },
-  '2.1.03_PASSENGER_CASHBACK_PAYABLE': {
-    accountNumber: '2.1.03',
-    accountName: 'Saldo de Cashback a Pagar',
-    category: 'LIABILITY',
-    normalBalance: 'CREDIT',
-    description: 'Créditos de fidelidade emitidos aos passageiros'
+  "2.1.03_PASSENGER_CASHBACK_PAYABLE": {
+    accountNumber: "2.1.03",
+    accountName: "Saldo de Cashback a Pagar",
+    category: "LIABILITY",
+    normalBalance: "CREDIT",
+    description: "Créditos de fidelidade emitidos aos passageiros",
   },
 
   // 3. RECEITA (REVENUE)
-  '3.1.01_PLATFORM_TAKE_RATE': {
-    accountNumber: '3.1.01',
-    accountName: 'Receita Operacional de Intermediação (Take Rate)',
-    category: 'REVENUE',
-    normalBalance: 'CREDIT',
-    description: 'Margem líquida da plataforma por corrida intermediada'
+  "3.1.01_PLATFORM_TAKE_RATE": {
+    accountNumber: "3.1.01",
+    accountName: "Receita Operacional de Intermediação (Take Rate)",
+    category: "REVENUE",
+    normalBalance: "CREDIT",
+    description: "Margem líquida da plataforma por corrida intermediada",
   },
-  '3.1.02_FRANCHISE_ROYALTIES': {
-    accountNumber: '3.1.02',
-    accountName: 'Royalties de Franquias Municipais',
-    category: 'REVENUE',
-    normalBalance: 'CREDIT',
-    description: 'Taxa de tecnologia sobre o faturamento de praças franqueadas'
+  "3.1.02_FRANCHISE_ROYALTIES": {
+    accountNumber: "3.1.02",
+    accountName: "Royalties de Franquias Municipais",
+    category: "REVENUE",
+    normalBalance: "CREDIT",
+    description: "Taxa de tecnologia sobre o faturamento de praças franqueadas",
   },
 
   // 4. DESPESA (EXPENSE)
-  '4.1.01_PSP_GATEWAY_FEES': {
-    accountNumber: '4.1.01',
-    accountName: 'Taxas e Tarifas de PSP / Gateway Pix',
-    category: 'EXPENSE',
-    normalBalance: 'DEBIT',
-    description: 'Custo bancário de emissão de QR Code e transferência instantânea'
+  "4.1.01_PSP_GATEWAY_FEES": {
+    accountNumber: "4.1.01",
+    accountName: "Taxas e Tarifas de PSP / Gateway Pix",
+    category: "EXPENSE",
+    normalBalance: "DEBIT",
+    description: "Custo bancário de emissão de QR Code e transferência instantânea",
   },
-  '4.1.02_FUEL_STABILIZATION_DISBURSEMENT': {
-    accountNumber: '4.1.02',
-    accountName: 'Subsívdio do Fundo de Estabilização de Combustível',
-    category: 'EXPENSE',
-    normalBalance: 'DEBIT',
-    description: 'Aporte de proteção contra volatilidade da gasolina'
+  "4.1.02_FUEL_STABILIZATION_DISBURSEMENT": {
+    accountNumber: "4.1.02",
+    accountName: "Subsívdio do Fundo de Estabilização de Combustível",
+    category: "EXPENSE",
+    normalBalance: "DEBIT",
+    description: "Aporte de proteção contra volatilidade da gasolina",
   },
 
   // 5. PATRIMÔNIO LÍQUIDO (EQUITY)
-  '5.1.01_RETAINED_EARNINGS': {
-    accountNumber: '5.1.01',
-    accountName: 'Lucros Retidos e Reservas de Capital',
-    category: 'EQUITY',
-    normalBalance: 'CREDIT',
-    description: 'Patrimônio acumulado para reinvestimento e liquidez'
-  }
+  "5.1.01_RETAINED_EARNINGS": {
+    accountNumber: "5.1.01",
+    accountName: "Lucros Retidos e Reservas de Capital",
+    category: "EQUITY",
+    normalBalance: "CREDIT",
+    description: "Patrimônio acumulado para reinvestimento e liquidez",
+  },
 };
 
 export interface JournalPosting {
@@ -118,14 +118,18 @@ export interface PreparedTransaction {
   postings: JournalPosting[];
   totalDebitCents: number;
   totalCreditCents: number;
-  status: 'PREPARED' | 'COMMITTED' | 'ROLLED_BACK';
+  status: "PREPARED" | "COMMITTED" | "ROLLED_BACK";
   preparedAt: number;
 }
 
 export class LedgerPersistenceError extends Error {
-  constructor(message: string, public readonly transactionId: string, public override readonly cause?: any) {
+  constructor(
+    message: string,
+    public readonly transactionId: string,
+    public override readonly cause?: any,
+  ) {
     super(message);
-    this.name = 'LedgerPersistenceError';
+    this.name = "LedgerPersistenceError";
   }
 }
 
@@ -154,15 +158,17 @@ export class TransactionalLedger {
     postings: JournalPosting[];
   }): PreparedTransaction {
     if (!params.idempotencyKey || params.idempotencyKey.trim().length < 8) {
-      throw new Error('IDEMPOTENCY_KEY_INVALID: Chave de idempotência obrigatória.');
+      throw new Error("IDEMPOTENCY_KEY_INVALID: Chave de idempotência obrigatória.");
     }
 
     if (this.committedKeys.has(params.idempotencyKey)) {
-      throw new Error(`IDEMPOTENCY_CONFLICT: Transação com chave ${params.idempotencyKey} já foi efetivada.`);
+      throw new Error(
+        `IDEMPOTENCY_CONFLICT: Transação com chave ${params.idempotencyKey} já foi efetivada.`,
+      );
     }
 
     if (!params.postings || params.postings.length < 2) {
-      throw new Error('POSTINGS_MALFORMED: Uma transação contábil exige no mínimo duas pernas.');
+      throw new Error("POSTINGS_MALFORMED: Uma transação contábil exige no mínimo duas pernas.");
     }
 
     let sumDebit = 0;
@@ -170,18 +176,22 @@ export class TransactionalLedger {
 
     for (const post of params.postings) {
       if (post.amountCents <= 0 || !Number.isInteger(post.amountCents)) {
-        throw new Error(`INVALID_AMOUNT_CENTS: O valor deve ser inteiro e positivo (${post.amountCents}).`);
+        throw new Error(
+          `INVALID_AMOUNT_CENTS: O valor deve ser inteiro e positivo (${post.amountCents}).`,
+        );
       }
-      if (post.entryType === 'DEBIT') {
+      if (post.entryType === "DEBIT") {
         sumDebit += post.amountCents;
-      } else if (post.entryType === 'CREDIT') {
+      } else if (post.entryType === "CREDIT") {
         sumCredit += post.amountCents;
       }
     }
 
     // Invariante inegociável de partidas dobradas
     if (sumDebit !== sumCredit) {
-      throw new Error(`UNBALANCED_TRANSACTION: Débitos (${sumDebit} cents) !== Créditos (${sumCredit} cents).`);
+      throw new Error(
+        `UNBALANCED_TRANSACTION: Débitos (${sumDebit} cents) !== Créditos (${sumCredit} cents).`,
+      );
     }
 
     const transactionId = `TX-LEDGER-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
@@ -193,8 +203,8 @@ export class TransactionalLedger {
       postings: params.postings,
       totalDebitCents: sumDebit,
       totalCreditCents: sumCredit,
-      status: 'PREPARED',
-      preparedAt: Date.now()
+      status: "PREPARED",
+      preparedAt: Date.now(),
     };
 
     this.preparedTransactions.set(transactionId, prepared);
@@ -211,7 +221,7 @@ export class TransactionalLedger {
       throw new Error(`TRANSACTION_NOT_FOUND: ${transactionId}`);
     }
 
-    if (prepared.status !== 'PREPARED') {
+    if (prepared.status !== "PREPARED") {
       throw new Error(`INVALID_TRANSACTION_STATE: Status atual é ${prepared.status}`);
     }
 
@@ -223,11 +233,11 @@ export class TransactionalLedger {
         entry_type: p.entryType,
         amount_cents: p.amountCents,
         description: `[${prepared.idempotencyKey}] ${p.description}`,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       }));
 
       // Inserção atômica
-      const { error } = await supabase.from('financial_ledger_entries').insert(payload);
+      const { error } = await supabase.from("financial_ledger_entries").insert(payload);
 
       if (error) {
         // Se houver erro de banco de dados, aciona rollback imediato
@@ -235,17 +245,21 @@ export class TransactionalLedger {
         throw new LedgerPersistenceError(
           `Falha na persistência atômica do ledger: ${error.message}`,
           transactionId,
-          error
+          error,
         );
       }
 
-      prepared.status = 'COMMITTED';
+      prepared.status = "COMMITTED";
       this.committedKeys.add(prepared.idempotencyKey);
       return prepared;
     } catch (err: any) {
-      this.rollbackTransaction(transactionId, err?.message || 'Erro inesperado');
+      this.rollbackTransaction(transactionId, err?.message || "Erro inesperado");
       if (err instanceof LedgerPersistenceError) throw err;
-      throw new LedgerPersistenceError(`Falha de commit no ledger: ${err?.message}`, transactionId, err);
+      throw new LedgerPersistenceError(
+        `Falha de commit no ledger: ${err?.message}`,
+        transactionId,
+        err,
+      );
     }
   }
 
@@ -256,8 +270,10 @@ export class TransactionalLedger {
   public rollbackTransaction(transactionId: string, reason: string): void {
     const prepared = this.preparedTransactions.get(transactionId);
     if (prepared) {
-      prepared.status = 'ROLLED_BACK';
-      console.error(`[TransactionalLedger] ROLLBACK acionado para ${transactionId}. Motivo: ${reason}`);
+      prepared.status = "ROLLED_BACK";
+      console.error(
+        `[TransactionalLedger] ROLLBACK acionado para ${transactionId}. Motivo: ${reason}`,
+      );
     }
   }
 }

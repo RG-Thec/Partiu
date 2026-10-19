@@ -49,13 +49,20 @@ import {
   useRejeitarPartiuMotorista,
   useAtualizarCategoriaMotorista,
 } from "@/lib/partiu-db";
-import { driverSubscriptionService, type DriverSubscriptionRecord } from "@/lib/ecosystem/driver-subscription-service";
+import {
+  driverSubscriptionService,
+  type DriverSubscriptionRecord,
+} from "@/lib/ecosystem/driver-subscription-service";
 import { useRideRatings, rideRatingService, type RideRating } from "@/services/RideRatingService";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { exportarParaCSV } from "@/lib/export-csv";
 import { getAdminRole, isFranqueado } from "@/lib/admin-rbac";
 import { useAdminCity } from "@/contexts/AdminCityContext";
-import { DriverCrmKanban, type ItemCrmCondutor, type EstagioCrmKanban } from "@/components/admin/crm/DriverCrmKanban";
+import {
+  DriverCrmKanban,
+  type ItemCrmCondutor,
+  type EstagioCrmKanban,
+} from "@/components/admin/crm/DriverCrmKanban";
 
 export const Route = createFileRoute("/app/admin/motoristas")({
   head: () => ({
@@ -72,7 +79,8 @@ export const Route = createFileRoute("/app/admin/motoristas")({
 });
 
 type CategoriaPermitida = "CARRO" | "MOTO" | "PLUS" | "MULHER";
-type StatusMotorista = "TODOS" | "ONLINE" | "OFFLINE" | "PENDENTE" | "SUSPENSO" | "PLANO_ATIVO" | "PLANO_VENCIDO";
+type StatusMotorista =
+  "TODOS" | "ONLINE" | "OFFLINE" | "PENDENTE" | "SUSPENSO" | "PLANO_ATIVO" | "PLANO_VENCIDO";
 
 interface MotoristaFrota {
   id: string;
@@ -102,9 +110,14 @@ export function QuadroMotoristasAdminPage() {
   const { pracaAtiva, isNacional, selecionarPraca } = useAdminCity();
   const [adminRole] = useState(() => getAdminRole());
 
-  const { data: motoristasBanco = [], isLoading: carregandoMotoristas, refetch: recarregarMotoristas } = useMotoristas();
+  const {
+    data: motoristasBanco = [],
+    isLoading: carregandoMotoristas,
+    refetch: recarregarMotoristas,
+  } = useMotoristas();
   const { data: veiculosBanco = [] } = useVeiculosAdmin();
-  const { data: pendentesBanco = [], refetch: recarregarPendentes } = usePartiuMotoristasPendentes();
+  const { data: pendentesBanco = [], refetch: recarregarPendentes } =
+    usePartiuMotoristasPendentes();
 
   const aprovarMotorista = useAprovarPartiuMotorista();
   const rejeitarMotorista = useRejeitarPartiuMotorista();
@@ -160,11 +173,21 @@ export function QuadroMotoristasAdminPage() {
       }
     }
   }, []);
-  const { data: avaliacoesBanco = [], refetch: recarregarAvaliacoes, isFetching: recarregandoAvaliacoes } = useRideRatings(100);
-  const [filtroEstrelas, setFiltroEstrelas] = useState<"TODAS" | "CRITICAS" | "EXCELENTES" | "MEDIAS">("TODAS");
-  const [filtroDirecao, setFiltroDirecao] = useState<"TODAS" | "PASSENGER_TO_DRIVER" | "DRIVER_TO_PASSENGER">("TODAS");
+  const {
+    data: avaliacoesBanco = [],
+    refetch: recarregarAvaliacoes,
+    isFetching: recarregandoAvaliacoes,
+  } = useRideRatings(100);
+  const [filtroEstrelas, setFiltroEstrelas] = useState<
+    "TODAS" | "CRITICAS" | "EXCELENTES" | "MEDIAS"
+  >("TODAS");
+  const [filtroDirecao, setFiltroDirecao] = useState<
+    "TODAS" | "PASSENGER_TO_DRIVER" | "DRIVER_TO_PASSENGER"
+  >("TODAS");
   const [buscaAvaliacao, setBuscaAvaliacao] = useState("");
-  const [modoVisualizacaoAvaliacao, setModoVisualizacaoAvaliacao] = useState<"fila" | "cards">("fila");
+  const [modoVisualizacaoAvaliacao, setModoVisualizacaoAvaliacao] = useState<"fila" | "cards">(
+    "fila",
+  );
   const [excluindoAvaliacaoId, setExcluindoAvaliacaoId] = useState<string | null>(null);
 
   // Escuta em tempo real para novas avaliações no Supabase
@@ -173,13 +196,9 @@ export function QuadroMotoristasAdminPage() {
 
     const channel = (supabase as any)
       .channel("admin_ride_ratings_realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "ride_ratings" },
-        () => {
-          void recarregarAvaliacoes();
-        }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "ride_ratings" }, () => {
+        void recarregarAvaliacoes();
+      })
       .subscribe();
 
     return () => {
@@ -191,7 +210,11 @@ export function QuadroMotoristasAdminPage() {
 
   // Ação de moderação: Exclusão de avaliação imprópria / abusiva
   async function handleExcluirAvaliacao(id: string) {
-    if (!confirm("Tem certeza que deseja excluir esta avaliação? Esta ação removerá o registro permanentemente.")) {
+    if (
+      !confirm(
+        "Tem certeza que deseja excluir esta avaliação? Esta ação removerá o registro permanentemente.",
+      )
+    ) {
       return;
     }
     setExcluindoAvaliacaoId(id);
@@ -249,7 +272,7 @@ export function QuadroMotoristasAdminPage() {
 
   // Subscrição em tempo real às assinaturas SaaS
   const [assinaturas, setAssinaturas] = useState<DriverSubscriptionRecord[]>(() =>
-    driverSubscriptionService.getAllSubscriptions()
+    driverSubscriptionService.getAllSubscriptions(),
   );
 
   useEffect(() => {
@@ -265,16 +288,28 @@ export function QuadroMotoristasAdminPage() {
     // 1. Motoristas cadastrados no Supabase
     motoristasBanco.forEach((mb) => {
       const veiculoVinculado = veiculosBanco.find((v) => v.motorista_id === mb.id);
-      const catBanco = ((mb as any).categoria || (mb as any).vehicle_type || (veiculoVinculado as any)?.tipo || "").toUpperCase();
+      const catBanco = (
+        (mb as any).categoria ||
+        (mb as any).vehicle_type ||
+        (veiculoVinculado as any)?.tipo ||
+        ""
+      ).toUpperCase();
       const modalFinal: CategoriaPermitida =
-        catBanco === "MOTO" ? "MOTO" : catBanco === "PLUS" ? "PLUS" : catBanco === "MULHER" ? "MULHER" : "CARRO";
+        catBanco === "MOTO"
+          ? "MOTO"
+          : catBanco === "PLUS"
+            ? "PLUS"
+            : catBanco === "MULHER"
+              ? "MULHER"
+              : "CARRO";
 
       const sub = driverSubscriptionService.getActiveSubscription(mb.id);
       const isPlanoAtivo = Boolean(sub);
       const tempoRestante = sub ? driverSubscriptionService.getRemainingTime(sub).formatted : "";
       let planoTipo: "MENSAL" | "SEMANAL" | "DIARIA" | "TRIAL" | "NENHUM" = "NENHUM";
       if (sub) {
-        if (sub.cycle === "MONTHLY" || (sub.amount_paid && sub.amount_paid >= 100)) planoTipo = "MENSAL";
+        if (sub.cycle === "MONTHLY" || (sub.amount_paid && sub.amount_paid >= 100))
+          planoTipo = "MENSAL";
         else if (sub.cycle === "WEEKLY") planoTipo = "SEMANAL";
         else if (sub.cycle === "TRIAL" || sub.pix_txid?.startsWith("TRIAL")) planoTipo = "TRIAL";
         else planoTipo = "DIARIA";
@@ -285,13 +320,21 @@ export function QuadroMotoristasAdminPage() {
         nome: mb.full_name || "Motorista Parceiro",
         telefone: mb.phone || "Não informado",
         cidade: (mb as any).cidade || (mb as any).city || "Praça Regional",
-        cnh: (mb as any).cnh_number ? `CNH: ${(mb as any).cnh_number}` : `CNH Cat. ${modalFinal === "MOTO" ? "A (EAR)" : "B (EAR)"}`,
+        cnh: (mb as any).cnh_number
+          ? `CNH: ${(mb as any).cnh_number}`
+          : `CNH Cat. ${modalFinal === "MOTO" ? "A (EAR)" : "B (EAR)"}`,
         cnhValidade: "Em dia",
         modal: modalFinal,
-        veiculoModelo: (mb as any).vehicle_model || veiculoVinculado?.modelo || "Veículo Cadastrado",
+        veiculoModelo:
+          (mb as any).vehicle_model || veiculoVinculado?.modelo || "Veículo Cadastrado",
         veiculoPlaca: (mb as any).vehicle_plate || veiculoVinculado?.placa || "Placa não informada",
         veiculoAno: (mb as any).vehicle_year ? String((mb as any).vehicle_year) : "2023",
-        status: (mb as any).status_operacional === "ONLINE" ? "ONLINE" : (mb as any).status_operacional === "SUSPENSO" ? "SUSPENSO" : "OFFLINE",
+        status:
+          (mb as any).status_operacional === "ONLINE"
+            ? "ONLINE"
+            : (mb as any).status_operacional === "SUSPENSO"
+              ? "SUSPENSO"
+              : "OFFLINE",
         rating: (mb as any).rating ? Number((mb as any).rating) : 5.0,
         totalViagens: (mb as any).total_trips || 0,
         ocrScore: 98,
@@ -310,7 +353,13 @@ export function QuadroMotoristasAdminPage() {
       if (lista.some((m) => m.id === p.id)) return;
       const catPendente = (p.categoria_veiculo || "").toUpperCase();
       const modalFinal: CategoriaPermitida =
-        catPendente === "MOTO" ? "MOTO" : catPendente === "PLUS" ? "PLUS" : catPendente === "MULHER" ? "MULHER" : "CARRO";
+        catPendente === "MOTO"
+          ? "MOTO"
+          : catPendente === "PLUS"
+            ? "PLUS"
+            : catPendente === "MULHER"
+              ? "MULHER"
+              : "CARRO";
 
       lista.push({
         id: p.id,
@@ -348,7 +397,10 @@ export function QuadroMotoristasAdminPage() {
       let estagio: EstagioCrmKanban = "4_ativo";
       if (m.status === "PENDENTE") {
         estagio = m.cnh && m.cnh.includes("Validação OCR") ? "1_lead" : "2_validacao";
-      } else if (m.status === "SUSPENSO" || (!m.planoAtivo && m.planoTipo === "NENHUM" && m.totalViagens > 0)) {
+      } else if (
+        m.status === "SUSPENSO" ||
+        (!m.planoAtivo && m.planoTipo === "NENHUM" && m.totalViagens > 0)
+      ) {
         estagio = "6_inadimplente";
       } else if (!m.planoAtivo) {
         estagio = "3_aprovado";
@@ -393,14 +445,23 @@ export function QuadroMotoristasAdminPage() {
   const totalOffline = motoristasDaPraca.filter((m) => m.status === "OFFLINE").length;
   const totalPendentes = motoristasDaPraca.filter((m) => m.status === "PENDENTE").length;
   const totalSuspensos = motoristasDaPraca.filter((m) => m.status === "SUSPENSO").length;
-  const totalSemPlano = motoristasDaPraca.filter((m) => !m.planoAtivo && m.status !== "PENDENTE").length;
+  const totalSemPlano = motoristasDaPraca.filter(
+    (m) => !m.planoAtivo && m.status !== "PENDENTE",
+  ).length;
 
   // Filtragem da tabela
   const motoristasFiltrados = useMemo(() => {
     return motoristasDaPraca.filter((m) => {
       if (filtroStatus === "PLANO_ATIVO" && !m.planoAtivo) return false;
-      if (filtroStatus === "PLANO_VENCIDO" && (m.planoAtivo || m.status === "PENDENTE")) return false;
-      if (filtroStatus !== "TODOS" && filtroStatus !== "PLANO_ATIVO" && filtroStatus !== "PLANO_VENCIDO" && m.status !== filtroStatus) return false;
+      if (filtroStatus === "PLANO_VENCIDO" && (m.planoAtivo || m.status === "PENDENTE"))
+        return false;
+      if (
+        filtroStatus !== "TODOS" &&
+        filtroStatus !== "PLANO_ATIVO" &&
+        filtroStatus !== "PLANO_VENCIDO" &&
+        m.status !== filtroStatus
+      )
+        return false;
       if (filtroModal !== "TODOS" && m.modal !== filtroModal) return false;
       if (busca) {
         const q = busca.toLowerCase();
@@ -422,9 +483,12 @@ export function QuadroMotoristasAdminPage() {
     try {
       await aprovarMotorista.mutateAsync({ id: m.id, categoriaVeiculo: m.modal });
       const mensagemWhats = encodeURIComponent(
-        `Olá ${m.nome}, parabéns! Seu cadastro no PARTIU como parceiro (${m.modal}) foi APROVADO com sucesso. Abra o app PARTIU Motorista, fique online e comece a rodar!`
+        `Olá ${m.nome}, parabéns! Seu cadastro no PARTIU como parceiro (${m.modal}) foi APROVADO com sucesso. Abra o app PARTIU Motorista, fique online e comece a rodar!`,
       );
-      window.open(`https://wa.me/55${m.telefone.replace(/\D/g, "")}?text=${mensagemWhats}`, "_blank");
+      window.open(
+        `https://wa.me/55${m.telefone.replace(/\D/g, "")}?text=${mensagemWhats}`,
+        "_blank",
+      );
       setMotoristaSelecionado(null);
     } catch (err: any) {
       alert("Falha ao aprovar condutor: " + err.message);
@@ -437,9 +501,12 @@ export function QuadroMotoristasAdminPage() {
     try {
       await rejeitarMotorista.mutateAsync({ id: motoristaSelecionado.id, motivo: motivoRejeicao });
       const mensagemWhats = encodeURIComponent(
-        `Olá ${motoristaSelecionado.nome}, informamos que seu cadastro no PARTIU necessita de ajustes: ${motivoRejeicao}. Por favor, reenvie a documentação pelo aplicativo para nova análise.`
+        `Olá ${motoristaSelecionado.nome}, informamos que seu cadastro no PARTIU necessita de ajustes: ${motivoRejeicao}. Por favor, reenvie a documentação pelo aplicativo para nova análise.`,
       );
-      window.open(`https://wa.me/55${motoristaSelecionado.telefone.replace(/\D/g, "")}?text=${mensagemWhats}`, "_blank");
+      window.open(
+        `https://wa.me/55${motoristaSelecionado.telefone.replace(/\D/g, "")}?text=${mensagemWhats}`,
+        "_blank",
+      );
       setModalRejeitarAberto(false);
       setMotoristaSelecionado(null);
     } catch (err: any) {
@@ -464,7 +531,10 @@ export function QuadroMotoristasAdminPage() {
           <div className="flex items-center gap-2 mb-1">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              Gestão da Frota • {isFranqueado(adminRole) ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
+              Gestão da Frota •{" "}
+              {isFranqueado(adminRole)
+                ? `Franquia ${pracaAtiva?.nome || "Regional"}`
+                : "Gestão Nacional"}
             </span>
           </div>
           <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
@@ -479,7 +549,8 @@ export function QuadroMotoristasAdminPage() {
             )}
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Supervisão de condutores parceiros, modais de despacho e conformidade documental {isNacional ? "em âmbito nacional" : `em ${pracaAtiva.nome}`}.
+            Supervisão de condutores parceiros, modais de despacho e conformidade documental{" "}
+            {isNacional ? "em âmbito nacional" : `em ${pracaAtiva.nome}`}.
           </p>
         </div>
 
@@ -515,7 +586,8 @@ export function QuadroMotoristasAdminPage() {
           <div className="flex items-center gap-2">
             <MapPin className="h-4 w-4 text-[#0088FF] shrink-0" />
             <span className="font-bold">
-              Frota filtrada pela praça: <strong>{pracaAtiva.labelCompleto}</strong> ({pracaAtiva.raioKm} km de raio)
+              Frota filtrada pela praça: <strong>{pracaAtiva.labelCompleto}</strong> (
+              {pracaAtiva.raioKm} km de raio)
             </span>
           </div>
           {!isFranqueado(adminRole) && (
@@ -543,9 +615,13 @@ export function QuadroMotoristasAdminPage() {
         >
           <Car className="h-3.5 w-3.5 text-[#0088FF]" />
           <span>Frota Urbana &amp; Condutores</span>
-          <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
-            abaPrincipal === "frota" ? "bg-white/20 text-white dark:bg-slate-900/40 dark:text-slate-900" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
-          }`}>
+          <span
+            className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
+              abaPrincipal === "frota"
+                ? "bg-white/20 text-white dark:bg-slate-900/40 dark:text-slate-900"
+                : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+            }`}
+          >
             {motoristasDaPraca.length}
           </span>
         </button>
@@ -582,9 +658,13 @@ export function QuadroMotoristasAdminPage() {
               {kpisAvaliacoes.criticas} críticas
             </span>
           ) : (
-            <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
-              abaPrincipal === "avaliacoes" ? "bg-white/20 text-white dark:bg-slate-900/40 dark:text-slate-900" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
-            }`}>
+            <span
+              className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
+                abaPrincipal === "avaliacoes"
+                  ? "bg-white/20 text-white dark:bg-slate-900/40 dark:text-slate-900"
+                  : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+              }`}
+            >
               {avaliacoesBanco.length}
             </span>
           )}
@@ -598,13 +678,17 @@ export function QuadroMotoristasAdminPage() {
             {/* Total de Motoristas */}
             <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Total na Praça</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  Total na Praça
+                </span>
                 <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0088FF] flex items-center justify-center">
                   <Users className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-xl sm:text-2xl font-black text-slate-900">{totalCadastrados}</span>
+                <span className="text-xl sm:text-2xl font-black text-slate-900">
+                  {totalCadastrados}
+                </span>
                 <span className="text-[11px] font-bold text-emerald-600">Base Ativa</span>
               </div>
             </div>
@@ -612,29 +696,35 @@ export function QuadroMotoristasAdminPage() {
             {/* Planos SaaS Ativos (Zero Comissão) */}
             <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Planos SaaS Ativos</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  Planos SaaS Ativos
+                </span>
                 <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-xl sm:text-2xl font-black text-emerald-700">{totalPlanosAtivos}</span>
-                <span className="text-[11px] font-bold text-emerald-600">
-                  0% Taxa Ativa
+                <span className="text-xl sm:text-2xl font-black text-emerald-700">
+                  {totalPlanosAtivos}
                 </span>
+                <span className="text-[11px] font-bold text-emerald-600">0% Taxa Ativa</span>
               </div>
             </div>
 
             {/* Pendentes */}
             <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Aguardando OCR</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  Aguardando OCR
+                </span>
                 <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
                   <Clock className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-xl sm:text-2xl font-black text-amber-600">{totalPendentes}</span>
+                <span className="text-xl sm:text-2xl font-black text-amber-600">
+                  {totalPendentes}
+                </span>
                 <span className="text-[11px] font-medium text-amber-700">Em esteira</span>
               </div>
             </div>
@@ -642,13 +732,17 @@ export function QuadroMotoristasAdminPage() {
             {/* Acesso Vencido / Suspensos */}
             <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-xs hover:border-slate-300 transition-colors">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Acesso Vencido</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  Acesso Vencido
+                </span>
                 <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
                   <AlertTriangle className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-xl sm:text-2xl font-black text-rose-600">{totalSemPlano + totalSuspensos}</span>
+                <span className="text-xl sm:text-2xl font-black text-rose-600">
+                  {totalSemPlano + totalSuspensos}
+                </span>
                 <span className="text-[11px] font-medium text-slate-500">Requer diária/plano</span>
               </div>
             </div>
@@ -659,7 +753,17 @@ export function QuadroMotoristasAdminPage() {
             {/* BARRA DE BUSCA & FILTROS */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-xs">
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-                {(["TODOS", "ONLINE", "PLANO_ATIVO", "PLANO_VENCIDO", "PENDENTE", "OFFLINE", "SUSPENSO"] as StatusMotorista[]).map((st) => (
+                {(
+                  [
+                    "TODOS",
+                    "ONLINE",
+                    "PLANO_ATIVO",
+                    "PLANO_VENCIDO",
+                    "PENDENTE",
+                    "OFFLINE",
+                    "SUSPENSO",
+                  ] as StatusMotorista[]
+                ).map((st) => (
                   <button
                     key={st}
                     type="button"
@@ -710,7 +814,18 @@ export function QuadroMotoristasAdminPage() {
                   onClick={() => {
                     exportarParaCSV(
                       `motoristas_partiu_${new Date().toISOString().slice(0, 10)}`,
-                      ["ID", "Nome", "Telefone", "Modal", "Veículo", "Placa", "Ano", "Status", "Avaliação", "Total Viagens"],
+                      [
+                        "ID",
+                        "Nome",
+                        "Telefone",
+                        "Modal",
+                        "Veículo",
+                        "Placa",
+                        "Ano",
+                        "Status",
+                        "Avaliação",
+                        "Total Viagens",
+                      ],
                       motoristasFiltrados.map((m) => [
                         m.id,
                         m.nome,
@@ -722,7 +837,7 @@ export function QuadroMotoristasAdminPage() {
                         m.status,
                         m.rating.toFixed(1),
                         m.totalViagens,
-                      ])
+                      ]),
                     );
                   }}
                   className="h-8.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
@@ -734,267 +849,306 @@ export function QuadroMotoristasAdminPage() {
               </div>
             </div>
 
-        {/* TABELA DE MOTORISTAS DESKTOP */}
-        <div className="hidden sm:block bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-slate-50/90 text-slate-500 uppercase font-black text-xs tracking-wider border-b border-slate-200">
-                <tr>
-                  <th className="py-3 px-4">Motorista</th>
-                  <th className="py-3 px-4">Veículo</th>
-                  <th className="py-3 px-4">Plano SaaS (0% Taxa)</th>
-                  <th className="py-3 px-4">Documentos</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {motoristasFiltrados.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="py-12 px-4 text-center text-slate-500 text-xs font-medium">
-                      <div className="max-w-sm mx-auto space-y-2">
-                        <Users className="w-8 h-8 text-slate-300 mx-auto" />
-                        <p className="font-bold text-slate-700">Nenhum motorista encontrado com os filtros atuais</p>
-                        <p className="text-[11px] text-slate-400">Tente buscar por outro nome, placa ou redefinir os filtros de status.</p>
-                        {(busca.trim() || filtroStatus !== "TODOS" || filtroModal !== "TODOS") && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setBusca("");
-                              setFiltroStatus("TODOS");
-                              setFiltroModal("TODOS");
-                            }}
-                            className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
-                          >
-                            Limpar Filtros
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  motoristasFiltrados.map((m) => {
-                    const isPendente = m.status === "PENDENTE";
-
-                    return (
-                      <tr key={m.id} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0088FF] border border-blue-200/60 flex items-center justify-center font-black text-sm shrink-0 shadow-xs">
-                              {m.nome.charAt(0)}
-                            </div>
-                            <div>
-                              <p className="font-bold text-xs sm:text-sm text-slate-900 flex items-center gap-1.5">
-                                {m.nome}
-                                <span className="text-amber-500 text-[11px] font-black flex items-center">
-                                  ★ {m.rating.toFixed(1)}
-                                </span>
-                              </p>
-                              <span className="text-[11px] text-slate-500 font-medium">{m.telefone}</span>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td className="py-3 px-4">
-                          <p className="font-bold text-xs sm:text-sm text-slate-900">{m.veiculoModelo}</p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[11px] text-slate-500 font-mono font-bold uppercase">
-                              {m.veiculoPlaca}
-                            </span>
-                            <span
-                              className={`inline-flex items-center px-1.5 py-0.2 rounded-md text-[9px] font-black border ${
-                                m.modal === "CARRO"
-                                  ? "bg-blue-50 text-blue-700 border-blue-200"
-                                  : m.modal === "MOTO"
-                                  ? "bg-amber-50 text-amber-800 border-amber-200"
-                                  : m.modal === "PLUS"
-                                  ? "bg-purple-50 text-purple-700 border-purple-200"
-                                  : "bg-rose-50 text-rose-700 border-rose-200"
-                              }`}
-                            >
-                              {m.modal}
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* Plano SaaS (0% Taxa) */}
-                        <td className="py-3 px-4">
-                          {m.planoAtivo ? (
-                            <div className="space-y-0.5">
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                                m.planoTipo === "MENSAL"
-                                  ? "bg-purple-50 text-purple-800 border border-purple-200"
-                                  : m.planoTipo === "TRIAL"
-                                  ? "bg-blue-50 text-blue-800 border border-blue-200"
-                                  : "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                              }`}>
-                                <Sparkles className="h-2.5 w-2.5 text-amber-500" />
-                                {m.planoTipo === "MENSAL" ? "Mensal Ouro" : m.planoTipo === "TRIAL" ? "Trial 7 Dias" : "Diária 24h"}
-                              </span>
-                              <span className="block text-[10px] text-slate-500 font-medium">
-                                {m.planoTempoRestante ? `Restam ${m.planoTempoRestante}` : "0% Comissão Ativa"}
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="space-y-0.5">
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200">
-                                <Clock className="h-2.5 w-2.5" />
-                                {m.status === "PENDENTE" ? "Em Análise" : "Acesso Vencido"}
-                              </span>
-                              <span className="block text-[10px] text-slate-400">
-                                {m.status === "PENDENTE" ? "Aguardando OCR" : "Bloqueado p/ Corridas"}
-                              </span>
-                            </div>
-                          )}
-                        </td>
-
-                        {/* Checklist de Documentos */}
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-[#22C55E] text-[10px] font-bold border border-emerald-200/60">
-                              ✓ CNH
-                            </span>
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-[#22C55E] text-[10px] font-bold border border-emerald-200/60">
-                              ✓ CRLV
-                            </span>
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-[#22C55E] text-[10px] font-bold border border-emerald-200/60">
-                              ✓ Antecedentes
-                            </span>
-                          </div>
-                        </td>
-
-                        <td className="py-3 px-4">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                              m.status === "ONLINE"
-                                ? "bg-emerald-50 text-[#22C55E] border border-emerald-200"
-                                : m.status === "PENDENTE"
-                                ? "bg-amber-50 text-amber-700 border border-amber-200"
-                                : m.status === "SUSPENSO"
-                                ? "bg-rose-50 text-[#EF4444] border border-rose-200"
-                                : "bg-slate-100 text-slate-600 border border-slate-200"
-                            }`}
-                          >
-                            {m.status === "ONLINE" && "Aprovado"}
-                            {m.status === "OFFLINE" && "Offline"}
-                            {m.status === "PENDENTE" && "Pendente"}
-                            {m.status === "SUSPENSO" && "Suspenso"}
-                          </span>
-                        </td>
-
-                        <td className="py-3 px-4 text-right">
-                          {isPendente ? (
-                            <div className="inline-flex items-center gap-1.5 justify-end">
-                              <button
-                                type="button"
-                                onClick={() => handleAprovar(m)}
-                                className="h-8 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
-                              >
-                                <CheckCircle2 className="h-3.5 w-3.5" />
-                                <span>Aprovar</span>
-                              </button>
+            {/* TABELA DE MOTORISTAS DESKTOP */}
+            <div className="hidden sm:block bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-slate-50/90 text-slate-500 uppercase font-black text-xs tracking-wider border-b border-slate-200">
+                    <tr>
+                      <th className="py-3 px-4">Motorista</th>
+                      <th className="py-3 px-4">Veículo</th>
+                      <th className="py-3 px-4">Plano SaaS (0% Taxa)</th>
+                      <th className="py-3 px-4">Documentos</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4 text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {motoristasFiltrados.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={7}
+                          className="py-12 px-4 text-center text-slate-500 text-xs font-medium"
+                        >
+                          <div className="max-w-sm mx-auto space-y-2">
+                            <Users className="w-8 h-8 text-slate-300 mx-auto" />
+                            <p className="font-bold text-slate-700">
+                              Nenhum motorista encontrado com os filtros atuais
+                            </p>
+                            <p className="text-[11px] text-slate-400">
+                              Tente buscar por outro nome, placa ou redefinir os filtros de status.
+                            </p>
+                            {(busca.trim() ||
+                              filtroStatus !== "TODOS" ||
+                              filtroModal !== "TODOS") && (
                               <button
                                 type="button"
                                 onClick={() => {
-                                  setMotoristaSelecionado(m);
-                                  setModalRejeitarAberto(true);
+                                  setBusca("");
+                                  setFiltroStatus("TODOS");
+                                  setFiltroModal("TODOS");
                                 }}
-                                className="h-8 px-2.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-[#EF4444] font-bold text-xs border border-rose-200 transition cursor-pointer flex items-center gap-1 active:scale-95"
+                                className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
                               >
-                                <UserX className="h-3.5 w-3.5" />
-                                <span>Rejeitar</span>
+                                Limpar Filtros
                               </button>
-                            </div>
-                          ) : (
-                            <div className="inline-flex items-center gap-1.5 justify-end">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const msg = encodeURIComponent(`Olá ${m.nome}, contato da Central PARTIU Operações.`);
-                                  window.open(`https://wa.me/55${m.telefone.replace(/\D/g, "")}?text=${msg}`, "_blank");
-                                }}
-                                className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-500 hover:text-emerald-600 border border-slate-200 flex items-center justify-center transition cursor-pointer active:scale-95"
-                                title="WhatsApp"
-                              >
-                                <Phone className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setMotoristaSelecionado(m);
-                                  setCategoriaEdicao(m.modal);
-                                  setModalDetalhesAberto(true);
-                                }}
-                                className="h-8 px-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs border border-slate-200 transition cursor-pointer active:scale-95"
-                              >
-                                Detalhes
-                              </button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </td>
                       </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                    ) : (
+                      motoristasFiltrados.map((m) => {
+                        const isPendente = m.status === "PENDENTE";
 
-        {/* CARDS MOBILE */}
-        <div className="grid grid-cols-1 gap-2.5 sm:hidden">
-          {motoristasFiltrados.length === 0 ? (
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center text-slate-400 text-xs">
-              Nenhum motorista encontrado para os filtros selecionados.
-            </div>
-          ) : (
-            motoristasFiltrados.map((m) => (
-              <div key={m.id} className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-xs space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-blue-50 text-[#0088FF] flex items-center justify-center font-bold text-xs">
-                      {m.nome.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-slate-800 text-xs">{m.nome}</p>
-                      <span className="text-[10px] text-slate-400">{m.telefone}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      m.planoAtivo
-                        ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                        : "bg-amber-50 text-amber-800 border border-amber-200"
-                    }`}>
-                      {m.planoAtivo ? (m.planoTipo === "MENSAL" ? "Mensal (0%)" : "Diária (0%)") : "Sem Plano"}
-                    </span>
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                      {m.status}
-                    </span>
-                  </div>
-                </div>
-                <div className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-xl flex items-center justify-between">
-                  <span>{m.veiculoModelo} • {m.veiculoPlaca}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-blue-600">{m.modal}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMotoristaSelecionado(m);
-                        setCategoriaEdicao(m.modal);
-                        setModalDetalhesAberto(true);
-                      }}
-                      className="text-[10px] font-bold text-[#0088FF] hover:underline cursor-pointer"
-                    >
-                      Acessar
-                    </button>
-                  </div>
-                </div>
+                        return (
+                          <tr key={m.id} className="hover:bg-slate-50/70 transition-colors">
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0088FF] border border-blue-200/60 flex items-center justify-center font-black text-sm shrink-0 shadow-xs">
+                                  {m.nome.charAt(0)}
+                                </div>
+                                <div>
+                                  <p className="font-bold text-xs sm:text-sm text-slate-900 flex items-center gap-1.5">
+                                    {m.nome}
+                                    <span className="text-amber-500 text-[11px] font-black flex items-center">
+                                      ★ {m.rating.toFixed(1)}
+                                    </span>
+                                  </p>
+                                  <span className="text-[11px] text-slate-500 font-medium">
+                                    {m.telefone}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+
+                            <td className="py-3 px-4">
+                              <p className="font-bold text-xs sm:text-sm text-slate-900">
+                                {m.veiculoModelo}
+                              </p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-[11px] text-slate-500 font-mono font-bold uppercase">
+                                  {m.veiculoPlaca}
+                                </span>
+                                <span
+                                  className={`inline-flex items-center px-1.5 py-0.2 rounded-md text-[9px] font-black border ${
+                                    m.modal === "CARRO"
+                                      ? "bg-blue-50 text-blue-700 border-blue-200"
+                                      : m.modal === "MOTO"
+                                        ? "bg-amber-50 text-amber-800 border-amber-200"
+                                        : m.modal === "PLUS"
+                                          ? "bg-purple-50 text-purple-700 border-purple-200"
+                                          : "bg-rose-50 text-rose-700 border-rose-200"
+                                  }`}
+                                >
+                                  {m.modal}
+                                </span>
+                              </div>
+                            </td>
+
+                            {/* Plano SaaS (0% Taxa) */}
+                            <td className="py-3 px-4">
+                              {m.planoAtivo ? (
+                                <div className="space-y-0.5">
+                                  <span
+                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                                      m.planoTipo === "MENSAL"
+                                        ? "bg-purple-50 text-purple-800 border border-purple-200"
+                                        : m.planoTipo === "TRIAL"
+                                          ? "bg-blue-50 text-blue-800 border border-blue-200"
+                                          : "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                    }`}
+                                  >
+                                    <Sparkles className="h-2.5 w-2.5 text-amber-500" />
+                                    {m.planoTipo === "MENSAL"
+                                      ? "Mensal Ouro"
+                                      : m.planoTipo === "TRIAL"
+                                        ? "Trial 7 Dias"
+                                        : "Diária 24h"}
+                                  </span>
+                                  <span className="block text-[10px] text-slate-500 font-medium">
+                                    {m.planoTempoRestante
+                                      ? `Restam ${m.planoTempoRestante}`
+                                      : "0% Comissão Ativa"}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="space-y-0.5">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200">
+                                    <Clock className="h-2.5 w-2.5" />
+                                    {m.status === "PENDENTE" ? "Em Análise" : "Acesso Vencido"}
+                                  </span>
+                                  <span className="block text-[10px] text-slate-400">
+                                    {m.status === "PENDENTE"
+                                      ? "Aguardando OCR"
+                                      : "Bloqueado p/ Corridas"}
+                                  </span>
+                                </div>
+                              )}
+                            </td>
+
+                            {/* Checklist de Documentos */}
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-[#22C55E] text-[10px] font-bold border border-emerald-200/60">
+                                  ✓ CNH
+                                </span>
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-[#22C55E] text-[10px] font-bold border border-emerald-200/60">
+                                  ✓ CRLV
+                                </span>
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-[#22C55E] text-[10px] font-bold border border-emerald-200/60">
+                                  ✓ Antecedentes
+                                </span>
+                              </div>
+                            </td>
+
+                            <td className="py-3 px-4">
+                              <span
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                                  m.status === "ONLINE"
+                                    ? "bg-emerald-50 text-[#22C55E] border border-emerald-200"
+                                    : m.status === "PENDENTE"
+                                      ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                      : m.status === "SUSPENSO"
+                                        ? "bg-rose-50 text-[#EF4444] border border-rose-200"
+                                        : "bg-slate-100 text-slate-600 border border-slate-200"
+                                }`}
+                              >
+                                {m.status === "ONLINE" && "Aprovado"}
+                                {m.status === "OFFLINE" && "Offline"}
+                                {m.status === "PENDENTE" && "Pendente"}
+                                {m.status === "SUSPENSO" && "Suspenso"}
+                              </span>
+                            </td>
+
+                            <td className="py-3 px-4 text-right">
+                              {isPendente ? (
+                                <div className="inline-flex items-center gap-1.5 justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleAprovar(m)}
+                                    className="h-8 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
+                                  >
+                                    <CheckCircle2 className="h-3.5 w-3.5" />
+                                    <span>Aprovar</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setMotoristaSelecionado(m);
+                                      setModalRejeitarAberto(true);
+                                    }}
+                                    className="h-8 px-2.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-[#EF4444] font-bold text-xs border border-rose-200 transition cursor-pointer flex items-center gap-1 active:scale-95"
+                                  >
+                                    <UserX className="h-3.5 w-3.5" />
+                                    <span>Rejeitar</span>
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="inline-flex items-center gap-1.5 justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const msg = encodeURIComponent(
+                                        `Olá ${m.nome}, contato da Central PARTIU Operações.`,
+                                      );
+                                      window.open(
+                                        `https://wa.me/55${m.telefone.replace(/\D/g, "")}?text=${msg}`,
+                                        "_blank",
+                                      );
+                                    }}
+                                    className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-500 hover:text-emerald-600 border border-slate-200 flex items-center justify-center transition cursor-pointer active:scale-95"
+                                    title="WhatsApp"
+                                  >
+                                    <Phone className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setMotoristaSelecionado(m);
+                                      setCategoriaEdicao(m.modal);
+                                      setModalDetalhesAberto(true);
+                                    }}
+                                    className="h-8 px-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs border border-slate-200 transition cursor-pointer active:scale-95"
+                                  >
+                                    Detalhes
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
               </div>
-            ))
-          )}
-        </div>
-      </div>
+            </div>
+
+            {/* CARDS MOBILE */}
+            <div className="grid grid-cols-1 gap-2.5 sm:hidden">
+              {motoristasFiltrados.length === 0 ? (
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center text-slate-400 text-xs">
+                  Nenhum motorista encontrado para os filtros selecionados.
+                </div>
+              ) : (
+                motoristasFiltrados.map((m) => (
+                  <div
+                    key={m.id}
+                    className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-xs space-y-2"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-blue-50 text-[#0088FF] flex items-center justify-center font-bold text-xs">
+                          {m.nome.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-800 text-xs">{m.nome}</p>
+                          <span className="text-[10px] text-slate-400">{m.telefone}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            m.planoAtivo
+                              ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                              : "bg-amber-50 text-amber-800 border border-amber-200"
+                          }`}
+                        >
+                          {m.planoAtivo
+                            ? m.planoTipo === "MENSAL"
+                              ? "Mensal (0%)"
+                              : "Diária (0%)"
+                            : "Sem Plano"}
+                        </span>
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                          {m.status}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-xl flex items-center justify-between">
+                      <span>
+                        {m.veiculoModelo} • {m.veiculoPlaca}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-blue-600">{m.modal}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMotoristaSelecionado(m);
+                            setCategoriaEdicao(m.modal);
+                            setModalDetalhesAberto(true);
+                          }}
+                          className="text-[10px] font-bold text-[#0088FF] hover:underline cursor-pointer"
+                        >
+                          Acessar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </>
       ) : abaPrincipal === "crm_kanban" ? (
         /* VISÃO DE CRM KANBAN DE CICLO DE VIDA (PIPELINE DE ASSINATURAS E RETENÇÃO) */
@@ -1091,7 +1245,9 @@ export function QuadroMotoristasAdminPage() {
                   {kpisAvaliacoes.excelentes}
                 </span>
                 <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                  {kpisAvaliacoes.total > 0 ? `${kpisAvaliacoes.taxaPositiva} satisfação` : "aguardando dados"}
+                  {kpisAvaliacoes.total > 0
+                    ? `${kpisAvaliacoes.taxaPositiva} satisfação`
+                    : "aguardando dados"}
                 </span>
               </div>
             </div>
@@ -1190,7 +1346,9 @@ export function QuadroMotoristasAdminPage() {
                 className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition cursor-pointer shrink-0 disabled:opacity-50"
                 title="Sincronizar com banco de dados"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${recarregandoAvaliacoes ? "animate-spin text-[#0088FF]" : ""}`} />
+                <RefreshCw
+                  className={`h-3.5 w-3.5 ${recarregandoAvaliacoes ? "animate-spin text-[#0088FF]" : ""}`}
+                />
               </button>
 
               {/* Exportar CSV */}
@@ -1200,7 +1358,17 @@ export function QuadroMotoristasAdminPage() {
                 onClick={() => {
                   exportarParaCSV(
                     `avaliacoes_partiu_${new Date().toISOString().slice(0, 10)}`,
-                    ["ID", "Corrida ID", "Avaliador", "Avaliado", "Direção", "Nota", "Tags", "Comentário", "Data e Hora"],
+                    [
+                      "ID",
+                      "Corrida ID",
+                      "Avaliador",
+                      "Avaliado",
+                      "Direção",
+                      "Nota",
+                      "Tags",
+                      "Comentário",
+                      "Data e Hora",
+                    ],
                     avaliacoesFiltradas.map((a) => [
                       a.id,
                       a.rideId,
@@ -1211,7 +1379,7 @@ export function QuadroMotoristasAdminPage() {
                       a.tags.join("; "),
                       a.comment || "",
                       new Date(a.createdAt).toLocaleString("pt-BR"),
-                    ])
+                    ]),
                   );
                 }}
                 className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-300 dark:border-emerald-800 transition cursor-pointer shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
@@ -1253,7 +1421,8 @@ export function QuadroMotoristasAdminPage() {
                       Nenhuma avaliação registrada
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                      As notas mútuas (1 a 5 estrelas) e tags de qualidade enviadas por passageiros e motoristas aparecerão aqui automaticamente.
+                      As notas mútuas (1 a 5 estrelas) e tags de qualidade enviadas por passageiros
+                      e motoristas aparecerão aqui automaticamente.
                     </p>
                   </div>
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-bold text-slate-600 dark:text-slate-300">
@@ -1305,8 +1474,8 @@ export function QuadroMotoristasAdminPage() {
                               isCritica
                                 ? "bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300"
                                 : a.score >= 4
-                                ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300"
-                                : "bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300"
+                                  ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300"
+                                  : "bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300"
                             }`}
                           >
                             <Star className="h-3 w-3 fill-current" />
@@ -1321,18 +1490,28 @@ export function QuadroMotoristasAdminPage() {
                                 : "bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800"
                             }`}
                           >
-                            {isPassageiroParaMotorista ? <Car className="h-2.5 w-2.5" /> : <Users className="h-2.5 w-2.5" />}
+                            {isPassageiroParaMotorista ? (
+                              <Car className="h-2.5 w-2.5" />
+                            ) : (
+                              <Users className="h-2.5 w-2.5" />
+                            )}
                             <span className="hidden sm:inline">
-                              {isPassageiroParaMotorista ? "Passageiro → Motorista" : "Motorista → Passageiro"}
+                              {isPassageiroParaMotorista
+                                ? "Passageiro → Motorista"
+                                : "Motorista → Passageiro"}
                             </span>
                           </span>
 
                           {/* Usuários De -> Para */}
                           <div className="text-xs min-w-0">
                             <div className="flex items-center gap-1.5 truncate">
-                              <span className="font-bold text-slate-900 dark:text-white truncate">{a.fromUserId}</span>
+                              <span className="font-bold text-slate-900 dark:text-white truncate">
+                                {a.fromUserId}
+                              </span>
                               <span className="text-slate-400">→</span>
-                              <span className="font-bold text-slate-900 dark:text-white truncate">{a.toUserId}</span>
+                              <span className="font-bold text-slate-900 dark:text-white truncate">
+                                {a.toUserId}
+                              </span>
                             </div>
                             <div className="text-[11px] text-slate-400 flex items-center gap-2">
                               <Link
@@ -1367,11 +1546,16 @@ export function QuadroMotoristasAdminPage() {
                             </div>
                           )}
                           {a.comment ? (
-                            <p className="text-xs text-slate-700 dark:text-slate-300 italic truncate" title={a.comment}>
+                            <p
+                              className="text-xs text-slate-700 dark:text-slate-300 italic truncate"
+                              title={a.comment}
+                            >
                               "{a.comment}"
                             </p>
                           ) : (
-                            <span className="text-[11px] text-slate-400">Sem comentário em texto</span>
+                            <span className="text-[11px] text-slate-400">
+                              Sem comentário em texto
+                            </span>
                           )}
                         </div>
 
@@ -1431,7 +1615,9 @@ export function QuadroMotoristasAdminPage() {
                                 />
                               ))}
                             </div>
-                            <span className="font-black text-xs text-slate-900 dark:text-white">{a.score}.0</span>
+                            <span className="font-black text-xs text-slate-900 dark:text-white">
+                              {a.score}.0
+                            </span>
                             <span
                               className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
                                 isPassageiroParaMotorista
@@ -1439,8 +1625,14 @@ export function QuadroMotoristasAdminPage() {
                                   : "bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800"
                               }`}
                             >
-                              {isPassageiroParaMotorista ? <Car className="h-2.5 w-2.5" /> : <Users className="h-2.5 w-2.5" />}
-                              {isPassageiroParaMotorista ? "Passageiro → Motorista" : "Motorista → Passageiro"}
+                              {isPassageiroParaMotorista ? (
+                                <Car className="h-2.5 w-2.5" />
+                              ) : (
+                                <Users className="h-2.5 w-2.5" />
+                              )}
+                              {isPassageiroParaMotorista
+                                ? "Passageiro → Motorista"
+                                : "Motorista → Passageiro"}
                             </span>
                           </div>
 
@@ -1456,9 +1648,13 @@ export function QuadroMotoristasAdminPage() {
                         </div>
 
                         <div className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                          <span className="font-bold text-slate-900 dark:text-white truncate">De: {a.fromUserId}</span>
+                          <span className="font-bold text-slate-900 dark:text-white truncate">
+                            De: {a.fromUserId}
+                          </span>
                           <span>→</span>
-                          <span className="font-bold text-slate-900 dark:text-white truncate">Para: {a.toUserId}</span>
+                          <span className="font-bold text-slate-900 dark:text-white truncate">
+                            Para: {a.toUserId}
+                          </span>
                         </div>
 
                         {a.tags && a.tags.length > 0 && (
@@ -1537,20 +1733,31 @@ export function QuadroMotoristasAdminPage() {
 
             <div className="space-y-2.5 text-xs">
               <p className="text-slate-600 leading-snug">
-                O condutor <strong>{motoristaSelecionado.nome}</strong> será notificado automaticamente via WhatsApp com a justificativa selecionada.
+                O condutor <strong>{motoristaSelecionado.nome}</strong> será notificado
+                automaticamente via WhatsApp com a justificativa selecionada.
               </p>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 mb-1">Motivo da Rejeição:</label>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Motivo da Rejeição:
+                </label>
                 <select
                   value={motivoRejeicao}
                   onChange={(e) => setMotivoRejeicao(e.target.value)}
                   className="w-full h-8.5 px-2.5 rounded-lg border border-slate-300 text-xs font-medium bg-white focus:outline-hidden focus:ring-1 focus:ring-red-500"
                 >
-                  <option value="Documento CNH ilegível ou com foto cortada">Documento CNH ilegível ou com foto cortada</option>
-                  <option value="CNH sem a observação Exerce Atividade Remunerada (EAR)">CNH sem observação EAR</option>
-                  <option value="Veículo fora do ano de fabricação permitido">Veículo com ano acima do limite</option>
-                  <option value="CRLV (documento do veículo) vencido ou com pendências">CRLV vencido ou com pendências</option>
+                  <option value="Documento CNH ilegível ou com foto cortada">
+                    Documento CNH ilegível ou com foto cortada
+                  </option>
+                  <option value="CNH sem a observação Exerce Atividade Remunerada (EAR)">
+                    CNH sem observação EAR
+                  </option>
+                  <option value="Veículo fora do ano de fabricação permitido">
+                    Veículo com ano acima do limite
+                  </option>
+                  <option value="CRLV (documento do veículo) vencido ou com pendências">
+                    CRLV vencido ou com pendências
+                  </option>
                 </select>
               </div>
             </div>
@@ -1584,8 +1791,12 @@ export function QuadroMotoristasAdminPage() {
                 <Bot className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-slate-900">Esteira OCR Executada com Sucesso</h3>
-                <p className="text-[11px] text-slate-500">Validação algorítmica autônoma concluída</p>
+                <h3 className="text-sm font-black text-slate-900">
+                  Esteira OCR Executada com Sucesso
+                </h3>
+                <p className="text-[11px] text-slate-500">
+                  Validação algorítmica autônoma concluída
+                </p>
               </div>
             </div>
 
@@ -1626,8 +1837,12 @@ export function QuadroMotoristasAdminPage() {
                   {motoristaSelecionado.nome.charAt(0)}
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base font-black text-slate-900 leading-tight">{motoristaSelecionado.nome}</h3>
-                  <p className="text-[11px] text-slate-500 leading-tight">{motoristaSelecionado.cidade} • {motoristaSelecionado.telefone}</p>
+                  <h3 className="text-sm sm:text-base font-black text-slate-900 leading-tight">
+                    {motoristaSelecionado.nome}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 leading-tight">
+                    {motoristaSelecionado.cidade} • {motoristaSelecionado.telefone}
+                  </p>
                 </div>
               </div>
               <button
@@ -1641,7 +1856,9 @@ export function QuadroMotoristasAdminPage() {
 
             {/* Dados do Veículo Cadastrado */}
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
-              <span className="font-black text-slate-700 uppercase tracking-wider block text-[10px]">Veículo Declarado:</span>
+              <span className="font-black text-slate-700 uppercase tracking-wider block text-[10px]">
+                Veículo Declarado:
+              </span>
               <div className="grid grid-cols-2 gap-2 text-slate-700">
                 <div>
                   <span className="text-[10px] text-slate-400 block">Modelo e Marca</span>
@@ -1666,13 +1883,16 @@ export function QuadroMotoristasAdminPage() {
             <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-black text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
-                  <ShieldCheck className="h-4 w-4 text-emerald-600" /> Acesso SaaS &amp; Desbloqueio (0% Comissão)
+                  <ShieldCheck className="h-4 w-4 text-emerald-600" /> Acesso SaaS &amp; Desbloqueio
+                  (0% Comissão)
                 </span>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                  motoristaSelecionado.planoAtivo
-                    ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                    : "bg-amber-100 text-amber-800 border border-amber-300"
-                }`}>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                    motoristaSelecionado.planoAtivo
+                      ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                      : "bg-amber-100 text-amber-800 border border-amber-300"
+                  }`}
+                >
                   {motoristaSelecionado.planoAtivo ? "Desbloqueado" : "Bloqueado"}
                 </span>
               </div>
@@ -1686,7 +1906,8 @@ export function QuadroMotoristasAdminPage() {
                   </strong>
                 </div>
                 <p className="text-[10.5px] text-emerald-800 leading-tight">
-                  No PARTIU, o motorista recebe <strong>100% de cada corrida (0% taxa)</strong>. A receita da franquia vem exclusivamente do SaaS de acesso.
+                  No PARTIU, o motorista recebe <strong>100% de cada corrida (0% taxa)</strong>. A
+                  receita da franquia vem exclusivamente do SaaS de acesso.
                 </p>
               </div>
 
@@ -1700,9 +1921,11 @@ export function QuadroMotoristasAdminPage() {
                       motoristaSelecionado.modal === "MOTO" ? "MOTO" : "CARRO",
                       `CORTESIA_${Date.now()}`,
                       0,
-                      24
+                      24,
                     );
-                    alert(`Diária Cortesia de 24 horas liberada para ${motoristaSelecionado.nome}!`);
+                    alert(
+                      `Diária Cortesia de 24 horas liberada para ${motoristaSelecionado.nome}!`,
+                    );
                     motoristaSelecionado.planoAtivo = true;
                     motoristaSelecionado.planoTipo = "DIARIA";
                     motoristaSelecionado.planoTempoRestante = "24h 00min";
@@ -1720,9 +1943,11 @@ export function QuadroMotoristasAdminPage() {
                       motoristaSelecionado.modal === "MOTO" ? "MOTO" : "CARRO",
                       `PLANO_MENSAL_${Date.now()}`,
                       149,
-                      720
+                      720,
                     );
-                    alert(`Plano Mensal Ouro (30 dias) ativado com sucesso para ${motoristaSelecionado.nome}!`);
+                    alert(
+                      `Plano Mensal Ouro (30 dias) ativado com sucesso para ${motoristaSelecionado.nome}!`,
+                    );
                     motoristaSelecionado.planoAtivo = true;
                     motoristaSelecionado.planoTipo = "MENSAL";
                     motoristaSelecionado.planoTempoRestante = "30 dias";
@@ -1737,9 +1962,11 @@ export function QuadroMotoristasAdminPage() {
                   onClick={async () => {
                     await driverSubscriptionService.activateTrial(
                       motoristaSelecionado.id,
-                      motoristaSelecionado.modal === "MOTO" ? "MOTO" : "CARRO"
+                      motoristaSelecionado.modal === "MOTO" ? "MOTO" : "CARRO",
                     );
-                    alert(`Período de Degustação (Trial) ativado para ${motoristaSelecionado.nome}!`);
+                    alert(
+                      `Período de Degustação (Trial) ativado para ${motoristaSelecionado.nome}!`,
+                    );
                     motoristaSelecionado.planoAtivo = true;
                     motoristaSelecionado.planoTipo = "TRIAL";
                     setModalDetalhesAberto(false);
@@ -1779,7 +2006,9 @@ export function QuadroMotoristasAdminPage() {
                       }`}
                     >
                       <span className="text-[11px] font-black">{cat}</span>
-                      <span className={`text-[9px] ${isSelected ? "text-slate-300" : "text-slate-400"}`}>
+                      <span
+                        className={`text-[9px] ${isSelected ? "text-slate-300" : "text-slate-400"}`}
+                      >
                         {cat === "CARRO" && "Partiu Pop"}
                         {cat === "MOTO" && "Moto Flash"}
                         {cat === "PLUS" && "Plus Sedan"}
@@ -1796,8 +2025,13 @@ export function QuadroMotoristasAdminPage() {
               <button
                 type="button"
                 onClick={() => {
-                  const msg = encodeURIComponent(`Olá ${motoristaSelecionado.nome}, contato da Central PARTIU Operações.`);
-                  window.open(`https://wa.me/55${motoristaSelecionado.telefone.replace(/\D/g, "")}?text=${msg}`, "_blank");
+                  const msg = encodeURIComponent(
+                    `Olá ${motoristaSelecionado.nome}, contato da Central PARTIU Operações.`,
+                  );
+                  window.open(
+                    `https://wa.me/55${motoristaSelecionado.telefone.replace(/\D/g, "")}?text=${msg}`,
+                    "_blank",
+                  );
                 }}
                 className="h-8.5 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer active:scale-95"
               >

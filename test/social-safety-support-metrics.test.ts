@@ -5,10 +5,7 @@ import {
   TAGS_99_PASSENGER_TO_DRIVER_IMPROVEMENT,
   TAGS_99_DRIVER_TO_PASSENGER,
 } from "../src/services/RideRatingService.ts";
-import {
-  supportTicketService,
-  type TicketCategory,
-} from "../src/services/SupportTicketService.ts";
+import { supportTicketService, type TicketCategory } from "../src/services/SupportTicketService.ts";
 import { prometheusMetrics } from "../src/lib/observability/prometheus-metrics.ts";
 import { redisSpatialStore } from "../src/lib/spatial/redis-spatial-store.ts";
 
@@ -149,8 +146,8 @@ describe("SUITE 51: SOCIAL SAFETY RATINGS, 99 SUPPORT TICKETS & PROMETHEUS METRI
     prometheusMetrics.recordWaveOffer(2);
 
     // Simula latências de matching em milissegundos
-    prometheusMetrics.recordMatchingLatency(45);  // bucket <= 50
-    prometheusMetrics.recordMatchingLatency(85);  // bucket <= 100
+    prometheusMetrics.recordMatchingLatency(45); // bucket <= 50
+    prometheusMetrics.recordMatchingLatency(85); // bucket <= 100
     prometheusMetrics.recordMatchingLatency(210); // bucket <= 250
 
     // Simula split contábil em centavos (R$ 50 total: R$ 40 motorista, R$ 7.50 plataforma, R$ 2.50 cooperativa)
@@ -176,29 +173,29 @@ describe("SUITE 51: SOCIAL SAFETY RATINGS, 99 SUPPORT TICKETS & PROMETHEUS METRI
     expect(text).toContain("partiu_system_up 1");
 
     // Métricas de condutores e grid H3
-    expect(text).toContain("partiu_active_drivers_total{state=\"online\"}");
+    expect(text).toContain('partiu_active_drivers_total{state="online"}');
     expect(text).toContain("partiu_h3_cells_active_total");
 
     // Métricas de corridas
-    expect(text).toContain("partiu_rides_total{status=\"requested\"} 2");
-    expect(text).toContain("partiu_rides_total{status=\"completed\"} 1");
-    expect(text).toContain("partiu_rides_total{status=\"canceled\"} 1");
+    expect(text).toContain('partiu_rides_total{status="requested"} 2');
+    expect(text).toContain('partiu_rides_total{status="completed"} 1');
+    expect(text).toContain('partiu_rides_total{status="canceled"} 1');
 
     // Despacho em ondas
-    expect(text).toContain("partiu_dispatch_wave_offers_total{wave=\"1\"} 2");
-    expect(text).toContain("partiu_dispatch_wave_offers_total{wave=\"2\"} 1");
+    expect(text).toContain('partiu_dispatch_wave_offers_total{wave="1"} 2');
+    expect(text).toContain('partiu_dispatch_wave_offers_total{wave="2"} 1');
 
     // Histograma de latência
-    expect(text).toContain("partiu_matching_latency_ms_bucket{le=\"50\"} 1");
-    expect(text).toContain("partiu_matching_latency_ms_bucket{le=\"100\"} 2");
-    expect(text).toContain("partiu_matching_latency_ms_bucket{le=\"250\"} 3");
-    expect(text).toContain("partiu_matching_latency_ms_bucket{le=\"+Inf\"} 3");
+    expect(text).toContain('partiu_matching_latency_ms_bucket{le="50"} 1');
+    expect(text).toContain('partiu_matching_latency_ms_bucket{le="100"} 2');
+    expect(text).toContain('partiu_matching_latency_ms_bucket{le="250"} 3');
+    expect(text).toContain('partiu_matching_latency_ms_bucket{le="+Inf"} 3');
     expect(text).toContain("partiu_matching_latency_ms_sum 340");
     expect(text).toContain("partiu_matching_latency_ms_count 3");
 
     // Split contábil
-    expect(text).toContain("partiu_finops_split_cents_total{recipient=\"driver\"} 4000");
-    expect(text).toContain("partiu_finops_split_cents_total{recipient=\"platform\"} 750");
-    expect(text).toContain("partiu_finops_split_cents_total{recipient=\"cooperative\"} 250");
+    expect(text).toContain('partiu_finops_split_cents_total{recipient="driver"} 4000');
+    expect(text).toContain('partiu_finops_split_cents_total{recipient="platform"} 750');
+    expect(text).toContain('partiu_finops_split_cents_total{recipient="cooperative"} 250');
   });
 });

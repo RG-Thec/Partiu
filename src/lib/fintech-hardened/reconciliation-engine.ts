@@ -1,6 +1,6 @@
 /**
  * PARTIU TITANIUM SHIELD — DAILY RECONCILIATION ENGINE
- * 
+ *
  * Motor de Conciliação Contábil Diária:
  * - Confronta saldos de Ativo (Clearing PSP, Banco) com Passivos (Escrow, Repasse a Motoristas)
  * - Detecta divergências contábeis (Penny Discrepancies)
@@ -22,7 +22,7 @@ export interface ReconciliationReport {
   driverPayableCents: number;
   clearingPspCents: number;
   unreconciledTransactionsCount: number;
-  healthStatus: 'HEALTHY_SOLVENT' | 'DISCREPANCY_DETECTED' | 'INSOLVENCY_RISK';
+  healthStatus: "HEALTHY_SOLVENT" | "DISCREPANCY_DETECTED" | "INSOLVENCY_RISK";
 }
 
 export class ReconciliationEngine {
@@ -35,8 +35,8 @@ export class ReconciliationEngine {
 
     try {
       const { data, error } = await supabase
-        .from('financial_ledger_entries')
-        .select('account_id, entry_type, amount_cents');
+        .from("financial_ledger_entries")
+        .select("account_id, entry_type, amount_cents");
 
       if (error || !data) {
         return this.generateOfflineContingencyReport(reconciliationId, timestamp);
@@ -50,15 +50,15 @@ export class ReconciliationEngine {
 
       for (const row of data as any[]) {
         const cents = Number(row.amount_cents) || 0;
-        if (row.entry_type === 'DEBIT') {
+        if (row.entry_type === "DEBIT") {
           debits += cents;
-        } else if (row.entry_type === 'CREDIT') {
+        } else if (row.entry_type === "CREDIT") {
           credits += cents;
         }
 
-        if (row.account_id === '1.1.01_PSP_CLEARING') clearingPsp += cents;
-        if (row.account_id === '2.1.01_ESCROW_TRIPS') escrow += cents;
-        if (row.account_id === '2.1.02_DRIVER_PAYABLE') driverPayable += cents;
+        if (row.account_id === "1.1.01_PSP_CLEARING") clearingPsp += cents;
+        if (row.account_id === "2.1.01_ESCROW_TRIPS") escrow += cents;
+        if (row.account_id === "2.1.02_DRIVER_PAYABLE") driverPayable += cents;
       }
 
       const discrepancy = Math.abs(debits - credits);
@@ -77,14 +77,17 @@ export class ReconciliationEngine {
         driverPayableCents: driverPayable,
         clearingPspCents: clearingPsp,
         unreconciledTransactionsCount: balanced ? 0 : Math.ceil(discrepancy / 100),
-        healthStatus: balanced ? 'HEALTHY_SOLVENT' : 'DISCREPANCY_DETECTED'
+        healthStatus: balanced ? "HEALTHY_SOLVENT" : "DISCREPANCY_DETECTED",
       };
     } catch {
       return this.generateOfflineContingencyReport(reconciliationId, timestamp);
     }
   }
 
-  private generateOfflineContingencyReport(reconciliationId: string, timestamp: number): ReconciliationReport {
+  private generateOfflineContingencyReport(
+    reconciliationId: string,
+    timestamp: number,
+  ): ReconciliationReport {
     return {
       reconciliationId,
       reconciledAt: timestamp,
@@ -98,7 +101,7 @@ export class ReconciliationEngine {
       driverPayableCents: 0,
       clearingPspCents: 0,
       unreconciledTransactionsCount: 0,
-      healthStatus: 'HEALTHY_SOLVENT'
+      healthStatus: "HEALTHY_SOLVENT",
     };
   }
 }

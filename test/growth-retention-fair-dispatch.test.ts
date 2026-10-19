@@ -63,10 +63,13 @@ async function runTestSuite() {
   const silverPlan = plans.find((p) => p.id === "plano-prata")!;
   const goldSubPlan = plans.find((p) => p.id === "plano-ouro")!;
 
-  assert(goldSubPlan.dispatchWeightPercent === 1.50, "Plano Ouro peso balanceado ajustado para 1.50 (não mais 5.0)");
-  assert(freePlan.dispatchWeightPercent === 1.00, "Plano Grátis peso = 1.00");
+  assert(
+    goldSubPlan.dispatchWeightPercent === 1.5,
+    "Plano Ouro peso balanceado ajustado para 1.50 (não mais 5.0)",
+  );
+  assert(freePlan.dispatchWeightPercent === 1.0, "Plano Grátis peso = 1.00");
   assert(bronzePlan.dispatchWeightPercent === 1.15, "Plano Bronze peso = 1.15");
-  assert(silverPlan.dispatchWeightPercent === 1.30, "Plano Prata peso = 1.30");
+  assert(silverPlan.dispatchWeightPercent === 1.3, "Plano Prata peso = 1.30");
 
   const goldPlan = STANDARD_DRIVER_PLANS.OURO;
 
@@ -79,7 +82,10 @@ async function runTestSuite() {
     currentProtectionBalanceCents: 3500, // fundo cheio
     monthlyAccumulatedGrossBrl: 6500.0,
   });
-  assert(splitUnder.platformCommissionCents === 0, "Abaixo do teto (R$ 6.500): 0% comissão, taxa zero!");
+  assert(
+    splitUnder.platformCommissionCents === 0,
+    "Abaixo do teto (R$ 6.500): 0% comissão, taxa zero!",
+  );
   assert(splitUnder.driverNetEarningsCents === 4000, "Repasse integral de R$ 40,00 ao condutor.");
 
   // Caso 2: Corrida de transição (inicia em R$ 7.960 e fatura R$ 80,00 -> total R$ 8.040)
@@ -92,8 +98,14 @@ async function runTestSuite() {
     currentProtectionBalanceCents: 3500,
     monthlyAccumulatedGrossBrl: 7960.0,
   });
-  assert(splitTransition.platformCommissionCents === 20, "Transição do teto: R$ 0,20 de taxa cobrada apenas sobre os R$ 40 excedentes.");
-  assert(splitTransition.driverNetEarningsCents === 7980, "Motorista retém R$ 79,80 na corrida de transição.");
+  assert(
+    splitTransition.platformCommissionCents === 20,
+    "Transição do teto: R$ 0,20 de taxa cobrada apenas sobre os R$ 40 excedentes.",
+  );
+  assert(
+    splitTransition.driverNetEarningsCents === 7980,
+    "Motorista retém R$ 79,80 na corrida de transição.",
+  );
 
   // Caso 3: Corrida totalmente acima do teto (R$ 9.000 acumulado -> R$ 100,00 a 0.5% = R$ 0,50)
   const splitOver = commissionEngine.calculateRideSplit({
@@ -104,21 +116,42 @@ async function runTestSuite() {
     currentProtectionBalanceCents: 3500,
     monthlyAccumulatedGrossBrl: 9000.0,
   });
-  assert(splitOver.platformCommissionCents === 50, "Acima do teto (R$ 9.000): cobra 0.5% = R$ 0,50 de comissão mínima de segurança.");
-  assert(splitOver.driverNetEarningsCents === 9950, "Motorista recebe R$ 99,50 com segurança financeira para a plataforma.");
+  assert(
+    splitOver.platformCommissionCents === 50,
+    "Acima do teto (R$ 9.000): cobra 0.5% = R$ 0,50 de comissão mínima de segurança.",
+  );
+  assert(
+    splitOver.driverNetEarningsCents === 9950,
+    "Motorista recebe R$ 99,50 com segurança financeira para a plataforma.",
+  );
 
   // Teste do Simulador Econômico
   const simulation = commissionEngine.simulatePlatformEconomics({
     activeDriversCount: 500,
     avgTripsPerDriverPerMonth: 300,
-    avgGrossFareBrl: 22.50,
+    avgGrossFareBrl: 22.5,
     distribution: { freePercent: 40, bronzePercent: 30, silverPercent: 20, goldPercent: 10 },
   });
-  assert(simulation.totalMarketplaceGMVBrl > 0, `GMV mensal estimado: R$ ${simulation.totalMarketplaceGMVBrl.toLocaleString("pt-BR")}`);
-  assert(simulation.grossPlatformRevenueBrl > simulation.totalOperationalCostBrl, "Receita total mensal supera custos de infraestrutura.");
-  assert(simulation.netMarginPercent > 50, `Margem líquida saudável: ${simulation.netMarginPercent.toFixed(1)}%`);
-  assert(simulation.totalDriverSavingsVsUber20Brl > 0, `Economia estimada aos motoristas vs Uber: R$ ${simulation.totalDriverSavingsVsUber20Brl.toLocaleString("pt-BR")}`);
-  assert(simulation.breakevenDriversCount < 500, `Breakeven atingido com ${simulation.breakevenDriversCount} condutores.`);
+  assert(
+    simulation.totalMarketplaceGMVBrl > 0,
+    `GMV mensal estimado: R$ ${simulation.totalMarketplaceGMVBrl.toLocaleString("pt-BR")}`,
+  );
+  assert(
+    simulation.grossPlatformRevenueBrl > simulation.totalOperationalCostBrl,
+    "Receita total mensal supera custos de infraestrutura.",
+  );
+  assert(
+    simulation.netMarginPercent > 50,
+    `Margem líquida saudável: ${simulation.netMarginPercent.toFixed(1)}%`,
+  );
+  assert(
+    simulation.totalDriverSavingsVsUber20Brl > 0,
+    `Economia estimada aos motoristas vs Uber: R$ ${simulation.totalDriverSavingsVsUber20Brl.toLocaleString("pt-BR")}`,
+  );
+  assert(
+    simulation.breakevenDriversCount < 500,
+    `Breakeven atingido com ${simulation.breakevenDriversCount} condutores.`,
+  );
 
   // ============================================================================
   // SUITE 2: DESPACHO JUSTO & GUARDA DE PROXIMIDADE 300M (FASE 2)
@@ -129,7 +162,7 @@ async function runTestSuite() {
     id: "trip-fairness-test",
     pickup: { latitude: -21.2056, longitude: -41.8872 },
     pickupAddress: "Praça Central",
-    dropoff: { latitude: -21.2200, longitude: -41.9000 },
+    dropoff: { latitude: -21.22, longitude: -41.9 },
     dropoffAddress: "Bairro Norte",
     category: "POP",
     baseFare: 20.0,
@@ -148,7 +181,7 @@ async function runTestSuite() {
     {
       id: "driver-far-gold",
       name: "Motorista Ouro Mais Distante",
-      location: { latitude: -21.2150, longitude: -41.8920 },
+      location: { latitude: -21.215, longitude: -41.892 },
       rating: 4.95,
       acceptanceRate: 0.98,
       cancellationRate: 0.01,
@@ -162,7 +195,7 @@ async function runTestSuite() {
     {
       id: "driver-close-free",
       name: "Motorista Grátis Muito Perto",
-      location: { latitude: -21.2070, longitude: -41.8885 },
+      location: { latitude: -21.207, longitude: -41.8885 },
       rating: 4.88,
       acceptanceRate: 0.92,
       cancellationRate: 0.02,
@@ -179,7 +212,7 @@ async function runTestSuite() {
   assert(proximityRanking.length === 2, "2 motoristas elegíveis ranqueados.");
   assert(
     proximityRanking[0]!.driverId === "driver-close-free",
-    "Motorista mais próximo (Grátis a 350m) VENCE incondicionalmente o motorista Ouro a 1.2km (Delta > 300m)."
+    "Motorista mais próximo (Grátis a 350m) VENCE incondicionalmente o motorista Ouro a 1.2km (Delta > 300m).",
   );
 
   // Condição Empate Técnico (< 300m):
@@ -193,8 +226,8 @@ async function runTestSuite() {
     {
       id: "driver-silver-tie",
       name: "Motorista Prata Empatado",
-      location: { latitude: -21.2090, longitude: -41.8890 },
-      rating: 4.90,
+      location: { latitude: -21.209, longitude: -41.889 },
+      rating: 4.9,
       acceptanceRate: 0.95,
       cancellationRate: 0.02,
       hourlyEarningsToday: 30.0,
@@ -208,7 +241,7 @@ async function runTestSuite() {
       id: "driver-gold-tie",
       name: "Motorista Ouro Empatado",
       location: { latitude: -21.2094, longitude: -41.8893 },
-      rating: 4.90,
+      rating: 4.9,
       acceptanceRate: 0.95,
       cancellationRate: 0.02,
       hourlyEarningsToday: 30.0,
@@ -223,7 +256,7 @@ async function runTestSuite() {
   const tieRanking = rankDriversByFairMarketplaceScore(candidatesTie, baseRequest);
   assert(
     tieRanking[0]!.driverId === "driver-gold-tie",
-    "No empate técnico (<300m e métricas idênticas), o Plano Ouro vence legitimamente como critério de desempate."
+    "No empate técnico (<300m e métricas idênticas), o Plano Ouro vence legitimamente como critério de desempate.",
   );
 
   // ============================================================================
@@ -235,7 +268,7 @@ async function runTestSuite() {
   const tierIniciante = driverLoyaltyEngine.evaluateProgression({
     driverId: "driver-newbie",
     completedTrips: 5,
-    rating: 4.80,
+    rating: 4.8,
   });
   assert(tierIniciante.tier === "INICIANTE", "Novo motorista inicia como INICIANTE");
   assert(tierIniciante.badgeIcon === "🥉", "Badge de Iniciante é 🥉");
@@ -248,7 +281,10 @@ async function runTestSuite() {
     cancellationRatePercent: 4.5,
     onlineHoursTotal: 80,
   });
-  assert(tierPro.tier === "PROFISSIONAL", "Motorista com 150 corridas e nota 4.88 atinge nível PROFISSIONAL");
+  assert(
+    tierPro.tier === "PROFISSIONAL",
+    "Motorista com 150 corridas e nota 4.88 atinge nível PROFISSIONAL",
+  );
   assert(tierPro.badgeIcon === "🥈", "Badge de Profissional é 🥈");
 
   // Upgrade para Elite (200+ corridas, nota >= 4.90, cancelamento <= 4%)
@@ -270,7 +306,10 @@ async function runTestSuite() {
     cancellationRatePercent: 1.2,
     onlineHoursTotal: 950,
   });
-  assert(tierLegend.tier === "LENDARIO", "Motorista com 1800 corridas e nota 4.98 atinge nível LENDÁRIO");
+  assert(
+    tierLegend.tier === "LENDARIO",
+    "Motorista com 1800 corridas e nota 4.98 atinge nível LENDÁRIO",
+  );
   assert(tierLegend.badgeIcon === "💎", "Badge de Lendário é 💎");
 
   // Invariante de Fidelidade: Nível de fidelidade NUNCA altera split financeiro
@@ -281,7 +320,10 @@ async function runTestSuite() {
     plan: STANDARD_DRIVER_PLANS.LIVRE,
     currentProtectionBalanceCents: 3500,
   });
-  assert(splitLoyaltyCheck.commissionPercent === 5.0, "Fidelidade preserva rigorosamente as regras de monetização sem misturar escopos.");
+  assert(
+    splitLoyaltyCheck.commissionPercent === 5.0,
+    "Fidelidade preserva rigorosamente as regras de monetização sem misturar escopos.",
+  );
 
   // ============================================================================
   // SUITE 4: SISTEMA DE INDICAÇÕES COM ANTI-FRAUDE MULTI-VETORIAL (FASE 6)
@@ -300,7 +342,10 @@ async function runTestSuite() {
     deviceFingerprint: "fingerprint-abc",
   });
   assert(selfReferral.status === "BLOCKED_FRAUD", "Anti-Fraude: Auto-indicação bloqueada.");
-  assert(selfReferral.fraudSignals.includes("SELF_REFERRAL_DETECTED"), "Sinal de fraude registrado: SELF_REFERRAL_DETECTED.");
+  assert(
+    selfReferral.fraudSignals.includes("SELF_REFERRAL_DETECTED"),
+    "Sinal de fraude registrado: SELF_REFERRAL_DETECTED.",
+  );
 
   // Bloqueio 2: Mesmo Fingerprint de Dispositivo (Device Cloned)
   const duplicateDevice = referralEngine.registerReferral({
@@ -314,8 +359,14 @@ async function runTestSuite() {
     deviceFingerprint: "fingerprint-shared-device",
     referrerDeviceFingerprint: "fingerprint-shared-device",
   });
-  assert(duplicateDevice.status === "BLOCKED_FRAUD", "Anti-Fraude: Dispositivo compartilhado bloqueado.");
-  assert(duplicateDevice.fraudSignals.includes("IDENTICAL_DEVICE_FINGERPRINT"), "Sinal de fraude: IDENTICAL_DEVICE_FINGERPRINT.");
+  assert(
+    duplicateDevice.status === "BLOCKED_FRAUD",
+    "Anti-Fraude: Dispositivo compartilhado bloqueado.",
+  );
+  assert(
+    duplicateDevice.fraudSignals.includes("IDENTICAL_DEVICE_FINGERPRINT"),
+    "Sinal de fraude: IDENTICAL_DEVICE_FINGERPRINT.",
+  );
 
   // Caso Válido: Escrow de 20 Corridas
   const validDriverReferral = referralEngine.registerReferral({
@@ -329,7 +380,10 @@ async function runTestSuite() {
     deviceFingerprint: "fingerprint-unique-samsung",
     referrerDeviceFingerprint: "fingerprint-padrinho-iphone",
   });
-  assert(validDriverReferral.status === "PENDING", "Indicação legítima de motorista aprovada em quarentena (PENDING).");
+  assert(
+    validDriverReferral.status === "PENDING",
+    "Indicação legítima de motorista aprovada em quarentena (PENDING).",
+  );
   assert(validDriverReferral.completedTripsCount === 0, "Inicia com 0 corridas completadas.");
   assert(validDriverReferral.targetTripsCount === 20, "Meta qualificadora de 20 corridas.");
 
@@ -354,14 +408,29 @@ async function runTestSuite() {
 
   const criticalDriver = retentionRecords.find((r) => r.riskLevel === "CRITICO")!;
   assert(criticalDriver !== undefined, "Motorista em nível CRÍTICO identificado pelo algoritmo.");
-  assert(criticalDriver.suggestedAction === "OFFER_48H_GOLD", "Ação sugerida de alta conversão: OFFER_48H_GOLD.");
+  assert(
+    criticalDriver.suggestedAction === "OFFER_48H_GOLD",
+    "Ação sugerida de alta conversão: OFFER_48H_GOLD.",
+  );
 
   // Disparo de ação de retenção: OFFER_48H_GOLD
-  const winbackResult = retentionIntelligenceEngine.triggerWinbackAction(criticalDriver.driverId, "OFFER_48H_GOLD");
+  const winbackResult = retentionIntelligenceEngine.triggerWinbackAction(
+    criticalDriver.driverId,
+    "OFFER_48H_GOLD",
+  );
   assert(winbackResult.success, "Ação de winback disparada com sucesso.");
-  assert(winbackResult.record.temporaryGoldActiveUntil !== undefined, "Timestamp de término do Plano Ouro 48h gerado.");
-  assert(winbackResult.record.status === "CAMPAIGN_SENT", "Status do condutor atualizado para CAMPAIGN_SENT.");
-  assert(winbackResult.message.includes("48h de Plano Ouro"), "Mensagem de confirmação detalha concessão do plano.");
+  assert(
+    winbackResult.record.temporaryGoldActiveUntil !== undefined,
+    "Timestamp de término do Plano Ouro 48h gerado.",
+  );
+  assert(
+    winbackResult.record.status === "CAMPAIGN_SENT",
+    "Status do condutor atualizado para CAMPAIGN_SENT.",
+  );
+  assert(
+    winbackResult.message.includes("48h de Plano Ouro"),
+    "Mensagem de confirmação detalha concessão do plano.",
+  );
 
   // Métricas do Centro de Retenção
   const metrics = retentionIntelligenceEngine.getMetrics();
@@ -369,7 +438,9 @@ async function runTestSuite() {
   assert(metrics.criticalCount >= 1, "Detecção autônoma de condutores críticos operacional.");
 
   console.log("\n================================================================================");
-  console.log(`🎉 TODOS OS ${passedTests}/${totalTests} TESTES DE GROWTH & RETENÇÃO PASSARAM COM 100% DE SUCESSO!`);
+  console.log(
+    `🎉 TODOS OS ${passedTests}/${totalTests} TESTES DE GROWTH & RETENÇÃO PASSARAM COM 100% DE SUCESSO!`,
+  );
   console.log("   CERTIFICAÇÃO DAS FASES 1 A 8 INTEGRALMENTE CONCLUÍDA.");
   console.log("================================================================================\n");
 }

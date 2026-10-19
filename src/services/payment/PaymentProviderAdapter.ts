@@ -25,14 +25,14 @@ export async function generateLocalQrCodeUrl(payload: string): Promise<string> {
     });
   } catch {
     return `data:image/svg+xml;utf8,${encodeURIComponent(
-      `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="300" height="300" fill="#f8fafc"/><text x="20" y="150" font-family="sans-serif" font-size="14" fill="#0f172a">PIX COPIA E COLA PRONTO</text></svg>`
+      `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="300" height="300" fill="#f8fafc"/><text x="20" y="150" font-family="sans-serif" font-size="14" fill="#0f172a">PIX COPIA E COLA PRONTO</text></svg>`,
     )}`;
   }
 }
 
 export function generateLocalQrCodeSvgSync(payload: string): string {
   return `data:image/svg+xml;utf8,${encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="300" height="300" fill="#ffffff"/><path d="M20 20h80v80h-80zM30 30v60h60v-60zM200 20h80v80h-80zM210 30v60h60v-60zM20 200h80v80h-80zM30 210v60h60v-60z" fill="#000000"/><text x="150" y="160" font-family="sans-serif" font-size="11" text-anchor="middle" fill="#000000">PIX QRCode Local</text></svg>`
+    `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="300" height="300" fill="#ffffff"/><path d="M20 20h80v80h-80zM30 30v60h60v-60zM200 20h80v80h-80zM210 30v60h60v-60zM20 200h80v80h-80zM30 210v60h60v-60z" fill="#000000"/><text x="150" y="160" font-family="sans-serif" font-size="11" text-anchor="middle" fill="#000000">PIX QRCode Local</text></svg>`,
   )}`;
 }
 
@@ -81,7 +81,7 @@ export function buildStandardEmvPix(
   receiverName: string,
   receiverCity: string,
   amount: number,
-  txId: string
+  txId: string,
 ): string {
   const formattedAmount = amount.toFixed(2);
   const amountStr = `${formattedAmount.length.toString().padStart(2, "0")}${formattedAmount}`;
@@ -101,14 +101,14 @@ export function buildStandardEmvPix(
 }
 
 export function computePixCrc16(payload: string): string {
-  let crc = 0xFFFF;
+  let crc = 0xffff;
   for (let i = 0; i < payload.length; i++) {
     crc ^= payload.charCodeAt(i) << 8;
     for (let j = 0; j < 8; j++) {
       if ((crc & 0x8000) !== 0) {
-        crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+        crc = ((crc << 1) ^ 0x1021) & 0xffff;
       } else {
-        crc = (crc << 1) & 0xFFFF;
+        crc = (crc << 1) & 0xffff;
       }
     }
   }
@@ -123,8 +123,16 @@ export class AsaasProvider implements PaymentGatewayProvider {
 
   public async createPix(order: PixOrderInput): Promise<PixOrderOutput> {
     const txId = `partiu_asaas_${Date.now()}_${crypto.randomUUID().replace(/-/g, "").slice(0, 10)}`;
-    const expiresAt = new Date(Date.now() + (order.expiresInMinutes || 30) * 60 * 1000).toISOString();
-    const copiaECola = buildStandardEmvPix("pix@partiumobilidade.com.br", "PARTIU TECNOLOGIA", "MACAE", order.amount, txId);
+    const expiresAt = new Date(
+      Date.now() + (order.expiresInMinutes || 30) * 60 * 1000,
+    ).toISOString();
+    const copiaECola = buildStandardEmvPix(
+      "pix@partiumobilidade.com.br",
+      "PARTIU TECNOLOGIA",
+      "MACAE",
+      order.amount,
+      txId,
+    );
     const qrCodeUrl = await generateLocalQrCodeUrl(copiaECola);
 
     return {
@@ -143,7 +151,7 @@ export class AsaasProvider implements PaymentGatewayProvider {
     return {
       gatewayReference,
       status: "PENDING",
-      amount: 14.90,
+      amount: 14.9,
     };
   }
 
@@ -168,8 +176,16 @@ export class EfiBankProvider implements PaymentGatewayProvider {
 
   public async createPix(order: PixOrderInput): Promise<PixOrderOutput> {
     const txId = `partiu_efi_${Date.now()}_${crypto.randomUUID().replace(/-/g, "").slice(0, 10)}`;
-    const expiresAt = new Date(Date.now() + (order.expiresInMinutes || 30) * 60 * 1000).toISOString();
-    const copiaECola = buildStandardEmvPix("financeiro@partiumobilidade.com.br", "PARTIU MOBILIDADE", "BRASIL", order.amount, txId);
+    const expiresAt = new Date(
+      Date.now() + (order.expiresInMinutes || 30) * 60 * 1000,
+    ).toISOString();
+    const copiaECola = buildStandardEmvPix(
+      "financeiro@partiumobilidade.com.br",
+      "PARTIU MOBILIDADE",
+      "BRASIL",
+      order.amount,
+      txId,
+    );
     const qrCodeUrl = await generateLocalQrCodeUrl(copiaECola);
 
     return {
@@ -185,7 +201,7 @@ export class EfiBankProvider implements PaymentGatewayProvider {
   }
 
   public async getPixStatus(gatewayReference: string): Promise<PixStatusOutput> {
-    return { gatewayReference, status: "PENDING", amount: 14.90 };
+    return { gatewayReference, status: "PENDING", amount: 14.9 };
   }
 
   public async cancelPix(_gatewayReference: string): Promise<boolean> {
@@ -226,9 +242,10 @@ export class MercadoPagoProvider implements PaymentGatewayProvider {
 
         if (!error && data && data.success) {
           const copiaECola = data.pix_code || "";
-          const qrCodeUrl = data.qr_code_url && data.qr_code_url.startsWith("data:")
-            ? data.qr_code_url
-            : await generateLocalQrCodeUrl(copiaECola);
+          const qrCodeUrl =
+            data.qr_code_url && data.qr_code_url.startsWith("data:")
+              ? data.qr_code_url
+              : await generateLocalQrCodeUrl(copiaECola);
 
           return {
             txId,
@@ -242,7 +259,10 @@ export class MercadoPagoProvider implements PaymentGatewayProvider {
           };
         }
       } catch (err) {
-        console.warn("[MercadoPagoProvider] Falha ao invocar edge function generate-driver-payment, aplicando fallback local:", err);
+        console.warn(
+          "[MercadoPagoProvider] Falha ao invocar edge function generate-driver-payment, aplicando fallback local:",
+          err,
+        );
       }
     }
 
@@ -311,7 +331,13 @@ export class StripeProvider implements PaymentGatewayProvider {
   public readonly name = "STRIPE" as const;
   public async createPix(order: PixOrderInput): Promise<PixOrderOutput> {
     const txId = `partiu_stripe_${Date.now()}`;
-    const copiaECola = buildStandardEmvPix("stripe@partiu.com", "PARTIU", "MACAE", order.amount, txId);
+    const copiaECola = buildStandardEmvPix(
+      "stripe@partiu.com",
+      "PARTIU",
+      "MACAE",
+      order.amount,
+      txId,
+    );
     const qrCodeUrl = await generateLocalQrCodeUrl(copiaECola);
     return {
       txId,
@@ -324,17 +350,31 @@ export class StripeProvider implements PaymentGatewayProvider {
       status: "PENDING",
     };
   }
-  public async getPixStatus(ref: string): Promise<PixStatusOutput> { return { gatewayReference: ref, status: "PENDING", amount: 14.90 }; }
-  public async cancelPix(): Promise<boolean> { return true; }
-  public generateQrCode(emv: string): string { return generateLocalQrCodeSvgSync(emv); }
-  public verifyWebhookSignature(_p: string, s: string, sec: string): boolean { return Boolean(s && sec); }
+  public async getPixStatus(ref: string): Promise<PixStatusOutput> {
+    return { gatewayReference: ref, status: "PENDING", amount: 14.9 };
+  }
+  public async cancelPix(): Promise<boolean> {
+    return true;
+  }
+  public generateQrCode(emv: string): string {
+    return generateLocalQrCodeSvgSync(emv);
+  }
+  public verifyWebhookSignature(_p: string, s: string, sec: string): boolean {
+    return Boolean(s && sec);
+  }
 }
 
 export class PagarMeProvider implements PaymentGatewayProvider {
   public readonly name = "PAGARME" as const;
   public async createPix(order: PixOrderInput): Promise<PixOrderOutput> {
     const txId = `partiu_pagarme_${Date.now()}`;
-    const copiaECola = buildStandardEmvPix("pagarme@partiu.com", "PARTIU", "MACAE", order.amount, txId);
+    const copiaECola = buildStandardEmvPix(
+      "pagarme@partiu.com",
+      "PARTIU",
+      "MACAE",
+      order.amount,
+      txId,
+    );
     const qrCodeUrl = await generateLocalQrCodeUrl(copiaECola);
     return {
       txId,
@@ -347,17 +387,31 @@ export class PagarMeProvider implements PaymentGatewayProvider {
       status: "PENDING",
     };
   }
-  public async getPixStatus(ref: string): Promise<PixStatusOutput> { return { gatewayReference: ref, status: "PENDING", amount: 14.90 }; }
-  public async cancelPix(): Promise<boolean> { return true; }
-  public generateQrCode(emv: string): string { return generateLocalQrCodeSvgSync(emv); }
-  public verifyWebhookSignature(_p: string, s: string, sec: string): boolean { return Boolean(s && sec); }
+  public async getPixStatus(ref: string): Promise<PixStatusOutput> {
+    return { gatewayReference: ref, status: "PENDING", amount: 14.9 };
+  }
+  public async cancelPix(): Promise<boolean> {
+    return true;
+  }
+  public generateQrCode(emv: string): string {
+    return generateLocalQrCodeSvgSync(emv);
+  }
+  public verifyWebhookSignature(_p: string, s: string, sec: string): boolean {
+    return Boolean(s && sec);
+  }
 }
 
 export class PagBankProvider implements PaymentGatewayProvider {
   public readonly name = "PAGBANK" as const;
   public async createPix(order: PixOrderInput): Promise<PixOrderOutput> {
     const txId = `partiu_pagbank_${Date.now()}`;
-    const copiaECola = buildStandardEmvPix("pagbank@partiu.com", "PARTIU", "MACAE", order.amount, txId);
+    const copiaECola = buildStandardEmvPix(
+      "pagbank@partiu.com",
+      "PARTIU",
+      "MACAE",
+      order.amount,
+      txId,
+    );
     const qrCodeUrl = await generateLocalQrCodeUrl(copiaECola);
     return {
       txId,
@@ -370,10 +424,18 @@ export class PagBankProvider implements PaymentGatewayProvider {
       status: "PENDING",
     };
   }
-  public async getPixStatus(ref: string): Promise<PixStatusOutput> { return { gatewayReference: ref, status: "PENDING", amount: 14.90 }; }
-  public async cancelPix(): Promise<boolean> { return true; }
-  public generateQrCode(emv: string): string { return generateLocalQrCodeSvgSync(emv); }
-  public verifyWebhookSignature(_p: string, s: string, sec: string): boolean { return Boolean(s && sec); }
+  public async getPixStatus(ref: string): Promise<PixStatusOutput> {
+    return { gatewayReference: ref, status: "PENDING", amount: 14.9 };
+  }
+  public async cancelPix(): Promise<boolean> {
+    return true;
+  }
+  public generateQrCode(emv: string): string {
+    return generateLocalQrCodeSvgSync(emv);
+  }
+  public verifyWebhookSignature(_p: string, s: string, sec: string): boolean {
+    return Boolean(s && sec);
+  }
 }
 
 // ------------------------------------------------------------------------------

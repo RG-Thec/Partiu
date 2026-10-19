@@ -20,7 +20,8 @@ export interface RiskScoreResult {
   riskScore: number; // 0 (Seguro) a 100 (Risco Crítico)
   riskLevel: "BAIXO" | "MEDIO" | "ALTO" | "CRITICO";
   riskFactors: string[];
-  actionRequired: "NENHUMA" | "EXIGIR_PIN" | "VALIDAR_SELFIE" | "BLOQUEIO_TEMPORARIO" | "ALERTA_NOC";
+  actionRequired:
+    "NENHUMA" | "EXIGIR_PIN" | "VALIDAR_SELFIE" | "BLOQUEIO_TEMPORARIO" | "ALERTA_NOC";
 }
 
 export interface GpsSpoofingReport {
@@ -48,13 +49,15 @@ export interface SosIncidentEvent {
  */
 export function detectGpsSpoofing(
   previousPoint: TelemetryPoint | null,
-  currentPoint: TelemetryPoint
+  currentPoint: TelemetryPoint,
 ): GpsSpoofingReport {
   const reasons: string[] = [];
 
   // 1. Mock location provider ativado no Android/iOS
   if (currentPoint.isMocked) {
-    reasons.push("Provedor de localização simulada (Mock Location Provider) detectado no dispositivo.");
+    reasons.push(
+      "Provedor de localização simulada (Mock Location Provider) detectado no dispositivo.",
+    );
   }
 
   if (!previousPoint) {
@@ -68,12 +71,15 @@ export function detectGpsSpoofing(
 
   // 2. Velocidade de salto vetorial entre pontos (Teletransporte)
   const distanceKm = calculateHaversineKm(previousPoint.coordinate, currentPoint.coordinate);
-  const timeDeltaHours = Math.max(0.0001, (currentPoint.timestamp - previousPoint.timestamp) / (1000 * 3600));
+  const timeDeltaHours = Math.max(
+    0.0001,
+    (currentPoint.timestamp - previousPoint.timestamp) / (1000 * 3600),
+  );
   const calculatedSpeedKmh = distanceKm / timeDeltaHours;
 
   if (calculatedSpeedKmh > 165) {
     reasons.push(
-      `Velocidade de deslocamento impossível detectada: ${calculatedSpeedKmh.toFixed(0)} km/h (salto vetorial).`
+      `Velocidade de deslocamento impossível detectada: ${calculatedSpeedKmh.toFixed(0)} km/h (salto vetorial).`,
     );
   }
 
@@ -142,8 +148,8 @@ export function evaluateTripRisk(params: {
   const finalScore = Math.min(100, Math.max(0, score));
 
   let riskLevel: "BAIXO" | "MEDIO" | "ALTO" | "CRITICO" = "BAIXO";
-  let actionRequired: "NENHUMA" | "EXIGIR_PIN" | "VALIDAR_SELFIE" | "BLOQUEIO_TEMPORARIO" | "ALERTA_NOC" =
-    "NENHUMA";
+  let actionRequired:
+    "NENHUMA" | "EXIGIR_PIN" | "VALIDAR_SELFIE" | "BLOQUEIO_TEMPORARIO" | "ALERTA_NOC" = "NENHUMA";
 
   if (finalScore >= 75) {
     riskLevel = "CRITICO";
@@ -174,7 +180,7 @@ export function createSosIncident(
   source: "PASSAGEIRO" | "MOTORISTA",
   location: GeoCoordinate,
   driverPhone: string,
-  riderPhone: string
+  riderPhone: string,
 ): SosIncidentEvent {
   const incident: SosIncidentEvent = {
     id: `SOS-${Date.now().toString().slice(-6)}`,
@@ -221,7 +227,8 @@ export interface FraudAnalysisResult {
   motivosDeteccao: string[];
   bloqueioAutomatico: boolean;
   tempoBloqueioMinutos?: number | undefined;
-  acaoMitigacao: "NENHUMA" | "EXIGIR_SELFIE" | "BLOQUEIO_30_MIN" | "BANIMENTO_PREVENTIVO" | "EXIGIR_PIX";
+  acaoMitigacao:
+    "NENHUMA" | "EXIGIR_SELFIE" | "BLOQUEIO_30_MIN" | "BANIMENTO_PREVENTIVO" | "EXIGIR_PIX";
 }
 
 export function analisarPadroesFraude(params: FraudAnalysisParams): FraudAnalysisResult {
@@ -237,13 +244,17 @@ export function analisarPadroesFraude(params: FraudAnalysisParams): FraudAnalysi
   // 2. Conluio: passageiro e motorista no mesmo aparelho ou IP/device token idêntico
   if (params.mesmoDispositivoParaAmbos) {
     score += 65;
-    motivos.push("Conluio detectado: conta de motorista e passageiro compartilhando mesmo identificador de hardware.");
+    motivos.push(
+      "Conluio detectado: conta de motorista e passageiro compartilhando mesmo identificador de hardware.",
+    );
   }
 
   // 3. Cancelamentos em massa (Brute Cancelling)
   if (params.cancelamentosUltimos10Min >= 4) {
     score += 35;
-    motivos.push(`Comportamento abusivo de cancelamentos em série (${params.cancelamentosUltimos10Min} em 10 min).`);
+    motivos.push(
+      `Comportamento abusivo de cancelamentos em série (${params.cancelamentosUltimos10Min} em 10 min).`,
+    );
   } else if (params.cancelamentosUltimos10Min >= 2) {
     score += 15;
     motivos.push("Múltiplos cancelamentos consecutivos.");
@@ -252,7 +263,9 @@ export function analisarPadroesFraude(params: FraudAnalysisParams): FraudAnalysi
   // 4. Ghost Riding: Veículo parado com corrida em andamento para inflacionar tempo/taxa
   if (params.minutosParadoEmViagem && params.minutosParadoEmViagem > 12) {
     score += 40;
-    motivos.push(`Veículo imobilizado propositalmente por ${params.minutosParadoEmViagem} min durante viagem.`);
+    motivos.push(
+      `Veículo imobilizado propositalmente por ${params.minutosParadoEmViagem} min durante viagem.`,
+    );
   }
 
   // 5. Histórico de queixas graves
@@ -266,7 +279,8 @@ export function analisarPadroesFraude(params: FraudAnalysisParams): FraudAnalysi
   let riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" = "LOW";
   let bloqueioAutomatico = false;
   let tempoBloqueioMinutos: number | undefined;
-  let acaoMitigacao: "NENHUMA" | "EXIGIR_SELFIE" | "BLOQUEIO_30_MIN" | "BANIMENTO_PREVENTIVO" | "EXIGIR_PIX" =
+  let acaoMitigacao:
+    "NENHUMA" | "EXIGIR_SELFIE" | "BLOQUEIO_30_MIN" | "BANIMENTO_PREVENTIVO" | "EXIGIR_PIX" =
     "NENHUMA";
 
   if (score >= 80) {

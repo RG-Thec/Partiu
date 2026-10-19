@@ -91,7 +91,11 @@ describe("Ecosystem PARTIU End-to-End Integration Tests", () => {
 
     test("should unlock driver cockpit for 24h upon PIX confirmation and record SaaS metrics", async () => {
       const pix = driverSubscriptionService.generateDailyFeePix(testDriverId, "CARRO");
-      const sub = await driverSubscriptionService.confirmDailyFeePayment(testDriverId, "CARRO", pix.txid);
+      const sub = await driverSubscriptionService.confirmDailyFeePayment(
+        testDriverId,
+        "CARRO",
+        pix.txid,
+      );
 
       expect(sub.status).toBe("ACTIVE");
       expect(driverSubscriptionService.isDriverUnlocked(testDriverId)).toBe(true);
@@ -137,7 +141,9 @@ describe("Ecosystem PARTIU End-to-End Integration Tests", () => {
       const valEmpty = await bannerService.validateBannerDimensions("");
       expect(valEmpty.isValid).toBe(false);
 
-      const valNormal = await bannerService.validateBannerDimensions("https://example.com/banner.jpg");
+      const valNormal = await bannerService.validateBannerDimensions(
+        "https://example.com/banner.jpg",
+      );
       expect(valNormal).toBeDefined();
     });
   });

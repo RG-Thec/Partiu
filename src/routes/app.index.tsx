@@ -2,10 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { LocateFixed } from "lucide-react";
 import { PartiuLogo } from "@/components/common/PartiuLogo";
-import {
-  PassengerRideProvider,
-  usePassengerRide,
-} from "@/contexts/PassengerRideContext";
+import { PassengerRideProvider, usePassengerRide } from "@/contexts/PassengerRideContext";
 import {
   DestinationCard,
   PromoCarousel,
@@ -43,7 +40,7 @@ import { getHistoricoViagens } from "@/lib/partiu-engine";
 
 // Lazy loading sob demanda para componentes pesados secundários (TTI acelerado)
 const AppDrawer = lazy(() =>
-  import("@/components/navigation/AppDrawer").then((m) => ({ default: m.AppDrawer }))
+  import("@/components/navigation/AppDrawer").then((m) => ({ default: m.AppDrawer })),
 );
 
 function carregarDestinosRecentesPassageiro(uid?: string, phone?: string): RecentAddressItem[] {
@@ -69,7 +66,7 @@ function carregarDestinosRecentesPassageiro(uid?: string, phone?: string): Recen
             Array.isArray(item.coords) &&
             item.coords.length === 2 &&
             typeof item.coords[0] === "number" &&
-            typeof item.coords[1] === "number"
+            typeof item.coords[1] === "number",
         );
         if (validos.length !== parsed.length) {
           localStorage.setItem(key, JSON.stringify(validos));
@@ -86,9 +83,7 @@ function carregarDestinosRecentesPassageiro(uid?: string, phone?: string): Recen
     }
 
     // Se storage estiver vazio, verifica se há viagens reais finalizadas no histórico deste usuário
-    const historicoEngine = getHistoricoViagens(
-      uid || phone ? { userId: uid, phone } : undefined
-    );
+    const historicoEngine = getHistoricoViagens(uid || phone ? { userId: uid, phone } : undefined);
     if (Array.isArray(historicoEngine) && historicoEngine.length > 0) {
       const validas = historicoEngine
         .filter(
@@ -99,7 +94,7 @@ function carregarDestinosRecentesPassageiro(uid?: string, phone?: string): Recen
             !c.id.startsWith("mock-") &&
             c.destinoCoords &&
             typeof c.destinoCoords.lng === "number" &&
-            typeof c.destinoCoords.lat === "number"
+            typeof c.destinoCoords.lat === "number",
         )
         .slice(0, 2);
       if (validas.length > 0) {
@@ -176,10 +171,15 @@ function PartiuPassengerHomeContent() {
   const [pushStatus, setPushStatus] = useState<NotificationPermission>("default");
 
   // Identificação do passageiro para autenticação e notificações em tempo real
-  const activeUser = typeof window !== "undefined"
-    ? (supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null)
-    : null;
-  const passengerId = activeUser?.id || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_id") || "passageiro_default" : "passageiro_default");
+  const activeUser =
+    typeof window !== "undefined"
+      ? supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null
+      : null;
+  const passengerId =
+    activeUser?.id ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("partiu_user_id") || "passageiro_default"
+      : "passageiro_default");
 
   const [userName, setUserName] = useState(() => {
     if (activeUser?.name && activeUser.name !== "Passageiro") return activeUser.name;
@@ -207,13 +207,10 @@ function PartiuPassengerHomeContent() {
   // Escuta em tempo real a tabela notifications para o passageiro
   useEffect(() => {
     if (!passengerId) return;
-    const unsub = pushNotificationService.subscribeToUserNotifications(
-      passengerId,
-      (list) => {
-        const unread = list.filter((n) => !n.isRead).length;
-        setUnreadCount(unread);
-      }
-    );
+    const unsub = pushNotificationService.subscribeToUserNotifications(passengerId, (list) => {
+      const unread = list.filter((n) => !n.isRead).length;
+      setUnreadCount(unread);
+    });
 
     if (
       typeof window !== "undefined" &&
@@ -272,7 +269,7 @@ function PartiuPassengerHomeContent() {
       registrarDestinoFrequente(item.label, item.endereco, item.coords, passengerId);
       selectDestination(item.endereco, item.coords);
     },
-    [passengerId, selectDestination]
+    [passengerId, selectDestination],
   );
 
   const handleSelectAddressItem = useCallback(
@@ -280,12 +277,12 @@ function PartiuPassengerHomeContent() {
       registrarDestinoFrequente(item.titulo, item.endereco, item.coords, passengerId);
       selectDestination(item.endereco, item.coords);
     },
-    [selectDestination, passengerId]
+    [selectDestination, passengerId],
   );
 
   // Histórico de destinos recentes do passageiro (100% autêntico, isolado por usuário)
   const [recentAddresses, setRecentAddresses] = useState<RecentAddressItem[]>(() =>
-    carregarDestinosRecentesPassageiro(passengerId, activeUser?.phone)
+    carregarDestinosRecentesPassageiro(passengerId, activeUser?.phone),
   );
 
   // Reatividade em tempo real: zera ao deslogar ou ao alternar de usuário
@@ -298,8 +295,16 @@ function PartiuPassengerHomeContent() {
         supabaseAuthService?.getCurrentUser?.() ||
         supabaseAuthService?.getStoredSession?.() ||
         null;
-      const uid = session?.id || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_id") || undefined : undefined);
-      const phone = session?.phone || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_phone") || undefined : undefined);
+      const uid =
+        session?.id ||
+        (typeof window !== "undefined"
+          ? localStorage.getItem("partiu_user_id") || undefined
+          : undefined);
+      const phone =
+        session?.phone ||
+        (typeof window !== "undefined"
+          ? localStorage.getItem("partiu_user_phone") || undefined
+          : undefined);
       setRecentAddresses(carregarDestinosRecentesPassageiro(uid, phone));
     };
 
@@ -330,7 +335,10 @@ function PartiuPassengerHomeContent() {
           idx % 2 === 0
             ? "from-primary via-primary/90 to-primary/80 text-primary-foreground"
             : "from-secondary via-secondary/90 to-secondary text-secondary-foreground",
-        tagCor: idx % 2 === 0 ? "bg-white/20 text-white backdrop-blur-md" : "bg-primary text-primary-foreground",
+        tagCor:
+          idx % 2 === 0
+            ? "bg-white/20 text-white backdrop-blur-md"
+            : "bg-primary text-primary-foreground",
       }));
     }
     return [];
@@ -357,11 +365,15 @@ function PartiuPassengerHomeContent() {
         if (perfil) {
           if (perfil.name) {
             setUserName(perfil.name);
-            try { localStorage.setItem("partiu_user_nome", perfil.name); } catch {}
+            try {
+              localStorage.setItem("partiu_user_nome", perfil.name);
+            } catch {}
           }
           if (perfil.avatarUrl) {
             setUserAvatar(perfil.avatarUrl);
-            try { localStorage.setItem("partiu_user_avatar", perfil.avatarUrl); } catch {}
+            try {
+              localStorage.setItem("partiu_user_avatar", perfil.avatarUrl);
+            } catch {}
           }
         }
       } catch {}
@@ -395,7 +407,11 @@ function PartiuPassengerHomeContent() {
     const handleBannersUpdate = (allBanners?: any[]) => {
       const all = allBanners || bannerService.getAllBanners();
       const passengerBanners = all.filter(
-        (b) => b.is_active && (b.category === "PASSENGER" || b.category === "ALL" || b.link_url === "/cadastro-motorista")
+        (b) =>
+          b.is_active &&
+          (b.category === "PASSENGER" ||
+            b.category === "ALL" ||
+            b.link_url === "/cadastro-motorista"),
       );
       if (passengerBanners.length > 0) {
         setActiveBanners(
@@ -411,7 +427,7 @@ function PartiuPassengerHomeContent() {
                 ? "from-slate-950 via-slate-900 to-slate-900 text-white"
                 : "from-slate-900 via-slate-800 to-slate-950 text-white",
             tagCor: "bg-white/20 text-white backdrop-blur-md border border-white/20",
-          }))
+          })),
         );
       } else {
         setActiveBanners([]);
@@ -504,7 +520,7 @@ function PartiuPassengerHomeContent() {
       lastGpsUpdateRef.current = { coords, timestamp: now };
       updatePickupLocationFromMap(coords, undefined, false);
     },
-    [state, updatePickupLocationFromMap]
+    [state, updatePickupLocationFromMap],
   );
 
   // Mapeamento de estado para o mapa
@@ -515,32 +531,31 @@ function PartiuPassengerHomeContent() {
     state === "SEARCHING_R2" ||
     state === "SEARCHING_R3";
 
-  const mapStatus =
-    isSearching
-      ? "PROCURANDO"
-      : state === "DRIVER_ASSIGNED" ||
+  const mapStatus = isSearching
+    ? "PROCURANDO"
+    : state === "DRIVER_ASSIGNED" ||
         state === "DRIVER_ARRIVING" ||
         (state as string) === "ACCEPTED" ||
         (state as string) === "DRIVER_EN_ROUTE" ||
         (state as string) === "DRIVER_ARRIVED"
       ? "A_CAMINHO"
       : state === "ON_TRIP" || state === "IN_PROGRESS"
-      ? "EM_VIAGEM"
-      : state === "COMPLETED"
-      ? "CONCLUIDA"
-      : state === "CONFIRMING_PICKUP"
-      ? "CONFIRMING_PICKUP"
-      : state === "CONFIRMING_DESTINATION_MAP"
-      ? "CONFIRMING_DESTINATION_MAP"
-      : state === "REVIEWING_ROUTE"
-      ? "REVIEWING_ROUTE"
-      : state === "SELECTING_DESTINATION"
-      ? "SELECTING_DESTINATION"
-      : state === "EDITING_PICKUP"
-      ? "EDITING_PICKUP"
-      : state === "SEARCHING_DESTINATION"
-      ? "SEARCHING_DESTINATION"
-      : "IDLE";
+        ? "EM_VIAGEM"
+        : state === "COMPLETED"
+          ? "CONCLUIDA"
+          : state === "CONFIRMING_PICKUP"
+            ? "CONFIRMING_PICKUP"
+            : state === "CONFIRMING_DESTINATION_MAP"
+              ? "CONFIRMING_DESTINATION_MAP"
+              : state === "REVIEWING_ROUTE"
+                ? "REVIEWING_ROUTE"
+                : state === "SELECTING_DESTINATION"
+                  ? "SELECTING_DESTINATION"
+                  : state === "EDITING_PICKUP"
+                    ? "EDITING_PICKUP"
+                    : state === "SEARCHING_DESTINATION"
+                      ? "SEARCHING_DESTINATION"
+                      : "IDLE";
 
   const dynamicCameraPadding = useMemo(() => {
     if (typeof window === "undefined") return undefined;
@@ -559,7 +574,7 @@ function PartiuPassengerHomeContent() {
 
     if (mapStatus === "REVIEWING_ROUTE") {
       return {
-        top: Math.max(70, Math.round(vh * 0.10)),
+        top: Math.max(70, Math.round(vh * 0.1)),
         bottom: Math.max(380, safeSheetH + 28),
         left: 48,
         right: 48,
@@ -782,7 +797,9 @@ function PartiuPassengerHomeContent() {
                 state === "SEARCHING_R3") && <PassengerFindingDriverRadar />}
 
               {/* D3. TIMEOUT DE BUSCA SEM MOTORISTAS DISPONÍVEIS */}
-              {(state === "TIMEOUT" || (state as string) === "SEARCH_TIMEOUT") && <PassengerTimeoutBottomSheet />}
+              {(state === "TIMEOUT" || (state as string) === "SEARCH_TIMEOUT") && (
+                <PassengerTimeoutBottomSheet />
+              )}
 
               {/* E. CORRIDA EM ANDAMENTO */}
               {(state === "DRIVER_ASSIGNED" ||
@@ -792,9 +809,7 @@ function PartiuPassengerHomeContent() {
                 state === "ACCEPTED" ||
                 state === "ON_TRIP" ||
                 state === "IN_PROGRESS" ||
-                state === "COMPLETED") && (
-                <DriverEnRouteSheet />
-              )}
+                state === "COMPLETED") && <DriverEnRouteSheet />}
             </div>
           </main>
         </>

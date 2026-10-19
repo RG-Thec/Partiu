@@ -46,7 +46,8 @@ export function CloneTenantModal({ isOpen, onClose, onCloned }: CloneTenantModal
   const [latCentro, setLatCentro] = useState<number>(-19.916681);
   const [lngCentro, setLngCentro] = useState<number>(-43.934493);
   const [raioKm, setRaioKm] = useState<number>(30);
-  const [modoExclusividade, setModoExclusividade] = useState<ModoExclusividadeTerritorial>("CIDADE_ESTRITA");
+  const [modoExclusividade, setModoExclusividade] =
+    useState<ModoExclusividadeTerritorial>("CIDADE_ESTRITA");
   const [bloquearFora, setBloquearFora] = useState(true);
   const [bloquearNovasContas, setBloquearNovasContas] = useState(true);
   const [bloquearFrotaVizinha, setBloquearFrotaVizinha] = useState(true);
@@ -118,7 +119,8 @@ export function CloneTenantModal({ isOpen, onClose, onCloned }: CloneTenantModal
       return;
     }
 
-    const emailFinal = adminEmail.trim().toLowerCase() || `${tenantId.replace("tenant-", "")}@partiu.app`;
+    const emailFinal =
+      adminEmail.trim().toLowerCase() || `${tenantId.replace("tenant-", "")}@partiu.app`;
     const senhaFinal = adminSenha.trim() || "Franqueado2026!";
     const operacaoFinal = nomeOperacao.trim() || `${cidadeNome.trim()} Mob`;
 
@@ -158,7 +160,7 @@ export function CloneTenantModal({ isOpen, onClose, onCloned }: CloneTenantModal
         senhaFinal,
         responsavelNome.trim() || "Gestor de Franquia",
         responsavelTelefone.trim() || "(00) 00000-0000",
-        territorioConfig
+        territorioConfig,
       );
 
       switchTenant(tenantId.trim());
@@ -180,7 +182,8 @@ export function CloneTenantModal({ isOpen, onClose, onCloned }: CloneTenantModal
               Nova Franquia / Praça Regional Exclusiva
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              Cadastre a nova franquia com demarcação territorial obrigatória, blindagem de frota e credenciais de acesso.
+              Cadastre a nova franquia com demarcação territorial obrigatória, blindagem de frota e
+              credenciais de acesso.
             </p>
           </div>
         </div>
@@ -193,7 +196,9 @@ export function CloneTenantModal({ isOpen, onClose, onCloned }: CloneTenantModal
             </span>
 
             <div>
-              <label className="text-slate-300 font-bold block mb-1">Nome da Operação (White Label)</label>
+              <label className="text-slate-300 font-bold block mb-1">
+                Nome da Operação (White Label)
+              </label>
               <input
                 type="text"
                 placeholder="ex: BH Mob, Rio Mobe, Curitiba Express"
@@ -258,7 +263,9 @@ export function CloneTenantModal({ isOpen, onClose, onCloned }: CloneTenantModal
             </div>
 
             <div>
-              <label className="text-slate-300 font-bold block mb-1">ID Único da Franquia (Slug do Tenant)</label>
+              <label className="text-slate-300 font-bold block mb-1">
+                ID Único da Franquia (Slug do Tenant)
+              </label>
               <input
                 type="text"
                 placeholder="ex: tenant-bhmob"
@@ -290,9 +297,7 @@ export function CloneTenantModal({ isOpen, onClose, onCloned }: CloneTenantModal
                   <strong>Praça:</strong> {cidadeNome || "Não definida"} ({estadoUf})
                 </span>
               </div>
-              <span className="font-mono text-primary-400 font-bold">
-                Raio: {raioKm} km
-              </span>
+              <span className="font-mono text-primary-400 font-bold">Raio: {raioKm} km</span>
             </div>
 
             {/* Coordenadas e Raio */}
@@ -393,7 +398,9 @@ export function CloneTenantModal({ isOpen, onClose, onCloned }: CloneTenantModal
           <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
               <span>3. Acesso ao Painel do Franqueado</span>
-              <span className="text-[10px] text-slate-500 font-normal">Super Admin pode alterar depois</span>
+              <span className="text-[10px] text-slate-500 font-normal">
+                Super Admin pode alterar depois
+              </span>
             </span>
 
             <div>

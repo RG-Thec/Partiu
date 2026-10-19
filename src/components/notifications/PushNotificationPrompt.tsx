@@ -105,7 +105,8 @@ export function PushNotificationPrompt() {
         </div>
 
         <p className="text-[11px] text-slate-300 leading-relaxed relative z-10">
-          Você será avisado no celular quando seu motorista parceiro estiver se aproximando do ponto de embarque.
+          Você será avisado no celular quando seu motorista parceiro estiver se aproximando do ponto
+          de embarque.
         </p>
 
         {mostrarInstrucaoInApp ? (

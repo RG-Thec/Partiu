@@ -1,6 +1,6 @@
 /**
  * DRIVER ECONOMICS ENGINE
- * 
+ *
  * Modela a microeconomia individual e agregada dos motoristas parceiros:
  * - Ganho Bruto vs Ganho Líquido Real
  * - Custo Real de Combustível (Gasolina, Etanol, GNV)
@@ -17,7 +17,7 @@ export interface DriverShiftData {
   kmRodadosEmViagem: number; // Ex: 115 km
   corridasConcluidas: number; // Ex: 14 corridas
   ganhoBrutoTurnoBrl: number; // Ex: R$ 340,00
-  tipoCombustivel: 'GASOLINA' | 'ETANOL' | 'GNV' | 'ELETRICO';
+  tipoCombustivel: "GASOLINA" | "ETANOL" | "GNV" | "ELETRICO";
   consumoKmPorLitro: number; // Ex: 11.5 km/l
   precoCombustivelLitroBrl: number; // Ex: R$ 5,85
   custoManutencaoPorKmBrl?: number; // Ex: R$ 0,18/km (óleo, pastilha, pneu, depreciação)
@@ -38,15 +38,16 @@ export interface DriverEconomicProfile {
   custosOperacionais: DriverCostBreakdown;
   ganhoLiquidoRealBrl: number;
   margemLiquidaPct: number; // Ganho Líquido / Ganho Bruto
-  
+
   // Métricas de Rendimento Unitário
   rendaLiquidaPorHoraBrl: number;
   rendaLiquidaPorKmBrl: number;
   eficienciaKmPct: number; // Km em viagem / Km totais
-  
+
   // Score de Saúde Financeira
   driverEconomicHealthScore: number; // 0 a 100
-  classificacaoSaude: 'EXCELENTE_SUSTENTAVEL' | 'BOM_RENTAVEL' | 'VULNERAVEL_ALERTA' | 'CRITICO_DEFICITARIO';
+  classificacaoSaude:
+    "EXCELENTE_SUSTENTAVEL" | "BOM_RENTAVEL" | "VULNERAVEL_ALERTA" | "CRITICO_DEFICITARIO";
   riscoChurnFinanceiroPct: number; // 0 a 100%
   recomendacaoIntervencao: string;
 }
@@ -58,7 +59,7 @@ export class DriverEconomicsEngine {
   public evaluateDriverShift(shift: DriverShiftData): DriverEconomicProfile {
     const kmTotais = Math.max(1, shift.kmRodadosTotais);
     const consumo = Math.max(4, shift.consumoKmPorLitro);
-    
+
     // 1. Custos de Combustível
     const litrosConsumidos = kmTotais / consumo;
     const custoCombustivel = Number((litrosConsumidos * shift.precoCombustivelLitroBrl).toFixed(2));
@@ -68,17 +69,20 @@ export class DriverEconomicsEngine {
     const custoDepreciacao = Number((kmTotais * custoDepreciacaoKm).toFixed(2));
 
     // 3. Manutenção preventiva (pneus, pastilhas de freio, troca de óleo, suspensão)
-    const custoManutencaoKm = shift.custoManutencaoPorKmBrl || 0.10;
+    const custoManutencaoKm = shift.custoManutencaoPorKmBrl || 0.1;
     const custoManutencao = Number((kmTotais * custoManutencaoKm).toFixed(2));
 
     // 4. Rateio diário de seguro automotivo, lavagem e taxa de celular
     const custoSeguroLimpeza = 12.0; // R$ 12,00 por turno
 
-    const custosTotais = Number((custoCombustivel + custoDepreciacao + custoManutencao + custoSeguroLimpeza).toFixed(2));
-    const ganhoLiquido = Number((Math.max(0, shift.ganhoBrutoTurnoBrl - custosTotais)).toFixed(2));
-    const margemLiquida = shift.ganhoBrutoTurnoBrl > 0 
-      ? Number(((ganhoLiquido / shift.ganhoBrutoTurnoBrl) * 100).toFixed(1))
-      : 0;
+    const custosTotais = Number(
+      (custoCombustivel + custoDepreciacao + custoManutencao + custoSeguroLimpeza).toFixed(2),
+    );
+    const ganhoLiquido = Number(Math.max(0, shift.ganhoBrutoTurnoBrl - custosTotais).toFixed(2));
+    const margemLiquida =
+      shift.ganhoBrutoTurnoBrl > 0
+        ? Number(((ganhoLiquido / shift.ganhoBrutoTurnoBrl) * 100).toFixed(1))
+        : 0;
 
     const horas = Math.max(1.0, shift.horasOnlineTurno);
     const rendaPorHora = Number((ganhoLiquido / horas).toFixed(2));
@@ -93,33 +97,39 @@ export class DriverEconomicsEngine {
     const scoreEficienciaKm = Math.max(0, Math.min(100, (eficienciaKm / 80.0) * 100));
     const scoreBruto = Math.max(0, Math.min(100, (shift.ganhoBrutoTurnoBrl / 350.0) * 100));
 
-    const healthScore = Math.max(5, Math.min(99, Math.round(
-      scoreRendaHora * 0.40 +
-      scoreMargem * 0.30 +
-      scoreEficienciaKm * 0.20 +
-      scoreBruto * 0.10
-    )));
+    const healthScore = Math.max(
+      5,
+      Math.min(
+        99,
+        Math.round(
+          scoreRendaHora * 0.4 + scoreMargem * 0.3 + scoreEficienciaKm * 0.2 + scoreBruto * 0.1,
+        ),
+      ),
+    );
 
-    let classificacao: DriverEconomicProfile['classificacaoSaude'] = 'BOM_RENTAVEL';
+    let classificacao: DriverEconomicProfile["classificacaoSaude"] = "BOM_RENTAVEL";
     let riscoChurn = 15;
-    let recomendacao = 'Operação equilibrada. Manter posicionamento atual.';
+    let recomendacao = "Operação equilibrada. Manter posicionamento atual.";
 
     if (healthScore >= 80 && rendaPorHora >= 24) {
-      classificacao = 'EXCELENTE_SUSTENTAVEL';
+      classificacao = "EXCELENTE_SUSTENTAVEL";
       riscoChurn = 5;
-      recomendacao = 'Alta sustentabilidade econômica. Condutor de alto valor para frotas Premium.';
+      recomendacao = "Alta sustentabilidade econômica. Condutor de alto valor para frotas Premium.";
     } else if (healthScore >= 60 && rendaPorHora >= 16) {
-      classificacao = 'BOM_RENTAVEL';
+      classificacao = "BOM_RENTAVEL";
       riscoChurn = 18;
-      recomendacao = 'Operação saudável. Pode melhorar posicionamento em horários de pico para elevar margem.';
+      recomendacao =
+        "Operação saudável. Pode melhorar posicionamento em horários de pico para elevar margem.";
     } else if (healthScore >= 40) {
-      classificacao = 'VULNERAVEL_ALERTA';
+      classificacao = "VULNERAVEL_ALERTA";
       riscoChurn = 48;
-      recomendacao = 'Vulnerabilidade financeira devido a alto deadhead ou combustível elevado. Sugerir rotas concentradas.';
+      recomendacao =
+        "Vulnerabilidade financeira devido a alto deadhead ou combustível elevado. Sugerir rotas concentradas.";
     } else {
-      classificacao = 'CRITICO_DEFICITARIO';
+      classificacao = "CRITICO_DEFICITARIO";
       riscoChurn = 85;
-      recomendacao = 'Risco iminente de abandono. Acionar missão promocional com bônus D+0 para restaurar margem líquida.';
+      recomendacao =
+        "Risco iminente de abandono. Acionar missão promocional com bônus D+0 para restaurar margem líquida.";
     }
 
     return {
@@ -131,7 +141,7 @@ export class DriverEconomicsEngine {
         custoDepreciacaoVeicularBrl: custoDepreciacao,
         custoManutencaoPreventivaBrl: custoManutencao,
         custoSeguroELimpezaBrl: custoSeguroLimpeza,
-        custosOperacionaisTotaisBrl: custosTotais
+        custosOperacionaisTotaisBrl: custosTotais,
       },
       ganhoLiquidoRealBrl: ganhoLiquido,
       margemLiquidaPct: margemLiquida,
@@ -141,7 +151,7 @@ export class DriverEconomicsEngine {
       driverEconomicHealthScore: healthScore,
       classificacaoSaude: classificacao,
       riscoChurnFinanceiroPct: riscoChurn,
-      recomendacaoIntervencao: recomendacao
+      recomendacaoIntervencao: recomendacao,
     };
   }
 }

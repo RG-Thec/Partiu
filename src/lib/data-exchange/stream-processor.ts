@@ -1,6 +1,6 @@
 /**
  * REGIONAL STREAM PROCESSOR
- * 
+ *
  * Processador de fluxos de eventos em tempo real:
  * - Janelas deslizantes (tumbling / sliding windows)
  * - Detecção instantânea de anomalias operacionais
@@ -34,17 +34,21 @@ export class StreamProcessorEngine {
     return Number((sum / this.windowValues.length).toFixed(2));
   }
 
-  public detectAnomalies(cityId: string, currentRate: number, expectedBaseRate: number): StreamAnomalyAlert | null {
+  public detectAnomalies(
+    cityId: string,
+    currentRate: number,
+    expectedBaseRate: number,
+  ): StreamAnomalyAlert | null {
     const deviation = Math.abs(currentRate - expectedBaseRate) / Math.max(1, expectedBaseRate);
     if (deviation > 0.65) {
       return {
         anomalyId: `ANOM-${Date.now()}`,
-        metricName: 'DEMANDA_PICO_ANOMALO',
+        metricName: "DEMANDA_PICO_ANOMALO",
         cityId,
         currentValue: currentRate,
         expectedThreshold: expectedBaseRate * 1.65,
         deviationSigma: Number((deviation * 2.5).toFixed(1)),
-        detectedAt: Date.now()
+        detectedAt: Date.now(),
       };
     }
     return null;

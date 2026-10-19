@@ -92,9 +92,13 @@ describe("SUITE 52: CORE RIDE LOGISTICS — Pre-Ride, Mapbox driving-traffic & P
     expect(route.distanceMeters).toBeGreaterThan(1300);
     expect(route.distanceKm).toBeGreaterThan(1.3);
     expect(route.durationMinutes).toBeGreaterThanOrEqual(2);
-    expect(typeof route.encodedPolyline === "string" && route.encodedPolyline.length > 5).toBe(true);
+    expect(typeof route.encodedPolyline === "string" && route.encodedPolyline.length > 5).toBe(
+      true,
+    );
     expect(route.coordinates.length).toBeGreaterThan(2);
-    expect(route.source === "mapbox_driving_traffic" || route.source === "calibrated_urban_network").toBe(true);
+    expect(
+      route.source === "mapbox_driving_traffic" || route.source === "calibrated_urban_network",
+    ).toBe(true);
   });
 
   test("3. PricingService: Injeção de RouteMetrics reais e cálculo de preço fixo multicategoria", () => {
@@ -105,7 +109,10 @@ describe("SUITE 52: CORE RIDE LOGISTICS — Pre-Ride, Mapbox driving-traffic & P
       durationMinutes: 10,
       trafficDurationMinutes: 12,
       encodedPolyline: "mock_enc_polyline_12345",
-      coordinates: [[-41.888, -21.205], [-41.879, -21.212]] as [number, number][],
+      coordinates: [
+        [-41.888, -21.205],
+        [-41.879, -21.212],
+      ] as [number, number][],
       startAddress: "Centro, Itaperuna - RJ",
       endAddress: "UNIG, Itaperuna - RJ",
       provider: "mapbox_directions" as const,
@@ -249,11 +256,11 @@ describe("SUITE 54: CORE RIDE LOGISTICS — Driver Navigation (Green Approach & 
 
 describe("SUITE 55: CORE RIDE LOGISTICS — Live Tracking & Snap to Route Engine", () => {
   const mockRoute: [number, number][] = [
-    [-41.8880, -21.2050],
-    [-41.8860, -21.2065],
-    [-41.8835, -21.2080],
-    [-41.8810, -21.2095],
-    [-41.8790, -21.2120],
+    [-41.888, -21.205],
+    [-41.886, -21.2065],
+    [-41.8835, -21.208],
+    [-41.881, -21.2095],
+    [-41.879, -21.212],
   ];
 
   test("1. Snap to Route: GPS com ruído fora da rua é projetado no asfalto da via", () => {
@@ -264,7 +271,7 @@ describe("SUITE 55: CORE RIDE LOGISTICS — Live Tracking & Snap to Route Engine
 
     expect(snap.distanceFromLineMeters).toBeGreaterThan(0);
     // Coordenada projetada está no traçado da rua
-    expect(snap.snappedCoords[0]).toBeCloseTo(-41.8860, 2);
+    expect(snap.snappedCoords[0]).toBeCloseTo(-41.886, 2);
     expect(snap.snappedCoords[1]).toBeCloseTo(-21.2065, 2);
     // Ângulo tangencial da via
     expect(snap.bearing).toBeGreaterThan(0);

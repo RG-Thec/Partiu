@@ -1,6 +1,6 @@
 /**
  * PARTIU TITANIUM SHIELD — SRE METRICS ENGINE
- * 
+ *
  * Coleta contínua de telemetria e cálculo de percentis (p50, p95, p99):
  * - Dispatch Latency (Meta: < 200ms)
  * - PIX Settlement Latency (Meta: < 500ms)
@@ -32,11 +32,11 @@ export class MetricsEngine {
   private samples: Map<string, LatencySample[]> = new Map();
 
   private readonly SLA_TARGETS: Record<string, number> = {
-    'dispatch_latency': 200,
-    'pix_settlement': 500,
-    'wallet_query': 100,
-    'api_response': 300,
-    'realtime_sync': 100
+    dispatch_latency: 200,
+    pix_settlement: 500,
+    wallet_query: 100,
+    api_response: 300,
+    realtime_sync: 100,
   };
 
   private constructor() {}
@@ -61,7 +61,7 @@ export class MetricsEngine {
       metricName,
       durationMs,
       timestamp: Date.now(),
-      success
+      success,
     });
 
     // Mantém as últimas 1.000 amostras por métrica
@@ -86,14 +86,14 @@ export class MetricsEngine {
         p99Ms: 0,
         errorRatePct: 0,
         slaCompliant: true,
-        targetSlaMs: target
+        targetSlaMs: target,
       };
     }
 
-    const durations = list.map(s => s.durationMs).sort((a, b) => a - b);
-    const failed = list.filter(s => !s.success).length;
+    const durations = list.map((s) => s.durationMs).sort((a, b) => a - b);
+    const failed = list.filter((s) => !s.success).length;
 
-    const p50 = durations[Math.floor(durations.length * 0.50)] || 0;
+    const p50 = durations[Math.floor(durations.length * 0.5)] || 0;
     const p95 = durations[Math.floor(durations.length * 0.95)] || 0;
     const p99 = durations[Math.floor(durations.length * 0.99)] || 0;
     const errorRate = Number(((failed / list.length) * 100).toFixed(2));
@@ -106,13 +106,13 @@ export class MetricsEngine {
       p99Ms: Number(p99.toFixed(2)),
       errorRatePct: errorRate,
       slaCompliant: p95 <= target && errorRate < 1.0,
-      targetSlaMs: target
+      targetSlaMs: target,
     };
   }
 
   public getAllSummaries(): MetricSummary[] {
     const metrics = Object.keys(this.SLA_TARGETS);
-    return metrics.map(m => this.getMetricSummary(m));
+    return metrics.map((m) => this.getMetricSummary(m));
   }
 }
 

@@ -13,7 +13,6 @@ import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { SAVED_LOCATIONS, type SavedLocation } from "@/lib/passenger/passenger-ride-machine";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
-
 export const STORAGE_ENDERECOS_KEY = "partiu_enderecos_salvos_v1";
 
 export interface UserAddressItem {
@@ -80,11 +79,13 @@ export class AddressService {
               a.endereco &&
               a.endereco !== "Rua Dez de Maio, 188 - Centro, Itaperuna - RJ" &&
               a.endereco !== "Av. Cardoso Moreira, 310 - Centro, Itaperuna - RJ" &&
-              a.endereco !== "Av. Vinhosa, 780 - Vinhosa, Itaperuna - RJ"
+              a.endereco !== "Av. Vinhosa, 780 - Vinhosa, Itaperuna - RJ",
           );
         }
       }
-    } catch (err) { silentCatchWarn("AddressService", err); }
+    } catch (err) {
+      silentCatchWarn("AddressService", err);
+    }
     return [];
   }
 
@@ -97,7 +98,9 @@ export class AddressService {
       const key = this.getStorageKey(userIdParam);
       localStorage.setItem(key, JSON.stringify(lista));
       window.dispatchEvent(new CustomEvent("partiu:addresses_updated"));
-    } catch (err) { silentCatchWarn("AddressService", err); }
+    } catch (err) {
+      silentCatchWarn("AddressService", err);
+    }
   }
 
   /**
@@ -106,7 +109,7 @@ export class AddressService {
   public getCasa(userIdParam?: string): UserAddressItem | null {
     const addresses = this.getLocalAddresses(userIdParam);
     const found = addresses.find(
-      (a) => a.id === "loc-casa" || a.label.trim().toLowerCase() === "casa" || a.icone === "home"
+      (a) => a.id === "loc-casa" || a.label.trim().toLowerCase() === "casa" || a.icone === "home",
     );
     if (!found) return null;
     return {
@@ -127,7 +130,10 @@ export class AddressService {
   public getTrabalho(userIdParam?: string): UserAddressItem | null {
     const addresses = this.getLocalAddresses(userIdParam);
     const found = addresses.find(
-      (a) => a.id === "loc-trabalho" || a.label.trim().toLowerCase() === "trabalho" || a.icone === "work"
+      (a) =>
+        a.id === "loc-trabalho" ||
+        a.label.trim().toLowerCase() === "trabalho" ||
+        a.icone === "work",
     );
     if (!found) return null;
     return {
@@ -150,7 +156,9 @@ export class AddressService {
     return addresses
       .filter((a) => {
         const lbl = a.label.trim().toLowerCase();
-        return lbl !== "casa" && lbl !== "trabalho" && a.id !== "loc-casa" && a.id !== "loc-trabalho";
+        return (
+          lbl !== "casa" && lbl !== "trabalho" && a.id !== "loc-casa" && a.id !== "loc-trabalho"
+        );
       })
       .map((a) => ({
         id: a.id,
@@ -187,7 +195,8 @@ export class AddressService {
           let icone: SavedLocation["icone"] = "cart";
           const lbl = (d.label || "").toLowerCase();
           if (lbl === "casa" || d.icon === "home") icone = "home";
-          else if (lbl === "trabalho" || d.icon === "work" || d.icon === "briefcase") icone = "work";
+          else if (lbl === "trabalho" || d.icon === "work" || d.icon === "briefcase")
+            icone = "work";
 
           return {
             id: d.id,
@@ -212,7 +221,9 @@ export class AddressService {
         this.saveLocalAddresses(merged);
         return merged;
       }
-    } catch (err) { silentCatchWarn("AddressService", err); }
+    } catch (err) {
+      silentCatchWarn("AddressService", err);
+    }
 
     return local;
   }
@@ -220,7 +231,11 @@ export class AddressService {
   /**
    * Salva o endereço de Casa (Upsert local e nuvem)
    */
-  public async saveCasa(endereco: string, coords: [number, number], userIdParam?: string): Promise<UserAddressItem> {
+  public async saveCasa(
+    endereco: string,
+    coords: [number, number],
+    userIdParam?: string,
+  ): Promise<UserAddressItem> {
     const item: SavedLocation = {
       id: "loc-casa",
       label: "Casa",
@@ -231,7 +246,7 @@ export class AddressService {
     };
 
     const atuais = this.getLocalAddresses(userIdParam).filter(
-      (a) => a.id !== "loc-casa" && a.label.trim().toLowerCase() !== "casa"
+      (a) => a.id !== "loc-casa" && a.label.trim().toLowerCase() !== "casa",
     );
     const atualizados = [item, ...atuais];
     this.saveLocalAddresses(atualizados, userIdParam);
@@ -253,7 +268,11 @@ export class AddressService {
   /**
    * Salva o endereço de Trabalho (Upsert local e nuvem)
    */
-  public async saveTrabalho(endereco: string, coords: [number, number], userIdParam?: string): Promise<UserAddressItem> {
+  public async saveTrabalho(
+    endereco: string,
+    coords: [number, number],
+    userIdParam?: string,
+  ): Promise<UserAddressItem> {
     const item: SavedLocation = {
       id: "loc-trabalho",
       label: "Trabalho",
@@ -264,7 +283,7 @@ export class AddressService {
     };
 
     const atuais = this.getLocalAddresses(userIdParam).filter(
-      (a) => a.id !== "loc-trabalho" && a.label.trim().toLowerCase() !== "trabalho"
+      (a) => a.id !== "loc-trabalho" && a.label.trim().toLowerCase() !== "trabalho",
     );
     const atualizados = [item, ...atuais];
     this.saveLocalAddresses(atualizados, userIdParam);
@@ -291,7 +310,7 @@ export class AddressService {
     endereco: string,
     coords: [number, number],
     icon = "star",
-    userIdParam?: string
+    userIdParam?: string,
   ): Promise<UserAddressItem> {
     const item: SavedLocation = {
       id: `loc-fav-${Date.now()}`,
@@ -350,8 +369,13 @@ export class AddressService {
   }
 
   public async addAddress(
-    novo: { label: string; endereco: string; coords?: [number, number]; icone?: SavedLocation["icone"] },
-    userIdParam?: string
+    novo: {
+      label: string;
+      endereco: string;
+      coords?: [number, number];
+      icone?: SavedLocation["icone"];
+    },
+    userIdParam?: string,
   ): Promise<SavedLocation[]> {
     const session = supabaseAuthService.getStoredSession();
     const userId = userIdParam || session?.id;
@@ -397,12 +421,10 @@ export class AddressService {
 
     if (isSupabaseConfigured() && userId) {
       try {
-        await (supabase as any)
-          .from("user_addresses")
-          .delete()
-          .eq("id", id)
-          .eq("user_id", userId);
-      } catch (err) { silentCatchWarn("AddressService", err); }
+        await (supabase as any).from("user_addresses").delete().eq("id", id).eq("user_id", userId);
+      } catch (err) {
+        silentCatchWarn("AddressService", err);
+      }
     }
 
     return atualizados;

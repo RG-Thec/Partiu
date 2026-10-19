@@ -8,14 +8,8 @@ import {
   driverVoiceAssistant,
   DriverVoiceAssistantService,
 } from "../src/services/DriverVoiceAssistantService.ts";
-import {
-  driverWalletEngine,
-  DriverWalletEngine,
-} from "../src/lib/revenue/driver-wallet.ts";
-import {
-  getWazeUrl,
-  getGoogleMapsUrl,
-} from "../src/utils/navigation-launcher.ts";
+import { driverWalletEngine, DriverWalletEngine } from "../src/lib/revenue/driver-wallet.ts";
+import { getWazeUrl, getGoogleMapsUrl } from "../src/utils/navigation-launcher.ts";
 
 describe("SUITE 55: RECURSOS COMPETITIVOS 2026 (TAXÍMETRO VIRTUAL, TTS, DEBT CUTOFF & GPS)", () => {
   // ============================================================================
@@ -56,7 +50,9 @@ describe("SUITE 55: RECURSOS COMPETITIVOS 2026 (TAXÍMETRO VIRTUAL, TTS, DEBT CU
     expect(receipt.driverId).toBe("DRV-TEST-01");
     expect(receipt.fareBrl >= 12.0).toBe(true); // Respeita tarifa mínima de R$ 12,00
     expect(receipt.platformFeeBrl).toBe(Math.round(receipt.fareBrl * 0.1 * 100) / 100);
-    expect(receipt.netDriverBrl).toBe(Math.round((receipt.fareBrl - receipt.platformFeeBrl) * 100) / 100);
+    expect(receipt.netDriverBrl).toBe(
+      Math.round((receipt.fareBrl - receipt.platformFeeBrl) * 100) / 100,
+    );
     expect(receipt.pixCopiaECola?.includes("br.gov.bcb.pix")).toBe(true);
 
     // Reseta estado
@@ -181,6 +177,8 @@ describe("SUITE 55: RECURSOS COMPETITIVOS 2026 (TAXÍMETRO VIRTUAL, TTS, DEBT CU
     expect(wazeUrlAddress.includes("q=Rodovi%C3%A1ria%20Municipal%20de%20Itaperuna")).toBe(true);
 
     const gmapsUrlAddress = getGoogleMapsUrl(targetWithAddress);
-    expect(gmapsUrlAddress.includes("destination=Rodovi%C3%A1ria%20Municipal%20de%20Itaperuna")).toBe(true);
+    expect(
+      gmapsUrlAddress.includes("destination=Rodovi%C3%A1ria%20Municipal%20de%20Itaperuna"),
+    ).toBe(true);
   });
 });

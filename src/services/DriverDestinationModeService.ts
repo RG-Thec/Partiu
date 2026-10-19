@@ -128,7 +128,7 @@ export class DriverDestinationModeService {
   public setDestination(
     driverId: string,
     address: string,
-    coords: { lat: number; lng: number }
+    coords: { lat: number; lng: number },
   ): { success: boolean; message?: string; destination?: DriverDestination } {
     const remaining = this.getRemainingUses(driverId);
     const today = this.getTodayStr();
@@ -171,7 +171,7 @@ export class DriverDestinationModeService {
       window.dispatchEvent(
         new CustomEvent("partiu:driver-destination-updated", {
           detail: { driverId, destination },
-        })
+        }),
       );
     }
 
@@ -189,7 +189,7 @@ export class DriverDestinationModeService {
       window.dispatchEvent(
         new CustomEvent("partiu:driver-destination-updated", {
           detail: { driverId, destination: null },
-        })
+        }),
       );
     }
   }
@@ -201,27 +201,27 @@ export class DriverDestinationModeService {
     driverCoords: { lat: number; lng: number },
     rideOrigem: { lat: number; lng: number },
     rideDestino: { lat: number; lng: number },
-    targetDestination: { lat: number; lng: number }
+    targetDestination: { lat: number; lng: number },
   ): boolean {
     const dMotoristaAteAlvo = haversineDistanceKm(
       driverCoords.lat,
       driverCoords.lng,
       targetDestination.lat,
-      targetDestination.lng
+      targetDestination.lng,
     );
 
     const dDesembarqueAteAlvo = haversineDistanceKm(
       rideDestino.lat,
       rideDestino.lng,
       targetDestination.lat,
-      targetDestination.lng
+      targetDestination.lng,
     );
 
     const dEmbarqueAteMotorista = haversineDistanceKm(
       driverCoords.lat,
       driverCoords.lng,
       rideOrigem.lat,
-      rideOrigem.lng
+      rideOrigem.lng,
     );
 
     // 1. Bônus de Hiper-Proximidade: Se o desembarque for a menos de 3.5 km do destino final

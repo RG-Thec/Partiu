@@ -1,6 +1,6 @@
 /**
  * LOCAL COMMERCE COUPON ENGINE
- * 
+ *
  * Emissão e validação de cupons patrocinados por lojistas:
  * - Cupons contextuais entregues no término da corrida
  * - Descontos em estabelecimentos próximos ao destino do passageiro
@@ -12,7 +12,7 @@ export interface CommercialCoupon {
   couponCode: string; // Ex: "FOGAO15"
   merchantId: string;
   merchantName: string;
-  discountType: 'PERCENTUAL' | 'VALOR_FIXO';
+  discountType: "PERCENTUAL" | "VALOR_FIXO";
   discountValue: number; // 15% ou R$ 10,00
   minimumOrderValueBrl: number;
   maxDiscountBrl: number;
@@ -32,43 +32,46 @@ export class CouponEngine {
   private seedDefaultCoupons(): void {
     const defaultCoupons: CommercialCoupon[] = [
       {
-        couponId: 'CPN-01',
-        couponCode: 'FOGAO15',
-        merchantId: 'MKT-ITAP-01',
-        merchantName: 'Restaurante Fogão de Lenha',
-        discountType: 'PERCENTUAL',
+        couponId: "CPN-01",
+        couponCode: "FOGAO15",
+        merchantId: "MKT-ITAP-01",
+        merchantName: "Restaurante Fogão de Lenha",
+        discountType: "PERCENTUAL",
         discountValue: 15.0,
         minimumOrderValueBrl: 40.0,
         maxDiscountBrl: 25.0,
         totalIssued: 500,
         totalRedeemed: 142,
-        validUntil: '2026-12-31',
-        active: true
+        validUntil: "2026-12-31",
+        active: true,
       },
       {
-        couponId: 'CPN-02',
-        couponCode: 'SAULUCAS10',
-        merchantId: 'MKT-ITAP-02',
-        merchantName: 'Farmácia São Lucas',
-        discountType: 'VALOR_FIXO',
+        couponId: "CPN-02",
+        couponCode: "SAULUCAS10",
+        merchantId: "MKT-ITAP-02",
+        merchantName: "Farmácia São Lucas",
+        discountType: "VALOR_FIXO",
         discountValue: 10.0,
         minimumOrderValueBrl: 50.0,
         maxDiscountBrl: 10.0,
         totalIssued: 800,
         totalRedeemed: 320,
-        validUntil: '2026-12-31',
-        active: true
-      }
+        validUntil: "2026-12-31",
+        active: true,
+      },
     ];
 
-    defaultCoupons.forEach(c => this.coupons.set(c.couponCode, c));
+    defaultCoupons.forEach((c) => this.coupons.set(c.couponCode, c));
   }
 
   public getCoupon(couponCode: string): CommercialCoupon | undefined {
     return this.coupons.get(couponCode.toUpperCase().trim());
   }
 
-  public validateCoupon(couponCode: string, purchaseAmountBrl: number): {
+  public validateCoupon(
+    couponCode: string,
+    purchaseAmountBrl: number,
+  ): {
     valid: boolean;
     discountBrl: number;
     finalAmountBrl: number;
@@ -76,7 +79,12 @@ export class CouponEngine {
   } {
     const coupon = this.getCoupon(couponCode);
     if (!coupon || !coupon.active) {
-      return { valid: false, discountBrl: 0, finalAmountBrl: purchaseAmountBrl, reason: 'Cupom inválido ou inativo.' };
+      return {
+        valid: false,
+        discountBrl: 0,
+        finalAmountBrl: purchaseAmountBrl,
+        reason: "Cupom inválido ou inativo.",
+      };
     }
 
     if (purchaseAmountBrl < coupon.minimumOrderValueBrl) {
@@ -84,13 +92,14 @@ export class CouponEngine {
         valid: false,
         discountBrl: 0,
         finalAmountBrl: purchaseAmountBrl,
-        reason: `Valor mínimo para este cupom é R$ ${coupon.minimumOrderValueBrl.toFixed(2)}.`
+        reason: `Valor mínimo para este cupom é R$ ${coupon.minimumOrderValueBrl.toFixed(2)}.`,
       };
     }
 
-    let discount = coupon.discountType === 'PERCENTUAL'
-      ? (purchaseAmountBrl * coupon.discountValue) / 100
-      : coupon.discountValue;
+    let discount =
+      coupon.discountType === "PERCENTUAL"
+        ? (purchaseAmountBrl * coupon.discountValue) / 100
+        : coupon.discountValue;
 
     discount = Math.min(discount, coupon.maxDiscountBrl);
     const finalAmount = Math.max(0, purchaseAmountBrl - discount);
@@ -100,7 +109,7 @@ export class CouponEngine {
     return {
       valid: true,
       discountBrl: Number(discount.toFixed(2)),
-      finalAmountBrl: Number(finalAmount.toFixed(2))
+      finalAmountBrl: Number(finalAmount.toFixed(2)),
     };
   }
 }

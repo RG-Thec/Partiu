@@ -45,9 +45,9 @@ export const MAP_ASSETS = {
 
 export const MAP_COLORS = {
   // Linha da Rota padrão Uber / 99 (Theme-Aware com Casing Branco)
-  ROUTE_LINE: "#0088FF",       // Cor primária vibrante dinâmica
-  ROUTE_CASING: "#FFFFFF",     // Casing branco de alto contraste para destaque sobre o asfalto
-  ROUTE_ALTERNATE: "#8FA8D4",  // Rotas alternativas
+  ROUTE_LINE: "#0088FF", // Cor primária vibrante dinâmica
+  ROUTE_CASING: "#FFFFFF", // Casing branco de alto contraste para destaque sobre o asfalto
+  ROUTE_ALTERNATE: "#8FA8D4", // Rotas alternativas
 
   // Pinos de ancoragem
   PICKUP_PIN_BG: "#000000",
@@ -56,13 +56,13 @@ export const MAP_COLORS = {
   DESTINATION_PIN_BORDER: "#FFFFFF",
 
   // Clusters de motoristas
-  CLUSTER_SMALL: "#F59E0B",    // 2-9 motoristas (Âmbar)
-  CLUSTER_MEDIUM: "#10B981",   // 10-49 motoristas (Esmeralda)
-  CLUSTER_LARGE: "#2563EB",    // 50+ motoristas (Azul)
+  CLUSTER_SMALL: "#F59E0B", // 2-9 motoristas (Âmbar)
+  CLUSTER_MEDIUM: "#10B981", // 10-49 motoristas (Esmeralda)
+  CLUSTER_LARGE: "#2563EB", // 50+ motoristas (Azul)
 
   // Status de motoristas
   DRIVER_AVAILABLE: "#10B981", // Verde
-  DRIVER_BUSY: "#6B7280",      // Cinza neutro
+  DRIVER_BUSY: "#6B7280", // Cinza neutro
 } as const;
 
 export const MAP_HIERARCHY = {

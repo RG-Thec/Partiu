@@ -7,12 +7,7 @@
  * ==============================================================================
  */
 
-export type DeliveryVehicleType =
-  | "MOTO"
-  | "CARRO"
-  | "UTILITARIO"
-  | "VAN"
-  | "CARRETO";
+export type DeliveryVehicleType = "MOTO" | "CARRO" | "UTILITARIO" | "VAN" | "CARRETO";
 
 export type PackageCategory =
   | "DOCUMENTO"
@@ -44,13 +39,7 @@ export interface PackageSpec {
 export type DeliveryStopType = "PICKUP" | "DROPOFF" | "RETURN";
 
 export type DeliveryStopStatus =
-  | "PENDING"
-  | "HEADING"
-  | "ARRIVED"
-  | "VERIFYING"
-  | "COMPLETED"
-  | "FAILED"
-  | "SKIPPED";
+  "PENDING" | "HEADING" | "ARRIVED" | "VERIFYING" | "COMPLETED" | "FAILED" | "SKIPPED";
 
 export interface DeliveryContact {
   name: string;

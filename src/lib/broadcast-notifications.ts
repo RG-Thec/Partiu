@@ -32,7 +32,8 @@ const mocksIniciais: NotificacaoBroadcast[] = [
   {
     id: "notif-001",
     titulo: "Operação Normal — Alta Disponibilidade",
-    mensagem: "Corridas de carro (Partiu Pop), moto e entregas expressas com tempo de resposta médio de 3 minutos.",
+    mensagem:
+      "Corridas de carro (Partiu Pop), moto e entregas expressas com tempo de resposta médio de 3 minutos.",
     categoria: "todos",
     urgencia: "info",
     rotaDestino: "/app",

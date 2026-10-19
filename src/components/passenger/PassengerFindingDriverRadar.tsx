@@ -1,14 +1,6 @@
 import React, { useMemo, memo, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import {
-  X,
-  AlertTriangle,
-  Clock,
-  Star,
-  ShieldCheck,
-  Car,
-  Bike,
-} from "lucide-react";
+import { X, AlertTriangle, Clock, Star, ShieldCheck, Car, Bike } from "lucide-react";
 import { usePassengerRide } from "@/contexts/PassengerRideContext";
 import { useDriverSearchRealtime } from "@/hooks/useDriverSearchRealtime";
 import { DriverViewing99Card } from "./DriverViewing99Card";
@@ -110,8 +102,8 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
     100,
     Math.max(
       5,
-      ((waveDetails.totalSeconds - waveDetails.secondsRemaining) / waveDetails.totalSeconds) * 100
-    )
+      ((waveDetails.totalSeconds - waveDetails.secondsRemaining) / waveDetails.totalSeconds) * 100,
+    ),
   );
 
   // Contagem regressiva total com suporte à janela estendida de 10 minutos (600s)
@@ -250,8 +242,8 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
                   {currentWave === 1
                     ? "Conectando aos condutores no seu bairro (2 km)"
                     : currentWave === 2
-                    ? "Ampliando busca para a região (4 km)"
-                    : "Busca metropolitana expandida (6 km)"}
+                      ? "Ampliando busca para a região (4 km)"
+                      : "Busca metropolitana expandida (6 km)"}
                 </p>
               </div>
             </div>
@@ -291,7 +283,8 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
                   currentWave >= 2 ? "bg-primary" : "bg-slate-200"
                 }`}
                 style={{
-                  width: currentWave === 2 ? `${progressPercent}%` : currentWave > 2 ? "100%" : "0%",
+                  width:
+                    currentWave === 2 ? `${progressPercent}%` : currentWave > 2 ? "100%" : "0%",
                 }}
               />
               <div
@@ -311,7 +304,7 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
           {hasActiveDriver && currentDriver && (
             <DriverViewing99Card
               driver={currentDriver}
-              totalViewingCount={(progressiveSession?.viewingDrivers?.length || 1)}
+              totalViewingCount={progressiveSession?.viewingDrivers?.length || 1}
               isTransitioning={isTransitioning}
             />
           )}
@@ -324,9 +317,13 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
                   className="w-2 h-2 rounded-full shrink-0"
                   style={{ backgroundColor: colors.primary }}
                 />
-                <span className="truncate">{origem ? origem.split(",")[0] : "Local de Embarque"}</span>
+                <span className="truncate">
+                  {origem ? origem.split(",")[0] : "Local de Embarque"}
+                </span>
                 <span className="text-slate-600 font-extrabold">➔</span>
-                <span className="truncate text-slate-950 font-black">{destino ? destino.split(",")[0] : "Destino"}</span>
+                <span className="truncate text-slate-950 font-black">
+                  {destino ? destino.split(",")[0] : "Destino"}
+                </span>
               </div>
               <div className="flex items-center gap-2 text-xs text-slate-700 font-bold mt-0.5">
                 <span>{categoriaVeiculo === "MOTO" ? `${nomeApp} Moto` : `${nomeApp} Carro`}</span>
@@ -335,17 +332,19 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
                   {String(formaPagamento).toUpperCase() === "PIX"
                     ? "PIX"
                     : String(formaPagamento).toUpperCase() === "DINHEIRO"
-                    ? "Dinheiro"
-                    : String(formaPagamento).toUpperCase().includes("CARTAO")
-                    ? "Cartão"
-                    : "Maquininha"}
+                      ? "Dinheiro"
+                      : String(formaPagamento).toUpperCase().includes("CARTAO")
+                        ? "Cartão"
+                        : "Maquininha"}
                 </span>
               </div>
             </div>
 
             <div className="text-right shrink-0">
               <span className="text-sm font-extrabold text-slate-900 block leading-tight">
-                {cotacaoAtiva?.precoBrl ? `R$ ${cotacaoAtiva.precoBrl.toFixed(2).replace(".", ",")}` : "R$ 14,90"}
+                {cotacaoAtiva?.precoBrl
+                  ? `R$ ${cotacaoAtiva.precoBrl.toFixed(2).replace(".", ",")}`
+                  : "R$ 14,90"}
               </span>
               <span className="text-xs font-bold text-emerald-800 uppercase tracking-wide">
                 Tarifa Fixada
@@ -431,11 +430,15 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
 
               {/* Textos Informativos */}
               <div className="space-y-1">
-                <h4 id="cancel-modal-title" className="text-base font-extrabold text-slate-900 tracking-tight">
+                <h4
+                  id="cancel-modal-title"
+                  className="text-base font-extrabold text-slate-900 tracking-tight"
+                >
                   Deseja cancelar a busca?
                 </h4>
                 <p className="text-xs text-slate-600 font-normal leading-relaxed">
-                  Já estamos na Onda {currentWave} ({waveDetails.radiusLabel}), conectando com os condutores mais próximos de você.
+                  Já estamos na Onda {currentWave} ({waveDetails.radiusLabel}), conectando com os
+                  condutores mais próximos de você.
                 </p>
 
                 {/* Badge de Carência Gratuita */}
@@ -470,7 +473,7 @@ export const PassengerFindingDriverRadar = memo(function PassengerFindingDriverR
               </div>
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </>
   );

@@ -8,12 +8,16 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { routingService, type RouteMetrics, type RouteRequestOptions } from "@/services/RoutingService";
+import {
+  routingService,
+  type RouteMetrics,
+  type RouteRequestOptions,
+} from "@/services/RoutingService";
 
 export function useRealtimeRouting(
   origin?: [number, number] | null,
   destination?: [number, number] | null,
-  options: RouteRequestOptions = {}
+  options: RouteRequestOptions = {},
 ) {
   const [routeMetrics, setRouteMetrics] = useState<RouteMetrics | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +49,14 @@ export function useRealtimeRouting(
     } finally {
       setIsLoading(false);
     }
-  }, [origin?.[0], origin?.[1], destination?.[0], destination?.[1], options.vehicleType, options.trafficAware]);
+  }, [
+    origin?.[0],
+    origin?.[1],
+    destination?.[0],
+    destination?.[1],
+    options.vehicleType,
+    options.trafficAware,
+  ]);
 
   useEffect(() => {
     fetchRoute();

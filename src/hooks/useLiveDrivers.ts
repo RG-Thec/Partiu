@@ -85,7 +85,9 @@ export function useLiveDrivers(options: UseLiveDriversOptions = {}) {
         const cutoffTime = new Date(Date.now() - 30 * 1000).toISOString();
         const { data, error } = await (supabase as any)
           .from("driver_locations")
-          .select("id, driver_id, latitude, longitude, heading, speed, status, category, updated_at")
+          .select(
+            "id, driver_id, latitude, longitude, heading, speed, status, category, updated_at",
+          )
           .gt("updated_at", cutoffTime)
           .in("status", [
             "AVAILABLE",
@@ -178,7 +180,8 @@ export function useLiveDrivers(options: UseLiveDriversOptions = {}) {
                 const lng = Number(newRecord.longitude || newRecord.lng || newRecord.current_lng);
                 const heading = Number(newRecord.heading || newRecord.bearing || 0);
                 const status = String(newRecord.status || "DISPONIVEL");
-                const cat = newRecord.category || (newRecord.vehicle_type === "MOTO" ? "MOTO" : "CARRO");
+                const cat =
+                  newRecord.category || (newRecord.vehicle_type === "MOTO" ? "MOTO" : "CARRO");
 
                 if (driverId && !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
                   pendingUpdatesRef.current.set(driverId, {
@@ -195,7 +198,7 @@ export function useLiveDrivers(options: UseLiveDriversOptions = {}) {
                   scheduleFlush();
                 }
               }
-            }
+            },
           )
           .subscribe((status: string) => {
             if (status === "SUBSCRIBED") {

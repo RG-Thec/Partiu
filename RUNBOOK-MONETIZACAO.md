@@ -7,9 +7,11 @@ Procedimentos operacionais padrão (SOP) para investigação, diagnóstico e res
 ## 1. Cobranças Pix pendentes e não confirmadas
 
 ### Sintoma
+
 O motorista efetuou o pagamento do Pix via banco ou chave copia e cola, porém o aplicativo continua exibindo a tela de bloqueio com status `PAYMENT_PENDING` ou `EXPIRED`.
 
 ### Diagnóstico
+
 1. **Identificação da fatura:**
    - Acesse a tabela `public.driver_billing` no Supabase filtrando pelo `driver_id` ou telefone do condutor:
      ```sql
@@ -24,6 +26,7 @@ O motorista efetuou o pagamento do Pix via banco ou chave copia e cola, porém o
    - Se o status no Mercado Pago constar como `approved` e no banco como `PENDING`, houve falha na entrega do webhook.
 
 ### Resolução
+
 1. **Confirmação manual via RPC (Seguro e Idempotente):**
    - Execute a RPC de processamento informando o `id` da cobrança:
      ```sql
@@ -42,9 +45,11 @@ O motorista efetuou o pagamento do Pix via banco ou chave copia e cola, porém o
 ## 2. Falhas na entrega ou validação de webhooks
 
 ### Sintoma
+
 Os pagamentos são liquidados pelos usuários, mas nenhum evento de ativação é registrado em `public.subscription_events`.
 
 ### Diagnóstico
+
 1. **Verificação dos logs da Edge Function:**
    - No dashboard do Supabase, acesse **Edge Functions** -> `payment-webhook` -> **Logs**.
    - Verifique códigos HTTP de retorno:
@@ -59,6 +64,7 @@ Os pagamentos são liquidados pelos usuários, mas nenhum evento de ativação �
      ```
 
 ### Resolução
+
 1. Atualize o segredo do webhook no painel administrativo em `/app/admin/monetizacao` na aba Gateways ou via Supabase Secrets:
    ```bash
    supabase secrets set PAYMENT_WEBHOOK_SECRET="seu_secret_aqui"
@@ -70,9 +76,11 @@ Os pagamentos são liquidados pelos usuários, mas nenhum evento de ativação �
 ## 3. Discrepâncias de valor ou moeda
 
 ### Sintoma
+
 O webhook entrega um valor diferente daquele configurado no plano contratado (por exemplo: condutor alterou manualmente o valor no aplicativo bancário).
 
 ### Diagnóstico
+
 1. A RPC `fn_process_driver_pix_confirmation` recebe o parâmetro `p_amount`.
 2. Verifique se o valor pago é inferior ao valor do plano em `public.monetization_plans`:
    ```sql
@@ -83,6 +91,7 @@ O webhook entrega um valor diferente daquele configurado no plano contratado (po
    ```
 
 ### Resolução
+
 1. Se o valor pago for inferior à tarifa mínima da diária:
    - A conta não deve ser ativada como diária cheia de 24h.
    - Aplique crédito proporcional via painel administrativo ou realize o estorno bancário pela plataforma do adquirente.
@@ -92,9 +101,11 @@ O webhook entrega um valor diferente daquele configurado no plano contratado (po
 ## 4. Expirações e incidentes de acesso indevido
 
 ### Sintoma
+
 Motoristas com diárias válidas relatam bloqueio indevido no cockpit, ou motoristas vencidos continuam recebendo chamadas no despacho.
 
 ### Diagnóstico
+
 1. **Avaliação determinística via SQL:**
    - Execute a RPC de verificação diretamente no banco:
      ```sql
@@ -107,6 +118,7 @@ Motoristas com diárias válidas relatam bloqueio indevido no cockpit, ou motori
    - Caso o banco retorne `is_eligible: false` e o motorista ainda receba viagens, verifique o cache do `MatchingEngine` no servidor de despacho ou se o motorista está com status em cache na fila Redis/H3.
 
 ### Resolução
+
 1. Forçar varredura de expiração em lote:
    ```sql
    SELECT public.fn_driver_expire_subscriptions_batch();
@@ -127,9 +139,11 @@ Motoristas com diárias válidas relatam bloqueio indevido no cockpit, ou motori
 ## 5. Auditoria de ações administrativas e conformidade
 
 ### Consulta de trilha de auditoria
+
 Para auditar intervenções manuais realizadas em motoristas de uma franquia:
+
 ```sql
-SELECT 
+SELECT
   created_at,
   admin_id,
   driver_id,
@@ -142,4 +156,5 @@ WHERE tenant_id = 'tenant-itaperuna'
 ORDER BY created_at DESC
 LIMIT 50;
 ```
+
 As ações registradas incluem `GRANT_COURTESY`, `BLOCK_ACCESS`, `UNBLOCK_ACCESS` e `MANUAL_RENEWAL`.

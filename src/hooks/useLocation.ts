@@ -28,13 +28,15 @@ export interface UseLocationResult {
 }
 
 export function useLocation(
-  initialMode: LocationOperationalMode = "PASSENGER_IDLE"
+  initialMode: LocationOperationalMode = "PASSENGER_IDLE",
 ): UseLocationResult {
   const initialLoc = useRef(locationService.getLastKnownLocation());
 
   const [locationData, setLocationData] = useState<LocationData | null>(initialLoc.current);
   const [isLoading, setIsLoading] = useState<boolean>(!initialLoc.current);
-  const [permissionStatus, setPermissionStatus] = useState<"prompt" | "granted" | "denied">("granted");
+  const [permissionStatus, setPermissionStatus] = useState<"prompt" | "granted" | "denied">(
+    "granted",
+  );
 
   // Atualização de modo operacional
   const setMode = useCallback((mode: LocationOperationalMode) => {
@@ -66,7 +68,7 @@ export function useLocation(
         setIsLoading(false);
         setPermissionStatus("granted");
       },
-      { mode: initialMode }
+      { mode: initialMode },
     );
 
     return () => {

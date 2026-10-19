@@ -1,13 +1,13 @@
 /**
  * SMART PASSENGER BOARDING ENGINE — PASSENGER VERIFICATION
- * 
+ *
  * Avaliação de risco, identidade e elegibilidade para embarque inteligente (1-tap).
  * Elimina a fricção de PINs obrigatórios para passageiros verificados e de alta confiança.
  */
 
-import { PassengerTrustTier } from '../trust/trust-score';
+import { PassengerTrustTier } from "../trust/trust-score";
 
-export type PassengerRiskLevel = 'LOW_RISK' | 'MEDIUM_RISK' | 'HIGH_RISK' | 'BLOCKED';
+export type PassengerRiskLevel = "LOW_RISK" | "MEDIUM_RISK" | "HIGH_RISK" | "BLOCKED";
 
 export interface PassengerIdentityInput {
   passengerId: string;
@@ -46,28 +46,27 @@ export class PassengerVerificationEngine {
     const badges: string[] = [];
 
     // 1. Resolver Trust Score
-    const trustScore = input.trustScore !== undefined
-      ? input.trustScore
-      : this.calculateDefaultScore(input);
+    const trustScore =
+      input.trustScore !== undefined ? input.trustScore : this.calculateDefaultScore(input);
 
     // 2. Resolver Trust Tier
     const trustTier = input.trustTier || this.resolveTierFromScore(trustScore);
 
     // 3. Avaliação de Badges de Identidade
     if (input.cpfVerified) {
-      badges.push('CPF_VERIFICADO');
+      badges.push("CPF_VERIFICADO");
     }
     if (input.rating >= 4.8) {
-      badges.push('ALTA_REPUTACAO');
+      badges.push("ALTA_REPUTACAO");
     }
     if (input.totalCompletedRides >= 20) {
-      badges.push('PASSAGEIRO_FREQUENTE');
+      badges.push("PASSAGEIRO_FREQUENTE");
     }
     if (input.totalCompletedRides >= 100) {
-      badges.push('VETERANO');
+      badges.push("VETERANO");
     }
     if (input.photoUrl) {
-      badges.push('FOTO_RECONHECIDA');
+      badges.push("FOTO_RECONHECIDA");
     }
 
     // 4. Calcular Identity Match Score
@@ -79,27 +78,31 @@ export class PassengerVerificationEngine {
     identityScore = Math.min(100, identityScore);
 
     // 5. Avaliação de Risco
-    let riskLevel: PassengerRiskLevel = 'LOW_RISK';
+    let riskLevel: PassengerRiskLevel = "LOW_RISK";
     const severeReports = input.severeReportsCount || 0;
     const cancellationRate = input.cancellationRate || 0;
 
-    if (trustTier === 'BLOQUEADO' || severeReports >= 2) {
-      riskLevel = 'BLOCKED';
-      reasons.push('Conta bloqueada por incidentes graves ou pontuação crítica de segurança.');
-    } else if (trustTier === 'RESTRITO' || severeReports === 1 || cancellationRate > 0.40) {
-      riskLevel = 'HIGH_RISK';
-      reasons.push('Passageiro em perfil restrito ou com alta taxa de cancelamentos anômalos.');
-    } else if (trustTier === 'OBSERVACAO' || input.totalCompletedRides === 0 || cancellationRate > 0.20) {
-      riskLevel = 'MEDIUM_RISK';
-      reasons.push('Passageiro novo ou sob monitoramento preventivo de integridade.');
+    if (trustTier === "BLOQUEADO" || severeReports >= 2) {
+      riskLevel = "BLOCKED";
+      reasons.push("Conta bloqueada por incidentes graves ou pontuação crítica de segurança.");
+    } else if (trustTier === "RESTRITO" || severeReports === 1 || cancellationRate > 0.4) {
+      riskLevel = "HIGH_RISK";
+      reasons.push("Passageiro em perfil restrito ou com alta taxa de cancelamentos anômalos.");
+    } else if (
+      trustTier === "OBSERVACAO" ||
+      input.totalCompletedRides === 0 ||
+      cancellationRate > 0.2
+    ) {
+      riskLevel = "MEDIUM_RISK";
+      reasons.push("Passageiro novo ou sob monitoramento preventivo de integridade.");
     } else {
-      riskLevel = 'LOW_RISK';
-      reasons.push('Passageiro verificado com excelente histórico de viagens e conduta.');
+      riskLevel = "LOW_RISK";
+      reasons.push("Passageiro verificado com excelente histórico de viagens e conduta.");
     }
 
     // 6. Elegibilidade para Embarque 1-Tap (Sem PIN obrigatório)
     // 99 e Uber permitem embarque direto com confirmação do motorista para passageiros regulares e confiáveis
-    const canOneTapBoard = riskLevel !== 'BLOCKED';
+    const canOneTapBoard = riskLevel !== "BLOCKED";
 
     return {
       passengerId: input.passengerId,
@@ -126,12 +129,12 @@ export class PassengerVerificationEngine {
   }
 
   private resolveTierFromScore(score: number): PassengerTrustTier {
-    if (score >= 90) return 'ELITE';
-    if (score >= 75) return 'PREMIUM';
-    if (score >= 50) return 'CONFIAVEL';
-    if (score >= 35) return 'OBSERVACAO';
-    if (score >= 20) return 'RESTRITO';
-    return 'BLOQUEADO';
+    if (score >= 90) return "ELITE";
+    if (score >= 75) return "PREMIUM";
+    if (score >= 50) return "CONFIAVEL";
+    if (score >= 35) return "OBSERVACAO";
+    if (score >= 20) return "RESTRITO";
+    return "BLOQUEADO";
   }
 }
 

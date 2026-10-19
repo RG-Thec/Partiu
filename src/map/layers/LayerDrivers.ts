@@ -13,7 +13,11 @@
 
 import type mapboxgl from "mapbox-gl";
 import { MAP_SOURCES, MAP_LAYERS, MAP_COLORS } from "../MapConstants";
-import { filterPointsInViewport, type BoundingBox, type SpatialPoint } from "@/lib/geo/spatial-viewport";
+import {
+  filterPointsInViewport,
+  type BoundingBox,
+  type SpatialPoint,
+} from "@/lib/geo/spatial-viewport";
 
 export interface DriverEntity extends SpatialPoint {
   id: string;
@@ -66,15 +70,7 @@ export class LayerDrivers {
             50,
             MAP_COLORS.CLUSTER_LARGE,
           ],
-          "circle-radius": [
-            "step",
-            ["get", "point_count"],
-            18,
-            10,
-            24,
-            50,
-            30,
-          ],
+          "circle-radius": ["step", ["get", "point_count"], 18, 10, 24, 50, 30],
           "circle-stroke-width": 3,
           "circle-stroke-color": "#FFFFFF",
           "circle-opacity": 0.95,
@@ -113,11 +109,16 @@ export class LayerDrivers {
             "interpolate",
             ["linear"],
             ["zoom"],
-            10, 0.08,
-            12, 0.12,
-            14, 0.16,
-            16, 0.20,
-            18, 0.25,
+            10,
+            0.08,
+            12,
+            0.12,
+            14,
+            0.16,
+            16,
+            0.2,
+            18,
+            0.25,
           ],
           "icon-anchor": "center",
           "icon-rotate": ["coalesce", ["get", "heading"], ["get", "bearing"], 0],

@@ -1,6 +1,6 @@
 /**
  * EDGE DECISION ENGINE — COMPUTAÇÃO DE BORDA DESCENTRALIZADA
- * 
+ *
  * Execução autônoma na borda da rede (Edge Computing / Cloudflare Workers):
  * - Decisões operacionais locais com latência ultrabaixa (< 1 ms)
  * - Surge Local Preditivo por praça e célula
@@ -63,16 +63,21 @@ export class EdgeDecisionEngine {
     // 3. Smart Nudge Local
     let nudge: string | null = null;
     if (event.isOnline && !event.isBusy && event.passengerQueueCount > 10) {
-      nudge = 'Alta demanda no Centro Expandido. Desloque-se 800m para chamadas imediatas com Surge ativo.';
+      nudge =
+        "Alta demanda no Centro Expandido. Desloque-se 800m para chamadas imediatas com Surge ativo.";
     }
 
     const t1 = performance.now();
     const elapsedMs = Number((t1 - t0).toFixed(3));
 
     // Determina o PoP (Point of Presence) mais próximo
-    const pop = event.cityId.includes('sp') ? 'GRU-EDGE-01' : 
-                event.cityId.includes('mg') ? 'CNF-EDGE-01' : 
-                event.cityId.includes('ba') ? 'SSA-EDGE-01' : 'GIG-EDGE-01';
+    const pop = event.cityId.includes("sp")
+      ? "GRU-EDGE-01"
+      : event.cityId.includes("mg")
+        ? "CNF-EDGE-01"
+        : event.cityId.includes("ba")
+          ? "SSA-EDGE-01"
+          : "GIG-EDGE-01";
 
     return {
       decisionId,
@@ -84,7 +89,7 @@ export class EdgeDecisionEngine {
       smartNudgeDirective: nudge,
       antiFraudPassed: fraudPassed,
       edgePopLocation: pop,
-      timestamp
+      timestamp,
     };
   }
 }

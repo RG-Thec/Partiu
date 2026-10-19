@@ -16,8 +16,8 @@
 import * as h3 from "h3-js";
 
 export const DEFAULT_H3_MATCHING_RESOLUTION = 9; // ~170m
-export const DEFAULT_H3_SURGE_RESOLUTION = 8;     // ~460m
-export const DEFAULT_H3_MACRO_RESOLUTION = 7;     // ~1.4km
+export const DEFAULT_H3_SURGE_RESOLUTION = 8; // ~460m
+export const DEFAULT_H3_MACRO_RESOLUTION = 7; // ~1.4km
 
 export interface GeoPoint {
   lat: number;
@@ -46,7 +46,11 @@ export class H3SpatialIndex {
   /**
    * Converte coordenadas geográficas (lat, lng) para o índice H3 da célula hexagonal
    */
-  public latLngToCell(lat: number, lng: number, resolution: number = DEFAULT_H3_MATCHING_RESOLUTION): string {
+  public latLngToCell(
+    lat: number,
+    lng: number,
+    resolution: number = DEFAULT_H3_MATCHING_RESOLUTION,
+  ): string {
     return h3.latLngToCell(lat, lng, resolution);
   }
 
@@ -75,7 +79,10 @@ export class H3SpatialIndex {
     // Garante que o polígono feche no primeiro vértice
     if (coords.length > 0) {
       const first = coords[0];
-      if (first && (coords[coords.length - 1]?.[0] !== first[0] || coords[coords.length - 1]?.[1] !== first[1])) {
+      if (
+        first &&
+        (coords[coords.length - 1]?.[0] !== first[0] || coords[coords.length - 1]?.[1] !== first[1])
+      ) {
         coords.push([first[0], first[1]]);
       }
     }

@@ -51,7 +51,9 @@ export const ChatBottomSheet: React.FC<ChatBottomSheetProps> = ({
   const [inputText, setInputText] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isOnline, setIsOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine : true);
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator !== "undefined" ? navigator.onLine : true,
+  );
   const [ttsEnabled, setTtsEnabled] = useState<boolean>(() => driverVoiceAssistant.getIsEnabled());
   const prevMsgCountRef = useRef<number>(0);
 
@@ -65,24 +67,24 @@ export const ChatBottomSheet: React.FC<ChatBottomSheetProps> = ({
     // Marca como lidas ao abrir o chat
     void chatRealtimeService.markAsRead(rideId, currentUserType);
 
-    const unsubscribe = chatRealtimeService.subscribeToRideChat(
-      rideId,
-      currentUserType,
-      (msgs) => {
-        setMessages(msgs);
-        // Se houver nova mensagem de entrada e o usuário for motorista (ou com TTS ativo), lê em voz alta
-        if (msgs.length > prevMsgCountRef.current) {
-          const newMsg = msgs[msgs.length - 1];
-          if (newMsg && newMsg.senderType !== currentUserType && driverVoiceAssistant.getIsEnabled()) {
-            driverVoiceAssistant.speakIncomingMessage(partnerName, newMsg.content);
-          }
+    const unsubscribe = chatRealtimeService.subscribeToRideChat(rideId, currentUserType, (msgs) => {
+      setMessages(msgs);
+      // Se houver nova mensagem de entrada e o usuário for motorista (ou com TTS ativo), lê em voz alta
+      if (msgs.length > prevMsgCountRef.current) {
+        const newMsg = msgs[msgs.length - 1];
+        if (
+          newMsg &&
+          newMsg.senderType !== currentUserType &&
+          driverVoiceAssistant.getIsEnabled()
+        ) {
+          driverVoiceAssistant.speakIncomingMessage(partnerName, newMsg.content);
         }
-        prevMsgCountRef.current = msgs.length;
-
-        // Se a janela estiver aberta, marca como lida
-        void chatRealtimeService.markAsRead(rideId, currentUserType);
       }
-    );
+      prevMsgCountRef.current = msgs.length;
+
+      // Se a janela estiver aberta, marca como lida
+      void chatRealtimeService.markAsRead(rideId, currentUserType);
+    });
 
     return unsubscribe;
   }, [isOpen, rideId, currentUserType, partnerName]);
@@ -148,7 +150,7 @@ export const ChatBottomSheet: React.FC<ChatBottomSheetProps> = ({
         scrollToBottom(true);
       }
     },
-    [rideId, currentUserId, currentUserType, isSending, scrollToBottom]
+    [rideId, currentUserId, currentUserType, isSending, scrollToBottom],
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -201,7 +203,8 @@ export const ChatBottomSheet: React.FC<ChatBottomSheetProps> = ({
                   {partnerName}
                 </h3>
                 <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-primary-50 text-amber-900 border border-amber-200 shrink-0">
-                  {partnerRoleLabel || (currentUserType === "PASSENGER" ? "Motorista" : "Passageiro")}
+                  {partnerRoleLabel ||
+                    (currentUserType === "PASSENGER" ? "Motorista" : "Passageiro")}
                 </span>
               </div>
 
@@ -224,7 +227,11 @@ export const ChatBottomSheet: React.FC<ChatBottomSheetProps> = ({
                 setTtsEnabled(newState);
               }}
               aria-label={ttsEnabled ? "Desativar leitura por voz" : "Ativar leitura por voz"}
-              title={ttsEnabled ? "Leitura por Voz Ativa (Lê mensagens em voz alta)" : "Leitura por Voz Desativada"}
+              title={
+                ttsEnabled
+                  ? "Leitura por Voz Ativa (Lê mensagens em voz alta)"
+                  : "Leitura por Voz Desativada"
+              }
               className={`w-8 h-8 rounded-full flex items-center justify-center active:scale-95 transition cursor-pointer ${
                 ttsEnabled
                   ? "bg-amber-100 text-amber-900 border border-amber-300"
@@ -272,7 +279,8 @@ export const ChatBottomSheet: React.FC<ChatBottomSheetProps> = ({
               </div>
               <p className="text-xs font-bold text-slate-700">Comunicação Operacional da Corrida</p>
               <p className="text-[11px] text-slate-500 max-w-[240px]">
-                Utilize as respostas rápidas abaixo para confirmar seu embarque ou avisar que está a caminho.
+                Utilize as respostas rápidas abaixo para confirmar seu embarque ou avisar que está a
+                caminho.
               </p>
             </div>
           ) : (

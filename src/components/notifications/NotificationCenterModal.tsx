@@ -47,7 +47,9 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
   const [activeTab, setActiveTab] = useState<"todas" | "nao_lidas">("todas");
   const [pushGranted, setPushGranted] = useState(false);
   const [isRequestingPush, setIsRequestingPush] = useState(false);
-  const [instructionModal, setInstructionModal] = useState<"ios" | "denied" | "in_app" | null>(null);
+  const [instructionModal, setInstructionModal] = useState<"ios" | "denied" | "in_app" | null>(
+    null,
+  );
 
   // Carrega notificações e escuta em tempo real
   useEffect(() => {
@@ -57,12 +59,9 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
       setPushGranted(Notification.permission === "granted");
     }
 
-    const unsubscribe = pushNotificationService.subscribeToUserNotifications(
-      userId,
-      (list) => {
-        setNotifications(list);
-      }
-    );
+    const unsubscribe = pushNotificationService.subscribeToUserNotifications(userId, (list) => {
+      setNotifications(list);
+    });
 
     return () => {
       unsubscribe();
@@ -177,11 +176,11 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
               <Bell className="w-5 h-5 text-brand-primary-deep" />
             </div>
             <div>
-              <h3 className="text-base font-black text-slate-900 leading-tight">
-                Notificações
-              </h3>
+              <h3 className="text-base font-black text-slate-900 leading-tight">Notificações</h3>
               <p className="text-xs text-slate-500 font-medium">
-                {userRole === "DRIVER" ? "Avisos operacionais do condutor" : "Novidades e avisos de corrida"}
+                {userRole === "DRIVER"
+                  ? "Avisos operacionais do condutor"
+                  : "Novidades e avisos de corrida"}
               </p>
             </div>
           </div>
@@ -320,14 +319,10 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
 
                   <div className="flex-1 min-w-0 pr-4">
                     <div className="flex items-baseline justify-between gap-1 mb-0.5">
-                      <h4 className="text-xs font-black text-slate-950 truncate">
-                        {item.title}
-                      </h4>
+                      <h4 className="text-xs font-black text-slate-950 truncate">{item.title}</h4>
                     </div>
 
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      {item.message}
-                    </p>
+                    <p className="text-xs text-slate-600 leading-relaxed">{item.message}</p>
 
                     <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-100/70">
                       <div className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
@@ -390,19 +385,31 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
 
               <div className="space-y-3 text-xs text-slate-700">
                 <p className="font-semibold text-slate-900 leading-snug">
-                  No iPhone (Safari), a Apple requer que o app seja adicionado à Tela de Início para habilitar alertas em segundo plano:
+                  No iPhone (Safari), a Apple requer que o app seja adicionado à Tela de Início para
+                  habilitar alertas em segundo plano:
                 </p>
                 <ol className="space-y-2.5">
                   <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">1</span>
-                    <span>Toque no botão de <strong>Compartilhar</strong> do Safari (ícone de quadrado com seta para cima no rodapé).</span>
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                      1
+                    </span>
+                    <span>
+                      Toque no botão de <strong>Compartilhar</strong> do Safari (ícone de quadrado
+                      com seta para cima no rodapé).
+                    </span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">2</span>
-                    <span>Role a lista e toque em <strong>"Adicionar à Tela de Início"</strong>.</span>
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                      2
+                    </span>
+                    <span>
+                      Role a lista e toque em <strong>"Adicionar à Tela de Início"</strong>.
+                    </span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">3</span>
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                      3
+                    </span>
                     <span>Abra o app pelo novo ícone na tela inicial e ative as notificações!</span>
                   </li>
                 </ol>
@@ -453,16 +460,29 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                 </p>
                 <ol className="space-y-2.5">
                   <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">1</span>
-                    <span>Toque no ícone de <strong>cadeado ou configurações</strong> na barra de endereço (onde fica o link do site).</span>
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                      1
+                    </span>
+                    <span>
+                      Toque no ícone de <strong>cadeado ou configurações</strong> na barra de
+                      endereço (onde fica o link do site).
+                    </span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">2</span>
-                    <span>Toque em <strong>"Permissões"</strong> &gt; <strong>"Notificações"</strong>.</span>
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                      2
+                    </span>
+                    <span>
+                      Toque em <strong>"Permissões"</strong> &gt; <strong>"Notificações"</strong>.
+                    </span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">3</span>
-                    <span>Altere para <strong>"Permitir"</strong> e recarregue a página.</span>
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                      3
+                    </span>
+                    <span>
+                      Altere para <strong>"Permitir"</strong> e recarregue a página.
+                    </span>
                   </li>
                 </ol>
               </div>
@@ -522,12 +542,21 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                 </p>
                 <ol className="space-y-2.5">
                   <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">1</span>
-                    <span>Toque nos <strong>três pontinhos (...)</strong> no canto superior da tela.</span>
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                      1
+                    </span>
+                    <span>
+                      Toque nos <strong>três pontinhos (...)</strong> no canto superior da tela.
+                    </span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">2</span>
-                    <span>Selecione <strong>"Abrir no Chrome"</strong> ou <strong>"Abrir no Safari"</strong>.</span>
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-800 font-black text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                      2
+                    </span>
+                    <span>
+                      Selecione <strong>"Abrir no Chrome"</strong> ou{" "}
+                      <strong>"Abrir no Safari"</strong>.
+                    </span>
                   </li>
                 </ol>
               </div>

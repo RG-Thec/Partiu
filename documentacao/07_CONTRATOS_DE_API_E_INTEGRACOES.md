@@ -7,22 +7,25 @@
 A camada de integração do **PARTIU MOBE** é exposta através de **REST / JSON APIs**, **Edge Functions Serverless** e **RPCs PostgreSQL Atômicas**, complementadas por canais bidirecionais de alta velocidade via **Supabase Realtime WebSockets**.
 
 ### Cabeçalhos Padrão de Requisição (Headers)
-| Cabeçalho | Tipo | Obrigatório | Descrição |
-| :--- | :--- | :--- | :--- |
-| `Authorization` | `string` | Sim (Rotas autenticadas) | Token JWT emitido pelo Supabase Auth: `Bearer <token>` |
-| `apikey` | `string` | Sim | Chave pública anônima do Supabase (`SUPABASE_ANON_KEY`) |
-| `Content-Type` | `string` | Sim | `application/json` |
+
+| Cabeçalho         | Tipo     | Obrigatório                        | Descrição                                                    |
+| :---------------- | :------- | :--------------------------------- | :----------------------------------------------------------- |
+| `Authorization`   | `string` | Sim (Rotas autenticadas)           | Token JWT emitido pelo Supabase Auth: `Bearer <token>`       |
+| `apikey`          | `string` | Sim                                | Chave pública anônima do Supabase (`SUPABASE_ANON_KEY`)      |
+| `Content-Type`    | `string` | Sim                                | `application/json`                                           |
 | `Idempotency-Key` | `UUIDv4` | Sim (Operações financeiras/aceite) | Chave única para evitar dupla cobrança ou despacho duplicado |
-| `X-Tenant-ID` | `UUIDv4` | Opcional | Identificador da franquia/praça para isolamento de dados |
+| `X-Tenant-ID`     | `UUIDv4` | Opcional                           | Identificador da franquia/praça para isolamento de dados     |
 
 ---
 
 ## 2. Endpoints Core de Mobilidade e Corridas
 
 ### A. Solicitar Corrida (Passageiro)
+
 - **Método / Rota:** `POST /api/rides/request`
 - **Cabeçalhos:** `Authorization`, `Idempotency-Key`
 - **Payload de Entrada (JSON):**
+
 ```json
 {
   "tenant_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
@@ -34,13 +37,15 @@ A camada de integração do **PARTIU MOBE** é exposta através de **REST / JSON
   },
   "destination": {
     "address": "Rua Engenheiro Paulo Brandão Nogueira, 85 - Jatiúca, Maceió - AL",
-    "latitude": -9.658210,
-    "longitude": -35.698420
+    "latitude": -9.65821,
+    "longitude": -35.69842
   },
   "payment_method": "direct_pix_driver"
 }
 ```
+
 - **Resposta de Sucesso (201 Created):**
+
 ```json
 {
   "ride_id": "4a7f293b-18a2-4a02-b258-3691ac9e248b",
@@ -58,18 +63,22 @@ A camada de integração do **PARTIU MOBE** é exposta através de **REST / JSON
 ---
 
 ### B. Aceitar Oferta de Corrida (Motorista - RPC Atômica)
+
 - **Método / Rota:** `POST /rest/v1/rpc/rpc_driver_accept_ride`
 - **Descrição:** Garante atomicidade em condições de alta concorrência com bloqueio exclusivo de linha.
 - **Payload de Entrada (JSON):**
+
 ```json
 {
   "p_ride_id": "4a7f293b-18a2-4a02-b258-3691ac9e248b",
   "p_driver_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
-  "p_driver_lat": -9.650110,
-  "p_driver_lng": -35.709210
+  "p_driver_lat": -9.65011,
+  "p_driver_lng": -35.70921
 }
 ```
+
 - **Resposta de Sucesso (200 OK):**
+
 ```json
 {
   "success": true,
@@ -80,7 +89,9 @@ A camada de integração do **PARTIU MOBE** é exposta através de **REST / JSON
   "pickup_address": "Av. Fernandes Lima, 1200 - Farol"
 }
 ```
+
 - **Resposta de Conflito Concorrente (409 Conflict):**
+
 ```json
 {
   "success": false,
@@ -92,16 +103,20 @@ A camada de integração do **PARTIU MOBE** é exposta através de **REST / JSON
 ---
 
 ### C. Concluir Corrida (Finalização com Repasse 100%)
+
 - **Método / Rota:** `POST /rest/v1/rpc/rpc_finish_ride_p0`
 - **Payload de Entrada (JSON):**
+
 ```json
 {
   "p_ride_id": "4a7f293b-18a2-4a02-b258-3691ac9e248b",
-  "p_final_lat": -9.658210,
-  "p_final_lng": -35.698420
+  "p_final_lat": -9.65821,
+  "p_final_lng": -35.69842
 }
 ```
+
 - **Resposta de Sucesso (200 OK):**
+
 ```json
 {
   "success": true,
@@ -118,8 +133,10 @@ A camada de integração do **PARTIU MOBE** é exposta através de **REST / JSON
 ## 3. Endpoints de Assinaturas e Monetização SaaS
 
 ### A. Consultar Status e Validade da Assinatura do Motorista
+
 - **Método / Rota:** `GET /api/driver/status-assinatura`
 - **Resposta de Sucesso (200 OK):**
+
 ```json
 {
   "driver_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
@@ -129,7 +146,7 @@ A camada de integração do **PARTIU MOBE** é exposta através de **REST / JSON
     "plan_code": "plano_mensal_pro",
     "name": "Mensal Pro",
     "price_cents": 14990,
-    "commission_rate": 0.00
+    "commission_rate": 0.0
   },
   "expires_at": "2026-11-05T23:59:59Z",
   "days_remaining": 29,
@@ -140,15 +157,19 @@ A camada de integração do **PARTIU MOBE** é exposta através de **REST / JSON
 ---
 
 ### B. Gerar Cobrança Pix para Renovação de Assinatura
+
 - **Método / Rota:** `POST /api/subscription/checkout-pix`
 - **Payload de Entrada (JSON):**
+
 ```json
 {
   "driver_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
   "plan_code": "plano_mensal_pro"
 }
 ```
+
 - **Resposta de Sucesso (200 OK):**
+
 ```json
 {
   "invoice_id": "d3b07384-d113-4f44-8456-e9e9c5f874f6",
@@ -162,23 +183,26 @@ A camada de integração do **PARTIU MOBE** é exposta através de **REST / JSON
 ---
 
 ### C. Webhook de Confirmação do Gateway Pix
+
 - **Método / Rota:** `POST /api/webhooks/pix-subscription`
 - **Cabeçalhos de Segurança:**
   - `X-Signature: <HMAC-SHA256 signature>`
   - `X-Request-Timestamp: 1791400000`
 - **Payload de Exemplo (Mercado Pago / Asaas):**
+
 ```json
 {
   "event": "PAYMENT_RECEIVED",
   "payment": {
     "id": "pay_98234710293",
     "status": "CONFIRMED",
-    "value": 149.90,
+    "value": 149.9,
     "externalReference": "d3b07384-d113-4f44-8456-e9e9c5f874f6",
     "paymentDate": "2026-10-07T16:05:12Z"
   }
 }
 ```
+
 - **Resposta da API:** Retorna imediatamente `200 OK {"received": true}` e dispara a ativação via background worker.
 
 ---
@@ -187,38 +211,43 @@ A camada de integração do **PARTIU MOBE** é exposta através de **REST / JSON
 
 A aplicação conecta-se aos seguintes canais pub/sub para sincronização de eventos:
 
-| Canal WebSocket | Eventos Emitidos | Direção / Destinatários |
-| :--- | :--- | :--- |
-| `realtime:rides:${ride_id}` | `STATUS_CHANGED`, `LOCATION_UPDATED`, `CHAT_MESSAGE` | Passageiro $\leftrightarrow$ Motorista |
-| `realtime:driver_offers:${driver_id}` | `NEW_OFFER`, `OFFER_EXPIRED`, `OFFER_CANCELLED` | Despacho PostGIS $\to$ Motorista |
-| `realtime:subscription:${driver_id}` | `SUBSCRIPTION_ACTIVATED`, `ACCESS_UNBLOCKED` | Gateway Webhook $\to$ Motorista |
-| `realtime:admin_fleet:${tenant_id}` | `DRIVER_ONLINE`, `DRIVER_OFFLINE`, `SOS_ALERT` | Telemetria $\to$ Painel Operador |
+| Canal WebSocket                       | Eventos Emitidos                                     | Direção / Destinatários                |
+| :------------------------------------ | :--------------------------------------------------- | :------------------------------------- |
+| `realtime:rides:${ride_id}`           | `STATUS_CHANGED`, `LOCATION_UPDATED`, `CHAT_MESSAGE` | Passageiro $\leftrightarrow$ Motorista |
+| `realtime:driver_offers:${driver_id}` | `NEW_OFFER`, `OFFER_EXPIRED`, `OFFER_CANCELLED`      | Despacho PostGIS $\to$ Motorista       |
+| `realtime:subscription:${driver_id}`  | `SUBSCRIPTION_ACTIVATED`, `ACCESS_UNBLOCKED`         | Gateway Webhook $\to$ Motorista        |
+| `realtime:admin_fleet:${tenant_id}`   | `DRIVER_ONLINE`, `DRIVER_OFFLINE`, `SOS_ALERT`       | Telemetria $\to$ Painel Operador       |
 
 ---
 
 ## 5. Supabase Edge Functions & APIs Territoriais
 
 ### A. Edge Function: `verify-and-create-ride`
+
 Valida integridade espacial e precifica a corrida antes da persistência:
+
 - **Rota:** `POST /functions/v1/verify-and-create-ride`
 - **Cabeçalhos:** `Authorization`, `apikey`, `Content-Type: application/json`
 - **Payload:**
+
 ```json
 {
   "pickup_lat": -9.649832,
   "pickup_lng": -35.708945,
-  "dropoff_lat": -9.658210,
-  "dropoff_lng": -35.698420,
+  "dropoff_lat": -9.65821,
+  "dropoff_lng": -35.69842,
   "category_id": "economico",
   "passenger_id": "uuid-passageiro",
   "tenant_id": "uuid-franquia"
 }
 ```
+
 - **Processamento:**
   1. Tenta roteamento via Mapbox Directions API para obter rota viária e tempo exato de percurso.
   2. Caso o Mapbox falhe ou esgote o tempo limite, ativa fallback automático com distância geodésica Haversine ponderada.
   3. Aplica a tabela tarifária da praça, gravando a corrida atômica no banco de dados.
 - **Resposta (200 OK):**
+
 ```json
 {
   "success": true,
@@ -226,20 +255,24 @@ Valida integridade espacial e precifica a corrida antes da persistência:
   "distance_km": 4.35,
   "duration_min": 12,
   "fare_cents": 2850,
-  "routing_source": "mapbox" 
+  "routing_source": "mapbox"
 }
 ```
 
 ### B. Gestão de Franquias & Expansão Territorial (Super Admin)
+
 - **Licenciar Cidade para Franquia:** `POST /api/admin/franchises/:id/territories`
 - **Payload:**
+
 ```json
 {
   "city_id": 1420,
   "radius_km": 20.0
 }
 ```
+
 - **Resposta (201 Created):**
+
 ```json
 {
   "franchise_id": "uuid-franquia",

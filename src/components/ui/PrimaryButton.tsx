@@ -42,7 +42,7 @@ export const PrimaryButton = React.forwardRef<HTMLButtonElement, PrimaryButtonPr
       type = "button",
       ...props
     },
-    ref
+    ref,
   ) => {
     const isDisabled = disabled || isLoading;
 
@@ -67,16 +67,18 @@ export const PrimaryButton = React.forwardRef<HTMLButtonElement, PrimaryButtonPr
               : "var(--wl-button-shadow, var(--button-shadow, 0 4px 14px 0 rgba(0, 0, 0, 0.15)))",
           }
         : variant === "solid"
-        ? {
-            backgroundColor: "var(--color-primary, #FF6B00)",
-            color: "#FFFFFF",
-            boxShadow: isDisabled ? "none" : "var(--wl-button-shadow, var(--button-shadow, 0 4px 14px 0 rgba(0, 0, 0, 0.15)))",
-          }
-        : {
-            backgroundColor: "transparent",
-            border: "1.5px solid var(--color-primary, #FF6B00)",
-            color: "var(--color-primary, #FF6B00)",
-          };
+          ? {
+              backgroundColor: "var(--color-primary, #FF6B00)",
+              color: "#FFFFFF",
+              boxShadow: isDisabled
+                ? "none"
+                : "var(--wl-button-shadow, var(--button-shadow, 0 4px 14px 0 rgba(0, 0, 0, 0.15)))",
+            }
+          : {
+              backgroundColor: "transparent",
+              border: "1.5px solid var(--color-primary, #FF6B00)",
+              color: "var(--color-primary, #FF6B00)",
+            };
 
     return (
       <button
@@ -95,7 +97,7 @@ export const PrimaryButton = React.forwardRef<HTMLButtonElement, PrimaryButtonPr
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary,#FF6B00)] focus-visible:ring-offset-2",
           "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
           sizeClasses,
-          className
+          className,
         )}
         {...props}
       >
@@ -113,7 +115,7 @@ export const PrimaryButton = React.forwardRef<HTMLButtonElement, PrimaryButtonPr
         )}
       </button>
     );
-  }
+  },
 );
 
 PrimaryButton.displayName = "PrimaryButton";

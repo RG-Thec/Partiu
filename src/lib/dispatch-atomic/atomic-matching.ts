@@ -1,17 +1,17 @@
 /**
  * PARTIU TITANIUM SHIELD — ATOMIC MATCHING ENGINE
- * 
+ *
  * Invariante Absoluta do Marketplace:
  * 1 Corrida = Exatamente 1 Motorista Parceiro (Zero Double Dispatch / Zero Split Brain)
- * 
+ *
  * Utiliza o DistributedLockManager para orquestrar aceites concorrentes:
  * Caso múltiplos motoristas cliquem em "Aceitar Corrida" na mesma fração de milissegundo,
  * apenas o primeiro condutor obtém o lock atômico; todos os demais recebem rejeição graciosa.
  */
 
-import { distributedLockManager, DistributedLock } from './distributed-lock';
-import { CorridaPartiu, MotoristaInfo } from '../partiu-engine';
-import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
+import { distributedLockManager, DistributedLock } from "./distributed-lock";
+import { CorridaPartiu, MotoristaInfo } from "../partiu-engine";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -20,7 +20,12 @@ export interface AtomicClaimResult {
   corrida?: CorridaPartiu | undefined;
   winnerDriverId?: string | undefined;
   fencingToken?: number | undefined;
-  reason?: 'CLAIMED_SUCCESSFULLY' | 'ALREADY_CLAIMED_BY_ANOTHER_DRIVER' | 'INVALID_RIDE_STATE' | 'LOCK_FAILED' | undefined;
+  reason?:
+    | "CLAIMED_SUCCESSFULLY"
+    | "ALREADY_CLAIMED_BY_ANOTHER_DRIVER"
+    | "INVALID_RIDE_STATE"
+    | "LOCK_FAILED"
+    | undefined;
   mensagem?: string | undefined;
 }
 
@@ -44,28 +49,28 @@ export class AtomicMatchingEngine {
    */
   public async claimRideAtomic(
     corridaAtual: CorridaPartiu,
-    motorista: MotoristaInfo
+    motorista: MotoristaInfo,
   ): Promise<AtomicClaimResult> {
     const rideId = corridaAtual.id;
 
     // 1. Verificação preliminar de status
-    if (corridaAtual.status !== 'PROCURANDO') {
+    if (corridaAtual.status !== "PROCURANDO") {
       return {
         success: false,
-        reason: 'INVALID_RIDE_STATE',
+        reason: "INVALID_RIDE_STATE",
         winnerDriverId: corridaAtual.motorista?.id,
-        mensagem: 'Esta corrida já foi atribuída a outro condutor ou cancelada.'
+        mensagem: "Esta corrida já foi atribuída a outro condutor ou cancelada.",
       };
     }
 
     // 2. Tentativa primária no Supabase via RPC atômica (FOR UPDATE NOWAIT)
     if (isSupabaseConfigured() && UUID_REGEX.test(rideId) && motorista.id) {
       try {
-        const { data, error } = await (supabase as any).rpc('partiu_aceitar_corrida_atomica', {
+        const { data, error } = await (supabase as any).rpc("partiu_aceitar_corrida_atomica", {
           p_corrida_id: rideId,
           p_motorista_id: motorista.id,
-          p_motorista_nome: motorista.nome || 'Motorista Parceiro',
-          p_motorista_telefone: motorista.telefone || '',
+          p_motorista_nome: motorista.nome || "Motorista Parceiro",
+          p_motorista_telefone: motorista.telefone || "",
         });
 
         if (!error && data) {
@@ -73,8 +78,11 @@ export class AtomicMatchingEngine {
           if (rpcRes.sucesso === false) {
             return {
               success: false,
-              reason: rpcRes.codigo === 'LOCK_CONCORRENTE' ? 'ALREADY_CLAIMED_BY_ANOTHER_DRIVER' : 'INVALID_RIDE_STATE',
-              mensagem: rpcRes.mensagem || 'Corrida já aceita por outro parceiro.'
+              reason:
+                rpcRes.codigo === "LOCK_CONCORRENTE"
+                  ? "ALREADY_CLAIMED_BY_ANOTHER_DRIVER"
+                  : "INVALID_RIDE_STATE",
+              mensagem: rpcRes.mensagem || "Corrida já aceita por outro parceiro.",
             };
           }
 
@@ -84,10 +92,10 @@ export class AtomicMatchingEngine {
 
           const atualizada: CorridaPartiu = {
             ...corridaAtual,
-            status: 'A_CAMINHO',
+            status: "A_CAMINHO",
             motorista: {
-              ...motorista
-            }
+              ...motorista,
+            },
           };
 
           return {
@@ -95,11 +103,14 @@ export class AtomicMatchingEngine {
             corrida: atualizada,
             winnerDriverId: motorista.id,
             fencingToken: currentVer + 1000,
-            reason: 'CLAIMED_SUCCESSFULLY'
+            reason: "CLAIMED_SUCCESSFULLY",
           };
         }
       } catch (err) {
-        console.warn('[AtomicMatching] Falha na RPC remota, aplicando fallback para lock local resiliente:', err);
+        console.warn(
+          "[AtomicMatching] Falha na RPC remota, aplicando fallback para lock local resiliente:",
+          err,
+        );
       }
     }
 
@@ -110,8 +121,8 @@ export class AtomicMatchingEngine {
     } catch {
       return {
         success: false,
-        reason: 'ALREADY_CLAIMED_BY_ANOTHER_DRIVER',
-        mensagem: 'Outro condutor parceiro aceitou esta solicitação milissegundos antes!'
+        reason: "ALREADY_CLAIMED_BY_ANOTHER_DRIVER",
+        mensagem: "Outro condutor parceiro aceitou esta solicitação milissegundos antes!",
       };
     }
 
@@ -121,10 +132,10 @@ export class AtomicMatchingEngine {
 
     const atualizada: CorridaPartiu = {
       ...corridaAtual,
-      status: 'A_CAMINHO',
+      status: "A_CAMINHO",
       motorista: {
-        ...motorista
-      }
+        ...motorista,
+      },
     };
 
     return {
@@ -132,7 +143,7 @@ export class AtomicMatchingEngine {
       corrida: atualizada,
       winnerDriverId: motorista.id,
       fencingToken: lock.fencingToken,
-      reason: 'CLAIMED_SUCCESSFULLY'
+      reason: "CLAIMED_SUCCESSFULLY",
     };
   }
 

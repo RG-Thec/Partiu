@@ -1,6 +1,6 @@
 /**
  * REGIONAL ECONOMY ENGINE V2
- * 
+ *
  * Inteligência Macroeconômica Regional:
  * - Mensuração do PIB Municipal Mobilizado
  * - Velocidade de circulação da moeda regional (PIX / Wallet / Cashback)
@@ -23,7 +23,10 @@ export interface RegionalMacroeconomicSnapshot {
 }
 
 export class RegionalEconomyV2 {
-  public computeMacroeconomicSnapshot(cityId: string, cityName: string): RegionalMacroeconomicSnapshot {
+  public computeMacroeconomicSnapshot(
+    cityId: string,
+    cityName: string,
+  ): RegionalMacroeconomicSnapshot {
     const ridesGmv = 380000.0;
     const merchantGmv = 185000.0;
     const totalGmv = ridesGmv + merchantGmv;
@@ -42,7 +45,7 @@ export class RegionalEconomyV2 {
       keynesianMultiplier: multiplier,
       estimatedMunicipalIssGeneratedBrl: Number((totalGmv * 0.03).toFixed(2)), // 3% ISS médio
       totalDirectJobsSustained: 420,
-      calculatedAt: Date.now()
+      calculatedAt: Date.now(),
     };
   }
 }

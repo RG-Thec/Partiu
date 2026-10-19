@@ -255,9 +255,7 @@ export function lancarTransacaoCarteira(dados: {
 
   const carteira = carteiras[index];
   const isCredito =
-    dados.tipo === "RECARGA_PIX" ||
-    dados.tipo === "CREDITO_MANUAL_ADMIN" ||
-    dados.tipo === "BONUS";
+    dados.tipo === "RECARGA_PIX" || dados.tipo === "CREDITO_MANUAL_ADMIN" || dados.tipo === "BONUS";
 
   const novoSaldo = isCredito
     ? Math.round((carteira.saldoBrl + dados.valorBrl) * 100) / 100
@@ -444,4 +442,3 @@ export function gerarPayloadPixCopiaECola(params: {
   const crcHex = (crc & 0xffff).toString(16).toUpperCase().padStart(4, "0");
   return raw + crcHex;
 }
-

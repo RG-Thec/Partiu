@@ -90,7 +90,9 @@ export function AdminAprovacoesPage() {
 
   const [solicitacoes, setSolicitacoes] = useState<SolicitacaoCondutor[]>([]);
   const [visualizacao, setVisualizacao] = useState<"kanban" | "tabela">("kanban");
-  const [filtroStatus, setFiltroStatus] = useState<"todas" | "pendente" | "aprovado" | "rejeitado">("todas");
+  const [filtroStatus, setFiltroStatus] = useState<"todas" | "pendente" | "aprovado" | "rejeitado">(
+    "todas",
+  );
   const [busca, setBusca] = useState("");
   const [modalAuditoria, setModalAuditoria] = useState<SolicitacaoCondutor | null>(null);
 
@@ -98,9 +100,13 @@ export function AdminAprovacoesPage() {
   useEffect(() => {
     if (todasReais && todasReais.length > 0) {
       const convertidas: SolicitacaoCondutor[] = todasReais.map((p) => {
-        const catOriginal = (p.categoria_veiculo?.toUpperCase() as any) || (p.categoria_veiculo === "MOTO" ? "MOTO" : "CARRO");
+        const catOriginal =
+          (p.categoria_veiculo?.toUpperCase() as any) ||
+          (p.categoria_veiculo === "MOTO" ? "MOTO" : "CARRO");
         const catValida: "CARRO" | "MOTO" | "PLUS" | "MULHER" =
-          catOriginal === "MOTO" || catOriginal === "PLUS" || catOriginal === "MULHER" ? catOriginal : "CARRO";
+          catOriginal === "MOTO" || catOriginal === "PLUS" || catOriginal === "MULHER"
+            ? catOriginal
+            : "CARRO";
 
         return {
           id: p.id,
@@ -119,7 +125,9 @@ export function AdminAprovacoesPage() {
           veiculoCor: p.veiculo_cor,
           crlvAnoExercicio: "2026",
           chavePix: p.chave_pix || "Não cadastrada",
-          dataSolicitacao: p.created_at ? new Date(p.created_at).toLocaleDateString("pt-BR") : "Recente",
+          dataSolicitacao: p.created_at
+            ? new Date(p.created_at).toLocaleDateString("pt-BR")
+            : "Recente",
           status: (p.status_aprovacao as any) || "pendente",
           motivoRejeicao: (p as any).motivo_rejeicao,
           categoriaVeiculo: catValida,
@@ -159,7 +167,7 @@ export function AdminAprovacoesPage() {
             void qc.invalidateQueries({ queryKey: ["admin", "solicitacoes_motoristas"] });
             void qc.invalidateQueries({ queryKey: ["admin", "motoristas_pendentes"] });
             void qc.invalidateQueries({ queryKey: ["admin", "motoristas"] });
-          }
+          },
         )
         .subscribe();
     } catch {}
@@ -187,9 +195,18 @@ export function AdminAprovacoesPage() {
     });
   }, [solicitacoes, filtroStatus, busca]);
 
-  const totalPendentes = useMemo(() => solicitacoes.filter((s) => s.status === "pendente").length, [solicitacoes]);
-  const totalAprovados = useMemo(() => solicitacoes.filter((s) => s.status === "aprovado").length, [solicitacoes]);
-  const totalRejeitados = useMemo(() => solicitacoes.filter((s) => s.status === "rejeitado").length, [solicitacoes]);
+  const totalPendentes = useMemo(
+    () => solicitacoes.filter((s) => s.status === "pendente").length,
+    [solicitacoes],
+  );
+  const totalAprovados = useMemo(
+    () => solicitacoes.filter((s) => s.status === "aprovado").length,
+    [solicitacoes],
+  );
+  const totalRejeitados = useMemo(
+    () => solicitacoes.filter((s) => s.status === "rejeitado").length,
+    [solicitacoes],
+  );
 
   // Mutação de aprovação
   function handleAprovar(id: string, categoria: "CARRO" | "MOTO" | "PLUS" | "MULHER") {
@@ -235,7 +252,9 @@ export function AdminAprovacoesPage() {
       render: (s) => (
         <div>
           <p className="font-semibold text-slate-800 dark:text-slate-200">{s.veiculoMarcaModelo}</p>
-          <p className="text-[11px] font-mono font-bold text-slate-500 uppercase">{s.veiculoPlaca}</p>
+          <p className="text-[11px] font-mono font-bold text-slate-500 uppercase">
+            {s.veiculoPlaca}
+          </p>
         </div>
       ),
     },
@@ -384,7 +403,7 @@ export function AdminAprovacoesPage() {
                     s.veiculoPlaca,
                     s.status,
                     s.dataSolicitacao,
-                  ])
+                  ]),
                 );
               }}
             >

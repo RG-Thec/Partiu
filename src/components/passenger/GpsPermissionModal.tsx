@@ -6,7 +6,8 @@ import { NativeBottomSheet } from "@/components/native/NativeBottomSheet";
 import { NativeButton } from "@/components/native/NativeButton";
 
 export function GpsPermissionModal() {
-  const { isGpsPermissionModalOpen, closeGpsPermissionModal, solicitarPermissaoGps } = usePassengerRide();
+  const { isGpsPermissionModalOpen, closeGpsPermissionModal, solicitarPermissaoGps } =
+    usePassengerRide();
   const { appConfig } = useTheme();
   const { colors, ui, appName } = appConfig.branding;
 
@@ -64,7 +65,8 @@ export function GpsPermissionModal() {
           className="text-xs sm:text-sm text-center font-medium leading-relaxed"
           style={{ color: colors.textSecondary }}
         >
-          Para encontrar o motorista mais próximo e calcular a rota correta, precisamos acessar a sua localização em tempo real.
+          Para encontrar o motorista mais próximo e calcular a rota correta, precisamos acessar a
+          sua localização em tempo real.
         </p>
 
         {/* Alerta de Falha/Bloqueio nas Configurações */}
@@ -72,7 +74,8 @@ export function GpsPermissionModal() {
           <div className="p-3 bg-red-50 border border-red-200 rounded-2xl text-left flex items-start gap-2.5">
             <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
             <div className="text-xs text-red-800 leading-tight">
-              <strong className="font-bold">Permissão bloqueada:</strong> Acesse as configurações de permissões do navegador ou dispositivo e libere o acesso ao GPS.
+              <strong className="font-bold">Permissão bloqueada:</strong> Acesse as configurações de
+              permissões do navegador ou dispositivo e libere o acesso ao GPS.
             </div>
           </div>
         )}
@@ -86,11 +89,17 @@ export function GpsPermissionModal() {
             borderRadius: ui.borderRadius,
           }}
         >
-          <div className="flex items-center gap-2 text-xs font-semibold" style={{ color: colors.textPrimary }}>
+          <div
+            className="flex items-center gap-2 text-xs font-semibold"
+            style={{ color: colors.textPrimary }}
+          >
             <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>Dados de localização criptografados de ponta a ponta</span>
           </div>
-          <div className="flex items-center gap-2 text-xs font-semibold" style={{ color: colors.textPrimary }}>
+          <div
+            className="flex items-center gap-2 text-xs font-semibold"
+            style={{ color: colors.textPrimary }}
+          >
             <MapPin className="w-4 h-4 shrink-0" style={{ color: colors.primary }} />
             <span>Ponto de embarque identificado sem digitação manual</span>
           </div>
@@ -109,12 +118,7 @@ export function GpsPermissionModal() {
             {solicitando ? "Buscando satélites..." : "Permitir Acesso ao GPS"}
           </NativeButton>
 
-          <NativeButton
-            variant="text"
-            size="md"
-            fullWidth
-            onClick={closeGpsPermissionModal}
-          >
+          <NativeButton variant="text" size="md" fullWidth onClick={closeGpsPermissionModal}>
             Agora não
           </NativeButton>
         </div>

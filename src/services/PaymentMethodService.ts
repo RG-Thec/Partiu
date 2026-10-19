@@ -13,7 +13,6 @@ import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
-
 export interface TokenizedCard {
   id: string;
   tokenId: string;
@@ -45,7 +44,9 @@ export class PaymentMethodService {
     try {
       const stored = localStorage.getItem(STORAGE_CARTOES_KEY);
       if (stored) return JSON.parse(stored);
-    } catch (err) { silentCatchWarn("PaymentMethodService", err); }
+    } catch (err) {
+      silentCatchWarn("PaymentMethodService", err);
+    }
     return CARTOES_PADRAO;
   }
 
@@ -53,7 +54,9 @@ export class PaymentMethodService {
     if (typeof window === "undefined") return;
     try {
       localStorage.setItem(STORAGE_CARTOES_KEY, JSON.stringify(cards));
-    } catch (err) { silentCatchWarn("PaymentMethodService", err); }
+    } catch (err) {
+      silentCatchWarn("PaymentMethodService", err);
+    }
   }
 
   /**
@@ -86,7 +89,9 @@ export class PaymentMethodService {
         this.saveLocalCards(cloudCards);
         return cloudCards;
       }
-    } catch (err) { silentCatchWarn("PaymentMethodService", err); }
+    } catch (err) {
+      silentCatchWarn("PaymentMethodService", err);
+    }
 
     return local;
   }
@@ -101,7 +106,7 @@ export class PaymentMethodService {
       validade: string;
       cvv: string;
     },
-    userIdParam?: string
+    userIdParam?: string,
   ): Promise<{ success: boolean; cards: TokenizedCard[]; error?: string }> {
     const session = supabaseAuthService.getStoredSession();
     const userId = userIdParam || session?.id || "";
@@ -118,10 +123,10 @@ export class PaymentMethodService {
     const brand: TokenizedCard["bandeira"] = cleanNum.startsWith("4")
       ? "visa"
       : cleanNum.startsWith("5")
-      ? "mastercard"
-      : cleanNum.startsWith("6")
-      ? "elo"
-      : "mastercard";
+        ? "mastercard"
+        : cleanNum.startsWith("6")
+          ? "elo"
+          : "mastercard";
 
     // Simulação do handshake criptográfico com Gateway (ex: Stripe/Pagar.me/Asaas)
     const simulatedGatewayToken = `tok_pax_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 8)}`;
@@ -186,7 +191,9 @@ export class PaymentMethodService {
           .update({ is_default: true })
           .eq("id", id)
           .eq("user_id", userId);
-      } catch (err) { silentCatchWarn("PaymentMethodService", err); }
+      } catch (err) {
+        silentCatchWarn("PaymentMethodService", err);
+      }
     }
 
     return updated;
@@ -213,7 +220,9 @@ export class PaymentMethodService {
           .delete()
           .eq("id", id)
           .eq("user_id", userId);
-      } catch (err) { silentCatchWarn("PaymentMethodService", err); }
+      } catch (err) {
+        silentCatchWarn("PaymentMethodService", err);
+      }
     }
 
     return updated;

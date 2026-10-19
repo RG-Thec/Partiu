@@ -65,7 +65,7 @@ export function AdminCityProvider({ children }: { children: React.ReactNode }) {
       selecionarPraca,
       recarregarPracas,
     }),
-    [pracaAtiva, pracas, isNacional, selecionarPraca, recarregarPracas]
+    [pracaAtiva, pracas, isNacional, selecionarPraca, recarregarPracas],
   );
 
   return <AdminCityContext.Provider value={value}>{children}</AdminCityContext.Provider>;

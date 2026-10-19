@@ -25,10 +25,7 @@ interface NotificacoesPushModalProps {
   onFechar: () => void;
 }
 
-export function NotificacoesPushModal({
-  aberto,
-  onFechar,
-}: NotificacoesPushModalProps) {
+export function NotificacoesPushModal({ aberto, onFechar }: NotificacoesPushModalProps) {
   const { corPrimaria, corTextoPrimaria } = useBrandTheme();
   const [permissao, setPermissao] = useState<NotificationPermission>("default");
   const [carregando, setCarregando] = useState(false);
@@ -94,7 +91,6 @@ export function NotificacoesPushModal({
       className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex justify-center items-end sm:items-center animate-in fade-in duration-200"
     >
       <div className="w-full max-w-[430px] max-h-[92vh] sm:max-h-[85vh] bg-white rounded-t-3xl sm:rounded-3xl flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300">
-        
         {/* Header com estilo elegante */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white sticky top-0 z-10">
           <div className="flex items-center gap-2.5">
@@ -123,7 +119,6 @@ export function NotificacoesPushModal({
 
         {/* Conteúdo com Scroll */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 text-left">
-          
           {/* Status Atual do Push */}
           {permissao === "granted" ? (
             <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-start gap-3">
@@ -140,7 +135,8 @@ export function NotificacoesPushModal({
                   </span>
                 </div>
                 <p className="text-[11px] text-emerald-800 font-medium leading-relaxed mt-1">
-                  Seu navegador está configurado para receber alertas em segundo plano quando o entregador aceitar a corrida ou finalizar o trajeto.
+                  Seu navegador está configurado para receber alertas em segundo plano quando o
+                  entregador aceitar a corrida ou finalizar o trajeto.
                 </p>
               </div>
             </div>
@@ -154,7 +150,8 @@ export function NotificacoesPushModal({
                   Permissão Bloqueada no Navegador
                 </span>
                 <p className="text-[11px] text-rose-800 font-medium leading-relaxed mt-1">
-                  As notificações estão bloqueadas nas configurações do navegador. Clique no ícone de cadeado na barra de endereços para permitir.
+                  As notificações estão bloqueadas nas configurações do navegador. Clique no ícone
+                  de cadeado na barra de endereços para permitir.
                 </p>
               </div>
             </div>
@@ -168,7 +165,8 @@ export function NotificacoesPushModal({
                   Ative as Notificações de Bordo
                 </span>
                 <p className="text-[11px] text-amber-900 font-medium leading-relaxed mt-1">
-                  Receba avisos imediatos quando um entregador aceitar sua encomenda e estiver no local de coleta.
+                  Receba avisos imediatos quando um entregador aceitar sua encomenda e estiver no
+                  local de coleta.
                 </p>
               </div>
             </div>
@@ -182,7 +180,8 @@ export function NotificacoesPushModal({
                 <span>Navegador Interno Detectado</span>
               </div>
               <p>
-                Para notificações push garantidas mesmo com a tela bloqueada, recomendamos abrir este link no <strong>Google Chrome</strong> ou <strong>Safari</strong>.
+                Para notificações push garantidas mesmo com a tela bloqueada, recomendamos abrir
+                este link no <strong>Google Chrome</strong> ou <strong>Safari</strong>.
               </p>
             </div>
           )}

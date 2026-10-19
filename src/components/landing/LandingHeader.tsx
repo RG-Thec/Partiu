@@ -9,17 +9,13 @@ interface LandingHeaderProps {
   onNavigate?: (url: string) => void;
 }
 
-export const LandingHeader: React.FC<LandingHeaderProps> = ({
-  header,
-  theme,
-  onNavigate,
-}) => {
+export const LandingHeader: React.FC<LandingHeaderProps> = ({ header, theme, onNavigate }) => {
   const primaryColor = theme?.primary || "#FF6B00";
   const secondaryColor = theme?.secondary || "#FFB800";
 
   const activeUser = useMemo(() => {
     return typeof window !== "undefined"
-      ? (supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null)
+      ? supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null
       : null;
   }, []);
 
@@ -85,7 +81,9 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
           </span>
-          <span className="text-[9.5px] tracking-wide text-emerald-700 font-medium">Operação em tempo real</span>
+          <span className="text-[9.5px] tracking-wide text-emerald-700 font-medium">
+            Operação em tempo real
+          </span>
         </div>
 
         {/* Lado Direito: Navegação Rápida e Botão de Acesso - Largo Horizontalmente, Mais 20% Fino na Vertical */}
@@ -106,8 +104,8 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
                   activeUser.role === "MOTORISTA"
                     ? "/app/motorista"
                     : activeUser.role === "ADMIN"
-                    ? "/app/admin"
-                    : "/app";
+                      ? "/app/admin"
+                      : "/app";
                 onNavigate?.(dest);
               } else {
                 onNavigate?.("/auth");

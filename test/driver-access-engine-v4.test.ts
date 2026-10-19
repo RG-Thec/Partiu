@@ -28,13 +28,16 @@ import {
 import { matchingEngine } from "../src/services/MatchingEngine.ts";
 
 describe("30. PARTIU DRIVER ACCESS ENGINE V4 — MODULE 1: Access Decision & Guard Invariants", () => {
-  testAsync("Estados Bloqueados: EXPIRED, SUSPENDED, PAYMENT_PENDING impedem acesso operacional", async () => {
-    // Motorista sem cadastro prévio
-    const decision = await pixBillingService.evaluateDriverAccess("drv-iniciante-sem-plano");
-    expect(decision.is_eligible).toBe(false);
-    expect(["PAYMENT_PENDING", "EXPIRED", "SUSPENDED"].includes(decision.status)).toBe(true);
-    expect(decision.reasons.length > 0).toBe(true);
-  });
+  testAsync(
+    "Estados Bloqueados: EXPIRED, SUSPENDED, PAYMENT_PENDING impedem acesso operacional",
+    async () => {
+      // Motorista sem cadastro prévio
+      const decision = await pixBillingService.evaluateDriverAccess("drv-iniciante-sem-plano");
+      expect(decision.is_eligible).toBe(false);
+      expect(["PAYMENT_PENDING", "EXPIRED", "SUSPENDED"].includes(decision.status)).toBe(true);
+      expect(decision.reasons.length > 0).toBe(true);
+    },
+  );
 
   testAsync("Estados Permitidos: ACTIVE e GRACE_PERIOD liberam acesso ao Cockpit", async () => {
     const driverId = "drv-ativo-teste-liberado";
@@ -42,11 +45,15 @@ describe("30. PARTIU DRIVER ACCESS ENGINE V4 — MODULE 1: Access Decision & Gua
       driverId,
       "plano-diaria-essencial",
       "DAILY",
-      "Motorista Teste"
+      "Motorista Teste",
     );
 
     // Confirmação do pagamento via Webhook / RPC
-    const confirmResult = await pixBillingService.confirmPayment(billing.id, "gw_tx_test_123", 14.90);
+    const confirmResult = await pixBillingService.confirmPayment(
+      billing.id,
+      "gw_tx_test_123",
+      14.9,
+    );
     expect(confirmResult.success).toBe(true);
 
     const access = await pixBillingService.evaluateDriverAccess(driverId);
@@ -63,18 +70,18 @@ describe("31. PARTIU DRIVER ACCESS ENGINE V4 — MODULE 2: Dynamic Monetization 
 
     const diariaPlan = plans.find((p) => p.id === "plano-diaria-essencial");
     expect(diariaPlan !== undefined).toBe(true);
-    expect(diariaPlan?.daily_fee).toBe(14.90);
-    expect(diariaPlan?.commission_percent).toBe(0.00); // 0% Take Rate
+    expect(diariaPlan?.daily_fee).toBe(14.9);
+    expect(diariaPlan?.commission_percent).toBe(0.0); // 0% Take Rate
 
     const semanalPlan = plans.find((p) => p.id === "plano-semanal-pro");
     expect(semanalPlan !== undefined).toBe(true);
-    expect(semanalPlan?.weekly_fee).toBe(69.90);
-    expect(semanalPlan?.priority_weight).toBe(2.50);
+    expect(semanalPlan?.weekly_fee).toBe(69.9);
+    expect(semanalPlan?.priority_weight).toBe(2.5);
 
     const ouroPlan = plans.find((p) => p.id === "plano-mensal-ouro");
     expect(ouroPlan !== undefined).toBe(true);
-    expect(ouroPlan?.monthly_fee).toBe(199.90);
-    expect(ouroPlan?.priority_weight).toBe(5.00);
+    expect(ouroPlan?.monthly_fee).toBe(199.9);
+    expect(ouroPlan?.priority_weight).toBe(5.0);
   });
 });
 
@@ -98,25 +105,21 @@ describe("32. PARTIU DRIVER ACCESS ENGINE V4 — MODULE 5: Gateway Abstraction L
     const result = await gateway.createPix({
       driverId: "drv-strategy-test",
       driverName: "Ana Clara",
-      amount: 14.90,
+      amount: 14.9,
       description: "Diária PARTIU",
       expiresInMinutes: 30,
     });
 
-    expect(result.amount).toBe(14.90);
+    expect(result.amount).toBe(14.9);
     expect(result.copiaECola.startsWith("00020126")).toBe(true);
-    expect(result.qrCodeUrl.startsWith("data:image/") || result.qrCodeUrl.includes("qr")).toBe(true);
+    expect(result.qrCodeUrl.startsWith("data:image/") || result.qrCodeUrl.includes("qr")).toBe(
+      true,
+    );
     expect(result.status).toBe("PENDING");
   });
 
   test("Formatação EMV BACEN: Gera payload padronizado com campos obrigatórios", () => {
-    const emv = buildStandardEmvPix(
-      "12345678000199",
-      "PARTIU MOBILIDADE",
-      "MACAE",
-      14.90,
-      "TX999"
-    );
+    const emv = buildStandardEmvPix("12345678000199", "PARTIU MOBILIDADE", "MACAE", 14.9, "TX999");
 
     expect(emv.includes("BR.GOV.BCB.PIX")).toBe(true);
     expect(emv.includes("14.90")).toBe(true);
@@ -126,32 +129,35 @@ describe("32. PARTIU DRIVER ACCESS ENGINE V4 — MODULE 5: Gateway Abstraction L
 });
 
 describe("33. PARTIU DRIVER ACCESS ENGINE V4 — MODULE 6 & 7: PIX Billing & Atomic Webhook Activation", () => {
-  testAsync("Fluxo Ponta a Ponta: Criação de Cobrança -> Confirmação de Pagamento -> Liberação", async () => {
-    const driverId = "drv-e2e-pix-liberacao";
+  testAsync(
+    "Fluxo Ponta a Ponta: Criação de Cobrança -> Confirmação de Pagamento -> Liberação",
+    async () => {
+      const driverId = "drv-e2e-pix-liberacao";
 
-    // 1. Gera cobrança
-    const billing = await pixBillingService.createDriverBilling(
-      driverId,
-      "plano-diaria-essencial",
-      "DAILY",
-      "Carlos Santos"
-    );
+      // 1. Gera cobrança
+      const billing = await pixBillingService.createDriverBilling(
+        driverId,
+        "plano-diaria-essencial",
+        "DAILY",
+        "Carlos Santos",
+      );
 
-    expect(billing.status).toBe("PENDING");
-    expect(billing.amount).toBe(14.90);
-    expect(billing.pix_code.length > 20).toBe(true);
+      expect(billing.status).toBe("PENDING");
+      expect(billing.amount).toBe(14.9);
+      expect(billing.pix_code.length > 20).toBe(true);
 
-    // 2. Simula o recebimento do Webhook bancário
-    const webhookRes = await pixBillingService.confirmPayment(billing.id, "gw_ext_987654", 14.90);
-    expect(webhookRes.success).toBe(true);
-    expect(webhookRes.driverId).toBe(driverId);
-    expect(webhookRes.expiresAt !== undefined).toBe(true);
+      // 2. Simula o recebimento do Webhook bancário
+      const webhookRes = await pixBillingService.confirmPayment(billing.id, "gw_ext_987654", 14.9);
+      expect(webhookRes.success).toBe(true);
+      expect(webhookRes.driverId).toBe(driverId);
+      expect(webhookRes.expiresAt !== undefined).toBe(true);
 
-    // 3. Verifica liberação imediata de acesso
-    const updatedAccess = await pixBillingService.evaluateDriverAccess(driverId);
-    expect(updatedAccess.is_eligible).toBe(true);
-    expect(updatedAccess.status).toBe("ACTIVE");
-  });
+      // 3. Verifica liberação imediata de acesso
+      const updatedAccess = await pixBillingService.evaluateDriverAccess(driverId);
+      expect(updatedAccess.is_eligible).toBe(true);
+      expect(updatedAccess.status).toBe("ACTIVE");
+    },
+  );
 
   testAsync("Renovação por Ciclo Semanal: Validade estendida por 7 dias", async () => {
     const driverId = "drv-semanal-teste";
@@ -159,12 +165,12 @@ describe("33. PARTIU DRIVER ACCESS ENGINE V4 — MODULE 6 & 7: PIX Billing & Ato
       driverId,
       "plano-semanal-pro",
       "WEEKLY",
-      "Marcos Paulo"
+      "Marcos Paulo",
     );
 
-    expect(billing.amount).toBe(69.90);
+    expect(billing.amount).toBe(69.9);
 
-    const webhookRes = await pixBillingService.confirmPayment(billing.id, "gw_semanal_123", 69.90);
+    const webhookRes = await pixBillingService.confirmPayment(billing.id, "gw_semanal_123", 69.9);
     expect(webhookRes.success).toBe(true);
 
     const access = await pixBillingService.evaluateDriverAccess(driverId);

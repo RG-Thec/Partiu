@@ -11,15 +11,15 @@
 // OFFICIAL BRAND TOKENS "LARANJA SOLAR & AMARELO"
 // ─────────────────────────────────────────────────────────────
 export const brandTokens = {
-  primaryDeep: "#EA580C",     // Títulos, valores em destaque, bordas estruturais
-  primaryVibrant: "#FF6B00",  // Ícones ativos, barras de progresso, gradiente início
-  primaryAccent: "#FFB800",   // Badges de destaque, cor secundária, detalhes
-  bgNeutral: "#F8FAFC",       // Fundo global de telas (Slate-50 anti-fadiga)
-  surfaceCard: "#FFFFFF",     // Superfície branca pura de cards e sheets
-  statusGreen: "#22C55E",     // Indicadores de ONLINE, confirmação de embarque
-  dangerRed: "#EF4444",       // Central de Emergência / SOS 190, recusa e cancelamento
-  borderSubtle: "#E2E8F0",    // Bordas finas de cartões e inputs (slate-200)
-  pillBg: "#FFF7ED",          // Fundo de chips e metadados secundários (orange-50)
+  primaryDeep: "#EA580C", // Títulos, valores em destaque, bordas estruturais
+  primaryVibrant: "#FF6B00", // Ícones ativos, barras de progresso, gradiente início
+  primaryAccent: "#FFB800", // Badges de destaque, cor secundária, detalhes
+  bgNeutral: "#F8FAFC", // Fundo global de telas (Slate-50 anti-fadiga)
+  surfaceCard: "#FFFFFF", // Superfície branca pura de cards e sheets
+  statusGreen: "#22C55E", // Indicadores de ONLINE, confirmação de embarque
+  dangerRed: "#EF4444", // Central de Emergência / SOS 190, recusa e cancelamento
+  borderSubtle: "#E2E8F0", // Bordas finas de cartões e inputs (slate-200)
+  pillBg: "#FFF7ED", // Fundo de chips e metadados secundários (orange-50)
 } as const;
 
 // ─────────────────────────────────────────────────────────────

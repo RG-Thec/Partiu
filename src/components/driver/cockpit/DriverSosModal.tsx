@@ -38,7 +38,7 @@ export function DriverSosModal({
           navigator.geolocation.getCurrentPosition(
             (p) => resolve(`${p.coords.latitude.toFixed(6)}, ${p.coords.longitude.toFixed(6)}`),
             () => resolve(""),
-            { timeout: 1200, maximumAge: 10000 }
+            { timeout: 1200, maximumAge: 10000 },
           );
         });
       }
@@ -76,7 +76,9 @@ export function DriverSosModal({
           </div>
           <div>
             <h3 className="text-base font-bold text-foreground">Emergência &amp; SOS 190</h3>
-            <p className="text-xs text-muted-foreground font-semibold">Acionamento Policial PARTIU</p>
+            <p className="text-xs text-muted-foreground font-semibold">
+              Acionamento Policial PARTIU
+            </p>
           </div>
         </div>
 
@@ -98,7 +100,9 @@ export function DriverSosModal({
             className="w-full h-12 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-md shadow-rose-600/20 flex items-center justify-center gap-2 active:scale-95 transition cursor-pointer disabled:opacity-50"
           >
             <Phone className="w-4 h-4" />
-            <span>{acionandoSos ? "TRANSMITINDO TELEMETRIA..." : "LIGAR PARA POLÍCIA MILITAR (190)"}</span>
+            <span>
+              {acionandoSos ? "TRANSMITINDO TELEMETRIA..." : "LIGAR PARA POLÍCIA MILITAR (190)"}
+            </span>
           </button>
           <button
             type="button"

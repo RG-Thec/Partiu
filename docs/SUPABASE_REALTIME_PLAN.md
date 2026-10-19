@@ -1,4 +1,5 @@
 # SUPABASE REALTIME & EVENT STREAMING PLAN — PARTIU
+
 ### Arquitetura de Canais WebSocket, Broadcast e Presence entre Aparelhos
 
 > **Arquivo de Serviço Relacionado:** [`src/lib/partiu-realtime-service.ts`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/src/lib/partiu-realtime-service.ts)
@@ -6,6 +7,7 @@
 ---
 
 ## 1. ESTRUTURAÇÃO DE CANAIS
+
 O PARTIU opera com canais segmentados para evitar tráfego cruzado e saturação de largura de banda em redes móveis 3G/4G:
 
 ```
@@ -26,6 +28,7 @@ SUPABASE REALTIME CHANNELS
 ---
 
 ## 2. CICLO DE SINCRONIZAÇÃO EM TEMPO REAL
+
 1. **Passageiro solicita corrida:**  
    O método `criarCorridaDistribuida()` grava no banco e envia broadcast para o canal `partiu:dispatch-city`.
 2. **Motoristas no raio de 4 km recebem o sinal:**  

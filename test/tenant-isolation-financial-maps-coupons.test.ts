@@ -51,9 +51,10 @@ describe("Tenant Multi-Tenancy & Franchisee Isolation Suite", () => {
 
     test("should dynamically update and isolate custom Mapbox API tokens per tenant", () => {
       const wlEngine = WhiteLabelEngine.getInstance();
-      
+
       // Configure custom Mapbox token for Campos tenant
-      const camposToken = "pk.eyJ1IjoiY2FtcG9zLWZyYW5xdWlhIiwiYSI6ImNsdGVzdDAwMDAwIn0.dGVzdF90b2tlbl9jYW1wb3M";
+      const camposToken =
+        "pk.eyJ1IjoiY2FtcG9zLWZyYW5xdWlhIiwiYSI6ImNsdGVzdDAwMDAwIn0.dGVzdF90b2tlbl9jYW1wb3M";
       const camposTenant = wlEngine.getTenantConfig("tenant-campos");
       wlEngine.switchTenant("tenant-campos");
       wlEngine.updateActiveConfig({
@@ -80,12 +81,12 @@ describe("Tenant Multi-Tenancy & Franchisee Isolation Suite", () => {
         "mot-ita-01",
         "CARRO",
         "DAILY",
-        "tenant-itaperuna"
+        "tenant-itaperuna",
       );
 
       expect(pixItaperuna.receiver.pixKey).toBe("pix.itaperuna@partiu.app");
       expect(pixItaperuna.receiver.city).toBe("Itaperuna");
-      expect(pixItaperuna.amount).toBe(19.90);
+      expect(pixItaperuna.amount).toBe(19.9);
       expect(pixItaperuna.copiaECola.includes("pix.itaperuna@partiu.app")).toBe(true);
 
       // Campos driver daily fee
@@ -93,12 +94,12 @@ describe("Tenant Multi-Tenancy & Franchisee Isolation Suite", () => {
         "mot-cmp-01",
         "CARRO",
         "DAILY",
-        "tenant-campos"
+        "tenant-campos",
       );
 
       expect(pixCampos.receiver.pixKey).toBe("financeiro@gomobilidade.com.br");
       expect(pixCampos.receiver.city).toBe("Campos dos Goytacazes");
-      expect(pixCampos.amount).toBe(22.00);
+      expect(pixCampos.amount).toBe(22.0);
       expect(pixCampos.copiaECola.includes("financeiro@gomobilidade.com.br")).toBe(true);
 
       // Ensure no crossover
@@ -112,23 +113,23 @@ describe("Tenant Multi-Tenancy & Franchisee Isolation Suite", () => {
         "mot-ita-02",
         "MOTO",
         "TX_TEST_ITA",
-        11.90,
+        11.9,
         24,
-        "tenant-itaperuna"
+        "tenant-itaperuna",
       );
       expect(subIta.tenant_id).toBe("tenant-itaperuna");
-      expect(subIta.amount_paid).toBe(11.90);
+      expect(subIta.amount_paid).toBe(11.9);
 
       const subCmp = await driverSubscriptionService.confirmDailyFeePayment(
         "mot-cmp-02",
         "MOTO",
         "TX_TEST_CMP",
-        14.00,
+        14.0,
         24,
-        "tenant-campos"
+        "tenant-campos",
       );
       expect(subCmp.tenant_id).toBe("tenant-campos");
-      expect(subCmp.amount_paid).toBe(14.00);
+      expect(subCmp.amount_paid).toBe(14.0);
     });
   });
 
@@ -144,7 +145,7 @@ describe("Tenant Multi-Tenancy & Franchisee Isolation Suite", () => {
           ativo: true,
           tenantId: "tenant-itaperuna",
         },
-        "tenant-itaperuna"
+        "tenant-itaperuna",
       );
 
       // Create coupon exclusive to Campos
@@ -157,7 +158,7 @@ describe("Tenant Multi-Tenancy & Franchisee Isolation Suite", () => {
           ativo: true,
           tenantId: "tenant-campos",
         },
-        "tenant-campos"
+        "tenant-campos",
       );
 
       // Query coupons for Itaperuna
@@ -179,7 +180,11 @@ describe("Tenant Multi-Tenancy & Franchisee Isolation Suite", () => {
 
     test("should reject coupon redemption and checkout validation across different tenants", async () => {
       // Validate Campos coupon inside Itaperuna tenant -> MUST BE REJECTED
-      const validationCross = await couponService.validateCoupon("CAMPOS25", 3000, "tenant-itaperuna");
+      const validationCross = await couponService.validateCoupon(
+        "CAMPOS25",
+        3000,
+        "tenant-itaperuna",
+      );
       expect(validationCross.valido).toBe(false);
       expect(validationCross.motivo?.includes("não encontrado ou não aplicável")).toBe(true);
 
@@ -190,7 +195,11 @@ describe("Tenant Multi-Tenancy & Franchisee Isolation Suite", () => {
       expect(validationValid.cupom?.valor).toBe(25);
 
       // Validate Itaperuna coupon inside Itaperuna tenant -> MUST BE VALID
-      const validationIta = await couponService.validateCoupon("ITA15OFF", 3000, "tenant-itaperuna");
+      const validationIta = await couponService.validateCoupon(
+        "ITA15OFF",
+        3000,
+        "tenant-itaperuna",
+      );
       expect(validationIta.valido).toBe(true);
       expect(validationIta.cupom?.codigo).toBe("ITA15OFF");
       expect(validationIta.cupom?.valor).toBe(15);

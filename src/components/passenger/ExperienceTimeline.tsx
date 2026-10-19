@@ -25,7 +25,10 @@ export const ExperienceTimeline = memo(function ExperienceTimeline() {
     state === "DRIVER_ARRIVING" ||
     state === "ON_TRIP" ||
     dispatchStatus === "ACCEPTED";
-  const isNotified = Boolean(candidate) || dispatchStatus === "DRIVER_NOTIFIED" || dispatchStatus === "DRIVER_VIEWING";
+  const isNotified =
+    Boolean(candidate) ||
+    dispatchStatus === "DRIVER_NOTIFIED" ||
+    dispatchStatus === "DRIVER_VIEWING";
 
   return (
     <div className="w-full py-2 px-1 text-left select-none">
@@ -82,8 +85,8 @@ export const ExperienceTimeline = memo(function ExperienceTimeline() {
               isAccepted
                 ? "bg-emerald-500 text-white"
                 : isNotified
-                ? "bg-sky-500 text-white ring-4 ring-sky-400/30 animate-pulse"
-                : "bg-slate-200 text-slate-600"
+                  ? "bg-sky-500 text-white ring-4 ring-sky-400/30 animate-pulse"
+                  : "bg-slate-200 text-slate-600"
             }`}
           >
             {isAccepted ? (
@@ -100,16 +103,14 @@ export const ExperienceTimeline = memo(function ExperienceTimeline() {
                 isNotified || isAccepted ? "text-slate-800" : "text-slate-600"
               }`}
             >
-              {firstName
-                ? `${firstName} recebeu seu pedido`
-                : "Notificando condutores elegíveis"}
+              {firstName ? `${firstName} recebeu seu pedido` : "Notificando condutores elegíveis"}
             </p>
             <span className="text-[10px] text-slate-600 font-medium">
               {dispatchStatus === "DRIVER_VIEWING"
                 ? `${firstName} está visualizando a rota e o destino...`
                 : isNotified
-                ? "Aguardando confirmação do motorista no radar..."
-                : "Aguardando alocação do condutor mais próximo"}
+                  ? "Aguardando confirmação do motorista no radar..."
+                  : "Aguardando alocação do condutor mais próximo"}
             </span>
           </div>
         </div>

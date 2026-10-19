@@ -13,7 +13,13 @@ import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 
 export interface PinValidationResult {
   success: boolean;
-  code: "VERIFIED" | "INVALID_PIN" | "LOCKED_OUT" | "PICKUP_NOT_VERIFIED" | "DELIVERY_NOT_FOUND" | "ERROR";
+  code:
+    | "VERIFIED"
+    | "INVALID_PIN"
+    | "LOCKED_OUT"
+    | "PICKUP_NOT_VERIFIED"
+    | "DELIVERY_NOT_FOUND"
+    | "ERROR";
   message: string;
   state?: "PENDING_PICKUP" | "IN_TRANSIT" | "DELIVERED";
   remainingAttempts?: number;
@@ -82,7 +88,7 @@ export class DeliveryDualPinService {
     recipientName: string,
     recipientPhone: string,
     pickupPinFallback?: string,
-    dropoffPinFallback?: string
+    dropoffPinFallback?: string,
   ): DeliveryPinSessionRecord {
     const pickupPin = pickupPinFallback || generateSecurePin();
     let dropoffPin = dropoffPinFallback || generateSecurePin();
@@ -111,18 +117,14 @@ export class DeliveryDualPinService {
   /**
    * Registra PINs de uma entrega em modo local (para testes ou demo retrocompatível)
    */
-  public registerLocalSession(
-    deliveryId: string,
-    pickupPin: string,
-    dropoffPin: string
-  ): void {
+  public registerLocalSession(deliveryId: string, pickupPin: string, dropoffPin: string): void {
     this.initDeliverySession(
       deliveryId,
       "Remetente Padrão",
       "Destinatário Padrão",
       "5522999999999",
       pickupPin,
-      dropoffPin
+      dropoffPin,
     );
   }
 
@@ -139,7 +141,7 @@ export class DeliveryDualPinService {
   public async validatePickupPin(
     deliveryId: string,
     pin: string,
-    driverId?: string
+    driverId?: string,
   ): Promise<PinValidationResult> {
     const cleanPin = (pin || "").trim();
     if (cleanPin.length !== 4) {
@@ -173,7 +175,10 @@ export class DeliveryDualPinService {
           };
         }
       } catch (err) {
-        console.warn("[DeliveryDualPinService] Falha na RPC remota, aplicando fallback local:", err);
+        console.warn(
+          "[DeliveryDualPinService] Falha na RPC remota, aplicando fallback local:",
+          err,
+        );
       }
     }
 
@@ -242,7 +247,7 @@ export class DeliveryDualPinService {
   public async validateDropoffPin(
     deliveryId: string,
     pin: string,
-    driverId?: string
+    driverId?: string,
   ): Promise<PinValidationResult> {
     const cleanPin = (pin || "").trim();
     if (cleanPin.length !== 4) {
@@ -276,7 +281,10 @@ export class DeliveryDualPinService {
           };
         }
       } catch (err) {
-        console.warn("[DeliveryDualPinService] Falha na RPC remota, aplicando fallback local:", err);
+        console.warn(
+          "[DeliveryDualPinService] Falha na RPC remota, aplicando fallback local:",
+          err,
+        );
       }
     }
 
@@ -306,7 +314,8 @@ export class DeliveryDualPinService {
       return {
         success: false,
         code: "PICKUP_NOT_VERIFIED",
-        message: "A coleta (PIN 1) ainda não foi confirmada. Não é permitido validar entrega antes da coleta.",
+        message:
+          "A coleta (PIN 1) ainda não foi confirmada. Não é permitido validar entrega antes da coleta.",
         remainingAttempts: Math.max(0, 3 - session.dropoffAttempts),
         locked: false,
       };
@@ -374,7 +383,11 @@ export class DeliveryDualPinService {
   /**
    * Constrói o texto formatado para compartilhamento do PIN 2 (Retrocompatibilidade)
    */
-  public buildSharePayload(details: SharePinDetails): { title: string; text: string; whatsappUrl: string } {
+  public buildSharePayload(details: SharePinDetails): {
+    title: string;
+    text: string;
+    whatsappUrl: string;
+  } {
     const text =
       `📦 *PARTIU ENTREGAS — CÓDIGO DE RECEBIMENTO*\n\n` +
       `Olá *${details.recipientName || "Destinatário"}*!\n` +

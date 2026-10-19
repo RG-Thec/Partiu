@@ -1,4 +1,5 @@
 # PLANO OPERACIONAL DE EXECUÇÃO DE ENGENHARIA — PARTIU (24 SPRINTS)
+
 ### Programa Executivo de Construção, Program Management & Go-To-Market (2026 — 2027)
 
 > **Comitê Integrado de Gestão Técnica & Produto:**  
@@ -7,10 +8,10 @@
 > • Principal Engineering Manager (Ex-99 Dispatch & Marketplace)  
 > • Staff Software Architect & Principal Mobile Architect  
 > • Principal Marketplace & Dispatch Engineers  
-> • Principal FinOps Architect & Principal QA Architect  
+> • Principal FinOps Architect & Principal QA Architect
 >
 > **Horizonte:** 24 Sprints Quinzenais (48 Semanas / 12 Meses)  
-> **Status:** 🟢 Homologado para Execução Imediata por Equipes de Engenharia  
+> **Status:** 🟢 Homologado para Execução Imediata por Equipes de Engenharia
 
 ---
 
@@ -60,6 +61,7 @@ flowchart TD
 ```
 
 ### Regras Mandatórias de Bloqueio Arquitetural
+
 1. **Trava 1 (Sem Lock não há Radar):** O `Trip Radar` não pode ir para produção sem o semáforo atômico `Redlock`. Caso contrário, múltiplos motoristas aceitam a mesma corrida simultaneamente.
 2. **Trava 2 (Sem Ledger não há Viagem):** Nenhuma corrida pode ser concluída sem o registro atômico de débito/crédito em minor units no banco relacional.
 3. **Trava 3 (Sem PIN não há Flash):** O módulo `Partiu Flash` não pode liberar encerramento de entrega sem validação do OTP do destinatário e carimbo fotográfico.
@@ -71,28 +73,28 @@ flowchart TD
 Utilizamos a fórmula corporativa:  
 $$\text{Score RICE} = \frac{\text{Reach (Alcance/mês)} \times \text{Impacto (0.25 a 3.0)} \times \text{Confiança (0.5 a 1.0)}}{\text{Esforço (Pessoas-Semana)}}$$
 
-| Rank | Funcionalidade / Componente | Reach (Usuários/mês) | Impacto | Confiança | Esforço (P-S) | RICE Score | Classificação |
-| :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **1** | Persistência Relacional PostgreSQL + PostGIS | 50.000 | 3.0 (Massivo) | 1.0 (100%) | 4 | **37.500** | Must-Have P0 |
-| **2** | Ledger de Dupla Entrada & Split D+0 (88/12%) | 50.000 | 3.0 (Massivo) | 1.0 (100%) | 4 | **37.500** | Must-Have P0 |
-| **3** | Trava Atômica de Aceite no Trip Radar (Redlock) | 40.000 | 3.0 (Massivo) | 0.95 (95%) | 3 | **38.000** | Must-Have P0 |
-| **4** | Cockpit do Motorista Ergonômico (< 3s) | 5.000 | 3.0 (Massivo) | 0.95 (95%) | 3 | **4.750** | Must-Have P0 |
-| **5** | Fluxo de Solicitação do Passageiro (< 15s) | 45.000 | 3.0 (Massivo) | 0.90 (90%) | 3 | **40.500** | Must-Have P0 |
-| **6** | PIN Compulsório de 4 Dígitos no Embarque | 45.000 | 2.5 (Alto) | 1.0 (100%) | 2 | **56.250** | Must-Have P0 |
-| **7** | Saque Instantâneo PIX D+0 (Taxa Zero) | 5.000 | 3.0 (Massivo) | 1.0 (100%) | 2 | **7.500** | Must-Have P0 |
-| **8** | Partiu Flash: Coleta com PIN & Entrega com POD | 15.000 | 2.5 (Alto) | 0.90 (90%) | 3 | **11.250** | Must-Have P0 |
-| **9** | Central SOS 190 (< 30s SLA) & Escuta Silenciosa | 50.000 | 2.5 (Alto) | 0.90 (90%) | 2 | **56.250** | Must-Have P0 |
-| **10** | Detector Vetorial de GPS Spoofing (> 165 km/h) | 5.000 | 2.0 (Médio) | 0.90 (90%) | 2 | **4.500** | Alta Prioridade P1 |
-| **11** | Equalizador de Ganhos FinOps no Despacho (Piso R$ 38/h) | 5.000 | 2.5 (Alto) | 0.85 (85%) | 3 | **3.541** | Alta Prioridade P1 |
-| **12** | Saved Places (Casa/Trabalho em 1 Toque) | 40.000 | 1.8 (Médio) | 1.0 (100%) | 1.5 | **48.000** | Alta Prioridade P1 |
-| **13** | Dynamic Heat Map com Grid Hexagonal Uber H3 | 5.000 | 2.0 (Médio) | 0.85 (85%) | 3 | **2.833** | Alta Prioridade P1 |
-| **14** | Partiu Cashback (2% Automático em Carteira) | 45.000 | 1.8 (Médio) | 0.90 (90%) | 2 | **36.450** | Alta Prioridade P1 |
-| **15** | Driver Club Gamificado (Bronze a Black) | 5.000 | 2.0 (Médio) | 0.85 (85%) | 2.5 | **3.400** | Média Prioridade P2 |
-| **16** | Partiu Empresas: Portal B2B & Centros de Custo | 8.000 | 2.0 (Médio) | 0.80 (80%) | 4 | **3.200** | Média Prioridade P2 |
-| **17** | Command Center NOC em Tempo Real | 200 (Ops) | 2.0 (Médio) | 0.95 (95%) | 3 | **126** | Média Prioridade P2 |
-| **18** | Back-to-Back Predictive Chaining de Viagens | 20.000 | 1.8 (Médio) | 0.75 (75%) | 4 | **6.750** | Média Prioridade P2 |
-| **19** | Previsão de ETA por Machine Learning (Clima/Rush) | 45.000 | 1.5 (Médio) | 0.75 (75%) | 3.5 | **14.464** | Otimização P3 |
-| **20** | Partiu Prime (Assinatura Mensal R$ 19,90) | 10.000 | 1.5 (Médio) | 0.70 (70%) | 3 | **3.500** | Otimização P3 |
+|  Rank  | Funcionalidade / Componente                             | Reach (Usuários/mês) |    Impacto    | Confiança  | Esforço (P-S) | RICE Score |    Classificação    |
+| :----: | :------------------------------------------------------ | :------------------: | :-----------: | :--------: | :-----------: | :--------: | :-----------------: |
+| **1**  | Persistência Relacional PostgreSQL + PostGIS            |        50.000        | 3.0 (Massivo) | 1.0 (100%) |       4       | **37.500** |    Must-Have P0     |
+| **2**  | Ledger de Dupla Entrada & Split D+0 (88/12%)            |        50.000        | 3.0 (Massivo) | 1.0 (100%) |       4       | **37.500** |    Must-Have P0     |
+| **3**  | Trava Atômica de Aceite no Trip Radar (Redlock)         |        40.000        | 3.0 (Massivo) | 0.95 (95%) |       3       | **38.000** |    Must-Have P0     |
+| **4**  | Cockpit do Motorista Ergonômico (< 3s)                  |        5.000         | 3.0 (Massivo) | 0.95 (95%) |       3       | **4.750**  |    Must-Have P0     |
+| **5**  | Fluxo de Solicitação do Passageiro (< 15s)              |        45.000        | 3.0 (Massivo) | 0.90 (90%) |       3       | **40.500** |    Must-Have P0     |
+| **6**  | PIN Compulsório de 4 Dígitos no Embarque                |        45.000        |  2.5 (Alto)   | 1.0 (100%) |       2       | **56.250** |    Must-Have P0     |
+| **7**  | Saque Instantâneo PIX D+0 (Taxa Zero)                   |        5.000         | 3.0 (Massivo) | 1.0 (100%) |       2       | **7.500**  |    Must-Have P0     |
+| **8**  | Partiu Flash: Coleta com PIN & Entrega com POD          |        15.000        |  2.5 (Alto)   | 0.90 (90%) |       3       | **11.250** |    Must-Have P0     |
+| **9**  | Central SOS 190 (< 30s SLA) & Escuta Silenciosa         |        50.000        |  2.5 (Alto)   | 0.90 (90%) |       2       | **56.250** |    Must-Have P0     |
+| **10** | Detector Vetorial de GPS Spoofing (> 165 km/h)          |        5.000         |  2.0 (Médio)  | 0.90 (90%) |       2       | **4.500**  | Alta Prioridade P1  |
+| **11** | Equalizador de Ganhos FinOps no Despacho (Piso R$ 38/h) |        5.000         |  2.5 (Alto)   | 0.85 (85%) |       3       | **3.541**  | Alta Prioridade P1  |
+| **12** | Saved Places (Casa/Trabalho em 1 Toque)                 |        40.000        |  1.8 (Médio)  | 1.0 (100%) |      1.5      | **48.000** | Alta Prioridade P1  |
+| **13** | Dynamic Heat Map com Grid Hexagonal Uber H3             |        5.000         |  2.0 (Médio)  | 0.85 (85%) |       3       | **2.833**  | Alta Prioridade P1  |
+| **14** | Partiu Cashback (2% Automático em Carteira)             |        45.000        |  1.8 (Médio)  | 0.90 (90%) |       2       | **36.450** | Alta Prioridade P1  |
+| **15** | Driver Club Gamificado (Bronze a Black)                 |        5.000         |  2.0 (Médio)  | 0.85 (85%) |      2.5      | **3.400**  | Média Prioridade P2 |
+| **16** | Partiu Empresas: Portal B2B & Centros de Custo          |        8.000         |  2.0 (Médio)  | 0.80 (80%) |       4       | **3.200**  | Média Prioridade P2 |
+| **17** | Command Center NOC em Tempo Real                        |      200 (Ops)       |  2.0 (Médio)  | 0.95 (95%) |       3       |  **126**   | Média Prioridade P2 |
+| **18** | Back-to-Back Predictive Chaining de Viagens             |        20.000        |  1.8 (Médio)  | 0.75 (75%) |       4       | **6.750**  | Média Prioridade P2 |
+| **19** | Previsão de ETA por Machine Learning (Clima/Rush)       |        45.000        |  1.5 (Médio)  | 0.75 (75%) |      3.5      | **14.464** |    Otimização P3    |
+| **20** | Partiu Prime (Assinatura Mensal R$ 19,90)               |        10.000        |  1.5 (Médio)  | 0.70 (70%) |       3       | **3.500**  |    Otimização P3    |
 
 ---
 
@@ -143,166 +145,182 @@ FASE 6: ESCALA PREDITIVA & HARDENING ENTERPRISE (Sprints 21 a 24)
 ## 📋 ETAPAS 4 & 5 — DEFINIÇÃO DOS EPICS & QUEBRA EM FEATURES (PADRÃO JIRA)
 
 ### 📌 EPIC-01: Foundation, Relational Persistence & Double-Entry Ledger
-* **Objetivo:** Estabelecer a infraestrutura transacional ACID, eliminando persistência volátil em cliente (`localStorage`), garantindo concorrência segura e integridade de saldo em centavos.
-* **Dependências:** Nenhuma (Primeiro bloco de infraestrutura).
-* **Critérios de Aceitação:** PostgreSQL 15+ com PostGIS provisionado; tabelas com RLS habilitado; ledger contábil registrando débitos e créditos com soma zero; locks distribuídos via Redlock com timeout estrito de 15ms.
-* **KPIs:** Latência de transação p99 < 25ms; 0 centavos de divergência contábil.
-* **Riscos:** Contenção em linhas de saldo de motorista sob alto volume de micropagamentos.
-* **Mitigação:** Particionamento de ledger append-only com tabela agregada de saldos atualizada por workers assíncronos.
+
+- **Objetivo:** Estabelecer a infraestrutura transacional ACID, eliminando persistência volátil em cliente (`localStorage`), garantindo concorrência segura e integridade de saldo em centavos.
+- **Dependências:** Nenhuma (Primeiro bloco de infraestrutura).
+- **Critérios de Aceitação:** PostgreSQL 15+ com PostGIS provisionado; tabelas com RLS habilitado; ledger contábil registrando débitos e créditos com soma zero; locks distribuídos via Redlock com timeout estrito de 15ms.
+- **KPIs:** Latência de transação p99 < 25ms; 0 centavos de divergência contábil.
+- **Riscos:** Contenção em linhas de saldo de motorista sob alto volume de micropagamentos.
+- **Mitigação:** Particionamento de ledger append-only com tabela agregada de saldos atualizada por workers assíncronos.
 
 #### User Stories do EPIC-01
-* **PARTIU-101 (PostgreSQL & PostGIS Schema):**  
-  *Como* Engenheiro de Dados,  
-  *Quero* estruturar o schema relacional de motoristas, passageiros, viagens e coordenadas espaciais com índices GiST,  
-  *Para que* o sistema execute consultas de proximidade geográfica em menos de 10ms.  
-  *Critérios de Aceitação (Gherkin):*  
+
+- **PARTIU-101 (PostgreSQL & PostGIS Schema):**  
+  _Como_ Engenheiro de Dados,  
+  _Quero_ estruturar o schema relacional de motoristas, passageiros, viagens e coordenadas espaciais com índices GiST,  
+  _Para que_ o sistema execute consultas de proximidade geográfica em menos de 10ms.  
+  _Critérios de Aceitação (Gherkin):_  
   `Dado que` existem 500 motoristas online em uma cidade,  
   `Quando` a consulta `ST_DWithin` for executada para um raio de 4 km,  
   `Então` a resposta deve retornar em menos de 15ms com ordenação por distância.
-* **PARTIU-102 (Double-Entry Ledger Engine):**  
-  *Como* FinOps Architect,  
-  *Quero* que toda transação financeira registre uma linha de Débito e uma de Crédito em minor units (centavos inteiros),  
-  *Para que* a auditoria contábil garanta balanceamento perfeito sem erros de arredondamento.  
-  *Critérios de Aceitação (Gherkin):*  
+- **PARTIU-102 (Double-Entry Ledger Engine):**  
+  _Como_ FinOps Architect,  
+  _Quero_ que toda transação financeira registre uma linha de Débito e uma de Crédito em minor units (centavos inteiros),  
+  _Para que_ a auditoria contábil garanta balanceamento perfeito sem erros de arredondamento.  
+  _Critérios de Aceitação (Gherkin):_  
   `Dado que` uma corrida de R$ 35,00 é concluída,  
   `Quando` o split for acionado,  
   `Então` deve creditar 3080 centavos (88%) na carteira do motorista, 420 centavos (12%) na conta da plataforma e 70 centavos (2%) em cashback do passageiro.
-* **PARTIU-103 (Distributed Lock com Redlock):**  
-  *Como* Dispatch Engineer,  
-  *Quero* implementar semáforos distribuídos no Redis Cluster com TTL de 12 segundos,  
-  *Para que* apenas o primeiro motorista a tocar em uma oferta consiga o lock da viagem.
+- **PARTIU-103 (Distributed Lock com Redlock):**  
+  _Como_ Dispatch Engineer,  
+  _Quero_ implementar semáforos distribuídos no Redis Cluster com TTL de 12 segundos,  
+  _Para que_ apenas o primeiro motorista a tocar em uma oferta consiga o lock da viagem.
 
 ---
 
 ### 📌 EPIC-02: Core Dispatch Engine & Realtime Matching
-* **Objetivo:** Orquestrar o algoritmo de despacho multicritério e a entrega de ofertas via Trip Radar em menos de 150ms.
-* **Dependências:** EPIC-01 (Redis, PostgreSQL e Redlock).
-* **Critérios de Aceitação:** Pontuação baseada em distância, ETA, rating, aceitação, penalidade de cancelamento e equalizador de ganhos; despacho individual em 12 segundos antes do fallback para radar.
-* **KPIs:** Taxa de Atendimento (Fulfillment) > 88%; ETA Médio < 6 minutos.
-* **Riscos:** Motoristas ignorarem viagens por excesso de ruído visual.
-* **Mitigação:** Apresentação limpa de trajeto e valor líquido garantido.
+
+- **Objetivo:** Orquestrar o algoritmo de despacho multicritério e a entrega de ofertas via Trip Radar em menos de 150ms.
+- **Dependências:** EPIC-01 (Redis, PostgreSQL e Redlock).
+- **Critérios de Aceitação:** Pontuação baseada em distância, ETA, rating, aceitação, penalidade de cancelamento e equalizador de ganhos; despacho individual em 12 segundos antes do fallback para radar.
+- **KPIs:** Taxa de Atendimento (Fulfillment) > 88%; ETA Médio < 6 minutos.
+- **Riscos:** Motoristas ignorarem viagens por excesso de ruído visual.
+- **Mitigação:** Apresentação limpa de trajeto e valor líquido garantido.
 
 #### User Stories do EPIC-02
-* **PARTIU-201 (Multicriteria Scoring Function):**  
-  *Como* Motor de Despacho,  
-  *Quero* pontuar todos os candidatos disponíveis usando a fórmula ponderada de 7 dimensões,  
-  *Para que* o motorista mais apto e economicamente equilibrado receba a oferta prioritariamente.  
-  *Critérios de Aceitação:*  
+
+- **PARTIU-201 (Multicriteria Scoring Function):**  
+  _Como_ Motor de Despacho,  
+  _Quero_ pontuar todos os candidatos disponíveis usando a fórmula ponderada de 7 dimensões,  
+  _Para que_ o motorista mais apto e economicamente equilibrado receba a oferta prioritariamente.  
+  _Critérios de Aceitação:_  
   Motoristas com rendimento abaixo do piso regional (R$ 38/h) devem receber até +15 pontos de boost no ranking.
-* **PARTIU-202 (Auto Dispatch com Fallback para Trip Radar):**  
-  *Como* Passageiro,  
-  *Quero* que o sistema direcione minha corrida diretamente ao melhor motorista em até 12 segundos,  
-  *Para que* meu tempo de espera até a confirmação seja minimizado.
-* **PARTIU-203 (PIN Compulsório de Embarque):**  
-  *Como* Passageiro e Motorista,  
-  *Quero* validar o código PIN de 4 dígitos antes do início do trajeto,  
-  *Para que* o embarque no veículo errado ou início fraudulento de viagem seja fisicamente impossível.
+- **PARTIU-202 (Auto Dispatch com Fallback para Trip Radar):**  
+  _Como_ Passageiro,  
+  _Quero_ que o sistema direcione minha corrida diretamente ao melhor motorista em até 12 segundos,  
+  _Para que_ meu tempo de espera até a confirmação seja minimizado.
+- **PARTIU-203 (PIN Compulsório de Embarque):**  
+  _Como_ Passageiro e Motorista,  
+  _Quero_ validar o código PIN de 4 dígitos antes do início do trajeto,  
+  _Para que_ o embarque no veículo errado ou início fraudulento de viagem seja fisicamente impossível.
 
 ---
 
 ### 📌 EPIC-03: Driver Ergonomics Cockpit & Instant D+0 Payout
-* **Objetivo:** Entregar a estação de trabalho mobile do parceiro permitindo absorção de oferta em < 3 segundos e saque instantâneo via PIX com custo zero.
-* **Dependências:** EPIC-01 e EPIC-02.
-* **Critérios de Aceitação:** Interface livre de leilões; valor líquido e trajeto destacados em fonte de 26px; botão de saque PIX acionando transferência em D+0 em menos de 3 segundos.
-* **KPIs:** Tempo de reação do motorista < 4 segundos; NPS dos Motoristas > 68.
-* **Riscos:** Falha ou latência na API do PSP bancário durante o saque noturno.
-* **Mitigação:** Fila assíncrona com retentativa idempotente e fallback para liquidação em D+0 matinal.
+
+- **Objetivo:** Entregar a estação de trabalho mobile do parceiro permitindo absorção de oferta em < 3 segundos e saque instantâneo via PIX com custo zero.
+- **Dependências:** EPIC-01 e EPIC-02.
+- **Critérios de Aceitação:** Interface livre de leilões; valor líquido e trajeto destacados em fonte de 26px; botão de saque PIX acionando transferência em D+0 em menos de 3 segundos.
+- **KPIs:** Tempo de reação do motorista < 4 segundos; NPS dos Motoristas > 68.
+- **Riscos:** Falha ou latência na API do PSP bancário durante o saque noturno.
+- **Mitigação:** Fila assíncrona com retentativa idempotente e fallback para liquidação em D+0 matinal.
 
 #### User Stories do EPIC-03
-* **PARTIU-301 (3-Second Offer Card Ergonomics):**  
-  *Como* Motorista Parceiro ao volante,  
-  *Quero* visualizar valor líquido em Reais, tempo de coleta e endereço de destino em tela única de alto contraste,  
-  *Para que* eu tome a decisão de aceite com segurança em menos de 3 segundos sem desviar a atenção do trânsito.
-* **PARTIU-302 (Instant PIX Withdrawal D+0):**  
-  *Como* Motorista Parceiro,  
-  *Quero* tocar no botão "Sacar Ganhos" às 23h50 e ter o valor na minha conta bancária em até 5 segundos sem taxas,  
-  *Para que* eu possa abastecer o carro imediatamente.
+
+- **PARTIU-301 (3-Second Offer Card Ergonomics):**  
+  _Como_ Motorista Parceiro ao volante,  
+  _Quero_ visualizar valor líquido em Reais, tempo de coleta e endereço de destino em tela única de alto contraste,  
+  _Para que_ eu tome a decisão de aceite com segurança em menos de 3 segundos sem desviar a atenção do trânsito.
+- **PARTIU-302 (Instant PIX Withdrawal D+0):**  
+  _Como_ Motorista Parceiro,  
+  _Quero_ tocar no botão "Sacar Ganhos" às 23h50 e ter o valor na minha conta bancária em até 5 segundos sem taxas,  
+  _Para que_ eu possa abastecer o carro imediatamente.
 
 ---
 
 ### 📌 EPIC-04: Rider Experience (< 15s Booking & Saved Places)
-* **Objetivo:** Permitir solicitação de corrida em menos de 15 segundos com preços fechados transparentes (*Upfront Pricing*) e cashback de 2%.
-* **Dependências:** EPIC-01 e EPIC-02.
-* **Critérios de Aceitação:** 1 toque para locais salvos; estimativa de rota e preço calculada antes do pedido; 2% de cashback creditado imediatamente ao final da viagem.
-* **KPIs:** Tempo de solicitação < 15 segundos; K-Factor > 0.35.
+
+- **Objetivo:** Permitir solicitação de corrida em menos de 15 segundos com preços fechados transparentes (_Upfront Pricing_) e cashback de 2%.
+- **Dependências:** EPIC-01 e EPIC-02.
+- **Critérios de Aceitação:** 1 toque para locais salvos; estimativa de rota e preço calculada antes do pedido; 2% de cashback creditado imediatamente ao final da viagem.
+- **KPIs:** Tempo de solicitação < 15 segundos; K-Factor > 0.35.
 
 #### User Stories do EPIC-04
-* **PARTIU-401 (Saved Places & Predictive Suggestions):**  
-  *Como* Passageiro habitual,  
-  *Quero* abrir o app e ver os botões rápidos "Casa" e "Trabalho" prontos para seleção com 1 toque,  
-  *Para que* eu solicite minha corrida diária sem precisar digitar endereço.
-* **PARTIU-402 (Partiu Cashback Engine):**  
-  *Como* Passageiro,  
-  *Quero* acumular 2% do valor de todas as minhas viagens em saldo na carteira virtual,  
-  *Para que* o valor seja abatido automaticamente nas minhas próximas corridas.
+
+- **PARTIU-401 (Saved Places & Predictive Suggestions):**  
+  _Como_ Passageiro habitual,  
+  _Quero_ abrir o app e ver os botões rápidos "Casa" e "Trabalho" prontos para seleção com 1 toque,  
+  _Para que_ eu solicite minha corrida diária sem precisar digitar endereço.
+- **PARTIU-402 (Partiu Cashback Engine):**  
+  _Como_ Passageiro,  
+  _Quero_ acumular 2% do valor de todas as minhas viagens em saldo na carteira virtual,  
+  _Para que_ o valor seja abatido automaticamente nas minhas próximas corridas.
 
 ---
 
 ### 📌 EPIC-05: Partiu Flash Independent Delivery Product
-* **Objetivo:** Transformar entregas urbanas expressas em produto independente com comprovante fotográfico e link web externo para o destinatário.
-* **Dependências:** EPIC-01, EPIC-02 e EPIC-03.
-* **Critérios de Aceitação:** PIN de coleta no remetente; PIN no destinatário; captura de foto obrigatória (POD); link web de rastreamento compartilhável via WhatsApp sem necessidade de app.
-* **KPIs:** Extravio de pacotes < 0.05%; SLA de entrega urbana < 35 minutos.
+
+- **Objetivo:** Transformar entregas urbanas expressas em produto independente com comprovante fotográfico e link web externo para o destinatário.
+- **Dependências:** EPIC-01, EPIC-02 e EPIC-03.
+- **Critérios de Aceitação:** PIN de coleta no remetente; PIN no destinatário; captura de foto obrigatória (POD); link web de rastreamento compartilhável via WhatsApp sem necessidade de app.
+- **KPIs:** Extravio de pacotes < 0.05%; SLA de entrega urbana < 35 minutos.
 
 #### User Stories do EPIC-05
-* **PARTIU-501 (Proof of Delivery com Foto & Coordenadas):**  
-  *Como* Entregador Flash,  
-  *Quero* fotografar o pacote entregue e digitar o PIN fornecido pelo recebedor,  
-  *Para que* o sistema finalize a ordem e blinde a responsabilidade de ambas as partes.
-* **PARTIU-502 (Web Tracking Link sem App):**  
-  *Como* Destinatário de uma encomenda,  
-  *Quero* abrir um link web no WhatsApp e acompanhar o motoboy em tempo real pelo mapa no navegador,  
-  *Para que* eu desça para receber o pacote exatamente no momento da chegada.
+
+- **PARTIU-501 (Proof of Delivery com Foto & Coordenadas):**  
+  _Como_ Entregador Flash,  
+  _Quero_ fotografar o pacote entregue e digitar o PIN fornecido pelo recebedor,  
+  _Para que_ o sistema finalize a ordem e blinde a responsabilidade de ambas as partes.
+- **PARTIU-502 (Web Tracking Link sem App):**  
+  _Como_ Destinatário de uma encomenda,  
+  _Quero_ abrir um link web no WhatsApp e acompanhar o motoboy em tempo real pelo mapa no navegador,  
+  _Para que_ eu desça para receber o pacote exatamente no momento da chegada.
 
 ---
 
 ### 📌 EPIC-06: Trust, Safety & Critical Emergency Center (SOS 190)
-* **Objetivo:** Fornecer monitoramento ativo de riscos, detecção algorítmica de fraudes e botão de emergência SOS com tempo de resposta inferior a 30 segundos.
-* **Dependências:** EPIC-01 e EPIC-02.
-* **Critérios de Aceitação:** Detector de saltos vetoriais de teletransporte (> 165 km/h) e mock GPS; tela de pânico com sirene na central NOC; integração vetorial com centros policiais (CIOSP/190).
-* **KPIs:** Resposta a acionamentos de pânico < 30 segundos; Fraudes de GPS < 0.1%.
+
+- **Objetivo:** Fornecer monitoramento ativo de riscos, detecção algorítmica de fraudes e botão de emergência SOS com tempo de resposta inferior a 30 segundos.
+- **Dependências:** EPIC-01 e EPIC-02.
+- **Critérios de Aceitação:** Detector de saltos vetoriais de teletransporte (> 165 km/h) e mock GPS; tela de pânico com sirene na central NOC; integração vetorial com centros policiais (CIOSP/190).
+- **KPIs:** Resposta a acionamentos de pânico < 30 segundos; Fraudes de GPS < 0.1%.
 
 #### User Stories do EPIC-06
-* **PARTIU-601 (GPS Spoofing & Teleportation Detection):**  
-  *Como* Trust & Safety Architect,  
-  *Quero* invalidar coordenadas de condutores com saltos de velocidade anômalos ou com a flag `isMocked` ativada,  
-  *Para que* condutores fraudulentos não simulem localização em áreas de alta demanda.
-* **PARTIU-602 (SOS 190 Silent Dispatch):**  
-  *Como* Passageiro ou Motorista em situação de risco,  
-  *Quero* acionar o botão SOS e ter canal de escuta silenciosa aberto e viatura comunicada em até 30 segundos,  
-  *Para que* minha integridade física seja protegida imediatamente.
+
+- **PARTIU-601 (GPS Spoofing & Teleportation Detection):**  
+  _Como_ Trust & Safety Architect,  
+  _Quero_ invalidar coordenadas de condutores com saltos de velocidade anômalos ou com a flag `isMocked` ativada,  
+  _Para que_ condutores fraudulentos não simulem localização em áreas de alta demanda.
+- **PARTIU-602 (SOS 190 Silent Dispatch):**  
+  _Como_ Passageiro ou Motorista em situação de risco,  
+  _Quero_ acionar o botão SOS e ter canal de escuta silenciosa aberto e viatura comunicada em até 30 segundos,  
+  _Para que_ minha integridade física seja protegida imediatamente.
 
 ---
 
 ### 📌 EPIC-07: Partiu Empresas (Corporate B2B Management Portal)
-* **Objetivo:** Permitir gestão corporativa de viagens para funcionários, com centros de custo, aprovação por políticas de horário e faturamento consolidado.
-* **Dependências:** EPIC-01, EPIC-02 e EPIC-04.
-* **Critérios de Aceitação:** Painel web corporativo; travas de uso comercial (07h às 20h); exigência de justificativa; faturamento quinzenal em fatura com taxa de conveniência de 14% a 16%.
-* **KPIs:** Volume corporativo representando > 18% do faturamento total da praça em 12 meses.
+
+- **Objetivo:** Permitir gestão corporativa de viagens para funcionários, com centros de custo, aprovação por políticas de horário e faturamento consolidado.
+- **Dependências:** EPIC-01, EPIC-02 e EPIC-04.
+- **Critérios de Aceitação:** Painel web corporativo; travas de uso comercial (07h às 20h); exigência de justificativa; faturamento quinzenal em fatura com taxa de conveniência de 14% a 16%.
+- **KPIs:** Volume corporativo representando > 18% do faturamento total da praça em 12 meses.
 
 #### User Stories do EPIC-07
-* **PARTIU-701 (Centros de Custo & Políticas de Viagem):**  
-  *Como* Gestor de RH de uma empresa conveniada,  
-  *Quero* definir limites mensais por departamento e restringir viagens ao horário de expediente,  
-  *Para que* colaboradores utilizem o aplicativo apenas para fins de trabalho autorizados.
-* **PARTIU-702 (Consolidated Corporate Billing):**  
-  *Como* Diretor Financeiro da empresa conveniada,  
-  *Quero* receber uma fatura quinzenal com extrato em PDF de todas as viagens dos funcionários,  
-  *Para que* a conciliação contábil ocorra sem reembolso individual via recibo.
+
+- **PARTIU-701 (Centros de Custo & Políticas de Viagem):**  
+  _Como_ Gestor de RH de uma empresa conveniada,  
+  _Quero_ definir limites mensais por departamento e restringir viagens ao horário de expediente,  
+  _Para que_ colaboradores utilizem o aplicativo apenas para fins de trabalho autorizados.
+- **PARTIU-702 (Consolidated Corporate Billing):**  
+  _Como_ Diretor Financeiro da empresa conveniada,  
+  _Quero_ receber uma fatura quinzenal com extrato em PDF de todas as viagens dos funcionários,  
+  _Para que_ a conciliação contábil ocorra sem reembolso individual via recibo.
 
 ---
 
 ### 📌 EPIC-08: Command Center (NOC) & Fleet Monitoring
-* **Objetivo:** Construir a estação de controle operacional em tempo real permitindo aos supervisores de tráfego gerenciar toda a frota, viagens ativas e alertas da cidade.
-* **Dependências:** EPIC-01, EPIC-02 e EPIC-06.
-* **Critérios de Aceitação:** Mapa interativo em tempo real com todas as categorias ativas; indicador de liquidez regional por bairro; painel de incidentes ordenado por prioridade de SLA.
-* **KPIs:** Tempo de resolução de ocorrências de trânsito < 15 minutos; 100% das viagens ativas auditadas.
+
+- **Objetivo:** Construir a estação de controle operacional em tempo real permitindo aos supervisores de tráfego gerenciar toda a frota, viagens ativas e alertas da cidade.
+- **Dependências:** EPIC-01, EPIC-02 e EPIC-06.
+- **Critérios de Aceitação:** Mapa interativo em tempo real com todas as categorias ativas; indicador de liquidez regional por bairro; painel de incidentes ordenado por prioridade de SLA.
+- **KPIs:** Tempo de resolução de ocorrências de trânsito < 15 minutos; 100% das viagens ativas auditadas.
 
 #### User Stories do EPIC-08
-* **PARTIU-801 (Realtime Fleet & Trip Map):**  
-  *Como* Operador da Central PARTIU,  
-  *Quero* visualizar todos os veículos conectados na malha urbana com status de ocupação e telemetria atualizada,  
-  *Para que* eu monitore anomalias de trajeto e paradas prolongadas não programadas (> 5 min).
+
+- **PARTIU-801 (Realtime Fleet & Trip Map):**  
+  _Como_ Operador da Central PARTIU,  
+  _Quero_ visualizar todos os veículos conectados na malha urbana com status de ocupação e telemetria atualizada,  
+  _Para que_ eu monitore anomalias de trajeto e paradas prolongadas não programadas (> 5 min).
 
 ---
 
@@ -349,180 +367,206 @@ gantt
 ### Detalhamento Sprint a Sprint
 
 #### 🔹 SPRINT 01 (Semanas 1 e 2) — PostgreSQL 15+, PostGIS & Double-Entry Ledger Core
-* **Objetivo:** Estabelecer a persistência relacional mestre, eliminando o `localStorage` do core transacional e garantindo integridade de banco de dados.
-* **Escopo:** Criação das tabelas de condutores, passageiros, viagens e coordenadas com PostGIS; implementação do módulo contábil de dupla entrada em centavos inteiros (`balanceCents`).
-* **Entregáveis:** Migration SQL homologada no Supabase; motor contábil com testes unitários cobrindo 100% dos fluxos de crédito e débito.
-* **Critério de Conclusão:** 0 inconsistências contábeis em 1.000 transações concorrentes simuladas.
+
+- **Objetivo:** Estabelecer a persistência relacional mestre, eliminando o `localStorage` do core transacional e garantindo integridade de banco de dados.
+- **Escopo:** Criação das tabelas de condutores, passageiros, viagens e coordenadas com PostGIS; implementação do módulo contábil de dupla entrada em centavos inteiros (`balanceCents`).
+- **Entregáveis:** Migration SQL homologada no Supabase; motor contábil com testes unitários cobrindo 100% dos fluxos de crédito e débito.
+- **Critério de Conclusão:** 0 inconsistências contábeis em 1.000 transações concorrentes simuladas.
 
 #### 🔹 SPRINT 02 (Semanas 3 e 4) — Redis Cluster, Distributed Lock (Redlock) & WebSocket Gateway
-* **Objetivo:** Criar a infraestrutura de tempo real e semáforos distribuídos para impedir corridas fantasmas e aceite duplicado.
-* **Escopo:** Setup do Redis Cluster com indexação espacial GeoSets; implementação do Redlock com tempo de lock de 12 segundos; gateway WebSockets com multiplexação de salas por bairro.
-* **Entregáveis:** Microserviço de WebSocket rodando no Nitro; módulo `Redlock` integrado ao pipeline de requests.
-* **Critério de Conclusão:** Teste de concorrência com 50 motoristas tentando aceitar a mesma viagem simultaneamente, garantindo exatamente 1 vencedor e 49 respostas imediatas de "corrida já atribuída".
+
+- **Objetivo:** Criar a infraestrutura de tempo real e semáforos distribuídos para impedir corridas fantasmas e aceite duplicado.
+- **Escopo:** Setup do Redis Cluster com indexação espacial GeoSets; implementação do Redlock com tempo de lock de 12 segundos; gateway WebSockets com multiplexação de salas por bairro.
+- **Entregáveis:** Microserviço de WebSocket rodando no Nitro; módulo `Redlock` integrado ao pipeline de requests.
+- **Critério de Conclusão:** Teste de concorrência com 50 motoristas tentando aceitar a mesma viagem simultaneamente, garantindo exatamente 1 vencedor e 49 respostas imediatas de "corrida já atribuída".
 
 #### 🔹 SPRINT 03 (Semanas 5 e 6) — State Machine de Corridas & Gateway Bancário PIX
-* **Objetivo:** Padronizar as transições de status da corrida e conectar a API bancária de geração de cobranças e chaves estáticas/dinâmicas.
-* **Escopo:** Máquina de estados finitos (`SOLICITADA` $\to$ `OFERTADA` $\to$ `ACEITA` $\to$ `CHEGOU` $\to$ `EM_VIAGEM` $\to$ `CONCLUIDA`); webhooks do PSP bancário (Asaas / Mercado Pago / Stark Bank).
-* **Entregáveis:** Módulo `partiu-state-machine.ts` com guards estritos; manipulador de webhooks PIX idempotente.
-* **Critério de Conclusão:** Transições inválidas (ex: tentar finalizar corrida que não foi iniciada) rejeitadas automaticamente com código HTTP 409.
+
+- **Objetivo:** Padronizar as transições de status da corrida e conectar a API bancária de geração de cobranças e chaves estáticas/dinâmicas.
+- **Escopo:** Máquina de estados finitos (`SOLICITADA` $\to$ `OFERTADA` $\to$ `ACEITA` $\to$ `CHEGOU` $\to$ `EM_VIAGEM` $\to$ `CONCLUIDA`); webhooks do PSP bancário (Asaas / Mercado Pago / Stark Bank).
+- **Entregáveis:** Módulo `partiu-state-machine.ts` com guards estritos; manipulador de webhooks PIX idempotente.
+- **Critério de Conclusão:** Transições inválidas (ex: tentar finalizar corrida que não foi iniciada) rejeitadas automaticamente com código HTTP 409.
 
 #### 🔹 SPRINT 04 (Semanas 7 e 8) — Split Automático D+0 & Conciliação Bancária
-* **Objetivo:** Executar o split de 88% do motorista e 12% da plataforma no exato momento da conclusão da viagem.
-* **Escopo:** Disparo automático de crédito na carteira virtual do parceiro; agendamento de liquidação PIX instantânea sem taxa de saque; rotina de reconciliação com extrato bancário.
-* **Entregáveis:** Motor de split ativo no backend; painel de reconciliação contábil no Admin.
-* **Critério de Conclusão:** Saldo do motorista atualizado em menos de 500ms após o evento de finalização de corrida.
+
+- **Objetivo:** Executar o split de 88% do motorista e 12% da plataforma no exato momento da conclusão da viagem.
+- **Escopo:** Disparo automático de crédito na carteira virtual do parceiro; agendamento de liquidação PIX instantânea sem taxa de saque; rotina de reconciliação com extrato bancário.
+- **Entregáveis:** Motor de split ativo no backend; painel de reconciliação contábil no Admin.
+- **Critério de Conclusão:** Saldo do motorista atualizado em menos de 500ms após o evento de finalização de corrida.
 
 #### 🔹 SPRINT 05 (Semanas 9 e 10) — Motor de Despacho V1 (Scoring Multicritério)
-* **Objetivo:** Ativar a fórmula de pontuação multicritério nos servidores, ranqueando condutores com proximidade e equalização de renda.
-* **Escopo:** Implementação da função matemática de scoring no backend; indexação de motoristas disponíveis em raio de até 4 km; boost FinOps para condutores abaixo de R$ 38/h.
-* **Entregáveis:** Endpoint `/api/v1/dispatch/rank-candidates`; logs estruturados detalhando a decomposição do score de cada condutor.
-* **Critério de Conclusão:** Resposta do ranqueamento de até 100 condutores executada em menos de 25ms.
+
+- **Objetivo:** Ativar a fórmula de pontuação multicritério nos servidores, ranqueando condutores com proximidade e equalização de renda.
+- **Escopo:** Implementação da função matemática de scoring no backend; indexação de motoristas disponíveis em raio de até 4 km; boost FinOps para condutores abaixo de R$ 38/h.
+- **Entregáveis:** Endpoint `/api/v1/dispatch/rank-candidates`; logs estruturados detalhando a decomposição do score de cada condutor.
+- **Critério de Conclusão:** Resposta do ranqueamento de até 100 condutores executada em menos de 25ms.
 
 #### 🔹 SPRINT 06 (Semanas 11 e 12) — Auto Dispatch & Trip Radar Concorrente
-* **Objetivo:** Lançar a lógica híbrida de matching: oferta exclusiva de 12 segundos para o motorista #1 e broadcast para o Trip Radar em caso de recusa.
-* **Escopo:** Cronômetro regressivo no backend; disparo de push notification e áudio bleep sincronizado; descarte de motoristas que recusarem 3 ofertas consecutivas.
-* **Entregáveis:** Máquina de despacho assíncrona; canal de eventos WebSockets `trip:radar-broadcast`.
-* **Critério de Conclusão:** Transição automática de Auto Dispatch para Trip Radar executada em exatamente 12,0 segundos sem travamento do cliente.
+
+- **Objetivo:** Lançar a lógica híbrida de matching: oferta exclusiva de 12 segundos para o motorista #1 e broadcast para o Trip Radar em caso de recusa.
+- **Escopo:** Cronômetro regressivo no backend; disparo de push notification e áudio bleep sincronizado; descarte de motoristas que recusarem 3 ofertas consecutivas.
+- **Entregáveis:** Máquina de despacho assíncrona; canal de eventos WebSockets `trip:radar-broadcast`.
+- **Critério de Conclusão:** Transição automática de Auto Dispatch para Trip Radar executada em exatamente 12,0 segundos sem travamento do cliente.
 
 #### 🔹 SPRINT 07 (Semanas 13 e 14) — Cockpit do Motorista (< 3s Ergonomia & Saque PIX)
-* **Objetivo:** Refatorar o aplicativo do motorista para máxima clareza, alta legibilidade e botão de saque instantâneo na home.
-* **Escopo:** Redesenho completo do card de oferta (valor em 26px, coleta e destino claros); botão de aceite de 1 toque no polegar; tela do *Earnings Center* com histórico detalhado e saque PIX imediato.
-* **Entregáveis:** Nova rota `app.motorista.tsx` homologada e testada em dispositivos Android e iOS reais.
-* **Critério de Conclusão:** Tempo médio de decisão de motoristas em testes de usabilidade registrado em 2,4 segundos.
+
+- **Objetivo:** Refatorar o aplicativo do motorista para máxima clareza, alta legibilidade e botão de saque instantâneo na home.
+- **Escopo:** Redesenho completo do card de oferta (valor em 26px, coleta e destino claros); botão de aceite de 1 toque no polegar; tela do _Earnings Center_ com histórico detalhado e saque PIX imediato.
+- **Entregáveis:** Nova rota `app.motorista.tsx` homologada e testada em dispositivos Android e iOS reais.
+- **Critério de Conclusão:** Tempo médio de decisão de motoristas em testes de usabilidade registrado em 2,4 segundos.
 
 #### 🔹 SPRINT 08 (Semanas 15 e 16) — App do Passageiro (< 15s Booking & Saved Places)
-* **Objetivo:** Simplificar a jornada do usuário final para permitir solicitar um veículo em menos de 15 segundos.
-* **Escopo:** Botões rápidos de *Saved Places* (Casa, Trabalho); sugestões preditivas por horário; exibição do tempo de chegada real e cálculo fechado de tarifa (*Upfront Pricing*).
-* **Entregáveis:** Nova interface na rota `app.index.tsx`; seletor de categorias com fotos reais de veículos.
-* **Critério de Conclusão:** Taxa de conversão de abertura do app até a confirmação de pedido superior a 75%.
+
+- **Objetivo:** Simplificar a jornada do usuário final para permitir solicitar um veículo em menos de 15 segundos.
+- **Escopo:** Botões rápidos de _Saved Places_ (Casa, Trabalho); sugestões preditivas por horário; exibição do tempo de chegada real e cálculo fechado de tarifa (_Upfront Pricing_).
+- **Entregáveis:** Nova interface na rota `app.index.tsx`; seletor de categorias com fotos reais de veículos.
+- **Critério de Conclusão:** Taxa de conversão de abertura do app até a confirmação de pedido superior a 75%.
 
 #### 🔹 SPRINT 09 (Semanas 17 e 18) — Partiu Flash V1 (Fluxo Independente de Encomendas)
-* **Objetivo:** Lançar a vertical de logística expressa como produto autônomo com coleta e entrega monitoradas.
-* **Escopo:** Formulário com dados do remetente e destinatário; geração de PIN de coleta de 4 dígitos; cálculo tarifário dedicado para motos e carros Flash.
-* **Entregáveis:** Módulo `partiu-flash-engine.ts` integrado à interface em `app.encomendas.tsx`.
-* **Critério de Conclusão:** Criação e despacho de entregas operando sem interferir nas filas de passageiros convencionais.
+
+- **Objetivo:** Lançar a vertical de logística expressa como produto autônomo com coleta e entrega monitoradas.
+- **Escopo:** Formulário com dados do remetente e destinatário; geração de PIN de coleta de 4 dígitos; cálculo tarifário dedicado para motos e carros Flash.
+- **Entregáveis:** Módulo `partiu-flash-engine.ts` integrado à interface em `app.encomendas.tsx`.
+- **Critério de Conclusão:** Criação e despacho de entregas operando sem interferir nas filas de passageiros convencionais.
 
 #### 🔹 SPRINT 10 (Semanas 19 e 20) — Proof of Delivery (POD) & Rastreamento Web Público
-* **Objetivo:** Prover segurança total em entregas com captura de comprovante fotográfico e link web compartilhável via WhatsApp.
-* **Escopo:** Upload de foto com carimbo d'água de data e coordenadas GPS na finalização da entrega; página pública `/rastreio/[id]` responsiva sem exigir autenticação.
-* **Entregáveis:** Endpoint de upload seguro de imagem com compressão WebP; página de rastreio aberta para destinatários.
-* **Critério de Conclusão:** Destinatário capaz de abrir o link no WhatsApp e visualizar a localização do motoboy em tempo real com atualização a cada 3 segundos.
+
+- **Objetivo:** Prover segurança total em entregas com captura de comprovante fotográfico e link web compartilhável via WhatsApp.
+- **Escopo:** Upload de foto com carimbo d'água de data e coordenadas GPS na finalização da entrega; página pública `/rastreio/[id]` responsiva sem exigir autenticação.
+- **Entregáveis:** Endpoint de upload seguro de imagem com compressão WebP; página de rastreio aberta para destinatários.
+- **Critério de Conclusão:** Destinatário capaz de abrir o link no WhatsApp e visualizar a localização do motoboy em tempo real com atualização a cada 3 segundos.
 
 #### 🔹 SPRINT 11 (Semanas 21 e 22) — Detecção Vetorial de GPS Spoofing & Teletransporte
-* **Objetivo:** Blindar o marketplace contra fraudadores que usam emuladores de GPS para interceptar viagens remotamente.
-* **Escopo:** Algoritmo que calcula velocidade instantânea entre dois pings de telemetria ($v > 165\text{ km/h}$ gera bloqueio preventivo); detecção de provedores mockados em Android/iOS.
-* **Entregáveis:** Middleware de validação de coordenadas no gateway de telemetria; tabela de auditoria de tentativas de fraude.
-* **Critério de Conclusão:** Bloqueio e desconexão imediata de motoristas emulando trajetos artificiais.
+
+- **Objetivo:** Blindar o marketplace contra fraudadores que usam emuladores de GPS para interceptar viagens remotamente.
+- **Escopo:** Algoritmo que calcula velocidade instantânea entre dois pings de telemetria ($v > 165\text{ km/h}$ gera bloqueio preventivo); detecção de provedores mockados em Android/iOS.
+- **Entregáveis:** Middleware de validação de coordenadas no gateway de telemetria; tabela de auditoria de tentativas de fraude.
+- **Critério de Conclusão:** Bloqueio e desconexão imediata de motoristas emulando trajetos artificiais.
 
 #### 🔹 SPRINT 12 (Semanas 23 e 24) — Central SOS 190 com SLA < 30 Segundos
-* **Objetivo:** Implantar o botão de socorro com acionamento prioritário no painel da central e integração de socorro policial.
-* **Escopo:** Botão SOS nos apps de motorista e passageiro; disparo de sirene sonora na estação de plantão do NOC; canal de escuta silenciosa; acionamento automático de viaturas com telemetria via CIOSP/190.
-* **Entregáveis:** Painel de chamados de pânico em tempo real; protocolo de segurança documentado e testado com equipes de campo.
-* **Critério de Conclusão:** Tempo decorrido entre o toque do usuário no botão SOS e a abertura do chamado na tela da central inferior a 2,5 segundos.
+
+- **Objetivo:** Implantar o botão de socorro com acionamento prioritário no painel da central e integração de socorro policial.
+- **Escopo:** Botão SOS nos apps de motorista e passageiro; disparo de sirene sonora na estação de plantão do NOC; canal de escuta silenciosa; acionamento automático de viaturas com telemetria via CIOSP/190.
+- **Entregáveis:** Painel de chamados de pânico em tempo real; protocolo de segurança documentado e testado com equipes de campo.
+- **Critério de Conclusão:** Tempo decorrido entre o toque do usuário no botão SOS e a abertura do chamado na tela da central inferior a 2,5 segundos.
 
 #### 🔹 SPRINT 13 (Semanas 25 e 26) — Uber H3 Hexagonal Grid & Heat Map Dinâmico
-* **Objetivo:** Mapear a densidade de demanda e oferta da cidade utilizando a malha hexagonal H3 (Resolução 8: hexágonos de ~460m).
-* **Escopo:** Agregação de coordenadas em índices H3 em memória; cálculo de intensidade de calor (0.0 a 1.0); renderização de camadas de calor sobre o mapa no Mapbox/Leaflet.
-* **Entregáveis:** API `/api/v1/marketplace/heatmap-zones`; camada visual de calor ativada no mapa dos motoristas.
-* **Critério de Conclusão:** Renderização de até 500 hexágonos em 60fps sem degradação na fluidez do mapa mobile.
+
+- **Objetivo:** Mapear a densidade de demanda e oferta da cidade utilizando a malha hexagonal H3 (Resolução 8: hexágonos de ~460m).
+- **Escopo:** Agregação de coordenadas em índices H3 em memória; cálculo de intensidade de calor (0.0 a 1.0); renderização de camadas de calor sobre o mapa no Mapbox/Leaflet.
+- **Entregáveis:** API `/api/v1/marketplace/heatmap-zones`; camada visual de calor ativada no mapa dos motoristas.
+- **Critério de Conclusão:** Renderização de até 500 hexágonos em 60fps sem degradação na fluidez do mapa mobile.
 
 #### 🔹 SPRINT 14 (Semanas 27 e 28) — Surge Control Capped (Multiplicador Ético de 1.40x)
-* **Objetivo:** Ativar a precificação dinâmica justa, elevando a remuneração do condutor sem lesar o passageiro durante picos de chuva e eventos.
-* **Escopo:** Algoritmo que calcula razão Demanda/Oferta por zona H3; trava mandatória de teto máximo em 1.40x; aviso ostensivo de dinâmico na tela do passageiro.
-* **Entregáveis:** Módulo de cálculo de surge integrado ao *Upfront Pricing*; repasse integral dos 88% do multiplicador ao motorista.
-* **Critério de Conclusão:** Zero chamados de cobrança abusiva de tarifa dinâmica em testes com usuários beta.
+
+- **Objetivo:** Ativar a precificação dinâmica justa, elevando a remuneração do condutor sem lesar o passageiro durante picos de chuva e eventos.
+- **Escopo:** Algoritmo que calcula razão Demanda/Oferta por zona H3; trava mandatória de teto máximo em 1.40x; aviso ostensivo de dinâmico na tela do passageiro.
+- **Entregáveis:** Módulo de cálculo de surge integrado ao _Upfront Pricing_; repasse integral dos 88% do multiplicador ao motorista.
+- **Critério de Conclusão:** Zero chamados de cobrança abusiva de tarifa dinâmica em testes com usuários beta.
 
 #### 🔹 SPRINT 15 (Semanas 29 e 30) — Driver Club Gamificado (Bronze a Black)
-* **Objetivo:** Estimular a retenção do parceiro e frequência de viagens através de níveis de benefícios reais na cidade.
-* **Escopo:** Cálculo mensal automático de nível com base em corridas finalizadas e avaliação; nível Black (300+ corridas) com taxa reduzida para **9.9%** e canal telefônico 24h; parcerias com postos para desconto no combustível.
-* **Entregáveis:** Painel do Driver Club no app do condutor com barra de progresso visual; sistema de geração de vouchers com QR Code para postos parceiros.
-* **Critério de Conclusão:** Recalibração automática de nível na virada de mês em menos de 10 minutos para toda a base ativa de condutores.
+
+- **Objetivo:** Estimular a retenção do parceiro e frequência de viagens através de níveis de benefícios reais na cidade.
+- **Escopo:** Cálculo mensal automático de nível com base em corridas finalizadas e avaliação; nível Black (300+ corridas) com taxa reduzida para **9.9%** e canal telefônico 24h; parcerias com postos para desconto no combustível.
+- **Entregáveis:** Painel do Driver Club no app do condutor com barra de progresso visual; sistema de geração de vouchers com QR Code para postos parceiros.
+- **Critério de Conclusão:** Recalibração automática de nível na virada de mês em menos de 10 minutos para toda a base ativa de condutores.
 
 #### 🔹 SPRINT 16 (Semanas 31 e 32) — Operations Command Center (NOC da Cidade)
-* **Objetivo:** Fornecer à diretoria e supervisores de tráfego um centro de controle unificado em tela cheia com monitoramento de frota e métricas vivas.
-* **Escopo:** Painel web para monitores de operações; mapa com todas as corridas em andamento; gráfico de fulfillment rate em tempo real; painel de alertas de segurança e desvios de rota.
-* **Entregáveis:** Rota administrativa `/app/admin/command-center` com layout Dark Mode e atualização via WebSockets.
-* **Critério de Conclusão:** Atualização contínua do painel durante 8 horas ininterruptas com consumo de memória estável (< 250 MB).
+
+- **Objetivo:** Fornecer à diretoria e supervisores de tráfego um centro de controle unificado em tela cheia com monitoramento de frota e métricas vivas.
+- **Escopo:** Painel web para monitores de operações; mapa com todas as corridas em andamento; gráfico de fulfillment rate em tempo real; painel de alertas de segurança e desvios de rota.
+- **Entregáveis:** Rota administrativa `/app/admin/command-center` com layout Dark Mode e atualização via WebSockets.
+- **Critério de Conclusão:** Atualização contínua do painel durante 8 horas ininterruptas com consumo de memória estável (< 250 MB).
 
 #### 🔹 SPRINT 17 (Semanas 33 e 34) — Partiu Empresas (Portal Corporativo B2B)
-* **Objetivo:** Lançar a vertical corporativa permitindo a empresas locais cadastrarem seus colaboradores e gerenciarem viagens a trabalho.
-* **Escopo:** Portal web de cadastro de empresas (CNPJ, razão social); gestão de colaboradores e associação a centros de custo; convite de funcionários via e-mail e SMS.
-* **Entregáveis:** Módulo corporativo em rota dedicada para administradores de empresas conveniadas.
-* **Critério de Conclusão:** Empresa capaz de cadastrar 50 colaboradores e visualizar viagens de teste em menos de 15 minutos.
+
+- **Objetivo:** Lançar a vertical corporativa permitindo a empresas locais cadastrarem seus colaboradores e gerenciarem viagens a trabalho.
+- **Escopo:** Portal web de cadastro de empresas (CNPJ, razão social); gestão de colaboradores e associação a centros de custo; convite de funcionários via e-mail e SMS.
+- **Entregáveis:** Módulo corporativo em rota dedicada para administradores de empresas conveniadas.
+- **Critério de Conclusão:** Empresa capaz de cadastrar 50 colaboradores e visualizar viagens de teste em menos de 15 minutos.
 
 #### 🔹 SPRINT 18 (Semanas 35 e 36) — Políticas Corporativas & Faturamento em Lote
-* **Objetivo:** Estabelecer travas de governança corporativa para corridas de funcionários e automatizar a emissão de faturas quinzenais.
-* **Escopo:** Travas de horário de uso comercial (07h às 20h em dias úteis); obrigatoriedade de digitação de justificativa de negócio; motor de geração de fatura consolidada e boleto bancário.
-* **Entregáveis:** Módulo `partiu-b2b-engine.ts` com gerador de extrato detalhado em PDF para contabilidade corporativa.
-* **Critério de Conclusão:** Bloqueio automático de corrida solicitada por colaborador fora do horário autorizado pela empresa.
+
+- **Objetivo:** Estabelecer travas de governança corporativa para corridas de funcionários e automatizar a emissão de faturas quinzenais.
+- **Escopo:** Travas de horário de uso comercial (07h às 20h em dias úteis); obrigatoriedade de digitação de justificativa de negócio; motor de geração de fatura consolidada e boleto bancário.
+- **Entregáveis:** Módulo `partiu-b2b-engine.ts` com gerador de extrato detalhado em PDF para contabilidade corporativa.
+- **Critério de Conclusão:** Bloqueio automático de corrida solicitada por colaborador fora do horário autorizado pela empresa.
 
 #### 🔹 SPRINT 19 (Semanas 37 e 38) — Partiu Cashback (2%) & Fidelização Contínua
-* **Objetivo:** Implementar a mecânica de cashback perpétuo, construindo barreira de saída contra concorrentes multinacionais.
-* **Escopo:** Crédito automático de 2% sobre o valor de qualquer viagem paga na carteira virtual do passageiro; uso simplificado como desconto no checkout da próxima viagem; notificações push de saldo acumulado.
-* **Entregáveis:** Carteira digital no app do passageiro exibindo saldo em Reais; push automatizado de extrato de economia.
-* **Critério de Conclusão:** Amortização transparente do saldo de cashback em uma nova corrida com 1 único clique.
+
+- **Objetivo:** Implementar a mecânica de cashback perpétuo, construindo barreira de saída contra concorrentes multinacionais.
+- **Escopo:** Crédito automático de 2% sobre o valor de qualquer viagem paga na carteira virtual do passageiro; uso simplificado como desconto no checkout da próxima viagem; notificações push de saldo acumulado.
+- **Entregáveis:** Carteira digital no app do passageiro exibindo saldo em Reais; push automatizado de extrato de economia.
+- **Critério de Conclusão:** Amortização transparente do saldo de cashback em uma nova corrida com 1 único clique.
 
 #### 🔹 SPRINT 20 (Semanas 39 e 40) — Supply Rebalancing Engine com Bounties
-* **Objetivo:** Realocar proativamente motoristas ociosos para bolsões de alta demanda na cidade antes que o passageiro enfrente indisponibilidade.
-* **Escopo:** Algoritmo que detecta zonas com liquidez deficitária (< 0.60); envio de propostas de rota com *Bounties* (bônus financeiro fixo na próxima corrida) para motoristas a menos de 4,5 km.
-* **Entregáveis:** Notificações de incentivo integradas ao cockpit do condutor com trajeto sugerido.
-* **Critério de Conclusão:** Redução do ETA médio da zona deficitária de 9 minutos para menos de 5,5 minutos em 15 minutos após o disparo de incentivos.
+
+- **Objetivo:** Realocar proativamente motoristas ociosos para bolsões de alta demanda na cidade antes que o passageiro enfrente indisponibilidade.
+- **Escopo:** Algoritmo que detecta zonas com liquidez deficitária (< 0.60); envio de propostas de rota com _Bounties_ (bônus financeiro fixo na próxima corrida) para motoristas a menos de 4,5 km.
+- **Entregáveis:** Notificações de incentivo integradas ao cockpit do condutor com trajeto sugerido.
+- **Critério de Conclusão:** Redução do ETA médio da zona deficitária de 9 minutos para menos de 5,5 minutos em 15 minutos após o disparo de incentivos.
 
 #### 🔹 SPRINT 21 (Semanas 41 e 42) — Encadeamento Preditivo (Back-to-Back Dispatch)
-* **Objetivo:** Eliminar tempo ocioso e rodagem vazia através do matching da próxima viagem enquanto o condutor ainda está nos últimos 120s da corrida atual.
-* **Escopo:** Estimativa de tempo restante da viagem em curso; busca de solicitações próximas ao ponto de desembarque; oferta encadeada aceita sem interromper a navegação da viagem ativa.
-* **Entregáveis:** Lógica preditiva no motor de despacho (`estimatedTripEndSeconds <= 120`).
-* **Critério de Conclusão:** Aumento do ganho médio horário dos motoristas participantes em $+18\%$ decorrente da eliminação de tempo morto entre corridas.
+
+- **Objetivo:** Eliminar tempo ocioso e rodagem vazia através do matching da próxima viagem enquanto o condutor ainda está nos últimos 120s da corrida atual.
+- **Escopo:** Estimativa de tempo restante da viagem em curso; busca de solicitações próximas ao ponto de desembarque; oferta encadeada aceita sem interromper a navegação da viagem ativa.
+- **Entregáveis:** Lógica preditiva no motor de despacho (`estimatedTripEndSeconds <= 120`).
+- **Critério de Conclusão:** Aumento do ganho médio horário dos motoristas participantes em $+18\%$ decorrente da eliminação de tempo morto entre corridas.
 
 #### 🔹 SPRINT 22 (Semanas 43 e 44) — Modelos de IA: Previsão de ETA & Detecção de Churn
-* **Objetivo:** Integrar modelos preditivos para aumentar a precisão de chegada e agir proativamente na retenção de condutores parceiros.
-* **Escopo:** Modelo de regressão de ETA calibrado por histórico real de viagens, hora do rush e alertas meteorológicos de chuva; classificador de probabilidade de churn de condutores com disparo de missões de bonificação.
-* **Entregáveis:** Módulo `partiu-analytics-ai-engine.ts` conectado ao pipeline de despacho e CRM.
-* **Critério de Conclusão:** Erro médio absoluto (MAE) de tempo de chegada reduzido para menos de 45 segundos.
+
+- **Objetivo:** Integrar modelos preditivos para aumentar a precisão de chegada e agir proativamente na retenção de condutores parceiros.
+- **Escopo:** Modelo de regressão de ETA calibrado por histórico real de viagens, hora do rush e alertas meteorológicos de chuva; classificador de probabilidade de churn de condutores com disparo de missões de bonificação.
+- **Entregáveis:** Módulo `partiu-analytics-ai-engine.ts` conectado ao pipeline de despacho e CRM.
+- **Critério de Conclusão:** Erro médio absoluto (MAE) de tempo de chegada reduzido para menos de 45 segundos.
 
 #### 🔹 SPRINT 23 (Semanas 45 e 46) — Partiu Prime & Hardening de Segurança OWASP
-* **Objetivo:** Lançar o clube de assinatura de passageiros frequentes (R$ 19,90/mês) e auditar todo o sistema contra vulnerabilidades cibernéticas.
-* **Escopo:** Cobrança recorrente de assinatura no cartão de crédito; isenção automática de tarifa dinâmica e cashback turbinado para 5%; auditoria OWASP ASVS Nível 2; testes de penetração nas APIs de split e carteira.
-* **Entregáveis:** Módulo de assinaturas ativado; relatório de conformidade e testes de invasão com zero vulnerabilidades críticas.
-* **Critério de Conclusão:** 100% dos testes de segurança automatizados aprovados no pipeline CI/CD.
+
+- **Objetivo:** Lançar o clube de assinatura de passageiros frequentes (R$ 19,90/mês) e auditar todo o sistema contra vulnerabilidades cibernéticas.
+- **Escopo:** Cobrança recorrente de assinatura no cartão de crédito; isenção automática de tarifa dinâmica e cashback turbinado para 5%; auditoria OWASP ASVS Nível 2; testes de penetração nas APIs de split e carteira.
+- **Entregáveis:** Módulo de assinaturas ativado; relatório de conformidade e testes de invasão com zero vulnerabilidades críticas.
+- **Critério de Conclusão:** 100% dos testes de segurança automatizados aprovados no pipeline CI/CD.
 
 #### 🔹 SPRINT 24 (Semanas 47 e 48) — Testes de Carga (5.000 VUs), Simulado de Desastre & Go-Live Piloto
-* **Objetivo:** Homologação final sob estresse extremo, validação do plano de recuperação de desastres e abertura comercial na praça piloto de 4 km².
-* **Escopo:** Testes de carga com k6 simulando 5.000 usuários virtuais concorrentes gerando pedidos, aceites e pagamentos; simulação de failover do banco de dados primário para réplica; liberação dos aplicativos nas lojas (Google Play e Apple App Store); acionamento dos 50 motoristas fundadores homologados.
-* **Entregáveis:** Relatório de certificação de carga (latência p99 < 26ms); checklist de Go-Live 100% assinado pelo comitê técnico; lançamento oficial da Praça Piloto.
-* **Critério de Conclusão:** Primeira corrida comercial real executada, embarcada com PIN, finalizada e liquidada via PIX D+0 em menos de 10 minutos.
+
+- **Objetivo:** Homologação final sob estresse extremo, validação do plano de recuperação de desastres e abertura comercial na praça piloto de 4 km².
+- **Escopo:** Testes de carga com k6 simulando 5.000 usuários virtuais concorrentes gerando pedidos, aceites e pagamentos; simulação de failover do banco de dados primário para réplica; liberação dos aplicativos nas lojas (Google Play e Apple App Store); acionamento dos 50 motoristas fundadores homologados.
+- **Entregáveis:** Relatório de certificação de carga (latência p99 < 26ms); checklist de Go-Live 100% assinado pelo comitê técnico; lançamento oficial da Praça Piloto.
+- **Critério de Conclusão:** Primeira corrida comercial real executada, embarcada com PIN, finalizada e liquidada via PIX D+0 em menos de 10 minutos.
 
 ---
 
 ## 🚀 ETAPA 7 — GO LIVE STRATEGY (O PROTOCOLO DE ENTRADA EM PRODUÇÃO)
 
 ### 7.1. Arquitetura de Ambientes
-* **1. Desenvolvimento (Local/Preview):** Ambientes locais com dados mockados e emulação de Redis via Docker para testes de desenvolvimento ágil.
-* **2. Homologação (Staging):** Ambiente espelho de produção em Cloudflare/Vercel/Nitro conectado a banco de dados isolado com espelhamento de tráfego (*Shadow Traffic*) para validação de carga.
-* **3. Piloto Controlado (Alpha Fechado):** Ambiente de produção restrito à praça piloto de 4 km² (Centro Comercial e Gastronômico), com acesso liberado apenas aos 50 motoristas e 250 passageiros VIP fundadores pré-cadastrados.
-* **4. Produção Ampla:** Liberação pública para toda a malha metropolitana após cumprimento dos gatilhos de maturidade.
+
+- **1. Desenvolvimento (Local/Preview):** Ambientes locais com dados mockados e emulação de Redis via Docker para testes de desenvolvimento ágil.
+- **2. Homologação (Staging):** Ambiente espelho de produção em Cloudflare/Vercel/Nitro conectado a banco de dados isolado com espelhamento de tráfego (_Shadow Traffic_) para validação de carga.
+- **3. Piloto Controlado (Alpha Fechado):** Ambiente de produção restrito à praça piloto de 4 km² (Centro Comercial e Gastronômico), com acesso liberado apenas aos 50 motoristas e 250 passageiros VIP fundadores pré-cadastrados.
+- **4. Produção Ampla:** Liberação pública para toda a malha metropolitana após cumprimento dos gatilhos de maturidade.
 
 ### 7.2. Checklist Obrigatório de Go-Live (Gateways de Aprovação)
-* [x] **Infraestrutura:** PostgreSQL com failover automático e replicação síncrona ativada.
-* [x] **Segurança:** RLS (Row Level Security) e chaves privadas 100% blindadas fora de bundles cliente.
-* [x] **FinOps:** Saldo contábil auditado com ledger em minor units (centavos inteiros) com soma zero.
-* [x] **Concorrência:** Lock distribuído Redlock validado sob 50 tentativas de colisão simultânea de aceite.
-* [x] **Operações de Campo:** 50 motoristas parceiros homologados presencialmente com CNH EAR e CRLV auditados.
-* [x] **Segurança Pública:** Protocolo do Botão SOS 190 testado com a central de segurança local.
-* [x] **App Stores:** Binários do aplicativo de motorista e passageiro aprovados e publicados na Google Play e App Store.
+
+- [x] **Infraestrutura:** PostgreSQL com failover automático e replicação síncrona ativada.
+- [x] **Segurança:** RLS (Row Level Security) e chaves privadas 100% blindadas fora de bundles cliente.
+- [x] **FinOps:** Saldo contábil auditado com ledger em minor units (centavos inteiros) com soma zero.
+- [x] **Concorrência:** Lock distribuído Redlock validado sob 50 tentativas de colisão simultânea de aceite.
+- [x] **Operações de Campo:** 50 motoristas parceiros homologados presencialmente com CNH EAR e CRLV auditados.
+- [x] **Segurança Pública:** Protocolo do Botão SOS 190 testado com a central de segurança local.
+- [x] **App Stores:** Binários do aplicativo de motorista e passageiro aprovados e publicados na Google Play e App Store.
 
 ---
 
 ## 🧪 ETAPA 8 — QUALITY ASSURANCE (QA & TESTING MATRIX)
 
-| Nível de Teste | Escopo de Validação | Ferramentas Utilizadas | Meta de Cobertura / SLA |
-| :--- | :--- | :--- | :---: |
-| **Testes Unitários** | Funções matemáticas de despacho, split contábil, detector de spoofing, validação de PIN. | Vitest / Jest | **> 88% de Cobertura de Código** |
-| **Testes de Integração** | RPCs do banco de dados, gravação de ledger, endpoints REST, comunicação Redis. | Supertest / Testcontainers | **100% dos fluxos financeiros e de matching** |
-| **Testes End-to-End (E2E)** | Fluxo completo: Passageiro pede $\to$ Radar apita $\to$ Motorista aceita $\to$ PIN valida $\to$ Viagem conclui $\to$ PIX credita. | Playwright Mobile Viewport | **100% de sucesso nos fluxos críticos** |
-| **Testes de Carga & Estresse** | 5.000 Usuários Virtuais (VUs) simultâneos solicitando corridas no pico. | k6 Cloud Distributed | **p50 < 25ms \| p99 < 35ms \| 0% Erros 5xx** |
-| **Testes de Segurança** | Injeção SQL, quebra de RLS, replay attacks em webhooks PIX, enumeração de usuários. | OWASP ZAP / Burp Suite | **0 Vulnerabilidades Altas ou Críticas** |
-| **Testes de Chaos Engineering** | Queda abrupta do nó primário de banco, perda de conexão WebSocket e jitter de rede móvel (3G). | ChaosMesh / Simulação de Latência | **Recuperação automática do estado em < 3 segundos** |
+| Nível de Teste                  | Escopo de Validação                                                                                                               | Ferramentas Utilizadas            |               Meta de Cobertura / SLA                |
+| :------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------- | :--------------------------------------------------: |
+| **Testes Unitários**            | Funções matemáticas de despacho, split contábil, detector de spoofing, validação de PIN.                                          | Vitest / Jest                     |           **> 88% de Cobertura de Código**           |
+| **Testes de Integração**        | RPCs do banco de dados, gravação de ledger, endpoints REST, comunicação Redis.                                                    | Supertest / Testcontainers        |    **100% dos fluxos financeiros e de matching**     |
+| **Testes End-to-End (E2E)**     | Fluxo completo: Passageiro pede $\to$ Radar apita $\to$ Motorista aceita $\to$ PIN valida $\to$ Viagem conclui $\to$ PIX credita. | Playwright Mobile Viewport        |       **100% de sucesso nos fluxos críticos**        |
+| **Testes de Carga & Estresse**  | 5.000 Usuários Virtuais (VUs) simultâneos solicitando corridas no pico.                                                           | k6 Cloud Distributed              |     **p50 < 25ms \| p99 < 35ms \| 0% Erros 5xx**     |
+| **Testes de Segurança**         | Injeção SQL, quebra de RLS, replay attacks em webhooks PIX, enumeração de usuários.                                               | OWASP ZAP / Burp Suite            |       **0 Vulnerabilidades Altas ou Críticas**       |
+| **Testes de Chaos Engineering** | Queda abrupta do nó primário de banco, perda de conexão WebSocket e jitter de rede móvel (3G).                                    | ChaosMesh / Simulação de Latência | **Recuperação automática do estado em < 3 segundos** |
 
 ---
 
@@ -538,16 +582,17 @@ graph LR
 ```
 
 ### Telemetria Operacional
-* **Distributed Tracing:** Rastreamento ponta a ponta com OpenTelemetry: cada solicitação de corrida gera uma `TraceID` que acompanha o ciclo de vida desde a busca até o webhook de liquidação bancária.
-* **Métricas em Tempo Real:** Exportadas via Prometheus e renderizadas no Grafana:
-  * `partiu_dispatch_latency_seconds` (p50, p95, p99)
-  * `partiu_trip_radar_acceptance_rate` (Meta > 80%)
-  * `partiu_marketplace_liquidity_ratio` (Idle / Active)
-  * `partiu_pix_settlement_duration_seconds` (Meta < 5s)
-* **Matriz de Alertas & Escalonamento (PagerDuty / OpsGenie):**
-  * **P0 (Crítico - Acionamento Imediato 24/7):** Disparo de Botão SOS sem atendimento em 30s; falha em cascata no gateway PIX; latência de matching > 500ms.
-  * **P1 (Alto - Atendimento em até 15 min):** Taxa de cancelamento de motoristas acima de 12%; falha na geração de mapas de calor.
-  * **P2 (Médio - Atendimento em horário comercial):** Divergência de telemetria IoT; lentidão em relatórios administrativos.
+
+- **Distributed Tracing:** Rastreamento ponta a ponta com OpenTelemetry: cada solicitação de corrida gera uma `TraceID` que acompanha o ciclo de vida desde a busca até o webhook de liquidação bancária.
+- **Métricas em Tempo Real:** Exportadas via Prometheus e renderizadas no Grafana:
+  - `partiu_dispatch_latency_seconds` (p50, p95, p99)
+  - `partiu_trip_radar_acceptance_rate` (Meta > 80%)
+  - `partiu_marketplace_liquidity_ratio` (Idle / Active)
+  - `partiu_pix_settlement_duration_seconds` (Meta < 5s)
+- **Matriz de Alertas & Escalonamento (PagerDuty / OpsGenie):**
+  - **P0 (Crítico - Acionamento Imediato 24/7):** Disparo de Botão SOS sem atendimento em 30s; falha em cascata no gateway PIX; latência de matching > 500ms.
+  - **P1 (Alto - Atendimento em até 15 min):** Taxa de cancelamento de motoristas acima de 12%; falha na geração de mapas de calor.
+  - **P2 (Médio - Atendimento em horário comercial):** Divergência de telemetria IoT; lentidão em relatórios administrativos.
 
 ---
 
@@ -577,19 +622,19 @@ O comitê executivo avalia o lançamento através do scorecard de 6 dimensões. 
 
 Indicadores operacionais atualizados em tempo real no telão da sala de operações e no celular dos diretores:
 
-| KPI Executivo | Meta de Produção (Target) | Limiar de Alerta | Ação Operacional Corretiva |
-| :--- | :---: | :---: | :--- |
-| **Corridas Solicitadas / Dia** | **> 1.200 viagens** | < 800 viagens | Ativar campanhas de cupons push e parcerias locais. |
-| **Taxa de Atendimento (Fulfillment)** | **> 88%** | < 75% | Disparar bônus de incentivo de área para condutores no perímetro. |
-| **Tempo Estimado de Chegada (ETA)** | **< 5,5 minutos** | > 8,0 minutos | Expandir raio de despacho e convocar condutores offline via push. |
-| **Taxa de Cancelamento (Passageiro)** | **< 6%** | > 10% | Auditar precisão do tempo de chegada exibido no mapa. |
-| **Taxa de Cancelamento (Motorista)** | **< 4%** | > 8% | Bloqueio temporário de 30 min após 3 recusas seguidas. |
-| **Ganho Médio por Hora do Motorista** | **R$ 38 a R$ 52/h** | < R$ 28/h | Pausar entrada de novos condutores para evitar canibalização da frota. |
-| **Volume de GMV Diário Transacionado**| **> R$ 28.000,00**| < R$ 18.000,00| Revisar densidade de marketing nas zonas piloto. |
-| **Take-Rate Efetivo Retido** | **12.0%** (ou 9.9% Black)| < 11.5% | Auditar cálculo contábil de split e taxas de cancelamento. |
-| **Net Promoter Score (Passageiros)** | **> 72 (Excelente)** | < 60 | Investigar notas baixas de conservação de veículos e conforto. |
-| **Net Promoter Score (Motoristas)** | **> 68 (Alto)** | < 45 | Revisar tempo de resposta do suporte e postos de combustível conveniados. |
-| **Taxa Mensal de Churn de Motoristas**| **< 4.5% ao mês** | > 8.0% ao mês | Disparar missões com garantia de ganhos para parceiros em risco. |
+| KPI Executivo                          | Meta de Produção (Target) | Limiar de Alerta | Ação Operacional Corretiva                                                |
+| :------------------------------------- | :-----------------------: | :--------------: | :------------------------------------------------------------------------ |
+| **Corridas Solicitadas / Dia**         |    **> 1.200 viagens**    |  < 800 viagens   | Ativar campanhas de cupons push e parcerias locais.                       |
+| **Taxa de Atendimento (Fulfillment)**  |         **> 88%**         |      < 75%       | Disparar bônus de incentivo de área para condutores no perímetro.         |
+| **Tempo Estimado de Chegada (ETA)**    |     **< 5,5 minutos**     |  > 8,0 minutos   | Expandir raio de despacho e convocar condutores offline via push.         |
+| **Taxa de Cancelamento (Passageiro)**  |         **< 6%**          |      > 10%       | Auditar precisão do tempo de chegada exibido no mapa.                     |
+| **Taxa de Cancelamento (Motorista)**   |         **< 4%**          |       > 8%       | Bloqueio temporário de 30 min após 3 recusas seguidas.                    |
+| **Ganho Médio por Hora do Motorista**  |    **R$ 38 a R$ 52/h**    |    < R$ 28/h     | Pausar entrada de novos condutores para evitar canibalização da frota.    |
+| **Volume de GMV Diário Transacionado** |    **> R$ 28.000,00**     |  < R$ 18.000,00  | Revisar densidade de marketing nas zonas piloto.                          |
+| **Take-Rate Efetivo Retido**           | **12.0%** (ou 9.9% Black) |     < 11.5%      | Auditar cálculo contábil de split e taxas de cancelamento.                |
+| **Net Promoter Score (Passageiros)**   |   **> 72 (Excelente)**    |       < 60       | Investigar notas baixas de conservação de veículos e conforto.            |
+| **Net Promoter Score (Motoristas)**    |      **> 68 (Alto)**      |       < 45       | Revisar tempo de resposta do suporte e postos de combustível conveniados. |
+| **Taxa Mensal de Churn de Motoristas** |     **< 4.5% ao mês**     |  > 8.0% ao mês   | Disparar missões com garantia de ganhos para parceiros em risco.          |
 
 ---
 
@@ -672,6 +717,8 @@ MÊS 12 (Sprints 23 e 24): PARTIU PRIME, TESTE DE CARGA (5k VUs) & GO-LIVE GERAL
 ---
 
 ### 📂 Registro Oficial no Repositório
+
 O plano operacional foi salvo e integrado à documentação técnica em:
-* [`docs/PLANO_OPERACIONAL_EXECUCAO_ENGENHARIA_24_SPRINTS.md`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/docs/PLANO_OPERACIONAL_EXECUCAO_ENGENHARIA_24_SPRINTS.md)
-* A arquitetura de software correspondente está implementada e tipada em [`src/lib/`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/src/lib/partiu-engine.ts) com compilação `tsc` em **0 erros**.
+
+- [`docs/PLANO_OPERACIONAL_EXECUCAO_ENGENHARIA_24_SPRINTS.md`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/docs/PLANO_OPERACIONAL_EXECUCAO_ENGENHARIA_24_SPRINTS.md)
+- A arquitetura de software correspondente está implementada e tipada em [`src/lib/`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/src/lib/partiu-engine.ts) com compilação `tsc` em **0 erros**.

@@ -105,12 +105,14 @@ export const MapDiagnosticPanel = memo(function MapDiagnosticPanel({
     try {
       const canvas = document.createElement("canvas");
       const gl2 = canvas.getContext("webgl2");
-      const gl = gl2 || canvas.getContext("webgl") || (canvas.getContext("experimental-webgl") as any);
+      const gl =
+        gl2 || canvas.getContext("webgl") || (canvas.getContext("experimental-webgl") as any);
       if (gl) {
         const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
         if (debugInfo) {
           setGpuInfo({
-            renderer: gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || "Aceleração por Hardware Ativa",
+            renderer:
+              gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || "Aceleração por Hardware Ativa",
             vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) || "GPU Integrada / Dedicada",
             webgl2: Boolean(gl2),
           });
@@ -153,7 +155,7 @@ export const MapDiagnosticPanel = memo(function MapDiagnosticPanel({
       () => {
         setGpsTestando(false);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
     );
   }
 
@@ -189,7 +191,9 @@ export const MapDiagnosticPanel = memo(function MapDiagnosticPanel({
                 <Activity className="h-4 w-4 text-blue-400" />
                 WebGL Framerate
               </span>
-              <span className={`text-xs font-black px-2 py-0.5 rounded-full ${fps >= 55 ? "bg-emerald-950 text-emerald-400 border border-emerald-800" : "bg-amber-950 text-amber-400 border border-amber-800"}`}>
+              <span
+                className={`text-xs font-black px-2 py-0.5 rounded-full ${fps >= 55 ? "bg-emerald-950 text-emerald-400 border border-emerald-800" : "bg-amber-950 text-amber-400 border border-amber-800"}`}
+              >
                 {fps >= 55 ? "60 Hz Estável" : "Oscilando"}
               </span>
             </div>
@@ -226,7 +230,9 @@ export const MapDiagnosticPanel = memo(function MapDiagnosticPanel({
                 className="text-[10px] font-black uppercase bg-slate-800 hover:bg-slate-700 active:scale-95 px-2 py-0.5 rounded border border-slate-700 flex items-center gap-1 cursor-pointer transition-all"
                 title="Testar sinal GPS agora"
               >
-                <RefreshCw className={`h-3 w-3 ${gpsTestando ? "animate-spin text-emerald-400" : "text-slate-300"}`} />
+                <RefreshCw
+                  className={`h-3 w-3 ${gpsTestando ? "animate-spin text-emerald-400" : "text-slate-300"}`}
+                />
                 {gpsTestando ? "Medindo" : "Testar"}
               </button>
             </div>
@@ -259,8 +265,8 @@ export const MapDiagnosticPanel = memo(function MapDiagnosticPanel({
                   websocketStatus === "CONNECTED"
                     ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
                     : websocketStatus === "CONNECTING"
-                    ? "bg-amber-950 text-amber-400 border border-amber-800"
-                    : "bg-rose-950 text-rose-400 border border-rose-800"
+                      ? "bg-amber-950 text-amber-400 border border-amber-800"
+                      : "bg-rose-950 text-rose-400 border border-rose-800"
                 }`}
               >
                 {websocketStatus}
@@ -338,7 +344,8 @@ export const MapDiagnosticPanel = memo(function MapDiagnosticPanel({
                 Mapbox GL JS v3 (Vector Tiles)
               </strong>
               <p className="text-slate-400 leading-relaxed text-[11px]">
-                Renderização acelerada por GPU a 60 FPS com estilo streets-v12 e tráfego em tempo real.
+                Renderização acelerada por GPU a 60 FPS com estilo streets-v12 e tráfego em tempo
+                real.
               </p>
             </div>
 
@@ -350,7 +357,8 @@ export const MapDiagnosticPanel = memo(function MapDiagnosticPanel({
                 CARTO Positron (OpenStreetMap)
               </strong>
               <p className="text-slate-400 leading-relaxed text-[11px]">
-                Comutação instantânea transparente caso o token Mapbox atinja limites ou enfrente indisponibilidade.
+                Comutação instantânea transparente caso o token Mapbox atinja limites ou enfrente
+                indisponibilidade.
               </p>
             </div>
 
@@ -362,7 +370,8 @@ export const MapDiagnosticPanel = memo(function MapDiagnosticPanel({
                 Filtro de Viewport & Bounding Box
               </strong>
               <p className="text-slate-400 leading-relaxed text-[11px]">
-                Apenas veículos visíveis na tela são mantidos no grafo DOM para garantir consumo mínimo de memória.
+                Apenas veículos visíveis na tela são mantidos no grafo DOM para garantir consumo
+                mínimo de memória.
               </p>
             </div>
           </div>
@@ -443,8 +452,8 @@ export const MapDiagnosticPanel = memo(function MapDiagnosticPanel({
                   websocketStatus === "CONNECTED"
                     ? "bg-emerald-950/80 text-emerald-400 border border-emerald-700/50"
                     : websocketStatus === "CONNECTING"
-                    ? "bg-amber-950/80 text-amber-400 border border-amber-700/50"
-                    : "bg-rose-950/80 text-rose-400 border border-rose-700/50"
+                      ? "bg-amber-950/80 text-amber-400 border border-amber-700/50"
+                      : "bg-rose-950/80 text-rose-400 border border-rose-700/50"
                 }`}
               >
                 {websocketStatus}

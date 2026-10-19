@@ -1,6 +1,6 @@
 /**
  * REGIONAL OPERATING SYSTEM V2 — MASTER ORCHESTRATOR
- * 
+ *
  * Orquestrador Geral do Sistema Operacional Regional Autônomo:
  * Coordena todos os subsistemas do ecossistema:
  * - Fases 1–17.5 (Marketplace, Despacho, Rotas, Digital Twin, MLOps, B2B, Logística Intermunicipal, WhatsApp)
@@ -19,27 +19,27 @@
  * - Regional Brain, Macroeconomia, Saúde e Estratégia
  */
 
-import { civicEngine } from '../civic/civic-engine';
-import { smartCityEngine } from '../smart-city/smart-city-engine';
-import { universityEngine } from '../education/university-engine';
-import { healthMobilityEngine } from '../health/health-mobility';
-import { tourismEngine } from '../tourism/tourism-engine';
-import { multimodalTransitEngine } from '../transit/multimodal-engine';
-import { commerceEngine } from '../commerce/commerce-engine';
-import { identityEngine } from '../identity/identity-engine';
-import { dataHubEngine } from '../data-exchange/data-hub';
-import { eventBusEngine } from '../data-exchange/event-bus';
-import { regionalKnowledgeGraph } from '../data-exchange/regional-analytics';
-import { regionalBrain } from './regional-brain';
-import { regionalEconomyV2 } from './regional-economy';
-import { regionalHealthV2 } from './regional-health';
-import { regionalStrategyV2 } from './regional-strategy';
-import { partiuWalletEngine } from '../finance/partiu-wallet';
-import { pixEngine } from '../finance/pix-engine';
-import { adsMarketplace } from '../ads/ads-marketplace';
-import { passengerTrustEngine } from '../trust/passenger-trust-engine';
-import { corporateEngine } from '../corporate/corporate-engine';
-import { franchiseEngine } from '../franchise/franchise-engine';
+import { civicEngine } from "../civic/civic-engine";
+import { smartCityEngine } from "../smart-city/smart-city-engine";
+import { universityEngine } from "../education/university-engine";
+import { healthMobilityEngine } from "../health/health-mobility";
+import { tourismEngine } from "../tourism/tourism-engine";
+import { multimodalTransitEngine } from "../transit/multimodal-engine";
+import { commerceEngine } from "../commerce/commerce-engine";
+import { identityEngine } from "../identity/identity-engine";
+import { dataHubEngine } from "../data-exchange/data-hub";
+import { eventBusEngine } from "../data-exchange/event-bus";
+import { regionalKnowledgeGraph } from "../data-exchange/regional-analytics";
+import { regionalBrain } from "./regional-brain";
+import { regionalEconomyV2 } from "./regional-economy";
+import { regionalHealthV2 } from "./regional-health";
+import { regionalStrategyV2 } from "./regional-strategy";
+import { partiuWalletEngine } from "../finance/partiu-wallet";
+import { pixEngine } from "../finance/pix-engine";
+import { adsMarketplace } from "../ads/ads-marketplace";
+import { passengerTrustEngine } from "../trust/passenger-trust-engine";
+import { corporateEngine } from "../corporate/corporate-engine";
+import { franchiseEngine } from "../franchise/franchise-engine";
 
 export interface RegionalMasterStateSnapshot {
   cityId: string;
@@ -61,27 +61,69 @@ export interface RegionalMasterStateSnapshot {
 }
 
 export class RegionalOrchestratorV2 {
-  public getCivicEngine() { return civicEngine; }
-  public getSmartCityEngine() { return smartCityEngine; }
-  public getUniversityEngine() { return universityEngine; }
-  public getHealthMobilityEngine() { return healthMobilityEngine; }
-  public getTourismEngine() { return tourismEngine; }
-  public getMultimodalTransitEngine() { return multimodalTransitEngine; }
-  public getCommerceEngine() { return commerceEngine; }
-  public getIdentityEngine() { return identityEngine; }
-  public getDataHubEngine() { return dataHubEngine; }
-  public getEventBusEngine() { return eventBusEngine; }
-  public getKnowledgeGraph() { return regionalKnowledgeGraph; }
-  public getBrain() { return regionalBrain; }
-  public getEconomy() { return regionalEconomyV2; }
-  public getHealth() { return regionalHealthV2; }
-  public getStrategy() { return regionalStrategyV2; }
-  public getWallet() { return partiuWalletEngine; }
-  public getPix() { return pixEngine; }
-  public getAds() { return adsMarketplace; }
-  public getTrust() { return passengerTrustEngine; }
-  public getCorporate() { return corporateEngine; }
-  public getFranchise() { return franchiseEngine; }
+  public getCivicEngine() {
+    return civicEngine;
+  }
+  public getSmartCityEngine() {
+    return smartCityEngine;
+  }
+  public getUniversityEngine() {
+    return universityEngine;
+  }
+  public getHealthMobilityEngine() {
+    return healthMobilityEngine;
+  }
+  public getTourismEngine() {
+    return tourismEngine;
+  }
+  public getMultimodalTransitEngine() {
+    return multimodalTransitEngine;
+  }
+  public getCommerceEngine() {
+    return commerceEngine;
+  }
+  public getIdentityEngine() {
+    return identityEngine;
+  }
+  public getDataHubEngine() {
+    return dataHubEngine;
+  }
+  public getEventBusEngine() {
+    return eventBusEngine;
+  }
+  public getKnowledgeGraph() {
+    return regionalKnowledgeGraph;
+  }
+  public getBrain() {
+    return regionalBrain;
+  }
+  public getEconomy() {
+    return regionalEconomyV2;
+  }
+  public getHealth() {
+    return regionalHealthV2;
+  }
+  public getStrategy() {
+    return regionalStrategyV2;
+  }
+  public getWallet() {
+    return partiuWalletEngine;
+  }
+  public getPix() {
+    return pixEngine;
+  }
+  public getAds() {
+    return adsMarketplace;
+  }
+  public getTrust() {
+    return passengerTrustEngine;
+  }
+  public getCorporate() {
+    return corporateEngine;
+  }
+  public getFranchise() {
+    return franchiseEngine;
+  }
 
   /**
    * Executa um ciclo de orquestração unificado para um município
@@ -106,7 +148,7 @@ export class RegionalOrchestratorV2 {
       congestionPct: smart.metrics.overallCongestionPct,
       unmetDemandPct: 12.0,
       activeDrivers: 142,
-      transitOccupancyPct: 88.5
+      transitOccupancyPct: 88.5,
     });
 
     const elapsed = performance.now() - startTime;
@@ -127,7 +169,7 @@ export class RegionalOrchestratorV2 {
       monthlyGmvTotalBrl: macroSnapshot.monthlyGmvTotalBrl,
       activeDirectivesCount: directives.length,
       orchestrationLatencyMs: Number(elapsed.toFixed(3)),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 }

@@ -86,10 +86,38 @@ interface StudioTabItem {
 const STUDIO_TABS: StudioTabItem[] = [
   { id: "brand", numero: 1, label: "Brand Center", grupo: "MARCA", icone: Sparkles },
   { id: "design", numero: 2, label: "Design System", grupo: "MARCA", icone: Palette },
-  { id: "typography", numero: 3, label: "Tipografia", grupo: "MARCA", icone: Type, superAdminOnly: true },
-  { id: "home", numero: 4, label: "Home Builder", grupo: "APP", icone: Layout, superAdminOnly: true },
-  { id: "menu", numero: 5, label: "Menu Builder", grupo: "APP", icone: Compass, superAdminOnly: true },
-  { id: "landing", numero: 6, label: "Landing Page", grupo: "APP", icone: Globe, superAdminOnly: true },
+  {
+    id: "typography",
+    numero: 3,
+    label: "Tipografia",
+    grupo: "MARCA",
+    icone: Type,
+    superAdminOnly: true,
+  },
+  {
+    id: "home",
+    numero: 4,
+    label: "Home Builder",
+    grupo: "APP",
+    icone: Layout,
+    superAdminOnly: true,
+  },
+  {
+    id: "menu",
+    numero: 5,
+    label: "Menu Builder",
+    grupo: "APP",
+    icone: Compass,
+    superAdminOnly: true,
+  },
+  {
+    id: "landing",
+    numero: 6,
+    label: "Landing Page",
+    grupo: "APP",
+    icone: Globe,
+    superAdminOnly: true,
+  },
   { id: "business", numero: 7, label: "Multi-Negócio", grupo: "NEGOCIO", icone: Layers },
   { id: "monetization", numero: 8, label: "Planos & Diárias", grupo: "NEGOCIO", icone: DollarSign },
   { id: "geo_app", numero: 9, label: "Geo & Conformidade", grupo: "NEGOCIO", icone: Globe },
@@ -125,10 +153,7 @@ function WhiteLabelStudioContent() {
     corPrimaria,
   } = useBrandTheme();
 
-  const {
-    applyPreset: applySaasPreset,
-    isSyncing,
-  } = useBranding();
+  const { applyPreset: applySaasPreset, isSyncing } = useBranding();
 
   const handleSelectTenant = useCallback(
     (newTenantId: string) => {
@@ -137,7 +162,7 @@ function WhiteLabelStudioContent() {
         search: (prev: any) => ({ ...prev, tenant: newTenantId }),
       });
     },
-    [switchTenant, navigate]
+    [switchTenant, navigate],
   );
 
   // Carrega catálogo atualizado do Supabase ao abrir o estúdio White Label
@@ -235,7 +260,11 @@ function WhiteLabelStudioContent() {
               </span>
             </div>
             <p className="text-xs text-slate-300 mt-0.5">
-              Praça em edição: <strong className="text-white">{activeTenant?.nomeOperacao || "App Principal"}</strong> ({activeTenant?.cidadeNome || "Nacional"})
+              Praça em edição:{" "}
+              <strong className="text-white">
+                {activeTenant?.nomeOperacao || "App Principal"}
+              </strong>{" "}
+              ({activeTenant?.cidadeNome || "Nacional"})
             </p>
           </div>
         </div>
@@ -270,9 +299,10 @@ function WhiteLabelStudioContent() {
             onClick={() => {
               const origin = typeof window !== "undefined" ? window.location.origin : "";
               const activeTenantId = activeTenant?.tenantId || "default";
-              const url = activeTenantId !== "default"
-                ? `${origin}/?tenant=${encodeURIComponent(activeTenantId)}`
-                : `${origin}/`;
+              const url =
+                activeTenantId !== "default"
+                  ? `${origin}/?tenant=${encodeURIComponent(activeTenantId)}`
+                  : `${origin}/`;
               window.open(url, "_blank", "noopener,noreferrer");
             }}
             className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border border-slate-700"
@@ -397,7 +427,8 @@ function WhiteLabelStudioContent() {
             </button>
           </div>
           <p className="text-[11px] text-slate-300 leading-relaxed">
-            Todas as alterações em logotipo, cores, modalidades de corrida e diárias refletem instantaneamente no PWA e APK dos usuários vinculados a esta cidade.
+            Todas as alterações em logotipo, cores, modalidades de corrida e diárias refletem
+            instantaneamente no PWA e APK dos usuários vinculados a esta cidade.
           </p>
         </div>
       )}
@@ -429,37 +460,21 @@ function WhiteLabelStudioContent() {
       <div className="w-full py-2 flex flex-col lg:flex-row gap-6 items-start">
         {/* COLUNA ESQUERDA: EDITOR ATIVO */}
         <div className={`w-full ${previewAberto ? "lg:w-7/12 xl:w-2/3" : "w-full"} space-y-6`}>
-          {activeTab === "brand" && (
-            <BrandCenterTab onSaveFeedback={triggerSaveFeedback} />
-          )}
+          {activeTab === "brand" && <BrandCenterTab onSaveFeedback={triggerSaveFeedback} />}
 
-          {activeTab === "design" && (
-            <DesignSystemTab onSaveFeedback={triggerSaveFeedback} />
-          )}
+          {activeTab === "design" && <DesignSystemTab onSaveFeedback={triggerSaveFeedback} />}
 
-          {activeTab === "typography" && (
-            <TypographyTab onSaveFeedback={triggerSaveFeedback} />
-          )}
+          {activeTab === "typography" && <TypographyTab onSaveFeedback={triggerSaveFeedback} />}
 
-          {activeTab === "landing" && (
-            <LandingPageEditorTab onDataChange={setLiveLandingData} />
-          )}
+          {activeTab === "landing" && <LandingPageEditorTab onDataChange={setLiveLandingData} />}
 
-          {activeTab === "home" && (
-            <HomeBuilderTab onSaveFeedback={triggerSaveFeedback} />
-          )}
+          {activeTab === "home" && <HomeBuilderTab onSaveFeedback={triggerSaveFeedback} />}
 
-          {activeTab === "menu" && (
-            <MenuBuilderTab onSaveFeedback={triggerSaveFeedback} />
-          )}
+          {activeTab === "menu" && <MenuBuilderTab onSaveFeedback={triggerSaveFeedback} />}
 
-          {activeTab === "business" && (
-            <BusinessModelsTab onSaveFeedback={triggerSaveFeedback} />
-          )}
+          {activeTab === "business" && <BusinessModelsTab onSaveFeedback={triggerSaveFeedback} />}
 
-          {activeTab === "monetization" && (
-            <MonetizationTab onSaveFeedback={triggerSaveFeedback} />
-          )}
+          {activeTab === "monetization" && <MonetizationTab onSaveFeedback={triggerSaveFeedback} />}
 
           {activeTab === "geo_app" && (
             <GeoAppComplianceTab

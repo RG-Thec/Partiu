@@ -92,13 +92,17 @@ export function AtividadePage() {
       `🚘 Veículo: ${item.veiculo}`,
       item.pinSeguranca ? `🔑 PIN: ${item.pinSeguranca}` : "",
       `🛡️ Status: Auditado & Confirmado`,
-    ].filter(Boolean).join("\n");
+    ]
+      .filter(Boolean)
+      .join("\n");
 
     if (typeof navigator !== "undefined" && navigator.share) {
-      navigator.share({
-        title: `Recibo de Viagem ${nomeApp || "PARTIU"}`,
-        text: texto,
-      }).catch(() => {});
+      navigator
+        .share({
+          title: `Recibo de Viagem ${nomeApp || "PARTIU"}`,
+          text: texto,
+        })
+        .catch(() => {});
     } else if (typeof navigator !== "undefined" && navigator.clipboard) {
       navigator.clipboard.writeText(texto);
       alert("Comprovante copiado para a área de transferência!");
@@ -128,12 +132,12 @@ export function AtividadePage() {
       localStorage.setItem("partiu_lost_items_tickets", JSON.stringify([novoTicket, ...tickets]));
 
       if (typeof window !== "undefined") {
-        window.dispatchEvent(
-          new CustomEvent("partiu:lost_item_reported", { detail: novoTicket })
-        );
+        window.dispatchEvent(new CustomEvent("partiu:lost_item_reported", { detail: novoTicket }));
       }
 
-      alert("Chamado aberto com sucesso! O condutor e nossa central foram notificados. Caso o objeto seja localizado, o retorno será agendado diretamente com você.");
+      alert(
+        "Chamado aberto com sucesso! O condutor e nossa central foram notificados. Caso o objeto seja localizado, o retorno será agendado diretamente com você.",
+      );
       setModalObjetoAberto(false);
       setDescricaoObjeto("");
     } catch {
@@ -177,7 +181,9 @@ export function AtividadePage() {
           title="Atualizar Histórico"
           aria-label="Atualizar histórico"
         >
-          <RefreshCw className={`h-3.5 w-3.5 ${recarregando ? "animate-spin text-brand-primary-vibrant" : ""}`} />
+          <RefreshCw
+            className={`h-3.5 w-3.5 ${recarregando ? "animate-spin text-brand-primary-vibrant" : ""}`}
+          />
         </button>
       </header>
 
@@ -272,15 +278,15 @@ export function AtividadePage() {
               {abaAtiva === "entregas"
                 ? "Nenhuma entrega realizada"
                 : abaAtiva === "corridas"
-                ? "Nenhuma corrida realizada"
-                : "Nenhuma atividade encontrada"}
+                  ? "Nenhuma corrida realizada"
+                  : "Nenhuma atividade encontrada"}
             </h3>
             <p className="text-xs text-muted-foreground mt-1.5 max-w-xs mx-auto leading-relaxed">
               {abaAtiva === "entregas"
                 ? "Envie encomendas ou pacotes com segurança de duplo PIN para entrega expressa na cidade."
                 : abaAtiva === "corridas"
-                ? "Suas viagens de carro ou moto solicitadas pelo aplicativo aparecerão listadas aqui."
-                : "Quando você solicitar uma corrida de carro ou moto, ou enviar um pacote, o histórico completo aparecerá aqui."}
+                  ? "Suas viagens de carro ou moto solicitadas pelo aplicativo aparecerão listadas aqui."
+                  : "Quando você solicitar uma corrida de carro ou moto, ou enviar um pacote, o histórico completo aparecerá aqui."}
             </p>
             <Link
               to="/app"
@@ -351,7 +357,9 @@ export function AtividadePage() {
               <div className="mt-3 space-y-2 text-xs">
                 <div className="flex items-start gap-2">
                   <div className="w-2 h-2 rounded-full bg-muted-foreground/60 mt-1.5 shrink-0" />
-                  <p className="text-muted-foreground line-clamp-1 flex-1 font-medium">{item.origem}</p>
+                  <p className="text-muted-foreground line-clamp-1 flex-1 font-medium">
+                    {item.origem}
+                  </p>
                 </div>
                 <div className="flex items-start gap-2">
                   <div className="w-2 h-2 rounded-full bg-brand-primary-vibrant mt-1.5 shrink-0" />
@@ -360,7 +368,10 @@ export function AtividadePage() {
               </div>
 
               <div className="mt-3 pt-2.5 border-t border-border/50 flex items-center justify-between text-[11px] text-muted-foreground">
-                <span>Motorista: <strong className="text-foreground font-semibold">{item.motorista}</strong></span>
+                <span>
+                  Motorista:{" "}
+                  <strong className="text-foreground font-semibold">{item.motorista}</strong>
+                </span>
                 <span className="text-brand-primary-vibrant flex items-center gap-0.5 font-bold">
                   Ver recibo <ChevronRight className="h-3.5 w-3.5" />
                 </span>
@@ -418,11 +429,15 @@ export function AtividadePage() {
 
               <div className="space-y-2">
                 <div>
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground">Embarque</span>
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground">
+                    Embarque
+                  </span>
                   <p className="text-foreground font-medium">{viagemDetalhe.origem}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground">Desembarque</span>
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground">
+                    Desembarque
+                  </span>
                   <p className="text-foreground font-bold">{viagemDetalhe.destino}</p>
                 </div>
               </div>
@@ -482,7 +497,9 @@ export function AtividadePage() {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-foreground">Objeto Esquecido</h3>
-                  <p className="text-[10px] text-muted-foreground">Viagem com {viagemDetalhe.motorista}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    Viagem com {viagemDetalhe.motorista}
+                  </p>
                 </div>
               </div>
               <button
@@ -495,7 +512,9 @@ export function AtividadePage() {
             </div>
 
             <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-200/80 text-[11px] text-amber-900 leading-relaxed font-medium">
-              <strong>Como funciona a devolução:</strong> O motorista parceiro será notificado para checar o veículo. Caso o item seja localizado, você combinará a devolução e pagará diretamente a ele o valor do deslocamento de entrega.
+              <strong>Como funciona a devolução:</strong> O motorista parceiro será notificado para
+              checar o veículo. Caso o item seja localizado, você combinará a devolução e pagará
+              diretamente a ele o valor do deslocamento de entrega.
             </div>
 
             <div className="space-y-3">

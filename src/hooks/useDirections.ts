@@ -27,7 +27,7 @@ export interface UseDirectionsResult {
 export function useDirections(
   origin: [number, number] | null | undefined,
   destination: [number, number] | null | undefined,
-  options: DirectionsOptions = {}
+  options: DirectionsOptions = {},
 ): UseDirectionsResult {
   const [route, setRoute] = useState<RouteResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);

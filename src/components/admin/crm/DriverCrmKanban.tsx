@@ -42,12 +42,7 @@ import { AdminPixCobrancaModal, type DriverCobrancaInfo } from "../AdminPixCobra
 export type CategoriaModal = "CARRO" | "MOTO" | "PLUS" | "MULHER";
 
 export type EstagioCrmKanban =
-  | "1_lead"
-  | "2_validacao"
-  | "3_aprovado"
-  | "4_ativo"
-  | "5_alerta"
-  | "6_inadimplente";
+  "1_lead" | "2_validacao" | "3_aprovado" | "4_ativo" | "5_alerta" | "6_inadimplente";
 
 export interface ItemCrmCondutor {
   id: string;
@@ -95,7 +90,8 @@ const COLUNAS_KANBAN: ColunaDef[] = [
     subtitulo: "Cadastro iniciado / Pendente dados",
     icone: <UserPlus className="h-4 w-4 text-blue-500" />,
     corHeader: "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-400",
-    corBadge: "bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border-blue-200 dark:border-blue-800",
+    corBadge:
+      "bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border-blue-200 dark:border-blue-800",
     corBorda: "border-blue-500",
   },
   {
@@ -104,7 +100,8 @@ const COLUNAS_KANBAN: ColunaDef[] = [
     subtitulo: "CNH (EAR) e CRLV em análise OCR",
     icone: <FileCheck2 className="h-4 w-4 text-amber-500" />,
     corHeader: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
-    corBadge: "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800",
+    corBadge:
+      "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800",
     corBorda: "border-amber-500",
   },
   {
@@ -113,7 +110,8 @@ const COLUNAS_KANBAN: ColunaDef[] = [
     subtitulo: "Aptos • Aguardando Trial ou 1º Pix",
     icone: <Sparkles className="h-4 w-4 text-indigo-500" />,
     corHeader: "border-indigo-500/40 bg-indigo-500/10 text-indigo-700 dark:text-indigo-400",
-    corBadge: "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800",
+    corBadge:
+      "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800",
     corBorda: "border-indigo-500",
   },
   {
@@ -122,7 +120,8 @@ const COLUNAS_KANBAN: ColunaDef[] = [
     subtitulo: "0% Taxa ativa • Gerando GMV",
     icone: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
     corHeader: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-    corBadge: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
+    corBadge:
+      "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
     corBorda: "border-emerald-500",
   },
   {
@@ -131,7 +130,8 @@ const COLUNAS_KANBAN: ColunaDef[] = [
     subtitulo: "Vencendo em < 48h • Cobrança amiga",
     icone: <Clock className="h-4 w-4 text-amber-500" />,
     corHeader: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
-    corBadge: "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800",
+    corBadge:
+      "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800",
     corBorda: "border-amber-500",
   },
   {
@@ -140,7 +140,8 @@ const COLUNAS_KANBAN: ColunaDef[] = [
     subtitulo: "Acesso travado • Reativação SaaS",
     icone: <Lock className="h-4 w-4 text-rose-500" />,
     corHeader: "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-400",
-    corBadge: "bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-800",
+    corBadge:
+      "bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-800",
     corBorda: "border-rose-500",
   },
 ];
@@ -187,10 +188,10 @@ export function DriverCrmKanban({
         planoTipo: acc.currentPlanName.includes("Mensal")
           ? "MENSAL"
           : acc.currentPlanName.includes("Semanal")
-          ? "SEMANAL"
-          : acc.status === "TRIAL"
-          ? "TRIAL"
-          : "DIARIA",
+            ? "SEMANAL"
+            : acc.status === "TRIAL"
+              ? "TRIAL"
+              : "DIARIA",
         planoAtivo: acc.status === "ACTIVE" || acc.status === "TRIAL",
         diasRestantes: acc.daysRemaining > 0 ? acc.daysRemaining : 0,
         diasVencido: acc.daysRemaining < 0 ? Math.abs(acc.daysRemaining) : 0,
@@ -243,9 +244,13 @@ export function DriverCrmKanban({
   // Indicadores de Performance do Funil CRM
   const metricasCrm = useMemo(() => {
     const total = condutores.length;
-    const leads = condutores.filter((c) => c.estagio === "1_lead" || c.estagio === "2_validacao").length;
+    const leads = condutores.filter(
+      (c) => c.estagio === "1_lead" || c.estagio === "2_validacao",
+    ).length;
     const ativos = condutores.filter((c) => c.estagio === "4_ativo").length;
-    const emRisco = condutores.filter((c) => c.estagio === "5_alerta" || c.estagio === "6_inadimplente").length;
+    const emRisco = condutores.filter(
+      (c) => c.estagio === "5_alerta" || c.estagio === "6_inadimplente",
+    ).length;
     const mrrAtivo = condutores
       .filter((c) => c.estagio === "4_ativo")
       .reduce((acc, c) => acc + (c.valorPlano || 199.9), 0);
@@ -269,10 +274,14 @@ export function DriverCrmKanban({
         } else if (novoEstagio === "6_inadimplente") {
           atualizado.planoAtivo = false;
           atualizado.bloqueado = true;
-          driverSubscriptionService.blockDriverAccess(c.id, "Mapeado como inadimplente via CRM Kanban", "Admin");
+          driverSubscriptionService.blockDriverAccess(
+            c.id,
+            "Mapeado como inadimplente via CRM Kanban",
+            "Admin",
+          );
         }
         return atualizado;
-      })
+      }),
     );
 
     const estagioDef = COLUNAS_KANBAN.find((col) => col.id === novoEstagio);
@@ -340,7 +349,8 @@ export function DriverCrmKanban({
       telefone: condutor.telefone,
       veiculo_placa: condutor.veiculoPlaca,
       veiculo_modelo: condutor.veiculoModelo,
-      plano_nome: condutor.planoTipo === "MENSAL" ? "Mensal Ilimitado (0% Taxa)" : "Diária Pré-Paga 24h",
+      plano_nome:
+        condutor.planoTipo === "MENSAL" ? "Mensal Ilimitado (0% Taxa)" : "Diária Pré-Paga 24h",
       plano_valor: condutor.valorPlano || (condutor.modal === "MOTO" ? 9.9 : 14.9),
       dias_vencido: condutor.diasVencido,
     });
@@ -353,10 +363,12 @@ export function DriverCrmKanban({
       motoristaCortesia.id,
       diasCortesia,
       "Concedido via CRM Kanban pelo Gestor",
-      "Administrador"
+      "Administrador",
     );
     moverCondutor(motoristaCortesia.id, "4_ativo");
-    toast.success(`Cortesia de ${diasCortesia} dias concedida a ${motoristaCortesia.nome}! Acesso liberado.`);
+    toast.success(
+      `Cortesia de ${diasCortesia} dias concedida a ${motoristaCortesia.nome}! Acesso liberado.`,
+    );
     setModalCortesiaAberto(false);
     setMotoristaCortesia(null);
   };
@@ -378,7 +390,9 @@ export function DriverCrmKanban({
 
         <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-emerald-200/70 dark:border-emerald-800/40 shadow-2xs">
           <div className="flex items-center justify-between text-emerald-600 mb-1">
-            <span className="text-[10px] font-black uppercase tracking-wider">Ativos (0% Taxa)</span>
+            <span className="text-[10px] font-black uppercase tracking-wider">
+              Ativos (0% Taxa)
+            </span>
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
           </div>
           <div className="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-400">
@@ -391,7 +405,9 @@ export function DriverCrmKanban({
 
         <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-blue-200/70 dark:border-blue-800/40 shadow-2xs">
           <div className="flex items-center justify-between text-blue-600 mb-1">
-            <span className="text-[10px] font-black uppercase tracking-wider">Leads & Onboarding</span>
+            <span className="text-[10px] font-black uppercase tracking-wider">
+              Leads & Onboarding
+            </span>
             <UserPlus className="h-4 w-4 text-blue-500" />
           </div>
           <div className="text-xl sm:text-2xl font-black text-blue-700 dark:text-blue-400">
@@ -402,7 +418,9 @@ export function DriverCrmKanban({
 
         <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-amber-200/70 dark:border-amber-800/40 shadow-2xs">
           <div className="flex items-center justify-between text-amber-600 mb-1">
-            <span className="text-[10px] font-black uppercase tracking-wider">MRR Ativo Estimado</span>
+            <span className="text-[10px] font-black uppercase tracking-wider">
+              MRR Ativo Estimado
+            </span>
             <DollarSign className="h-4 w-4 text-amber-500" />
           </div>
           <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
@@ -413,7 +431,9 @@ export function DriverCrmKanban({
 
         <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-rose-200/70 dark:border-rose-800/40 shadow-2xs">
           <div className="flex items-center justify-between text-rose-600 mb-1">
-            <span className="text-[10px] font-black uppercase tracking-wider">Em Risco / Churn</span>
+            <span className="text-[10px] font-black uppercase tracking-wider">
+              Em Risco / Churn
+            </span>
             <AlertTriangle className="h-4 w-4 text-rose-500" />
           </div>
           <div className="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400">
@@ -424,7 +444,9 @@ export function DriverCrmKanban({
 
         <div className="p-3.5 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/30 shadow-2xs">
           <div className="flex items-center justify-between text-primary mb-1">
-            <span className="text-[10px] font-black uppercase tracking-wider">Praça de Atuação</span>
+            <span className="text-[10px] font-black uppercase tracking-wider">
+              Praça de Atuação
+            </span>
             <MapPin className="h-4 w-4 text-primary" />
           </div>
           <div className="text-base sm:text-lg font-black text-slate-900 dark:text-white truncate">
@@ -519,7 +541,9 @@ export function DriverCrmKanban({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {coluna.icone}
-                    <h3 className="text-xs sm:text-sm font-black tracking-tight">{coluna.titulo}</h3>
+                    <h3 className="text-xs sm:text-sm font-black tracking-tight">
+                      {coluna.titulo}
+                    </h3>
                   </div>
                   <span
                     className={`px-2 py-0.5 rounded-full text-[11px] font-black border shadow-2xs ${coluna.corBadge}`}
@@ -527,7 +551,9 @@ export function DriverCrmKanban({
                     {itensDaColuna.length}
                   </span>
                 </div>
-                <p className="text-[10px] opacity-80 font-medium leading-tight">{coluna.subtitulo}</p>
+                <p className="text-[10px] opacity-80 font-medium leading-tight">
+                  {coluna.subtitulo}
+                </p>
               </div>
 
               {/* Lista de Cards da Coluna */}
@@ -547,7 +573,9 @@ export function DriverCrmKanban({
                         draggable
                         onDragStart={(e) => handleDragStart(e, condutor.id)}
                         className={`group bg-white dark:bg-slate-950 border border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 p-3.5 rounded-xl shadow-2xs transition-all duration-150 cursor-grab active:cursor-grabbing flex flex-col gap-2.5 relative ${
-                          isArrastando ? "opacity-40 scale-95" : "hover:-translate-y-0.5 hover:shadow-xs"
+                          isArrastando
+                            ? "opacity-40 scale-95"
+                            : "hover:-translate-y-0.5 hover:shadow-xs"
                         }`}
                       >
                         {/* Topo do Card: Avatar, Nome, Modal e Placa */}
@@ -594,8 +622,12 @@ export function DriverCrmKanban({
                         <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100 dark:border-slate-800/80">
                           <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400">
                             <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
-                            <span className="font-bold text-slate-900 dark:text-white">{condutor.rating.toFixed(1)}</span>
-                            <span className="text-[10px] text-slate-400">({condutor.totalViagens} corridas)</span>
+                            <span className="font-bold text-slate-900 dark:text-white">
+                              {condutor.rating.toFixed(1)}
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              ({condutor.totalViagens} corridas)
+                            </span>
                           </div>
 
                           {/* Pill de Status do Plano */}
@@ -672,7 +704,9 @@ export function DriverCrmKanban({
                           {/* Seletor Rápido de Estágio (Alternativa para Mobile / Touch) */}
                           <select
                             value={condutor.estagio}
-                            onChange={(e) => moverCondutor(condutor.id, e.target.value as EstagioCrmKanban)}
+                            onChange={(e) =>
+                              moverCondutor(condutor.id, e.target.value as EstagioCrmKanban)
+                            }
                             className="text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded px-1.5 py-1 border border-slate-200 dark:border-slate-700 outline-none cursor-pointer max-w-[85px] truncate"
                             title="Mover estágio manualmente"
                           >
@@ -719,7 +753,9 @@ export function DriverCrmKanban({
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <Gift className="h-5 w-5 text-emerald-600" />
-                <h3 className="text-sm font-black text-slate-900 dark:text-white">Conceder Cortesia</h3>
+                <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                  Conceder Cortesia
+                </h3>
               </div>
               <button
                 type="button"
@@ -731,11 +767,14 @@ export function DriverCrmKanban({
             </div>
 
             <p className="text-xs text-slate-600 dark:text-slate-400">
-              Liberar acesso temporário com 0% de taxa para <strong>{motoristaCortesia.nome}</strong> sem necessidade de pagamento Pix imediato.
+              Liberar acesso temporário com 0% de taxa para{" "}
+              <strong>{motoristaCortesia.nome}</strong> sem necessidade de pagamento Pix imediato.
             </p>
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-500 uppercase">Período de Cortesia:</label>
+              <label className="text-[11px] font-bold text-slate-500 uppercase">
+                Período de Cortesia:
+              </label>
               <div className="grid grid-cols-4 gap-2">
                 {[1, 3, 7, 30].map((dias) => (
                   <button

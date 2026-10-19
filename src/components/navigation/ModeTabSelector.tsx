@@ -41,7 +41,7 @@ export function ModeTabSelector({ className = "" }: ModeTabSelectorProps) {
           handleSelect("/app");
         }}
         style={{
-          backgroundColor: isCorrida ? (corPrimaria || "#FF6B00") : "transparent",
+          backgroundColor: isCorrida ? corPrimaria || "#FF6B00" : "transparent",
           color: isCorrida ? "#FFFFFF" : undefined,
         }}
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer select-none active:scale-95 touch-manipulation ${
@@ -65,7 +65,7 @@ export function ModeTabSelector({ className = "" }: ModeTabSelectorProps) {
           handleSelect("/app/encomendas");
         }}
         style={{
-          backgroundColor: isEntrega ? (corPrimaria || "#FF6B00") : "transparent",
+          backgroundColor: isEntrega ? corPrimaria || "#FF6B00" : "transparent",
           color: isEntrega ? "#FFFFFF" : undefined,
         }}
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer select-none active:scale-95 touch-manipulation ${

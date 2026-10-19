@@ -1,6 +1,6 @@
 /**
  * URBAN METRICS ENGINE
- * 
+ *
  * Coleta e consolidação de telemetria urbana:
  * - Densidade veicular e ocupação de malha viária
  * - Velocidade média de tráfego por corredor
@@ -20,7 +20,7 @@ export interface UrbanCorridorMetrics {
   activePrivateVehicles: number;
   estimatedCo2GramsPerKm: number;
   noiseDecibelsEstimate: number;
-  levelOfService: 'A' | 'B' | 'C' | 'D' | 'E' | 'F'; // Highway Capacity Manual (HCM)
+  levelOfService: "A" | "B" | "C" | "D" | "E" | "F"; // Highway Capacity Manual (HCM)
 }
 
 export interface CityUrbanSummary {
@@ -45,9 +45,9 @@ export class UrbanMetricsEngine {
   private seedDefaultCorridors(): void {
     const itaperunaCorridors: UrbanCorridorMetrics[] = [
       {
-        corridorId: 'CORR-ITAP-01',
-        corridorName: 'Av. Cardoso Moreira (Eixo Central Comercial)',
-        cityId: 'itaperuna-rj',
+        corridorId: "CORR-ITAP-01",
+        corridorName: "Av. Cardoso Moreira (Eixo Central Comercial)",
+        cityId: "itaperuna-rj",
         averageSpeedKmh: 24.5,
         freeFlowSpeedKmh: 45.0,
         congestionIndexPct: 45.5,
@@ -56,12 +56,12 @@ export class UrbanMetricsEngine {
         activePrivateVehicles: 85,
         estimatedCo2GramsPerKm: 145.0,
         noiseDecibelsEstimate: 72.0,
-        levelOfService: 'C'
+        levelOfService: "C",
       },
       {
-        corridorId: 'CORR-ITAP-02',
-        corridorName: 'BR-356 (Acesso Distrito Industrial / Raposo)',
-        cityId: 'itaperuna-rj',
+        corridorId: "CORR-ITAP-02",
+        corridorName: "BR-356 (Acesso Distrito Industrial / Raposo)",
+        cityId: "itaperuna-rj",
         averageSpeedKmh: 68.0,
         freeFlowSpeedKmh: 80.0,
         congestionIndexPct: 15.0,
@@ -70,12 +70,12 @@ export class UrbanMetricsEngine {
         activePrivateVehicles: 45,
         estimatedCo2GramsPerKm: 120.0,
         noiseDecibelsEstimate: 65.0,
-        levelOfService: 'B'
+        levelOfService: "B",
       },
       {
-        corridorId: 'CORR-ITAP-03',
-        corridorName: 'Av. Zulamith Bittencourt (Eixo Hospitalar / Cehab)',
-        cityId: 'itaperuna-rj',
+        corridorId: "CORR-ITAP-03",
+        corridorName: "Av. Zulamith Bittencourt (Eixo Hospitalar / Cehab)",
+        cityId: "itaperuna-rj",
         averageSpeedKmh: 28.0,
         freeFlowSpeedKmh: 40.0,
         congestionIndexPct: 30.0,
@@ -84,11 +84,11 @@ export class UrbanMetricsEngine {
         activePrivateVehicles: 58,
         estimatedCo2GramsPerKm: 135.0,
         noiseDecibelsEstimate: 68.0,
-        levelOfService: 'B'
-      }
+        levelOfService: "B",
+      },
     ];
 
-    this.corridorMetrics.set('itaperuna-rj', itaperunaCorridors);
+    this.corridorMetrics.set("itaperuna-rj", itaperunaCorridors);
   }
 
   public getCorridorsByCity(cityId: string): UrbanCorridorMetrics[] {
@@ -107,11 +107,12 @@ export class UrbanMetricsEngine {
         transitRidershipPerHour: 850,
         co2SavedBySharedMobilityKg: 420.0,
         highDensityZonesCount: 2,
-        lastUpdated: Date.now()
+        lastUpdated: Date.now(),
       };
     }
 
-    const avgCongestion = corridors.reduce((acc, c) => acc + c.congestionIndexPct, 0) / corridors.length;
+    const avgCongestion =
+      corridors.reduce((acc, c) => acc + c.congestionIndexPct, 0) / corridors.length;
     const avgSpeed = corridors.reduce((acc, c) => acc + c.averageSpeedKmh, 0) / corridors.length;
     const totalTransit = corridors.reduce((acc, c) => acc + c.activeTransitVehicles, 0);
 
@@ -123,8 +124,8 @@ export class UrbanMetricsEngine {
       totalTripsActive: totalTransit * 25,
       transitRidershipPerHour: totalTransit * 60,
       co2SavedBySharedMobilityKg: Number((totalTransit * 18.5).toFixed(1)),
-      highDensityZonesCount: corridors.filter(c => c.congestionIndexPct > 40).length,
-      lastUpdated: Date.now()
+      highDensityZonesCount: corridors.filter((c) => c.congestionIndexPct > 40).length,
+      lastUpdated: Date.now(),
     };
   }
 }

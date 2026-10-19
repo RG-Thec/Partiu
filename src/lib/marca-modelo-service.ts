@@ -7,7 +7,8 @@ export interface ModeloVeiculo {
   id: string;
   marcaId: string;
   nome: string;
-  categoriaSugerida: "PARTIU_CARRO" | "PARTIU_MOTO" | "PARTIU_EXECUTIVO" | "PARTIU_ENTREGA" | "PARTIU_VAN";
+  categoriaSugerida:
+    "PARTIU_CARRO" | "PARTIU_MOTO" | "PARTIU_EXECUTIVO" | "PARTIU_ENTREGA" | "PARTIU_VAN";
   anoMinimo: number;
   status: "HOMOLOGADO" | "DESCONTINUADO";
 }
@@ -41,65 +42,352 @@ export const MARCAS_PADRAO: MarcaVeiculo[] = [
 
 export const MODELOS_PADRAO: ModeloVeiculo[] = [
   // Chevrolet
-  { id: "onix", marcaId: "chevrolet", nome: "Onix", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2013, status: "HOMOLOGADO" },
-  { id: "onix_plus", marcaId: "chevrolet", nome: "Onix Plus / Sedan", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2014, status: "HOMOLOGADO" },
-  { id: "prisma", marcaId: "chevrolet", nome: "Prisma", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2013, status: "HOMOLOGADO" },
-  { id: "spin", marcaId: "chevrolet", nome: "Spin (7 Lugares)", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2014, status: "HOMOLOGADO" },
-  { id: "tracker", marcaId: "chevrolet", nome: "Tracker", categoriaSugerida: "PARTIU_EXECUTIVO", anoMinimo: 2016, status: "HOMOLOGADO" },
-  { id: "cruze", marcaId: "chevrolet", nome: "Cruze Sedan", categoriaSugerida: "PARTIU_EXECUTIVO", anoMinimo: 2016, status: "HOMOLOGADO" },
+  {
+    id: "onix",
+    marcaId: "chevrolet",
+    nome: "Onix",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2013,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "onix_plus",
+    marcaId: "chevrolet",
+    nome: "Onix Plus / Sedan",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2014,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "prisma",
+    marcaId: "chevrolet",
+    nome: "Prisma",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2013,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "spin",
+    marcaId: "chevrolet",
+    nome: "Spin (7 Lugares)",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2014,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "tracker",
+    marcaId: "chevrolet",
+    nome: "Tracker",
+    categoriaSugerida: "PARTIU_EXECUTIVO",
+    anoMinimo: 2016,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "cruze",
+    marcaId: "chevrolet",
+    nome: "Cruze Sedan",
+    categoriaSugerida: "PARTIU_EXECUTIVO",
+    anoMinimo: 2016,
+    status: "HOMOLOGADO",
+  },
 
   // Volkswagen
-  { id: "gol", marcaId: "volkswagen", nome: "Gol G5/G6/G7/G8", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2012, status: "HOMOLOGADO" },
-  { id: "voyage", marcaId: "volkswagen", nome: "Voyage", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2013, status: "HOMOLOGADO" },
-  { id: "polo", marcaId: "volkswagen", nome: "Polo / Polo Track", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2018, status: "HOMOLOGADO" },
-  { id: "virtus", marcaId: "volkswagen", nome: "Virtus", categoriaSugerida: "PARTIU_EXECUTIVO", anoMinimo: 2018, status: "HOMOLOGADO" },
-  { id: "t_cross", marcaId: "volkswagen", nome: "T-Cross", categoriaSugerida: "PARTIU_EXECUTIVO", anoMinimo: 2019, status: "HOMOLOGADO" },
+  {
+    id: "gol",
+    marcaId: "volkswagen",
+    nome: "Gol G5/G6/G7/G8",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2012,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "voyage",
+    marcaId: "volkswagen",
+    nome: "Voyage",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2013,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "polo",
+    marcaId: "volkswagen",
+    nome: "Polo / Polo Track",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2018,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "virtus",
+    marcaId: "volkswagen",
+    nome: "Virtus",
+    categoriaSugerida: "PARTIU_EXECUTIVO",
+    anoMinimo: 2018,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "t_cross",
+    marcaId: "volkswagen",
+    nome: "T-Cross",
+    categoriaSugerida: "PARTIU_EXECUTIVO",
+    anoMinimo: 2019,
+    status: "HOMOLOGADO",
+  },
 
   // Fiat
-  { id: "argo", marcaId: "fiat", nome: "Argo", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2017, status: "HOMOLOGADO" },
-  { id: "cronos", marcaId: "fiat", nome: "Cronos", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2018, status: "HOMOLOGADO" },
-  { id: "mobi", marcaId: "fiat", nome: "Mobi", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2016, status: "HOMOLOGADO" },
-  { id: "siena", marcaId: "fiat", nome: "Grand Siena", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2013, status: "HOMOLOGADO" },
-  { id: "pulse", marcaId: "fiat", nome: "Pulse", categoriaSugerida: "PARTIU_EXECUTIVO", anoMinimo: 2021, status: "HOMOLOGADO" },
-  { id: "ducato", marcaId: "fiat", nome: "Ducato Minibus", categoriaSugerida: "PARTIU_VAN", anoMinimo: 2015, status: "HOMOLOGADO" },
+  {
+    id: "argo",
+    marcaId: "fiat",
+    nome: "Argo",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2017,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "cronos",
+    marcaId: "fiat",
+    nome: "Cronos",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2018,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "mobi",
+    marcaId: "fiat",
+    nome: "Mobi",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2016,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "siena",
+    marcaId: "fiat",
+    nome: "Grand Siena",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2013,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "pulse",
+    marcaId: "fiat",
+    nome: "Pulse",
+    categoriaSugerida: "PARTIU_EXECUTIVO",
+    anoMinimo: 2021,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "ducato",
+    marcaId: "fiat",
+    nome: "Ducato Minibus",
+    categoriaSugerida: "PARTIU_VAN",
+    anoMinimo: 2015,
+    status: "HOMOLOGADO",
+  },
 
   // Toyota
-  { id: "corolla", marcaId: "toyota", nome: "Corolla", categoriaSugerida: "PARTIU_EXECUTIVO", anoMinimo: 2015, status: "HOMOLOGADO" },
-  { id: "yaris", marcaId: "toyota", nome: "Yaris Hatch/Sedan", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2018, status: "HOMOLOGADO" },
-  { id: "etios", marcaId: "toyota", nome: "Etios Hatch/Sedan", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2013, status: "HOMOLOGADO" },
-  { id: "corolla_cross", marcaId: "toyota", nome: "Corolla Cross", categoriaSugerida: "PARTIU_EXECUTIVO", anoMinimo: 2021, status: "HOMOLOGADO" },
+  {
+    id: "corolla",
+    marcaId: "toyota",
+    nome: "Corolla",
+    categoriaSugerida: "PARTIU_EXECUTIVO",
+    anoMinimo: 2015,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "yaris",
+    marcaId: "toyota",
+    nome: "Yaris Hatch/Sedan",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2018,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "etios",
+    marcaId: "toyota",
+    nome: "Etios Hatch/Sedan",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2013,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "corolla_cross",
+    marcaId: "toyota",
+    nome: "Corolla Cross",
+    categoriaSugerida: "PARTIU_EXECUTIVO",
+    anoMinimo: 2021,
+    status: "HOMOLOGADO",
+  },
 
   // Hyundai
-  { id: "hb20", marcaId: "hyundai", nome: "HB20", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2013, status: "HOMOLOGADO" },
-  { id: "hb20s", marcaId: "hyundai", nome: "HB20S Sedan", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2013, status: "HOMOLOGADO" },
-  { id: "creta", marcaId: "hyundai", nome: "Creta", categoriaSugerida: "PARTIU_EXECUTIVO", anoMinimo: 2017, status: "HOMOLOGADO" },
+  {
+    id: "hb20",
+    marcaId: "hyundai",
+    nome: "HB20",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2013,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "hb20s",
+    marcaId: "hyundai",
+    nome: "HB20S Sedan",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2013,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "creta",
+    marcaId: "hyundai",
+    nome: "Creta",
+    categoriaSugerida: "PARTIU_EXECUTIVO",
+    anoMinimo: 2017,
+    status: "HOMOLOGADO",
+  },
 
   // Renault
-  { id: "kwid", marcaId: "renault", nome: "Kwid", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2017, status: "HOMOLOGADO" },
-  { id: "sandero", marcaId: "renault", nome: "Sandero / Stepway", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2013, status: "HOMOLOGADO" },
-  { id: "logan", marcaId: "renault", nome: "Logan", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2013, status: "HOMOLOGADO" },
-  { id: "duster", marcaId: "renault", nome: "Duster", categoriaSugerida: "PARTIU_EXECUTIVO", anoMinimo: 2015, status: "HOMOLOGADO" },
-  { id: "master", marcaId: "renault", nome: "Master Furgão/Van", categoriaSugerida: "PARTIU_VAN", anoMinimo: 2014, status: "HOMOLOGADO" },
+  {
+    id: "kwid",
+    marcaId: "renault",
+    nome: "Kwid",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2017,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "sandero",
+    marcaId: "renault",
+    nome: "Sandero / Stepway",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2013,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "logan",
+    marcaId: "renault",
+    nome: "Logan",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2013,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "duster",
+    marcaId: "renault",
+    nome: "Duster",
+    categoriaSugerida: "PARTIU_EXECUTIVO",
+    anoMinimo: 2015,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "master",
+    marcaId: "renault",
+    nome: "Master Furgão/Van",
+    categoriaSugerida: "PARTIU_VAN",
+    anoMinimo: 2014,
+    status: "HOMOLOGADO",
+  },
 
   // Honda (Motos)
-  { id: "cg160", marcaId: "honda", nome: "CG 160 Titan / Fan / Start", categoriaSugerida: "PARTIU_MOTO", anoMinimo: 2015, status: "HOMOLOGADO" },
-  { id: "bros160", marcaId: "honda", nome: "NXR 160 Bros", categoriaSugerida: "PARTIU_MOTO", anoMinimo: 2015, status: "HOMOLOGADO" },
-  { id: "biz125", marcaId: "honda", nome: "Biz 125 / 110i", categoriaSugerida: "PARTIU_MOTO", anoMinimo: 2014, status: "HOMOLOGADO" },
-  { id: "cb_twister", marcaId: "honda", nome: "CB 250F / 300F Twister", categoriaSugerida: "PARTIU_MOTO", anoMinimo: 2016, status: "HOMOLOGADO" },
-  { id: "xre300", marcaId: "honda", nome: "XRE 300 / Sahara", categoriaSugerida: "PARTIU_MOTO", anoMinimo: 2016, status: "HOMOLOGADO" },
+  {
+    id: "cg160",
+    marcaId: "honda",
+    nome: "CG 160 Titan / Fan / Start",
+    categoriaSugerida: "PARTIU_MOTO",
+    anoMinimo: 2015,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "bros160",
+    marcaId: "honda",
+    nome: "NXR 160 Bros",
+    categoriaSugerida: "PARTIU_MOTO",
+    anoMinimo: 2015,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "biz125",
+    marcaId: "honda",
+    nome: "Biz 125 / 110i",
+    categoriaSugerida: "PARTIU_MOTO",
+    anoMinimo: 2014,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "cb_twister",
+    marcaId: "honda",
+    nome: "CB 250F / 300F Twister",
+    categoriaSugerida: "PARTIU_MOTO",
+    anoMinimo: 2016,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "xre300",
+    marcaId: "honda",
+    nome: "XRE 300 / Sahara",
+    categoriaSugerida: "PARTIU_MOTO",
+    anoMinimo: 2016,
+    status: "HOMOLOGADO",
+  },
 
   // Yamaha (Motos)
-  { id: "factor150", marcaId: "yamaha", nome: "Factor 150 / 125i", categoriaSugerida: "PARTIU_MOTO", anoMinimo: 2015, status: "HOMOLOGADO" },
-  { id: "fazer250", marcaId: "yamaha", nome: "Fazer FZ25 / FZ15", categoriaSugerida: "PARTIU_MOTO", anoMinimo: 2016, status: "HOMOLOGADO" },
-  { id: "crosser150", marcaId: "yamaha", nome: "Crosser 150 Z/S", categoriaSugerida: "PARTIU_MOTO", anoMinimo: 2015, status: "HOMOLOGADO" },
-  { id: "nmax160", marcaId: "yamaha", nome: "NMAX 160 Scooter", categoriaSugerida: "PARTIU_MOTO", anoMinimo: 2017, status: "HOMOLOGADO" },
+  {
+    id: "factor150",
+    marcaId: "yamaha",
+    nome: "Factor 150 / 125i",
+    categoriaSugerida: "PARTIU_MOTO",
+    anoMinimo: 2015,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "fazer250",
+    marcaId: "yamaha",
+    nome: "Fazer FZ25 / FZ15",
+    categoriaSugerida: "PARTIU_MOTO",
+    anoMinimo: 2016,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "crosser150",
+    marcaId: "yamaha",
+    nome: "Crosser 150 Z/S",
+    categoriaSugerida: "PARTIU_MOTO",
+    anoMinimo: 2015,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "nmax160",
+    marcaId: "yamaha",
+    nome: "NMAX 160 Scooter",
+    categoriaSugerida: "PARTIU_MOTO",
+    anoMinimo: 2017,
+    status: "HOMOLOGADO",
+  },
 
   // Nissan
-  { id: "kicks", marcaId: "nissan", nome: "Kicks", categoriaSugerida: "PARTIU_EXECUTIVO", anoMinimo: 2016, status: "HOMOLOGADO" },
-  { id: "versa", marcaId: "nissan", nome: "Versa", categoriaSugerida: "PARTIU_CARRO", anoMinimo: 2014, status: "HOMOLOGADO" },
+  {
+    id: "kicks",
+    marcaId: "nissan",
+    nome: "Kicks",
+    categoriaSugerida: "PARTIU_EXECUTIVO",
+    anoMinimo: 2016,
+    status: "HOMOLOGADO",
+  },
+  {
+    id: "versa",
+    marcaId: "nissan",
+    nome: "Versa",
+    categoriaSugerida: "PARTIU_CARRO",
+    anoMinimo: 2014,
+    status: "HOMOLOGADO",
+  },
 
   // Mercedes-Benz (Vans)
-  { id: "sprinter415", marcaId: "mercedes", nome: "Sprinter 415/515 CDI Minibus", categoriaSugerida: "PARTIU_VAN", anoMinimo: 2014, status: "HOMOLOGADO" },
+  {
+    id: "sprinter415",
+    marcaId: "mercedes",
+    nome: "Sprinter 415/515 CDI Minibus",
+    categoriaSugerida: "PARTIU_VAN",
+    anoMinimo: 2014,
+    status: "HOMOLOGADO",
+  },
 ];
 
 export function carregarMarcas(): MarcaVeiculo[] {
@@ -204,7 +492,14 @@ export function exportarCatalogoCSV(): void {
   const marcasMap = new Map(marcas.map((m) => [m.id, m.nome]));
   const modelos = carregarModelos();
 
-  const headers = ["ID Modelo", "Marca", "Nome do Modelo", "Categoria Sugerida", "Ano Mínimo Aceito", "Status Homologação"];
+  const headers = [
+    "ID Modelo",
+    "Marca",
+    "Nome do Modelo",
+    "Categoria Sugerida",
+    "Ano Mínimo Aceito",
+    "Status Homologação",
+  ];
   const rows = modelos.map((mod) => [
     mod.id,
     `"${marcasMap.get(mod.marcaId) || mod.marcaId}"`,
@@ -219,7 +514,10 @@ export function exportarCatalogoCSV(): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.setAttribute("href", url);
-  link.setAttribute("download", `catalogo_marcas_modelos_partiu_${new Date().toISOString().slice(0, 10)}.csv`);
+  link.setAttribute(
+    "download",
+    `catalogo_marcas_modelos_partiu_${new Date().toISOString().slice(0, 10)}.csv`,
+  );
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

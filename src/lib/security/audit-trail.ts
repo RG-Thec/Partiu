@@ -2,7 +2,7 @@ import { silentCatchWarn } from "@/lib/structured-logger";
 
 /**
  * PARTIU TITANIUM SHIELD — IMMUTABLE AUDIT TRAIL
- * 
+ *
  * Registro de auditoria encadeado criptograficamente (Merkle / Hash Chaining):
  * Cada evento de segurança contém o SHA-256 do evento anterior,
  * impedindo adulteração retroativa de logs em conformidade com ISO 27001 e SOC 2.
@@ -15,7 +15,7 @@ export interface SecurityAuditEvent {
   userId: string;
   action: string;
   resource: string;
-  status: 'SUCCESS' | 'DENIED' | 'ALERT';
+  status: "SUCCESS" | "DENIED" | "ALERT";
   ipAddress?: string | undefined;
   details?: Record<string, any> | undefined;
   previousHash: string;
@@ -23,11 +23,13 @@ export interface SecurityAuditEvent {
 }
 
 function calculateSha256(data: string): string {
-  if (typeof require !== 'undefined') {
+  if (typeof require !== "undefined") {
     try {
-      const crypto = require('crypto');
-      return crypto.createHash('sha256').update(data).digest('hex');
-    } catch (err) { silentCatchWarn("audit-trail", err); }
+      const crypto = require("crypto");
+      return crypto.createHash("sha256").update(data).digest("hex");
+    } catch (err) {
+      silentCatchWarn("audit-trail", err);
+    }
   }
   let hash = 0;
   for (let i = 0; i < data.length; i++) {
@@ -39,7 +41,7 @@ function calculateSha256(data: string): string {
 export class AuditTrailService {
   private static instance: AuditTrailService;
   private auditChain: SecurityAuditEvent[] = [];
-  private lastHash: string = '0000000000000000000000000000000000000000000000000000000000000000';
+  private lastHash: string = "0000000000000000000000000000000000000000000000000000000000000000";
   private sequence: number = 0;
 
   private constructor() {}
@@ -58,13 +60,13 @@ export class AuditTrailService {
     userId: string;
     action: string;
     resource: string;
-    status: 'SUCCESS' | 'DENIED' | 'ALERT';
+    status: "SUCCESS" | "DENIED" | "ALERT";
     ipAddress?: string | undefined;
     details?: Record<string, any> | undefined;
   }): SecurityAuditEvent {
     this.sequence += 1;
     const timestamp = Date.now();
-    const eventId = `AUD-${timestamp}-${this.sequence.toString().padStart(6, '0')}`;
+    const eventId = `AUD-${timestamp}-${this.sequence.toString().padStart(6, "0")}`;
     const previousHash = this.lastHash;
 
     const rawData = `${eventId}|${this.sequence}|${timestamp}|${params.userId}|${params.action}|${params.resource}|${params.status}|${previousHash}`;
@@ -81,7 +83,7 @@ export class AuditTrailService {
       ipAddress: params.ipAddress,
       details: params.details,
       previousHash,
-      currentHash
+      currentHash,
     };
 
     this.auditChain.push(event);
@@ -98,8 +100,12 @@ export class AuditTrailService {
   /**
    * Verifica a integridade da corrente criptográfica de auditoria
    */
-  public verifyChainIntegrity(): { intact: boolean; verifiedEventsCount: number; brokenAt?: number | undefined } {
-    let prev = '0000000000000000000000000000000000000000000000000000000000000000';
+  public verifyChainIntegrity(): {
+    intact: boolean;
+    verifiedEventsCount: number;
+    brokenAt?: number | undefined;
+  } {
+    let prev = "0000000000000000000000000000000000000000000000000000000000000000";
 
     for (let i = 0; i < this.auditChain.length; i++) {
       const event = this.auditChain[i];

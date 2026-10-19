@@ -12,7 +12,8 @@ export const defaultMobilityLandingData: MobilityLandingPageData = {
     textColorDark: "#0F172A",
     cardBackground: "#FFFFFF",
     buttonRadius: "16px",
-    fontFamily: "'Plus Jakarta Sans', 'Avenir Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    fontFamily:
+      "'Plus Jakarta Sans', 'Avenir Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   header: {
     logoUrl: "", // Herda a logo oficial do White Label Studio
@@ -25,7 +26,8 @@ export const defaultMobilityLandingData: MobilityLandingPageData = {
     headline: "Seu destino\né mais fácil",
     description: "Conectamos você ao seu destino com segurança, conforto e rapidez. Sempre.",
     carImageUrl: "", // Vazio para renderizar o marcador de GPS nativo sem fotos retangulares cobrindo o mapa
-    cityBackgroundImageUrl: "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=2400&q=80",
+    cityBackgroundImageUrl:
+      "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=2400&q=80",
   },
   actions: [
     {
@@ -70,11 +72,7 @@ export const defaultMobilityLandingData: MobilityLandingPageData = {
     brandName: "",
     description:
       "Somos a escolha certa para quem busca praticidade, segurança e um serviço de qualidade todos os dias.",
-    checklist: [
-      "Corridas particulares",
-      "Viagens corporativas",
-      "Entregas expressas",
-    ],
+    checklist: ["Corridas particulares", "Viagens corporativas", "Entregas expressas"],
     ctaText: "Saiba mais",
     ctaUrl: "/app",
     mapCard: {

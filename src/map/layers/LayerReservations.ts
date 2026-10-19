@@ -36,14 +36,7 @@ export class LayerReservations {
         type: "circle",
         source: this.sourceId,
         paint: {
-          "circle-radius": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            12, 5,
-            15, 8,
-            18, 12,
-          ],
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 5, 15, 8, 18, 12],
           "circle-color": "#10B981",
           "circle-stroke-width": 2.5,
           "circle-stroke-color": "#FFFFFF",

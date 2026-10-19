@@ -1,17 +1,12 @@
 /**
  * PARTIU ENTERPRISE OBSERVABILITY ENGINE
- * 
+ *
  * Monitoramento contínuo com cálculo de percentis P50, P90, P95, P99
  * para os subsistemas críticos de mobilidade com reservatório deslizante de latência zero.
  */
 
-export type SubsystemType = 
-  | 'Matching'
-  | 'DriverScore'
-  | 'Realtime'
-  | 'Supabase'
-  | 'API'
-  | 'Geolocalizacao';
+export type SubsystemType =
+  "Matching" | "DriverScore" | "Realtime" | "Supabase" | "API" | "Geolocalizacao";
 
 export interface LatencyPercentiles {
   p50: number;
@@ -67,22 +62,25 @@ class CircularSampleBuffer {
 
 export class EnterpriseObservabilityEngine {
   private buffers: Map<SubsystemType, CircularSampleBuffer> = new Map();
-  private stats: Map<SubsystemType, {
-    totalExecutions: number;
-    totalErrors: number;
-    startTime: number;
-    recentWindowExecutions: number;
-    recentWindowTimestamp: number;
-  }> = new Map();
+  private stats: Map<
+    SubsystemType,
+    {
+      totalExecutions: number;
+      totalErrors: number;
+      startTime: number;
+      recentWindowExecutions: number;
+      recentWindowTimestamp: number;
+    }
+  > = new Map();
 
   constructor() {
     const subsystems: SubsystemType[] = [
-      'Matching',
-      'DriverScore',
-      'Realtime',
-      'Supabase',
-      'API',
-      'Geolocalizacao'
+      "Matching",
+      "DriverScore",
+      "Realtime",
+      "Supabase",
+      "API",
+      "Geolocalizacao",
     ];
 
     subsystems.forEach((sub) => {
@@ -92,7 +90,7 @@ export class EnterpriseObservabilityEngine {
         totalErrors: 0,
         startTime: Date.now(),
         recentWindowExecutions: 0,
-        recentWindowTimestamp: Date.now()
+        recentWindowTimestamp: Date.now(),
       });
     });
 
@@ -103,19 +101,23 @@ export class EnterpriseObservabilityEngine {
   private seedBaselines(): void {
     // Matching: P50 ~4ms, P99 ~18ms
     for (let i = 0; i < 200; i++) {
-      this.recordLatency('Matching', 3 + Math.random() * 3);
-      this.recordLatency('DriverScore', 0.2 + Math.random() * 0.4);
-      this.recordLatency('Realtime', 12 + Math.random() * 8);
-      this.recordLatency('Supabase', 15 + Math.random() * 15);
-      this.recordLatency('API', 25 + Math.random() * 20);
-      this.recordLatency('Geolocalizacao', 8 + Math.random() * 5);
+      this.recordLatency("Matching", 3 + Math.random() * 3);
+      this.recordLatency("DriverScore", 0.2 + Math.random() * 0.4);
+      this.recordLatency("Realtime", 12 + Math.random() * 8);
+      this.recordLatency("Supabase", 15 + Math.random() * 15);
+      this.recordLatency("API", 25 + Math.random() * 20);
+      this.recordLatency("Geolocalizacao", 8 + Math.random() * 5);
     }
   }
 
   /**
    * Registra a duração de uma operação no subsistema especificado
    */
-  public recordLatency(subsystem: SubsystemType, durationMs: number, hasError: boolean = false): void {
+  public recordLatency(
+    subsystem: SubsystemType,
+    durationMs: number,
+    hasError: boolean = false,
+  ): void {
     const buf = this.buffers.get(subsystem);
     if (buf) buf.add(durationMs);
 
@@ -130,10 +132,7 @@ export class EnterpriseObservabilityEngine {
   /**
    * Mede a execução de uma função síncrona ou assíncrona
    */
-  public async measure<T>(
-    subsystem: SubsystemType, 
-    fn: () => Promise<T> | T
-  ): Promise<T> {
+  public async measure<T>(subsystem: SubsystemType, fn: () => Promise<T> | T): Promise<T> {
     const t0 = performance.now();
     let hasError = false;
     try {
@@ -166,8 +165,8 @@ export class EnterpriseObservabilityEngine {
     if (count > 0) {
       min = Number((sorted[0] ?? 0).toFixed(2));
       max = Number((sorted[count - 1] ?? 0).toFixed(2));
-      p50 = Number((sorted[Math.floor(count * 0.50)] ?? 0).toFixed(2));
-      p90 = Number((sorted[Math.floor(count * 0.90)] ?? 0).toFixed(2));
+      p50 = Number((sorted[Math.floor(count * 0.5)] ?? 0).toFixed(2));
+      p90 = Number((sorted[Math.floor(count * 0.9)] ?? 0).toFixed(2));
       p95 = Number((sorted[Math.floor(count * 0.95)] ?? 0).toFixed(2));
       p99 = Number((sorted[Math.min(count - 1, Math.floor(count * 0.99))] ?? 0).toFixed(2));
     }
@@ -182,9 +181,8 @@ export class EnterpriseObservabilityEngine {
       st.recentWindowTimestamp = now;
     }
 
-    const errorRate = st.totalExecutions > 0 
-      ? Number(((st.totalErrors / st.totalExecutions) * 100).toFixed(2)) 
-      : 0;
+    const errorRate =
+      st.totalExecutions > 0 ? Number(((st.totalErrors / st.totalExecutions) * 100).toFixed(2)) : 0;
 
     const availability = Number((100 - errorRate).toFixed(2));
 
@@ -197,14 +195,14 @@ export class EnterpriseObservabilityEngine {
         p99,
         min,
         max,
-        samplesCount: count
+        samplesCount: count,
       },
       throughputOpsPerSec: Math.max(25, throughput),
       errorRatePercent: errorRate,
       availabilityPercent: availability,
       totalExecutions: st.totalExecutions,
       totalErrors: st.totalErrors,
-      lastUpdated: now
+      lastUpdated: now,
     };
   }
 
@@ -213,12 +211,12 @@ export class EnterpriseObservabilityEngine {
    */
   public getAllMetrics(): Record<SubsystemType, SubsystemMetrics> {
     const subsystems: SubsystemType[] = [
-      'Matching',
-      'DriverScore',
-      'Realtime',
-      'Supabase',
-      'API',
-      'Geolocalizacao'
+      "Matching",
+      "DriverScore",
+      "Realtime",
+      "Supabase",
+      "API",
+      "Geolocalizacao",
     ];
 
     const result = {} as Record<SubsystemType, SubsystemMetrics>;

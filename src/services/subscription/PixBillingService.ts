@@ -34,7 +34,15 @@ export interface MonetizationPlan {
 
 export interface DriverAccessDecision {
   is_eligible: boolean;
-  status: "ACTIVE" | "TRIAL" | "GRACE_PERIOD" | "EXPIRED" | "SUSPENDED" | "PAYMENT_PENDING" | "DEBT_BLOCKED" | "CANCELLED";
+  status:
+    | "ACTIVE"
+    | "TRIAL"
+    | "GRACE_PERIOD"
+    | "EXPIRED"
+    | "SUSPENDED"
+    | "PAYMENT_PENDING"
+    | "DEBT_BLOCKED"
+    | "CANCELLED";
   plan_id?: string;
   plan_name?: string;
   priority_weight?: number;
@@ -67,13 +75,13 @@ export const DEFAULT_MONETIZATION_PLANS: MonetizationPlan[] = [
     id: "plano-diaria-essencial",
     plan_name: "Diária Essencial (Partiu Flex)",
     description: "Ideal para quem roda sob demanda com pagamento diário via PIX",
-    monthly_fee: 299.00,
-    weekly_fee: 79.00,
-    daily_fee: 14.90,
-    commission_percent: 0.00,
+    monthly_fee: 299.0,
+    weekly_fee: 79.0,
+    daily_fee: 14.9,
+    commission_percent: 0.0,
     trial_days: 0,
     grace_days: 2,
-    priority_weight: 1.00,
+    priority_weight: 1.0,
     features: [
       "ZERO COMISSÃO (100% dos ganhos são seus)",
       "Liberação por 24 horas consecutivas",
@@ -89,13 +97,13 @@ export const DEFAULT_MONETIZATION_PLANS: MonetizationPlan[] = [
     id: "plano-semanal-pro",
     plan_name: "Semanal Pro (7 Dias)",
     description: "Para quem roda a semana inteira com desconto progressivo",
-    monthly_fee: 249.00,
-    weekly_fee: 69.90,
-    daily_fee: 12.50,
-    commission_percent: 0.00,
+    monthly_fee: 249.0,
+    weekly_fee: 69.9,
+    daily_fee: 12.5,
+    commission_percent: 0.0,
     trial_days: 0,
     grace_days: 3,
-    priority_weight: 2.50,
+    priority_weight: 2.5,
     features: [
       "ZERO COMISSÃO (100% dos ganhos são seus)",
       "Desconto de 33% na diária equivalente",
@@ -111,13 +119,13 @@ export const DEFAULT_MONETIZATION_PLANS: MonetizationPlan[] = [
     id: "plano-mensal-ouro",
     plan_name: "Mensal Ouro (30 Dias)",
     description: "Máxima rentabilidade para motoristas profissionais de alta produtividade",
-    monthly_fee: 199.90,
-    weekly_fee: 55.00,
-    daily_fee: 9.90,
-    commission_percent: 0.00,
+    monthly_fee: 199.9,
+    weekly_fee: 55.0,
+    daily_fee: 9.9,
+    commission_percent: 0.0,
     trial_days: 0,
     grace_days: 5,
-    priority_weight: 5.00,
+    priority_weight: 5.0,
     features: [
       "ZERO COMISSÃO (100% do valor da corrida)",
       "Prioridade MÁXIMA no Trip Radar",
@@ -153,7 +161,11 @@ export class PixBillingService {
    * Carrega os planos dinamicamente da tabela monetization_plans
    */
   public async fetchMonetizationPlans(forceRefresh = false): Promise<MonetizationPlan[]> {
-    if (!forceRefresh && this.plansCache.length > 0 && this.plansCache !== DEFAULT_MONETIZATION_PLANS) {
+    if (
+      !forceRefresh &&
+      this.plansCache.length > 0 &&
+      this.plansCache !== DEFAULT_MONETIZATION_PLANS
+    ) {
       return this.plansCache;
     }
 
@@ -194,7 +206,10 @@ export class PixBillingService {
   }
 
   public getPlanById(planId: string): MonetizationPlan | undefined {
-    return this.plansCache.find((p) => p.id === planId) || DEFAULT_MONETIZATION_PLANS.find((p) => p.id === planId);
+    return (
+      this.plansCache.find((p) => p.id === planId) ||
+      DEFAULT_MONETIZATION_PLANS.find((p) => p.id === planId)
+    );
   }
 
   /**
@@ -218,7 +233,7 @@ export class PixBillingService {
       plan_name: "Diária Essencial (Modo Demonstração)",
       cycle_type: "DAILY",
       status: "ACTIVE",
-      amount_paid: 14.90,
+      amount_paid: 14.9,
       priority_weight: 5.0,
       starts_at: new Date().toISOString(),
       expires_at: expiresAt,
@@ -246,7 +261,10 @@ export class PixBillingService {
    * Avalia o acesso operacional do condutor via RPC Server-Side no PostgreSQL
    * Autoridade exclusiva no servidor quando o Supabase estiver conectado.
    */
-  public async evaluateDriverAccess(driverId: string, tenantId?: string): Promise<DriverAccessDecision> {
+  public async evaluateDriverAccess(
+    driverId: string,
+    tenantId?: string,
+  ): Promise<DriverAccessDecision> {
     // 1. Autoridade Primária Server-Side (PostgreSQL RPC com horário oficial do banco)
     if (isSupabaseConfigured()) {
       try {
@@ -255,7 +273,13 @@ export class PixBillingService {
           p_tenant_id: tenantId || null,
         });
 
-        if (!error && data && (data.status !== "PAYMENT_PENDING" || (!inMemorySubscriptions.has(driverId) && !driverSubscriptionService.getActiveSubscription(driverId)))) {
+        if (
+          !error &&
+          data &&
+          (data.status !== "PAYMENT_PENDING" ||
+            (!inMemorySubscriptions.has(driverId) &&
+              !driverSubscriptionService.getActiveSubscription(driverId)))
+        ) {
           return {
             is_eligible: Boolean(data.is_eligible),
             status: data.status,
@@ -269,14 +293,18 @@ export class PixBillingService {
           };
         }
       } catch (err) {
-        console.warn("[PixBillingService] Falha na RPC remota, aplicando fallback in-process offline:", err);
+        console.warn(
+          "[PixBillingService] Falha na RPC remota, aplicando fallback in-process offline:",
+          err,
+        );
       }
     }
 
     // 2. Contingência In-Process Offline / Modo de Testes Locais
     const activeLocalSub = driverSubscriptionService.getActiveSubscription(driverId);
     if (activeLocalSub && activeLocalSub.status === "ACTIVE") {
-      const expiresAt = activeLocalSub.expires_at || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      const expiresAt =
+        activeLocalSub.expires_at || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       return {
         is_eligible: true,
         status: "ACTIVE",
@@ -284,7 +312,7 @@ export class PixBillingService {
         plan_name: "Diária Operacional Ativa (Offline)",
         priority_weight: 1.0,
         expires_at: expiresAt,
-        amount_paid: activeLocalSub.amount_paid || 14.90,
+        amount_paid: activeLocalSub.amount_paid || 14.9,
         reasons: [],
       };
     }
@@ -337,14 +365,15 @@ export class PixBillingService {
     planId: string,
     cycleType: "DAILY" | "WEEKLY" | "MONTHLY" = "DAILY",
     driverName = "Motorista Parceiro",
-    tenantId?: string
+    tenantId?: string,
   ): Promise<DriverBillingRecord> {
     const plan = this.getPlanById(planId) || DEFAULT_MONETIZATION_PLANS[0]!;
-    const amount = cycleType === "MONTHLY"
-      ? plan.monthly_fee
-      : cycleType === "WEEKLY"
-      ? plan.weekly_fee
-      : plan.daily_fee;
+    const amount =
+      cycleType === "MONTHLY"
+        ? plan.monthly_fee
+        : cycleType === "WEEKLY"
+          ? plan.weekly_fee
+          : plan.daily_fee;
 
     // Utiliza o Gateway Ativo via Strategy Pattern
     const gateway = paymentGatewayManager.getActiveGateway();
@@ -409,7 +438,7 @@ export class PixBillingService {
   public async confirmPayment(
     billingId: string,
     gatewayReference?: string,
-    amount?: number
+    amount?: number,
   ): Promise<{ success: boolean; driverId?: string; expiresAt?: string; message: string }> {
     // 1. Tenta RPC no Supabase
     if (isSupabaseConfigured()) {
@@ -441,15 +470,26 @@ export class PixBillingService {
       return { success: false, message: "Cobrança não localizada." };
     }
 
+    if (billing.status === "PAID") {
+      const existingSub = inMemorySubscriptions.get(billing.driver_id);
+      return {
+        success: true,
+        driverId: billing.driver_id,
+        expiresAt: existingSub?.expires_at,
+        message: "Cobrança já liquidada anteriormente.",
+      };
+    }
+
     billing.status = "PAID";
     billing.paid_at = new Date().toISOString();
 
     const plan = this.getPlanById(billing.plan_id) || DEFAULT_MONETIZATION_PLANS[0]!;
-    const durationMs = billing.cycle_type === "MONTHLY"
-      ? 30 * 24 * 60 * 60 * 1000
-      : billing.cycle_type === "WEEKLY"
-      ? 7 * 24 * 60 * 60 * 1000
-      : 24 * 60 * 60 * 1000;
+    const durationMs =
+      billing.cycle_type === "MONTHLY"
+        ? 30 * 24 * 60 * 60 * 1000
+        : billing.cycle_type === "WEEKLY"
+          ? 7 * 24 * 60 * 60 * 1000
+          : 24 * 60 * 60 * 1000;
 
     const expiresAt = new Date(Date.now() + durationMs).toISOString();
 
@@ -482,7 +522,7 @@ export class PixBillingService {
       window.dispatchEvent(
         new CustomEvent("partiu:driver_subscription_activated", {
           detail: { driverId, expiresAt, timestamp: Date.now() },
-        })
+        }),
       );
     }
   }

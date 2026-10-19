@@ -1,6 +1,6 @@
 /**
  * PARTIU TITANIUM SHIELD — GEO SPATIAL SHARDING & O(1) SPATIAL CACHE
- * 
+ *
  * Substitui varreduras lineares O(N) por particionamento espacial em buckets O(1):
  * - Indexação por Geohash (precisão 6, ~1.2km) e células H3
  * - Sharding de motoristas e passageiros em células geoespaciais
@@ -17,7 +17,7 @@ export interface DriverGeoPosition {
   category: string;
 }
 
-const BASE32 = '0123456789bcdefghjkmnpqrstuvwxyz';
+const BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz";
 
 export function encodeGeohash(lat: number, lng: number, precision: number = 6): string {
   let isEven = true;
@@ -27,13 +27,13 @@ export function encodeGeohash(lat: number, lng: number, precision: number = 6): 
   let lngMax = 180;
   let bit = 0;
   let ch = 0;
-  let geohash = '';
+  let geohash = "";
 
   while (geohash.length < precision) {
     if (isEven) {
       const mid = (lngMin + lngMax) / 2;
       if (lng > mid) {
-        ch |= (1 << (4 - bit));
+        ch |= 1 << (4 - bit);
         lngMin = mid;
       } else {
         lngMax = mid;
@@ -41,7 +41,7 @@ export function encodeGeohash(lat: number, lng: number, precision: number = 6): 
     } else {
       const mid = (latMin + latMax) / 2;
       if (lat > mid) {
-        ch |= (1 << (4 - bit));
+        ch |= 1 << (4 - bit);
         latMin = mid;
       } else {
         latMax = mid;
@@ -104,7 +104,11 @@ export class GeoSpatialShardingEngine {
   /**
    * Busca motoristas disponíveis no entorno em tempo O(1) delimitado
    */
-  public findNearbyDrivers(lat: number, lng: number, maxRadiusKm: number = 5.0): DriverGeoPosition[] {
+  public findNearbyDrivers(
+    lat: number,
+    lng: number,
+    maxRadiusKm: number = 5.0,
+  ): DriverGeoPosition[] {
     const centerHash = encodeGeohash(lat, lng, 6);
     const nearbyDrivers: DriverGeoPosition[] = [];
 
@@ -148,8 +152,10 @@ export class GeoSpatialShardingEngine {
     const dLon = (lon2 - lon1) * (Math.PI / 180);
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.cos(lat1 * (Math.PI / 180)) *
+        Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return Number((R * c).toFixed(2));
   }

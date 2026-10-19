@@ -70,14 +70,18 @@ export class AntiGpsSpoofingEngine {
 
     // 1. Verificação de Flag de Mock Provider (Sensor OS)
     if (ping.isMock) {
-      reasons.push("MOCK_PROVIDER_ACTIVE: Dispositivo reportou provedor simulador de localização ativado.");
+      reasons.push(
+        "MOCK_PROVIDER_ACTIVE: Dispositivo reportou provedor simulador de localização ativado.",
+      );
       riskScore = 1.0;
     }
 
     // 2. Verificação de Precisão Absurda
     if (ping.accuracy !== undefined && (ping.accuracy <= 0.05 || ping.accuracy > 300)) {
       if (ping.accuracy <= 0.05) {
-        reasons.push("ARTIFICIAL_PRECISION: Precisão milimétrica sintética não condizente com satélites GNSS civis.");
+        reasons.push(
+          "ARTIFICIAL_PRECISION: Precisão milimétrica sintética não condizente com satélites GNSS civis.",
+        );
         riskScore += 0.4;
       }
     }
@@ -91,15 +95,18 @@ export class AntiGpsSpoofingEngine {
       // 3. Detecção de Salto Espacial / Teletransporte (> 140 km/h em trecho urbano com distância > 300m)
       if (velocidadeCalculadaKmh > 140 && deltaMetros > 300) {
         reasons.push(
-          `TELEPORT_ANOMALY: Salto de ${Math.round(deltaMetros)}m em ${deltaSec.toFixed(1)}s (${Math.round(velocidadeCalculadaKmh)} km/h calculados).`
+          `TELEPORT_ANOMALY: Salto de ${Math.round(deltaMetros)}m em ${deltaSec.toFixed(1)}s (${Math.round(velocidadeCalculadaKmh)} km/h calculados).`,
         );
         riskScore += 0.9;
       }
 
       // 4. Detecção de Congelamento com Velocidade (Freeze)
-      const isIdentico = Math.abs(ping.lat - last.lat) < 0.000001 && Math.abs(ping.lng - last.lng) < 0.000001;
+      const isIdentico =
+        Math.abs(ping.lat - last.lat) < 0.000001 && Math.abs(ping.lng - last.lng) < 0.000001;
       if (isIdentico && ping.speedKmh && ping.speedKmh > 15) {
-        reasons.push("FROZEN_COORDINATE: Coordenadas exatamente idênticas enquanto veículo reporta velocidade em trânsito.");
+        reasons.push(
+          "FROZEN_COORDINATE: Coordenadas exatamente idênticas enquanto veículo reporta velocidade em trânsito.",
+        );
         riskScore += 0.5;
       }
 

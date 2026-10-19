@@ -1,6 +1,6 @@
 /**
  * EDUCATION ANALYTICS ENGINE
- * 
+ *
  * Análise de desempenho da mobilidade acadêmica:
  * - Taxa de pontualidade no início de aulas
  * - Ocupação média das vans e micro-ônibus universitários
@@ -27,7 +27,7 @@ export class EducationAnalyticsEngine {
     return {
       cityId,
       cityName,
-      reportingMonth: '2026-03',
+      reportingMonth: "2026-03",
       totalActiveStudents: 3450,
       totalStudentRidesMonth: 48200,
       onTimeArrivalRatePct: 96.8,
@@ -35,7 +35,7 @@ export class EducationAnalyticsEngine {
       totalSubsidiesDisbursedBrl: 168700.0,
       studentAverageMonthlySavingsBrl: 215.0,
       peakHourMorningDemand: 820,
-      peakHourNightDemand: 1450
+      peakHourNightDemand: 1450,
     };
   }
 }

@@ -68,15 +68,13 @@ interface LandingPageEditorTabProps {
   onDataChange?: (data: MobilityLandingPageData) => void;
 }
 
-export const LandingPageEditorTab: React.FC<LandingPageEditorTabProps> = ({
-  onDataChange,
-}) => {
+export const LandingPageEditorTab: React.FC<LandingPageEditorTabProps> = ({ onDataChange }) => {
   const { activeTenant, nomeApp, sloganApp, corPrimaria, corSecundaria } = useBrandTheme();
   const { uploadAsset } = useBranding();
   const tenantId = activeTenant?.tenantId || "default";
 
   const [landingData, setLandingData] = useState<MobilityLandingPageData>(() =>
-    getStoredLandingPageData(tenantId)
+    getStoredLandingPageData(tenantId),
   );
   const [salvoSucesso, setSalvoSucesso] = useState(false);
   const [uploadingCar, setUploadingCar] = useState(false);
@@ -246,7 +244,9 @@ export const LandingPageEditorTab: React.FC<LandingPageEditorTabProps> = ({
         urbanMobilityText: sloganApp || "Mobilidade Urbana",
       },
     }));
-    toast.success("Dados sincronizados com o White Label Studio! Clique em Salvar Alterações para persistir.");
+    toast.success(
+      "Dados sincronizados com o White Label Studio! Clique em Salvar Alterações para persistir.",
+    );
   };
 
   return (
@@ -263,7 +263,8 @@ export const LandingPageEditorTab: React.FC<LandingPageEditorTabProps> = ({
             </h2>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Personalize visualmente todos os textos, imagens, botões de ação e temas da página inicial do aplicativo sem necessidade de alterar código.
+            Personalize visualmente todos os textos, imagens, botões de ação e temas da página
+            inicial do aplicativo sem necessidade de alterar código.
           </p>
         </div>
 
@@ -304,7 +305,8 @@ export const LandingPageEditorTab: React.FC<LandingPageEditorTabProps> = ({
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-900 text-xs font-bold flex items-center gap-2 animate-in fade-in">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
           <span>
-            Configurações da Página Inicial salvas com sucesso! A página pública (/) foi sincronizada em tempo real.
+            Configurações da Página Inicial salvas com sucesso! A página pública (/) foi
+            sincronizada em tempo real.
           </span>
         </div>
       )}
@@ -647,7 +649,7 @@ export const LandingPageEditorTab: React.FC<LandingPageEditorTabProps> = ({
                 onClick={() =>
                   updateHero(
                     "cityBackgroundImageUrl",
-                    "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=2400&q=80"
+                    "https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=2400&q=80",
                   )
                 }
                 className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer shrink-0"
@@ -748,7 +750,9 @@ export const LandingPageEditorTab: React.FC<LandingPageEditorTabProps> = ({
                 <span className="font-mono">{feat.iconUrl}</span>
               </div>
               <div>
-                <label className="text-[10px] text-slate-500 font-bold block">Texto Principal:</label>
+                <label className="text-[10px] text-slate-500 font-bold block">
+                  Texto Principal:
+                </label>
                 <input
                   type="text"
                   value={feat.text}

@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import {
   type AppBrandingRecord,
   type BrandingContextValue,
@@ -10,7 +18,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { whiteLabelEngine, convertWhiteLabelToBrandingRecord } from "@/lib/white-label";
 import { Globe, Radio, AlertOctagon } from "lucide-react";
-import { tenantDomainService, type TenantDomainResolution } from "@/lib/white-label/tenant-domain-service";
+import {
+  tenantDomainService,
+  type TenantDomainResolution,
+} from "@/lib/white-label/tenant-domain-service";
 
 const STORAGE_KEY_BRANDING = "partiu_active_branding_v2";
 const STORAGE_KEY_TENANT = "partiu_active_tenant_id_v2";
@@ -48,7 +59,10 @@ function getInitialTenantId(): string {
       } catch {}
     }
 
-    const resolution = tenantDomainService.resolveTenantFromHost(window.location.hostname, urlParams);
+    const resolution = tenantDomainService.resolveTenantFromHost(
+      window.location.hostname,
+      urlParams,
+    );
     if (resolution.tenantId && resolution.tenantId !== "default") {
       return resolution.tenantId;
     }
@@ -91,7 +105,8 @@ function getInitialBranding(tenantId: string): AppBrandingRecord {
       if (
         parsed &&
         parsed.primary_color &&
-        (parsed.tenant_id === tenantId || (tenantId === "default" && parsed.tenant_id === "default"))
+        (parsed.tenant_id === tenantId ||
+          (tenantId === "default" && parsed.tenant_id === "default"))
       ) {
         return { ...parsed, tenant_id: tenantId };
       }
@@ -148,48 +163,51 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
   const isApplyingThemeRef = useRef(false);
 
   // Aplicação de tema síncrona com deduplicação atômica e proteção anti-reentrância
-  const applyBrandingTheme = useCallback((b: AppBrandingRecord, options?: { skipWhiteLabelSync?: boolean }) => {
-    if (isApplyingThemeRef.current) return;
-    isApplyingThemeRef.current = true;
-    try {
-      const cur = brandingRef.current;
-      if (
-        cur &&
-        cur.tenant_id === b.tenant_id &&
-        cur.primary_color === b.primary_color &&
-        cur.secondary_color === b.secondary_color &&
-        cur.accent_color === b.accent_color &&
-        cur.background_color === b.background_color &&
-        cur.surface_color === b.surface_color &&
-        cur.text_primary === b.text_primary &&
-        cur.app_name === b.app_name &&
-        cur.company_name === b.company_name &&
-        cur.logo_url === b.logo_url &&
-        cur.font_family === b.font_family &&
-        cur.border_radius === b.border_radius
-      ) {
-        return;
-      }
-
-      setBrandingState(b);
-      themeEngine.applyTheme(b);
-      if (!options?.skipWhiteLabelSync) {
-        try {
-          whiteLabelEngine.syncFromBrandingRecord(b, { broadcast: false });
-        } catch {}
-      }
+  const applyBrandingTheme = useCallback(
+    (b: AppBrandingRecord, options?: { skipWhiteLabelSync?: boolean }) => {
+      if (isApplyingThemeRef.current) return;
+      isApplyingThemeRef.current = true;
       try {
-        if (b.tenant_id) {
-          localStorage.setItem(`partiu_branding_tenant_${b.tenant_id}`, JSON.stringify(b));
+        const cur = brandingRef.current;
+        if (
+          cur &&
+          cur.tenant_id === b.tenant_id &&
+          cur.primary_color === b.primary_color &&
+          cur.secondary_color === b.secondary_color &&
+          cur.accent_color === b.accent_color &&
+          cur.background_color === b.background_color &&
+          cur.surface_color === b.surface_color &&
+          cur.text_primary === b.text_primary &&
+          cur.app_name === b.app_name &&
+          cur.company_name === b.company_name &&
+          cur.logo_url === b.logo_url &&
+          cur.font_family === b.font_family &&
+          cur.border_radius === b.border_radius
+        ) {
+          return;
         }
-        if (!b.tenant_id || b.tenant_id === "default") {
-          localStorage.setItem(STORAGE_KEY_BRANDING, JSON.stringify(b));
+
+        setBrandingState(b);
+        themeEngine.applyTheme(b);
+        if (!options?.skipWhiteLabelSync) {
+          try {
+            whiteLabelEngine.syncFromBrandingRecord(b, { broadcast: false });
+          } catch {}
         }
-      } catch {}
-    } finally {
-      isApplyingThemeRef.current = false;
-    }
-  }, []);
+        try {
+          if (b.tenant_id) {
+            localStorage.setItem(`partiu_branding_tenant_${b.tenant_id}`, JSON.stringify(b));
+          }
+          if (!b.tenant_id || b.tenant_id === "default") {
+            localStorage.setItem(STORAGE_KEY_BRANDING, JSON.stringify(b));
+          }
+        } catch {}
+      } finally {
+        isApplyingThemeRef.current = false;
+      }
+    },
+    [],
+  );
 
   // Escuta seleção dinâmica de paletas monocromáticas
   useEffect(() => {
@@ -232,84 +250,93 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Busca do Supabase com resolução anti-regressão de timestamps
-  const fetchTenantBranding = useCallback(async (tenantId: string) => {
-    setIsLoading(true);
-    setIsSyncing(true);
-    try {
-      const { data, error } = await supabase
-        .from("app_branding" as any)
-        .select("*")
-        .eq("tenant_id", tenantId)
-        .maybeSingle();
+  const fetchTenantBranding = useCallback(
+    async (tenantId: string) => {
+      setIsLoading(true);
+      setIsSyncing(true);
+      try {
+        const { data, error } = await supabase
+          .from("app_branding" as any)
+          .select("*")
+          .eq("tenant_id", tenantId)
+          .maybeSingle();
 
-      if (error) {
-        // Se houver erro de rede, mantém o cache local
-        silentCatchWarn("BrandingProvider:fetchTenantBranding", error);
-        const localCurrent = getInitialBranding(tenantId);
-        if (localCurrent?.primary_color) {
-          applyBrandingTheme(localCurrent);
-        }
-      } else if (data) {
-        const loaded = data as unknown as AppBrandingRecord;
-        const localCurrent = getInitialBranding(tenantId);
-        const localTimestamp = localCurrent?.updated_at ? new Date(localCurrent.updated_at).getTime() : 0;
-        const remoteTimestamp = loaded?.updated_at ? new Date(loaded.updated_at).getTime() : 0;
+        if (error) {
+          // Se houver erro de rede, mantém o cache local
+          silentCatchWarn("BrandingProvider:fetchTenantBranding", error);
+          const localCurrent = getInitialBranding(tenantId);
+          if (localCurrent?.primary_color) {
+            applyBrandingTheme(localCurrent);
+          }
+        } else if (data) {
+          const loaded = data as unknown as AppBrandingRecord;
+          const localCurrent = getInitialBranding(tenantId);
+          const localTimestamp = localCurrent?.updated_at
+            ? new Date(localCurrent.updated_at).getTime()
+            : 0;
+          const remoteTimestamp = loaded?.updated_at ? new Date(loaded.updated_at).getTime() : 0;
 
-        // Se o registro local for estritamente mais recente (ex: alteração recente no navegador não sincronizada),
-        // preservamos a escolha do usuário e curamos a nuvem (self-healing)
-        if (localTimestamp > remoteTimestamp && localCurrent?.primary_color) {
-          applyBrandingTheme(localCurrent);
-          void supabase
-            .from("app_branding" as any)
-            .upsert(localCurrent as any, { onConflict: "tenant_id" });
-        } else {
-          // O registro da nuvem é igual ou mais novo: adota fielmente
-          applyBrandingTheme(loaded);
-        }
-        setLastSyncedAt(new Date());
-      } else {
-        // Tenant ainda não existe no Supabase
-        const localCurrent = getInitialBranding(tenantId);
-        const hasCustomLocal = localCurrent && localCurrent.primary_color && localCurrent.tenant_id === tenantId;
-
-        if (hasCustomLocal) {
-          // Preserva a customização local do franqueado/admin e cria no banco
-          applyBrandingTheme(localCurrent);
-          void supabase
-            .from("app_branding" as any)
-            .upsert(localCurrent as any, { onConflict: "tenant_id" });
-          setLastSyncedAt(new Date());
-        } else if (tenantId !== "default") {
-          // Antes de recorrer ao default, verifica se existe configuração estruturada em white_label_tenant_configs
-          const wlConfig = await whiteLabelEngine.syncFromSupabase(tenantId);
-          if (wlConfig?.designSystem?.paletaPrimaria?.corPrincipal) {
-            const converted = convertWhiteLabelToBrandingRecord(wlConfig, tenantId);
-            applyBrandingTheme(converted);
+          // Se o registro local for estritamente mais recente (ex: alteração recente no navegador não sincronizada),
+          // preservamos a escolha do usuário e curamos a nuvem (self-healing)
+          if (localTimestamp > remoteTimestamp && localCurrent?.primary_color) {
+            applyBrandingTheme(localCurrent);
             void supabase
               .from("app_branding" as any)
-              .upsert(converted as any, { onConflict: "tenant_id" });
-            setLastSyncedAt(new Date());
+              .upsert(localCurrent as any, { onConflict: "tenant_id" });
           } else {
-            // Apenas se NÃO houver customização remota ou local, busca fallback do default
-            const { data: defaultData } = await supabase
+            // O registro da nuvem é igual ou mais novo: adota fielmente
+            applyBrandingTheme(loaded);
+          }
+          setLastSyncedAt(new Date());
+        } else {
+          // Tenant ainda não existe no Supabase
+          const localCurrent = getInitialBranding(tenantId);
+          const hasCustomLocal =
+            localCurrent && localCurrent.primary_color && localCurrent.tenant_id === tenantId;
+
+          if (hasCustomLocal) {
+            // Preserva a customização local do franqueado/admin e cria no banco
+            applyBrandingTheme(localCurrent);
+            void supabase
               .from("app_branding" as any)
-              .select("*")
-              .eq("tenant_id", "default")
-              .maybeSingle();
-            if (defaultData) {
-              applyBrandingTheme({ ...(defaultData as unknown as AppBrandingRecord), tenant_id: tenantId });
+              .upsert(localCurrent as any, { onConflict: "tenant_id" });
+            setLastSyncedAt(new Date());
+          } else if (tenantId !== "default") {
+            // Antes de recorrer ao default, verifica se existe configuração estruturada em white_label_tenant_configs
+            const wlConfig = await whiteLabelEngine.syncFromSupabase(tenantId);
+            if (wlConfig?.designSystem?.paletaPrimaria?.corPrincipal) {
+              const converted = convertWhiteLabelToBrandingRecord(wlConfig, tenantId);
+              applyBrandingTheme(converted);
+              void supabase
+                .from("app_branding" as any)
+                .upsert(converted as any, { onConflict: "tenant_id" });
               setLastSyncedAt(new Date());
+            } else {
+              // Apenas se NÃO houver customização remota ou local, busca fallback do default
+              const { data: defaultData } = await supabase
+                .from("app_branding" as any)
+                .select("*")
+                .eq("tenant_id", "default")
+                .maybeSingle();
+              if (defaultData) {
+                applyBrandingTheme({
+                  ...(defaultData as unknown as AppBrandingRecord),
+                  tenant_id: tenantId,
+                });
+                setLastSyncedAt(new Date());
+              }
             }
           }
         }
+      } catch (err) {
+        silentCatchWarn("BrandingProvider:fetchTenantBranding:exception", err);
+      } finally {
+        setIsLoading(false);
+        setIsSyncing(false);
       }
-    } catch (err) {
-      silentCatchWarn("BrandingProvider:fetchTenantBranding:exception", err);
-    } finally {
-      setIsLoading(false);
-      setIsSyncing(false);
-    }
-  }, [applyBrandingTheme]);
+    },
+    [applyBrandingTheme],
+  );
 
   // Carregar e sincronizar quando o activeTenantId mudar
   useEffect(() => {
@@ -331,7 +358,10 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
         },
         (payload) => {
           const newRec = payload.new as unknown as AppBrandingRecord;
-          if (newRec && (newRec.tenant_id === activeTenantRef.current || newRec.tenant_id === "default")) {
+          if (
+            newRec &&
+            (newRec.tenant_id === activeTenantRef.current || newRec.tenant_id === "default")
+          ) {
             const cur = brandingRef.current;
             if (
               cur &&
@@ -346,19 +376,18 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
             applyBrandingTheme(newRec, { skipWhiteLabelSync: true });
             setLastSyncedAt(new Date());
           }
-        }
+        },
       )
-      .on(
-        "broadcast",
-        { event: "tenant-config-updated" },
-        (event) => {
-          const payload = event.payload;
-          if (payload?.branding && (payload.tenantId === activeTenantRef.current || payload.tenantId === "default")) {
-            applyBrandingTheme(payload.branding, { skipWhiteLabelSync: true });
-            setLastSyncedAt(new Date());
-          }
+      .on("broadcast", { event: "tenant-config-updated" }, (event) => {
+        const payload = event.payload;
+        if (
+          payload?.branding &&
+          (payload.tenantId === activeTenantRef.current || payload.tenantId === "default")
+        ) {
+          applyBrandingTheme(payload.branding, { skipWhiteLabelSync: true });
+          setLastSyncedAt(new Date());
         }
-      )
+      })
       .subscribe();
 
     // 2. BroadcastChannel para sincronização instantânea entre abas e janelas PWA
@@ -374,7 +403,10 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
               if (incomingBranding) {
                 applyBrandingTheme(incomingBranding, { skipWhiteLabelSync: true });
               } else if (event.data?.config) {
-                const converted = convertWhiteLabelToBrandingRecord(event.data.config, incomingTenantId);
+                const converted = convertWhiteLabelToBrandingRecord(
+                  event.data.config,
+                  incomingTenantId,
+                );
                 applyBrandingTheme(converted, { skipWhiteLabelSync: true });
               }
               setLastSyncedAt(new Date());
@@ -411,7 +443,9 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     return () => {
       supabase.removeChannel(channel);
       if (bc) {
-        try { bc.close(); } catch {}
+        try {
+          bc.close();
+        } catch {}
       }
       window.removeEventListener("partiu:whitelabel-updated", handleLocalWhiteLabelUpdate);
       window.removeEventListener("storage", handleStorageEvent);
@@ -419,23 +453,26 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
   }, [activeTenantId, fetchTenantBranding, applyBrandingTheme]);
 
   // Alternar Tenant
-  const setTenantId = useCallback(async (newTenantId: string) => {
-    const cleanId = newTenantId.trim();
-    if (!cleanId) return;
-    setActiveTenantIdState(cleanId);
-    activeTenantRef.current = cleanId;
-    try {
-      localStorage.setItem(STORAGE_KEY_TENANT, cleanId);
-      localStorage.setItem("partiu_wl_active_tenant_v1", cleanId);
-      localStorage.setItem("partiu_whitelabel_active_tenant_id_v1", cleanId);
-    } catch {}
-    try {
-      whiteLabelEngine.switchTenant(cleanId);
-    } catch (err) {
-      console.warn("[BrandingProvider] Erro ao alternar tenant:", err);
-    }
-    await fetchTenantBranding(cleanId);
-  }, [fetchTenantBranding]);
+  const setTenantId = useCallback(
+    async (newTenantId: string) => {
+      const cleanId = newTenantId.trim();
+      if (!cleanId) return;
+      setActiveTenantIdState(cleanId);
+      activeTenantRef.current = cleanId;
+      try {
+        localStorage.setItem(STORAGE_KEY_TENANT, cleanId);
+        localStorage.setItem("partiu_wl_active_tenant_v1", cleanId);
+        localStorage.setItem("partiu_whitelabel_active_tenant_id_v1", cleanId);
+      } catch {}
+      try {
+        whiteLabelEngine.switchTenant(cleanId);
+      } catch (err) {
+        console.warn("[BrandingProvider] Erro ao alternar tenant:", err);
+      }
+      await fetchTenantBranding(cleanId);
+    },
+    [fetchTenantBranding],
+  );
 
   // Escuta transições de tenant disparadas no login ou no seletor de cidades
   useEffect(() => {
@@ -463,133 +500,160 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
   }, [setTenantId]);
 
   // Atualizar branding no banco e localmente
-  const updateBranding = useCallback(async (partial: Partial<AppBrandingRecord>, targetTenantOverride?: string): Promise<boolean> => {
-    setIsSyncing(true);
-    const targetTenant = targetTenantOverride || partial.tenant_id || activeTenantRef.current || "default";
-    const updated: AppBrandingRecord = {
-      ...branding,
-      ...partial,
-      tenant_id: targetTenant,
-      updated_at: new Date().toISOString(),
-    };
+  const updateBranding = useCallback(
+    async (
+      partial: Partial<AppBrandingRecord>,
+      targetTenantOverride?: string,
+    ): Promise<boolean> => {
+      setIsSyncing(true);
+      const targetTenant =
+        targetTenantOverride || partial.tenant_id || activeTenantRef.current || "default";
+      const updated: AppBrandingRecord = {
+        ...branding,
+        ...partial,
+        tenant_id: targetTenant,
+        updated_at: new Date().toISOString(),
+      };
 
-    // Aplica imediatamente na UI (Zero Latency)
-    applyBrandingTheme(updated, { skipWhiteLabelSync: true });
+      // Aplica imediatamente na UI (Zero Latency)
+      applyBrandingTheme(updated, { skipWhiteLabelSync: true });
 
-    // Mantém WhiteLabelEngine sincronizado silenciosamente sem loops de broadcast
-    try {
-      const activeWl = whiteLabelEngine.getTenantConfig(targetTenant);
-      whiteLabelEngine.updateTenantConfig(targetTenant, {
-        brandCenter: {
-          ...activeWl.brandCenter,
-          nomePlataforma: updated.app_name || activeWl.brandCenter.nomePlataforma,
-          slogan: updated.company_name || activeWl.brandCenter.slogan,
-        },
-        designSystem: {
-          ...activeWl.designSystem,
-          paletaPrimaria: {
-            ...activeWl.designSystem.paletaPrimaria,
-            corPrincipal: updated.primary_color || activeWl.designSystem.paletaPrimaria.corPrincipal,
-            corSecundaria: updated.secondary_color || activeWl.designSystem.paletaPrimaria.corSecundaria,
-            corTerciaria: updated.accent_color || activeWl.designSystem.paletaPrimaria.corTerciaria,
-            corFundoApp: updated.background_color || activeWl.designSystem.paletaPrimaria.corFundoApp,
-            corSuperficieCard: updated.surface_color || activeWl.designSystem.paletaPrimaria.corSuperficieCard,
-            corTextoPrincipal: updated.text_primary || activeWl.designSystem.paletaPrimaria.corTextoPrincipal,
+      // Mantém WhiteLabelEngine sincronizado silenciosamente sem loops de broadcast
+      try {
+        const activeWl = whiteLabelEngine.getTenantConfig(targetTenant);
+        whiteLabelEngine.updateTenantConfig(
+          targetTenant,
+          {
+            brandCenter: {
+              ...activeWl.brandCenter,
+              nomePlataforma: updated.app_name || activeWl.brandCenter.nomePlataforma,
+              slogan: updated.company_name || activeWl.brandCenter.slogan,
+            },
+            designSystem: {
+              ...activeWl.designSystem,
+              paletaPrimaria: {
+                ...activeWl.designSystem.paletaPrimaria,
+                corPrincipal:
+                  updated.primary_color || activeWl.designSystem.paletaPrimaria.corPrincipal,
+                corSecundaria:
+                  updated.secondary_color || activeWl.designSystem.paletaPrimaria.corSecundaria,
+                corTerciaria:
+                  updated.accent_color || activeWl.designSystem.paletaPrimaria.corTerciaria,
+                corFundoApp:
+                  updated.background_color || activeWl.designSystem.paletaPrimaria.corFundoApp,
+                corSuperficieCard:
+                  updated.surface_color || activeWl.designSystem.paletaPrimaria.corSuperficieCard,
+                corTextoPrincipal:
+                  updated.text_primary || activeWl.designSystem.paletaPrimaria.corTextoPrincipal,
+              },
+            },
+            typography: {
+              ...activeWl.typography,
+              familiaPrincipal:
+                (updated.font_family as any) || activeWl.typography.familiaPrincipal,
+            },
           },
-        },
-        typography: {
-          ...activeWl.typography,
-          familiaPrincipal: (updated.font_family as any) || activeWl.typography.familiaPrincipal,
-        },
-      }, { silent: true, skipPersist: true });
-    } catch {}
+          { silent: true, skipPersist: true },
+        );
+      } catch {}
 
-    try {
-      const { error } = await supabase
-        .from("app_branding" as any)
-        .upsert(updated as any, { onConflict: "tenant_id" });
+      try {
+        const { error } = await supabase
+          .from("app_branding" as any)
+          .upsert(updated as any, { onConflict: "tenant_id" });
 
-      if (error) {
-        silentCatchWarn("BrandingProvider:updateBranding:db", error);
+        if (error) {
+          silentCatchWarn("BrandingProvider:updateBranding:db", error);
+          return false;
+        }
+        setLastSyncedAt(new Date());
+        return true;
+      } catch (err) {
+        silentCatchWarn("BrandingProvider:updateBranding:exception", err);
         return false;
+      } finally {
+        setIsSyncing(false);
       }
-      setLastSyncedAt(new Date());
-      return true;
-    } catch (err) {
-      silentCatchWarn("BrandingProvider:updateBranding:exception", err);
-      return false;
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [branding, applyBrandingTheme]);
+    },
+    [branding, applyBrandingTheme],
+  );
 
   // Aplicar Preset em 1 clique
-  const applyPreset = useCallback(async (presetId: string): Promise<boolean> => {
-    const preset = BRANDING_PRESETS.find((p) => p.id === presetId);
-    if (!preset) return false;
+  const applyPreset = useCallback(
+    async (presetId: string): Promise<boolean> => {
+      const preset = BRANDING_PRESETS.find((p) => p.id === presetId);
+      if (!preset) return false;
 
-    const merged: AppBrandingRecord = {
-      ...branding,
-      ...preset.branding,
-      tenant_id: activeTenantRef.current,
-    };
+      const merged: AppBrandingRecord = {
+        ...branding,
+        ...preset.branding,
+        tenant_id: activeTenantRef.current,
+      };
 
-    return updateBranding(merged);
-  }, [branding, updateBranding]);
+      return updateBranding(merged);
+    },
+    [branding, updateBranding],
+  );
 
   // Upload de Mídia para Supabase Storage (branding-assets)
-  const uploadAsset = useCallback(async (file: File, type: "logo" | "splash" | "favicon" | "app_icon" | "push_icon"): Promise<string | null> => {
-    if (!file) return null;
+  const uploadAsset = useCallback(
+    async (
+      file: File,
+      type: "logo" | "splash" | "favicon" | "app_icon" | "push_icon",
+    ): Promise<string | null> => {
+      if (!file) return null;
 
-    // Validação rígida: tamanho máximo 5MB
-    const MAX_SIZE = 5 * 1024 * 1024;
-    if (file.size > MAX_SIZE) {
-      throw new Error("O arquivo excede o limite máximo permitido de 5MB.");
-    }
-
-    // Validação de tipo MIME
-    const allowedTypes = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
-    if (!allowedTypes.includes(file.type)) {
-      throw new Error("Formato inválido. Apenas PNG, SVG, WEBP e JPEG são aceitos.");
-    }
-
-    try {
-      const fileExt = file.name.split(".").pop() || "png";
-      const fileName = `${activeTenantRef.current}_${type}_${Date.now()}.${fileExt}`;
-      const filePath = `tenants/${fileName}`;
-
-      const { data, error } = await supabase.storage
-        .from("branding-assets")
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: true,
-        });
-
-      if (error) {
-        throw error;
+      // Validação rígida: tamanho máximo 5MB
+      const MAX_SIZE = 5 * 1024 * 1024;
+      if (file.size > MAX_SIZE) {
+        throw new Error("O arquivo excede o limite máximo permitido de 5MB.");
       }
 
-      const { data: publicUrlData } = supabase.storage
-        .from("branding-assets")
-        .getPublicUrl(filePath);
-
-      const url = publicUrlData?.publicUrl;
-      if (url) {
-        const patch: Partial<AppBrandingRecord> = {};
-        if (type === "logo") patch.logo_url = url;
-        if (type === "splash") patch.splash_logo_url = url;
-        if (type === "favicon") patch.favicon_url = url;
-        if (type === "app_icon") patch.app_icon_url = url;
-        if (type === "push_icon") patch.push_icon_url = url;
-        await updateBranding(patch);
-        return url;
+      // Validação de tipo MIME
+      const allowedTypes = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error("Formato inválido. Apenas PNG, SVG, WEBP e JPEG são aceitos.");
       }
-      return null;
-    } catch (err: any) {
-      silentCatchWarn("BrandingProvider:uploadAsset", err);
-      throw err;
-    }
-  }, [updateBranding]);
+
+      try {
+        const fileExt = file.name.split(".").pop() || "png";
+        const fileName = `${activeTenantRef.current}_${type}_${Date.now()}.${fileExt}`;
+        const filePath = `tenants/${fileName}`;
+
+        const { data, error } = await supabase.storage
+          .from("branding-assets")
+          .upload(filePath, file, {
+            cacheControl: "3600",
+            upsert: true,
+          });
+
+        if (error) {
+          throw error;
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from("branding-assets")
+          .getPublicUrl(filePath);
+
+        const url = publicUrlData?.publicUrl;
+        if (url) {
+          const patch: Partial<AppBrandingRecord> = {};
+          if (type === "logo") patch.logo_url = url;
+          if (type === "splash") patch.splash_logo_url = url;
+          if (type === "favicon") patch.favicon_url = url;
+          if (type === "app_icon") patch.app_icon_url = url;
+          if (type === "push_icon") patch.push_icon_url = url;
+          await updateBranding(patch);
+          return url;
+        }
+        return null;
+      } catch (err: any) {
+        silentCatchWarn("BrandingProvider:uploadAsset", err);
+        throw err;
+      }
+    },
+    [updateBranding],
+  );
 
   // Resetar aos padrões canônicos
   const resetToDefault = useCallback(async (): Promise<boolean> => {
@@ -623,7 +687,7 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
       applyPreset,
       uploadAsset,
       resetToDefault,
-    ]
+    ],
   );
 
   const isAppSuspended =
@@ -639,9 +703,12 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
             <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto mb-4 text-rose-400">
               <AlertOctagon className="w-8 h-8" />
             </div>
-            <h1 className="text-2xl font-black text-white">Aplicativo Temporariamente Indisponível</h1>
+            <h1 className="text-2xl font-black text-white">
+              Aplicativo Temporariamente Indisponível
+            </h1>
             <p className="mt-2 text-sm text-slate-400 leading-relaxed">
-              As operações do aplicativo nesta praça regional foram temporariamente suspensas pela administração central.
+              As operações do aplicativo nesta praça regional foram temporariamente suspensas pela
+              administração central.
             </p>
             <div className="mt-4 p-3 rounded-xl bg-rose-950/40 border border-rose-800/40 text-xs text-rose-300">
               Novas solicitações de corridas e envios estão pausadas no momento.
@@ -667,7 +734,9 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
             </div>
             <h1 className="text-2xl font-black text-white">404 - Franquia Não Encontrada</h1>
             <p className="mt-2 text-sm text-slate-400">
-              O domínio <strong className="text-amber-400 font-mono">{domainResolution.matchedDomain}</strong> não está associado a nenhuma praça ativa do ecossistema PARTIU MOBE.
+              O domínio{" "}
+              <strong className="text-amber-400 font-mono">{domainResolution.matchedDomain}</strong>{" "}
+              não está associado a nenhuma praça ativa do ecossistema PARTIU MOBE.
             </p>
             <div className="mt-6 flex flex-col gap-2.5">
               <a
@@ -695,7 +764,11 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
             </div>
             <h1 className="text-2xl font-black text-white">Domínio em Propagação DNS</h1>
             <p className="mt-2 text-sm text-slate-400">
-              O domínio <strong className="text-blue-400 font-mono">{domainResolution.matchedDomain}</strong> foi cadastrado, mas o apontamento DNS (<code className="text-blue-300">CNAME cname.partiumobe.com.br</code>) ainda está em propagação.
+              O domínio{" "}
+              <strong className="text-blue-400 font-mono">{domainResolution.matchedDomain}</strong>{" "}
+              foi cadastrado, mas o apontamento DNS (
+              <code className="text-blue-300">CNAME cname.partiumobe.com.br</code>) ainda está em
+              propagação.
             </p>
             <div className="mt-6 flex flex-col gap-2.5">
               <button

@@ -46,9 +46,7 @@ export const CurrentSearchStatus = memo(function CurrentSearchStatus() {
     // Estado 3: Notificando condutor elegível
     icon = <Bell className="w-5 h-5 text-sky-600 animate-pulse" />;
     iconBg = "bg-sky-50 text-sky-600 border-sky-200/80";
-    title = firstName
-      ? `${firstName} recebeu seu pedido`
-      : "Notificando condutores elegíveis";
+    title = firstName ? `${firstName} recebeu seu pedido` : "Notificando condutores elegíveis";
     subtitle =
       dispatchStatus === "DRIVER_VIEWING" && firstName
         ? `${firstName} está verificando a rota...`
@@ -81,9 +79,7 @@ export const CurrentSearchStatus = memo(function CurrentSearchStatus() {
 
         {/* Título e Subtítulo */}
         <div className="min-w-0 flex-1">
-          <h4 className="text-xs font-bold text-slate-900 leading-tight truncate">
-            {title}
-          </h4>
+          <h4 className="text-xs font-bold text-slate-900 leading-tight truncate">{title}</h4>
           <p className="text-xs text-slate-700 font-semibold leading-tight truncate mt-0.5">
             {subtitle}
           </p>

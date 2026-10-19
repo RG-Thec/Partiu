@@ -133,7 +133,8 @@ export class VirtualTaximeterService {
       distanceKm: Math.round(distanceKm * 100) / 100,
       currentSpeedKmH: Math.round(this.currentSpeedKmH),
       currentFareBrl: this.status === "IDLE" ? this.config.baseFareBrl : currentFareBrl,
-      currentFareCents: this.status === "IDLE" ? Math.round(this.config.baseFareBrl * 100) : currentFareCents,
+      currentFareCents:
+        this.status === "IDLE" ? Math.round(this.config.baseFareBrl * 100) : currentFareCents,
       baseFareBrl: this.config.baseFareBrl,
       kmRateBrl: this.config.kmRateBrl,
       minuteRateBrl: this.config.minuteRateBrl,
@@ -304,7 +305,7 @@ export class VirtualTaximeterService {
               this.lastCoords.lat,
               this.lastCoords.lng,
               latitude,
-              longitude
+              longitude,
             );
             // Deadband de precisão: ignora oscilações de GPS menores que 5 metros
             // e descarta saltos anômalos maiores que 300 metros em 1 segundo
@@ -323,7 +324,7 @@ export class VirtualTaximeterService {
           enableHighAccuracy: true,
           maximumAge: 1000,
           timeout: 5000,
-        }
+        },
       );
     } catch (e) {
       console.warn("[VirtualTaximeter] Falha ao registrar watchPosition:", e);

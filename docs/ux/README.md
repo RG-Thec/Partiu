@@ -10,18 +10,18 @@ Vision  →  Personas · JTBD · Journeys · Stories  →  Flows  →  Screens  
 vision.md           foundation.md                  flows.md  screens.md  scenarios.md   audits/    plans/
 ```
 
-| File | Holds |
-|------|-------|
-| `vision.md` | WHAT IT IS: essence, core idea, principles, the anti-vision, the alignment test. Optional layer; when present, new features are checked against it before anything is designed |
-| `foundation.md` | WHO & WHY: personas, jobs-to-be-done, journeys, user stories, monetization, Figma on/off + file URL |
-| `flows.md` | HOW: user-flow diagrams (screens, branches, error paths), referencing screens by `SCR-ID` |
-| `screens.md` | THE UI MAP: every screen and state with its Figma frame link, wireframe, code coverage, scenarios, resources |
-| `scenarios.md` | WHAT IT DOES: use-case scenarios — the source of truth for behavior |
-| `audits/` | audit reports (code vs the chain) |
-| `plans/` | UX plans (target interface + what to create/modify/delete) |
-| `wireframes/` | optional low-fi wireframes / storyboards |
-| `lint.py` | the integrity/drift linter |
-| `doctor.py` | the contract doctor — mixed or stale contract versions across the artifacts |
+| File            | Holds                                                                                                                                                                          |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `vision.md`     | WHAT IT IS: essence, core idea, principles, the anti-vision, the alignment test. Optional layer; when present, new features are checked against it before anything is designed |
+| `foundation.md` | WHO & WHY: personas, jobs-to-be-done, journeys, user stories, monetization, Figma on/off + file URL                                                                            |
+| `flows.md`      | HOW: user-flow diagrams (screens, branches, error paths), referencing screens by `SCR-ID`                                                                                      |
+| `screens.md`    | THE UI MAP: every screen and state with its Figma frame link, wireframe, code coverage, scenarios, resources                                                                   |
+| `scenarios.md`  | WHAT IT DOES: use-case scenarios — the source of truth for behavior                                                                                                            |
+| `audits/`       | audit reports (code vs the chain)                                                                                                                                              |
+| `plans/`        | UX plans (target interface + what to create/modify/delete)                                                                                                                     |
+| `wireframes/`   | optional low-fi wireframes / storyboards                                                                                                                                       |
+| `lint.py`       | the integrity/drift linter                                                                                                                                                     |
+| `doctor.py`     | the contract doctor — mixed or stale contract versions across the artifacts                                                                                                    |
 
 **Two files answer a question shaped like "what".** `vision.md` says what
 the product **is**; `scenarios.md` says what it **does**. A feature can

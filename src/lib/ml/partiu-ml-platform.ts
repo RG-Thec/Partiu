@@ -1,18 +1,18 @@
 /**
  * PARTIU ML PLATFORM (MARKETPLACE LEARNING PLATFORM)
- * 
+ *
  * Orquestrador do ciclo de vida unificado de Machine Learning:
  * Coleta -> Feature Engineering -> Treino -> Avaliação -> Deploy -> Monitoramento -> Rollback.
  */
 
-export type ModelType = 
-  | 'DEEP_ETA'
-  | 'RL_DISPATCH'
-  | 'SURGE_AI'
-  | 'DEMAND_FORECAST'
-  | 'DRIVER_CHURN'
-  | 'PASSENGER_LTV'
-  | 'FRAUD_AI';
+export type ModelType =
+  | "DEEP_ETA"
+  | "RL_DISPATCH"
+  | "SURGE_AI"
+  | "DEMAND_FORECAST"
+  | "DRIVER_CHURN"
+  | "PASSENGER_LTV"
+  | "FRAUD_AI";
 
 export interface ModelMetadata {
   modelId: string;
@@ -20,7 +20,7 @@ export interface ModelMetadata {
   version: string;
   trainingTimestamp: number;
   deployedTimestamp: number | null;
-  status: 'DEVELOPMENT' | 'STAGING' | 'DEPLOYED' | 'ARCHIVED' | 'ROLLED_BACK';
+  status: "DEVELOPMENT" | "STAGING" | "DEPLOYED" | "ARCHIVED" | "ROLLED_BACK";
   metrics: {
     trainingLoss: number;
     validationLoss: number;
@@ -35,7 +35,7 @@ export interface TelemetryTrainingEvent {
   eventId: string;
   timestamp: number;
   cityId: string;
-  eventType: 'RIDE_REQUEST' | 'RIDE_ACCEPTED' | 'RIDE_COMPLETED' | 'RIDE_CANCELED' | 'FRAUD_FLAG';
+  eventType: "RIDE_REQUEST" | "RIDE_ACCEPTED" | "RIDE_COMPLETED" | "RIDE_CANCELED" | "FRAUD_FLAG";
   features: number[];
   label: number;
 }
@@ -52,13 +52,13 @@ export class MarketplaceLearningPlatform {
 
   private seedBaselineModels(): void {
     const models: Array<{ type: ModelType; version: string; metric: number }> = [
-      { type: 'DEEP_ETA', version: 'v2.1.0', metric: 0.942 },
-      { type: 'RL_DISPATCH', version: 'v3.0.1', metric: 0.915 },
-      { type: 'SURGE_AI', version: 'v1.8.4', metric: 0.938 },
-      { type: 'DEMAND_FORECAST', version: 'v2.0.0', metric: 0.926 },
-      { type: 'DRIVER_CHURN', version: 'v1.4.0', metric: 0.894 },
-      { type: 'PASSENGER_LTV', version: 'v1.2.0', metric: 0.902 },
-      { type: 'FRAUD_AI', version: 'v2.4.2', metric: 0.985 },
+      { type: "DEEP_ETA", version: "v2.1.0", metric: 0.942 },
+      { type: "RL_DISPATCH", version: "v3.0.1", metric: 0.915 },
+      { type: "SURGE_AI", version: "v1.8.4", metric: 0.938 },
+      { type: "DEMAND_FORECAST", version: "v2.0.0", metric: 0.926 },
+      { type: "DRIVER_CHURN", version: "v1.4.0", metric: 0.894 },
+      { type: "PASSENGER_LTV", version: "v1.2.0", metric: 0.902 },
+      { type: "FRAUD_AI", version: "v2.4.2", metric: 0.985 },
     ];
 
     models.forEach((m) => {
@@ -69,15 +69,15 @@ export class MarketplaceLearningPlatform {
         version: m.version,
         trainingTimestamp: Date.now() - 86400000,
         deployedTimestamp: Date.now() - 43200000,
-        status: 'DEPLOYED',
+        status: "DEPLOYED",
         metrics: {
           trainingLoss: 0.042,
           validationLoss: 0.051,
           accuracyOrR2: m.metric,
-          latencyP99Ms: 0.85
+          latencyP99Ms: 0.85,
         },
         hyperparameters: { learningRate: 0.001, batchSize: 64, epochs: 50 },
-        weightsLength: 128
+        weightsLength: 128,
       };
 
       this.modelRegistry.set(id, meta);
@@ -89,11 +89,11 @@ export class MarketplaceLearningPlatform {
   /**
    * 1. Coleta contínua de eventos de treino da malha
    */
-  public collect(event: Omit<TelemetryTrainingEvent, 'eventId' | 'timestamp'>): void {
+  public collect(event: Omit<TelemetryTrainingEvent, "eventId" | "timestamp">): void {
     this.eventBuffer.push({
       ...event,
       eventId: `EVT-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     // Limita buffer em memória a 50.000 amostras
@@ -106,8 +106,8 @@ export class MarketplaceLearningPlatform {
    * 2. Treinamento supervisionado com otimização estocástica
    */
   public train(
-    modelType: ModelType, 
-    hyperparams: Record<string, any> = { lr: 0.001, epochs: 20 }
+    modelType: ModelType,
+    hyperparams: Record<string, any> = { lr: 0.001, epochs: 20 },
   ): ModelMetadata {
     const nextVersion = `v${Date.now().toString().slice(-4)}`;
     const modelId = `${modelType}-${nextVersion}`;
@@ -123,15 +123,15 @@ export class MarketplaceLearningPlatform {
       version: nextVersion,
       trainingTimestamp: Date.now(),
       deployedTimestamp: null,
-      status: 'DEVELOPMENT',
+      status: "DEVELOPMENT",
       metrics: {
         trainingLoss: Number(finalLoss.toFixed(4)),
         validationLoss: Number((finalLoss * 1.08).toFixed(4)),
         accuracyOrR2: Number(accuracy.toFixed(4)),
-        latencyP99Ms: 0.72
+        latencyP99Ms: 0.72,
       },
       hyperparameters: hyperparams,
-      weightsLength: 256
+      weightsLength: 256,
     };
 
     this.modelRegistry.set(modelId, metadata);
@@ -150,16 +150,17 @@ export class MarketplaceLearningPlatform {
     const currentActiveId = this.activeModels.get(model.modelType);
     const currentActive = currentActiveId ? this.modelRegistry.get(currentActiveId) : null;
 
-    const isSuperior = !currentActive || model.metrics.accuracyOrR2 >= currentActive.metrics.accuracyOrR2 - 0.02;
-    const lowLoss = model.metrics.validationLoss < 0.10;
+    const isSuperior =
+      !currentActive || model.metrics.accuracyOrR2 >= currentActive.metrics.accuracyOrR2 - 0.02;
+    const lowLoss = model.metrics.validationLoss < 0.1;
     const approved = isSuperior && lowLoss;
 
     return {
       approved,
       score: model.metrics.accuracyOrR2,
-      rationale: approved 
+      rationale: approved
         ? `Modelo aprovado com acurácia de ${(model.metrics.accuracyOrR2 * 100).toFixed(1)}% e loss ${model.metrics.validationLoss}`
-        : 'Modelo reprovado por degradação frente ao modelo em produção'
+        : "Modelo reprovado por degradação frente ao modelo em produção",
     };
   }
 
@@ -170,7 +171,7 @@ export class MarketplaceLearningPlatform {
     const model = this.modelRegistry.get(modelId);
     if (!model) return false;
 
-    model.status = 'DEPLOYED';
+    model.status = "DEPLOYED";
     model.deployedTimestamp = Date.now();
 
     // Atualiza histórico para suporte a rollback
@@ -208,10 +209,10 @@ export class MarketplaceLearningPlatform {
     }
 
     const currentModel = this.modelRegistry.get(currentActiveId);
-    if (currentModel) currentModel.status = 'ROLLED_BACK';
+    if (currentModel) currentModel.status = "ROLLED_BACK";
 
     const prevModel = this.modelRegistry.get(previousModelId);
-    if (prevModel) prevModel.status = 'DEPLOYED';
+    if (prevModel) prevModel.status = "DEPLOYED";
 
     history.shift(); // remove atual
     this.activeModels.set(modelType, previousModelId);

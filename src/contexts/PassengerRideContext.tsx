@@ -28,14 +28,8 @@ import {
   motoristaAceitarCorrida,
   type CorridaPartiu,
 } from "@/lib/partiu-engine";
-import {
-  getStrategicPickupPoints,
-  type StrategicPickupPoint,
-} from "@/lib/passenger/smart-pickups";
-import {
-  geocodingService,
-  LUGARES_CURADOS_ITAPERUNA,
-} from "@/lib/passenger/geocoding-service";
+import { getStrategicPickupPoints, type StrategicPickupPoint } from "@/lib/passenger/smart-pickups";
+import { geocodingService, LUGARES_CURADOS_ITAPERUNA } from "@/lib/passenger/geocoding-service";
 import { reverseGeocodingService } from "@/services/ReverseGeocodingService";
 import { routingService, type RouteMetrics } from "@/services/RoutingService";
 import {
@@ -119,7 +113,11 @@ interface PassengerRideContextValue {
   startEditingPickup: () => void;
   selectStrategicPickup: (point: StrategicPickupPoint) => void;
   backToSelectingDestination: () => void;
-  updatePickupLocationFromMap: (coords: [number, number], endereco?: string, isManualDrag?: boolean) => void;
+  updatePickupLocationFromMap: (
+    coords: [number, number],
+    endereco?: string,
+    isManualDrag?: boolean,
+  ) => void;
   confirmPickupPin: () => void;
   isResolvingAddress: boolean;
 
@@ -173,26 +171,38 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
     try {
       const saved = localStorage.getItem("partiu_preferred_category");
       if (saved === "MOTO" || saved === "CARRO") return saved;
-    } catch (err) { silentCatchWarn("PassengerRideContext", err); }
+    } catch (err) {
+      silentCatchWarn("PassengerRideContext", err);
+    }
     return "MOTO";
   });
   const [formaPagamento, setFormaPagamento] = useState<PaymentMethod>(() => {
     try {
       const saved = localStorage.getItem("partiu_preferred_payment");
       if (saved === "pix" || saved === "dinheiro") return saved;
-    } catch (err) { silentCatchWarn("PassengerRideContext", err); }
+    } catch (err) {
+      silentCatchWarn("PassengerRideContext", err);
+    }
     return "pix";
   });
 
   const [origem, setOrigem] = useState(() => {
     try {
       const saved = localStorage.getItem("partiu_saved_origin_address");
-      if (saved && saved.trim() && saved !== "Meu Local Atual" && !saved.includes("Localizando")) return saved;
+      if (saved && saved.trim() && saved !== "Meu Local Atual" && !saved.includes("Localizando"))
+        return saved;
       const savedCoords = localStorage.getItem("partiu_saved_origin_coords");
       if (savedCoords) {
         const parsed = JSON.parse(savedCoords);
-        if (Array.isArray(parsed) && parsed.length === 2 && !isNaN(parsed[0]) && !isNaN(parsed[1])) {
-          const prox = reverseGeocodingService.resolveInstantProximityAddress(parsed as [number, number]);
+        if (
+          Array.isArray(parsed) &&
+          parsed.length === 2 &&
+          !isNaN(parsed[0]) &&
+          !isNaN(parsed[1])
+        ) {
+          const prox = reverseGeocodingService.resolveInstantProximityAddress(
+            parsed as [number, number],
+          );
           if (prox) return prox;
         }
       }
@@ -204,7 +214,12 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       const saved = localStorage.getItem("partiu_saved_origin_coords");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length === 2 && !isNaN(parsed[0]) && !isNaN(parsed[1])) {
+        if (
+          Array.isArray(parsed) &&
+          parsed.length === 2 &&
+          !isNaN(parsed[0]) &&
+          !isNaN(parsed[1])
+        ) {
           return parsed as [number, number];
         }
       }
@@ -218,16 +233,23 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
   }, [origemCoords]);
 
   const [isResolvingAddress, setIsResolvingAddress] = useState(false);
-  const [progressiveSession, setProgressiveSession] = useState<ProgressiveDispatchSession | null>(null);
+  const [progressiveSession, setProgressiveSession] = useState<ProgressiveDispatchSession | null>(
+    null,
+  );
 
   // 1. Gestão de Geolocalização Real (Hardware Puro) & Estados do GPS
   const [gpsState, setGpsState] = useState<PassengerGpsState>("GPS_SEARCHING");
-  const [gpsPermissionStatus, setGpsPermissionStatus] = useState<"prompt" | "granted" | "denied">(() => {
-    if (typeof window !== "undefined" && localStorage.getItem("partiu_gps_permission") === "denied") {
-      return "denied";
-    }
-    return "prompt";
-  });
+  const [gpsPermissionStatus, setGpsPermissionStatus] = useState<"prompt" | "granted" | "denied">(
+    () => {
+      if (
+        typeof window !== "undefined" &&
+        localStorage.getItem("partiu_gps_permission") === "denied"
+      ) {
+        return "denied";
+      }
+      return "prompt";
+    },
+  );
   const [hasRealGpsFix, setHasRealGpsFix] = useState(false);
   const [userAccuracyMeters, setUserAccuracyMeters] = useState<number | null>(null);
   const [userHeading, setUserHeading] = useState<number | null>(null);
@@ -271,7 +293,12 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const aplicarCoordenadasGps = useCallback(
-    (longitude: number, latitude: number, accuracy: number, heading: number | null | undefined): boolean => {
+    (
+      longitude: number,
+      latitude: number,
+      accuracy: number,
+      heading: number | null | undefined,
+    ): boolean => {
       if (!isValidCoordinate(longitude, latitude)) return false;
 
       const isLowAccuracy = accuracy > 75;
@@ -289,13 +316,20 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       try {
         localStorage.setItem("partiu_gps_permission", "granted");
         localStorage.setItem("partiu_saved_origin_coords", JSON.stringify(realCoords));
-      } catch (err) { silentCatchWarn("PassengerRideContext", err); }
+      } catch (err) {
+        silentCatchWarn("PassengerRideContext", err);
+      }
 
       // Resolução instantânea imediata síncrona (0ms)
       const instant = reverseGeocodingService.resolveInstantProximityAddress(realCoords);
       if (instant) {
         setOrigem((curr) => {
-          if (!curr || curr === DEFAULT_ORIGIN.endereco || curr.includes("Localizando") || curr === "Meu Local Atual") {
+          if (
+            !curr ||
+            curr === DEFAULT_ORIGIN.endereco ||
+            curr.includes("Localizando") ||
+            curr === "Meu Local Atual"
+          ) {
             return instant;
           }
           return curr;
@@ -329,7 +363,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
 
       return true;
     },
-    [isValidCoordinate]
+    [isValidCoordinate],
   );
 
   const solicitarPermissaoGps = useCallback(async (): Promise<boolean> => {
@@ -354,11 +388,11 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
           quickPos.coords.longitude,
           quickPos.coords.latitude,
           quickPos.coords.accuracy,
-          quickPos.coords.heading
+          quickPos.coords.heading,
         );
       },
       () => {},
-      { enableHighAccuracy: false, timeout: 2500, maximumAge: 60000 }
+      { enableHighAccuracy: false, timeout: 2500, maximumAge: 60000 },
     );
 
     try {
@@ -373,7 +407,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
         pos.coords.longitude,
         pos.coords.latitude,
         pos.coords.accuracy,
-        pos.coords.heading
+        pos.coords.heading,
       );
     } catch (err: any) {
       if (err?.code === 1) {
@@ -382,11 +416,17 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
         setGpsState("GPS_DISABLED");
         try {
           localStorage.setItem("partiu_gps_permission", "denied");
-        } catch (e) { silentCatchWarn("PassengerRideContext", e); }
+        } catch (e) {
+          silentCatchWarn("PassengerRideContext", e);
+        }
         return false;
       }
 
-      console.warn("[Partiu GPS Nível 1 expirou/falhou]:", err?.message, "-> Chaveando para Nível 2 (Wi-Fi/Torres)");
+      console.warn(
+        "[Partiu GPS Nível 1 expirou/falhou]:",
+        err?.message,
+        "-> Chaveando para Nível 2 (Wi-Fi/Torres)",
+      );
 
       try {
         // Nível 2: Rede / Wi-Fi / Provedor do Windows/Mobile (Instantâneo em Desktop/PC)
@@ -400,7 +440,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
           pos2.coords.longitude,
           pos2.coords.latitude,
           pos2.coords.accuracy,
-          pos2.coords.heading
+          pos2.coords.heading,
         );
       } catch (err2: any) {
         console.warn("[Partiu GPS Nível 2 falhou]:", err2?.message, "-> GPS Físico indisponível.");
@@ -509,7 +549,10 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
                     });
                     try {
                       localStorage.setItem("partiu_saved_origin_address", nomeVia);
-                      localStorage.setItem("partiu_saved_origin_coords", JSON.stringify(nextCoords));
+                      localStorage.setItem(
+                        "partiu_saved_origin_coords",
+                        JSON.stringify(nextCoords),
+                      );
                     } catch (_) {}
                   }
                 })
@@ -534,7 +577,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
               console.warn("[Partiu GPS Watch Rede]:", err2.message);
               setGpsState("GPS_WEAK_SIGNAL");
             },
-            { enableHighAccuracy: false, timeout: 12000, maximumAge: 15000 }
+            { enableHighAccuracy: false, timeout: 12000, maximumAge: 15000 },
           );
         }
       },
@@ -542,7 +585,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 5000,
-      }
+      },
     );
 
     return () => {
@@ -671,8 +714,22 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       endAddress: destino,
       provider: "calibrated_urban_network",
     };
-    return pricingService.calculateMultiCategoryQuotes(dummyMetrics, {}, paradas.length, origemCoords);
-  }, [routeMetrics, distanciaKm, duracaoMin, origem, destino, paradas.length, origemCoords, surgeVersion]);
+    return pricingService.calculateMultiCategoryQuotes(
+      dummyMetrics,
+      {},
+      paradas.length,
+      origemCoords,
+    );
+  }, [
+    routeMetrics,
+    distanciaKm,
+    duracaoMin,
+    origem,
+    destino,
+    paradas.length,
+    origemCoords,
+    surgeVersion,
+  ]);
 
   const activeQuote = useMemo(() => {
     let key: SupportedVehicleCategory = "PARTIU_CARRO";
@@ -769,28 +826,28 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
                   foto: remoteRide.driver_avatar || "",
                   avaliacao: Number(remoteRide.driver_rating) || 5.0,
                   totalViagens: Number(remoteRide.driver_total_rides) || 0,
-                  veiculo: remoteRide.vehicle_model || (remoteRide.vehicle_category === "MOTO" ? "Motocicleta" : "Veículo de Passeio"),
+                  veiculo:
+                    remoteRide.vehicle_model ||
+                    (remoteRide.vehicle_category === "MOTO" ? "Motocicleta" : "Veículo de Passeio"),
                   placa: remoteRide.vehicle_plate || "",
                   telefone: remoteRide.driver_phone || "",
                 }
               : undefined;
 
             const reconciledStatus =
-              remoteRide.status === "REQUESTED" ||
-              String(remoteRide.status).startsWith("SEARCHING")
+              remoteRide.status === "REQUESTED" || String(remoteRide.status).startsWith("SEARCHING")
                 ? "PROCURANDO"
                 : remoteRide.status === "ACCEPTED" ||
-                  remoteRide.status === "A_CAMINHO" ||
-                  remoteRide.status === "DRIVER_ASSIGNED"
-                ? "A_CAMINHO"
-                : remoteRide.status === "CHEGOU" ||
-                  remoteRide.status === "DRIVER_ARRIVED"
-                ? "CHEGOU"
-                : remoteRide.status === "ON_TRIP" ||
-                  remoteRide.status === "IN_PROGRESS" ||
-                  remoteRide.status === "EM_VIAGEM"
-                ? "EM_VIAGEM"
-                : "PROCURANDO";
+                    remoteRide.status === "A_CAMINHO" ||
+                    remoteRide.status === "DRIVER_ASSIGNED"
+                  ? "A_CAMINHO"
+                  : remoteRide.status === "CHEGOU" || remoteRide.status === "DRIVER_ARRIVED"
+                    ? "CHEGOU"
+                    : remoteRide.status === "ON_TRIP" ||
+                        remoteRide.status === "IN_PROGRESS" ||
+                        remoteRide.status === "EM_VIAGEM"
+                      ? "EM_VIAGEM"
+                      : "PROCURANDO";
 
             const reconciled: CorridaPartiu = {
               id: remoteRide.id,
@@ -799,9 +856,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
               destino: remoteRide.dropoff_address || "Destino",
               passageiroNome: remoteRide.passenger_name || "Passageiro",
               passageiroTelefone: remoteRide.passenger_phone || "",
-              valor: Number(
-                remoteRide.price_estimated_brl || remoteRide.price_final_brl || 0
-              ),
+              valor: Number(remoteRide.price_estimated_brl || remoteRide.price_final_brl || 0),
               distanciaKm: Number(remoteRide.distance_km || 0),
               duracaoMin: Number(remoteRide.duration_minutes || 0),
               formaPagamento: (remoteRide.payment_method || "pix").toLowerCase() as any,
@@ -815,18 +870,12 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
 
             setActiveRide(reconciled);
             if (typeof window !== "undefined") {
-              localStorage.setItem(
-                "partiu_corrida_ativa_v3",
-                JSON.stringify(reconciled)
-              );
+              localStorage.setItem("partiu_corrida_ativa_v3", JSON.stringify(reconciled));
             }
 
             if (reconciledStatus === "PROCURANDO") {
               setState("FINDING_DRIVER");
-            } else if (
-              reconciledStatus === "A_CAMINHO" ||
-              reconciledStatus === "CHEGOU"
-            ) {
+            } else if (reconciledStatus === "A_CAMINHO" || reconciledStatus === "CHEGOU") {
               setState("DRIVER_ASSIGNED");
             } else if (reconciledStatus === "EM_VIAGEM") {
               setState("ON_TRIP");
@@ -874,7 +923,12 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
   const startSearch = useCallback(() => {
     // Garante que a origem tenha um endereço real resolvido instantaneamente (0ms)
     const currentCoords = origemCoordsRef.current || DEFAULT_ORIGIN.coords;
-    if (!origem || origem === "Meu Local Atual" || origem === DEFAULT_ORIGIN.endereco || origem.includes("Localizando")) {
+    if (
+      !origem ||
+      origem === "Meu Local Atual" ||
+      origem === DEFAULT_ORIGIN.endereco ||
+      origem.includes("Localizando")
+    ) {
       const instant = reverseGeocodingService.resolveInstantProximityAddress(currentCoords);
       if (instant) {
         setOrigem(instant);
@@ -888,11 +942,11 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
             pos.coords.longitude,
             pos.coords.latitude,
             pos.coords.accuracy,
-            pos.coords.heading
+            pos.coords.heading,
           );
         },
         () => {},
-        { enableHighAccuracy: false, timeout: 2000, maximumAge: 30000 }
+        { enableHighAccuracy: false, timeout: 2000, maximumAge: 30000 },
       );
     }
     setState("SELECTING_DESTINATION");
@@ -913,9 +967,11 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
         setDistanciaKm(Math.max(1.2, eta.distanciaKm));
         setDuracaoMin(Math.max(3, eta.duracaoMinutos));
       }
-      setState((prev) => (prev === "CONFIRMING_PICKUP" ? "CONFIRMING_PICKUP" : "SELECTING_DESTINATION"));
+      setState((prev) =>
+        prev === "CONFIRMING_PICKUP" ? "CONFIRMING_PICKUP" : "SELECTING_DESTINATION",
+      );
     },
-    [destinoCoords, categoriaVeiculo]
+    [destinoCoords, categoriaVeiculo],
   );
 
   // 1.3 Voltar para a seleção de destino
@@ -935,7 +991,13 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       if (!enderecoCustom && !isManualDrag && origemCoordsRef.current) {
         const deltaLng = Math.abs(origemCoordsRef.current[0] - coords[0]);
         const deltaLat = Math.abs(origemCoordsRef.current[1] - coords[1]);
-        if (deltaLng < 0.00018 && deltaLat < 0.00018 && origem && !origem.includes("Localizando") && origem !== "Meu Local Atual") {
+        if (
+          deltaLng < 0.00018 &&
+          deltaLat < 0.00018 &&
+          origem &&
+          !origem.includes("Localizando") &&
+          origem !== "Meu Local Atual"
+        ) {
           return;
         }
       }
@@ -962,7 +1024,8 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
         setIsResolvingAddress(true);
         try {
           const res = await reverseGeocodingService.reverseGeocode(coords);
-          const nomeVia = res?.formattedAddress || (await geocodingService.geocodificarReverso(coords));
+          const nomeVia =
+            res?.formattedAddress || (await geocodingService.geocodificarReverso(coords));
           if (nomeVia) {
             setOrigem(nomeVia);
             try {
@@ -984,7 +1047,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
         setDuracaoMin(Math.max(3, eta.duracaoMinutos));
       }
     },
-    [destinoCoords, categoriaVeiculo]
+    [destinoCoords, categoriaVeiculo],
   );
 
   // 1.6 Confirmar Pino de Embarque e retornar à tela adequada (Home ou Revisão de Rota)
@@ -1010,7 +1073,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
         const encontrado = LUGARES_CURADOS_ITAPERUNA.find(
           (l) =>
             l.label.toLowerCase() === destinoTexto.toLowerCase() ||
-            l.endereco.toLowerCase() === destinoTexto.toLowerCase()
+            l.endereco.toLowerCase() === destinoTexto.toLowerCase(),
         );
         if (encontrado) {
           coordsFinal = encontrado.coords;
@@ -1025,7 +1088,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       setDuracaoMin(Math.max(3, eta.duracaoMinutos));
       setState("REVIEWING_ROUTE");
     },
-    [origemCoords, destinoCoords, categoriaVeiculo]
+    [origemCoords, destinoCoords, categoriaVeiculo],
   );
 
   const setOrigemEndereco = useCallback((origemTexto: string, coords?: [number, number]) => {
@@ -1089,7 +1152,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
         setDuracaoMin(Math.max(3, eta.duracaoMinutos));
       }
     },
-    [origemCoords, categoriaVeiculo]
+    [origemCoords, categoriaVeiculo],
   );
 
   const confirmDestinationPin = useCallback(
@@ -1103,7 +1166,7 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       }
       setState("REVIEWING_ROUTE");
     },
-    [origemCoords, categoriaVeiculo]
+    [origemCoords, categoriaVeiculo],
   );
 
   // 3. Seleção de veículo com persistência preditiva (suporte total às 7 categorias)
@@ -1111,7 +1174,9 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
     setCategoriaVeiculo(cat);
     try {
       localStorage.setItem("partiu_preferred_category", cat);
-    } catch (err) { silentCatchWarn("PassengerRideContext", err); }
+    } catch (err) {
+      silentCatchWarn("PassengerRideContext", err);
+    }
   }, []);
 
   // 4. Seleção de pagamento (PIX ou Dinheiro) com persistência preditiva
@@ -1119,7 +1184,9 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
     setFormaPagamento(method);
     try {
       localStorage.setItem("partiu_preferred_payment", method);
-    } catch (err) { silentCatchWarn("PassengerRideContext", err); }
+    } catch (err) {
+      silentCatchWarn("PassengerRideContext", err);
+    }
   }, []);
 
   // 5. Avançar para Confirmação do Pino de Embarque (Transição REVIEWING_ROUTE -> CONFIRMING_PICKUP)
@@ -1182,8 +1249,13 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       });
 
       if (!audit.isApproved) {
-        console.warn("[Antifraud Shield] Bloqueio de corrida por divergência de tarifa:", audit.rejectionReason);
-        alert("Atenção: A tarifa informada divergiu dos parâmetros auditados. Por favor, revise sua rota.");
+        console.warn(
+          "[Antifraud Shield] Bloqueio de corrida por divergência de tarifa:",
+          audit.rejectionReason,
+        );
+        alert(
+          "Atenção: A tarifa informada divergiu dos parâmetros auditados. Por favor, revise sua rota.",
+        );
         setState("REVIEWING_ROUTE");
         return;
       }
@@ -1194,11 +1266,18 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
     setState("SEARCHING_R1");
 
     const modalidadeEnvio =
-      categoriaVeiculo === "MOTO" ? "MOTO" : categoriaVeiculo === "CARRO" ? "POP" : categoriaVeiculo;
+      categoriaVeiculo === "MOTO"
+        ? "MOTO"
+        : categoriaVeiculo === "CARRO"
+          ? "POP"
+          : categoriaVeiculo;
 
-    const activeUser = typeof window !== "undefined"
-      ? (supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null)
-      : null;
+    const activeUser =
+      typeof window !== "undefined"
+        ? supabaseAuthService?.getCurrentUser?.() ||
+          supabaseAuthService?.getStoredSession?.() ||
+          null
+        : null;
 
     if (!activeUser || !activeUser.id) {
       if (typeof window !== "undefined") {
@@ -1211,7 +1290,10 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
     const telUsuarioLogado = activeUser.phone || "";
 
     const isOutraPessoa = viajanteOutraPessoa && Boolean(nomeOutroPassageiro.trim());
-    const telPassageiro = isOutraPessoa && telefoneOutroPassageiro.trim() ? telefoneOutroPassageiro.trim() : telUsuarioLogado;
+    const telPassageiro =
+      isOutraPessoa && telefoneOutroPassageiro.trim()
+        ? telefoneOutroPassageiro.trim()
+        : telUsuarioLogado;
     const nomePassageiro = isOutraPessoa ? nomeOutroPassageiro.trim() : nomeUsuarioLogado;
 
     let valorFinal = valorCobrado;
@@ -1238,8 +1320,13 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
         });
 
         if (verifyRes.data?.error === "FRAUD_DISCREPANCY_DETECTED") {
-          console.warn("[PassengerRideContext] Rejeição do servidor por fraude de preço:", verifyRes.data);
-          alert(`Inconsistência de tarifa detectada pelo servidor. Valor correto: R$ ${Number(verifyRes.data.serverFare || 0).toFixed(2)}`);
+          console.warn(
+            "[PassengerRideContext] Rejeição do servidor por fraude de preço:",
+            verifyRes.data,
+          );
+          alert(
+            `Inconsistência de tarifa detectada pelo servidor. Valor correto: R$ ${Number(verifyRes.data.serverFare || 0).toFixed(2)}`,
+          );
           setState("REVIEWING_ROUTE");
           return;
         }
@@ -1307,22 +1394,24 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
 
     // Invocação server-side Edge Function para matching distribuído
     if (isSupabaseConfigured()) {
-      supabase.functions.invoke("dispatch-ride", {
-        body: {
-          ride_id: novaCorrida.id,
-          category: modalidadeEnvio,
-          pickup_lat: origemCoords[1],
-          pickup_lng: origemCoords[0],
-          dropoff_lat: destinoCoords[1],
-          dropoff_lng: destinoCoords[0],
-          fare_brl: valorFinal,
-          original_fare: valorOriginal,
-          coupon_discount: descontoCupom,
-          coupon_code: codigoCupom,
-        },
-      }).catch((err) => {
-        console.warn("[PassengerRideContext] Falha ao invocar edge function dispatch-ride:", err);
-      });
+      supabase.functions
+        .invoke("dispatch-ride", {
+          body: {
+            ride_id: novaCorrida.id,
+            category: modalidadeEnvio,
+            pickup_lat: origemCoords[1],
+            pickup_lng: origemCoords[0],
+            dropoff_lat: destinoCoords[1],
+            dropoff_lng: destinoCoords[0],
+            fare_brl: valorFinal,
+            original_fare: valorOriginal,
+            coupon_discount: descontoCupom,
+            coupon_code: codigoCupom,
+          },
+        })
+        .catch((err) => {
+          console.warn("[PassengerRideContext] Falha ao invocar edge function dispatch-ride:", err);
+        });
     }
   }, [
     gpsPermissionStatus,
@@ -1371,7 +1460,9 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       const currentActive = activeRide || getCorridaAtiva();
       if (currentActive && session?.rideId === currentActive.id) {
         if (!driver || !driver.driverId) {
-          console.warn("[PassengerRideContext] Evento de aceite recebido sem dados válidos do condutor. Ignorando fallback mock.");
+          console.warn(
+            "[PassengerRideContext] Evento de aceite recebido sem dados válidos do condutor. Ignorando fallback mock.",
+          );
           return;
         }
 
@@ -1381,7 +1472,9 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
           foto: driver.avatarUrl || "",
           avaliacao: Number(driver.rating) || 5.0,
           totalViagens: Number(driver.totalViagens) || 0,
-          veiculo: driver.vehicleModel || (categoriaVeiculo === "MOTO" ? "Motocicleta" : "Veículo de Passeio"),
+          veiculo:
+            driver.vehicleModel ||
+            (categoriaVeiculo === "MOTO" ? "Motocicleta" : "Veículo de Passeio"),
           placa: driver.licensePlate || "",
           telefone: driver.phone || "",
         };
@@ -1426,48 +1519,54 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
     setIsCancelModalOpen(false);
   }, []);
 
-  const confirmCancel = useCallback((reason?: { code?: string; label?: string }) => {
-    const currentActive = activeRide || getCorridaAtiva();
-    const rideId = currentActive?.id || progressiveSession?.rideId;
+  const confirmCancel = useCallback(
+    (reason?: { code?: string; label?: string }) => {
+      const currentActive = activeRide || getCorridaAtiva();
+      const rideId = currentActive?.id || progressiveSession?.rideId;
 
-    if (rideId) {
-      try {
-        dispatchQueueBuilder.cancelCascade(rideId);
-      } catch (err) {
-        console.warn("[PassengerRideContext] Erro ao cancelar dispatchQueueBuilder:", err);
+      if (rideId) {
+        try {
+          dispatchQueueBuilder.cancelCascade(rideId);
+        } catch (err) {
+          console.warn("[PassengerRideContext] Erro ao cancelar dispatchQueueBuilder:", err);
+        }
+        try {
+          progressiveDispatchEngine.cancelDispatch(
+            rideId,
+            reason?.code || "PASSENGER_CONFIRMED_CANCEL",
+          );
+        } catch (err) {
+          console.warn("[PassengerRideContext] Erro ao cancelar progressiveDispatchEngine:", err);
+        }
       }
+
       try {
-        progressiveDispatchEngine.cancelDispatch(rideId, reason?.code || "PASSENGER_CONFIRMED_CANCEL");
+        cancelarCorrida({
+          reasonCode: reason?.code || "PASSENGER_CONFIRMED_CANCEL",
+          reasonLabel: reason?.label || "Cancelamento confirmado pelo passageiro",
+        });
       } catch (err) {
-        console.warn("[PassengerRideContext] Erro ao cancelar progressiveDispatchEngine:", err);
+        console.warn("[PassengerRideContext] Erro ao cancelar corrida:", err);
       }
-    }
 
-    try {
-      cancelarCorrida({
-        reasonCode: reason?.code || "PASSENGER_CONFIRMED_CANCEL",
-        reasonLabel: reason?.label || "Cancelamento confirmado pelo passageiro",
-      });
-    } catch (err) {
-      console.warn("[PassengerRideContext] Erro ao cancelar corrida:", err);
-    }
+      // Se o motorista já havia aceito ou estava a caminho, gera taxa de cancelamento para compensação na próxima corrida
+      const hadDriverAssigned = Boolean(
+        currentActive?.motorista ||
+        state === "DRIVER_ASSIGNED" ||
+        state === "DRIVER_ARRIVING" ||
+        state === "DRIVER_ARRIVED",
+      );
+      if (hadDriverAssigned && typeof window !== "undefined") {
+        localStorage.setItem("partiu_pending_cancellation_fee", "5.00");
+      }
 
-    // Se o motorista já havia aceito ou estava a caminho, gera taxa de cancelamento para compensação na próxima corrida
-    const hadDriverAssigned = Boolean(
-      currentActive?.motorista ||
-      state === "DRIVER_ASSIGNED" ||
-      state === "DRIVER_ARRIVING" ||
-      state === "DRIVER_ARRIVED"
-    );
-    if (hadDriverAssigned && typeof window !== "undefined") {
-      localStorage.setItem("partiu_pending_cancellation_fee", "5.00");
-    }
-
-    setIsCancelModalOpen(false);
-    setActiveRide(null);
-    setProgressiveSession(null);
-    setState("IDLE");
-  }, [activeRide, progressiveSession, state]);
+      setIsCancelModalOpen(false);
+      setActiveRide(null);
+      setProgressiveSession(null);
+      setState("IDLE");
+    },
+    [activeRide, progressiveSession, state],
+  );
 
   // 7.1 Tentar novamente após Timeout (Reinicia o ciclo em SEARCHING_R1)
   const retrySearchAfterTimeout = useCallback(() => {
@@ -1503,7 +1602,6 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
     setIsCancelModalOpen(false);
     setState("IDLE");
   }, [activeRide, progressiveSession]);
-
 
   // 8. Reiniciar fluxo completo para IDLE
   const resetToIdle = useCallback(() => {
@@ -1666,14 +1764,10 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       solicitarPermissaoGps,
       isOutsideServiceArea,
       territoryStatusMessage,
-    ]
+    ],
   );
 
-  return (
-    <PassengerRideContext.Provider value={value}>
-      {children}
-    </PassengerRideContext.Provider>
-  );
+  return <PassengerRideContext.Provider value={value}>{children}</PassengerRideContext.Provider>;
 }
 
 export function usePassengerRide(): PassengerRideContextValue {

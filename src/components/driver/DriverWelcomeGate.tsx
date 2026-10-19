@@ -1,14 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import {
-  Car,
-  ShieldCheck,
-  ArrowRight,
-  DollarSign,
-  Clock,
-  Zap,
-  Sparkles,
-} from "lucide-react";
+import { Car, ShieldCheck, ArrowRight, DollarSign, Clock, Zap, Sparkles } from "lucide-react";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { whiteLabelEngine } from "@/lib/white-label";
@@ -19,13 +11,8 @@ interface DriverWelcomeGateProps {
 
 export const DriverWelcomeGate: React.FC<DriverWelcomeGateProps> = ({ onEnterDemo }) => {
   const navigate = useNavigate();
-  const {
-    nomeApp,
-    corPrimaria,
-    corSecundaria,
-    corCabecalhoInicio,
-    corCabecalhoFim,
-  } = useBrandTheme();
+  const { nomeApp, corPrimaria, corSecundaria, corCabecalhoInicio, corCabecalhoFim } =
+    useBrandTheme();
 
   const brandGradient = `linear-gradient(135deg, ${corCabecalhoInicio || corPrimaria || "#FF6B00"} 0%, ${corCabecalhoFim || corSecundaria || "#FFB800"} 100%)`;
 
@@ -51,7 +38,7 @@ export const DriverWelcomeGate: React.FC<DriverWelcomeGateProps> = ({ onEnterDem
         avatarUrl: "",
         createdAt: Date.now(),
       },
-      currentTenant
+      currentTenant,
     );
     window.location.reload();
   };

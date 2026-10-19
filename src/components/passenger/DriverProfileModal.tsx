@@ -1,12 +1,5 @@
 import React, { memo } from "react";
-import {
-  Star,
-  ShieldCheck,
-  CheckCircle2,
-  Car,
-  Bike,
-  Quote,
-} from "lucide-react";
+import { Star, ShieldCheck, CheckCircle2, Car, Bike, Quote } from "lucide-react";
 import type { DriverTrustProfile } from "@/services/ProgressiveDispatchEngine";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
 import { NativeBottomSheet } from "@/components/native/NativeBottomSheet";
@@ -83,12 +76,7 @@ export const DriverProfileModal = memo(function DriverProfileModal({
       showCloseButton
       maxHeight="max-h-[90dvh]"
       footer={
-        <NativeButton
-          variant="tonal"
-          size="md"
-          fullWidth
-          onClick={onClose}
-        >
+        <NativeButton variant="tonal" size="md" fullWidth onClick={onClose}>
           Fechar Perfil
         </NativeButton>
       }
@@ -156,7 +144,10 @@ export const DriverProfileModal = memo(function DriverProfileModal({
                 {Number(data.rating).toFixed(2)}
               </span>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: colors.primary }}>
+            <span
+              className="text-[10px] font-black uppercase tracking-wider"
+              style={{ color: colors.primary }}
+            >
               Nota Média
             </span>
           </div>
@@ -170,10 +161,16 @@ export const DriverProfileModal = memo(function DriverProfileModal({
               borderRadius: ui.borderRadius,
             }}
           >
-            <span className="text-lg font-black block leading-tight" style={{ color: colors.textPrimary }}>
+            <span
+              className="text-lg font-black block leading-tight"
+              style={{ color: colors.textPrimary }}
+            >
               {data.totalRides.toLocaleString("pt-BR")}+
             </span>
-            <span className="text-[10px] font-black uppercase tracking-wider mt-0.5 block" style={{ color: colors.textSecondary }}>
+            <span
+              className="text-[10px] font-black uppercase tracking-wider mt-0.5 block"
+              style={{ color: colors.textSecondary }}
+            >
               Corridas Feitas
             </span>
           </div>
@@ -187,10 +184,16 @@ export const DriverProfileModal = memo(function DriverProfileModal({
               borderRadius: ui.borderRadius,
             }}
           >
-            <span className="text-lg font-black block leading-tight" style={{ color: colors.textPrimary }}>
+            <span
+              className="text-lg font-black block leading-tight"
+              style={{ color: colors.textPrimary }}
+            >
               {data.platformYears} {data.platformYears === 1 ? "ano" : "anos"}
             </span>
-            <span className="text-[10px] font-black uppercase tracking-wider mt-0.5 block" style={{ color: colors.textSecondary }}>
+            <span
+              className="text-[10px] font-black uppercase tracking-wider mt-0.5 block"
+              style={{ color: colors.textSecondary }}
+            >
               Tempo de Plataforma
             </span>
           </div>
@@ -218,7 +221,10 @@ export const DriverProfileModal = memo(function DriverProfileModal({
             borderRadius: ui.borderRadius,
           }}
         >
-          <span className="text-xs font-black uppercase tracking-wider block" style={{ color: colors.textSecondary }}>
+          <span
+            className="text-xs font-black uppercase tracking-wider block"
+            style={{ color: colors.textSecondary }}
+          >
             Veículo Oficial
           </span>
           <div className="flex items-center justify-between">
@@ -254,7 +260,10 @@ export const DriverProfileModal = memo(function DriverProfileModal({
 
         {/* Avaliações Recentes de Passageiros */}
         <div className="space-y-2">
-          <span className="text-xs font-black uppercase tracking-wider block" style={{ color: colors.textSecondary }}>
+          <span
+            className="text-xs font-black uppercase tracking-wider block"
+            style={{ color: colors.textSecondary }}
+          >
             Últimas Avaliações
           </span>
           <div className="space-y-2">
@@ -269,18 +278,28 @@ export const DriverProfileModal = memo(function DriverProfileModal({
                 }}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-black" style={{ color: colors.textPrimary }}>{rev.author}</span>
+                  <span className="font-black" style={{ color: colors.textPrimary }}>
+                    {rev.author}
+                  </span>
                   <div className="flex items-center gap-0.5">
                     {[...Array(rev.rating)].map((_, i) => (
                       <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-500" />
                     ))}
                   </div>
                 </div>
-                <p className="italic flex items-start gap-1 text-xs font-medium" style={{ color: colors.textSecondary }}>
+                <p
+                  className="italic flex items-start gap-1 text-xs font-medium"
+                  style={{ color: colors.textSecondary }}
+                >
                   <Quote className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
                   <span>"{rev.text}"</span>
                 </p>
-                <span className="text-xs font-bold block text-right" style={{ color: colors.textSecondary }}>{rev.date}</span>
+                <span
+                  className="text-xs font-bold block text-right"
+                  style={{ color: colors.textSecondary }}
+                >
+                  {rev.date}
+                </span>
               </div>
             ))}
           </div>

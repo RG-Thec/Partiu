@@ -47,8 +47,9 @@ graph TB
 ## 2. Detalhamento dos Componentes
 
 ### A. Frontend (Single Page Application, SSR Nitro & PWA)
+
 - **React 19.2.0:** Uso extensivo de recursos concorrentes, transições otimistas (`useOptimistic`), renderização fluida sem travamento de thread visual e suporte a Server-Side Rendering via TanStack Start.
-- **TanStack Router 1.170.41:** Roteamento 100% estritamente tipado (*type-safe*), com geração automática de rotas (`routeTree.gen.ts`), separação modular entre cockpit de passageiro, motorista e painel corporativo do franqueado.
+- **TanStack Router 1.170.41:** Roteamento 100% estritamente tipado (_type-safe_), com geração automática de rotas (`routeTree.gen.ts`), separação modular entre cockpit de passageiro, motorista e painel corporativo do franqueado.
 - **TanStack Start & Nitro Engine:** Suporte a Server-Side Rendering (SSR) e pré-renderização estática de alto desempenho, compilando diretamente para o artefato de produção `.vercel/output/nitro.json` em menos de 3 segundos.
 - **TailwindCSS 4.2.1:** Nova geração do motor CSS com compilação ultra-rápida, espaço de cor perceptual `oklch`, paleta monocromática elegante e tokens integrados via `@theme inline`.
 - **Radix UI Primitives:** Conjunto de primitivas sem estilo prévio que assegura conformidade total com acessibilidade WCAG 2.1 AA (foco por teclado, anúncios de leitores de tela e gerenciamento de modais).
@@ -59,6 +60,7 @@ graph TB
   - Malhas espaciais hexagonais Uber H3 para mapas de calor e zoneamento dinâmico.
 
 ### B. Backend & Banco de Dados (Supabase & PostgreSQL)
+
 - **PostgreSQL 15+:** Banco de dados relacional primário com propriedades ACID rigorosas, transações atômicas com `FOR UPDATE` para prevenção de overbooking de assentos e isolamento serializável.
 - **PostGIS 3.3:** Extensão espacial corporativa utilizada para:
   - Busca de motoristas em raio geográfico com `ST_DWithin` e `ST_DistanceSphere`.
@@ -66,35 +68,36 @@ graph TB
   - Índices espaciais de alta performance `GIST` em coordenadas geográficas.
 - **Supabase Realtime:** Infraestrutura distribuída em Elixir/BEAM responsável por canais de WebSockets com entrega sub-100ms para:
   - Telemetria contínua e rastreamento de veículos em tempo real.
-  - Alertas de despacho concorrente (*ringing*) com contagem regressiva de 15 segundos.
+  - Alertas de despacho concorrente (_ringing_) com contagem regressiva de 15 segundos.
   - Chat em tempo real criptografado entre passageiro e motorista com sanitização de PII.
   - Sinais de desbloqueio instantâneo após pagamento de mensalidade Pix SaaS.
 - **Supabase Edge Functions:** Funções serverless com tolerância a falhas e chaveamento inteligente (ex: Mapbox API com fallback para cálculo geodésico Haversine).
 
 ### C. Camada de Segurança, FinOps & Governança de Credenciais
+
 - **Sanitização de Credenciais (P0):** Zero segredos ou credenciais de banco de dados gravadas em código-fonte. Todo o acesso administrativo ao banco de dados requer e consome `process.env.DATABASE_URL` carregado de forma protegida em tempo de execução.
 - **Ed25519 (RFC 8032):** Assinatura e verificação assimétrica para emissão de bilhetes de transporte offline com chave privada isolada no servidor e chave pública distribuída nos validadores veiculares.
 - **HMAC-SHA256:** Assinatura criptográfica aplicada em webhooks de pagamento Pix (Mercado Pago, Asaas, PicPay, EFI Bank) com janela de tolerância temporal estrita de 5 minutos contra ataques de replay.
 - **Global Idempotency Engine:** Validação com chave `Idempotency-Key` (RFC 7240) associada a hash do payload, prevenindo processamentos financeiros ou despachos duplicados.
-- **Double-Entry Bookkeeping Ledger:** Registro contábil com garantia imutável `SUM(Débitos) === SUM(Créditos)` operando exclusivamente em centavos inteiros (*minor units*).
+- **Double-Entry Bookkeeping Ledger:** Registro contábil com garantia imutável `SUM(Débitos) === SUM(Créditos)` operando exclusivamente em centavos inteiros (_minor units_).
 
 ---
 
 ## 3. Matriz de Dependências Principais
 
-| Pacote | Versão | Função Primária |
-| :--- | :--- | :--- |
-| `react` / `react-dom` | `^19.2.0` | Framework de interface declarativa e concorrente |
-| `@tanstack/react-router` | `1.170.41` | Sistema de roteamento estritamente tipado |
-| `@tanstack/react-query` | `^5.101.1` | Gerenciamento de estado de servidor e cache |
-| `nitro` | `^3.0.0` | Motor de build e runtime SSR para Vercel Serverless |
-| `tailwindcss` | `^4.2.1` | Motor de estilização utilitária com suporte a oklch |
-| `@supabase/supabase-js` | `^2.112.4` | SDK de conexão ao PostgreSQL, Auth e Realtime |
-| `h3-js` | `^4.5.0` | Malhas espaciais hexagonais para indexação de demanda |
-| `mapbox-gl` | `^3.29.0` | Mapas vetoriais WebGL com billboarding e 3D buildings |
-| `zod` | `^3.24.2` | Validação de esquemas e contratos de dados |
-| `date-fns` | `^4.1.0` | Manipulação precisa de datas e carências de assinatura |
-| `qrcode` | `^1.5.4` | Geração de QR Codes Pix dinâmicos com chave EMV |
+| Pacote                   | Versão     | Função Primária                                        |
+| :----------------------- | :--------- | :----------------------------------------------------- |
+| `react` / `react-dom`    | `^19.2.0`  | Framework de interface declarativa e concorrente       |
+| `@tanstack/react-router` | `1.170.41` | Sistema de roteamento estritamente tipado              |
+| `@tanstack/react-query`  | `^5.101.1` | Gerenciamento de estado de servidor e cache            |
+| `nitro`                  | `^3.0.0`   | Motor de build e runtime SSR para Vercel Serverless    |
+| `tailwindcss`            | `^4.2.1`   | Motor de estilização utilitária com suporte a oklch    |
+| `@supabase/supabase-js`  | `^2.112.4` | SDK de conexão ao PostgreSQL, Auth e Realtime          |
+| `h3-js`                  | `^4.5.0`   | Malhas espaciais hexagonais para indexação de demanda  |
+| `mapbox-gl`              | `^3.29.0`  | Mapas vetoriais WebGL com billboarding e 3D buildings  |
+| `zod`                    | `^3.24.2`  | Validação de esquemas e contratos de dados             |
+| `date-fns`               | `^4.1.0`   | Manipulação precisa de datas e carências de assinatura |
+| `qrcode`                 | `^1.5.4`   | Geração de QR Codes Pix dinâmicos com chave EMV        |
 
 ---
 

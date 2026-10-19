@@ -1,6 +1,6 @@
 /**
  * PIX INSTANT NETWORK — LIQUIDAÇÃO D+0 & SPLIT PIX
- * 
+ *
  * Infraestrutura de mensageria e liquidação de pagamentos instantâneos PIX:
  * - PIX OUT: Saque imediato para motoristas parceiros (D+0)
  * - PIX IN: Recebimento instantâneo de passageiros com geração de payload EMV (QR Code)
@@ -9,10 +9,10 @@
  * - Conformidade com limites regulatórios de segurança do Banco Central
  */
 
-import { partiuWalletEngine } from './partiu-wallet';
+import { partiuWalletEngine } from "./partiu-wallet";
 import { computePixCrc16 } from "@/services/payment/PaymentProviderAdapter";
 
-export type PixKeyType = 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE' | 'EVP';
+export type PixKeyType = "CPF" | "CNPJ" | "EMAIL" | "PHONE" | "EVP";
 
 export interface PixKey {
   type: PixKeyType;
@@ -27,7 +27,7 @@ export interface PixCashInOrder {
   qrCodeImageUrl?: string;
   endToEndId: string;
   expiresAt: number;
-  status: 'AWAITING_PAYMENT' | 'PAID_SETTLED' | 'EXPIRED' | 'CANCELLED';
+  status: "AWAITING_PAYMENT" | "PAID_SETTLED" | "EXPIRED" | "CANCELLED";
   createdAt: number;
 }
 
@@ -40,7 +40,7 @@ export interface PixCashOutTransfer {
   netDisbursedBrl: number;
   endToEndId: string;
   timestamp: number;
-  status: 'SETTLED_INSTANT' | 'PROCESSING' | 'REJECTED_LIMIT' | 'FAILED';
+  status: "SETTLED_INSTANT" | "PROCESSING" | "REJECTED_LIMIT" | "FAILED";
   receiptCode: string;
 }
 
@@ -50,12 +50,12 @@ export interface PixSplitExecution {
   totalAmountBrl: number;
   splits: Array<{
     recipientId: string;
-    recipientType: 'DRIVER' | 'PLATFORM_TREASURY' | 'CITY_PARTNER';
+    recipientType: "DRIVER" | "PLATFORM_TREASURY" | "CITY_PARTNER";
     percentage: number;
     amountBrl: number;
   }>;
   settledAt: number;
-  status: 'SETTLED_MULTI_PARTY';
+  status: "SETTLED_MULTI_PARTY";
 }
 
 export class PixEngine {
@@ -85,8 +85,8 @@ export class PixEngine {
       qrCodePayload: payloadEMV,
       endToEndId,
       expiresAt: timestamp + 15 * 60 * 1000, // 15 minutos
-      status: 'AWAITING_PAYMENT',
-      createdAt: timestamp
+      status: "AWAITING_PAYMENT",
+      createdAt: timestamp,
     };
 
     this.activeCashInOrders.set(orderId, order);
@@ -102,10 +102,10 @@ export class PixEngine {
       throw new Error(`Ordem PIX ${orderId} não localizada.`);
     }
 
-    order.status = 'PAID_SETTLED';
-    
+    order.status = "PAID_SETTLED";
+
     // Credita o saldo na carteira do passageiro
-    const wallet = partiuWalletEngine.getOrCreateWallet(order.payerId, 'PASSENGER');
+    const wallet = partiuWalletEngine.getOrCreateWallet(order.payerId, "PASSENGER");
     wallet.balance += order.amountBrl;
     wallet.availableBalance += order.amountBrl;
     wallet.updatedAt = Date.now();
@@ -114,15 +114,15 @@ export class PixEngine {
       transactionId: `TX-PIXIN-${order.orderId}`,
       walletId: wallet.walletId,
       userId: order.payerId,
-      type: 'PIX_CASH_IN',
+      type: "PIX_CASH_IN",
       amountBrl: order.amountBrl,
       feeBrl: 0,
       netAmountBrl: order.amountBrl,
       balanceAfterBrl: wallet.balance,
       idempotencyKey: `IDEM-PIXIN-${order.endToEndId}`,
-      description: 'Depósito PIX Instantâneo via App',
+      description: "Depósito PIX Instantâneo via App",
       timestamp: Date.now(),
-      status: 'COMPLETED'
+      status: "COMPLETED",
     });
 
     return order;
@@ -140,7 +140,7 @@ export class PixEngine {
     const transferId = `PIX-OUT-${timestamp}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
     const endToEndId = `E${timestamp}PARTIUDRV${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
-    const wallet = partiuWalletEngine.getOrCreateWallet(params.driverId, 'DRIVER');
+    const wallet = partiuWalletEngine.getOrCreateWallet(params.driverId, "DRIVER");
 
     // Validação de saldo disponível
     if (wallet.availableBalance < params.amountBrl) {
@@ -153,8 +153,8 @@ export class PixEngine {
         netDisbursedBrl: 0,
         endToEndId,
         timestamp,
-        status: 'REJECTED_LIMIT',
-        receiptCode: 'ERR_SALDO_INSUFICIENTE'
+        status: "REJECTED_LIMIT",
+        receiptCode: "ERR_SALDO_INSUFICIENTE",
       };
     }
 
@@ -173,7 +173,7 @@ export class PixEngine {
       transactionId: `TX-PIXOUT-${transferId}`,
       walletId: wallet.walletId,
       userId: params.driverId,
-      type: 'PIX_CASH_OUT',
+      type: "PIX_CASH_OUT",
       amountBrl: params.amountBrl,
       feeBrl: fee,
       netAmountBrl: netAmount,
@@ -181,7 +181,7 @@ export class PixEngine {
       idempotencyKey: `IDEM-PIXOUT-${endToEndId}`,
       description: `Saque PIX D+0 para chave [${params.pixKey.type}: ${params.pixKey.value}]`,
       timestamp,
-      status: 'COMPLETED'
+      status: "COMPLETED",
     });
 
     const transfer: PixCashOutTransfer = {
@@ -193,8 +193,8 @@ export class PixEngine {
       netDisbursedBrl: netAmount,
       endToEndId,
       timestamp,
-      status: 'SETTLED_INSTANT',
-      receiptCode: receipt
+      status: "SETTLED_INSTANT",
+      receiptCode: receipt,
     };
 
     this.processedCashOutTransfers.set(transferId, transfer);
@@ -218,8 +218,11 @@ export class PixEngine {
     const driverAmount = Number(((params.totalAmountBrl * driverPct) / 100.0).toFixed(2));
     const platformAmount = Number((params.totalAmountBrl - driverAmount).toFixed(2));
 
-    const driverWallet = partiuWalletEngine.getOrCreateWallet(params.driverId, 'DRIVER');
-    const treasuryWallet = partiuWalletEngine.getOrCreateWallet('treasury-master', 'PLATFORM_TREASURY');
+    const driverWallet = partiuWalletEngine.getOrCreateWallet(params.driverId, "DRIVER");
+    const treasuryWallet = partiuWalletEngine.getOrCreateWallet(
+      "treasury-master",
+      "PLATFORM_TREASURY",
+    );
 
     driverWallet.balance += driverAmount;
     driverWallet.availableBalance += driverAmount;
@@ -236,19 +239,19 @@ export class PixEngine {
       splits: [
         {
           recipientId: params.driverId,
-          recipientType: 'DRIVER',
+          recipientType: "DRIVER",
           percentage: driverPct,
-          amountBrl: driverAmount
+          amountBrl: driverAmount,
         },
         {
-          recipientId: 'treasury-master',
-          recipientType: 'PLATFORM_TREASURY',
+          recipientId: "treasury-master",
+          recipientType: "PLATFORM_TREASURY",
           percentage: takeRate,
-          amountBrl: platformAmount
-        }
+          amountBrl: platformAmount,
+        },
       ],
       settledAt: timestamp,
-      status: 'SETTLED_MULTI_PARTY'
+      status: "SETTLED_MULTI_PARTY",
     };
   }
 }

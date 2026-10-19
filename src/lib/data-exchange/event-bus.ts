@@ -1,6 +1,6 @@
 /**
  * REGIONAL EVENT BUS
- * 
+ *
  * Barramento de eventos em memória de ultra-alta velocidade:
  * - Arquitetura Publish/Subscribe assíncrona
  * - Filtro por tópicos e cidades
@@ -8,14 +8,14 @@
  */
 
 export type RegionalEventType =
-  | 'RIDE_REQUESTED'
-  | 'RIDE_COMPLETED'
-  | 'VOUCHER_REDEEMED'
-  | 'CASHBACK_PROCESSED'
-  | 'ALERT_TRIGGERED'
-  | 'MEDICAL_DISPATCH_SENT'
-  | 'CAMPUS_BUS_BOARDED'
-  | 'FRANCHISE_METRIC_UPDATED';
+  | "RIDE_REQUESTED"
+  | "RIDE_COMPLETED"
+  | "VOUCHER_REDEEMED"
+  | "CASHBACK_PROCESSED"
+  | "ALERT_TRIGGERED"
+  | "MEDICAL_DISPATCH_SENT"
+  | "CAMPUS_BUS_BOARDED"
+  | "FRANCHISE_METRIC_UPDATED";
 
 export interface RegionalEventMessage {
   eventId: string;
@@ -46,7 +46,7 @@ export class EventBusEngine {
     this.totalEventsPublished += 1;
     const subscribers = this.handlers.get(event.topic);
     if (subscribers) {
-      subscribers.forEach(handler => {
+      subscribers.forEach((handler) => {
         try {
           handler(event);
         } catch (err) {

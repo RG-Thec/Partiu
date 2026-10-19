@@ -156,7 +156,8 @@ const PARCEIROS_INICIAIS: ParceiroVantagem[] = [
     categoria: "saude_seguro",
     desconto: "Consultas médicas a R$ 35 + Seguro APP Gratuito",
     cidade: "Rede Nacional",
-    descricao: "Atendimento ambulatorial, telemedicina 24h e cobertura de acidentes pessoais para motoristas e entregadores.",
+    descricao:
+      "Atendimento ambulatorial, telemedicina 24h e cobertura de acidentes pessoais para motoristas e entregadores.",
     contatoOuLink: "0800 700 8090",
     ativo: true,
   },
@@ -197,7 +198,9 @@ export function AdminCuponsEVantagensPage() {
 
   // Form Novo Parceiro
   const [novoParceiroNome, setNovoParceiroNome] = useState("");
-  const [novoParceiroCat, setNovoParceiroCat] = useState<"combustivel" | "manutencao" | "lavajato" | "saude_seguro">("combustivel");
+  const [novoParceiroCat, setNovoParceiroCat] = useState<
+    "combustivel" | "manutencao" | "lavajato" | "saude_seguro"
+  >("combustivel");
   const [novoParceiroDesconto, setNovoParceiroDesconto] = useState("");
   const [novoParceiroCidade, setNovoParceiroCidade] = useState("Todas as Regiões");
   const [novoParceiroDesc, setNovoParceiroDesc] = useState("");
@@ -402,7 +405,8 @@ export function AdminCuponsEVantagensPage() {
 
       {salvoFeedback && (
         <div className="rounded-2xl bg-emerald-500 text-white p-4 text-xs font-black flex items-center gap-2 shadow-lg animate-in fade-in">
-          <CheckCircle2 className="h-5 w-5" /> Configurações salvas e ativas na plataforma com sucesso!
+          <CheckCircle2 className="h-5 w-5" /> Configurações salvas e ativas na plataforma com
+          sucesso!
         </div>
       )}
 
@@ -412,23 +416,31 @@ export function AdminCuponsEVantagensPage() {
           {/* Métricas Rápidas */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Cupons Ativos</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                Cupons Ativos
+              </span>
               <p className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
                 {cupons.filter((c) => c.ativo).length}
               </p>
             </div>
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Total de Usos</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                Total de Usos
+              </span>
               <p className="text-xl sm:text-2xl font-black text-emerald-600 mt-1">
                 {cupons.reduce((acc, c) => acc + c.usosTotais, 0)}
               </p>
             </div>
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Desconto Médio</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                Desconto Médio
+              </span>
               <p className="text-xl sm:text-2xl font-black text-blue-600 mt-1">12% / R$ 6</p>
             </div>
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Retenção Estimada</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                Retenção Estimada
+              </span>
               <p className="text-xl sm:text-2xl font-black text-primary-600 mt-1">+28.4%</p>
             </div>
           </div>
@@ -445,7 +457,9 @@ export function AdminCuponsEVantagensPage() {
 
               <form onSubmit={handleCriarCupom} className="space-y-3.5">
                 <div>
-                  <label className="text-[11px] font-black text-slate-700 uppercase">Código Promocional</label>
+                  <label className="text-[11px] font-black text-slate-700 uppercase">
+                    Código Promocional
+                  </label>
                   <input
                     type="text"
                     required
@@ -457,7 +471,9 @@ export function AdminCuponsEVantagensPage() {
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-black text-slate-700 uppercase">Descrição da Promoção</label>
+                  <label className="text-[11px] font-black text-slate-700 uppercase">
+                    Descrição da Promoção
+                  </label>
                   <input
                     type="text"
                     required
@@ -470,7 +486,9 @@ export function AdminCuponsEVantagensPage() {
 
                 <div className="grid grid-cols-2 gap-2.5">
                   <div>
-                    <label className="text-[11px] font-black text-slate-700 uppercase">Tipo de Desconto</label>
+                    <label className="text-[11px] font-black text-slate-700 uppercase">
+                      Tipo de Desconto
+                    </label>
                     <select
                       value={novoTipo}
                       onChange={(e) => setNovoTipo(e.target.value as any)}
@@ -499,7 +517,9 @@ export function AdminCuponsEVantagensPage() {
 
                 <div className="grid grid-cols-2 gap-2.5">
                   <div>
-                    <label className="text-[11px] font-black text-slate-700 uppercase">Categoria Válida</label>
+                    <label className="text-[11px] font-black text-slate-700 uppercase">
+                      Categoria Válida
+                    </label>
                     <select
                       value={novaCategoria}
                       onChange={(e) => setNovaCategoria(e.target.value as any)}
@@ -513,7 +533,9 @@ export function AdminCuponsEVantagensPage() {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-black text-slate-700 uppercase">Valor Mínimo (R$)</label>
+                    <label className="text-[11px] font-black text-slate-700 uppercase">
+                      Valor Mínimo (R$)
+                    </label>
                     <input
                       type="number"
                       min="0"
@@ -526,7 +548,9 @@ export function AdminCuponsEVantagensPage() {
 
                 <div className="grid grid-cols-2 gap-2.5">
                   <div>
-                    <label className="text-[11px] font-black text-slate-700 uppercase">Limite de Usos</label>
+                    <label className="text-[11px] font-black text-slate-700 uppercase">
+                      Limite de Usos
+                    </label>
                     <input
                       type="number"
                       min="1"
@@ -537,7 +561,9 @@ export function AdminCuponsEVantagensPage() {
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-black text-slate-700 uppercase">Validade até</label>
+                    <label className="text-[11px] font-black text-slate-700 uppercase">
+                      Validade até
+                    </label>
                     <input
                       type="date"
                       value={novaDataExpira}
@@ -595,7 +621,9 @@ export function AdminCuponsEVantagensPage() {
                               : "bg-emerald-100 text-emerald-700"
                           }`}
                         >
-                          {c.tipo === "porcentagem" ? `${c.valor}% OFF` : `R$ ${c.valor.toFixed(2)} OFF`}
+                          {c.tipo === "porcentagem"
+                            ? `${c.valor}% OFF`
+                            : `R$ ${c.valor.toFixed(2)} OFF`}
                         </span>
                         <span className="text-[10px] font-bold text-slate-400 capitalize">
                           {c.categoria === "todas"
@@ -659,7 +687,8 @@ export function AdminCuponsEVantagensPage() {
                   Parcerias Exclusivas para Motoristas & Entregadores
                 </h3>
                 <p className="text-xs text-slate-600 mt-0.5">
-                  Estes parceiros aparecem na aba "Clube de Vantagens" do app do motorista, garantindo descontos reais em combustível, peças, pneus e alimentação.
+                  Estes parceiros aparecem na aba "Clube de Vantagens" do app do motorista,
+                  garantindo descontos reais em combustível, peças, pneus e alimentação.
                 </p>
               </div>
             </div>
@@ -677,7 +706,9 @@ export function AdminCuponsEVantagensPage() {
 
               <form onSubmit={handleCriarParceiro} className="space-y-3.5">
                 <div>
-                  <label className="text-[11px] font-black text-slate-700 uppercase">Nome do Parceiro / Empresa</label>
+                  <label className="text-[11px] font-black text-slate-700 uppercase">
+                    Nome do Parceiro / Empresa
+                  </label>
                   <input
                     type="text"
                     required
@@ -689,7 +720,9 @@ export function AdminCuponsEVantagensPage() {
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-black text-slate-700 uppercase">Categoria</label>
+                  <label className="text-[11px] font-black text-slate-700 uppercase">
+                    Categoria
+                  </label>
                   <select
                     value={novoParceiroCat}
                     onChange={(e) => setNovoParceiroCat(e.target.value as any)}
@@ -703,7 +736,9 @@ export function AdminCuponsEVantagensPage() {
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-black text-slate-700 uppercase">Desconto em Destaque</label>
+                  <label className="text-[11px] font-black text-slate-700 uppercase">
+                    Desconto em Destaque
+                  </label>
                   <input
                     type="text"
                     required
@@ -715,7 +750,9 @@ export function AdminCuponsEVantagensPage() {
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-black text-slate-700 uppercase">Cidade / Região</label>
+                  <label className="text-[11px] font-black text-slate-700 uppercase">
+                    Cidade / Região
+                  </label>
                   <input
                     type="text"
                     placeholder="Ex: Todas as Praças, São Paulo"
@@ -726,7 +763,9 @@ export function AdminCuponsEVantagensPage() {
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-black text-slate-700 uppercase">Instruções / Regras</label>
+                  <label className="text-[11px] font-black text-slate-700 uppercase">
+                    Instruções / Regras
+                  </label>
                   <textarea
                     rows={2}
                     placeholder="Ex: Apresente o aplicativo com cadastro aprovado no caixa."
@@ -737,7 +776,9 @@ export function AdminCuponsEVantagensPage() {
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-black text-slate-700 uppercase">Contato / Endereço</label>
+                  <label className="text-[11px] font-black text-slate-700 uppercase">
+                    Contato / Endereço
+                  </label>
                   <input
                     type="text"
                     placeholder="Ex: Whats (82) 99999-0000 ou Endereço"
@@ -817,7 +858,10 @@ export function AdminCuponsEVantagensPage() {
       {/* ABA 3: INDIQUE E GANHE (TOTALMENTE CONFIGURÁVEL PELO ADMIN) */}
       {abaAtiva === "indicacao" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <form onSubmit={handleSalvarRegrasIndicacao} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+          <form
+            onSubmit={handleSalvarRegrasIndicacao}
+            className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4"
+          >
             <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-[10px] font-black uppercase text-blue-700 border border-blue-200">
               <Users className="h-3.5 w-3.5" /> Passageiros • Programa de Indicação
             </div>
@@ -826,7 +870,8 @@ export function AdminCuponsEVantagensPage() {
                 Configurar Recompensas de Indicação
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Defina os valores de bônus e desconto para o programa de indicação entre passageiros.
+                Defina os valores de bônus e desconto para o programa de indicação entre
+                passageiros.
               </p>
             </div>
 
@@ -836,7 +881,9 @@ export function AdminCuponsEVantagensPage() {
                   Bônus para o Amigo Indicador (R$)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-xs font-bold text-slate-400">R$</span>
+                  <span className="absolute left-3 top-2.5 text-xs font-bold text-slate-400">
+                    R$
+                  </span>
                   <input
                     type="number"
                     step="0.50"
@@ -858,7 +905,9 @@ export function AdminCuponsEVantagensPage() {
                   Desconto para o Convidado Indicado (R$)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-xs font-bold text-slate-400">R$</span>
+                  <span className="absolute left-3 top-2.5 text-xs font-bold text-slate-400">
+                    R$
+                  </span>
                   <input
                     type="number"
                     step="0.50"
@@ -877,8 +926,12 @@ export function AdminCuponsEVantagensPage() {
 
               <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
                 <div>
-                  <span className="text-xs font-bold text-slate-900 block">Campanha Ativa no Aplicativo</span>
-                  <span className="text-[10px] text-slate-500">Exibir card e permitir resgate no menu dos usuários</span>
+                  <span className="text-xs font-bold text-slate-900 block">
+                    Campanha Ativa no Aplicativo
+                  </span>
+                  <span className="text-[10px] text-slate-500">
+                    Exibir card e permitir resgate no menu dos usuários
+                  </span>
                 </div>
                 <input
                   type="checkbox"
@@ -907,15 +960,24 @@ export function AdminCuponsEVantagensPage() {
               Bônus de Indicação de Condutores
             </h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Estimule sua base atual de motoristas a recrutar novos condutores para suprir a demanda da cidade:
+              Estimule sua base atual de motoristas a recrutar novos condutores para suprir a
+              demanda da cidade:
             </p>
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs font-medium text-slate-700">
-              <p>🚗 <strong>Indicação de Carro:</strong> R$ 100,00 creditados via PIX após o indicado completar 25 corridas.</p>
-              <p>🛵 <strong>Indicação de Moto:</strong> R$ 50,00 creditados via PIX após 20 corridas ou entregas.</p>
+              <p>
+                🚗 <strong>Indicação de Carro:</strong> R$ 100,00 creditados via PIX após o indicado
+                completar 25 corridas.
+              </p>
+              <p>
+                🛵 <strong>Indicação de Moto:</strong> R$ 50,00 creditados via PIX após 20 corridas
+                ou entregas.
+              </p>
             </div>
             <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800">
               <span>Status do Bônus de Condutores:</span>
-              <span className="px-2 py-0.5 bg-emerald-200 rounded-lg text-emerald-900 uppercase text-[10px]">Ativo no App</span>
+              <span className="px-2 py-0.5 bg-emerald-200 rounded-lg text-emerald-900 uppercase text-[10px]">
+                Ativo no App
+              </span>
             </div>
           </div>
         </div>

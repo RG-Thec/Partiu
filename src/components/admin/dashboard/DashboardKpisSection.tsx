@@ -1,14 +1,5 @@
 import React from "react";
-import {
-  DollarSign,
-  Car,
-  Clock,
-  Radio,
-  TrendingUp,
-  ShieldAlert,
-  Zap,
-  Users,
-} from "lucide-react";
+import { DollarSign, Car, Clock, Radio, TrendingUp, ShieldAlert, Zap, Users } from "lucide-react";
 import { AdminKpiCard } from "../ui/AdminKpiCard";
 import { AdminBadge } from "../ui/AdminBadge";
 
@@ -25,8 +16,7 @@ export interface DashboardKpisSectionProps {
   onOpenOperacao?: () => void;
 }
 
-const brl = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export function DashboardKpisSection({
   gmvHoje,

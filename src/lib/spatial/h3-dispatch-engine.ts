@@ -31,9 +31,9 @@ export interface CandidateH3Driver {
 }
 
 export interface WaveDispatchConfig {
-  waveSize: number;    // padrão: 5 condutores por onda
-  offerTtlMs: number;  // padrão: 15.000ms (15 segundos)
-  maxWaves: number;    // padrão: 4 ondas (até 20 condutores)
+  waveSize: number; // padrão: 5 condutores por onda
+  offerTtlMs: number; // padrão: 15.000ms (15 segundos)
+  maxWaves: number; // padrão: 4 ondas (até 20 condutores)
 }
 
 export interface WaveOffer {
@@ -58,7 +58,7 @@ export interface FetchCandidatesOptions {
   pickupLat: number;
   pickupLng: number;
   maxRings?: number; // padrão: 4 anéis (~700m - 1.2km)
-  limit?: number;    // padrão: 50 condutores
+  limit?: number; // padrão: 50 condutores
   resolution?: number;
 }
 
@@ -67,7 +67,11 @@ export class H3DispatchEngine {
   private lua: RedisLuaEngine;
   private res: number;
 
-  constructor(store: RedisSpatialStoreInterface = spatialStore, lua: RedisLuaEngine = redisLuaEngine, res: number = DEFAULT_H3_MATCHING_RESOLUTION) {
+  constructor(
+    store: RedisSpatialStoreInterface = spatialStore,
+    lua: RedisLuaEngine = redisLuaEngine,
+    res: number = DEFAULT_H3_MATCHING_RESOLUTION,
+  ) {
     this.store = store;
     this.lua = lua;
     this.res = res;
@@ -76,7 +80,9 @@ export class H3DispatchEngine {
   /**
    * Varre anéis concêntricos H3 no Redis e retorna condutores disponíveis ordenados por proximidade
    */
-  public async fetchCandidatesInH3Rings(opts: FetchCandidatesOptions): Promise<CandidateH3Driver[]> {
+  public async fetchCandidatesInH3Rings(
+    opts: FetchCandidatesOptions,
+  ): Promise<CandidateH3Driver[]> {
     const { pickupLat, pickupLng, maxRings = 4, limit = 50, resolution = this.res } = opts;
 
     // 1. Célula de origem do passageiro
@@ -118,7 +124,12 @@ export class H3DispatchEngine {
       if (!locData) continue;
 
       // Distância geodésica aproximada em metros
-      const distMeters = this.calculateDistanceMeters(pickupLat, pickupLng, locData.lat, locData.lng);
+      const distMeters = this.calculateDistanceMeters(
+        pickupLat,
+        pickupLng,
+        locData.lat,
+        locData.lng,
+      );
 
       results.push({
         driverId: item.id,
@@ -143,7 +154,11 @@ export class H3DispatchEngine {
   /**
    * Adquire um lock distribuído para a corrida (evita concorrência entre despachadores)
    */
-  public async withRideLock<T>(rideId: string, lockTtlMs: number, operation: () => Promise<T>): Promise<T | null> {
+  public async withRideLock<T>(
+    rideId: string,
+    lockTtlMs: number,
+    operation: () => Promise<T>,
+  ): Promise<T | null> {
     const lockKey = `ride:${rideId}:lock`;
     const acquired = await this.store.setNxPx(lockKey, "1", lockTtlMs);
     if (!acquired) {
@@ -161,7 +176,7 @@ export class H3DispatchEngine {
    */
   public filterFemaleDrivers(
     candidates: CandidateH3Driver[],
-    femaleDriverIds?: Set<string>
+    femaleDriverIds?: Set<string>,
   ): CandidateH3Driver[] {
     if (!candidates || candidates.length === 0) return [];
     return candidates.filter((c) => {
@@ -176,9 +191,14 @@ export class H3DispatchEngine {
    */
   public filterBlockedDrivers(
     candidates: CandidateH3Driver[],
-    blockedDriverIds: Set<string>
+    blockedDriverIds: Set<string>,
   ): CandidateH3Driver[] {
-    if (!candidates || candidates.length === 0 || !blockedDriverIds || blockedDriverIds.size === 0) {
+    if (
+      !candidates ||
+      candidates.length === 0 ||
+      !blockedDriverIds ||
+      blockedDriverIds.size === 0
+    ) {
       return candidates;
     }
     return candidates.filter((c) => !blockedDriverIds.has(c.driverId));
@@ -190,7 +210,7 @@ export class H3DispatchEngine {
   public createWaveBatch(
     candidates: CandidateH3Driver[],
     waveNumber: number,
-    waveSize: number = 5
+    waveSize: number = 5,
   ): CandidateH3Driver[] {
     if (!candidates || candidates.length === 0 || waveNumber < 1) return [];
     const start = (waveNumber - 1) * waveSize;
@@ -204,7 +224,7 @@ export class H3DispatchEngine {
     rideId: string,
     drivers: CandidateH3Driver[],
     waveNumber: number,
-    offerTtlMs: number = 15000
+    offerTtlMs: number = 15000,
   ): Promise<WaveOffer[]> {
     const expiresAt = Date.now() + offerTtlMs;
     const offers: WaveOffer[] = [];
@@ -259,7 +279,7 @@ export class H3DispatchEngine {
    */
   public async acceptWaveOffer(
     rideId: string,
-    driverId: string
+    driverId: string,
   ): Promise<{ success: boolean; error?: string }> {
     const hashKey = `partiu:dispatch:offers:${rideId}`;
     const raw = await this.store.hget(hashKey, driverId);
@@ -322,7 +342,7 @@ export class H3DispatchEngine {
     rideId: string,
     candidates: CandidateH3Driver[],
     config: Partial<WaveDispatchConfig> = {},
-    checkRideStatus?: () => Promise<string | null>
+    checkRideStatus?: () => Promise<string | null>,
   ): Promise<WaveDispatchResult> {
     const { waveSize = 5, offerTtlMs = 15000, maxWaves = 4 } = config;
 
@@ -388,7 +408,10 @@ export class H3DispatchEngine {
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }

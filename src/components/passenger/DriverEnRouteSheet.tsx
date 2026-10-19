@@ -45,13 +45,17 @@ import {
 
 // Lazy-loaded para otimização de bundle e TTI de 60fps
 const DriverProfileModal = lazy(() =>
-  import("./DriverProfileModal").then((m) => ({ default: m.DriverProfileModal }))
+  import("./DriverProfileModal").then((m) => ({ default: m.DriverProfileModal })),
 );
 
 /**
  * Ícone estilizado de sirene de emergência SOS
  */
-function SirenIcon({ className = "w-5 h-5 text-rose-600 dark:text-rose-400" }: { className?: string }) {
+function SirenIcon({
+  className = "w-5 h-5 text-rose-600 dark:text-rose-400",
+}: {
+  className?: string;
+}) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -76,7 +80,11 @@ function SirenIcon({ className = "w-5 h-5 text-rose-600 dark:text-rose-400" }: {
 /**
  * Ícone diamante do PIX D+0 em verde esmeralda (#10B981)
  */
-function PixDiamondIcon({ className = "w-6 h-6 text-emerald-600 dark:text-emerald-400" }: { className?: string }) {
+function PixDiamondIcon({
+  className = "w-6 h-6 text-emerald-600 dark:text-emerald-400",
+}: {
+  className?: string;
+}) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
       <path d="M16.9 7.1a2 2 0 0 0-2.8 0l-2.1 2.1-2.1-2.1a2 2 0 0 0-2.8 2.8l2.1 2.1-2.1 2.1a2 2 0 0 0 2.8 2.8l2.1-2.1 2.1 2.1a2 2 0 0 0 2.8-2.8l-2.1-2.1 2.1-2.1a2 2 0 0 0 0-2.8z" />
@@ -144,7 +152,7 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
 
   // Estados de Resiliência de Rede
   const [isOnline, setIsOnline] = useState(() =>
-    typeof navigator !== "undefined" ? navigator.onLine : true
+    typeof navigator !== "undefined" ? navigator.onLine : true,
   );
   const [driverSignalWarning, setDriverSignalWarning] = useState(false);
 
@@ -172,7 +180,7 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
       currentRideId,
       "PASSENGER",
       () => setUnreadCount(chatRealtimeService.getUnreadCount(currentRideId, "PASSENGER")),
-      (count) => setUnreadCount(count)
+      (count) => setUnreadCount(count),
     );
   }, [currentRideId]);
 
@@ -219,17 +227,12 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
     trustProfile?.avatarUrl ||
     "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80";
 
-  const rating =
-    activeRide?.motorista?.avaliacao ||
-    trustProfile?.rating ||
-    4.98;
+  const rating = activeRide?.motorista?.avaliacao || trustProfile?.rating || 4.98;
 
   const vehicleModel =
-    trustProfile?.vehicleModel ||
-    (isMoto ? "Honda CG 160 Titan" : "Chevrolet Onix");
+    trustProfile?.vehicleModel || (isMoto ? "Honda CG 160 Titan" : "Chevrolet Onix");
 
-  const vehicleColor =
-    trustProfile?.vehicleColor || (isMoto ? "Azul" : "Prata");
+  const vehicleColor = trustProfile?.vehicleColor || (isMoto ? "Azul" : "Prata");
 
   const licensePlate = (
     activeRide?.motorista?.placa ||
@@ -237,30 +240,26 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
     (isMoto ? "ABC-1234" : "ABC-1234")
   ).toUpperCase();
 
-  const phone =
-    activeRide?.motorista?.telefone ||
-    trustProfile?.phone ||
-    "(61) 99876-5432";
+  const phone = activeRide?.motorista?.telefone || trustProfile?.phone || "(61) 99876-5432";
 
   // Estados de progresso da corrida
-  const isEmViagem = state === "ON_TRIP" || state === "IN_PROGRESS" || activeRide?.status === "EM_VIAGEM";
+  const isEmViagem =
+    state === "ON_TRIP" || state === "IN_PROGRESS" || activeRide?.status === "EM_VIAGEM";
   const isConcluida = state === "COMPLETED" || activeRide?.status === "CONCLUIDA";
   const isChegou = activeRide?.status === "CHEGOU" || (state as string) === "DRIVER_ARRIVED";
   const isDriverCancelled = activeRide?.status === "CANCELADA" && state !== "CANCELLED";
 
   // ETA e Distância dinâmicos
   const etaText =
-    typeof etaCalculado === "string"
-      ? etaCalculado
-      : etaCalculado?.textoResumido || "3 min";
+    typeof etaCalculado === "string" ? etaCalculado : etaCalculado?.textoResumido || "3 min";
 
   const etaLabel = isConcluida
     ? "Concluída"
     : isEmViagem
-    ? "Em viagem"
-    : isChegou
-    ? "No local"
-    : etaText;
+      ? "Em viagem"
+      : isChegou
+        ? "No local"
+        : etaText;
 
   const distanciaKmText = distanciaKm ? `${distanciaKm.toFixed(1).replace(".", ",")} km` : "4.2 km";
   const valorCorridaFormatado = (activeRide?.valor || 24.9).toLocaleString("pt-BR", {
@@ -271,7 +270,7 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
   // PIN de 4 dígitos (padrão 6.png: 4 8 2 1)
   const pinDigits = useMemo(() => {
     const rawPin = String(activeRide?.pin || (activeRide as any)?.codigoConfirmacao || "4821");
-    return (rawPin.slice(0, 4).padEnd(4, "0")).split("");
+    return rawPin.slice(0, 4).padEnd(4, "0").split("");
   }, [activeRide?.pin]);
 
   // Estado e ação de cópia do PIN de segurança
@@ -291,22 +290,21 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
     try {
       const trackingData = rideLiveTrackingService.registerRideTracking({
         rideId: currentRideId,
-        status: isEmViagem
-          ? "EM_VIAGEM"
-          : isChegou
-          ? "CHEGOU"
-          : "A_CAMINHO",
+        status: isEmViagem ? "EM_VIAGEM" : isChegou ? "CHEGOU" : "A_CAMINHO",
         origem: origem || "Local de Embarque",
         destino: destino || "Destino",
         origemCoords: activeRide?.origemCoords,
         destinoCoords: activeRide?.destinoCoords,
-        driverCoords: (activeRide as any)?.motoristaCoords || (activeRide as any)?.motorista?.coords,
+        driverCoords:
+          (activeRide as any)?.motoristaCoords || (activeRide as any)?.motorista?.coords,
         driverName,
         driverPhoto: avatarUrl,
         driverRating: rating,
         vehicleModel,
         vehiclePlate: licensePlate,
-        passengerName: (typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : "") || "Passageiro",
+        passengerName:
+          (typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : "") ||
+          "Passageiro",
         distanceKm: distanciaKm,
         durationMin: typeof etaCalculado === "number" ? etaCalculado : undefined,
       });
@@ -315,7 +313,7 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
       const shareMessage = rideLiveTrackingService.buildShareMessage(
         trackingData.trackingToken,
         vehicleModel,
-        licensePlate
+        licensePlate,
       );
 
       if (typeof navigator !== "undefined" && navigator.share) {
@@ -332,7 +330,9 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
       }
     } catch {
       if (typeof navigator !== "undefined" && navigator.clipboard) {
-        navigator.clipboard.writeText(`Acompanhe minha rota no ${nomeApp || "PARTIU"}: ${window.location.href}`);
+        navigator.clipboard.writeText(
+          `Acompanhe minha rota no ${nomeApp || "PARTIU"}: ${window.location.href}`,
+        );
         toast.success("Link copiado!");
       }
     }
@@ -372,7 +372,8 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
     if (!isConcluida) return;
     const chave = activeRide?.motorista?.chavePix || phone?.replace(/\D/g, "") || "61998765432";
     const beneficiario = activeRide?.motorista?.nome || driverName;
-    const cidade = activeRide?.motorista?.cidade || (destino ? destino.split(",")[1]?.trim() : "") || "BRASIL";
+    const cidade =
+      activeRide?.motorista?.cidade || (destino ? destino.split(",")[1]?.trim() : "") || "BRASIL";
     const valor = activeRide?.valor || 24.9;
     const txId = (activeRide?.id || "COR-101").replace(/[^a-zA-Z0-9]/g, "").slice(0, 25);
 
@@ -409,7 +410,8 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
     try {
       const profile = await userService.getCurrentUserProfile().catch(() => null);
       const passageiroId = profile?.id || (progressiveSession as any)?.passengerId || "pax_current";
-      const motoristaId = activeRide?.motorista?.id || (progressiveSession as any)?.driverId || "drv_default";
+      const motoristaId =
+        activeRide?.motorista?.id || (progressiveSession as any)?.driverId || "drv_default";
 
       await rideRatingService.submitRating({
         rideId: currentRideId,
@@ -450,7 +452,8 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
               O motorista precisou cancelar
             </h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Imprevistos acontecem. Deseja que a PARTIU localize outro motorista parceiro imediatamente sem custo adicional?
+              Imprevistos acontecem. Deseja que a PARTIU localize outro motorista parceiro
+              imediatamente sem custo adicional?
             </p>
           </div>
 
@@ -507,21 +510,31 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-primary shrink-0" />
                     <div className="min-w-0">
-                      <span className="text-xs uppercase font-extrabold text-muted-foreground block">Origem</span>
-                      <span className="text-xs font-bold text-foreground truncate block">{origem || activeRide?.origem || "Local de embarque"}</span>
+                      <span className="text-xs uppercase font-extrabold text-muted-foreground block">
+                        Origem
+                      </span>
+                      <span className="text-xs font-bold text-foreground truncate block">
+                        {origem || activeRide?.origem || "Local de embarque"}
+                      </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
                     <div className="min-w-0">
-                      <span className="text-xs uppercase font-extrabold text-muted-foreground block">Destino</span>
-                      <span className="text-xs font-bold text-foreground truncate block">{destino || "Destino selecionado"}</span>
+                      <span className="text-xs uppercase font-extrabold text-muted-foreground block">
+                        Destino
+                      </span>
+                      <span className="text-xs font-bold text-foreground truncate block">
+                        {destino || "Destino selecionado"}
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 <div className="border-l border-border pl-4 text-right shrink-0">
-                  <span className="text-xs text-muted-foreground font-bold block">Valor da corrida</span>
+                  <span className="text-xs text-muted-foreground font-bold block">
+                    Valor da corrida
+                  </span>
                   <div className="text-2xl font-black text-foreground leading-tight">
                     {valorCorridaFormatado}
                   </div>
@@ -571,8 +584,12 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                     <PixDiamondIcon className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-black text-foreground uppercase tracking-tight">Pagamento Direto via PIX</h4>
-                    <p className="text-[11px] text-muted-foreground">Pague direto na conta bancária do motorista</p>
+                    <h4 className="text-xs font-black text-foreground uppercase tracking-tight">
+                      Pagamento Direto via PIX
+                    </h4>
+                    <p className="text-[11px] text-muted-foreground">
+                      Pague direto na conta bancária do motorista
+                    </p>
                   </div>
                 </div>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 text-[10px] font-black uppercase">
@@ -624,14 +641,17 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
               </button>
 
               <p className="text-[10px] text-muted-foreground leading-tight">
-                O valor total de {valorCorridaFormatado} é transferido diretamente para o condutor. Você também pode pagar em dinheiro ou escanear o QR Code no celular do motorista.
+                O valor total de {valorCorridaFormatado} é transferido diretamente para o condutor.
+                Você também pode pagar em dinheiro ou escanear o QR Code no celular do motorista.
               </p>
             </div>
 
             {/* Seletor de Avaliação 5 Estrelas (8.png & Padrão 99) */}
             <div className="space-y-2 pt-1">
               <h3 className="text-base font-bold text-foreground">Como foi sua experiência?</h3>
-              <p className="text-xs text-muted-foreground">Sua avaliação ajuda a manter a qualidade e segurança no PARTIU.</p>
+              <p className="text-xs text-muted-foreground">
+                Sua avaliação ajuda a manter a qualidade e segurança no PARTIU.
+              </p>
               <div className="flex items-center justify-center gap-2 pt-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
@@ -680,7 +700,7 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                         onClick={() => {
                           hapticFeedback.light();
                           setSelectedRatingTags((prev) =>
-                            isSelected ? prev.filter((t) => t !== tag) : [...prev, tag]
+                            isSelected ? prev.filter((t) => t !== tag) : [...prev, tag],
                           );
                         }}
                         className={`text-xs px-3 py-1.5 rounded-xl font-medium border transition-all cursor-pointer ${
@@ -716,8 +736,12 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                   $
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-foreground">Gostaria de dar uma gorjeta?</h4>
-                  <p className="text-[11px] text-muted-foreground">É opcional, mas faz toda a diferença!</p>
+                  <h4 className="text-xs font-bold text-foreground">
+                    Gostaria de dar uma gorjeta?
+                  </h4>
+                  <p className="text-[11px] text-muted-foreground">
+                    É opcional, mas faz toda a diferença!
+                  </p>
                 </div>
               </div>
 
@@ -818,7 +842,9 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
             <div className="flex items-center gap-2 shrink-0 border-l border-border pl-3">
               <Clock className="w-4 h-4 text-muted-foreground" />
               <div className="text-right">
-                <span className="text-xs text-muted-foreground font-bold uppercase block">Status</span>
+                <span className="text-xs text-muted-foreground font-bold uppercase block">
+                  Status
+                </span>
                 <span className="text-xs font-bold text-foreground block">Em andamento</span>
               </div>
             </div>
@@ -837,14 +863,18 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1">
-                  <span className="text-xs sm:text-sm font-bold text-foreground truncate">{driverName}</span>
+                  <span className="text-xs sm:text-sm font-bold text-foreground truncate">
+                    {driverName}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground font-bold mt-0.2">
                   <Star className="w-3 h-3 fill-amber-400 text-amber-500 shrink-0" />
                   <span>{Number(rating).toFixed(2)}</span>
                 </div>
                 <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                  <span className="text-xs font-semibold text-muted-foreground truncate">{vehicleModel} {vehicleColor}</span>
+                  <span className="text-xs font-semibold text-muted-foreground truncate">
+                    {vehicleModel} {vehicleColor}
+                  </span>
                   <span className="inline-flex items-center px-1.5 py-0.2 rounded-md bg-slate-900 dark:bg-slate-800 text-white font-mono font-black text-[10px] tracking-wider uppercase shadow-2xs border border-slate-700">
                     {licensePlate}
                   </span>
@@ -906,7 +936,9 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                       <span>{Number(rating).toFixed(2)}</span>
                     </div>
                     <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                      <span className="text-xs font-semibold text-muted-foreground truncate">{vehicleModel} {vehicleColor}</span>
+                      <span className="text-xs font-semibold text-muted-foreground truncate">
+                        {vehicleModel} {vehicleColor}
+                      </span>
                       <span className="inline-flex items-center px-1.5 py-0.2 rounded-md bg-slate-900 dark:bg-slate-800 text-white font-mono font-black text-[10px] tracking-wider uppercase shadow-2xs border border-slate-700">
                         {licensePlate}
                       </span>
@@ -929,13 +961,17 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                     {isMoto ? <Bike className="w-5 h-5" /> : <Car className="w-5 h-5" />}
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-foreground">{isMoto ? `${nomeApp} Moto` : `${nomeApp} Pop`}</h4>
+                    <h4 className="text-sm font-bold text-foreground">
+                      {isMoto ? `${nomeApp} Moto` : `${nomeApp} Pop`}
+                    </h4>
                     <p className="text-xs text-muted-foreground font-semibold">Viagem econômica</p>
                   </div>
                 </div>
 
                 <div className="border-l border-border pl-4 text-right">
-                  <span className="text-xs text-muted-foreground font-bold uppercase block">Valor estimado</span>
+                  <span className="text-xs text-muted-foreground font-bold uppercase block">
+                    Valor estimado
+                  </span>
                   <div className="text-xl font-bold text-foreground leading-tight">
                     {valorCorridaFormatado}
                   </div>
@@ -947,7 +983,9 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                 <div className="flex items-center gap-2 min-w-0">
                   <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
                   <div className="truncate">
-                    <span className="text-muted-foreground block text-xs font-semibold">Chegada em</span>
+                    <span className="text-muted-foreground block text-xs font-semibold">
+                      Chegada em
+                    </span>
                     <span className="font-bold text-foreground">{distanciaKmText} restantes</span>
                   </div>
                 </div>
@@ -955,8 +993,12 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                 <div className="flex items-center gap-2 min-w-0 pl-3 border-l border-border">
                   <MapPin className="w-4 h-4 text-primary shrink-0" />
                   <div className="truncate">
-                    <span className="text-muted-foreground block text-xs font-semibold">Destino</span>
-                    <span className="font-bold text-foreground truncate block">{destino || "Destino selecionado"}</span>
+                    <span className="text-muted-foreground block text-xs font-semibold">
+                      Destino
+                    </span>
+                    <span className="font-bold text-foreground truncate block">
+                      {destino || "Destino selecionado"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1000,7 +1042,7 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                   </div>
                   <div className="min-w-0">
                     <h3 className="text-base font-extrabold text-foreground leading-tight truncate">
-                       PIN de embarque
+                      PIN de embarque
                     </h3>
                     <p className="text-xs text-muted-foreground font-medium mt-0.5 truncate">
                       Informe ao motorista
@@ -1018,7 +1060,9 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                   {pinCopied ? (
                     <>
                       <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[2.5]" />
-                      <span className="text-emerald-700 dark:text-emerald-400 font-extrabold">Copiado</span>
+                      <span className="text-emerald-700 dark:text-emerald-400 font-extrabold">
+                        Copiado
+                      </span>
                     </>
                   ) : (
                     <>
@@ -1046,7 +1090,9 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border text-foreground">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.2]" />
                 <p className="text-xs font-semibold leading-tight text-muted-foreground">
-                  Confirme a placa <strong className="text-foreground font-extrabold">{licensePlate}</strong> antes de embarcar e dizer o código.
+                  Confirme a placa{" "}
+                  <strong className="text-foreground font-extrabold">{licensePlate}</strong> antes
+                  de embarcar e dizer o código.
                 </p>
               </div>
 
@@ -1145,7 +1191,8 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
               {/* Informação sobre cancelamento gratuito */}
               {cancellationPolicy.isGracePeriodActive && (
                 <p className="text-[11px] text-muted-foreground text-center font-medium">
-                  {cancellationNotice} • <span className="text-emerald-600 dark:text-emerald-400 font-bold">Grátis</span>
+                  {cancellationNotice} •{" "}
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">Grátis</span>
                 </p>
               )}
             </div>

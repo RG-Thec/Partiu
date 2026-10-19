@@ -1,6 +1,6 @@
 /**
  * PARTIU PASSENGER BEHAVIOR ANALYSIS
- * 
+ *
  * Análise Comportamental e Telemetria de Uso do Passageiro.
  * Avalia pontualidade de embarque, cancelamentos pós-aceite e consistência de uso.
  */
@@ -35,17 +35,21 @@ export class PassengerBehaviorAnalysisEngine {
     else if (metrics.averageBoardingDelaySeconds > 120) punctualityIndex = 28;
 
     // 2. Penalidade por Cancelamento Pós-Despacho (até -30 pts)
-    const cancelRatio = metrics.totalCompletedRides > 0
-      ? metrics.cancellationsAfterDriverDispatched / metrics.totalCompletedRides
-      : 0;
+    const cancelRatio =
+      metrics.totalCompletedRides > 0
+        ? metrics.cancellationsAfterDriverDispatched / metrics.totalCompletedRides
+        : 0;
     let cancellationPenalty = 0;
-    if (cancelRatio > 0.20) cancellationPenalty = 30;
-    else if (cancelRatio > 0.10) cancellationPenalty = 18;
+    if (cancelRatio > 0.2) cancellationPenalty = 30;
+    else if (cancelRatio > 0.1) cancellationPenalty = 18;
     else if (cancelRatio > 0.05) cancellationPenalty = 8;
 
     // 3. Bônus de Fidelidade e Avaliações Positivas (até 35 pts)
     let loyaltyBonus = Math.min(20, (metrics.daysActiveOnPlatform / 180) * 20);
-    const positiveRatingsBonus = Math.min(15, (metrics.fiveStarRatingsReceivedCount / Math.max(1, metrics.totalCompletedRides)) * 15);
+    const positiveRatingsBonus = Math.min(
+      15,
+      (metrics.fiveStarRatingsReceivedCount / Math.max(1, metrics.totalCompletedRides)) * 15,
+    );
     loyaltyBonus += positiveRatingsBonus;
 
     // 4. Penalidade por Reclamações de Motoristas
@@ -58,7 +62,7 @@ export class PassengerBehaviorAnalysisEngine {
       behaviorScore,
       punctualityIndex,
       cancellationPenalty,
-      loyaltyBonus: Math.round(loyaltyBonus)
+      loyaltyBonus: Math.round(loyaltyBonus),
     };
   }
 }

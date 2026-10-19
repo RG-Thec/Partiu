@@ -60,7 +60,8 @@ export function DriverDailyPassBanner({
         </div>
 
         <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
-          Renove agora para continuar recebendo chamados no Trip Radar com <strong>0% de comissão</strong>.
+          Renove agora para continuar recebendo chamados no Trip Radar com{" "}
+          <strong>0% de comissão</strong>.
         </p>
 
         <div className="flex flex-wrap items-center gap-2 mt-2.5">

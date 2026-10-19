@@ -9,7 +9,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { authService, TokenPayload } from "./security/auth-service";
 import { auditTrail } from "./security/audit-trail";
 import { silentCatchWarn } from "@/lib/structured-logger";
-import { whiteLabelEngine, convertWhiteLabelToBrandingRecord, DEFAULT_WHITELABEL_CONFIG } from "@/lib/white-label/white-label-engine";
+import {
+  whiteLabelEngine,
+  convertWhiteLabelToBrandingRecord,
+  DEFAULT_WHITELABEL_CONFIG,
+} from "@/lib/white-label/white-label-engine";
 import { themeEngine } from "@/lib/branding/ThemeEngine";
 
 /**
@@ -268,7 +272,8 @@ export async function loginAdmin(
         if (!whiteLabelEngine.isTenantActive(franqueadoTenant.tenantId)) {
           return {
             sucesso: false,
-            mensagem: "O plano desta franquia está suspenso pelo Super Administrador. Acesso ao painel bloqueado.",
+            mensagem:
+              "O plano desta franquia está suspenso pelo Super Administrador. Acesso ao painel bloqueado.",
           };
         }
 
@@ -308,7 +313,7 @@ export async function loginAdmin(
           );
           localStorage.setItem(
             "partiu_admin_session",
-            JSON.stringify({ role: contaFranqueado.role, tenantId: contaFranqueado.tenantId })
+            JSON.stringify({ role: contaFranqueado.role, tenantId: contaFranqueado.tenantId }),
           );
           localStorage.setItem("partiu_active_tenant_id_v2", franqueadoTenant.tenantId);
           localStorage.setItem("partiu_wl_active_tenant_v1", franqueadoTenant.tenantId);
@@ -316,16 +321,21 @@ export async function loginAdmin(
           whiteLabelEngine.switchTenant(franqueadoTenant.tenantId);
           const brandingRec = convertWhiteLabelToBrandingRecord(
             franqueadoTenant.configuracaoCompleta,
-            franqueadoTenant.tenantId
+            franqueadoTenant.tenantId,
           );
           themeEngine.applyTheme(brandingRec);
           window.dispatchEvent(
-            new CustomEvent("partiu:tenant-changed", { detail: { tenantId: franqueadoTenant.tenantId } })
+            new CustomEvent("partiu:tenant-changed", {
+              detail: { tenantId: franqueadoTenant.tenantId },
+            }),
           );
           window.dispatchEvent(
             new CustomEvent("partiu:whitelabel-updated", {
-              detail: { tenantId: franqueadoTenant.tenantId, config: franqueadoTenant.configuracaoCompleta },
-            })
+              detail: {
+                tenantId: franqueadoTenant.tenantId,
+                config: franqueadoTenant.configuracaoCompleta,
+              },
+            }),
           );
         }
 
@@ -334,7 +344,11 @@ export async function loginAdmin(
           action: "ADMIN_LOGIN_SUCCESS",
           resource: "app.admin",
           status: "SUCCESS",
-          details: { role: contaFranqueado.role, email: contaFranqueado.email, tenantId: contaFranqueado.tenantId },
+          details: {
+            role: contaFranqueado.role,
+            email: contaFranqueado.email,
+            tenantId: contaFranqueado.tenantId,
+          },
         });
 
         return {
@@ -353,24 +367,22 @@ export async function loginAdmin(
         emailLimpo === "admin@partiu.app";
 
       const isSuperAdminPasswordValid =
-        senhaLimpa === "AdminPartiu2026!" ||
-        senhaLimpa === "admin123" ||
-        senhaLimpa === "123456";
+        senhaLimpa === "AdminPartiu2026!" || senhaLimpa === "admin123" || senhaLimpa === "123456";
 
       if (isSuperAdminEmail && isSuperAdminPasswordValid) {
         const adminId =
           emailLimpo === "superadmin@partiu.app"
             ? "898792fe-ea20-4d9b-abb8-cfda2dc8aebb"
             : emailLimpo === "admin@partiumobe.com.br"
-            ? "f8d5ab62-53f5-4f63-9f3c-cecef89edb58"
-            : "8d2a0843-8005-4e16-a79a-f61c61c1f96a";
+              ? "f8d5ab62-53f5-4f63-9f3c-cecef89edb58"
+              : "8d2a0843-8005-4e16-a79a-f61c61c1f96a";
 
         const adminNome =
           emailLimpo === "superadmin@partiu.app"
             ? "Super Administrador Geral"
             : emailLimpo === "admin@partiumobe.com.br"
-            ? "Administrador Geral (PARTIU MOBE)"
-            : "Super Administrador Geral";
+              ? "Administrador Geral (PARTIU MOBE)"
+              : "Super Administrador Geral";
 
         const contaSuperAdmin: AdminAccount = {
           id: adminId,
@@ -402,13 +414,13 @@ export async function loginAdmin(
           setAdminRole(contaSuperAdmin.role);
           localStorage.setItem(
             "partiu_admin_session",
-            JSON.stringify({ role: "SUPER_ADMIN", tenantId: "default" })
+            JSON.stringify({ role: "SUPER_ADMIN", tenantId: "default" }),
           );
           localStorage.setItem("partiu_active_tenant_id_v2", "default");
           localStorage.setItem("partiu_wl_active_tenant_v1", "default");
           whiteLabelEngine.switchTenant("default");
           window.dispatchEvent(
-            new CustomEvent("partiu:tenant-changed", { detail: { tenantId: "default" } })
+            new CustomEvent("partiu:tenant-changed", { detail: { tenantId: "default" } }),
           );
         }
         return {
@@ -428,7 +440,8 @@ export async function loginAdmin(
 
       return {
         sucesso: false,
-        mensagem: authError?.message || "Credenciais inválidas. Verifique seu e-mail e senha cadastrados.",
+        mensagem:
+          authError?.message || "Credenciais inválidas. Verifique seu e-mail e senha cadastrados.",
       };
     }
 
@@ -443,7 +456,10 @@ export async function loginAdmin(
     let tenantId: string | undefined = undefined;
 
     if (adminUserData) {
-      userRole = adminUserData.is_super_admin || adminUserData.role === "super_admin" ? "SUPER_ADMIN" : "FRANQUEADO";
+      userRole =
+        adminUserData.is_super_admin || adminUserData.role === "super_admin"
+          ? "SUPER_ADMIN"
+          : "FRANQUEADO";
       tenantId = adminUserData.tenant_id || undefined;
     } else {
       // Fallback para metadata do usuário no Auth
@@ -464,7 +480,12 @@ export async function loginAdmin(
           .maybeSingle();
 
         const rawRole = (roleData?.role || "").toLowerCase();
-        if (rawRole === "super_admin" || rawRole === "owner" || rawRole === "superadmin" || rawRole === "admin") {
+        if (
+          rawRole === "super_admin" ||
+          rawRole === "owner" ||
+          rawRole === "superadmin" ||
+          rawRole === "admin"
+        ) {
           userRole = "SUPER_ADMIN";
         } else if (rawRole === "franqueado" || rawRole.includes("franq")) {
           userRole = "FRANQUEADO";
@@ -493,12 +514,16 @@ export async function loginAdmin(
         action: "ADMIN_LOGIN_REJECTED",
         resource: "app.admin",
         status: "DENIED",
-        details: { email: emailLimpo, reason: "Acesso negado: usuário não possui role administrativa autorizada" },
+        details: {
+          email: emailLimpo,
+          reason: "Acesso negado: usuário não possui role administrativa autorizada",
+        },
       });
 
       return {
         sucesso: false,
-        mensagem: "Acesso negado: sua conta não possui credenciais administrativas (Super Admin ou Franqueado).",
+        mensagem:
+          "Acesso negado: sua conta não possui credenciais administrativas (Super Admin ou Franqueado).",
       };
     }
 
@@ -507,7 +532,9 @@ export async function loginAdmin(
       id: authData.user.id,
       role: userRole,
       tenantId,
-      tenantNome: tenantInfo?.nomeOperacao || (tenantId ? tenantId.replace("tenant-", "").toUpperCase() : undefined),
+      tenantNome:
+        tenantInfo?.nomeOperacao ||
+        (tenantId ? tenantId.replace("tenant-", "").toUpperCase() : undefined),
       nome:
         (authData.user.user_metadata?.["full_name"] as string | undefined) ||
         (userRole === "SUPER_ADMIN" ? "Super Administrador" : "Franqueado Regional"),
@@ -544,7 +571,7 @@ export async function loginAdmin(
       if (conta.role === "FRANQUEADO" && conta.tenantId) {
         localStorage.setItem(
           "partiu_admin_session",
-          JSON.stringify({ role: "FRANQUEADO", tenantId: conta.tenantId })
+          JSON.stringify({ role: "FRANQUEADO", tenantId: conta.tenantId }),
         );
         localStorage.setItem("partiu_active_tenant_id_v2", conta.tenantId);
         localStorage.setItem("partiu_wl_active_tenant_v1", conta.tenantId);
@@ -554,23 +581,23 @@ export async function loginAdmin(
           if (tRecord) {
             const brandingRec = convertWhiteLabelToBrandingRecord(
               tRecord.configuracaoCompleta,
-              tRecord.tenantId
+              tRecord.tenantId,
             );
             themeEngine.applyTheme(brandingRec);
           }
         } catch {}
         window.dispatchEvent(
-          new CustomEvent("partiu:tenant-changed", { detail: { tenantId: conta.tenantId } })
+          new CustomEvent("partiu:tenant-changed", { detail: { tenantId: conta.tenantId } }),
         );
         window.dispatchEvent(
           new CustomEvent("partiu:whitelabel-updated", {
             detail: { tenantId: conta.tenantId },
-          })
+          }),
         );
       } else if (conta.role === "SUPER_ADMIN") {
         localStorage.setItem(
           "partiu_admin_session",
-          JSON.stringify({ role: "SUPER_ADMIN", tenantId: "default" })
+          JSON.stringify({ role: "SUPER_ADMIN", tenantId: "default" }),
         );
         localStorage.setItem("partiu_active_tenant_id_v2", "default");
         localStorage.setItem("partiu_wl_active_tenant_v1", "default");
@@ -578,7 +605,7 @@ export async function loginAdmin(
           whiteLabelEngine.switchTenant("default");
         } catch {}
         window.dispatchEvent(
-          new CustomEvent("partiu:tenant-changed", { detail: { tenantId: "default" } })
+          new CustomEvent("partiu:tenant-changed", { detail: { tenantId: "default" } }),
         );
       }
     }
@@ -750,7 +777,8 @@ export function getRoleMetadata(role: string): {
       label: "Super Administrador (Acesso Total)",
       titulo: "Super Administrador Nacional",
       badgeColor: "bg-primary-600/20 text-primary-500 border-primary-600/30",
-      description: "Acesso irrestrito a governança nacional, múltiplos tenants, finanças centrais e configurações avançadas.",
+      description:
+        "Acesso irrestrito a governança nacional, múltiplos tenants, finanças centrais e configurações avançadas.",
     };
   }
 
@@ -758,7 +786,8 @@ export function getRoleMetadata(role: string): {
     label: "Franqueado (Acesso Local)",
     titulo: "Franqueado Regional",
     badgeColor: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
-    description: "Gestão autônoma isolada e restrita estritamente ao seu próprio tenant (praça, frota e corridas locais).",
+    description:
+      "Gestão autônoma isolada e restrita estritamente ao seu próprio tenant (praça, frota e corridas locais).",
   };
 }
 
@@ -774,8 +803,18 @@ export function getContaAtiva(): AdminAccount {
             id: parsed.contaId,
             role,
             tenantId: parsed.tenantId,
-            tenantNome: parsed.tenantNome || (parsed.tenantId ? parsed.tenantId.replace(/^praca_/, "").replace(/_/g, " ").toUpperCase() : undefined),
-            nome: parsed.nome || parsed.email || (role === "SUPER_ADMIN" ? "Super Administrador" : "Franqueado Regional"),
+            tenantNome:
+              parsed.tenantNome ||
+              (parsed.tenantId
+                ? parsed.tenantId
+                    .replace(/^praca_/, "")
+                    .replace(/_/g, " ")
+                    .toUpperCase()
+                : undefined),
+            nome:
+              parsed.nome ||
+              parsed.email ||
+              (role === "SUPER_ADMIN" ? "Super Administrador" : "Franqueado Regional"),
             email: parsed.email || "",
             cargo: role === "SUPER_ADMIN" ? "Super Administrador Geral" : "Gestor de Franquia",
           };
@@ -804,6 +843,7 @@ export function atualizarCredenciaisContaAtiva(
 ): { sucesso: boolean; mensagem: string } {
   return {
     sucesso: true,
-    mensagem: "Para atualizar credenciais permanentemente, use o fluxo de recuperação de conta no Supabase Auth.",
+    mensagem:
+      "Para atualizar credenciais permanentemente, use o fluxo de recuperação de conta no Supabase Auth.",
   };
 }

@@ -1,6 +1,6 @@
 /**
  * PARTIU TITANIUM SHIELD — SLA ALERT ENGINE
- * 
+ *
  * Emissão automática de alertas operacionais quando métricas violarem SLAs:
  * - Latência de despacho > 200ms
  * - Taxa de falha de PIX > 0.5%
@@ -10,7 +10,7 @@
 
 export interface SystemAlert {
   alertId: string;
-  severity: 'INFO' | 'WARNING' | 'CRITICAL';
+  severity: "INFO" | "WARNING" | "CRITICAL";
   title: string;
   message: string;
   timestamp: number;
@@ -32,14 +32,14 @@ export class AlertEngine {
     return AlertEngine.instance;
   }
 
-  public triggerAlert(alert: Omit<SystemAlert, 'alertId' | 'timestamp'>): SystemAlert {
+  public triggerAlert(alert: Omit<SystemAlert, "alertId" | "timestamp">): SystemAlert {
     const timestamp = Date.now();
     const alertId = `ALT-${timestamp}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
     const record: SystemAlert = {
       ...alert,
       alertId,
-      timestamp
+      timestamp,
     };
 
     this.alerts.push(record);
@@ -47,7 +47,7 @@ export class AlertEngine {
       this.alerts.shift();
     }
 
-    if (record.severity === 'CRITICAL') {
+    if (record.severity === "CRITICAL") {
       console.error(`🚨 [CRITICAL ALERT] ${record.title}: ${record.message}`);
     } else {
       console.warn(`⚠️ [WARNING ALERT] ${record.title}: ${record.message}`);

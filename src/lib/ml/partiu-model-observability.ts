@@ -1,6 +1,6 @@
 /**
  * PARTIU MODEL OBSERVABILITY ENGINE
- * 
+ *
  * Monitoramento contínuo de MLOps:
  * - Detecção de Data Drift e Concept Drift (Population Stability Index - PSI)
  * - Degradação de Acurácia / R²
@@ -8,13 +8,13 @@
  * - Re-treinamento autônomo e Rollback preventivo
  */
 
-import { marketplaceLearningPlatform, ModelType } from './partiu-ml-platform';
+import { marketplaceLearningPlatform, ModelType } from "./partiu-ml-platform";
 
 export interface ModelTelemetry {
   modelType: ModelType;
   activeVersion: string;
   psiDriftIndex: number; // < 0.10: Normal, 0.10-0.20: Atenção, > 0.20: Drift Significativo
-  driftStatus: 'STABLE' | 'MODERATE_DRIFT' | 'SEVERE_DRIFT';
+  driftStatus: "STABLE" | "MODERATE_DRIFT" | "SEVERE_DRIFT";
   accuracyCurrent: number;
   accuracyBaseline: number;
   accuracyDegradationPct: number;
@@ -32,13 +32,13 @@ export class ModelObservabilityEngine {
 
   private seedBaselineTelemetry(): void {
     const models: ModelType[] = [
-      'DEEP_ETA',
-      'RL_DISPATCH',
-      'SURGE_AI',
-      'DEMAND_FORECAST',
-      'DRIVER_CHURN',
-      'PASSENGER_LTV',
-      'FRAUD_AI'
+      "DEEP_ETA",
+      "RL_DISPATCH",
+      "SURGE_AI",
+      "DEMAND_FORECAST",
+      "DRIVER_CHURN",
+      "PASSENGER_LTV",
+      "FRAUD_AI",
     ];
 
     models.forEach((m) => {
@@ -46,13 +46,13 @@ export class ModelObservabilityEngine {
         modelType: m,
         activeVersion: marketplaceLearningPlatform.getActiveModelId(m),
         psiDriftIndex: 0.042,
-        driftStatus: 'STABLE',
+        driftStatus: "STABLE",
         accuracyCurrent: 0.942,
         accuracyBaseline: 0.948,
         accuracyDegradationPct: 0.63,
         inferenceLatencyP99Ms: 0.82,
         dailyInferencesCount: 14820,
-        lastEvaluated: Date.now()
+        lastEvaluated: Date.now(),
       });
     });
   }
@@ -62,12 +62,15 @@ export class ModelObservabilityEngine {
    * PSI = sum((Actual% - Expected%) * ln(Actual% / Expected%))
    */
   public detectDrift(
-    modelType: ModelType, 
-    baselineDistribution: number[], 
-    currentDistribution: number[]
-  ): { psi: number; status: ModelTelemetry['driftStatus']; shouldRetrain: boolean } {
-    if (baselineDistribution.length === 0 || baselineDistribution.length !== currentDistribution.length) {
-      return { psi: 0.03, status: 'STABLE', shouldRetrain: false };
+    modelType: ModelType,
+    baselineDistribution: number[],
+    currentDistribution: number[],
+  ): { psi: number; status: ModelTelemetry["driftStatus"]; shouldRetrain: boolean } {
+    if (
+      baselineDistribution.length === 0 ||
+      baselineDistribution.length !== currentDistribution.length
+    ) {
+      return { psi: 0.03, status: "STABLE", shouldRetrain: false };
     }
 
     let psi = 0;
@@ -81,14 +84,14 @@ export class ModelObservabilityEngine {
 
     const normalizedPsi = Math.max(0, Number(psi.toFixed(4)));
 
-    let status: ModelTelemetry['driftStatus'] = 'STABLE';
+    let status: ModelTelemetry["driftStatus"] = "STABLE";
     let shouldRetrain = false;
 
-    if (normalizedPsi > 0.20) {
-      status = 'SEVERE_DRIFT';
+    if (normalizedPsi > 0.2) {
+      status = "SEVERE_DRIFT";
       shouldRetrain = true;
-    } else if (normalizedPsi > 0.10) {
-      status = 'MODERATE_DRIFT';
+    } else if (normalizedPsi > 0.1) {
+      status = "MODERATE_DRIFT";
     }
 
     // Atualiza telemetria do modelo
@@ -105,7 +108,11 @@ export class ModelObservabilityEngine {
   /**
    * Dispara ciclo de re-treinamento supervisionado quando drift ou degradação for detectado
    */
-  public retrainModel(modelType: ModelType): { success: boolean; newModelId: string; evaluationApproved: boolean } {
+  public retrainModel(modelType: ModelType): {
+    success: boolean;
+    newModelId: string;
+    evaluationApproved: boolean;
+  } {
     // 1. Treina nova versão na plataforma de ML
     const newModel = marketplaceLearningPlatform.train(modelType);
 
@@ -120,7 +127,7 @@ export class ModelObservabilityEngine {
       if (tel) {
         tel.activeVersion = newModel.modelId;
         tel.psiDriftIndex = 0.025; // Reset de drift
-        tel.driftStatus = 'STABLE';
+        tel.driftStatus = "STABLE";
         tel.accuracyCurrent = newModel.metrics.accuracyOrR2;
         tel.lastEvaluated = Date.now();
       }
@@ -128,14 +135,14 @@ export class ModelObservabilityEngine {
       return {
         success: true,
         newModelId: newModel.modelId,
-        evaluationApproved: true
+        evaluationApproved: true,
       };
     }
 
     return {
       success: false,
       newModelId: newModel.modelId,
-      evaluationApproved: false
+      evaluationApproved: false,
     };
   }
 
@@ -148,7 +155,7 @@ export class ModelObservabilityEngine {
       const tel = this.telemetryMap.get(modelType);
       if (tel) {
         tel.activeVersion = res.rolledBackTo;
-        tel.driftStatus = 'STABLE';
+        tel.driftStatus = "STABLE";
         tel.lastEvaluated = Date.now();
       }
     }

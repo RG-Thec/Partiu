@@ -73,7 +73,6 @@ export function DeliveryTrackingFloatingCard() {
   return (
     <div className="w-full max-w-md mx-auto px-4 pb-4 animate-in slide-in-from-bottom duration-300 z-30">
       <div className="bg-white rounded-3xl shadow-2xl border border-slate-200/80 p-4 space-y-3.5 text-left">
-        
         {/* CABEÇALHO DO MOTORISTA & VEÍCULO (MOTO OU CARRO ESTRITAMENTE) */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-3">
@@ -103,7 +102,8 @@ export function DeliveryTrackingFloatingCard() {
               </div>
 
               <p className="text-xs font-semibold text-slate-600 mt-0.5">
-                {motorista.veiculoModelo} • <span className="font-mono font-bold text-slate-800">{motorista.veiculoPlaca}</span>
+                {motorista.veiculoModelo} •{" "}
+                <span className="font-mono font-bold text-slate-800">{motorista.veiculoPlaca}</span>
               </p>
             </div>
           </div>
@@ -156,13 +156,18 @@ export function DeliveryTrackingFloatingCard() {
                   className="px-2.5 py-1.5 rounded-xl bg-primary-100/70 hover:bg-amber-300/80 text-amber-950 font-bold text-xs transition active:scale-95 flex items-center gap-1 cursor-pointer"
                   title="Copiar PIN 1"
                 >
-                  {pinCopiado ? <Check className="w-3.5 h-3.5 text-emerald-700" /> : <Copy className="w-3.5 h-3.5" />}
+                  {pinCopiado ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-700" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
                   <span>Copiar</span>
                 </button>
               </div>
 
               <p className="text-[11px] text-amber-900 font-medium">
-                PIN de Coleta: <strong>{pins.pin1Coleta}</strong> — Informe ao motorista para ele iniciar a rota.
+                PIN de Coleta: <strong>{pins.pin1Coleta}</strong> — Informe ao motorista para ele
+                iniciar a rota.
               </p>
             </div>
 
@@ -195,7 +200,8 @@ export function DeliveryTrackingFloatingCard() {
               </div>
 
               <p className="text-[11px] text-emerald-900 font-medium">
-                PIN de Entrega: <strong>{pins.pin2Entrega}</strong> — Compartilhe este código com quem vai receber o pacote ({destino.contatoNome}).
+                PIN de Entrega: <strong>{pins.pin2Entrega}</strong> — Compartilhe este código com
+                quem vai receber o pacote ({destino.contatoNome}).
               </p>
             </div>
 
@@ -246,9 +252,7 @@ export function DeliveryTrackingFloatingCard() {
                 >
                   Em Trânsito para o Destino
                 </span>
-                <p className="text-xs font-black text-slate-900 truncate">
-                  {destino.endereco}
-                </p>
+                <p className="text-xs font-black text-slate-900 truncate">{destino.endereco}</p>
                 <p className="text-[10px] text-slate-600 font-semibold mt-0.5">
                   PIN 1 Validado • Carga sob custódia segura
                 </p>
@@ -293,12 +297,17 @@ export function DeliveryTrackingFloatingCard() {
                   className="p-2 rounded-xl bg-emerald-200/70 hover:bg-emerald-300/80 text-emerald-950 transition active:scale-95 cursor-pointer"
                   title="Copiar PIN 2"
                 >
-                  {pinCopiado ? <Check className="w-4 h-4 text-emerald-700" /> : <Copy className="w-4 h-4" />}
+                  {pinCopiado ? (
+                    <Check className="w-4 h-4 text-emerald-700" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
                 </button>
               </div>
 
               <p className="text-[11px] text-emerald-900 font-medium leading-relaxed">
-                O recebedor <strong>{destino.contatoNome}</strong> deve informar este PIN ao entregador.
+                O recebedor <strong>{destino.contatoNome}</strong> deve informar este PIN ao
+                entregador.
               </p>
             </div>
 

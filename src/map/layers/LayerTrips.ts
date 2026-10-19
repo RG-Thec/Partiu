@@ -44,14 +44,7 @@ export class LayerTrips {
         },
         paint: {
           "line-color": "#FFFFFF",
-          "line-width": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            11, 5.5,
-            14, 8.5,
-            16, 11,
-          ],
+          "line-width": ["interpolate", ["linear"], ["zoom"], 11, 5.5, 14, 8.5, 16, 11],
           "line-opacity": 0.95,
         },
       });
@@ -69,14 +62,7 @@ export class LayerTrips {
         },
         paint: {
           "line-color": MAP_COLORS.ROUTE_LINE,
-          "line-width": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            11, 3.8,
-            14, 5.5,
-            16, 7.5,
-          ],
+          "line-width": ["interpolate", ["linear"], ["zoom"], 11, 3.8, 14, 5.5, 16, 7.5],
           "line-opacity": 1.0,
         },
       });
@@ -100,14 +86,7 @@ export class LayerTrips {
         source: MAP_SOURCES.PINS,
         layout: {
           "icon-image": ["get", "icon"],
-          "icon-size": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            11, 0.70,
-            14, 0.95,
-            16, 1.20,
-          ],
+          "icon-size": ["interpolate", ["linear"], ["zoom"], 11, 0.7, 14, 0.95, 16, 1.2],
           "icon-anchor": "bottom",
           "icon-offset": [0, -10],
           "icon-allow-overlap": true,

@@ -13,7 +13,6 @@ import { type RideCommissionSettlement } from "./commission-engine";
 import { type WalletWithdrawalExecution } from "./driver-wallet";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
-
 export interface FinancialAuditRecord {
   id: string;
   type:
@@ -59,14 +58,18 @@ export class FinancialAuditEngine {
       if (raw) {
         this.logs = JSON.parse(raw);
       }
-    } catch (err) { silentCatchWarn("financial-audit", err); }
+    } catch (err) {
+      silentCatchWarn("financial-audit", err);
+    }
   }
 
   private persistLogs(): void {
     if (typeof window === "undefined") return;
     try {
       localStorage.setItem(STORAGE_AUDIT_KEY, JSON.stringify(this.logs.slice(0, 500)));
-    } catch (err) { silentCatchWarn("financial-audit", err); }
+    } catch (err) {
+      silentCatchWarn("financial-audit", err);
+    }
   }
 
   /**

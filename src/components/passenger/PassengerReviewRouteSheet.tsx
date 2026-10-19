@@ -80,7 +80,7 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
 
   // Cupom promocional ativo
   const [cupomAtivo, setCupomAtivo] = useState<ActiveCoupon | null>(() =>
-    couponService.getActiveRideCoupon()
+    couponService.getActiveRideCoupon(),
   );
 
   useEffect(() => {
@@ -109,7 +109,7 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
       hapticFeedback.medium();
       selectVehicle(cat);
     },
-    [selectVehicle]
+    [selectVehicle],
   );
 
   const handleOpenPayment = useCallback(() => {
@@ -199,7 +199,9 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
   const precoAtivo = isMoto ? precoMoto : precoPop;
   const nomeVeiculoAtivo = isMoto ? nomeMoto : nomeCarro;
 
-  const currentSurgeMult = isMoto ? (quoteMoto?.surgeMultiplier ?? 1.0) : (quotePop?.surgeMultiplier ?? 1.0);
+  const currentSurgeMult = isMoto
+    ? (quoteMoto?.surgeMultiplier ?? 1.0)
+    : (quotePop?.surgeMultiplier ?? 1.0);
   const currentSurgeReason = isMoto ? quoteMoto?.surgeReason : quotePop?.surgeReason;
   const isSurgeActive = currentSurgeMult > 1.0;
   const isLiveOverride = Boolean(isMoto ? quoteMoto?.isLiveOverride : quotePop?.isLiveOverride);
@@ -242,9 +244,7 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
         style={{
           maxHeight: "88vh",
           height: currentHeight > 0 ? `${currentHeight}px` : undefined,
-          transition: isDragging
-            ? "none"
-            : "height 260ms cubic-bezier(0.32, 0.72, 0, 1)",
+          transition: isDragging ? "none" : "height 260ms cubic-bezier(0.32, 0.72, 0, 1)",
           willChange: isDragging ? "height" : "auto",
         }}
         className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-slate-200/90 flex flex-col text-left overflow-hidden select-none"
@@ -256,12 +256,16 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
             onClick={() => snapTo(activeSnapKey === "COLLAPSED" ? "HALF" : "COLLAPSED")}
             className="w-full pt-0.5 pb-1 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing touch-none select-none group"
             aria-label={
-              activeSnapKey === "COLLAPSED" ? "Expandir detalhes da corrida" : "Recolher para visão compacta"
+              activeSnapKey === "COLLAPSED"
+                ? "Expandir detalhes da corrida"
+                : "Recolher para visão compacta"
             }
           >
             <div
               className={`h-1 rounded-full transition-all duration-200 ${
-                isDragging ? "bg-brand-primary-vibrant w-12" : "bg-slate-300 w-10 group-hover:bg-slate-400"
+                isDragging
+                  ? "bg-brand-primary-vibrant w-12"
+                  : "bg-slate-300 w-10 group-hover:bg-slate-400"
               }`}
             />
           </div>
@@ -394,7 +398,8 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
                   </span>
                 </div>
                 <p className="text-[11px] text-amber-800/90 leading-tight mt-0.5 font-medium">
-                  {currentSurgeReason || "Muitos passageiros solicitando viagens nesta área. O acréscimo incentiva mais condutores a atender a sua localização com rapidez."}
+                  {currentSurgeReason ||
+                    "Muitos passageiros solicitando viagens nesta área. O acréscimo incentiva mais condutores a atender a sua localização com rapidez."}
                 </p>
               </div>
             </div>
@@ -404,7 +409,8 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/90 text-slate-700 shrink-0">
             <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 stroke-[2.2]" />
             <p className="text-[11px] sm:text-xs font-semibold leading-tight text-slate-600">
-              <strong className="text-slate-900">Preço fixo garantido:</strong> Sem alteração com trânsito ou semáforos.
+              <strong className="text-slate-900">Preço fixo garantido:</strong> Sem alteração com
+              trânsito ou semáforos.
             </p>
           </div>
 
@@ -414,7 +420,8 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
               <div className="flex items-center gap-1.5 min-w-0">
                 <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                 <span className="truncate">
-                  Inclui <strong>R$ {taxaCancelamentoPendente.toFixed(2).replace(".", ",")}</strong> de taxa por cancelamento anterior
+                  Inclui <strong>R$ {taxaCancelamentoPendente.toFixed(2).replace(".", ",")}</strong>{" "}
+                  de taxa por cancelamento anterior
                 </span>
               </div>
               <span className="text-[10px] bg-amber-200/80 text-amber-900 px-1.5 py-0.5 rounded-md font-bold shrink-0 ml-1">
@@ -457,8 +464,8 @@ export const PassengerReviewRouteSheet = memo(function PassengerReviewRouteSheet
                     {paradas.length === 0
                       ? "+ Parada"
                       : paradas.length === 1
-                      ? "1 Parada"
-                      : "2 Paradas"}
+                        ? "1 Parada"
+                        : "2 Paradas"}
                   </span>
                 </div>
                 {paradas.length > 0 && (

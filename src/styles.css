@@ -204,29 +204,29 @@
   --radius: 0.75rem; /* 12px - Acabamento aerodinâmico e moderno */
 
   /* Paleta Corporativa Oficial PARTIU — Laranja & Amarelo Solar */
-  --brand-primary-deep: #EA580C;     /* Laranja intenso / bordas estruturais */
-  --brand-primary-vibrant: #FF6B00;  /* Laranja oficial PARTIU */
-  --brand-primary-accent: #FFB800;   /* Amarelo Ouro solar / badges */
-  --brand-bg-neutral: #F8FAFC;       /* Fundo global de telas (Slate-50 anti-fadiga) */
-  --brand-surface-card: #FFFFFF;     /* Superfície branca pura de cards e sheets */
-  --brand-status-green: #22C55E;     /* Indicadores de ONLINE, confirmação de embarque */
-  --brand-danger-red: #EF4444;       /* Central de Emergência / SOS 190, recusa e cancelamento */
-  --brand-border-subtle: #E2E8F0;    /* Bordas finas de cartões e inputs (slate-200) */
-  --brand-border-active: #FED7AA;    /* Bordas de inputs ativos e caixas de PIN */
-  --brand-pill-bg: #F1F5F9;          /* Fundo de chips e metadados secundários (slate-100) */
-  --brand-soft: #FFF7ED;             /* Fundo suave laranja de busca e cards */
-  --brand-surface-highlight: #FFEDD5;/* Destaque das caixas de dígitos de PIN e chips */
-  --brand-dark-navy: #0F172A;        /* Títulos de alto contraste no cockpit */
+  --brand-primary-deep: #ea580c; /* Laranja intenso / bordas estruturais */
+  --brand-primary-vibrant: #ff6b00; /* Laranja oficial PARTIU */
+  --brand-primary-accent: #ffb800; /* Amarelo Ouro solar / badges */
+  --brand-bg-neutral: #f8fafc; /* Fundo global de telas (Slate-50 anti-fadiga) */
+  --brand-surface-card: #ffffff; /* Superfície branca pura de cards e sheets */
+  --brand-status-green: #22c55e; /* Indicadores de ONLINE, confirmação de embarque */
+  --brand-danger-red: #ef4444; /* Central de Emergência / SOS 190, recusa e cancelamento */
+  --brand-border-subtle: #e2e8f0; /* Bordas finas de cartões e inputs (slate-200) */
+  --brand-border-active: #fed7aa; /* Bordas de inputs ativos e caixas de PIN */
+  --brand-pill-bg: #f1f5f9; /* Fundo de chips e metadados secundários (slate-100) */
+  --brand-soft: #fff7ed; /* Fundo suave laranja de busca e cards */
+  --brand-surface-highlight: #ffedd5; /* Destaque das caixas de dígitos de PIN e chips */
+  --brand-dark-navy: #0f172a; /* Títulos de alto contraste no cockpit */
 
   /* Primary scale — PALETA OFICIAL PARTIU "Laranja & Amarelo Solar" */
-  --primary-900: #7C2D12;
-  --primary-800: #9A3412;
-  --primary-700: #C2410C;
-  --primary-600: #EA580C;
-  --primary-500: #FF6B00;
-  --primary-400: #FB923C;
-  --primary-100: #FFEDD5;
-  --primary-50: #FFF7ED;
+  --primary-900: #7c2d12;
+  --primary-800: #9a3412;
+  --primary-700: #c2410c;
+  --primary-600: #ea580c;
+  --primary-500: #ff6b00;
+  --primary-400: #fb923c;
+  --primary-100: #ffedd5;
+  --primary-50: #fff7ed;
 
   --background: #f8fafc;
   --foreground: #090d16;
@@ -236,33 +236,33 @@
   --popover: #ffffff;
   --popover-foreground: #090d16;
 
-  --primary-deep: #EA580C;
-  --primary-vibrant: #FF6B00;
-  --primary-accent: #FFB800;
-  --dark-navy: #0F172A;
+  --primary-deep: #ea580c;
+  --primary-vibrant: #ff6b00;
+  --primary-accent: #ffb800;
+  --dark-navy: #0f172a;
 
-  --primary: #FF6B00;
+  --primary: #ff6b00;
   --primary-foreground: #ffffff;
-  --brand: #FF6B00;
+  --brand: #ff6b00;
   --brand-foreground: #ffffff;
-  --brand-primary: #FF6B00;
-  --brand-primary-hover: #EA580C;
-  --brand-secondary: #FFB800;
-  --brand-text: #0F172A;
-  --brand-soft: #FFF7ED;
+  --brand-primary: #ff6b00;
+  --brand-primary-hover: #ea580c;
+  --brand-secondary: #ffb800;
+  --brand-text: #0f172a;
+  --brand-soft: #fff7ed;
 
-  --secondary: #FFB800;
-  --secondary-foreground: #0F172A;
+  --secondary: #ffb800;
+  --secondary-foreground: #0f172a;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
   --text-secondary: #64748b;
   --text-tertiary: #94a3b8;
 
-  --accent: #FFB800; /* Vibrant Amber / Gold */
+  --accent: #ffb800; /* Vibrant Amber / Gold */
   --accent-foreground: #ffffff;
-  --accent-soft: #FEF3C7;
+  --accent-soft: #fef3c7;
 
-  --success: #22C55E; /* Status Green Oficial */
+  --success: #22c55e; /* Status Green Oficial */
   --success-soft: #ecfdf5;
   --warning: #f59e0b;
   --warning-soft: #fffbeb;
@@ -276,22 +276,22 @@
   --border: #e2e8f0;
   --border-soft: #f1f5f9;
   --input: #e2e8f0;
-  --ring: var(--color-primary, #FF6B00);
+  --ring: var(--color-primary, #ff6b00);
 
-  --chart-1: var(--color-primary, #FF6B00);
-  --chart-2: var(--color-secondary, #FFB800);
-  --chart-3: #00C6FF;
+  --chart-1: var(--color-primary, #ff6b00);
+  --chart-2: var(--color-secondary, #ffb800);
+  --chart-3: #00c6ff;
   --chart-4: #ef4444;
   --chart-5: #10b981;
 
   --sidebar: #090d16;
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: var(--color-primary, #FF6B00);
+  --sidebar-primary: var(--color-primary, #ff6b00);
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #1e293b;
-  --sidebar-accent-foreground: var(--color-primary, #FF6B00);
+  --sidebar-accent-foreground: var(--color-primary, #ff6b00);
   --sidebar-border: #1e293b;
-  --sidebar-ring: var(--color-primary, #FF6B00);
+  --sidebar-ring: var(--color-primary, #ff6b00);
 }
 
 .dark {
@@ -307,7 +307,7 @@
   --text-secondary: #94a3b8;
   --text-tertiary: #64748b;
   --border-soft: rgba(255, 255, 255, 0.08);
-  --brand: var(--color-primary, #FF6B00);
+  --brand: var(--color-primary, #ff6b00);
   --brand-foreground: #ffffff;
   --brand-soft: rgba(255, 107, 0, 0.15);
   --surface: #111827;
@@ -317,32 +317,32 @@
   --card-foreground: #f8fafc;
   --popover: #111827;
   --popover-foreground: #f8fafc;
-  --primary: var(--color-primary, #FF6B00);
+  --primary: var(--color-primary, #ff6b00);
   --primary-foreground: #ffffff;
   --secondary: #1e293b;
   --secondary-foreground: #f8fafc;
   --muted: #1e293b;
   --muted-foreground: #94a3b8;
-  --accent: #FFB800;
+  --accent: #ffb800;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
   --border: rgba(255, 255, 255, 0.1);
   --input: rgba(255, 255, 255, 0.15);
-  --ring: var(--color-primary, #FF6B00);
-  --chart-1: var(--color-primary, #FF6B00);
-  --chart-2: var(--color-secondary, #FFB800);
-  --chart-3: #00C6FF;
+  --ring: var(--color-primary, #ff6b00);
+  --chart-1: var(--color-primary, #ff6b00);
+  --chart-2: var(--color-secondary, #ffb800);
+  --chart-3: #00c6ff;
   --chart-4: #ef4444;
   --chart-5: #10b981;
   --sidebar: #090d16;
   --sidebar-foreground: #f8fafc;
-  --sidebar-primary: var(--color-primary, #FF6B00);
+  --sidebar-primary: var(--color-primary, #ff6b00);
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #1e293b;
-  --sidebar-accent-foreground: var(--color-primary, #FF6B00);
+  --sidebar-accent-foreground: var(--color-primary, #ff6b00);
   --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-ring: var(--color-primary, #FF6B00);
+  --sidebar-ring: var(--color-primary, #ff6b00);
 }
 
 @layer base {
@@ -438,7 +438,8 @@ select {
   /* Escala de Sombras Naturais Multi-camadas (Azul Tech Elevation) */
   --shadow-subtle: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 3px 1px rgba(0, 0, 0, 0.02);
   --shadow-card: 0 2px 8px -2px rgba(0, 51, 102, 0.06), 0 6px 16px -4px rgba(0, 51, 102, 0.04);
-  --shadow-card-hover: 0 4px 12px -2px rgba(0, 51, 102, 0.10), 0 12px 24px -4px rgba(0, 51, 102, 0.08);
+  --shadow-card-hover:
+    0 4px 12px -2px rgba(0, 51, 102, 0.1), 0 12px 24px -4px rgba(0, 51, 102, 0.08);
   --shadow-float: 0 16px 32px -8px rgba(0, 51, 102, 0.16), 0 8px 16px -4px rgba(0, 51, 102, 0.06);
   --shadow-primary-button: 0 4px 14px 0 rgba(0, 136, 255, 0.35), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 
@@ -449,13 +450,21 @@ select {
 
 /* Gradiente Padrão CTAs Oficial: Dinâmico White-Label */
 .bg-gradient-cta {
-  background: linear-gradient(135deg, var(--color-primary, var(--header-gradient-start, #FF6B00)) 0%, var(--color-secondary, var(--header-gradient-end, #FFB800)) 100%) !important;
-  color: #FFFFFF !important;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary, var(--header-gradient-start, #ff6b00)) 0%,
+    var(--color-secondary, var(--header-gradient-end, #ffb800)) 100%
+  ) !important;
+  color: #ffffff !important;
 }
 
 .btn-gradient-cta {
-  background: linear-gradient(135deg, var(--color-primary, var(--header-gradient-start, #FF6B00)) 0%, var(--color-secondary, var(--header-gradient-end, #FFB800)) 100%);
-  color: #FFFFFF;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary, var(--header-gradient-start, #ff6b00)) 0%,
+    var(--color-secondary, var(--header-gradient-end, #ffb800)) 100%
+  );
+  color: #ffffff;
   box-shadow: var(--wl-button-shadow, var(--button-shadow, 0 4px 14px 0 rgba(0, 0, 0, 0.15)));
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -489,7 +498,7 @@ select {
 
 /* Micro-interações de Foco Acessíveis & Sofisticadas */
 :focus-visible {
-  outline: 2px solid var(--color-primary, #FF6B00);
+  outline: 2px solid var(--color-primary, #ff6b00);
   outline-offset: 2px;
 }
 
@@ -512,7 +521,7 @@ button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--color-primary, #FF6B00);
+  outline: 2px solid var(--color-primary, #ff6b00);
   outline-offset: 2px;
   box-shadow: var(--focus-ring);
 }

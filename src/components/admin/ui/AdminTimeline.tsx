@@ -71,7 +71,10 @@ export function AdminTimeline({ events, className = "" }: AdminTimelineProps) {
 
               {event.author && (
                 <div className="mt-2 pt-2 border-t border-slate-200/40 dark:border-slate-800/60 text-[10px] text-slate-400 font-medium">
-                  Responsável: <span className="font-semibold text-slate-600 dark:text-slate-300">{event.author}</span>
+                  Responsável:{" "}
+                  <span className="font-semibold text-slate-600 dark:text-slate-300">
+                    {event.author}
+                  </span>
                 </div>
               )}
             </div>

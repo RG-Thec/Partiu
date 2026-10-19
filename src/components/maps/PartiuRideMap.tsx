@@ -1,4 +1,12 @@
-import { useEffect, useRef, useState, memo, useCallback, forwardRef, useImperativeHandle } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  memo,
+  useCallback,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import mapboxgl from "mapbox-gl";
 import { Navigation, Compass, LocateFixed } from "lucide-react";
 import type { MotoristaInfo, ModalidadePartiu } from "@/lib/partiu-engine";
@@ -11,7 +19,11 @@ import { MapboxConfig } from "@/config/MapboxConfig";
 import { mapboxService } from "@/services/MapboxService";
 import { registerAllMapAssets } from "@/map/MapAssets";
 import { silentCatchWarn } from "@/lib/structured-logger";
-import { getBoundingBoxFromMap, filterPointsInViewport, type BoundingBox } from "@/lib/geo/spatial-viewport";
+import {
+  getBoundingBoxFromMap,
+  filterPointsInViewport,
+  type BoundingBox,
+} from "@/lib/geo/spatial-viewport";
 import { snapToRoute } from "@/services/NavigationEngine";
 import { MapDiagnosticPanel } from "./MapDiagnosticPanel";
 
@@ -209,7 +221,7 @@ export const PartiuRideMap = memo(
       primaryRouteColor,
       showDiagnosticPanel = false,
     }: PartiuRideMapProps,
-    ref
+    ref,
   ) {
     const mapContainer = useRef<HTMLDivElement>(null);
     const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -217,270 +229,274 @@ export const PartiuRideMap = memo(
     const [mapLoaded, setMapLoaded] = useState(false);
     const [mapError, setMapError] = useState(false);
 
-    const [activeStyleKey, setActiveStyleKey] = useState<"streets" | "traffic" | "satellite">("streets");
+    const [activeStyleKey, setActiveStyleKey] = useState<"streets" | "traffic" | "satellite">(
+      "streets",
+    );
 
-  // Marcador de pulsação animada contínua do usuário
-  const userPulseMarkerRef = useRef<mapboxgl.Marker | null>(null);
+    // Marcador de pulsação animada contínua do usuário
+    const userPulseMarkerRef = useRef<mapboxgl.Marker | null>(null);
 
-  // Marcador HTML para o badge flutuante de ETA do motorista
-  const driverBadgeMarkerRef = useRef<mapboxgl.Marker | null>(null);
-  const strategicMarkersRef = useRef<mapboxgl.Marker[]>([]);
-  const lastIdleCenterRef = useRef<[number, number] | null>(null);
-  const activeRouteCoordsRef = useRef<[number, number][]>([]);
+    // Marcador HTML para o badge flutuante de ETA do motorista
+    const driverBadgeMarkerRef = useRef<mapboxgl.Marker | null>(null);
+    const strategicMarkersRef = useRef<mapboxgl.Marker[]>([]);
+    const lastIdleCenterRef = useRef<[number, number] | null>(null);
+    const activeRouteCoordsRef = useRef<[number, number][]>([]);
 
-  // Frota em tempo real alimentada pelo Supabase Realtime (driver_locations)
-  const { liveDrivers, totalDrivers, isConnected, lastEventTimestamp } = useLiveDrivers({
-    categoryFilter: modalidade === "MOTO" ? "MOTO" : modalidade === "POP" ? "CARRO" : "ALL",
-    centerCoords: origemCoords,
-  });
-  const liveDriversGeoJson = useLiveDriversGeoJson(liveDrivers);
+    // Frota em tempo real alimentada pelo Supabase Realtime (driver_locations)
+    const { liveDrivers, totalDrivers, isConnected, lastEventTimestamp } = useLiveDrivers({
+      categoryFilter: modalidade === "MOTO" ? "MOTO" : modalidade === "POP" ? "CARRO" : "ALL",
+      centerCoords: origemCoords,
+    });
+    const liveDriversGeoJson = useLiveDriversGeoJson(liveDrivers);
 
-  const [viewportDriversCount, setViewportDriversCount] = useState(0);
-  const mapboxRequestCountRef = useRef(0);
-  const lastDriversHashRef = useRef<string>("");
+    const [viewportDriversCount, setViewportDriversCount] = useState(0);
+    const mapboxRequestCountRef = useRef(0);
+    const lastDriversHashRef = useRef<string>("");
 
-  // 1. CONFIGURAÇÃO UNIFICADA E RESILIENTE DE FONTES E CAMADAS DO MAPA
-  const setupMapLayers = useCallback(
-    async (map: mapboxgl.Map) => {
-      if (!map) return;
+    // 1. CONFIGURAÇÃO UNIFICADA E RESILIENTE DE FONTES E CAMADAS DO MAPA
+    const setupMapLayers = useCallback(
+      async (map: mapboxgl.Map) => {
+        if (!map) return;
 
-      // A. FONTE E CAMADA: ROTA POLYLINE (LINHA DA CORRIDA THEME-AWARE)
-      if (!map.getSource("route-source")) {
-        map.addSource("route-source", {
-          type: "geojson",
-          data: {
-            type: "Feature",
-            properties: {},
-            geometry: {
-              type: "LineString",
-              coordinates: [],
+        // A. FONTE E CAMADA: ROTA POLYLINE (LINHA DA CORRIDA THEME-AWARE)
+        if (!map.getSource("route-source")) {
+          map.addSource("route-source", {
+            type: "geojson",
+            data: {
+              type: "Feature",
+              properties: {},
+              geometry: {
+                type: "LineString",
+                coordinates: [],
+              },
             },
-          },
-        });
-      }
+          });
+        }
 
-      const dynamicRouteColor =
-        primaryRouteColor ||
-        (typeof document !== "undefined" &&
-          (getComputedStyle(document.documentElement)
-            .getPropertyValue("--brand-primary-vibrant")
-            .trim() ||
-            getComputedStyle(document.documentElement)
-              .getPropertyValue("--brand-primary-deep")
+        const dynamicRouteColor =
+          primaryRouteColor ||
+          (typeof document !== "undefined" &&
+            (getComputedStyle(document.documentElement)
+              .getPropertyValue("--brand-primary-vibrant")
               .trim() ||
-            getComputedStyle(document.documentElement)
-              .getPropertyValue("--primary")
-              .trim())) ||
-        "#0088FF";
+              getComputedStyle(document.documentElement)
+                .getPropertyValue("--brand-primary-deep")
+                .trim() ||
+              getComputedStyle(document.documentElement).getPropertyValue("--primary").trim())) ||
+          "#0088FF";
 
-      if (!map.getLayer("route-casing")) {
-        map.addLayer({
-          id: "route-casing",
-          type: "line",
-          source: "route-source",
-          layout: { "line-join": "round", "line-cap": "round" },
-          paint: {
-            "line-color": "#FFFFFF",
-            "line-width": 8.0,
-            "line-opacity": 0.95,
-          },
-        });
-      }
-
-      if (!map.getLayer("route-line")) {
-        map.addLayer({
-          id: "route-line",
-          type: "line",
-          source: "route-source",
-          layout: { "line-join": "round", "line-cap": "round" },
-          paint: {
-            "line-color": dynamicRouteColor,
-            "line-width": 5.0,
-            "line-opacity": 1.0,
-          },
-        });
-      }
-
-      // B. FONTE E CAMADAS: LOCALIZAÇÃO DO PASSAGEIRO (PONTO AZUL 99)
-      if (!map.getSource("user-location-source")) {
-        map.addSource("user-location-source", {
-          type: "geojson",
-          data: {
-            type: "Feature",
-            properties: {},
-            geometry: {
-              type: "Point",
-              coordinates: origemCoords,
+        if (!map.getLayer("route-casing")) {
+          map.addLayer({
+            id: "route-casing",
+            type: "line",
+            source: "route-source",
+            layout: { "line-join": "round", "line-cap": "round" },
+            paint: {
+              "line-color": "#FFFFFF",
+              "line-width": 8.0,
+              "line-opacity": 0.95,
             },
-          },
-        });
-      }
+          });
+        }
 
-      if (!map.getLayer("user-location-pulse-ring")) {
-        map.addLayer({
-          id: "user-location-pulse-ring",
-          type: "circle",
-          source: "user-location-source",
-          paint: {
-            "circle-radius": 24,
-            "circle-color": "#3B82F6",
-            "circle-opacity": 0,
-          },
-        });
-      }
+        if (!map.getLayer("route-line")) {
+          map.addLayer({
+            id: "route-line",
+            type: "line",
+            source: "route-source",
+            layout: { "line-join": "round", "line-cap": "round" },
+            paint: {
+              "line-color": dynamicRouteColor,
+              "line-width": 5.0,
+              "line-opacity": 1.0,
+            },
+          });
+        }
 
-      if (!map.getLayer("user-location-dot-core")) {
-        map.addLayer({
-          id: "user-location-dot-core",
-          type: "circle",
-          source: "user-location-source",
-          paint: {
-            "circle-radius": 8,
-            "circle-color": "#2563EB",
-            "circle-stroke-color": "#FFFFFF",
-            "circle-stroke-width": 2.5,
-            "circle-opacity": 0,
-            "circle-stroke-opacity": 0,
-          },
-        });
-      }
+        // B. FONTE E CAMADAS: LOCALIZAÇÃO DO PASSAGEIRO (PONTO AZUL 99)
+        if (!map.getSource("user-location-source")) {
+          map.addSource("user-location-source", {
+            type: "geojson",
+            data: {
+              type: "Feature",
+              properties: {},
+              geometry: {
+                type: "Point",
+                coordinates: origemCoords,
+              },
+            },
+          });
+        }
 
-      // Marcador HTML de pulsação animada contínua do passageiro
-      if (userPulseMarkerRef.current) {
-        userPulseMarkerRef.current.remove();
-      }
-      userPulseMarkerRef.current = new mapboxgl.Marker({
-        element: createUserPuckElement(),
-        anchor: "center",
-      })
-        .setLngLat(origemCoords)
-        .addTo(map);
+        if (!map.getLayer("user-location-pulse-ring")) {
+          map.addLayer({
+            id: "user-location-pulse-ring",
+            type: "circle",
+            source: "user-location-source",
+            paint: {
+              "circle-radius": 24,
+              "circle-color": "#3B82F6",
+              "circle-opacity": 0,
+            },
+          });
+        }
 
-      // C. FONTE E CAMADA: MOTORISTAS OCIOSOS REAIS (FROTA EM TEMPO REAL COM CLUSTERING GPU)
-      if (!map.getSource("idle-drivers-source")) {
-        map.addSource("idle-drivers-source", {
-          type: "geojson",
-          data: {
-            type: "FeatureCollection",
-            features: [],
-          },
-          cluster: true,
-          clusterMaxZoom: 14,
-          clusterRadius: 48,
-        });
-      }
+        if (!map.getLayer("user-location-dot-core")) {
+          map.addLayer({
+            id: "user-location-dot-core",
+            type: "circle",
+            source: "user-location-source",
+            paint: {
+              "circle-radius": 8,
+              "circle-color": "#2563EB",
+              "circle-stroke-color": "#FFFFFF",
+              "circle-stroke-width": 2.5,
+              "circle-opacity": 0,
+              "circle-stroke-opacity": 0,
+            },
+          });
+        }
 
-      // C.1 Círculo do Cluster de Veículos
-      if (!map.getLayer("idle-drivers-cluster")) {
-        map.addLayer({
-          id: "idle-drivers-cluster",
-          type: "circle",
-          source: "idle-drivers-source",
-          filter: ["has", "point_count"],
-          paint: {
-            "circle-color": [
-              "step",
-              ["get", "point_count"],
-              "#F59E0B",
-              10,
-              "#10B981",
-              50,
-              "#2563EB",
-            ],
-            "circle-radius": [
-              "step",
-              ["get", "point_count"],
-              18,
-              10,
-              24,
-              50,
-              30,
-            ],
-            "circle-stroke-width": 3,
-            "circle-stroke-color": "#FFFFFF",
-            "circle-opacity": 0.95,
-          },
-        });
+        // Marcador HTML de pulsação animada contínua do passageiro
+        if (userPulseMarkerRef.current) {
+          userPulseMarkerRef.current.remove();
+        }
+        userPulseMarkerRef.current = new mapboxgl.Marker({
+          element: createUserPuckElement(),
+          anchor: "center",
+        })
+          .setLngLat(origemCoords)
+          .addTo(map);
 
-        map.on("click", "idle-drivers-cluster", (e) => {
-          const features = map.queryRenderedFeatures(e.point, { layers: ["idle-drivers-cluster"] });
-          const clusterId = features[0]?.properties?.cluster_id;
-          if (clusterId === undefined) return;
-          const src = map.getSource("idle-drivers-source") as mapboxgl.GeoJSONSource;
-          src.getClusterExpansionZoom(clusterId, (err, zoom) => {
-            if (err || !mapRef.current) return;
-            const coords = (features[0].geometry as any).coordinates;
-            mapRef.current.easeTo({
-              center: coords,
-              zoom: Math.min(zoom || 15, 17),
-              duration: 600,
+        // C. FONTE E CAMADA: MOTORISTAS OCIOSOS REAIS (FROTA EM TEMPO REAL COM CLUSTERING GPU)
+        if (!map.getSource("idle-drivers-source")) {
+          map.addSource("idle-drivers-source", {
+            type: "geojson",
+            data: {
+              type: "FeatureCollection",
+              features: [],
+            },
+            cluster: true,
+            clusterMaxZoom: 14,
+            clusterRadius: 48,
+          });
+        }
+
+        // C.1 Círculo do Cluster de Veículos
+        if (!map.getLayer("idle-drivers-cluster")) {
+          map.addLayer({
+            id: "idle-drivers-cluster",
+            type: "circle",
+            source: "idle-drivers-source",
+            filter: ["has", "point_count"],
+            paint: {
+              "circle-color": [
+                "step",
+                ["get", "point_count"],
+                "#F59E0B",
+                10,
+                "#10B981",
+                50,
+                "#2563EB",
+              ],
+              "circle-radius": ["step", ["get", "point_count"], 18, 10, 24, 50, 30],
+              "circle-stroke-width": 3,
+              "circle-stroke-color": "#FFFFFF",
+              "circle-opacity": 0.95,
+            },
+          });
+
+          map.on("click", "idle-drivers-cluster", (e) => {
+            const features = map.queryRenderedFeatures(e.point, {
+              layers: ["idle-drivers-cluster"],
+            });
+            const clusterId = features[0]?.properties?.cluster_id;
+            if (clusterId === undefined) return;
+            const src = map.getSource("idle-drivers-source") as mapboxgl.GeoJSONSource;
+            src.getClusterExpansionZoom(clusterId, (err, zoom) => {
+              if (err || !mapRef.current) return;
+              const coords = (features[0].geometry as any).coordinates;
+              mapRef.current.easeTo({
+                center: coords,
+                zoom: Math.min(zoom || 15, 17),
+                duration: 600,
+              });
             });
           });
-        });
 
-        map.on("mouseenter", "idle-drivers-cluster", () => {
-          map.getCanvas().style.cursor = "pointer";
-        });
-        map.on("mouseleave", "idle-drivers-cluster", () => {
-          map.getCanvas().style.cursor = "";
-        });
-      }
+          map.on("mouseenter", "idle-drivers-cluster", () => {
+            map.getCanvas().style.cursor = "pointer";
+          });
+          map.on("mouseleave", "idle-drivers-cluster", () => {
+            map.getCanvas().style.cursor = "";
+          });
+        }
 
-      // C.2 Contador Numérico do Cluster
-      if (!map.getLayer("idle-drivers-cluster-count")) {
-        map.addLayer({
-          id: "idle-drivers-cluster-count",
-          type: "symbol",
-          source: "idle-drivers-source",
-          filter: ["has", "point_count"],
-          layout: {
-            "text-field": "{point_count_abbreviated}",
-            "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-            "text-size": 12,
-          },
-          paint: {
-            "text-color": "#FFFFFF",
-          },
-        });
-      }
+        // C.2 Contador Numérico do Cluster
+        if (!map.getLayer("idle-drivers-cluster-count")) {
+          map.addLayer({
+            id: "idle-drivers-cluster-count",
+            type: "symbol",
+            source: "idle-drivers-source",
+            filter: ["has", "point_count"],
+            layout: {
+              "text-field": "{point_count_abbreviated}",
+              "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+              "text-size": 12,
+            },
+            paint: {
+              "text-color": "#FFFFFF",
+            },
+          });
+        }
 
-      // C.3 Marcador do Veículo Individual (Apenas fora do cluster)
-      if (!map.getLayer("idle-drivers-layer")) {
-        map.addLayer({
-          id: "idle-drivers-layer",
-          type: "symbol",
-          source: "idle-drivers-source",
-          filter: ["!", ["has", "point_count"]],
-          layout: {
-            "icon-image": ["get", "icon"],
-            "icon-size": [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              10, 0.08,
-              12, 0.12,
-              14, 0.16,
-              16, 0.20,
-              18, 0.25,
-            ],
-            "icon-anchor": "center",
-            "icon-rotate": ["coalesce", ["get", "heading"], ["get", "bearing"], 0],
-            "icon-rotation-alignment": "map",
-            "icon-pitch-alignment": "map",
-            "icon-allow-overlap": true,
-            "icon-ignore-placement": true,
-          },
-        });
+        // C.3 Marcador do Veículo Individual (Apenas fora do cluster)
+        if (!map.getLayer("idle-drivers-layer")) {
+          map.addLayer({
+            id: "idle-drivers-layer",
+            type: "symbol",
+            source: "idle-drivers-source",
+            filter: ["!", ["has", "point_count"]],
+            layout: {
+              "icon-image": ["get", "icon"],
+              "icon-size": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                10,
+                0.08,
+                12,
+                0.12,
+                14,
+                0.16,
+                16,
+                0.2,
+                18,
+                0.25,
+              ],
+              "icon-anchor": "center",
+              "icon-rotate": ["coalesce", ["get", "heading"], ["get", "bearing"], 0],
+              "icon-rotation-alignment": "map",
+              "icon-pitch-alignment": "map",
+              "icon-allow-overlap": true,
+              "icon-ignore-placement": true,
+            },
+          });
 
-        map.on("click", "idle-drivers-layer", (e) => {
-          const feature = e.features?.[0] as any;
-          if (!feature || !feature.properties) return;
-          const props = feature.properties;
-          const coords = (feature.geometry?.coordinates || []).slice();
+          map.on("click", "idle-drivers-layer", (e) => {
+            const feature = e.features?.[0] as any;
+            if (!feature || !feature.properties) return;
+            const props = feature.properties;
+            const coords = (feature.geometry?.coordinates || []).slice();
 
-          new mapboxgl.Popup({ offset: 14, closeButton: false, className: "partiu-vehicle-popup" })
-            .setLngLat(coords)
-            .setHTML(`
+            new mapboxgl.Popup({
+              offset: 14,
+              closeButton: false,
+              className: "partiu-vehicle-popup",
+            })
+              .setLngLat(coords)
+              .setHTML(
+                `
               <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 4px 6px; min-width: 140px;">
                 <div style="font-weight: 800; font-size: 11px; color: #0F172A; display: flex; align-items: center; gap: 4px;">
                   <span>${props.modalidade === "MOTO" ? "🏍️" : "🚗"}</span>
@@ -496,393 +512,395 @@ export const PartiuRideMap = memo(
                   <span style="color: #059669; font-weight: 700;">● Disponível</span>
                 </div>
               </div>
-            `)
-            .addTo(map);
-        });
+            `,
+              )
+              .addTo(map);
+          });
 
-        map.on("mouseenter", "idle-drivers-layer", () => {
-          map.getCanvas().style.cursor = "pointer";
-        });
-        map.on("mouseleave", "idle-drivers-layer", () => {
-          map.getCanvas().style.cursor = "";
-        });
-      }
+          map.on("mouseenter", "idle-drivers-layer", () => {
+            map.getCanvas().style.cursor = "pointer";
+          });
+          map.on("mouseleave", "idle-drivers-layer", () => {
+            map.getCanvas().style.cursor = "";
+          });
+        }
 
-      // D. FONTE E CAMADA: MOTORISTA ATIVO
-      if (!map.getSource("active-driver-source")) {
-        map.addSource("active-driver-source", {
-          type: "geojson",
-          data: {
-            type: "Feature",
-            properties: {
-              id: "active-driver",
-              icon: modalidade === "MOTO" ? "moto-icon" : "car-icon",
-              bearing: 0,
-            },
-            geometry: {
-              type: "Point",
-              coordinates: driverCoords || origemCoords,
-            },
-          },
-        });
-      }
-
-      if (!map.getLayer("active-driver-layer")) {
-        map.addLayer({
-          id: "active-driver-layer",
-          type: "symbol",
-          source: "active-driver-source",
-          layout: {
-            "icon-image": ["get", "icon"],
-            "icon-size": [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              10, 0.08,
-              12, 0.12,
-              14, 0.16,
-              16, 0.20,
-              18, 0.25,
-            ],
-            "icon-anchor": "center",
-            "icon-rotate": ["coalesce", ["get", "heading"], ["get", "bearing"], 0],
-            "icon-rotation-alignment": "map",
-            "icon-pitch-alignment": "map",
-            "icon-allow-overlap": true,
-            "icon-ignore-placement": true,
-          },
-        });
-      }
-
-      // E. FONTE E CAMADA: PINO DE EMBARQUE (ORIGEM)
-      const shouldShowOriginPinInitial =
-        status === "CONFIRMING_PICKUP" ||
-        status === "EDITING_PICKUP" ||
-        status === "REVIEWING_ROUTE" ||
-        status === "A_CAMINHO" ||
-        status === "EM_VIAGEM";
-
-      if (!map.getSource("origin-pin-source")) {
-        map.addSource("origin-pin-source", {
-          type: "geojson",
-          data: shouldShowOriginPinInitial
-            ? {
-                type: "Feature",
-                properties: {},
-                geometry: {
-                  type: "Point",
-                  coordinates: origemCoords,
-                },
-              }
-            : {
-                type: "FeatureCollection",
-                features: [],
+        // D. FONTE E CAMADA: MOTORISTA ATIVO
+        if (!map.getSource("active-driver-source")) {
+          map.addSource("active-driver-source", {
+            type: "geojson",
+            data: {
+              type: "Feature",
+              properties: {
+                id: "active-driver",
+                icon: modalidade === "MOTO" ? "moto-icon" : "car-icon",
+                bearing: 0,
               },
-        });
-      }
+              geometry: {
+                type: "Point",
+                coordinates: driverCoords || origemCoords,
+              },
+            },
+          });
+        }
 
-      if (!map.getLayer("origin-pin-layer")) {
-        map.addLayer({
-          id: "origin-pin-layer",
-          type: "symbol",
-          source: "origin-pin-source",
-          layout: {
-            "icon-image": "origin-pin",
-            "icon-size": [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              11, 0.65,
-              14, 0.90,
-              16, 1.15,
-              18, 1.40,
-            ],
-            "icon-anchor": "bottom",
-            "icon-offset": [0, -15],
-            "icon-allow-overlap": true,
-            "icon-ignore-placement": true,
-          },
-        });
-      }
+        if (!map.getLayer("active-driver-layer")) {
+          map.addLayer({
+            id: "active-driver-layer",
+            type: "symbol",
+            source: "active-driver-source",
+            layout: {
+              "icon-image": ["get", "icon"],
+              "icon-size": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                10,
+                0.08,
+                12,
+                0.12,
+                14,
+                0.16,
+                16,
+                0.2,
+                18,
+                0.25,
+              ],
+              "icon-anchor": "center",
+              "icon-rotate": ["coalesce", ["get", "heading"], ["get", "bearing"], 0],
+              "icon-rotation-alignment": "map",
+              "icon-pitch-alignment": "map",
+              "icon-allow-overlap": true,
+              "icon-ignore-placement": true,
+            },
+          });
+        }
 
-      // F. FONTE E CAMADA: PINO DE DESTINO (CHEGADA)
-      if (!map.getSource("destination-pin-source")) {
-        map.addSource("destination-pin-source", {
-          type: "geojson",
-          data: {
-            type: "FeatureCollection",
-            features: [],
-          },
-        });
-      }
+        // E. FONTE E CAMADA: PINO DE EMBARQUE (ORIGEM)
+        const shouldShowOriginPinInitial =
+          status === "CONFIRMING_PICKUP" ||
+          status === "EDITING_PICKUP" ||
+          status === "REVIEWING_ROUTE" ||
+          status === "A_CAMINHO" ||
+          status === "EM_VIAGEM";
 
-      if (!map.getLayer("destination-pin-layer")) {
-        map.addLayer({
-          id: "destination-pin-layer",
-          type: "symbol",
-          source: "destination-pin-source",
-          layout: {
-            "icon-image": "destination-pin",
-            "icon-size": [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              11, 0.65,
-              14, 0.90,
-              16, 1.15,
-              18, 1.40,
-            ],
-            "icon-anchor": "bottom",
-            "icon-offset": [0, -15],
-            "icon-allow-overlap": true,
-            "icon-ignore-placement": true,
-          },
-        });
-      }
+        if (!map.getSource("origin-pin-source")) {
+          map.addSource("origin-pin-source", {
+            type: "geojson",
+            data: shouldShowOriginPinInitial
+              ? {
+                  type: "Feature",
+                  properties: {},
+                  geometry: {
+                    type: "Point",
+                    coordinates: origemCoords,
+                  },
+                }
+              : {
+                  type: "FeatureCollection",
+                  features: [],
+                },
+          });
+        }
 
-      // G. GEOLOCALIZAÇÃO NATIVA EM TEMPO REAL
-      if (!geolocateControlRef.current) {
-        const geolocate = new mapboxgl.GeolocateControl({
-          positionOptions: {
-            enableHighAccuracy: true,
-          },
-          trackUserLocation: true,
-          showUserHeading: true,
-          showUserLocation: false,
-          showAccuracyCircle: false,
-        });
+        if (!map.getLayer("origin-pin-layer")) {
+          map.addLayer({
+            id: "origin-pin-layer",
+            type: "symbol",
+            source: "origin-pin-source",
+            layout: {
+              "icon-image": "origin-pin",
+              "icon-size": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                11,
+                0.65,
+                14,
+                0.9,
+                16,
+                1.15,
+                18,
+                1.4,
+              ],
+              "icon-anchor": "bottom",
+              "icon-offset": [0, -15],
+              "icon-allow-overlap": true,
+              "icon-ignore-placement": true,
+            },
+          });
+        }
 
-        geolocate.on("geolocate", (e: any) => {
-          if (e.coords) {
-            const nextCoords: [number, number] = [e.coords.longitude, e.coords.latitude];
-            if (userPulseMarkerRef.current) {
-              userPulseMarkerRef.current.setLngLat(nextCoords);
+        // F. FONTE E CAMADA: PINO DE DESTINO (CHEGADA)
+        if (!map.getSource("destination-pin-source")) {
+          map.addSource("destination-pin-source", {
+            type: "geojson",
+            data: {
+              type: "FeatureCollection",
+              features: [],
+            },
+          });
+        }
+
+        if (!map.getLayer("destination-pin-layer")) {
+          map.addLayer({
+            id: "destination-pin-layer",
+            type: "symbol",
+            source: "destination-pin-source",
+            layout: {
+              "icon-image": "destination-pin",
+              "icon-size": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                11,
+                0.65,
+                14,
+                0.9,
+                16,
+                1.15,
+                18,
+                1.4,
+              ],
+              "icon-anchor": "bottom",
+              "icon-offset": [0, -15],
+              "icon-allow-overlap": true,
+              "icon-ignore-placement": true,
+            },
+          });
+        }
+
+        // G. GEOLOCALIZAÇÃO NATIVA EM TEMPO REAL
+        if (!geolocateControlRef.current) {
+          const geolocate = new mapboxgl.GeolocateControl({
+            positionOptions: {
+              enableHighAccuracy: true,
+            },
+            trackUserLocation: true,
+            showUserHeading: true,
+            showUserLocation: false,
+            showAccuracyCircle: false,
+          });
+
+          geolocate.on("geolocate", (e: any) => {
+            if (e.coords) {
+              const nextCoords: [number, number] = [e.coords.longitude, e.coords.latitude];
+              if (userPulseMarkerRef.current) {
+                userPulseMarkerRef.current.setLngLat(nextCoords);
+              }
+              onUserLocationChange?.(nextCoords, e.coords.heading);
             }
-            onUserLocationChange?.(nextCoords, e.coords.heading);
-          }
-        });
+          });
 
-        geolocate.on("error", (err: any) => {
-          console.warn("[PartiuRideMap] Erro de geolocalização nativa:", err);
-          if (err.code === 1) {
-            onLocationPermissionDenied?.();
-          }
-        });
+          geolocate.on("error", (err: any) => {
+            console.warn("[PartiuRideMap] Erro de geolocalização nativa:", err);
+            if (err.code === 1) {
+              onLocationPermissionDenied?.();
+            }
+          });
 
-        map.addControl(geolocate, "top-right");
-        geolocateControlRef.current = geolocate;
+          map.addControl(geolocate, "top-right");
+          geolocateControlRef.current = geolocate;
 
-        setTimeout(() => {
-          try {
-            geolocate.trigger();
-          } catch (err) {
-            silentCatchWarn("PartiuRideMap", err);
-          }
-        }, 350);
-      }
-    },
-    [origemCoords, destinoCoords, driverCoords, modalidade, status, onUserLocationChange, onLocationPermissionDenied]
-  );
+          setTimeout(() => {
+            try {
+              geolocate.trigger();
+            } catch (err) {
+              silentCatchWarn("PartiuRideMap", err);
+            }
+          }, 350);
+        }
+      },
+      [
+        origemCoords,
+        destinoCoords,
+        driverCoords,
+        modalidade,
+        status,
+        onUserLocationChange,
+        onLocationPermissionDenied,
+      ],
+    );
 
-  const setupMapLayersRef = useRef(setupMapLayers);
-  setupMapLayersRef.current = setupMapLayers;
+    const setupMapLayersRef = useRef(setupMapLayers);
+    setupMapLayersRef.current = setupMapLayers;
 
-  // 1.1 INICIALIZAÇÃO RESILIENTE DO MAPA (SUPORTA MAPBOX VETORIAL & CARTO RETINA)
-  useEffect(() => {
-    if (!mapContainer.current) return;
+    // 1.1 INICIALIZAÇÃO RESILIENTE DO MAPA (SUPORTA MAPBOX VETORIAL & CARTO RETINA)
+    useEffect(() => {
+      if (!mapContainer.current) return;
 
-    try {
-      const mapConfig = MapboxConfig.getTenantMapConfig();
-      const hasValidToken = Boolean(
-        mapConfig.effectiveMapboxToken &&
-        mapConfig.effectiveMapboxToken.startsWith("pk.") &&
-        mapConfig.effectiveMapboxToken.length > 20
-      );
-      const isGoogleTiles = Boolean(
-        mapConfig.provider === "google" &&
-        mapConfig.hasOwnGoogleKey
-      );
-
-      if (hasValidToken) {
-        mapboxgl.accessToken = mapConfig.effectiveMapboxToken;
-      } else {
-        mapboxgl.accessToken = "";
-      }
-
-      let initialStyle: any;
-      if (isGoogleTiles) {
-        initialStyle = mapboxService.getGoogleMapsTileStyle(mapConfig.effectiveGoogleApiKey);
-      } else if (hasValidToken) {
-        const mappedStyle =
-          activeMapStyle === "traffic"
-            ? "navigationTraffic"
-            : activeMapStyle === "satellite"
-              ? "satelliteStreets"
-              : "streets";
-        initialStyle = mapboxService.getStyleUrl(mappedStyle);
-      } else {
-        initialStyle = mapboxService.getFallbackStyle(
-          activeMapStyle === "satellite" ? "satellite" : activeMapStyle === "traffic" ? "traffic" : "streets"
+      try {
+        const mapConfig = MapboxConfig.getTenantMapConfig();
+        const hasValidToken = Boolean(
+          mapConfig.effectiveMapboxToken &&
+          mapConfig.effectiveMapboxToken.startsWith("pk.") &&
+          mapConfig.effectiveMapboxToken.length > 20,
         );
-      }
+        const isGoogleTiles = Boolean(mapConfig.provider === "google" && mapConfig.hasOwnGoogleKey);
 
-      const initialCenter = origemCoords || mapConfig.center || CANONICAL_FALLBACK_CENTER;
-
-      const map = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: initialStyle,
-        center: initialCenter,
-        zoom: 16.5,
-        pitch: status === "A_CAMINHO" || status === "EM_VIAGEM" ? 60 : 35,
-        bearing: 0,
-        attributionControl: false,
-        precompilePrograms: false,
-      } as any);
-
-      map.on("load", async () => {
-        if (hasValidToken && !isGoogleTiles) {
-          mapboxService.applyGoogleMapsPalette(map);
-        }
-        await registerAllMapAssets(map);
-        await setupMapLayersRef.current?.(map);
-
-        setMapLoaded(true);
-        mapRef.current = map;
-        map.resize();
-      });
-
-      map.on("dataloading", () => {
-        mapboxRequestCountRef.current += 1;
-      });
-
-      // Flag para impedir loops de erro caso um token seja revogado ou inválido
-      const fallbackAppliedRef = { current: !hasValidToken };
-
-      map.on("error", (e: any) => {
-        const msg = (e?.error?.message || e?.message || "").toLowerCase();
-        const status = e?.error?.status || e?.status;
-        const isAuthError =
-          status === 401 ||
-          status === 403 ||
-          msg.includes("unauthorized") ||
-          msg.includes("forbidden") ||
-          msg.includes("invalid token");
-
-        if (isAuthError && !fallbackAppliedRef.current && hasValidToken) {
-          fallbackAppliedRef.current = true;
-          try {
-            console.info("[PartiuRideMap] Fallback zero-downtime ativado: migrando para camada de alta disponibilidade CARTO Positron");
-            map.setStyle(mapboxService.getCartoPositronStyle() as any);
-            map.once("style.load", async () => {
-              await registerAllMapAssets(map);
-              await setupMapLayersRef.current?.(map);
-            });
-          } catch {
-            setMapError(true);
-          }
+        if (hasValidToken) {
+          mapboxgl.accessToken = mapConfig.effectiveMapboxToken;
         } else {
-          silentCatchWarn("PartiuRideMap:mapbox-warning", e?.error || e);
+          mapboxgl.accessToken = "";
+        }
+
+        let initialStyle: any;
+        if (isGoogleTiles) {
+          initialStyle = mapboxService.getGoogleMapsTileStyle(mapConfig.effectiveGoogleApiKey);
+        } else if (hasValidToken) {
+          const mappedStyle =
+            activeMapStyle === "traffic"
+              ? "navigationTraffic"
+              : activeMapStyle === "satellite"
+                ? "satelliteStreets"
+                : "streets";
+          initialStyle = mapboxService.getStyleUrl(mappedStyle);
+        } else {
+          initialStyle = mapboxService.getFallbackStyle(
+            activeMapStyle === "satellite"
+              ? "satellite"
+              : activeMapStyle === "traffic"
+                ? "traffic"
+                : "streets",
+          );
+        }
+
+        const initialCenter = origemCoords || mapConfig.center || CANONICAL_FALLBACK_CENTER;
+
+        const map = new mapboxgl.Map({
+          container: mapContainer.current,
+          style: initialStyle,
+          center: initialCenter,
+          zoom: 16.5,
+          pitch: status === "A_CAMINHO" || status === "EM_VIAGEM" ? 60 : 35,
+          bearing: 0,
+          attributionControl: false,
+          precompilePrograms: false,
+        } as any);
+
+        map.on("load", async () => {
+          if (hasValidToken && !isGoogleTiles) {
+            mapboxService.applyGoogleMapsPalette(map);
+          }
+          await registerAllMapAssets(map);
+          await setupMapLayersRef.current?.(map);
+
+          setMapLoaded(true);
+          mapRef.current = map;
+          map.resize();
+        });
+
+        map.on("dataloading", () => {
+          mapboxRequestCountRef.current += 1;
+        });
+
+        // Flag para impedir loops de erro caso um token seja revogado ou inválido
+        const fallbackAppliedRef = { current: !hasValidToken };
+
+        map.on("error", (e: any) => {
+          const msg = (e?.error?.message || e?.message || "").toLowerCase();
+          const status = e?.error?.status || e?.status;
+          const isAuthError =
+            status === 401 ||
+            status === 403 ||
+            msg.includes("unauthorized") ||
+            msg.includes("forbidden") ||
+            msg.includes("invalid token");
+
+          if (isAuthError && !fallbackAppliedRef.current && hasValidToken) {
+            fallbackAppliedRef.current = true;
+            try {
+              console.info(
+                "[PartiuRideMap] Fallback zero-downtime ativado: migrando para camada de alta disponibilidade CARTO Positron",
+              );
+              map.setStyle(mapboxService.getCartoPositronStyle() as any);
+              map.once("style.load", async () => {
+                await registerAllMapAssets(map);
+                await setupMapLayersRef.current?.(map);
+              });
+            } catch {
+              setMapError(true);
+            }
+          } else {
+            silentCatchWarn("PartiuRideMap:mapbox-warning", e?.error || e);
+          }
+        });
+
+        mapRef.current = map;
+      } catch (err) {
+        silentCatchWarn("PartiuRideMap:init-error", err);
+        setMapError(true);
+      }
+
+      return () => {
+        if (userPulseMarkerRef.current) {
+          userPulseMarkerRef.current.remove();
+          userPulseMarkerRef.current = null;
+        }
+        if (mapRef.current) {
+          mapRef.current.remove();
+          mapRef.current = null;
+        }
+      };
+    }, []);
+
+    // 1.1 OBSERVADOR DE REDIMENSIONAMENTO (RESIZEOBSERVER) — COMPATIBILIDADE HALF-MAP
+    useEffect(() => {
+      if (!mapContainer.current) return;
+      const ro = new ResizeObserver(() => {
+        if (mapRef.current) {
+          mapRef.current.resize();
         }
       });
+      ro.observe(mapContainer.current);
+      return () => ro.disconnect();
+    }, [mapLoaded]);
 
-      mapRef.current = map;
-    } catch (err) {
-      silentCatchWarn("PartiuRideMap:init-error", err);
-      setMapError(true);
-    }
-
-    return () => {
-      if (userPulseMarkerRef.current) {
-        userPulseMarkerRef.current.remove();
-        userPulseMarkerRef.current = null;
-      }
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
-    };
-  }, []);
-
-  // 1.1 OBSERVADOR DE REDIMENSIONAMENTO (RESIZEOBSERVER) — COMPATIBILIDADE HALF-MAP
-  useEffect(() => {
-    if (!mapContainer.current) return;
-    const ro = new ResizeObserver(() => {
-      if (mapRef.current) {
-        mapRef.current.resize();
-      }
-    });
-    ro.observe(mapContainer.current);
-    return () => ro.disconnect();
-  }, [mapLoaded]);
-
-  // 1.2 SINCRONIZAÇÃO DA COR DA ROTA COM O TEMA DO SISTEMA (THEME-AWARE)
-  useEffect(() => {
-    const handleThemeChange = () => {
-      const map = mapRef.current;
-      if (map && map.getLayer && map.getLayer("route-line")) {
-        const dynamicColor =
-          primaryRouteColor ||
-          (typeof document !== "undefined" &&
-            (getComputedStyle(document.documentElement)
-              .getPropertyValue("--brand-primary-vibrant")
-              .trim() ||
-              getComputedStyle(document.documentElement)
-                .getPropertyValue("--brand-primary-deep")
+    // 1.2 SINCRONIZAÇÃO DA COR DA ROTA COM O TEMA DO SISTEMA (THEME-AWARE)
+    useEffect(() => {
+      const handleThemeChange = () => {
+        const map = mapRef.current;
+        if (map && map.getLayer && map.getLayer("route-line")) {
+          const dynamicColor =
+            primaryRouteColor ||
+            (typeof document !== "undefined" &&
+              (getComputedStyle(document.documentElement)
+                .getPropertyValue("--brand-primary-vibrant")
                 .trim() ||
-              getComputedStyle(document.documentElement)
-                .getPropertyValue("--primary")
-                .trim())) ||
-          "#0088FF";
-        map.setPaintProperty("route-line", "line-color", dynamicColor);
+                getComputedStyle(document.documentElement)
+                  .getPropertyValue("--brand-primary-deep")
+                  .trim() ||
+                getComputedStyle(document.documentElement).getPropertyValue("--primary").trim())) ||
+            "#0088FF";
+          map.setPaintProperty("route-line", "line-color", dynamicColor);
+        }
+      };
+
+      handleThemeChange();
+
+      window.addEventListener("partiu:whitelabel-updated", handleThemeChange);
+      window.addEventListener("partiu:identidade-atualizada", handleThemeChange);
+      window.addEventListener("storage", handleThemeChange);
+      return () => {
+        window.removeEventListener("partiu:whitelabel-updated", handleThemeChange);
+        window.removeEventListener("partiu:identidade-atualizada", handleThemeChange);
+        window.removeEventListener("storage", handleThemeChange);
+      };
+    }, [mapLoaded, primaryRouteColor]);
+
+    // 2. ATUALIZAÇÃO DA COORDENADA DO PASSAGEIRO (EXATO PONTO AZUL 99 & ORIGIN PIN)
+    useEffect(() => {
+      const map = mapRef.current;
+      if (!map || !mapLoaded) return;
+
+      if (userPulseMarkerRef.current) {
+        userPulseMarkerRef.current.setLngLat(origemCoords);
       }
-    };
 
-    handleThemeChange();
-
-    window.addEventListener("partiu:whitelabel-updated", handleThemeChange);
-    window.addEventListener("partiu:identidade-atualizada", handleThemeChange);
-    window.addEventListener("storage", handleThemeChange);
-    return () => {
-      window.removeEventListener("partiu:whitelabel-updated", handleThemeChange);
-      window.removeEventListener("partiu:identidade-atualizada", handleThemeChange);
-      window.removeEventListener("storage", handleThemeChange);
-    };
-  }, [mapLoaded, primaryRouteColor]);
-
-  // 2. ATUALIZAÇÃO DA COORDENADA DO PASSAGEIRO (EXATO PONTO AZUL 99 & ORIGIN PIN)
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-
-    if (userPulseMarkerRef.current) {
-      userPulseMarkerRef.current.setLngLat(origemCoords);
-    }
-
-    const userSource = map.getSource("user-location-source") as mapboxgl.GeoJSONSource | undefined;
-    if (userSource) {
-      userSource.setData({
-        type: "Feature",
-        properties: {},
-        geometry: {
-          type: "Point",
-          coordinates: origemCoords,
-        },
-      });
-    }
-
-    const originSource = map.getSource("origin-pin-source") as mapboxgl.GeoJSONSource | undefined;
-    if (originSource) {
-      // Limpeza do Pino de Origem: No estado IDLE ou busca inicial de destino,
-      // suprimimos o pino verde para não conflitar com a localização atual (UserLocation)
-      const shouldShowOriginPin =
-        status === "CONFIRMING_PICKUP" ||
-        status === "EDITING_PICKUP" ||
-        status === "REVIEWING_ROUTE" ||
-        status === "A_CAMINHO" ||
-        status === "EM_VIAGEM";
-
-      if (shouldShowOriginPin) {
-        originSource.setData({
+      const userSource = map.getSource("user-location-source") as
+        mapboxgl.GeoJSONSource | undefined;
+      if (userSource) {
+        userSource.setData({
           type: "Feature",
           properties: {},
           geometry: {
@@ -890,532 +908,586 @@ export const PartiuRideMap = memo(
             coordinates: origemCoords,
           },
         });
-      } else {
-        originSource.setData({
-          type: "FeatureCollection",
-          features: [],
-        });
       }
-    }
-  }, [mapLoaded, origemCoords, status]);
 
-  // 3. ATUALIZAÇÃO DA COORDENADA DO DESTINO (DESTINATION PIN)
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
+      const originSource = map.getSource("origin-pin-source") as mapboxgl.GeoJSONSource | undefined;
+      if (originSource) {
+        // Limpeza do Pino de Origem: No estado IDLE ou busca inicial de destino,
+        // suprimimos o pino verde para não conflitar com a localização atual (UserLocation)
+        const shouldShowOriginPin =
+          status === "CONFIRMING_PICKUP" ||
+          status === "EDITING_PICKUP" ||
+          status === "REVIEWING_ROUTE" ||
+          status === "A_CAMINHO" ||
+          status === "EM_VIAGEM";
 
-    const destSource = map.getSource("destination-pin-source") as mapboxgl.GeoJSONSource | undefined;
-    if (destSource) {
-      const shouldShowDestPin =
-        status !== "IDLE" &&
-        status !== "SEARCHING_DESTINATION" &&
-        status !== "SELECTING_DESTINATION" &&
-        status !== "EDITING_PICKUP" &&
-        Boolean(destinoCoords);
-
-      if (shouldShowDestPin && destinoCoords) {
-        destSource.setData({
-          type: "Feature",
-          properties: {},
-          geometry: {
-            type: "Point",
-            coordinates: destinoCoords,
-          },
-        });
-      } else {
-        destSource.setData({
-          type: "FeatureCollection",
-          features: [],
-        });
+        if (shouldShowOriginPin) {
+          originSource.setData({
+            type: "Feature",
+            properties: {},
+            geometry: {
+              type: "Point",
+              coordinates: origemCoords,
+            },
+          });
+        } else {
+          originSource.setData({
+            type: "FeatureCollection",
+            features: [],
+          });
+        }
       }
-    }
-  }, [mapLoaded, destinoCoords, status]);
+    }, [mapLoaded, origemCoords, status]);
 
-  // 4. CONTROLE DE CÂMERA INTELIGENTE CONFORME ESTADO DA VIAGEM
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
+    // 3. ATUALIZAÇÃO DA COORDENADA DO DESTINO (DESTINATION PIN)
+    useEffect(() => {
+      const map = mapRef.current;
+      if (!map || !mapLoaded) return;
 
-    if (status === "IDLE") {
-      const currentCenter = map.getCenter();
-      const distLng = Math.abs(currentCenter.lng - origemCoords[0]);
-      const distLat = Math.abs(currentCenter.lat - origemCoords[1]);
-      if (!lastIdleCenterRef.current || distLng > 0.0003 || distLat > 0.0003) {
-        lastIdleCenterRef.current = origemCoords;
+      const destSource = map.getSource("destination-pin-source") as
+        mapboxgl.GeoJSONSource | undefined;
+      if (destSource) {
+        const shouldShowDestPin =
+          status !== "IDLE" &&
+          status !== "SEARCHING_DESTINATION" &&
+          status !== "SELECTING_DESTINATION" &&
+          status !== "EDITING_PICKUP" &&
+          Boolean(destinoCoords);
+
+        if (shouldShowDestPin && destinoCoords) {
+          destSource.setData({
+            type: "Feature",
+            properties: {},
+            geometry: {
+              type: "Point",
+              coordinates: destinoCoords,
+            },
+          });
+        } else {
+          destSource.setData({
+            type: "FeatureCollection",
+            features: [],
+          });
+        }
+      }
+    }, [mapLoaded, destinoCoords, status]);
+
+    // 4. CONTROLE DE CÂMERA INTELIGENTE CONFORME ESTADO DA VIAGEM
+    useEffect(() => {
+      const map = mapRef.current;
+      if (!map || !mapLoaded) return;
+
+      if (status === "IDLE") {
+        const currentCenter = map.getCenter();
+        const distLng = Math.abs(currentCenter.lng - origemCoords[0]);
+        const distLat = Math.abs(currentCenter.lat - origemCoords[1]);
+        if (!lastIdleCenterRef.current || distLng > 0.0003 || distLat > 0.0003) {
+          lastIdleCenterRef.current = origemCoords;
+          map.easeTo({
+            center: origemCoords,
+            zoom: 16.5,
+            padding: cameraPadding || { top: 80, bottom: 260, left: 32, right: 32 },
+            duration: 800,
+          });
+        }
+      } else if (
+        status === "SELECTING_DESTINATION" ||
+        status === "SEARCHING_DESTINATION" ||
+        status === "EDITING_PICKUP"
+      ) {
         map.easeTo({
           center: origemCoords,
-          zoom: 16.5,
-          padding: cameraPadding || { top: 80, bottom: 260, left: 32, right: 32 },
+          zoom: 14.1,
           duration: 800,
         });
+      } else if (status === "CONFIRMING_PICKUP") {
+        map.easeTo({
+          center: origemCoords,
+          zoom: 16.2,
+          duration: 600,
+        });
+      } else if (status === "CONFIRMING_DESTINATION_MAP") {
+        map.easeTo({
+          center: destinoCoords || origemCoords,
+          zoom: 15.8,
+          duration: 600,
+        });
+      } else if (status === "REVIEWING_ROUTE" && destinoCoords) {
+        const bounds = new mapboxgl.LngLatBounds();
+        bounds.extend(origemCoords);
+        bounds.extend(destinoCoords);
+        const reviewingPadding = cameraPadding || {
+          top:
+            typeof window !== "undefined" ? Math.max(70, Math.round(window.innerHeight * 0.1)) : 80,
+          bottom:
+            typeof window !== "undefined"
+              ? Math.max(380, Math.round(window.innerHeight * 0.54))
+              : 420,
+          left: 48,
+          right: 48,
+        };
+        map.fitBounds(bounds, {
+          padding: reviewingPadding,
+          maxZoom: 16,
+          duration: 800,
+        });
+      } else if (status === "PROCURANDO") {
+        const defaultProcurandoPadding = {
+          top: 0,
+          bottom:
+            typeof window !== "undefined"
+              ? Math.max(300, Math.round(window.innerHeight * 0.42))
+              : 340,
+          left: 0,
+          right: 0,
+        };
+
+        map.easeTo({
+          center: origemCoords,
+          zoom: 15.8,
+          padding: cameraPadding || defaultProcurandoPadding,
+          duration: 700,
+        });
+      } else {
+        lastIdleCenterRef.current = null;
       }
-    } else if (
-      status === "SELECTING_DESTINATION" ||
-      status === "SEARCHING_DESTINATION" ||
-      status === "EDITING_PICKUP"
-    ) {
-      map.easeTo({
-        center: origemCoords,
-        zoom: 14.1,
-        duration: 800,
-      });
-    } else if (status === "CONFIRMING_PICKUP") {
-      map.easeTo({
-        center: origemCoords,
-        zoom: 16.2,
-        duration: 600,
-      });
-    } else if (status === "CONFIRMING_DESTINATION_MAP") {
-      map.easeTo({
-        center: destinoCoords || origemCoords,
-        zoom: 15.8,
-        duration: 600,
-      });
-    } else if (status === "REVIEWING_ROUTE" && destinoCoords) {
-      const bounds = new mapboxgl.LngLatBounds();
-      bounds.extend(origemCoords);
-      bounds.extend(destinoCoords);
-      const reviewingPadding = cameraPadding || {
-        top: typeof window !== "undefined" ? Math.max(70, Math.round(window.innerHeight * 0.10)) : 80,
-        bottom: typeof window !== "undefined" ? Math.max(380, Math.round(window.innerHeight * 0.54)) : 420,
-        left: 48,
-        right: 48,
+    }, [mapLoaded, status, origemCoords, destinoCoords, cameraPadding]);
+
+    // 5. AJUSTE DE PINO CENTRAL PELO ARRASTO DO USUÁRIO
+    useEffect(() => {
+      const map = mapRef.current;
+      if (!map || !mapLoaded || !onMapCenterChange) return;
+
+      const isPinMode = status === "CONFIRMING_PICKUP" || status === "CONFIRMING_DESTINATION_MAP";
+      if (!isPinMode) return;
+
+      const handleDragEnd = () => {
+        const center = map.getCenter();
+        onMapCenterChange([center.lng, center.lat]);
       };
-      map.fitBounds(bounds, {
-        padding: reviewingPadding,
-        maxZoom: 16,
-        duration: 800,
+
+      map.on("dragend", handleDragEnd);
+      return () => {
+        map.off("dragend", handleDragEnd);
+      };
+    }, [mapLoaded, status, onMapCenterChange]);
+
+    // 6. PONTOS ESTRATÉGICOS DE EMBARQUE (SMART PICKUPS)
+    useEffect(() => {
+      const map = mapRef.current;
+      if (!map || !mapLoaded) return;
+
+      strategicMarkersRef.current.forEach((m) => m.remove());
+      strategicMarkersRef.current = [];
+
+      // Pinos de pontos estratégicos removidos conforme solicitação do usuário:
+      // O mapa mantém exclusivamente o Ponto Azul exato do passageiro e a frota em tempo real
+      strategicMarkersRef.current.forEach((m) => m.remove());
+      strategicMarkersRef.current = [];
+    }, [mapLoaded]);
+
+    // 7. LIVE TRACKING ENGINE (60FPS LERP & SMOOTH BEARING)
+    useEffect(() => {
+      const map = mapRef.current;
+      if (!map || !mapLoaded) return;
+
+      return liveTrackingEngine.subscribe((pos) => {
+        const activeSource = map.getSource("active-driver-source") as
+          mapboxgl.GeoJSONSource | undefined;
+        if (activeSource) {
+          activeSource.setData({
+            type: "Feature",
+            properties: {
+              id: "active-driver",
+              icon: modalidade === "MOTO" ? "moto-icon" : "car-icon",
+              bearing: pos.bearing,
+            },
+            geometry: {
+              type: "Point",
+              coordinates: [pos.lng, pos.lat],
+            },
+          });
+        }
+
+        // Atualiza a posição do badge flutuante de ETA
+        if (driverBadgeMarkerRef.current) {
+          driverBadgeMarkerRef.current.setLngLat([pos.lng, pos.lat]);
+        }
       });
-    } else if (status === "PROCURANDO") {
-      const defaultProcurandoPadding = {
-        top: 0,
-        bottom: typeof window !== "undefined" ? Math.max(300, Math.round(window.innerHeight * 0.42)) : 340,
+    }, [mapLoaded, modalidade]);
+
+    // 9. ATUALIZAÇÃO DA ROTA REAL E SINCRONIZAÇÃO DO VEÍCULO (TELEMETRIA 100% REAL)
+    useEffect(() => {
+      const map = mapRef.current;
+      if (!map || !mapLoaded) return;
+
+      const routeSource = map.getSource("route-source") as mapboxgl.GeoJSONSource | undefined;
+      const idleSource = map.getSource("idle-drivers-source") as mapboxgl.GeoJSONSource | undefined;
+      const activeDriverSource = map.getSource("active-driver-source") as
+        mapboxgl.GeoJSONSource | undefined;
+
+      let active = true;
+
+      // A. MODO REVISÃO DE ROTA: Calcula e renderiza a rota completa em vias reais
+      if (status === "REVIEWING_ROUTE" && destinoCoords) {
+        routingService
+          .getRoute(origemCoords, destinoCoords)
+          .then((route) => {
+            if (!active || !mapRef.current) return;
+            const curRouteSource = mapRef.current.getSource("route-source") as
+              mapboxgl.GeoJSONSource | undefined;
+            if (curRouteSource && route.coordinates && route.coordinates.length > 0) {
+              curRouteSource.setData({
+                type: "Feature",
+                properties: {},
+                geometry: {
+                  type: "LineString",
+                  coordinates: route.coordinates,
+                },
+              });
+            }
+          })
+          .catch((err) => {
+            console.warn("[PartiuRideMap] Erro ao carregar rota:", err);
+          });
+
+        if (idleSource) {
+          idleSource.setData({ type: "FeatureCollection", features: [] });
+        }
+        if (activeDriverSource) {
+          activeDriverSource.setData({ type: "FeatureCollection", features: [] });
+        }
+        if (driverBadgeMarkerRef.current) {
+          driverBadgeMarkerRef.current.remove();
+          driverBadgeMarkerRef.current = null;
+        }
+      } else if (status === "A_CAMINHO") {
+        // B. MODO A CAMINHO: Rastreamento real do motorista até o ponto de embarque (com Snap to Road)
+        let currentCoord = driverCoords || origemCoords;
+        let heading = 0;
+
+        if (
+          driverCoords &&
+          activeRouteCoordsRef.current &&
+          activeRouteCoordsRef.current.length >= 2
+        ) {
+          const snap = snapToRoute(activeRouteCoordsRef.current, driverCoords[1], driverCoords[0]);
+          if (snap.deviation <= 45 && activeRouteCoordsRef.current[snap.index + 1]) {
+            currentCoord = snap.point;
+            heading = calculateBearing(
+              activeRouteCoordsRef.current[snap.index],
+              activeRouteCoordsRef.current[snap.index + 1],
+            );
+          } else {
+            heading = calculateBearing(driverCoords, origemCoords);
+          }
+        } else if (driverCoords) {
+          heading = calculateBearing(driverCoords, origemCoords);
+        }
+
+        if (driverCoords) {
+          liveTrackingEngine.pushUpdate(currentCoord, heading, 3000);
+        }
+
+        // Calcula traçado real por vias da posição do condutor até o embarque
+        if (driverCoords) {
+          routingService
+            .getRoute(driverCoords, origemCoords)
+            .then((route) => {
+              if (!active || !mapRef.current) return;
+              if (route.coordinates && route.coordinates.length > 0) {
+                activeRouteCoordsRef.current = route.coordinates;
+                const curRouteSource = mapRef.current.getSource("route-source") as
+                  mapboxgl.GeoJSONSource | undefined;
+                if (curRouteSource) {
+                  curRouteSource.setData({
+                    type: "Feature",
+                    properties: {},
+                    geometry: {
+                      type: "LineString",
+                      coordinates: route.coordinates,
+                    },
+                  });
+                }
+              }
+
+              // Badge flutuante de ETA real (Mapbox driving-traffic)
+              if (!driverBadgeMarkerRef.current && mapRef.current) {
+                const badgeEl = document.createElement("div");
+                badgeEl.className =
+                  "px-2.5 py-0.5 mb-8 rounded-full bg-slate-950/95 text-[#0088FF] text-[10px] font-black border border-[#0088FF] shadow-xl flex items-center gap-1 -translate-y-4 pointer-events-none select-none";
+                badgeEl.innerHTML = `
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>~${route.durationMinutes} min</span>
+              `;
+                driverBadgeMarkerRef.current = new mapboxgl.Marker({
+                  element: badgeEl,
+                  anchor: "bottom",
+                })
+                  .setLngLat(currentCoord)
+                  .addTo(mapRef.current);
+              }
+            })
+            .catch((err) => {
+              console.warn("[PartiuRideMap] Erro ao obter rota de aproximação:", err);
+            });
+        }
+
+        // Enquadra passageiro e motorista na câmera com padding estrito
+        const bounds = new mapboxgl.LngLatBounds();
+        bounds.extend(currentCoord);
+        bounds.extend(origemCoords);
+        const enRoutePadding = cameraPadding || {
+          top: 100,
+          bottom: 380,
+          left: 80,
+          right: 80,
+        };
+        map.fitBounds(bounds, {
+          padding: enRoutePadding,
+          maxZoom: 16.5,
+          duration: 1200,
+        });
+      } else if (status === "EM_VIAGEM") {
+        // C. MODO EM VIAGEM: Trajeto real em andamento até o destino final (com Snap to Road)
+        let currentCoord = driverCoords || origemCoords;
+        const targetDestino = destinoCoords || origemCoords;
+        let heading = 0;
+
+        if (
+          driverCoords &&
+          activeRouteCoordsRef.current &&
+          activeRouteCoordsRef.current.length >= 2
+        ) {
+          const snap = snapToRoute(activeRouteCoordsRef.current, driverCoords[1], driverCoords[0]);
+          if (snap.deviation <= 45 && activeRouteCoordsRef.current[snap.index + 1]) {
+            currentCoord = snap.point;
+            heading = calculateBearing(
+              activeRouteCoordsRef.current[snap.index],
+              activeRouteCoordsRef.current[snap.index + 1],
+            );
+          } else if (destinoCoords) {
+            heading = calculateBearing(driverCoords, destinoCoords);
+          }
+        } else if (driverCoords && destinoCoords) {
+          heading = calculateBearing(driverCoords, destinoCoords);
+        }
+
+        if (driverCoords) {
+          liveTrackingEngine.pushUpdate(currentCoord, heading, 3000);
+        }
+
+        if (driverCoords && destinoCoords) {
+          routingService
+            .getRoute(driverCoords, destinoCoords)
+            .then((route) => {
+              if (!active || !mapRef.current) return;
+              if (route.coordinates && route.coordinates.length > 0) {
+                activeRouteCoordsRef.current = route.coordinates;
+                const curRouteSource = mapRef.current.getSource("route-source") as
+                  mapboxgl.GeoJSONSource | undefined;
+                if (curRouteSource) {
+                  curRouteSource.setData({
+                    type: "Feature",
+                    properties: {},
+                    geometry: {
+                      type: "LineString",
+                      coordinates: route.coordinates,
+                    },
+                  });
+                }
+              }
+            })
+            .catch((err) => {
+              console.warn("[PartiuRideMap] Erro ao obter rota em viagem:", err);
+            });
+        }
+
+        const bounds = new mapboxgl.LngLatBounds();
+        bounds.extend(currentCoord);
+        bounds.extend(targetDestino);
+        const tripPadding = cameraPadding || {
+          top: 100,
+          bottom:
+            typeof window !== "undefined"
+              ? Math.max(300, Math.round(window.innerHeight * 0.4))
+              : 320,
+          left: 60,
+          right: 60,
+        };
+        map.fitBounds(bounds, {
+          padding: tripPadding,
+          maxZoom: 16,
+          duration: 1000,
+        });
+      } else {
+        // D. MODO IDLE: Limpa rota ativa e exibe frotas parceiras reais do Realtime
+        if (routeSource) {
+          routeSource.setData({
+            type: "Feature",
+            properties: {},
+            geometry: { type: "LineString", coordinates: [] },
+          });
+        }
+
+        if (activeDriverSource) {
+          activeDriverSource.setData({ type: "FeatureCollection", features: [] });
+        }
+
+        if (idleSource) {
+          idleSource.setData(liveDriversGeoJson as any);
+        }
+
+        if (driverBadgeMarkerRef.current) {
+          driverBadgeMarkerRef.current.remove();
+          driverBadgeMarkerRef.current = null;
+        }
+      }
+
+      return () => {
+        active = false;
+      };
+    }, [mapLoaded, status, origemCoords, destinoCoords, driverCoords, modalidade, cameraPadding]);
+
+    // 10. ATUALIZAÇÃO DIFERENCIAL COM VIRTUALIZAÇÃO ESPACIAL DE VIEWPORT (PADRÃO UBER/99)
+    useEffect(() => {
+      const map = mapRef.current;
+      if (!map || !mapLoaded) return;
+
+      const idleSource = map.getSource("idle-drivers-source") as mapboxgl.GeoJSONSource | undefined;
+      if (!idleSource) return;
+
+      if (status === "REVIEWING_ROUTE" || status === "A_CAMINHO" || status === "EM_VIAGEM") {
+        idleSource.setData({ type: "FeatureCollection", features: [] });
+        setViewportDriversCount(0);
+        return;
+      }
+
+      const updateViewportFleet = () => {
+        const bbox = getBoundingBoxFromMap(map);
+        const visibleDrivers = bbox ? filterPointsInViewport(liveDrivers, bbox, 0.25) : liveDrivers;
+        setViewportDriversCount(visibleDrivers.length);
+
+        const features: GeoJSON.Feature[] = visibleDrivers.map((d) => {
+          const isMoto = d.category === "MOTO";
+          return {
+            type: "Feature" as const,
+            id: d.id,
+            properties: {
+              id: d.id,
+              nome: d.vehicleModel || (isMoto ? "Moto Parceira" : "Carro Parceiro"),
+              veiculo: d.vehicleModel || (isMoto ? "Honda CG 160" : "Chevrolet Onix"),
+              placa: d.licensePlate || "BRA-4X99",
+              modalidade: isMoto ? ("MOTO" as const) : ("CARRO" as const),
+              icon: isMoto ? ("moto-icon" as const) : ("car-icon" as const),
+              heading: d.heading || 0,
+              bearing: d.heading || 0,
+              status: d.status || "DISPONIVEL",
+            },
+            geometry: {
+              type: "Point" as const,
+              coordinates: [d.longitude, d.latitude] as [number, number],
+            },
+          };
+        });
+
+        const hash = `${features.length}-${features[0]?.geometry ? (features[0].geometry as any).coordinates[0] : 0}-${features[features.length - 1]?.properties?.heading || 0}`;
+        if (hash === lastDriversHashRef.current) {
+          return;
+        }
+        lastDriversHashRef.current = hash;
+
+        idleSource.setData({
+          type: "FeatureCollection",
+          features,
+        });
+      };
+
+      updateViewportFleet();
+
+      const onMoveEnd = () => {
+        updateViewportFleet();
+      };
+
+      map.on("moveend", onMoveEnd);
+      return () => {
+        map.off("moveend", onMoveEnd);
+      };
+    }, [mapLoaded, status, liveDrivers]);
+
+    // Função para recentralizar o mapa no usuário com máxima precisão GNSS e fallback de rede
+    async function handleRecenter() {
+      const defaultIdlePadding = {
+        top: 65,
+        bottom:
+          typeof window !== "undefined" ? Math.max(300, Math.round(window.innerHeight * 0.4)) : 320,
         left: 0,
         right: 0,
       };
 
-      map.easeTo({
-        center: origemCoords,
-        zoom: 15.8,
-        padding: cameraPadding || defaultProcurandoPadding,
-        duration: 700,
-      });
-    } else {
-      lastIdleCenterRef.current = null;
-    }
-  }, [mapLoaded, status, origemCoords, destinoCoords, cameraPadding]);
-
-  // 5. AJUSTE DE PINO CENTRAL PELO ARRASTO DO USUÁRIO
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded || !onMapCenterChange) return;
-
-    const isPinMode = status === "CONFIRMING_PICKUP" || status === "CONFIRMING_DESTINATION_MAP";
-    if (!isPinMode) return;
-
-    const handleDragEnd = () => {
-      const center = map.getCenter();
-      onMapCenterChange([center.lng, center.lat]);
-    };
-
-    map.on("dragend", handleDragEnd);
-    return () => {
-      map.off("dragend", handleDragEnd);
-    };
-  }, [mapLoaded, status, onMapCenterChange]);
-
-  // 6. PONTOS ESTRATÉGICOS DE EMBARQUE (SMART PICKUPS)
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-
-    strategicMarkersRef.current.forEach((m) => m.remove());
-    strategicMarkersRef.current = [];
-
-    // Pinos de pontos estratégicos removidos conforme solicitação do usuário:
-    // O mapa mantém exclusivamente o Ponto Azul exato do passageiro e a frota em tempo real
-    strategicMarkersRef.current.forEach((m) => m.remove());
-    strategicMarkersRef.current = [];
-  }, [mapLoaded]);
-
-  // 7. LIVE TRACKING ENGINE (60FPS LERP & SMOOTH BEARING)
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-
-    return liveTrackingEngine.subscribe((pos) => {
-      const activeSource = map.getSource("active-driver-source") as mapboxgl.GeoJSONSource | undefined;
-      if (activeSource) {
-        activeSource.setData({
-          type: "Feature",
-          properties: {
-            id: "active-driver",
-            icon: modalidade === "MOTO" ? "moto-icon" : "car-icon",
-            bearing: pos.bearing,
-          },
-          geometry: {
-            type: "Point",
-            coordinates: [pos.lng, pos.lat],
-          },
-        });
-      }
-
-      // Atualiza a posição do badge flutuante de ETA
-      if (driverBadgeMarkerRef.current) {
-        driverBadgeMarkerRef.current.setLngLat([pos.lng, pos.lat]);
-      }
-    });
-  }, [mapLoaded, modalidade]);
-
-  // 9. ATUALIZAÇÃO DA ROTA REAL E SINCRONIZAÇÃO DO VEÍCULO (TELEMETRIA 100% REAL)
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-
-    const routeSource = map.getSource("route-source") as mapboxgl.GeoJSONSource | undefined;
-    const idleSource = map.getSource("idle-drivers-source") as mapboxgl.GeoJSONSource | undefined;
-    const activeDriverSource = map.getSource("active-driver-source") as mapboxgl.GeoJSONSource | undefined;
-
-    let active = true;
-
-    // A. MODO REVISÃO DE ROTA: Calcula e renderiza a rota completa em vias reais
-    if (status === "REVIEWING_ROUTE" && destinoCoords) {
-      routingService
-        .getRoute(origemCoords, destinoCoords)
-        .then((route) => {
-          if (!active || !mapRef.current) return;
-          const curRouteSource = mapRef.current.getSource("route-source") as mapboxgl.GeoJSONSource | undefined;
-          if (curRouteSource && route.coordinates && route.coordinates.length > 0) {
-            curRouteSource.setData({
-              type: "Feature",
-              properties: {},
-              geometry: {
-                type: "LineString",
-                coordinates: route.coordinates,
-              },
-            });
-          }
-        })
-        .catch((err) => {
-          console.warn("[PartiuRideMap] Erro ao carregar rota:", err);
-        });
-
-      if (idleSource) {
-        idleSource.setData({ type: "FeatureCollection", features: [] });
-      }
-      if (activeDriverSource) {
-        activeDriverSource.setData({ type: "FeatureCollection", features: [] });
-      }
-      if (driverBadgeMarkerRef.current) {
-        driverBadgeMarkerRef.current.remove();
-        driverBadgeMarkerRef.current = null;
-      }
-    } else if (status === "A_CAMINHO") {
-      // B. MODO A CAMINHO: Rastreamento real do motorista até o ponto de embarque (com Snap to Road)
-      let currentCoord = driverCoords || origemCoords;
-      let heading = 0;
-
-      if (driverCoords && activeRouteCoordsRef.current && activeRouteCoordsRef.current.length >= 2) {
-        const snap = snapToRoute(activeRouteCoordsRef.current, driverCoords[1], driverCoords[0]);
-        if (snap.deviation <= 45 && activeRouteCoordsRef.current[snap.index + 1]) {
-          currentCoord = snap.point;
-          heading = calculateBearing(
-            activeRouteCoordsRef.current[snap.index],
-            activeRouteCoordsRef.current[snap.index + 1]
-          );
-        } else {
-          heading = calculateBearing(driverCoords, origemCoords);
+      const flyToCoords = (coords: [number, number], heading?: number | null) => {
+        if (userPulseMarkerRef.current) {
+          userPulseMarkerRef.current.setLngLat(coords);
         }
-      } else if (driverCoords) {
-        heading = calculateBearing(driverCoords, origemCoords);
-      }
-
-      if (driverCoords) {
-        liveTrackingEngine.pushUpdate(currentCoord, heading, 3000);
-      }
-
-      // Calcula traçado real por vias da posição do condutor até o embarque
-      if (driverCoords) {
-        routingService
-          .getRoute(driverCoords, origemCoords)
-          .then((route) => {
-            if (!active || !mapRef.current) return;
-            if (route.coordinates && route.coordinates.length > 0) {
-              activeRouteCoordsRef.current = route.coordinates;
-              const curRouteSource = mapRef.current.getSource("route-source") as mapboxgl.GeoJSONSource | undefined;
-              if (curRouteSource) {
-                curRouteSource.setData({
-                  type: "Feature",
-                  properties: {},
-                  geometry: {
-                    type: "LineString",
-                    coordinates: route.coordinates,
-                  },
-                });
-              }
-            }
-
-            // Badge flutuante de ETA real (Mapbox driving-traffic)
-            if (!driverBadgeMarkerRef.current && mapRef.current) {
-              const badgeEl = document.createElement("div");
-              badgeEl.className =
-                "px-2.5 py-0.5 mb-8 rounded-full bg-slate-950/95 text-[#0088FF] text-[10px] font-black border border-[#0088FF] shadow-xl flex items-center gap-1 -translate-y-4 pointer-events-none select-none";
-              badgeEl.innerHTML = `
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                <span>~${route.durationMinutes} min</span>
-              `;
-              driverBadgeMarkerRef.current = new mapboxgl.Marker({
-                element: badgeEl,
-                anchor: "bottom",
-              })
-                .setLngLat(currentCoord)
-                .addTo(mapRef.current);
-            }
-          })
-          .catch((err) => {
-            console.warn("[PartiuRideMap] Erro ao obter rota de aproximação:", err);
+        onUserLocationChange?.(coords, heading ?? undefined);
+        if (mapRef.current) {
+          mapRef.current.flyTo({
+            center: coords,
+            zoom: 16.8,
+            padding:
+              cameraPadding ||
+              (status === "IDLE" ? defaultIdlePadding : { top: 0, bottom: 0, left: 0, right: 0 }),
+            duration: 700,
           });
-      }
-
-      // Enquadra passageiro e motorista na câmera com padding estrito
-      const bounds = new mapboxgl.LngLatBounds();
-      bounds.extend(currentCoord);
-      bounds.extend(origemCoords);
-      const enRoutePadding = cameraPadding || {
-        top: 100,
-        bottom: 380,
-        left: 80,
-        right: 80,
-      };
-      map.fitBounds(bounds, {
-        padding: enRoutePadding,
-        maxZoom: 16.5,
-        duration: 1200,
-      });
-    } else if (status === "EM_VIAGEM") {
-      // C. MODO EM VIAGEM: Trajeto real em andamento até o destino final (com Snap to Road)
-      let currentCoord = driverCoords || origemCoords;
-      const targetDestino = destinoCoords || origemCoords;
-      let heading = 0;
-
-      if (driverCoords && activeRouteCoordsRef.current && activeRouteCoordsRef.current.length >= 2) {
-        const snap = snapToRoute(activeRouteCoordsRef.current, driverCoords[1], driverCoords[0]);
-        if (snap.deviation <= 45 && activeRouteCoordsRef.current[snap.index + 1]) {
-          currentCoord = snap.point;
-          heading = calculateBearing(
-            activeRouteCoordsRef.current[snap.index],
-            activeRouteCoordsRef.current[snap.index + 1]
-          );
-        } else if (destinoCoords) {
-          heading = calculateBearing(driverCoords, destinoCoords);
         }
-      } else if (driverCoords && destinoCoords) {
-        heading = calculateBearing(driverCoords, destinoCoords);
-      }
-
-      if (driverCoords) {
-        liveTrackingEngine.pushUpdate(currentCoord, heading, 3000);
-      }
-
-      if (driverCoords && destinoCoords) {
-        routingService
-          .getRoute(driverCoords, destinoCoords)
-          .then((route) => {
-            if (!active || !mapRef.current) return;
-            if (route.coordinates && route.coordinates.length > 0) {
-              activeRouteCoordsRef.current = route.coordinates;
-              const curRouteSource = mapRef.current.getSource("route-source") as mapboxgl.GeoJSONSource | undefined;
-              if (curRouteSource) {
-                curRouteSource.setData({
-                  type: "Feature",
-                  properties: {},
-                  geometry: {
-                    type: "LineString",
-                    coordinates: route.coordinates,
-                  },
-                });
-              }
-            }
-          })
-          .catch((err) => {
-            console.warn("[PartiuRideMap] Erro ao obter rota em viagem:", err);
-          });
-      }
-
-      const bounds = new mapboxgl.LngLatBounds();
-      bounds.extend(currentCoord);
-      bounds.extend(targetDestino);
-      const tripPadding = cameraPadding || {
-        top: 100,
-        bottom: typeof window !== "undefined" ? Math.max(300, Math.round(window.innerHeight * 0.40)) : 320,
-        left: 60,
-        right: 60,
       };
-      map.fitBounds(bounds, {
-        padding: tripPadding,
-        maxZoom: 16,
-        duration: 1000,
-      });
-    } else {
-      // D. MODO IDLE: Limpa rota ativa e exibe frotas parceiras reais do Realtime
-      if (routeSource) {
-        routeSource.setData({
-          type: "Feature",
-          properties: {},
-          geometry: { type: "LineString", coordinates: [] },
-        });
-      }
 
-      if (activeDriverSource) {
-        activeDriverSource.setData({ type: "FeatureCollection", features: [] });
-      }
-
-      if (idleSource) {
-        idleSource.setData(liveDriversGeoJson as any);
-      }
-
-      if (driverBadgeMarkerRef.current) {
-        driverBadgeMarkerRef.current.remove();
-        driverBadgeMarkerRef.current = null;
-      }
-    }
-
-    return () => {
-      active = false;
-    };
-  }, [mapLoaded, status, origemCoords, destinoCoords, driverCoords, modalidade, cameraPadding]);
-
-  // 10. ATUALIZAÇÃO DIFERENCIAL COM VIRTUALIZAÇÃO ESPACIAL DE VIEWPORT (PADRÃO UBER/99)
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-
-    const idleSource = map.getSource("idle-drivers-source") as mapboxgl.GeoJSONSource | undefined;
-    if (!idleSource) return;
-
-    if (
-      status === "REVIEWING_ROUTE" ||
-      status === "A_CAMINHO" ||
-      status === "EM_VIAGEM"
-    ) {
-      idleSource.setData({ type: "FeatureCollection", features: [] });
-      setViewportDriversCount(0);
-      return;
-    }
-
-    const updateViewportFleet = () => {
-      const bbox = getBoundingBoxFromMap(map);
-      const visibleDrivers = bbox ? filterPointsInViewport(liveDrivers, bbox, 0.25) : liveDrivers;
-      setViewportDriversCount(visibleDrivers.length);
-
-      const features: GeoJSON.Feature[] = visibleDrivers.map((d) => {
-        const isMoto = d.category === "MOTO";
-        return {
-          type: "Feature" as const,
-          id: d.id,
-          properties: {
-            id: d.id,
-            nome: d.vehicleModel || (isMoto ? "Moto Parceira" : "Carro Parceiro"),
-            veiculo: d.vehicleModel || (isMoto ? "Honda CG 160" : "Chevrolet Onix"),
-            placa: d.licensePlate || "BRA-4X99",
-            modalidade: isMoto ? ("MOTO" as const) : ("CARRO" as const),
-            icon: isMoto ? ("moto-icon" as const) : ("car-icon" as const),
-            heading: d.heading || 0,
-            bearing: d.heading || 0,
-            status: d.status || "DISPONIVEL",
-          },
-          geometry: {
-            type: "Point" as const,
-            coordinates: [d.longitude, d.latitude] as [number, number],
-          },
+      if (typeof navigator !== "undefined" && navigator.geolocation) {
+        const queryPos = (opts: PositionOptions): Promise<GeolocationPosition> => {
+          return new Promise((res, rej) =>
+            navigator.geolocation.getCurrentPosition(res, rej, opts),
+          );
         };
-      });
 
-      const hash = `${features.length}-${features[0]?.geometry ? (features[0].geometry as any).coordinates[0] : 0}-${features[features.length - 1]?.properties?.heading || 0}`;
-      if (hash === lastDriversHashRef.current) {
-        return;
-      }
-      lastDriversHashRef.current = hash;
-
-      idleSource.setData({
-        type: "FeatureCollection",
-        features,
-      });
-    };
-
-    updateViewportFleet();
-
-    const onMoveEnd = () => {
-      updateViewportFleet();
-    };
-
-    map.on("moveend", onMoveEnd);
-    return () => {
-      map.off("moveend", onMoveEnd);
-    };
-  }, [mapLoaded, status, liveDrivers]);
-
-
-  // Função para recentralizar o mapa no usuário com máxima precisão GNSS e fallback de rede
-  async function handleRecenter() {
-    const defaultIdlePadding = {
-      top: 65,
-      bottom: typeof window !== "undefined" ? Math.max(300, Math.round(window.innerHeight * 0.40)) : 320,
-      left: 0,
-      right: 0,
-    };
-
-    const flyToCoords = (coords: [number, number], heading?: number | null) => {
-      if (userPulseMarkerRef.current) {
-        userPulseMarkerRef.current.setLngLat(coords);
-      }
-      onUserLocationChange?.(coords, heading ?? undefined);
-      if (mapRef.current) {
-        mapRef.current.flyTo({
-          center: coords,
-          zoom: 16.8,
-          padding: cameraPadding || (status === "IDLE" ? defaultIdlePadding : { top: 0, bottom: 0, left: 0, right: 0 }),
-          duration: 700,
-        });
-      }
-    };
-
-    if (typeof navigator !== "undefined" && navigator.geolocation) {
-      const queryPos = (opts: PositionOptions): Promise<GeolocationPosition> => {
-        return new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, opts));
-      };
-
-      try {
-        // Nível 1: GNSS Alta Precisão com janela recente tolerante
-        const pos = await queryPos({ enableHighAccuracy: true, timeout: 6000, maximumAge: 5000 });
-        flyToCoords([pos.coords.longitude, pos.coords.latitude], pos.coords.heading);
-        return;
-      } catch {
         try {
-          // Nível 2: Rede / Wi-Fi (Instantâneo no PC)
-          const pos2 = await queryPos({ enableHighAccuracy: false, timeout: 6000, maximumAge: 15000 });
-          flyToCoords([pos2.coords.longitude, pos2.coords.latitude], pos2.coords.heading);
+          // Nível 1: GNSS Alta Precisão com janela recente tolerante
+          const pos = await queryPos({ enableHighAccuracy: true, timeout: 6000, maximumAge: 5000 });
+          flyToCoords([pos.coords.longitude, pos.coords.latitude], pos.coords.heading);
           return;
         } catch {
-          console.warn("[PartiuRideMap] Sinal GNSS/Wi-Fi indisponível.");
-          onLocationPermissionDenied?.();
+          try {
+            // Nível 2: Rede / Wi-Fi (Instantâneo no PC)
+            const pos2 = await queryPos({
+              enableHighAccuracy: false,
+              timeout: 6000,
+              maximumAge: 15000,
+            });
+            flyToCoords([pos2.coords.longitude, pos2.coords.latitude], pos2.coords.heading);
+            return;
+          } catch {
+            console.warn("[PartiuRideMap] Sinal GNSS/Wi-Fi indisponível.");
+            onLocationPermissionDenied?.();
+          }
         }
       }
-    }
 
-    if (geolocateControlRef.current) {
-      try {
-        geolocateControlRef.current.trigger();
-      } catch (err) { silentCatchWarn("PartiuRideMap", err); }
+      if (geolocateControlRef.current) {
+        try {
+          geolocateControlRef.current.trigger();
+        } catch (err) {
+          silentCatchWarn("PartiuRideMap", err);
+        }
+      }
+      if (!mapRef.current) return;
+      mapRef.current.flyTo({
+        center: origemCoords,
+        zoom: 16.8,
+        padding:
+          cameraPadding ||
+          (status === "IDLE" ? defaultIdlePadding : { top: 0, bottom: 0, left: 0, right: 0 }),
+        duration: 700,
+      });
     }
-    if (!mapRef.current) return;
-    mapRef.current.flyTo({
-      center: origemCoords,
-      zoom: 16.8,
-      padding: cameraPadding || (status === "IDLE" ? defaultIdlePadding : { top: 0, bottom: 0, left: 0, right: 0 }),
-      duration: 700,
-    });
-  }
 
     useImperativeHandle(ref, () => ({
       recenter: handleRecenter,
@@ -1440,11 +1512,11 @@ export const PartiuRideMap = memo(
 
       const hasValidToken = MapboxConfig.hasValidToken();
       const targetStyle = hasValidToken
-        ? (newStyle === "traffic"
-            ? MapboxConfig.STYLES.navigationTraffic
-            : newStyle === "satellite"
+        ? newStyle === "traffic"
+          ? MapboxConfig.STYLES.navigationTraffic
+          : newStyle === "satellite"
             ? MapboxConfig.STYLES.satelliteStreets
-            : MapboxConfig.STYLES.streets || "mapbox://styles/mapbox/streets-v12")
+            : MapboxConfig.STYLES.streets || "mapbox://styles/mapbox/streets-v12"
         : mapboxService.getFallbackStyle(newStyle);
 
       map.setStyle(targetStyle as any);
@@ -1505,5 +1577,5 @@ export const PartiuRideMap = memo(
         )}
       </div>
     );
-  })
+  }),
 );

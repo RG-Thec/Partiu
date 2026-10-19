@@ -52,9 +52,13 @@ export const Route = createFileRoute("/app")({
       const { data: sessionData } = await supabase.auth.getSession();
       const session = sessionData?.session;
       const expired = !session || (session.expires_at ?? 0) * 1000 <= Date.now();
-      const storedUser = typeof window !== "undefined" ? supabaseAuthService.getStoredSession(effectiveTenantId) : null;
+      const storedUser =
+        typeof window !== "undefined"
+          ? supabaseAuthService.getStoredSession(effectiveTenantId)
+          : null;
 
-      const userRole = session?.user?.user_metadata?.["role"]?.toUpperCase() || storedUser?.role?.toUpperCase();
+      const userRole =
+        session?.user?.user_metadata?.["role"]?.toUpperCase() || storedUser?.role?.toUpperCase();
       const isPassenger = !userRole || userRole === "PASSAGEIRO" || userRole === "PASSENGER";
 
       // Validação de isolamento multi-tenant: apenas motoristas e administradores exigem vínculo territorial exclusivo
@@ -63,7 +67,11 @@ export const Route = createFileRoute("/app")({
           ? isMatchingTenant(session.user.user_metadata["tenant_id"], effectiveTenantId)
           : true;
 
-      const userTenantMatches = storedUser && (!storedUser.tenantId || storedUser.role === "PASSAGEIRO" || isMatchingTenant(storedUser.tenantId, effectiveTenantId));
+      const userTenantMatches =
+        storedUser &&
+        (!storedUser.tenantId ||
+          storedUser.role === "PASSAGEIRO" ||
+          isMatchingTenant(storedUser.tenantId, effectiveTenantId));
 
       const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
       const isDev = Boolean(typeof import.meta !== "undefined" && import.meta.env?.DEV);

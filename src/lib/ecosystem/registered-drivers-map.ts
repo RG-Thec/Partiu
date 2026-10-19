@@ -128,7 +128,8 @@ class RegisteredDriversMapService {
         list.push({
           id: d.id,
           nome: d.name,
-          veiculo: d.vehicle_model || (d.vehicle_type === "MOTO" ? "Honda CG 160" : "Chevrolet Onix"),
+          veiculo:
+            d.vehicle_model || (d.vehicle_type === "MOTO" ? "Honda CG 160" : "Chevrolet Onix"),
           placa: plate,
           cor: d.vehicle_color || undefined,
           modalidade: d.vehicle_type === "MOTO" ? "MOTO" : "CARRO",
@@ -154,7 +155,8 @@ class RegisteredDriversMapService {
                 list.push({
                   id: m.id || `mot_${plate}`,
                   nome: m.nome || "Novo Parceiro",
-                  veiculo: m.modelo || m.veiculoModelo || (isMoto ? "Honda Fan 160" : "Fiat Mobi 1.0"),
+                  veiculo:
+                    m.modelo || m.veiculoModelo || (isMoto ? "Honda Fan 160" : "Fiat Mobi 1.0"),
                   placa: plate,
                   cor: m.cor || m.veiculoCor || undefined,
                   modalidade: isMoto ? "MOTO" : "CARRO",
@@ -175,7 +177,9 @@ class RegisteredDriversMapService {
   /**
    * Constrói os pontos de mapa da frota com coordenadas viárias e ângulos realistas
    */
-  public getDriversForMap(centerCoords: [number, number] = this.lastCenter): RegisteredDriverMapFeature[] {
+  public getDriversForMap(
+    centerCoords: [number, number] = this.lastCenter,
+  ): RegisteredDriverMapFeature[] {
     this.lastCenter = centerCoords;
     const rawDrivers = this.getRawRegisteredDrivers();
 
@@ -183,13 +187,14 @@ class RegisteredDriversMapService {
     // Apenas condutores com coordenadas GPS físicas reais ativas são projetados no mapa.
     // Proibida qualquer injeção de veículos fantasma ou posições sintéticas sobre a cidade.
     return rawDrivers
-      .filter((driver) => (
-        typeof driver.current_lat === "number" &&
-        typeof driver.current_lng === "number" &&
-        !isNaN(driver.current_lat) &&
-        !isNaN(driver.current_lng) &&
-        !(driver.current_lat === 0 && driver.current_lng === 0)
-      ))
+      .filter(
+        (driver) =>
+          typeof driver.current_lat === "number" &&
+          typeof driver.current_lng === "number" &&
+          !isNaN(driver.current_lat) &&
+          !isNaN(driver.current_lng) &&
+          !(driver.current_lat === 0 && driver.current_lng === 0),
+      )
       .map((driver, index): RegisteredDriverMapFeature => {
         return {
           id: driver.id,

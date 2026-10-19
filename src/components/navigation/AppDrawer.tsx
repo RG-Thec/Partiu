@@ -56,7 +56,7 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
 
   // 2. CONFIGURAÇÕES GLOBAIS OPERACIONAIS (app_settings)
   const [appSettings, setAppSettings] = useState<GlobalAppSettings>(() =>
-    appSettingsService.getSettingsSync()
+    appSettingsService.getSettingsSync(),
   );
 
   // Modais de Ações Oficiais
@@ -72,16 +72,14 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
 
   // 3. ESTADOS DOS ENDEREÇOS SALVOS (AddressService)
   const [enderecos, setEnderecos] = useState<SavedLocation[]>(() =>
-    addressService.getLocalAddresses()
+    addressService.getLocalAddresses(),
   );
 
   // 4. ESTADOS DE CUPONS & PROMOÇÕES REAIS (CouponService)
-  const [cupons, setCupons] = useState<ActiveCoupon[]>(() =>
-    couponService.getLocalCoupons()
-  );
+  const [cupons, setCupons] = useState<ActiveCoupon[]>(() => couponService.getLocalCoupons());
   const [promocoesDisponiveis, setPromocoesDisponiveis] = useState<ActiveCoupon[]>([]);
   const [cupomAtivo, setCupomAtivo] = useState<ActiveCoupon | null>(() =>
-    couponService.getActiveRideCoupon()
+    couponService.getActiveRideCoupon(),
   );
 
   // 5. PREFERÊNCIAS DE VIAGEM & CONFORTO REAIS (UserService com Debounce)
@@ -140,7 +138,8 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
         localStorage.getItem("partiu_user_selfie")
       : null);
 
-  const sessionName = typeof window !== "undefined" ? supabaseAuthService.getStoredSession()?.name : null;
+  const sessionName =
+    typeof window !== "undefined" ? supabaseAuthService.getStoredSession()?.name : null;
   const effectiveName =
     (userProfile?.name && userProfile.name !== "Passageiro" ? userProfile.name : null) ||
     (sessionName && sessionName !== "Passageiro" ? sessionName : null) ||
@@ -162,10 +161,7 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
 
   // Salvar Endereços
   async function handleAdicionarEndereco(label: string, endereco: string) {
-    const atualizados = await addressService.addAddress(
-      { label, endereco },
-      userProfile?.id
-    );
+    const atualizados = await addressService.addAddress({ label, endereco }, userProfile?.id);
     setEnderecos(atualizados);
   }
 
@@ -254,10 +250,9 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
     navigate({ to: "/auth" });
   }
 
-  const cidadeRegional =
-    activeTenant?.cidadeNome
-      ? `${activeTenant.cidadeNome}${activeTenant.uf ? `, ${activeTenant.uf}` : ""}`
-      : appSettings.pixReceiverCity || "Operação Regional";
+  const cidadeRegional = activeTenant?.cidadeNome
+    ? `${activeTenant.cidadeNome}${activeTenant.uf ? `, ${activeTenant.uf}` : ""}`
+    : appSettings.pixReceiverCity || "Operação Regional";
 
   if (!open) return null;
 
@@ -317,7 +312,10 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
                       color: colors.secondary,
                     }}
                   >
-                    <Star className="h-2.5 w-2.5" style={{ fill: colors.secondary, color: colors.secondary }} />
+                    <Star
+                      className="h-2.5 w-2.5"
+                      style={{ fill: colors.secondary, color: colors.secondary }}
+                    />
                     {(userProfile?.rating || 4.9).toFixed(1)}
                   </span>
                 </div>
@@ -409,7 +407,9 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
                     >
                       <Clock className="w-4 h-4" />
                     </div>
-                    <span className="text-xs font-bold text-foreground">Minhas Viagens e Recibos</span>
+                    <span className="text-xs font-bold text-foreground">
+                      Minhas Viagens e Recibos
+                    </span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </Link>
@@ -458,7 +458,9 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
                     >
                       <QrCode className="w-4 h-4" />
                     </div>
-                    <span className="text-xs font-bold text-foreground">Como Pagar (PIX / Dinheiro)</span>
+                    <span className="text-xs font-bold text-foreground">
+                      Como Pagar (PIX / Dinheiro)
+                    </span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </button>
@@ -476,7 +478,9 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
                     >
                       <Tag className="w-4 h-4" />
                     </div>
-                    <span className="text-xs font-bold text-foreground">Cupons &amp; Descontos</span>
+                    <span className="text-xs font-bold text-foreground">
+                      Cupons &amp; Descontos
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     {cupomAtivo ? (
@@ -536,7 +540,9 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
                     <div className="w-8 h-8 rounded-xl bg-destructive/15 text-destructive flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <ShieldAlert className="w-4 h-4" />
                     </div>
-                    <span className="text-xs font-bold text-foreground">Central de Segurança &amp; SOS</span>
+                    <span className="text-xs font-bold text-foreground">
+                      Central de Segurança &amp; SOS
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-destructive/15 text-destructive">
@@ -582,7 +588,9 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
                     >
                       <Settings className="w-4 h-4" />
                     </div>
-                    <span className="text-xs font-bold text-foreground">Configurações &amp; Conforto</span>
+                    <span className="text-xs font-bold text-foreground">
+                      Configurações &amp; Conforto
+                    </span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </button>
@@ -608,7 +616,9 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
                     >
                       <Headphones className="w-4 h-4" />
                     </div>
-                    <span className="text-xs font-bold text-foreground">Ajuda &amp; Suporte 24h</span>
+                    <span className="text-xs font-bold text-foreground">
+                      Ajuda &amp; Suporte 24h
+                    </span>
                   </div>
                   <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 </button>
@@ -652,7 +662,9 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
         {/* RODAPÉ DO MENU */}
         <div className="p-4 border-t border-border bg-card/80">
           <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium mb-2.5">
-            <span>{nomeApp} v{appSettings.appVersion || "1.0.0"}</span>
+            <span>
+              {nomeApp} v{appSettings.appVersion || "1.0.0"}
+            </span>
             <span className="font-semibold">{cidadeRegional}</span>
           </div>
 
@@ -750,10 +762,7 @@ export function AppDrawer({ open, onClose }: AppDrawerProps) {
       />
 
       {/* 8. MODAL DA CENTRAL DE SEGURANÇA */}
-      <SecurityCenterModal
-        open={modalSeguranca}
-        onClose={() => setModalSeguranca(false)}
-      />
+      <SecurityCenterModal open={modalSeguranca} onClose={() => setModalSeguranca(false)} />
 
       {/* 9. MODAL DE CONFIRMAÇÃO DE LOGOUT (Touch First) */}
       {confirmSairAberto && (

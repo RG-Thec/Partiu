@@ -8,7 +8,7 @@ export interface HomeMapWidgetProps {
 }
 
 // Coordenadas padrão em Itaperuna, RJ para testes
-const ITAPERUNA_MOCK_COORDS: [number, number] = [-41.8880, -21.2050];
+const ITAPERUNA_MOCK_COORDS: [number, number] = [-41.888, -21.205];
 
 export function HomeMapWidget({
   origemEndereco = "Meu Local Atual",
@@ -29,9 +29,7 @@ export function HomeMapWidget({
         {/* Indicador de Localização Atual no Mapa */}
         <div className="absolute top-2.5 left-2.5 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-full shadow-xs flex items-center gap-1.5 border border-black/5 pointer-events-none z-10">
           <MapPin className="w-3.5 h-3.5 text-primary-600 fill-amber-500 shrink-0" />
-          <span className="text-[10.5px] font-bold text-slate-800">
-            Itaperuna, RJ
-          </span>
+          <span className="text-[10.5px] font-bold text-slate-800">Itaperuna, RJ</span>
         </div>
       </div>
     </div>

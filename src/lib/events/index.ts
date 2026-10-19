@@ -1,1 +1,1 @@
-export * from './distributed-event-bus';
+export * from "./distributed-event-bus";

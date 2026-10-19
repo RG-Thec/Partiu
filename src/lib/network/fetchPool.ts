@@ -31,10 +31,7 @@ export function createBoundedPool(limit = 6): BoundedPool {
     return new Promise<T>((resolve, reject) => {
       const start = () => {
         active++;
-        task()
-          .then(resolve)
-          .catch(reject)
-          .finally(release);
+        task().then(resolve).catch(reject).finally(release);
       };
 
       if (active < limit) {

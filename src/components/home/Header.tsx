@@ -65,7 +65,9 @@ export const Header = memo(function Header({
 
   // Foto do passageiro (100% real: exibe foto cadastrada pelo usuário ou iniciais)
   const effectiveAvatar = !imgFailed
-    ? (avatarUrl || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_avatar") : null) || null)
+    ? avatarUrl ||
+      (typeof window !== "undefined" ? localStorage.getItem("partiu_user_avatar") : null) ||
+      null
     : null;
 
   return (
@@ -74,91 +76,83 @@ export const Header = memo(function Header({
       style={style}
       aria-label="Cabeçalho Principal"
     >
-      <div
-        className="w-full max-w-lg mx-auto flex items-center justify-between px-3.5 py-2 rounded-2xl bg-white/92 backdrop-blur-xl border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.04)] pointer-events-auto"
-      >
-      {/* ===================================================================== */}
-      {/* 1. SEÇÃO ESQUERDA: ÍCONE COM FOTO DO USUÁRIO (ABRE MENU LATERAL)      */}
-      {/* ===================================================================== */}
-      <div className="w-10 flex items-center justify-start shrink-0">
-        <button
-          type="button"
-          onClick={onOpenDrawer}
-          className="w-9 h-9 rounded-full border border-slate-200/90 bg-slate-100 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer shadow-xs active:scale-95 transition-all hover:ring-2 hover:ring-slate-300"
-          style={{
-            boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-          }}
-          aria-label="Abrir Menu Lateral e Perfil"
-          title={`Perfil de ${nomeExibicao}`}
-        >
-          {effectiveAvatar ? (
-            <img
-              src={effectiveAvatar}
-              alt={nomeExibicao}
-              className="w-full h-full object-cover rounded-full"
-              onError={() => setImgFailed(true)}
-            />
-          ) : (
-            <div
-              className="w-full h-full flex items-center justify-center font-bold text-[10.5px] rounded-full transition-colors"
-              style={{
-                backgroundColor: corPrimaria
-                  ? `${corPrimaria}18`
-                  : "rgba(255, 107, 0, 0.12)",
-                color: corPrimaria || "#FF6B00",
-              }}
-            >
-              {iniciais ? (
-                <span>{iniciais}</span>
-              ) : (
-                <User className="w-4 h-4 stroke-[2]" />
-              )}
-            </div>
-          )}
-        </button>
-      </div>
+      <div className="w-full max-w-lg mx-auto flex items-center justify-between px-3.5 py-2 rounded-2xl bg-white/92 backdrop-blur-xl border border-slate-200/80 shadow-[0_4px_20px_rgba(0,0,0,0.04)] pointer-events-auto">
+        {/* ===================================================================== */}
+        {/* 1. SEÇÃO ESQUERDA: ÍCONE COM FOTO DO USUÁRIO (ABRE MENU LATERAL)      */}
+        {/* ===================================================================== */}
+        <div className="w-10 flex items-center justify-start shrink-0">
+          <button
+            type="button"
+            onClick={onOpenDrawer}
+            className="w-9 h-9 rounded-full border border-slate-200/90 bg-slate-100 flex items-center justify-center overflow-hidden shrink-0 cursor-pointer shadow-xs active:scale-95 transition-all hover:ring-2 hover:ring-slate-300"
+            style={{
+              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+            }}
+            aria-label="Abrir Menu Lateral e Perfil"
+            title={`Perfil de ${nomeExibicao}`}
+          >
+            {effectiveAvatar ? (
+              <img
+                src={effectiveAvatar}
+                alt={nomeExibicao}
+                className="w-full h-full object-cover rounded-full"
+                onError={() => setImgFailed(true)}
+              />
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center font-bold text-[10.5px] rounded-full transition-colors"
+                style={{
+                  backgroundColor: corPrimaria ? `${corPrimaria}18` : "rgba(255, 107, 0, 0.12)",
+                  color: corPrimaria || "#FF6B00",
+                }}
+              >
+                {iniciais ? <span>{iniciais}</span> : <User className="w-4 h-4 stroke-[2]" />}
+              </div>
+            )}
+          </button>
+        </div>
 
-      {/* ===================================================================== */}
-      {/* 2. SEÇÃO CENTRAL: NOME E SLOGAN PERSONALIZADOS CENTRALIZADOS           */}
-      {/* ===================================================================== */}
-      <div className="flex-1 flex items-center justify-center px-1 min-w-0">
-        <PartiuLogo
-          variant="centered"
-          size="sm"
-          appName={appName || nomeApp || "PARTIU"}
-          tagline={sloganApp || "MAIS MOBILIDADE PARA VOCÊ"}
-          primaryColor={corPrimaria || "var(--brand-primary, #FF6B00)"}
-          secondaryColor={corSecundaria || corPrimaria || "var(--brand-primary-accent, #FFB800)"}
-          textColor={corPrimaria || "#0f172a"}
-          taglineColor={corSecundaria || corPrimaria || "#64748b"}
-          className="max-w-full"
-        />
-      </div>
+        {/* ===================================================================== */}
+        {/* 2. SEÇÃO CENTRAL: NOME E SLOGAN PERSONALIZADOS CENTRALIZADOS           */}
+        {/* ===================================================================== */}
+        <div className="flex-1 flex items-center justify-center px-1 min-w-0">
+          <PartiuLogo
+            variant="centered"
+            size="sm"
+            appName={appName || nomeApp || "PARTIU"}
+            tagline={sloganApp || "MAIS MOBILIDADE PARA VOCÊ"}
+            primaryColor={corPrimaria || "var(--brand-primary, #FF6B00)"}
+            secondaryColor={corSecundaria || corPrimaria || "var(--brand-primary-accent, #FFB800)"}
+            textColor={corPrimaria || "#0f172a"}
+            taglineColor={corSecundaria || corPrimaria || "#64748b"}
+            className="max-w-full"
+          />
+        </div>
 
-      {/* ===================================================================== */}
-      {/* 3. SEÇÃO DIREITA: ÍCONE DE NOTIFICAÇÃO COM BADGE NUMÉRICO VERMELHO     */}
-      {/* ===================================================================== */}
-      <div className="w-10 flex items-center justify-end shrink-0">
-        <button
-          type="button"
-          onClick={onOpenNotifications}
-          className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center relative shrink-0 cursor-pointer text-slate-700 hover:bg-slate-100 hover:text-brand-primary-vibrant active:scale-95 transition-all shadow-2xs"
-          aria-label="Notificações"
-          title="Notificações"
-        >
-          <Bell className="w-4 h-4 stroke-[1.8]" />
+        {/* ===================================================================== */}
+        {/* 3. SEÇÃO DIREITA: ÍCONE DE NOTIFICAÇÃO COM BADGE NUMÉRICO VERMELHO     */}
+        {/* ===================================================================== */}
+        <div className="w-10 flex items-center justify-end shrink-0">
+          <button
+            type="button"
+            onClick={onOpenNotifications}
+            className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center relative shrink-0 cursor-pointer text-slate-700 hover:bg-slate-100 hover:text-brand-primary-vibrant active:scale-95 transition-all shadow-2xs"
+            aria-label="Notificações"
+            title="Notificações"
+          >
+            <Bell className="w-4 h-4 stroke-[1.8]" />
 
-          {/* Badge Vermelho com quantidade não lida */}
-          {hasUnread && (
-            <span
-              className="absolute -top-0.5 -right-0.5 min-w-[13px] h-[13px] px-0.5 rounded-full bg-rose-600 text-white text-[8.5px] font-bold flex items-center justify-center ring-1.5 ring-white leading-none animate-pulse"
-              aria-hidden="true"
-            >
-              {unreadCount > 0 ? (unreadCount > 99 ? "99+" : unreadCount) : ""}
-            </span>
-          )}
-        </button>
-      </div>
+            {/* Badge Vermelho com quantidade não lida */}
+            {hasUnread && (
+              <span
+                className="absolute -top-0.5 -right-0.5 min-w-[13px] h-[13px] px-0.5 rounded-full bg-rose-600 text-white text-[8.5px] font-bold flex items-center justify-center ring-1.5 ring-white leading-none animate-pulse"
+                aria-hidden="true"
+              >
+                {unreadCount > 0 ? (unreadCount > 99 ? "99+" : unreadCount) : ""}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
     </header>
   );

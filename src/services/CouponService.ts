@@ -152,13 +152,22 @@ export class CouponService {
       try {
         const store = typeof window !== "undefined" ? window.localStorage : localStorage;
         const tenantKey = `${STORAGE_ADMIN_CUPONS_KEY}_${effectiveTenantId}`;
-        const stored = store.getItem(tenantKey) || (effectiveTenantId === "default" || effectiveTenantId === "tenant-itaperuna" ? store.getItem(STORAGE_ADMIN_CUPONS_KEY) : null);
+        const stored =
+          store.getItem(tenantKey) ||
+          (effectiveTenantId === "default" || effectiveTenantId === "tenant-itaperuna"
+            ? store.getItem(STORAGE_ADMIN_CUPONS_KEY)
+            : null);
         if (stored) {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed)) {
             for (const item of parsed) {
               const code = (item.codigo || item.code || "").toUpperCase().trim();
-              if (code && (!item.tenantId || item.tenantId === effectiveTenantId || effectiveTenantId === "all")) {
+              if (
+                code &&
+                (!item.tenantId ||
+                  item.tenantId === effectiveTenantId ||
+                  effectiveTenantId === "all")
+              ) {
                 map.set(code, {
                   id: item.id || `cup-admin-${code}`,
                   codigo: code,
@@ -170,7 +179,10 @@ export class CouponService {
                       : `R$ ${Number(item.valor).toFixed(2).replace(".", ",")} OFF`),
                   expiracao: item.expiraEm || item.expiracao || "Válido até 31/12/2026",
                   ativo: item.ativo !== false && (item as any).isActive !== false,
-                  tipo: item.tipo === "porcentagem" || item.discount_type === "PERCENT" ? "porcentagem" : "fixo",
+                  tipo:
+                    item.tipo === "porcentagem" || item.discount_type === "PERCENT"
+                      ? "porcentagem"
+                      : "fixo",
                   valor: Number(item.valor || item.discount_value) || 5,
                   minTripCents: item.minTripCents || item.min_trip_cents || 0,
                   maxRedemptions: item.maxRedemptions || item.max_redemptions || 1000,
@@ -189,9 +201,7 @@ export class CouponService {
     // 3. Tenta sincronizar com a tabela campaigns_coupons do Supabase com filtro de tenant
     if (isSupabaseConfigured()) {
       try {
-        let query = (supabase as any)
-          .from("campaigns_coupons")
-          .select("*");
+        let query = (supabase as any).from("campaigns_coupons").select("*");
 
         if (effectiveTenantId && effectiveTenantId !== "all") {
           query = query.or(`tenant_id.eq.${effectiveTenantId},tenant_id.is.null`);
@@ -239,7 +249,10 @@ export class CouponService {
     if (hasStorage && effectiveTenantId !== "all") {
       try {
         const store = typeof window !== "undefined" ? window.localStorage : localStorage;
-        store.setItem(`${STORAGE_ADMIN_CUPONS_KEY}_${effectiveTenantId}`, JSON.stringify(resultado));
+        store.setItem(
+          `${STORAGE_ADMIN_CUPONS_KEY}_${effectiveTenantId}`,
+          JSON.stringify(resultado),
+        );
       } catch {}
     }
 
@@ -249,7 +262,10 @@ export class CouponService {
   /**
    * Salva ou cria um novo cupom no Painel Administrativo com isolamento de tenant
    */
-  public async saveAdminCoupon(payload: NewCouponPayload | any, tenantIdParam?: string): Promise<ActiveCoupon> {
+  public async saveAdminCoupon(
+    payload: NewCouponPayload | any,
+    tenantIdParam?: string,
+  ): Promise<ActiveCoupon> {
     const rawCode = payload.codigo || payload.code || "";
     const cleanCode = String(rawCode).trim().toUpperCase().replace(/\s+/g, "");
     const rawTipo = payload.tipo || payload.discountType;
@@ -268,7 +284,9 @@ export class CouponService {
       id: payload.id || `cup-${Date.now()}`,
       codigo: cleanCode,
       descontoDescricao: desc,
-      expiracao: validoAte ? `Válido até ${new Date(validoAte).toLocaleDateString("pt-BR")}` : "Válido até 31/12/2026",
+      expiracao: validoAte
+        ? `Válido até ${new Date(validoAte).toLocaleDateString("pt-BR")}`
+        : "Válido até 31/12/2026",
       ativo: payload.ativo !== false && payload.isActive !== false,
       tipo,
       valor,
@@ -282,23 +300,21 @@ export class CouponService {
     // 1. Persistência remota no Supabase com tenant_id
     if (isSupabaseConfigured()) {
       try {
-        await (supabase as any)
-          .from("campaigns_coupons")
-          .upsert(
-            {
-              code: cleanCode,
-              description: desc,
-              discount_type: tipo === "porcentagem" ? "PERCENT" : "FIXED_CENTS",
-              discount_value: valor,
-              min_trip_cents: payload.minTripCents || 0,
-              max_redemptions: payload.maxRedemptions || 500,
-              is_active: novoCupom.ativo,
-              tenant_id: effectiveTenantId,
-              valid_until: validoAte ? new Date(validoAte).toISOString() : null,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: "code" }
-          );
+        await (supabase as any).from("campaigns_coupons").upsert(
+          {
+            code: cleanCode,
+            description: desc,
+            discount_type: tipo === "porcentagem" ? "PERCENT" : "FIXED_CENTS",
+            discount_value: valor,
+            min_trip_cents: payload.minTripCents || 0,
+            max_redemptions: payload.maxRedemptions || 500,
+            is_active: novoCupom.ativo,
+            tenant_id: effectiveTenantId,
+            valid_until: validoAte ? new Date(validoAte).toISOString() : null,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "code" },
+        );
       } catch (err) {
         silentCatchWarn("CouponService:saveAdminCoupon:supabase", err);
       }
@@ -313,9 +329,14 @@ export class CouponService {
     if (hasStorage) {
       try {
         const store = typeof window !== "undefined" ? window.localStorage : localStorage;
-        store.setItem(`${STORAGE_ADMIN_CUPONS_KEY}_${effectiveTenantId}`, JSON.stringify(atualizados));
+        store.setItem(
+          `${STORAGE_ADMIN_CUPONS_KEY}_${effectiveTenantId}`,
+          JSON.stringify(atualizados),
+        );
         if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("partiu:cupons-atualizados", { detail: atualizados }));
+          window.dispatchEvent(
+            new CustomEvent("partiu:cupons-atualizados", { detail: atualizados }),
+          );
         }
       } catch {}
     }
@@ -326,11 +347,17 @@ export class CouponService {
   /**
    * Alterna status Ativo/Inativo de um cupom
    */
-  public async toggleAdminCoupon(identificador: string, novoStatus: boolean, tenantIdParam?: string): Promise<boolean> {
+  public async toggleAdminCoupon(
+    identificador: string,
+    novoStatus: boolean,
+    tenantIdParam?: string,
+  ): Promise<boolean> {
     const effectiveTenantId = this.getEffectiveTenantId(tenantIdParam);
     const clean = String(identificador).trim().toUpperCase();
     const atuais = await this.listAdminCoupons(effectiveTenantId);
-    const cupomAlvo = atuais.find((c) => c.codigo.toUpperCase() === clean || c.id === identificador);
+    const cupomAlvo = atuais.find(
+      (c) => c.codigo.toUpperCase() === clean || c.id === identificador,
+    );
     const codeParaAtualizar = cupomAlvo ? cupomAlvo.codigo : clean;
 
     if (isSupabaseConfigured()) {
@@ -345,18 +372,25 @@ export class CouponService {
     }
 
     const atualizados = atuais.map((c) =>
-      c.codigo.toUpperCase() === clean || c.id === identificador || (cupomAlvo && c.codigo === cupomAlvo.codigo)
+      c.codigo.toUpperCase() === clean ||
+      c.id === identificador ||
+      (cupomAlvo && c.codigo === cupomAlvo.codigo)
         ? { ...c, ativo: novoStatus }
-        : c
+        : c,
     );
 
     const hasStorage = typeof window !== "undefined" || typeof localStorage !== "undefined";
     if (hasStorage) {
       try {
         const store = typeof window !== "undefined" ? window.localStorage : localStorage;
-        store.setItem(`${STORAGE_ADMIN_CUPONS_KEY}_${effectiveTenantId}`, JSON.stringify(atualizados));
+        store.setItem(
+          `${STORAGE_ADMIN_CUPONS_KEY}_${effectiveTenantId}`,
+          JSON.stringify(atualizados),
+        );
         if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("partiu:cupons-atualizados", { detail: atualizados }));
+          window.dispatchEvent(
+            new CustomEvent("partiu:cupons-atualizados", { detail: atualizados }),
+          );
         }
       } catch {}
     }
@@ -371,31 +405,38 @@ export class CouponService {
     const effectiveTenantId = this.getEffectiveTenantId(tenantIdParam);
     const clean = String(identificador).trim().toUpperCase();
     const atuais = await this.listAdminCoupons(effectiveTenantId);
-    const cupomAlvo = atuais.find((c) => c.codigo.toUpperCase() === clean || c.id === identificador);
+    const cupomAlvo = atuais.find(
+      (c) => c.codigo.toUpperCase() === clean || c.id === identificador,
+    );
     const codeParaDeletar = cupomAlvo ? cupomAlvo.codigo : clean;
 
     if (isSupabaseConfigured()) {
       try {
-        await (supabase as any)
-          .from("campaigns_coupons")
-          .delete()
-          .eq("code", codeParaDeletar);
+        await (supabase as any).from("campaigns_coupons").delete().eq("code", codeParaDeletar);
       } catch (err) {
         silentCatchWarn("CouponService:deleteAdminCoupon:supabase", err);
       }
     }
 
     const atualizados = atuais.filter(
-      (c) => c.codigo.toUpperCase() !== clean && c.id !== identificador && (!cupomAlvo || c.codigo !== cupomAlvo.codigo)
+      (c) =>
+        c.codigo.toUpperCase() !== clean &&
+        c.id !== identificador &&
+        (!cupomAlvo || c.codigo !== cupomAlvo.codigo),
     );
 
     const hasStorage = typeof window !== "undefined" || typeof localStorage !== "undefined";
     if (hasStorage) {
       try {
         const store = typeof window !== "undefined" ? window.localStorage : localStorage;
-        store.setItem(`${STORAGE_ADMIN_CUPONS_KEY}_${effectiveTenantId}`, JSON.stringify(atualizados));
+        store.setItem(
+          `${STORAGE_ADMIN_CUPONS_KEY}_${effectiveTenantId}`,
+          JSON.stringify(atualizados),
+        );
         if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("partiu:cupons-atualizados", { detail: atualizados }));
+          window.dispatchEvent(
+            new CustomEvent("partiu:cupons-atualizados", { detail: atualizados }),
+          );
         }
       } catch {}
     }
@@ -431,7 +472,8 @@ export class CouponService {
     try {
       const { data, error } = await (supabase as any)
         .from("user_coupons")
-        .select(`
+        .select(
+          `
           id,
           code,
           is_active,
@@ -441,7 +483,8 @@ export class CouponService {
             discount_type,
             discount_value
           )
-        `)
+        `,
+        )
         .eq("user_id", userId)
         .eq("is_active", true);
 
@@ -489,7 +532,7 @@ export class CouponService {
   public async redeemCoupon(
     codigoParam: string,
     userIdParam?: string,
-    tenantIdParam?: string
+    tenantIdParam?: string,
   ): Promise<{ success: boolean; message: string; coupons: ActiveCoupon[] }> {
     const cleanCode = codigoParam.trim().toUpperCase().replace(/\s+/g, "");
     const local = this.getLocalCoupons();
@@ -499,18 +542,27 @@ export class CouponService {
       return { success: false, message: "Informe um código de cupom válido.", coupons: local };
     }
 
-    if (local.some((c) => c.codigo === cleanCode && (!c.tenantId || c.tenantId === effectiveTenantId))) {
-      return { success: false, message: "Este cupom já está ativo em sua carteira.", coupons: local };
+    if (
+      local.some((c) => c.codigo === cleanCode && (!c.tenantId || c.tenantId === effectiveTenantId))
+    ) {
+      return {
+        success: false,
+        message: "Este cupom já está ativo em sua carteira.",
+        coupons: local,
+      };
     }
 
     const promotions = await this.getAvailablePromotions(effectiveTenantId);
     const promoFound = promotions.find(
-      (p) => p.codigo === cleanCode && (!p.tenantId || p.tenantId === effectiveTenantId)
+      (p) => p.codigo === cleanCode && (!p.tenantId || p.tenantId === effectiveTenantId),
     );
 
     const isReferralCode =
       /^[A-Z0-9_-]{4,15}$/.test(cleanCode) &&
-      (cleanCode.includes("10") || cleanCode.includes("5") || cleanCode.startsWith("IND") || cleanCode.startsWith("PARTIU"));
+      (cleanCode.includes("10") ||
+        cleanCode.includes("5") ||
+        cleanCode.startsWith("IND") ||
+        cleanCode.startsWith("PARTIU"));
 
     if (!promoFound && !isReferralCode) {
       return {
@@ -537,7 +589,9 @@ export class CouponService {
         });
 
         // Incrementa contagem de usos no Supabase
-        await (supabase as any).rpc("increment_coupon_redemption", { coupon_code: cleanCode }).catch(() => {});
+        await (supabase as any)
+          .rpc("increment_coupon_redemption", { coupon_code: cleanCode })
+          .catch(() => {});
       } catch (err) {
         silentCatchWarn("CouponService:redeemCoupon:supabase", err);
       }
@@ -573,7 +627,7 @@ export class CouponService {
   public async validateCoupon(
     codigo: string,
     tripCents: number = 0,
-    tenantIdParam?: string
+    tenantIdParam?: string,
   ): Promise<{
     valido: boolean;
     motivo?: string;
@@ -589,7 +643,10 @@ export class CouponService {
     const cupom = cuponsDisponiveis.find((c) => c.codigo.toUpperCase() === cleanCode);
 
     if (!cupom) {
-      return { valido: false, motivo: `Cupom ${cleanCode} não encontrado ou não aplicável nesta praça` };
+      return {
+        valido: false,
+        motivo: `Cupom ${cleanCode} não encontrado ou não aplicável nesta praça`,
+      };
     }
 
     if (!cupom.ativo) {
@@ -656,7 +713,7 @@ export class CouponService {
    */
   public calculateFareDiscount(
     baseFare: number,
-    coupon: ActiveCoupon | any | null
+    coupon: ActiveCoupon | any | null,
   ): {
     originalFare: number;
     discountAmount: number;
@@ -665,7 +722,11 @@ export class CouponService {
     finalFareBrl: number;
     hasDiscount: boolean;
   } {
-    const isAtivo = coupon ? (coupon.ativo !== undefined ? Boolean(coupon.ativo) : Boolean(coupon.isActive)) : false;
+    const isAtivo = coupon
+      ? coupon.ativo !== undefined
+        ? Boolean(coupon.ativo)
+        : Boolean(coupon.isActive)
+      : false;
 
     if (!coupon || !isAtivo || baseFare <= 0) {
       return {

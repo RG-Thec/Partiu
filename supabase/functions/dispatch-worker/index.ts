@@ -35,19 +35,29 @@ serve(async (req: Request) => {
     let isAuthorized = false;
 
     // Aceita service_role_key (invocação via Supabase Dashboard / CLI)
-    if (supabaseServiceKey && (authHeader === `Bearer ${supabaseServiceKey}` || apikeyHeader === supabaseServiceKey)) {
+    if (
+      supabaseServiceKey &&
+      (authHeader === `Bearer ${supabaseServiceKey}` || apikeyHeader === supabaseServiceKey)
+    ) {
       isAuthorized = true;
     }
 
     // Aceita cron secret dedicado (invocação via cron HTTP externo)
-    if (!isAuthorized && cronSecret && (authHeader === `Bearer ${cronSecret}` || req.headers.get("x-cron-secret") === cronSecret)) {
+    if (
+      !isAuthorized &&
+      cronSecret &&
+      (authHeader === `Bearer ${cronSecret}` || req.headers.get("x-cron-secret") === cronSecret)
+    ) {
       isAuthorized = true;
     }
 
     if (!isAuthorized) {
       return new Response(
-        JSON.stringify({ success: false, error: "Acesso negado. Este endpoint requer credencial de cron ou service role." }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          success: false,
+          error: "Acesso negado. Este endpoint requer credencial de cron ou service role.",
+        }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
     // ── FIM AUTH GUARD ────────────────────────────────────────────────────
@@ -71,7 +81,7 @@ serve(async (req: Request) => {
       {
         p_batch_size: batchSize,
         p_timeout_seconds: timeoutSeconds,
-      }
+      },
     );
 
     if (sweepError) {
@@ -82,7 +92,7 @@ serve(async (req: Request) => {
           error: sweepError.message,
           latencyMs: Date.now() - startTime,
         }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -94,7 +104,7 @@ serve(async (req: Request) => {
         data: sweepResult,
         latencyMs,
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err: any) {
     console.error("[dispatch-worker] Exceção crítica:", err);
@@ -103,7 +113,7 @@ serve(async (req: Request) => {
         success: false,
         error: err.message || "Erro interno do worker de despacho",
       }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });

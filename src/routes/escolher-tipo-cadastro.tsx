@@ -1,12 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import {
-  ArrowLeft,
-  Car,
-  Bike,
-  ShieldCheck,
-  ChevronRight,
-  User,
-} from "lucide-react";
+import { ArrowLeft, Car, Bike, ShieldCheck, ChevronRight, User } from "lucide-react";
 import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext";
 
 export const Route = createFileRoute("/escolher-tipo-cadastro")({
@@ -70,9 +63,7 @@ export function EscolherTipoCadastroPage() {
         >
           {/* Cabeçalho */}
           <div className="text-center pb-1">
-            <h1
-              className="text-xl sm:text-[22px] font-black tracking-tight text-slate-900"
-            >
+            <h1 className="text-xl sm:text-[22px] font-black tracking-tight text-slate-900">
               Como deseja se cadastrar?
             </h1>
             <p className="text-xs mt-1 font-normal text-slate-500">
@@ -88,9 +79,7 @@ export function EscolherTipoCadastroPage() {
           <div className="space-y-3">
             {/* Opção 1: Passageiro */}
             <Link to="/cadastro-passageiro" className="block w-full group">
-              <div
-                className="flex items-center gap-3.5 p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50 transition-all active:scale-[0.99] cursor-pointer shadow-xs hover:shadow-sm"
-              >
+              <div className="flex items-center gap-3.5 p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50 transition-all active:scale-[0.99] cursor-pointer shadow-xs hover:shadow-sm">
                 <div
                   className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white font-bold shadow-xs transition-transform group-hover:scale-105"
                   style={{ backgroundColor: colors.primary }}
@@ -113,12 +102,8 @@ export function EscolherTipoCadastroPage() {
 
             {/* Opção 2: Motorista Parceiro */}
             <Link to="/cadastro-motorista" className="block w-full group">
-              <div
-                className="flex items-center gap-3.5 p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50 transition-all active:scale-[0.99] cursor-pointer shadow-xs hover:shadow-sm"
-              >
-                <div
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white font-bold shadow-xs transition-transform group-hover:scale-105"
-                >
+              <div className="flex items-center gap-3.5 p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50 transition-all active:scale-[0.99] cursor-pointer shadow-xs hover:shadow-sm">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white font-bold shadow-xs transition-transform group-hover:scale-105">
                   <Car className="h-5 w-5 stroke-[2.2]" />
                 </div>
                 <div className="flex-1 min-w-0 text-left">
@@ -126,9 +111,7 @@ export function EscolherTipoCadastroPage() {
                     <p className="text-sm font-bold text-slate-900 leading-tight">
                       Motorista Parceiro
                     </p>
-                    <span
-                      className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    >
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                       PIX D+0
                     </span>
                   </div>

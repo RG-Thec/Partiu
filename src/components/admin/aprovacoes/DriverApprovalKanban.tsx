@@ -115,10 +115,16 @@ export function DriverApprovalKanban({
                           />
                           <div
                             className={`absolute -bottom-1 -right-1 p-0.5 rounded-md ${
-                              isMoto ? "bg-amber-500 text-white" : "bg-primary text-primary-foreground"
+                              isMoto
+                                ? "bg-amber-500 text-white"
+                                : "bg-primary text-primary-foreground"
                             }`}
                           >
-                            {isMoto ? <Bike className="h-2.5 w-2.5" /> : <Car className="h-2.5 w-2.5" />}
+                            {isMoto ? (
+                              <Bike className="h-2.5 w-2.5" />
+                            ) : (
+                              <Car className="h-2.5 w-2.5" />
+                            )}
                           </div>
                         </div>
 
@@ -132,10 +138,7 @@ export function DriverApprovalKanban({
                         </div>
                       </div>
 
-                      <AdminBadge
-                        variant={isMoto ? "warning" : "info"}
-                        size="sm"
-                      >
+                      <AdminBadge variant={isMoto ? "warning" : "info"} size="sm">
                         {isMoto ? "MOTO" : "POP"}
                       </AdminBadge>
                     </div>

@@ -64,7 +64,7 @@ export const PromoCarousel = memo(function PromoCarousel({
       let closestIdx = 0;
       let minDiff = Infinity;
       items.forEach((item, idx) => {
-        const diff = Math.abs((item.offsetLeft - 16) - scrollLeft);
+        const diff = Math.abs(item.offsetLeft - 16 - scrollLeft);
         if (diff < minDiff) {
           minDiff = diff;
           closestIdx = idx;
@@ -120,7 +120,9 @@ export const PromoCarousel = memo(function PromoCarousel({
 
             {/* Topo do Banner: Badge Promocional + Cupom */}
             <div className="flex items-center justify-between gap-2 relative z-10">
-              <span className={`text-[9.5px] sm:text-[10.5px] font-bold uppercase px-2.5 py-0.5 rounded-full ${item.tagCor} shadow-xs tracking-wider flex items-center gap-1.5`}>
+              <span
+                className={`text-[9.5px] sm:text-[10.5px] font-bold uppercase px-2.5 py-0.5 rounded-full ${item.tagCor} shadow-xs tracking-wider flex items-center gap-1.5`}
+              >
                 <Sparkles className="w-3 h-3" />
                 {item.badge}
               </span>
@@ -167,7 +169,7 @@ export const PromoCarousel = memo(function PromoCarousel({
               style={{
                 backgroundColor:
                   activeSlide === index
-                    ? (corPrimaria || "var(--brand-primary, #FF6B00)")
+                    ? corPrimaria || "var(--brand-primary, #FF6B00)"
                     : "rgba(255, 255, 255, 0.8)",
               }}
             />

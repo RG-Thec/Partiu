@@ -194,7 +194,7 @@ export interface ItemizedQuote {
   tripDurationMinutes: number;
   tripDistanceKm: number;
   pickupFormatted: string; // Ex: "Chega em 3 min"
-  tripFormatted: string;   // Ex: "Viagem de 9 min"
+  tripFormatted: string; // Ex: "Viagem de 9 min"
 
   // Metadados de Praça / Geofencing
   tenantId?: string;
@@ -223,7 +223,11 @@ export class PricingService {
     cidadeSede?: string;
     isWithinServiceArea?: boolean;
   } {
-    let contextualTenant: { tenantId?: string; cidadeSede?: string; isWithinServiceArea?: boolean } = {};
+    let contextualTenant: {
+      tenantId?: string;
+      cidadeSede?: string;
+      isWithinServiceArea?: boolean;
+    } = {};
 
     if (pickupCoords && !isNaN(pickupCoords[0]) && !isNaN(pickupCoords[1])) {
       const match = whiteLabelEngine.findTenantByCoordinates(pickupCoords[1], pickupCoords[0]);
@@ -269,7 +273,7 @@ export class PricingService {
     routeMetrics: RouteMetrics,
     surgeContext: Partial<SurgeContext> = {},
     stopsCount: number = 0,
-    pickupCoords?: [number, number]
+    pickupCoords?: [number, number],
   ): Record<SupportedVehicleCategory, ItemizedQuote> {
     const settings = this.getPricingSettings(pickupCoords);
     const resolvedTenantId = settings.tenantId || "default";
@@ -278,12 +282,15 @@ export class PricingService {
         ...surgeContext,
         tenantId: surgeContext.tenantId || resolvedTenantId,
       },
-      resolvedTenantId
+      resolvedTenantId,
     );
     const surgeMultiplier = surgeResult.multiplier;
 
     const distanceKm = Math.max(0.5, routeMetrics.distanceKm);
-    const durationMin = Math.max(1, routeMetrics.trafficDurationMinutes || routeMetrics.durationMinutes);
+    const durationMin = Math.max(
+      1,
+      routeMetrics.trafficDurationMinutes || routeMetrics.durationMinutes,
+    );
 
     // FÓRMULA OFICIAL DE BASE
     const baseFare = settings.baseFare;
@@ -305,11 +312,15 @@ export class PricingService {
       let precoBruto: number;
       if (cat.id === "PARTIU_CARRO") {
         // Fórmula direta de paridade: baseFare + (dist * priceKm) + (dur * priceMin)
-        precoBruto = (baseFare + distanceKm * settings.pricePerKm + durationMin * settings.pricePerMinute) * surgeMultiplier;
+        precoBruto =
+          (baseFare + distanceKm * settings.pricePerKm + durationMin * settings.pricePerMinute) *
+          surgeMultiplier;
       } else if (cat.id === "PARTIU_MOTO") {
         // Proporção econômica de moto (~75% de base, 75% de km e 75% de minuto)
         precoBruto =
-          (baseFare * 0.75 + distanceKm * (settings.pricePerKm * 0.75) + durationMin * (settings.pricePerMinute * 0.75)) *
+          (baseFare * 0.75 +
+            distanceKm * (settings.pricePerKm * 0.75) +
+            durationMin * (settings.pricePerMinute * 0.75)) *
           surgeMultiplier;
       } else {
         precoBruto = rawRouteCost * categoryMultiplier * surgeMultiplier;
@@ -322,7 +333,9 @@ export class PricingService {
 
       // ETA estimado do motorista por modalidade
       const isMoto = cat.tag === "MOTO" || cat.tag === "FLASH";
-      const pickupMin = isMoto ? Math.max(2, Math.round(durationMin * 0.25)) : Math.max(3, Math.round(durationMin * 0.3));
+      const pickupMin = isMoto
+        ? Math.max(2, Math.round(durationMin * 0.25))
+        : Math.max(3, Math.round(durationMin * 0.3));
       const tripMin = isMoto ? Math.max(2, Math.round(durationMin * 0.8)) : durationMin;
 
       const formattedPrice = `R$ ${roundedPrice.toFixed(2).replace(".", ",")}`;
@@ -370,7 +383,7 @@ export class PricingService {
   public calculateLegacyPairQuotes(
     distanceKm = 4.8,
     durationMin = 12,
-    surgeContext: Partial<SurgeContext> = {}
+    surgeContext: Partial<SurgeContext> = {},
   ): {
     moto: {
       categoria: "MOTO";
@@ -439,8 +452,14 @@ export class PricingService {
     category: SupportedVehicleCategory,
     distanceKm: number,
     durationMinutes: number,
-    surgeContext: Partial<SurgeContext> = {}
-  ): { fareBrl: number; priceBrl: number; minimumFare: number; distanceKm: number; durationMinutes: number } {
+    surgeContext: Partial<SurgeContext> = {},
+  ): {
+    fareBrl: number;
+    priceBrl: number;
+    minimumFare: number;
+    distanceKm: number;
+    durationMinutes: number;
+  } {
     const dummy: RouteMetrics = {
       distanceMeters: Math.round(distanceKm * 1000),
       distanceKm,
@@ -467,7 +486,7 @@ export class PricingService {
    */
   public calculateQuotesList(
     routeMetrics: RouteMetrics,
-    surgeContext: Partial<SurgeContext> = {}
+    surgeContext: Partial<SurgeContext> = {},
   ): ItemizedQuote[] {
     const multi = this.calculateMultiCategoryQuotes(routeMetrics, surgeContext);
     return Object.values(multi);

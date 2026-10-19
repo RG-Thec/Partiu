@@ -36,7 +36,7 @@ export class DeliveryMultiStopEngine {
   public initializeStops(
     deliveryId: string,
     pickupInput: CreateStopInput,
-    dropoffInputs: CreateStopInput[]
+    dropoffInputs: CreateStopInput[],
   ): DeliveryStop[] {
     if (dropoffInputs.length === 0) {
       throw new Error("Uma entrega deve conter ao menos uma parada de destino.");
@@ -116,7 +116,7 @@ export class DeliveryMultiStopEngine {
     deliveryId: string,
     stopId: string,
     newStatus: DeliveryStopStatus,
-    proofId?: string | undefined
+    proofId?: string | undefined,
   ): DeliveryStop | null {
     const stops = this.getStops(deliveryId);
     const stop = stops.find((s) => s.id === stopId);
@@ -160,7 +160,7 @@ export class DeliveryMultiStopEngine {
     deliveryId: string,
     pickupAddress: string,
     senderContact: { name: string; phone: string },
-    returnOtp: string
+    returnOtp: string,
   ): DeliveryStop {
     const stops = this.getStops(deliveryId);
     const returnStop: DeliveryStop = {

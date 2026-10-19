@@ -14,7 +14,8 @@ export const Route = createFileRoute("/design-system")({
       { property: "og:title", content: "Design System | PARTIU Mobilidade Urbana" },
       {
         property: "og:description",
-        content: "Referência visual dos tokens e componentes usados no app PARTIU Mobilidade Urbana.",
+        content:
+          "Referência visual dos tokens e componentes usados no app PARTIU Mobilidade Urbana.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

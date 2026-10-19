@@ -1,10 +1,13 @@
 # 🏛️ PARTIU — RELATÓRIO TÉCNICO DE EVOLUÇÃO
+
 ## DRIVER OPERATIONAL COCKPIT: UX/UI, LÓGICA OPERACIONAL E EXPERIÊNCIA EM TEMPO REAL
 
 ---
 
 ### 1. Estado Anterior
+
 O aplicativo do motorista em `src/routes/app.motorista.tsx` encontrava-se estruturado como uma tela monolítica de mais de 3.000 linhas de código com forte caráter administrativo, gerando alta fricção e sobrecarga cognitiva para o condutor em trânsito:
+
 - **Ocupação Excessiva do Viewport:** Um HUD superior de 2 linhas (`fixed top-0 inset-x-0`) somado a pilhas de botões e telemetria interna consumia de 30% a 35% do viewport vertical útil.
 - **Vazamento de Detalhes Técnicos Internos:** Parâmetros técnicos de infraestrutura como `Filtro Deadband (m)`, `Deadband GPS: Ativo`, `Buffer Outbox: 0`, e dados brutos de rádio/bateria ficavam expostos em chips visíveis na tela principal.
 - **Disputa Espacial de Elementos Flutuantes:** A barra de navegação global inferior (`HomeBottomNav`) colidia visualmente e funcionalmente com as ações operacionais e os painéis de corrida.
@@ -13,6 +16,7 @@ O aplicativo do motorista em `src/routes/app.motorista.tsx` encontrava-se estrut
 ---
 
 ### 2. Problemas Identificados
+
 1. **Sobrecarga Cognitiva ao Dirigir (Cognitive Overload):** Excesso de números, botões e controles desnecessários durante a condução ativa do veículo.
 2. **Falta de Hierarquia Visual Espacial (Z-Index Chaos):** Botões flutuantes (Recenter, SOS, Velocímetro) sobrepondo cards operacionais ou sendo encobertos por gavetas inferiores.
 3. **Fricção Crítica no Embarque:** Exigência de digitação de PIN para passageiros comuns em corridas urbanas normais (em vez de reservar o PIN estrito exclusivamente para logística/encomendas).
@@ -22,6 +26,7 @@ O aplicativo do motorista em `src/routes/app.motorista.tsx` encontrava-se estrut
 ---
 
 ### 3. Melhorias Implementadas
+
 O módulo foi transformado no **Driver Operational Cockpit**, alinhado ao paradigma:
 $$\text{OBSERVAR} \longrightarrow \text{ENTENDER} \longrightarrow \text{DECIDIR} \longrightarrow \text{EXECUTAR}$$
 
@@ -43,6 +48,7 @@ $$\text{OBSERVAR} \longrightarrow \text{ENTENDER} \longrightarrow \text{DECIDIR}
 ---
 
 ### 4. Componentes Alterados
+
 - **`src/routes/app.motorista.tsx`:**
   - Redução de complexidade de renderização: remoção de 1.073 linhas de código JSX monolítico duplicado.
   - Integração do `DriverHeader` e do `DriverContextualBottomSheet`.
@@ -54,7 +60,9 @@ $$\text{OBSERVAR} \longrightarrow \text{ENTENDER} \longrightarrow \text{DECIDIR}
 ---
 
 ### 5. Componentes Criados
+
 Localizados em `src/components/driver/cockpit/`:
+
 1. `DriverHeader.tsx`: Barra superior minimalista de 56px com status GPS, áudio e notificações.
 2. `DriverContextualBottomSheet.tsx`: Controlador central da gaveta inferior inteligente com gestos, backdrop blur e tipagem estrita de estados operacionais.
 3. `states/OfflineState.tsx`: Estado offline com CTA de ativação de 56px e acesso a finanças.
@@ -66,6 +74,7 @@ Localizados em `src/components/driver/cockpit/`:
 ---
 
 ### 6. Fluxos Modificados
+
 - **Fluxo de Embarque:** Passageiros comuns contam com embarque por 1 toque ("PASSAGEIRO EMBARCOU • INICIAR CORRIDA"), eliminando digitação forçada de PIN para corridas diárias. Entregas e encomendas retêm a trava criptográfica de duplo PIN (PIN 1 Coleta, PIN 2 Entrega).
 - **Fluxo de Não Comparecimento (No-Show):** Cronômetro de 5 minutos com visualização em tempo real. Após 300 segundos, o botão No-Show é habilitado com crédito automático e auditado de R$ 4,50 PIX direto na carteira do motorista sem penalidade de taxa.
 - **Fluxo de Navegação Externa:** Botões dedicados com disparo direto via URL scheme para Waze (`waze.com/ul`) e Google Maps (`google.com/maps/dir`).
@@ -73,7 +82,9 @@ Localizados em `src/components/driver/cockpit/`:
 ---
 
 ### 7. Integrações Preservadas
+
 Todas as garantias fundamentais da arquitetura PARTIU foram estritamente preservadas:
+
 - **Supabase Realtime:** Canais `corridas` e `motoristas` com heartbeat e escuta ativa de mudanças de status.
 - **PostgreSQL RLS & RPC Atômica:** Chamada transacional de aceite `partiu_aceitar_corrida_atomica` contra corridas concorrentes no Trip Radar.
 - **FSM Invariants:** Todas as transições de estado (`DISPONIVEL`, `ACEITO`, `CHEGOU`, `EM_VIAGEM`, `FINALIZADO`, `CANCELADO`) respeitam as invariantes do domínio.
@@ -84,6 +95,7 @@ Todas as garantias fundamentais da arquitetura PARTIU foram estritamente preserv
 ---
 
 ### 8. Testes Executados
+
 - **Suíte de Testes Automatizados (`npm test -- --run`):**
   - **255/255 testes passaram (100% de sucesso, 0 falhas).**
   - Validação completa das 22 suítes críticas: Invariantes FSM, RLS Zero-Trust, Idempotência Global, FinOps Ledger e Splits em Centavos, Transactional Outbox, SOS State Machine, Circuit Breaker, Criptografia Ed25519 (RFC 8032), Webhook HMAC-SHA256, Deadband GPS, Taxímetro Virtual, Dispatch H3 e Dynamic GPS Sampling Profiles.
@@ -95,18 +107,20 @@ Todas as garantias fundamentais da arquitetura PARTIU foram estritamente preserv
 ---
 
 ### 9. Problemas Encontrados e Soluções
-- *Problema:* O velocímetro digital do mapa (`PartiuDriverNavigationMap`) estava ancorado em `bottom-6 left-4`, ficando invisível sob o bottom sheet operacional.
-  - *Solução:* Reposicionado para `bottom-72 sm:bottom-80 left-4 z-20`, empilhado harmonicamente acima do botão de recentralização e sempre legível para o motorista.
-- *Problema:* A barra de navegação global inferior (`HomeBottomNav`) colidia com o bottom sheet operacional do motorista.
-  - *Solução:* Removida da rota de cockpit operacional do motorista; atalhos secundários para Carteira, Faturamento e Perfil foram integrados de forma compacta e contextual dentro do próprio bottom sheet e menu superior.
-- *Problema:* O badge flutuante de demanda H3 ativa ficava visível sob o cabeçalho superior no mapa, gerando poluição visual.
-  - *Solução:* Badge flutuante removido do mapa, mantendo apenas a renderização vetorial suave das camadas poligonais H3 no canvas Mapbox.
-- *Problema:* O fluxo de saque PIX permitia múltiplos tipos de chave (celular, email, aleatória), contrariando a regra de titularidade estrita.
-  - *Solução:* O saque via PIX e o cadastro do motorista agora exigem estritamente a chave CPF do próprio motorista titular cadastrado (`pixKeyType === "CPF"`), com validação de titularidade antifraude no client e no `DriverWithdrawalService`.
+
+- _Problema:_ O velocímetro digital do mapa (`PartiuDriverNavigationMap`) estava ancorado em `bottom-6 left-4`, ficando invisível sob o bottom sheet operacional.
+  - _Solução:_ Reposicionado para `bottom-72 sm:bottom-80 left-4 z-20`, empilhado harmonicamente acima do botão de recentralização e sempre legível para o motorista.
+- _Problema:_ A barra de navegação global inferior (`HomeBottomNav`) colidia com o bottom sheet operacional do motorista.
+  - _Solução:_ Removida da rota de cockpit operacional do motorista; atalhos secundários para Carteira, Faturamento e Perfil foram integrados de forma compacta e contextual dentro do próprio bottom sheet e menu superior.
+- _Problema:_ O badge flutuante de demanda H3 ativa ficava visível sob o cabeçalho superior no mapa, gerando poluição visual.
+  - _Solução:_ Badge flutuante removido do mapa, mantendo apenas a renderização vetorial suave das camadas poligonais H3 no canvas Mapbox.
+- _Problema:_ O fluxo de saque PIX permitia múltiplos tipos de chave (celular, email, aleatória), contrariando a regra de titularidade estrita.
+  - _Solução:_ O saque via PIX e o cadastro do motorista agora exigem estritamente a chave CPF do próprio motorista titular cadastrado (`pixKeyType === "CPF"`), com validação de titularidade antifraude no client e no `DriverWithdrawalService`.
 
 ---
 
 ### 10. Melhorias Futuras Recomendadas
+
 1. **Overlay Picture-in-Picture (PiP):** Suporte à API nativa de PiP ou Floating Bubble no Android para manter HUD de corrida visível quando o motorista alternar para o app externo do Waze ou Google Maps.
 2. **Audio Haptic Feedback Avançado:** Ativação de padrões de vibração háptica diferenciados no dispositivo móvel para ofertas relâmpago e encerramento de carência de espera.
 3. **Heatmap H3 Preditivo:** Predição com machine learning no client/edge para sugerir ao motorista hexágonos H3 com maior probabilidade de chamadas nos próximos 15 minutos.

@@ -35,7 +35,7 @@ export default function DominiosPage() {
   const superAdmin = isSuperAdmin();
 
   const [dominios, setDominios] = useState<TenantDomainRecord[]>(() =>
-    tenantDomainService.listDomains()
+    tenantDomainService.listDomains(),
   );
   const [termoBusca, setTermoBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState<string>("TODOS");
@@ -63,8 +63,7 @@ export default function DominiosPage() {
         d.tenantNome.toLowerCase().includes(termoBusca.toLowerCase()) ||
         d.tenantId.toLowerCase().includes(termoBusca.toLowerCase());
 
-      const matchStatus =
-        filtroStatus === "TODOS" || d.status === filtroStatus;
+      const matchStatus = filtroStatus === "TODOS" || d.status === filtroStatus;
 
       return matchTexto && matchStatus;
     });
@@ -74,7 +73,9 @@ export default function DominiosPage() {
   const totalDominios = dominios.length;
   const ativos = dominios.filter((d) => d.status === "ATIVO").length;
   const pendentes = dominios.filter((d) => d.status === "PENDENTE").length;
-  const falhas = dominios.filter((d) => d.status === "DNS_FALHOU" || d.status === "REVOGADO").length;
+  const falhas = dominios.filter(
+    (d) => d.status === "DNS_FALHOU" || d.status === "REVOGADO",
+  ).length;
 
   async function handleRechecarDns(domain: string) {
     setRechecando(domain);
@@ -134,7 +135,7 @@ export default function DominiosPage() {
     const res = tenantDomainService.registerCustomDomain(
       novoTenantId,
       novoDominio.trim(),
-      nomeFinal
+      nomeFinal,
     );
 
     if (!res.sucesso) {
@@ -159,7 +160,8 @@ export default function DominiosPage() {
           </div>
           <h2 className="text-xl font-bold text-white">Acesso Restrito à Matriz (Super Admin)</h2>
           <p className="text-sm text-slate-400">
-            Apenas a diretoria executiva e os administradores globais têm permissão para auditar e gerenciar a infraestrutura DNS e os domínios do ecossistema PARTIU MOBE.
+            Apenas a diretoria executiva e os administradores globais têm permissão para auditar e
+            gerenciar a infraestrutura DNS e os domínios do ecossistema PARTIU MOBE.
           </p>
         </div>
       </div>
@@ -179,7 +181,8 @@ export default function DominiosPage() {
             Gestão & Aprovação de Domínios White-Label
           </h1>
           <p className="text-sm text-slate-300 mt-1 max-w-2xl">
-            Painel exclusivo da Holding para aprovação, validação de registros CNAME/A e emissão de certificados SSL para todos os domínios customizados das franquias regionais.
+            Painel exclusivo da Holding para aprovação, validação de registros CNAME/A e emissão de
+            certificados SSL para todos os domínios customizados das franquias regionais.
           </p>
         </div>
 
@@ -234,20 +237,34 @@ export default function DominiosPage() {
           Instruções Oficiais de Apontamento DNS da Plataforma
         </div>
         <p className="text-xs text-slate-400 leading-relaxed">
-          Para que o tráfego dos franqueados seja roteado com sucesso e os certificados SSL sejam provisionados automaticamente via Edge, o franqueado deve cadastrar as seguintes entradas na sua zona de DNS:
+          Para que o tráfego dos franqueados seja roteado com sucesso e os certificados SSL sejam
+          provisionados automaticamente via Edge, o franqueado deve cadastrar as seguintes entradas
+          na sua zona de DNS:
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
           <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs space-y-1">
             <div className="text-indigo-400 font-bold font-sans">1. Subdomínios (Recomendado):</div>
-            <div className="text-slate-300">Tipo: <strong className="text-white">CNAME</strong></div>
-            <div className="text-slate-300">Entrada: <strong className="text-white">app</strong> (ou subdomínio desejado)</div>
-            <div className="text-slate-300">Destino: <strong className="text-primary">{CANONICAL_CNAME_TARGET}</strong></div>
+            <div className="text-slate-300">
+              Tipo: <strong className="text-white">CNAME</strong>
+            </div>
+            <div className="text-slate-300">
+              Entrada: <strong className="text-white">app</strong> (ou subdomínio desejado)
+            </div>
+            <div className="text-slate-300">
+              Destino: <strong className="text-primary">{CANONICAL_CNAME_TARGET}</strong>
+            </div>
           </div>
           <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs space-y-1">
             <div className="text-indigo-400 font-bold font-sans">2. Domínio Apex / Raiz:</div>
-            <div className="text-slate-300">Tipo: <strong className="text-white">A</strong></div>
-            <div className="text-slate-300">Entrada: <strong className="text-white">@</strong></div>
-            <div className="text-slate-300">Destino: <strong className="text-primary">{CANONICAL_APEX_IP}</strong></div>
+            <div className="text-slate-300">
+              Tipo: <strong className="text-white">A</strong>
+            </div>
+            <div className="text-slate-300">
+              Entrada: <strong className="text-white">@</strong>
+            </div>
+            <div className="text-slate-300">
+              Destino: <strong className="text-primary">{CANONICAL_APEX_IP}</strong>
+            </div>
           </div>
         </div>
       </div>
@@ -318,9 +335,7 @@ export default function DominiosPage() {
                         <ExternalLink className="w-3 h-3 text-slate-500" />
                       </a>
                     </td>
-                    <td className="py-3 px-4 font-mono text-slate-300">
-                      {item.cnameTarget}
-                    </td>
+                    <td className="py-3 px-4 font-mono text-slate-300">{item.cnameTarget}</td>
                     <td className="py-3 px-4">
                       {item.status === "ATIVO" && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold">

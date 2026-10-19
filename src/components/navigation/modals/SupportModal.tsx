@@ -57,7 +57,9 @@ export function SupportModal({ open, onClose, appSettings }: SupportModalProps) 
               </div>
               <div>
                 <h4 className="text-xs font-bold">Emergência e Segurança</h4>
-                <p className="text-[10px] text-rose-700">Polícia Militar ({appSettings.phoneEmergency})</p>
+                <p className="text-[10px] text-rose-700">
+                  Polícia Militar ({appSettings.phoneEmergency})
+                </p>
               </div>
             </div>
             <ExternalLink className="h-4 w-4 text-rose-600 group-hover:translate-x-0.5 transition-transform" />
@@ -66,10 +68,12 @@ export function SupportModal({ open, onClose, appSettings }: SupportModalProps) 
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
             <h4 className="text-xs font-bold text-slate-800">Dúvidas Frequentes</h4>
             <p className="text-[11px] text-slate-600 leading-relaxed">
-              • <strong>Como pagar?</strong> Ao finalizar a corrida, o motorista apresenta o QR Code do PIX na tela dele para você pagar diretamente pelo seu banco.
+              • <strong>Como pagar?</strong> Ao finalizar a corrida, o motorista apresenta o QR Code
+              do PIX na tela dele para você pagar diretamente pelo seu banco.
             </p>
             <p className="text-[11px] text-slate-600 leading-relaxed">
-              • <strong>Como funciona o PIN?</strong> No início da corrida ou entrega, informe o PIN de 4 dígitos ao motorista para validação segura.
+              • <strong>Como funciona o PIN?</strong> No início da corrida ou entrega, informe o PIN
+              de 4 dígitos ao motorista para validação segura.
             </p>
           </div>
         </div>

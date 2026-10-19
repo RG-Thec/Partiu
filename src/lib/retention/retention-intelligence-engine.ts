@@ -15,10 +15,7 @@ import { silentCatchWarn } from "@/lib/structured-logger";
 
 export type RiskLevel = "BAIXO" | "MEDIO" | "ALTO" | "CRITICO";
 export type RetentionActionType =
-  | "SEND_WINBACK_PUSH"
-  | "OFFER_48H_GOLD"
-  | "PHONE_CALL"
-  | "REENGAGEMENT_BONUS";
+  "SEND_WINBACK_PUSH" | "OFFER_48H_GOLD" | "PHONE_CALL" | "REENGAGEMENT_BONUS";
 
 export interface DriverRetentionRecord {
   driverId: string;
@@ -89,7 +86,9 @@ export class RetentionIntelligenceEngine {
         const arr = JSON.parse(savedRecords) as DriverRetentionRecord[];
         arr.forEach((r) => this.records.set(r.driverId, r));
       }
-    } catch (err) { silentCatchWarn("retention-intelligence-engine", err); }
+    } catch (err) {
+      silentCatchWarn("retention-intelligence-engine", err);
+    }
   }
 
   private saveData(): void {
@@ -98,7 +97,9 @@ export class RetentionIntelligenceEngine {
       localStorage.setItem(STORAGE_RETENTION_CONFIG_KEY, JSON.stringify(this.config));
       const arr = Array.from(this.records.values());
       localStorage.setItem(STORAGE_RETENTION_RECORDS_KEY, JSON.stringify(arr));
-    } catch (err) { silentCatchWarn("retention-intelligence-engine", err); }
+    } catch (err) {
+      silentCatchWarn("retention-intelligence-engine", err);
+    }
   }
 
   private seedMockDataIfEmpty(): void {
@@ -193,7 +194,7 @@ export class RetentionIntelligenceEngine {
    */
   public triggerWinbackAction(
     driverId: string,
-    actionType: RetentionActionType
+    actionType: RetentionActionType,
   ): { success: boolean; message: string; record: DriverRetentionRecord } {
     const record = this.records.get(driverId);
     if (!record) {
@@ -239,7 +240,8 @@ export class RetentionIntelligenceEngine {
     const atRisk = all.filter((r) => r.riskLevel === "ALTO" || r.riskLevel === "CRITICO");
     const critical = all.filter((r) => r.riskLevel === "CRITICO");
     const recovered = all.filter((r) => r.status === "RECOVERED");
-    const churnRate = all.length > 0 ? Number(((critical.length / all.length) * 100).toFixed(1)) : 0;
+    const churnRate =
+      all.length > 0 ? Number(((critical.length / all.length) * 100).toFixed(1)) : 0;
 
     return {
       totalMonitored: all.length,

@@ -41,7 +41,7 @@ export const NativeSurface = forwardRef<HTMLDivElement, NativeSurfaceProps>(
       rippleColor,
       ...props
     },
-    ref
+    ref,
   ) => {
     const { appConfig } = useTheme();
     const { colors, ui } = appConfig.branding;
@@ -49,9 +49,9 @@ export const NativeSurface = forwardRef<HTMLDivElement, NativeSurfaceProps>(
     // Espaçamento aderente ao grid de 8pt
     const paddingClasses = {
       none: "p-0",
-      sm: "p-3",      // 12px
-      md: "p-4",      // 16px
-      lg: "p-6",      // 24px
+      sm: "p-3", // 12px
+      md: "p-4", // 16px
+      lg: "p-6", // 24px
     }[padding];
 
     // Elevações suaves orgânicas (Material Design 3 Diffuse Shadows)
@@ -77,9 +77,7 @@ export const NativeSurface = forwardRef<HTMLDivElement, NativeSurfaceProps>(
         onClick={onClick}
         style={dynamicStyle}
         className={`relative overflow-hidden transition-all duration-200 ${
-          interactive
-            ? "cursor-pointer select-none active:scale-[0.99] touch-manipulation"
-            : ""
+          interactive ? "cursor-pointer select-none active:scale-[0.99] touch-manipulation" : ""
         } ${paddingClasses} ${className}`}
         {...props}
       >
@@ -92,7 +90,7 @@ export const NativeSurface = forwardRef<HTMLDivElement, NativeSurfaceProps>(
         {children}
       </div>
     );
-  }
+  },
 );
 
 NativeSurface.displayName = "NativeSurface";

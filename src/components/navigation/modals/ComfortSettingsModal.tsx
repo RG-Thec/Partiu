@@ -61,7 +61,9 @@ export function ComfortSettingsModal({
               <div className="flex items-center gap-2.5">
                 <Bell className="h-4 w-4 text-slate-500" />
                 <div>
-                  <span className="block font-bold text-slate-800">Notificações Push no Celular</span>
+                  <span className="block font-bold text-slate-800">
+                    Notificações Push no Celular
+                  </span>
                   <span className="text-[10px] text-slate-400">Motorista a caminho e chegada</span>
                 </div>
               </div>
@@ -99,7 +101,9 @@ export function ComfortSettingsModal({
               <div className="flex items-center gap-2.5">
                 <Wind className="h-4 w-4" style={{ color: corPrimaria || "#FF6B00" }} />
                 <div>
-                  <span className="block font-bold text-slate-800">Sempre solicitar ar-condicionado</span>
+                  <span className="block font-bold text-slate-800">
+                    Sempre solicitar ar-condicionado
+                  </span>
                   <span className="text-[10px] text-slate-400">Preferência padrão em carros</span>
                 </div>
               </div>

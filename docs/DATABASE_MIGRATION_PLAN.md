@@ -1,4 +1,5 @@
 # DATABASE MIGRATION PLAN — PARTIU ENTERPRISE (V1.0)
+
 ### Plano de Execução e Rollback de Migrações de Banco de Dados
 
 > **Arquivo de Migração Relacionado:** [`supabase/migrations/20260907_partiu_production_schema.sql`](file:///c:/Users/Suporte/Desktop/PARTIU-%20MOBILIDADE%20URBANA/supabase/migrations/20260907_partiu_production_schema.sql)
@@ -6,6 +7,7 @@
 ---
 
 ## 1. SEQUÊNCIA DE APLICAÇÃO EM STAGING & PRODUÇÃO
+
 1. **Verificação de Extensões:**  
    Garantir a presença de `uuid-ossp`, `postgis` e `pgcrypto`.
 2. **Criação de Tipos e Enums:**  
@@ -24,7 +26,9 @@
 ---
 
 ## 2. PLANO DE ROLLBACK (SE NECESSÁRIO)
+
 Caso ocorra erro imprevisto durante a aplicação:
+
 ```sql
 DROP FUNCTION IF EXISTS public.partiu_concluir_corrida_split(UUID);
 DROP FUNCTION IF EXISTS public.partiu_validar_pin_embarque(UUID, VARCHAR);

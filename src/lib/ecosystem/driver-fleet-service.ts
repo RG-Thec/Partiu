@@ -52,9 +52,12 @@ export const SEED_DRIVERS: DriverFleetRecord[] = [
     is_online: true,
     current_lat: -21.205,
     current_lng: -41.888,
-    cnh_image_url: "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=600&auto=format&fit=crop&q=80",
-    vehicle_doc_url: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&auto=format&fit=crop&q=80",
-    avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+    cnh_image_url:
+      "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=600&auto=format&fit=crop&q=80",
+    vehicle_doc_url:
+      "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&auto=format&fit=crop&q=80",
+    avatar_url:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
     created_at: new Date(Date.now() - 24 * 3600000).toISOString(),
   },
   {
@@ -70,9 +73,12 @@ export const SEED_DRIVERS: DriverFleetRecord[] = [
     is_online: true,
     current_lat: -21.206,
     current_lng: -41.889,
-    cnh_image_url: "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=600&auto=format&fit=crop&q=80",
-    vehicle_doc_url: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&auto=format&fit=crop&q=80",
-    avatar_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80",
+    cnh_image_url:
+      "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=600&auto=format&fit=crop&q=80",
+    vehicle_doc_url:
+      "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&auto=format&fit=crop&q=80",
+    avatar_url:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80",
     created_at: new Date(Date.now() - 12 * 3600000).toISOString(),
   },
   {
@@ -88,9 +94,12 @@ export const SEED_DRIVERS: DriverFleetRecord[] = [
     is_online: false,
     current_lat: -21.204,
     current_lng: -41.887,
-    cnh_image_url: "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=600&auto=format&fit=crop&q=80",
-    vehicle_doc_url: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&auto=format&fit=crop&q=80",
-    avatar_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&auto=format&fit=crop&q=80",
+    cnh_image_url:
+      "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=600&auto=format&fit=crop&q=80",
+    vehicle_doc_url:
+      "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&auto=format&fit=crop&q=80",
+    avatar_url:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&auto=format&fit=crop&q=80",
     created_at: new Date().toISOString(),
   },
 ];
@@ -210,8 +219,8 @@ class DriverFleetService {
             d.status_aprovacao === "aprovado"
               ? "APROVADO"
               : d.status_aprovacao === "rejeitado"
-              ? "REJEITADO"
-              : "PENDENTE",
+                ? "REJEITADO"
+                : "PENDENTE",
           is_online: Boolean(d.is_online),
           created_at: d.created_at || new Date().toISOString(),
         }));
@@ -310,9 +319,7 @@ class DriverFleetService {
     return true;
   }
 
-  public async registerDriver(
-    data: RegisterDriverInput
-  ): Promise<DriverFleetRecord> {
+  public async registerDriver(data: RegisterDriverInput): Promise<DriverFleetRecord> {
     // Validação estrita de categoria: MOTO ou CARRO apenas
     if (data.vehicle_type !== "MOTO" && data.vehicle_type !== "CARRO") {
       throw new Error("Estritamente MOTO ou CARRO permitidos no ecossistema PARTIU.");

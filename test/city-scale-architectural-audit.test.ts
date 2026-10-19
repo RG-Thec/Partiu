@@ -3,7 +3,7 @@
  * 🏙️ PARTIU CITY-SCALE ARCHITECTURAL & SCALABILITY AUDIT SUITE
  * ==============================================================================
  * Avaliação Forense de Confiabilidade e Capacidade Municipal (Uber & 99 Standard)
- * 
+ *
  * FASES AUDITADAS:
  * 1. Matching Engine (Concorrência, Atomic Claim, Starvation, Fairness, Timeout)
  * 2. PostGIS Spatial Scale (100, 500, 1.000, 5.000, 10.000 motoristas)
@@ -17,11 +17,12 @@
 
 import { describe, test, testAsync, expect } from "./test-harness.mjs";
 import { MatchingEngine, matchingEngine } from "../src/services/MatchingEngine.ts";
-import { AtomicMatchingEngine, atomicMatchingEngine } from "../src/lib/dispatch-atomic/atomic-matching.ts";
-import { SurgeEngine, surgeEngine } from "../src/services/SurgeEngine.ts";
 import {
-  OFFICIAL_CHART_OF_ACCOUNTS,
-} from "../src/lib/fintech-hardened/transactional-ledger.ts";
+  AtomicMatchingEngine,
+  atomicMatchingEngine,
+} from "../src/lib/dispatch-atomic/atomic-matching.ts";
+import { SurgeEngine, surgeEngine } from "../src/services/SurgeEngine.ts";
+import { OFFICIAL_CHART_OF_ACCOUNTS } from "../src/lib/fintech-hardened/transactional-ledger.ts";
 import {
   getDurableEventQueue,
   resetDurableQueue,
@@ -32,60 +33,62 @@ import { EnterpriseObservabilityEngine } from "../src/lib/partiu-observability.t
 import type { CorridaPartiu, MotoristaInfo } from "../src/lib/partiu-engine.ts";
 
 describe("🏙️ AUDITORIA ARQUITETURAL DE ESCALA MUNICIPAL (10.000 MOTORISTAS)", () => {
-
   // --------------------------------------------------------------------------
   // FASE 1: MATCHING ENGINE (CONCORRÊNCIA, ATOMICIDADE, FAIRNESS, STARVATION)
   // --------------------------------------------------------------------------
   describe("FASE 1 — Matching Engine & Concorrência Extrema", () => {
-    testAsync("1.1 Concorrência Atômica: 50 motoristas disputando 1 mesma corrida -> Exatamente 1 vencedor (Zero Double-Dispatch)", async () => {
-      const mockCorrida: CorridaPartiu = {
-        id: `COR-CONCORRENCIA-${Date.now()}`,
-        modalidade: "CARRO",
-        origem: "Rua Coronel Silva, 50, Centro",
-        destino: "Shopping Itaperuna",
-        passageiroNome: "Camila Rocha",
-        passageiroTelefone: "(22) 99881-1234",
-        valor: 20.0,
-        distanciaKm: 3.5,
-        duracaoMin: 8,
-        formaPagamento: "pix",
-        pin: "1234",
-        status: "PROCURANDO",
-        criadoEm: Date.now(),
-      };
+    testAsync(
+      "1.1 Concorrência Atômica: 50 motoristas disputando 1 mesma corrida -> Exatamente 1 vencedor (Zero Double-Dispatch)",
+      async () => {
+        const mockCorrida: CorridaPartiu = {
+          id: `COR-CONCORRENCIA-${Date.now()}`,
+          modalidade: "CARRO",
+          origem: "Rua Coronel Silva, 50, Centro",
+          destino: "Shopping Itaperuna",
+          passageiroNome: "Camila Rocha",
+          passageiroTelefone: "(22) 99881-1234",
+          valor: 20.0,
+          distanciaKm: 3.5,
+          duracaoMin: 8,
+          formaPagamento: "pix",
+          pin: "1234",
+          status: "PROCURANDO",
+          criadoEm: Date.now(),
+        };
 
-      const candidates: MotoristaInfo[] = Array.from({ length: 50 }, (_, i) => ({
-        id: `DRV-CANDIDATE-${i + 1}`,
-        nome: `Motorista Parceiro ${i + 1}`,
-        carro: "Onix Sedan",
-        placa: `BRA${i}A${i + 10}`,
-        foto: "https://avatar.url",
-        avaliacao: 4.9,
-        totalCorridas: 200 + i,
-      }));
+        const candidates: MotoristaInfo[] = Array.from({ length: 50 }, (_, i) => ({
+          id: `DRV-CANDIDATE-${i + 1}`,
+          nome: `Motorista Parceiro ${i + 1}`,
+          carro: "Onix Sedan",
+          placa: `BRA${i}A${i + 10}`,
+          foto: "https://avatar.url",
+          avaliacao: 4.9,
+          totalCorridas: 200 + i,
+        }));
 
-      // Dispara 50 aceites simultâneos no mesmo microssegundo
-      const claimPromises = candidates.map((motorista) =>
-        atomicMatchingEngine.claimRideAtomic(mockCorrida, motorista)
-      );
+        // Dispara 50 aceites simultâneos no mesmo microssegundo
+        const claimPromises = candidates.map((motorista) =>
+          atomicMatchingEngine.claimRideAtomic(mockCorrida, motorista),
+        );
 
-      const results = await Promise.all(claimPromises);
-      const successfulClaims = results.filter((r) => r.success);
-      const rejectedClaims = results.filter((r) => !r.success);
+        const results = await Promise.all(claimPromises);
+        const successfulClaims = results.filter((r) => r.success);
+        const rejectedClaims = results.filter((r) => !r.success);
 
-      // Invariante Fundamental: EXATAMENTE 1 VENCEDOR
-      expect(successfulClaims.length).toBe(1);
-      expect(rejectedClaims.length).toBe(49);
+        // Invariante Fundamental: EXATAMENTE 1 VENCEDOR
+        expect(successfulClaims.length).toBe(1);
+        expect(rejectedClaims.length).toBe(49);
 
-      const winner = successfulClaims[0];
-      expect(winner.winnerDriverId).toBeDefined();
-      expect(winner.corrida?.status).toBe("A_CAMINHO");
+        const winner = successfulClaims[0];
+        expect(winner.winnerDriverId).toBeDefined();
+        expect(winner.corrida?.status).toBe("A_CAMINHO");
 
-      // Todos os 49 condutores perdedores devem receber motivo claro sem travamento
-      rejectedClaims.forEach((rej) => {
-        expect(rej.reason).toBe("ALREADY_CLAIMED_BY_ANOTHER_DRIVER");
-      });
-    });
+        // Todos os 49 condutores perdedores devem receber motivo claro sem travamento
+        rejectedClaims.forEach((rej) => {
+          expect(rej.reason).toBe("ALREADY_CLAIMED_BY_ANOTHER_DRIVER");
+        });
+      },
+    );
 
     test("1.2 Fairness e Prevenção de Starvation: Proximidade física (65%) supera tier de plano pago", () => {
       // Cenário de Equidade Operacional:
@@ -215,17 +218,17 @@ describe("🏙️ AUDITORIA ARQUITETURAL DE ESCALA MUNICIPAL (10.000 MOTORISTAS)
     test("3.1 Cálculo de Volumetria Realtime e Eficácia do Deadband", () => {
       // 5.000 condutores online
       const frotaAtiva = 5000;
-      
+
       // Sem Deadband (atualização a cada 1s): 5.000 req/s
       const semDeadbandRps = frotaAtiva * 1.0;
 
       // Com PARTIU Adaptive Engine (estáticos a cada 15s, em movimento a cada 5s, em viagem a cada 3s):
       // Suposição realista: 60% ociosos/parados, 25% em movimento, 15% em viagem
-      const ociosos = frotaAtiva * 0.60;
+      const ociosos = frotaAtiva * 0.6;
       const emMovimento = frotaAtiva * 0.25;
       const emViagem = frotaAtiva * 0.15;
 
-      const rpsComDeadband = (ociosos / 15) + (emMovimento / 5) + (emViagem / 3);
+      const rpsComDeadband = ociosos / 15 + emMovimento / 5 + emViagem / 3;
       const reducaoPercentual = ((semDeadbandRps - rpsComDeadband) / semDeadbandRps) * 100;
 
       // A redução do volume de escritas no banco e eventos de WAL deve ser > 85%
@@ -282,9 +285,7 @@ describe("🏙️ AUDITORIA ARQUITETURAL DE ESCALA MUNICIPAL (10.000 MOTORISTAS)
         const driverShareCents = Math.round(fareCents * 0.88);
         const platformShareCents = fareCents - driverShareCents;
 
-        const debits = [
-          { account: "1.1.01_PSP_CLEARING", amountCents: fareCents },
-        ];
+        const debits = [{ account: "1.1.01_PSP_CLEARING", amountCents: fareCents }];
         const credits = [
           { account: "2.1.02_DRIVER_PAYABLE", amountCents: driverShareCents },
           { account: "3.1.01_PLATFORM_TAKE_RATE", amountCents: platformShareCents },
@@ -317,9 +318,18 @@ describe("🏙️ AUDITORIA ARQUITETURAL DE ESCALA MUNICIPAL (10.000 MOTORISTAS)
       resetDurableQueue();
 
       // Enfileira 3 eventos sequenciais
-      const e1 = enqueueDurableOfflineEvent("DEV-01", "VEH-01", "TRIP-01", "GPS_TELEMETRY", { lat: -21.2, lng: -41.8 });
-      const e2 = enqueueDurableOfflineEvent("DEV-01", "VEH-01", "TRIP-01", "GPS_TELEMETRY", { lat: -21.21, lng: -41.81 });
-      const e3 = enqueueDurableOfflineEvent("DEV-01", "VEH-01", "TRIP-01", "GPS_TELEMETRY", { lat: -21.22, lng: -41.82 });
+      const e1 = enqueueDurableOfflineEvent("DEV-01", "VEH-01", "TRIP-01", "GPS_TELEMETRY", {
+        lat: -21.2,
+        lng: -41.8,
+      });
+      const e2 = enqueueDurableOfflineEvent("DEV-01", "VEH-01", "TRIP-01", "GPS_TELEMETRY", {
+        lat: -21.21,
+        lng: -41.81,
+      });
+      const e3 = enqueueDurableOfflineEvent("DEV-01", "VEH-01", "TRIP-01", "GPS_TELEMETRY", {
+        lat: -21.22,
+        lng: -41.82,
+      });
 
       const queue = getDurableEventQueue();
       expect(queue.length).toBe(3);

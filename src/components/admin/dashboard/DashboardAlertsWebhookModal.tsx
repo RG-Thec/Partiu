@@ -20,19 +20,12 @@ export interface DashboardAlertsWebhookModalProps {
   onClose: () => void;
 }
 
-export function DashboardAlertsWebhookModal({
-  open,
-  onClose,
-}: DashboardAlertsWebhookModalProps) {
+export function DashboardAlertsWebhookModal({ open, onClose }: DashboardAlertsWebhookModalProps) {
   const [telegramToken, setTelegramToken] = useState(() =>
-    typeof window !== "undefined"
-      ? localStorage.getItem("partiu_telegram_bot_token") || ""
-      : ""
+    typeof window !== "undefined" ? localStorage.getItem("partiu_telegram_bot_token") || "" : "",
   );
   const [telegramChatId, setTelegramChatId] = useState(() =>
-    typeof window !== "undefined"
-      ? localStorage.getItem("partiu_telegram_chat_id") || ""
-      : ""
+    typeof window !== "undefined" ? localStorage.getItem("partiu_telegram_chat_id") || "" : "",
   );
 
   const [alertaSOS, setAlertaSOS] = useState(true);

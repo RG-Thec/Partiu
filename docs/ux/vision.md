@@ -33,6 +33,7 @@ O passageiro planeja e decide seu trajeto com valor garantido e acompanhamento t
 ## 6. Anti-vision
 
 O PARTIU recusa categoricamente se tornar:
+
 - Um leilão predatório de corridas onde motoristas são induzidos a disputar valores abaixo do custo operacional.
 - Uma rede social ou agregador de anúncios publicitários que degrade a velocidade da interface ou distraia condutores na direção.
 - Um sistema opaco com cobranças dinâmicas artificiais não justificadas pela distância, tempo ou demanda real.

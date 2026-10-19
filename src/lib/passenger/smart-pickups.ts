@@ -38,7 +38,7 @@ export interface StrategicPickupPoint {
  * Se nenhum ponto real estiver próximo, retorna vazio para não exibir locais fictícios.
  */
 export function getStrategicPickupPoints(
-  currentLocation: [number, number] = [-41.8880, -21.2050]
+  currentLocation: [number, number] = [-41.888, -21.205],
 ): StrategicPickupPoint[] {
   const [currentLng, currentLat] = currentLocation;
   if (isNaN(currentLng) || isNaN(currentLat)) return [];
@@ -60,7 +60,11 @@ export function getStrategicPickupPoints(
       } else if (lugar.tipo === "ponto_interesse" || lugar.tipo === "comercio") {
         tipo = "seguro";
         badge = "Ponto Seguro e Iluminado";
-      } else if (lugar.tipo === "hospital" || lugar.tipo === "faculdade" || lugar.tipo === "transporte") {
+      } else if (
+        lugar.tipo === "hospital" ||
+        lugar.tipo === "faculdade" ||
+        lugar.tipo === "transporte"
+      ) {
         tipo = "referencia";
         badge = "Ponto Oficial";
       }

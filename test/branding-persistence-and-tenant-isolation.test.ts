@@ -8,9 +8,7 @@ import {
   whiteLabelEngine,
   convertWhiteLabelToBrandingRecord,
 } from "../src/lib/white-label/white-label-engine.ts";
-import {
-  identidadeVisualInicial,
-} from "../src/lib/superadmin-config.ts";
+import { identidadeVisualInicial } from "../src/lib/superadmin-config.ts";
 import { tenantDomainService } from "../src/lib/white-label/tenant-domain-service.ts";
 import { supabaseAuthService } from "../src/lib/auth/supabase-auth-service.ts";
 
@@ -34,7 +32,6 @@ if (typeof globalThis.localStorage === "undefined") {
     },
   };
 }
-
 
 function createMockDocument(rootStyles: Map<string, string>) {
   return {
@@ -111,7 +108,9 @@ describe("Bulletproof Branding Persistence & Multi-Tenant Isolation Suite", () =
         expect(savedTenant.tenant_id).toBe(franchiseeTenantId);
 
         // Verifica que a paleta do tenant ativo foi gravada
-        expect(globalThis.localStorage.getItem(`partiu_active_palette_id_${franchiseeTenantId}`)).toBe(paletaPreto!.id);
+        expect(
+          globalThis.localStorage.getItem(`partiu_active_palette_id_${franchiseeTenantId}`),
+        ).toBe(paletaPreto!.id);
       } finally {
         if (prevDoc === undefined) {
           delete (globalThis as any).document;
@@ -139,11 +138,19 @@ describe("Bulletproof Branding Persistence & Multi-Tenant Isolation Suite", () =
         themeEngine.applyMonochromaticPalette(paletaVerde as any, "GO Campos", "tenant-campos");
 
         // Tenant B (Itaperuna) define Laranja
-        themeEngine.applyMonochromaticPalette(paletaLaranja, "PARTIU Itaperuna", "tenant-itaperuna");
+        themeEngine.applyMonochromaticPalette(
+          paletaLaranja,
+          "PARTIU Itaperuna",
+          "tenant-itaperuna",
+        );
 
         // Lê caches isolados de ambos
-        const camposCache = JSON.parse(globalThis.localStorage.getItem("partiu_branding_tenant_tenant-campos")!);
-        const itaperunaCache = JSON.parse(globalThis.localStorage.getItem("partiu_branding_tenant_tenant-itaperuna")!);
+        const camposCache = JSON.parse(
+          globalThis.localStorage.getItem("partiu_branding_tenant_tenant-campos")!,
+        );
+        const itaperunaCache = JSON.parse(
+          globalThis.localStorage.getItem("partiu_branding_tenant_tenant-itaperuna")!,
+        );
 
         expect(camposCache.primary_color).toBe(paletaVerde.colors.primary);
         expect(itaperunaCache.primary_color).toBe(paletaLaranja.colors.primary);
@@ -198,7 +205,10 @@ describe("Bulletproof Branding Persistence & Multi-Tenant Isolation Suite", () =
       expect(primColor).not.toBe("#FF6B00");
       expect(primColor).not.toBe("#FF8C00");
 
-      const brandingRecord = convertWhiteLabelToBrandingRecord(bhMob!.configuracaoCompleta, "tenant-bhmob");
+      const brandingRecord = convertWhiteLabelToBrandingRecord(
+        bhMob!.configuracaoCompleta,
+        "tenant-bhmob",
+      );
       expect(brandingRecord.primary_color).toBe("#2563EB");
       expect(brandingRecord.app_name).toBe("BH MOB");
       expect(brandingRecord.tenant_id).toBe("tenant-bhmob");
@@ -213,9 +223,10 @@ describe("Bulletproof Branding Persistence & Multi-Tenant Isolation Suite", () =
 
       // Simulação da lógica de cálculo de URL adotada em Meu Aplicativo
       const activeTenantId = "tenant-itaperuna"; // Simula resíduo no localStorage
-      const effectiveTenantId = (contaFranqueado.role === "FRANQUEADO" && contaFranqueado.tenantId)
-        ? contaFranqueado.tenantId
-        : (activeTenantId || "default");
+      const effectiveTenantId =
+        contaFranqueado.role === "FRANQUEADO" && contaFranqueado.tenantId
+          ? contaFranqueado.tenantId
+          : activeTenantId || "default";
 
       expect(effectiveTenantId).toBe("tenant-bhmob");
       expect(effectiveTenantId).not.toBe("tenant-itaperuna");
@@ -238,11 +249,15 @@ describe("Bulletproof Branding Persistence & Multi-Tenant Isolation Suite", () =
       });
 
       const bhMobAtualizado = whiteLabelEngine.getTenantById("tenant-bhmob");
-      expect(bhMobAtualizado?.configuracaoCompleta?.designSystem?.paletaPrimaria?.corPrincipal).toBe(paletaAzulEscuro);
+      expect(
+        bhMobAtualizado?.configuracaoCompleta?.designSystem?.paletaPrimaria?.corPrincipal,
+      ).toBe(paletaAzulEscuro);
 
       // Matriz Partiu e Itaperuna devem permanecer intactos com suas paletas
       const matriz = whiteLabelEngine.getTenantById("default");
-      expect(matriz?.configuracaoCompleta?.designSystem?.paletaPrimaria?.corPrincipal).toBe("#FF6B00");
+      expect(matriz?.configuracaoCompleta?.designSystem?.paletaPrimaria?.corPrincipal).toBe(
+        "#FF6B00",
+      );
 
       // Restaura para o padrão #2563EB
       whiteLabelEngine.updateTenantConfig("tenant-bhmob", {
@@ -265,9 +280,10 @@ describe("Bulletproof Branding Persistence & Multi-Tenant Isolation Suite", () =
 
       // Simulação de cálculo de URL no componente Meu Aplicativo
       const effectiveTenantId = "tenant-bhmob";
-      const officialAppUrl = (domainRec && domainRec.status === "ATIVO")
-        ? `https://${domainRec.domain}`
-        : `https://partiu-zeta.vercel.app/?tenant=${effectiveTenantId}`;
+      const officialAppUrl =
+        domainRec && domainRec.status === "ATIVO"
+          ? `https://${domainRec.domain}`
+          : `https://partiu-zeta.vercel.app/?tenant=${effectiveTenantId}`;
 
       expect(officialAppUrl).toBe("https://bhmob.partiumobe.com.br");
       expect(officialAppUrl).not.toContain("partiu-zeta.vercel.app");
@@ -279,7 +295,10 @@ describe("Bulletproof Branding Persistence & Multi-Tenant Isolation Suite", () =
     });
 
     test("should auto-provision active official domain for any new franchise using getOrCreateDomainForTenant", () => {
-      const rec = tenantDomainService.getOrCreateDomainForTenant("tenant-uberlandia", "Uberlândia Mob");
+      const rec = tenantDomainService.getOrCreateDomainForTenant(
+        "tenant-uberlandia",
+        "Uberlândia Mob",
+      );
       expect(Boolean(rec)).toBe(true);
       expect(rec.domain).toBe("uberlandia.partiumobe.com.br");
       expect(rec.status).toBe("ATIVO");
@@ -297,14 +316,14 @@ describe("Bulletproof Branding Persistence & Multi-Tenant Isolation Suite", () =
           role: "PASSAGEIRO",
           tenantId: "tenant-itaperuna",
         },
-        "tenant-itaperuna"
+        "tenant-itaperuna",
       );
 
       // 2. Consulta no tenant-itaperuna: deve existir
       const itaperunaContact = await supabaseAuthService.checkContactExists(
         "teste@gmail.com",
         "PASSAGEIRO",
-        "tenant-itaperuna"
+        "tenant-itaperuna",
       );
       expect(itaperunaContact.exists).toBe(true);
 
@@ -312,7 +331,7 @@ describe("Bulletproof Branding Persistence & Multi-Tenant Isolation Suite", () =
       const bhMobContact = await supabaseAuthService.checkContactExists(
         "teste@gmail.com",
         "PASSAGEIRO",
-        "tenant-bhmob"
+        "tenant-bhmob",
       );
       expect(bhMobContact.exists).toBe(false);
     });
@@ -366,7 +385,7 @@ describe("Bulletproof Branding Persistence & Multi-Tenant Isolation Suite", () =
       const bhCheck = await supabaseAuthService.checkContactExists(
         bhPaxEmail,
         "PASSAGEIRO",
-        "tenant-bhmob"
+        "tenant-bhmob",
       );
       expect(bhCheck.exists).toBe(true);
 
@@ -374,7 +393,7 @@ describe("Bulletproof Branding Persistence & Multi-Tenant Isolation Suite", () =
       const itpCheck = await supabaseAuthService.checkContactExists(
         bhPaxEmail,
         "PASSAGEIRO",
-        "tenant-itaperuna"
+        "tenant-itaperuna",
       );
       expect(itpCheck.exists).toBe(false);
     });
@@ -432,7 +451,10 @@ describe("Bulletproof Branding Persistence & Multi-Tenant Isolation Suite", () =
       };
 
       // Grava diretamente na chave do BH Mob uma sessão forjada de outro tenant
-      localStorage.setItem("partiu_active_user_session_tenant-bhmob", JSON.stringify(rawForeignSession));
+      localStorage.setItem(
+        "partiu_active_user_session_tenant-bhmob",
+        JSON.stringify(rawForeignSession),
+      );
 
       // Ao consultar a sessão para tenant-bhmob, o guard deve detectar e rejeitar (retornar null)
       const session = supabaseAuthService.getStoredSession("tenant-bhmob");

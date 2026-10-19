@@ -7,11 +7,7 @@ interface OfflineStateProps {
   onOpenWallet: () => void;
 }
 
-export function OfflineState({
-  onToggleOnline,
-  onOpenProfile,
-  onOpenWallet,
-}: OfflineStateProps) {
+export function OfflineState({ onToggleOnline, onOpenProfile, onOpenWallet }: OfflineStateProps) {
   const { appConfig } = useTheme();
   const { colors, ui } = appConfig.branding;
 
@@ -26,7 +22,9 @@ export function OfflineState({
           <div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-muted-foreground" />
-              <h3 className="text-base font-black text-foreground leading-none">Você está offline</h3>
+              <h3 className="text-base font-black text-foreground leading-none">
+                Você está offline
+              </h3>
             </div>
             <p className="text-xs text-muted-foreground mt-1 font-semibold">
               Conecte-se para receber chamadas próximas

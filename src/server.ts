@@ -5,7 +5,6 @@ import { renderErrorPage } from "./lib/error-page";
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { tenantDomainService } from "./lib/white-label/tenant-domain-service";
 
-
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
@@ -25,7 +24,9 @@ export function initOutboxDaemon(intervalMs = 15000) {
     try {
       const { runOutboxWorkerBatch } = await import("./lib/outbox-worker.server");
       await runOutboxWorkerBatch();
-    } catch (err) { silentCatchWarn("server", err); }
+    } catch (err) {
+      silentCatchWarn("server", err);
+    }
   }, intervalMs);
 }
 
@@ -79,9 +80,7 @@ export default {
         url.pathname === "/manifest.json"
       ) {
         const host =
-          request.headers.get("x-forwarded-host") ||
-          request.headers.get("host") ||
-          url.host;
+          request.headers.get("x-forwarded-host") || request.headers.get("host") || url.host;
         const resolution = tenantDomainService.resolveTenantFromHost(host, url.searchParams);
         const origin = `${url.protocol}//${host}`;
         const manifest = tenantDomainService.generateDynamicManifest(resolution.tenantId, origin);

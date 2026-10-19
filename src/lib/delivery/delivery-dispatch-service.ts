@@ -23,7 +23,6 @@ import { deliveryTrackingEngine } from "./delivery-tracking-engine";
 import { broadcastEventoCorrida } from "../partiu-realtime-service";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
-
 const BASE_FARES: Record<DeliveryVehicleType, number> = {
   MOTO: 7.5,
   CARRO: 12.0,
@@ -42,7 +41,10 @@ const KM_RATES: Record<DeliveryVehicleType, number> = {
 
 export class DeliveryDispatchService {
   private activeDeliveries = new Map<string, DeliveryOrder>();
-  private claimLocks = new Map<string, { driverId: string; fencingToken: string; claimedAt: number }>();
+  private claimLocks = new Map<
+    string,
+    { driverId: string; fencingToken: string; claimedAt: number }
+  >();
 
   /**
    * Calcula o orçamento formal (cotação) da entrega com precisão exata em centavos (Minor Units)
@@ -58,7 +60,7 @@ export class DeliveryDispatchService {
     const kmRateCents = Math.round((KM_RATES[params.vehicleType] || 1.8) * 100);
     const distanceFareCents = Math.round(params.distanceKm * kmRateCents);
     const additionalStopsFareCents = Math.round(
-      deliveryMultiStopEngine.calculateAdditionalStopsFare(params.additionalStopsCount + 1) * 100
+      deliveryMultiStopEngine.calculateAdditionalStopsFare(params.additionalStopsCount + 1) * 100,
     );
 
     // Seguro de carga: 0.8% do valor declarado acima de R$ 50,00 (5000 centavos)
@@ -68,7 +70,8 @@ export class DeliveryDispatchService {
       insuranceFareCents = Math.round(excessCents * 0.008);
     }
 
-    const grossTotalCents = baseFareCents + distanceFareCents + additionalStopsFareCents + insuranceFareCents;
+    const grossTotalCents =
+      baseFareCents + distanceFareCents + additionalStopsFareCents + insuranceFareCents;
     const driverEarningsCents = Math.round(grossTotalCents * 0.88);
     const platformRevenueCents = grossTotalCents - driverEarningsCents;
 
@@ -119,14 +122,14 @@ export class DeliveryDispatchService {
     const validation = vehicleCapabilityEngine.validatePackageCompatibility(
       params.packageSpec,
       params.vehicleType,
-      params.dropoffStops.length > 1 ? params.dropoffStops.length - 1 : 0
+      params.dropoffStops.length > 1 ? params.dropoffStops.length - 1 : 0,
     );
 
     if (!validation.isCompatible) {
       throw new Error(
         `Incompatibilidade veicular detectada: ${validation.reasons.join(". ")}${
           validation.suggestedVehicle ? ` Sugerido: ${validation.suggestedVehicle}` : ""
-        }`
+        }`,
       );
     }
 
@@ -136,8 +139,18 @@ export class DeliveryDispatchService {
 
     // 2. Inicializa máquina de estados
     deliveryStateMachine.initDelivery(deliveryId, "DRAFT");
-    deliveryStateMachine.transition(deliveryId, "REQUESTED", "SENDER", "Entrega solicitada pelo remetente");
-    deliveryStateMachine.transition(deliveryId, "SEARCHING_DRIVER", "SYSTEM", "Buscando entregadores homologados");
+    deliveryStateMachine.transition(
+      deliveryId,
+      "REQUESTED",
+      "SENDER",
+      "Entrega solicitada pelo remetente",
+    );
+    deliveryStateMachine.transition(
+      deliveryId,
+      "SEARCHING_DRIVER",
+      "SYSTEM",
+      "Buscando entregadores homologados",
+    );
 
     // 3. Inicializa paradas com OTPs seguros
     const pickupOtp = deliveryPinEngine.generateOtp();
@@ -152,7 +165,7 @@ export class DeliveryDispatchService {
     const stops = deliveryMultiStopEngine.initializeStops(
       deliveryId,
       pickupStopInput,
-      params.dropoffStops
+      params.dropoffStops,
     );
 
     // 4. Calcula cotação
@@ -192,7 +205,9 @@ export class DeliveryDispatchService {
 
     try {
       broadcastEventoCorrida("TRIP_OFFERED", null);
-    } catch (err) { silentCatchWarn("delivery-dispatch-service", err); }
+    } catch (err) {
+      silentCatchWarn("delivery-dispatch-service", err);
+    }
 
     return order;
   }
@@ -209,8 +224,13 @@ export class DeliveryDispatchService {
       vehicleModel: string;
       vehiclePlate: string;
       rating?: number | undefined;
-    }
-  ): { success: boolean; fencingToken?: string | undefined; order?: DeliveryOrder | undefined; message: string } {
+    },
+  ): {
+    success: boolean;
+    fencingToken?: string | undefined;
+    order?: DeliveryOrder | undefined;
+    message: string;
+  } {
     const existingClaim = this.claimLocks.get(deliveryId);
     if (existingClaim && existingClaim.driverId !== driver.id) {
       return {
@@ -240,9 +260,24 @@ export class DeliveryDispatchService {
     order.updatedAt = Date.now();
 
     // Transiciona FSM
-    deliveryStateMachine.transition(deliveryId, "DRIVER_ASSIGNED", "SYSTEM", "Entregador associado");
-    deliveryStateMachine.transition(deliveryId, "DRIVER_ACCEPTED", "DRIVER", "Entregador aceitou no radar");
-    deliveryStateMachine.transition(deliveryId, "HEADING_TO_PICKUP", "DRIVER", "A caminho da coleta");
+    deliveryStateMachine.transition(
+      deliveryId,
+      "DRIVER_ASSIGNED",
+      "SYSTEM",
+      "Entregador associado",
+    );
+    deliveryStateMachine.transition(
+      deliveryId,
+      "DRIVER_ACCEPTED",
+      "DRIVER",
+      "Entregador aceitou no radar",
+    );
+    deliveryStateMachine.transition(
+      deliveryId,
+      "HEADING_TO_PICKUP",
+      "DRIVER",
+      "A caminho da coleta",
+    );
     order.status = "HEADING_TO_PICKUP";
 
     if (typeof window !== "undefined") {
@@ -266,7 +301,9 @@ export class DeliveryDispatchService {
       try {
         const raw = localStorage.getItem("partiu_delivery_ativa");
         if (raw) return JSON.parse(raw);
-      } catch (err) { silentCatchWarn("delivery-dispatch-service", err); }
+      } catch (err) {
+        silentCatchWarn("delivery-dispatch-service", err);
+      }
     }
     const list = Array.from(this.activeDeliveries.values());
     return list.find((d) => d.status !== "COMPLETED" && d.status !== "CANCELLED") || null;

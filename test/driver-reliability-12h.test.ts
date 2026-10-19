@@ -13,24 +13,14 @@
  */
 
 import { describe, test, testAsync, expect } from "./test-harness.mjs";
-import {
-  driverLocationService,
-} from "../src/services/DriverLocationService.ts";
-import {
-  DriverStateMachine,
-  driverStateMachine,
-} from "../src/lib/driver/driver-state-machine.ts";
+import { driverLocationService } from "../src/services/DriverLocationService.ts";
+import { DriverStateMachine, driverStateMachine } from "../src/lib/driver/driver-state-machine.ts";
 import {
   DriverTelemetryEngine,
   driverTelemetryEngine,
 } from "../src/lib/driver/driver-telemetry-engine.ts";
-import {
-  driverConsecutiveRidesEngine,
-} from "../src/lib/driver/driver-consecutive-rides-engine.ts";
-import {
-  getDurableEventQueue,
-  resetDurableQueue,
-} from "../src/lib/offline-durable-queue.ts";
+import { driverConsecutiveRidesEngine } from "../src/lib/driver/driver-consecutive-rides-engine.ts";
+import { getDurableEventQueue, resetDurableQueue } from "../src/lib/offline-durable-queue.ts";
 import { extrairOfertaDeCorrida } from "../src/routes/app.motorista.tsx";
 import type { CorridaPartiu } from "../src/lib/partiu-engine.ts";
 
@@ -93,11 +83,14 @@ describe("🛡️ 12-HOUR DRIVER OPERATIONAL RELIABILITY & SCALE CERTIFICATION",
     }
   });
 
-  testAsync("2.2 Reconexão de rede (online) executa flush da fila com ACK do servidor", async () => {
-    const syncResult = await driverLocationService.flushOfflineQueue();
-    expect(syncResult).toBeDefined();
-    expect(syncResult.conflicted).toBe(0);
-  });
+  testAsync(
+    "2.2 Reconexão de rede (online) executa flush da fila com ACK do servidor",
+    async () => {
+      const syncResult = await driverLocationService.flushOfflineQueue();
+      expect(syncResult).toBeDefined();
+      expect(syncResult.conflicted).toBe(0);
+    },
+  );
 
   // --------------------------------------------------------------------------
   // FASE 3: APP CRASH RECOVERY
@@ -278,7 +271,8 @@ describe("🛡️ 12-HOUR DRIVER OPERATIONAL RELIABILITY & SCALE CERTIFICATION",
   // --------------------------------------------------------------------------
   test("6.1 Filtro de Deadband e amostragem adaptativa reduzem transmissões ociosas em > 75%", () => {
     const semOtimizacao = 60;
-    const comPartiuEngine = 60 / (driverLocationService.getTransmissionIntervalMs("ONLINE_IDLE") / 1000);
+    const comPartiuEngine =
+      60 / (driverLocationService.getTransmissionIntervalMs("ONLINE_IDLE") / 1000);
     const reducaoPercentual = ((semOtimizacao - comPartiuEngine) / semOtimizacao) * 100;
 
     expect(reducaoPercentual).toBeGreaterThanOrEqual(75);

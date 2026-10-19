@@ -1,6 +1,6 @@
 /**
  * PARTIU TITANIUM SHIELD — DISTRIBUTED LOCK MANAGER (DLM & CAS)
- * 
+ *
  * Gerenciador de Locks Distribuídos com suporte a:
  * - Fencing Tokens (números de sequência estritamente crescentes que invalidam escritas zumbis)
  * - Compare-And-Swap (CAS) e Optimistic Concurrency Control (OCC) com versionamento numérico
@@ -17,9 +17,13 @@ export interface DistributedLock {
 }
 
 export class LockAcquisitionError extends Error {
-  constructor(message: string, public readonly resourceId: string, public readonly currentOwner?: string) {
+  constructor(
+    message: string,
+    public readonly resourceId: string,
+    public readonly currentOwner?: string,
+  ) {
     super(message);
-    this.name = 'LockAcquisitionError';
+    this.name = "LockAcquisitionError";
   }
 }
 
@@ -45,7 +49,7 @@ export class DistributedLockManager {
   public async acquireLock(
     resourceId: string,
     ownerId: string,
-    ttlMs: number = 8000
+    ttlMs: number = 8000,
   ): Promise<DistributedLock> {
     const now = Date.now();
     const existing = this.activeLocks.get(resourceId);
@@ -60,7 +64,7 @@ export class DistributedLockManager {
       throw new LockAcquisitionError(
         `RESOURCE_LOCKED: O recurso ${resourceId} já está travado por ${existing.ownerId}`,
         resourceId,
-        existing.ownerId
+        existing.ownerId,
       );
     }
 
@@ -71,7 +75,7 @@ export class DistributedLockManager {
       fencingToken: this.globalSequence,
       ownerId,
       acquiredAt: now,
-      expiresAt: now + ttlMs
+      expiresAt: now + ttlMs,
     };
 
     this.activeLocks.set(resourceId, lock);
@@ -94,7 +98,7 @@ export class DistributedLockManager {
    * Limpa locks expirados automaticamente (Deadlock Prevention)
    */
   private startAutoReaper(): void {
-    if (typeof setInterval !== 'undefined') {
+    if (typeof setInterval !== "undefined") {
       setInterval(() => {
         const now = Date.now();
         for (const [id, lock] of this.activeLocks.entries()) {

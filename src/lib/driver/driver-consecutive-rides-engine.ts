@@ -4,7 +4,7 @@
  * ==============================================================================
  * Motor de despacho consecutivo (encadeamento de corridas) para motoristas.
  * Padrão operacional Uber / 99:
- * 
+ *
  * 1. Janela de Oportunidade: Permite envio de oferta da próxima corrida apenas
  *    quando o condutor está em viagem ativa (IN_PROGRESS) e a <= 5 minutos ou <= 2.5 km
  *    do destino final.
@@ -21,7 +21,6 @@
 import { driverStateMachine } from "./driver-state-machine";
 import type { CorridaPartiu } from "../partiu-engine";
 import { silentCatchWarn } from "@/lib/structured-logger";
-
 
 const STORAGE_KEY_QUEUED_RIDE = "partiu_driver_queued_ride_v1";
 
@@ -59,7 +58,10 @@ export class DriverConsecutiveRidesEngine {
     driverId: string;
   }): boolean {
     // Apenas em viagem ativa
-    if (params.driverOperatingState !== "IN_TRIP" && params.driverOperatingState !== "IN_PROGRESS") {
+    if (
+      params.driverOperatingState !== "IN_TRIP" &&
+      params.driverOperatingState !== "IN_PROGRESS"
+    ) {
       return false;
     }
 
@@ -82,7 +84,7 @@ export class DriverConsecutiveRidesEngine {
   public offerConsecutiveRide(
     driverId: string,
     activeRideId: string,
-    candidateRide: CorridaPartiu
+    candidateRide: CorridaPartiu,
   ): boolean {
     const slot = this.getSlot(driverId);
     if (slot.queuedRide) {
@@ -99,7 +101,7 @@ export class DriverConsecutiveRidesEngine {
       window.dispatchEvent(
         new CustomEvent("partiu:consecutive-ride-offered", {
           detail: { driverId, activeRideId, candidateRide },
-        })
+        }),
       );
     }
 
@@ -132,7 +134,7 @@ export class DriverConsecutiveRidesEngine {
       window.dispatchEvent(
         new CustomEvent("partiu:consecutive-ride-accepted", {
           detail: { driverId, queuedRide: accepted },
-        })
+        }),
       );
     }
 
@@ -152,7 +154,7 @@ export class DriverConsecutiveRidesEngine {
       window.dispatchEvent(
         new CustomEvent("partiu:consecutive-ride-rejected", {
           detail: { driverId },
-        })
+        }),
       );
     }
   }
@@ -192,25 +194,22 @@ export class DriverConsecutiveRidesEngine {
     }
 
     // 3. Transição direta na máquina de estados para HEADING_TO_PICKUP
-    driverStateMachine.safeTransitionRide(
-      "HEADING_TO_PICKUP",
-      driverId,
-      nextRide.id,
-      "SYSTEM",
-      { backToBackPromotion: true, previousRideId: slot.activeRideId }
-    );
+    driverStateMachine.safeTransitionRide("HEADING_TO_PICKUP", driverId, nextRide.id, "SYSTEM", {
+      backToBackPromotion: true,
+      previousRideId: slot.activeRideId,
+    });
 
     // 4. Notifica UI do motorista para atualizar rota e dados do passageiro imediatamente
     if (typeof window !== "undefined") {
       window.dispatchEvent(
         new CustomEvent("partiu:corrida-atualizada", {
           detail: nextRide,
-        })
+        }),
       );
       window.dispatchEvent(
         new CustomEvent("partiu:consecutive-ride-promoted", {
           detail: { driverId, activeRide: nextRide },
-        })
+        }),
       );
     }
 
@@ -234,7 +233,7 @@ export class DriverConsecutiveRidesEngine {
       window.dispatchEvent(
         new CustomEvent("partiu:consecutive-ride-cancelled", {
           detail: { driverId, rideId: cancelledId, reason },
-        })
+        }),
       );
     }
 
@@ -261,14 +260,18 @@ export class DriverConsecutiveRidesEngine {
     if (typeof window === "undefined") return;
     try {
       localStorage.setItem(`${STORAGE_KEY_QUEUED_RIDE}_${driverId}`, JSON.stringify(ride));
-    } catch (err) { silentCatchWarn("driver-consecutive-rides-engine", err); }
+    } catch (err) {
+      silentCatchWarn("driver-consecutive-rides-engine", err);
+    }
   }
 
   private clearStorage(driverId: string): void {
     if (typeof window === "undefined") return;
     try {
       localStorage.removeItem(`${STORAGE_KEY_QUEUED_RIDE}_${driverId}`);
-    } catch (err) { silentCatchWarn("driver-consecutive-rides-engine", err); }
+    } catch (err) {
+      silentCatchWarn("driver-consecutive-rides-engine", err);
+    }
   }
 
   private restoreFromStorage(): void {
@@ -287,7 +290,9 @@ export class DriverConsecutiveRidesEngine {
           }
         }
       }
-    } catch (err) { silentCatchWarn("driver-consecutive-rides-engine", err); }
+    } catch (err) {
+      silentCatchWarn("driver-consecutive-rides-engine", err);
+    }
   }
 }
 

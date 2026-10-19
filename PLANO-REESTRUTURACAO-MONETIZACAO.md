@@ -79,6 +79,7 @@ A arquitetura financeira e operacional de monetização do Partiu opera sobre um
 ## 2. Fluxo de dados de cada modalidade de cobrança existente
 
 ### Modalidade 1: Pix Dinâmico Server-Side (Mercado Pago / Asaas)
+
 - **Status:** Ativo e funcional.
 - **Fluxo:**
   1. Motorista seleciona plano ou diária na interface (`SubscriptionContext` ou `DailyFeePaymentScreen`).
@@ -90,6 +91,7 @@ A arquitetura financeira e operacional de monetização do Partiu opera sobre um
   7. Retorna `copiaECola`, `qrCodeUrl`, `txId` e prazo de 30 minutos para o cliente.
 
 ### Modalidade 2: Pix com Geração Local (EMV CRC-16)
+
 - **Status:** Ativo como contingência resiliente.
 - **Fluxo:**
   1. Se a Edge Function ou o gateway externo estiver indisponível, o cliente invoca `buildStandardEmvPix` em `src/services/payment/PaymentProviderAdapter.ts` ou `driverSubscriptionService.generateDailyFeePix`.
@@ -98,6 +100,7 @@ A arquitetura financeira e operacional de monetização do Partiu opera sobre um
   4. **Restrição identificada:** A geração do código ocorre em memória, sem emissão paralela de registro no `driver_billing` quando executada isoladamente via fallback de cliente.
 
 ### Modalidade 3: Pix Manual com Comprovante
+
 - **Status:** Parcial, restrito à interface administrativa.
 - **Fluxo:**
   1. No painel administrativo (`src/routes/app.admin.monetizacao.tsx`), o operador visualiza a fila de recargas de carteira gerenciada por `driver-wallet-service.ts`.
@@ -106,6 +109,7 @@ A arquitetura financeira e operacional de monetização do Partiu opera sobre um
   4. **Restrição identificada:** Não há envio do arquivo de comprovante para bucket do Supabase Storage e não há sincronização com o banco relacional.
 
 ### Modalidade 4: Cartão de Crédito Recorrente
+
 - **Status:** Simulação mockada.
 - **Fluxo:**
   1. Métodos em `src/services/PaymentMethodService.ts` geram identificador simulado `tok_pax_${timestamp}_${random}`.
@@ -117,19 +121,20 @@ A arquitetura financeira e operacional de monetização do Partiu opera sobre um
 
 Existe fragmentação confirmada entre quatro catálogos de planos:
 
-| Identificador do Plano | Catálogo A: DB / PixBillingService | Catálogo B: Super Admin / Franqueado | Catálogo C: Revenue OS Local | Catálogo D: White Label Engine |
-| :--- | :--- | :--- | :--- | :--- |
-| **Diária Carro** | R$ 14,90 (plano-diaria-essencial) | R$ 19,90 | R$ 14,90 (plano-bronze) | R$ 1,50 (plano-bronze) |
-| **Diária Moto** | R$ 14,90 (plano unificado) | R$ 11,90 | Não diferenciado | Não diferenciado |
-| **Semanal Carro** | R$ 79,00 | R$ 99,00 | R$ 49,90 | R$ 6,90 |
-| **Semanal Moto** | R$ 79,00 | R$ 59,00 | Não diferenciado | Não diferenciado |
-| **Mensal Carro** | R$ 299,00 | R$ 349,00 | R$ 149,90 | R$ 19,90 |
-| **Mensal Moto** | R$ 299,00 | R$ 199,00 | Não diferenciado | Não diferenciado |
-| **Plano Ouro Mensal** | R$ 199,90 (plano-mensal-ouro) | N/A | R$ 99,90 (plano-ouro) | R$ 99,90 (plano-ouro) |
-| **Trial Gratuito** | 3 dias (plano-trial-boas-vindas) | 3 a 7 dias (trialAtivo) | 7 dias (plano-livre) | Ilimitado (comissão 5%) |
-| **Comissão por Corrida** | **0.0%** | **0.0%** | **0.0%** (com comentários legados) | **1.0% a 5.0%** |
+| Identificador do Plano   | Catálogo A: DB / PixBillingService | Catálogo B: Super Admin / Franqueado | Catálogo C: Revenue OS Local       | Catálogo D: White Label Engine |
+| :----------------------- | :--------------------------------- | :----------------------------------- | :--------------------------------- | :----------------------------- |
+| **Diária Carro**         | R$ 14,90 (plano-diaria-essencial)  | R$ 19,90                             | R$ 14,90 (plano-bronze)            | R$ 1,50 (plano-bronze)         |
+| **Diária Moto**          | R$ 14,90 (plano unificado)         | R$ 11,90                             | Não diferenciado                   | Não diferenciado               |
+| **Semanal Carro**        | R$ 79,00                           | R$ 99,00                             | R$ 49,90                           | R$ 6,90                        |
+| **Semanal Moto**         | R$ 79,00                           | R$ 59,00                             | Não diferenciado                   | Não diferenciado               |
+| **Mensal Carro**         | R$ 299,00                          | R$ 349,00                            | R$ 149,90                          | R$ 19,90                       |
+| **Mensal Moto**          | R$ 299,00                          | R$ 199,00                            | Não diferenciado                   | Não diferenciado               |
+| **Plano Ouro Mensal**    | R$ 199,90 (plano-mensal-ouro)      | N/A                                  | R$ 99,90 (plano-ouro)              | R$ 99,90 (plano-ouro)          |
+| **Trial Gratuito**       | 3 dias (plano-trial-boas-vindas)   | 3 a 7 dias (trialAtivo)              | 7 dias (plano-livre)               | Ilimitado (comissão 5%)        |
+| **Comissão por Corrida** | **0.0%**                           | **0.0%**                             | **0.0%** (com comentários legados) | **1.0% a 5.0%**                |
 
 ### Regra de precedência necessária para consolidação
+
 1. **Configuração Customizada da Franquia:** Caso o tenant possua parametrização ativa em `white_label_tenant_configs.monetization`, suas tarifas de Diária, Semanal e Mensal por tipo de veículo prevalecem para os motoristas daquela praça.
 2. **Catálogo Canônico do Banco de Dados:** Tabela `public.monetization_plans` atua como fonte primária global e fallback para praças sem personalização.
 3. **Neutralização de Catálogos Locais:** Deprecar e unificar os catálogos estáticos em `subscription-engine.ts` e `white-label-engine.ts`, fazendo-os consumir a fonte canônica.
@@ -293,20 +298,20 @@ A autorização do motorista para ficar online e receber viagens segue a seguint
 ## 7. Divergências entre o relatório original e o código atual
 
 1. **Nome do diretório da Edge Function de Webhook:**
-   - *Relatório original:* Citava `supabase/functions/driver-payment-webhook/index.ts`.
-   - *Código real comprovado:* O diretório correto no repositório é [`supabase/functions/payment-webhook/index.ts`](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/supabase/functions/payment-webhook/index.ts).
+   - _Relatório original:_ Citava `supabase/functions/driver-payment-webhook/index.ts`.
+   - _Código real comprovado:_ O diretório correto no repositório é [`supabase/functions/payment-webhook/index.ts`](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/supabase/functions/payment-webhook/index.ts).
 
 2. **Duração do Trial Gratuito:**
-   - *Relatório original:* Citava 3 dias.
-   - *Código real comprovado:* O plano `plano-trial-boas-vindas` em `monetization_plans` define 3 dias, mas `superadmin-config.ts` define 7 dias (`trialDias: 7`) e `subscription-engine.ts` define 7 dias (`trialDays: 7`).
+   - _Relatório original:_ Citava 3 dias.
+   - _Código real comprovado:_ O plano `plano-trial-boas-vindas` em `monetization_plans` define 3 dias, mas `superadmin-config.ts` define 7 dias (`trialDias: 7`) e `subscription-engine.ts` define 7 dias (`trialDays: 7`).
 
 3. **Multi-Tenancy na Tabela de Assinaturas:**
-   - *Relatório original:* Declarava que as tabelas de assinatura eram totalmente multi-tenant.
-   - *Código real comprovado:* A tabela `public.driver_subscriptions` não possui coluna `tenant_id` na migration base `20260909_partiu_driver_access_engine_v4.sql`. O isolamento entre franquias é feito por perfil de motorista ou via `white_label_tenant_configs`, criando risco de consulta cross-tenant caso não isolado por `tenant_id`.
+   - _Relatório original:_ Declarava que as tabelas de assinatura eram totalmente multi-tenant.
+   - _Código real comprovado:_ A tabela `public.driver_subscriptions` não possui coluna `tenant_id` na migration base `20260909_partiu_driver_access_engine_v4.sql`. O isolamento entre franquias é feito por perfil de motorista ou via `white_label_tenant_configs`, criando risco de consulta cross-tenant caso não isolado por `tenant_id`.
 
 4. **Persistência de Métricas Financeiras:**
-   - *Relatório original:* Citava que `partiu_driver_revenue_metrics` existe sem ingestão.
-   - *Código real comprovado:* Confirmado. A tabela existe na migration `20260908_partiu_driver_revenue_system.sql`, mas nenhuma rotina do backend insere registros históricos nela.
+   - _Relatório original:_ Citava que `partiu_driver_revenue_metrics` existe sem ingestão.
+   - _Código real comprovado:_ Confirmado. A tabela existe na migration `20260908_partiu_driver_revenue_system.sql`, mas nenhuma rotina do backend insere registros históricos nela.
 
 ---
 
@@ -315,40 +320,40 @@ A autorização do motorista para ficar online e receber viagens segue a seguint
 ### Severidade Crítica (P0)
 
 1. **Split-Brain e Múltiplos Catálogos Concorrentes de Planos [Confirmado]:**
-   - *Evidência:* Quatro catálogos divergentes em `monetization_plans`, `superadmin-config.ts`, `subscription-engine.ts` e `white-label-engine.ts`.
-   - *Impacto:* Valores apresentados ao condutor no cockpit divergem dos valores configurados pelo franqueado e cobrados na Edge Function.
+   - _Evidência:_ Quatro catálogos divergentes em `monetization_plans`, `superadmin-config.ts`, `subscription-engine.ts` e `white-label-engine.ts`.
+   - _Impacto:_ Valores apresentados ao condutor no cockpit divergem dos valores configurados pelo franqueado e cobrados na Edge Function.
 
 2. **Dependência Crítica de `localStorage` para Decisão de Acesso e Planos [Confirmado]:**
-   - *Evidência:* `PixBillingService.ts`, linhas 249-263 checa `driverSubscriptionService.getActiveSubscription` no `localStorage` antes da RPC. Se o motorista tiver uma chave local com status `ACTIVE`, o cliente considera liberado sem consultar o banco.
-   - *Impacto:* Risco de burla de pagamento em dispositivos móveis através de manipulação de armazenamento local.
+   - _Evidência:_ `PixBillingService.ts`, linhas 249-263 checa `driverSubscriptionService.getActiveSubscription` no `localStorage` antes da RPC. Se o motorista tiver uma chave local com status `ACTIVE`, o cliente considera liberado sem consultar o banco.
+   - _Impacto:_ Risco de burla de pagamento em dispositivos móveis através de manipulação de armazenamento local.
 
 3. **Inexistência de Jobs Agendados de Expiração e Vencimento [Confirmado]:**
-   - *Evidência:* Nenhuma cron job ou worker do Supabase configurado para transicionar estados `ACTIVE` -> `GRACE_PERIOD` -> `EXPIRED` ou emitir notificações preventivas antes do vencimento.
-   - *Impacto:* Assinaturas vencidas só são detectadas quando o motorista tenta abrir o app ou quando o servidor é provocado. Motoristas não recebem alerta de renovação pró-ativa.
+   - _Evidência:_ Nenhuma cron job ou worker do Supabase configurado para transicionar estados `ACTIVE` -> `GRACE_PERIOD` -> `EXPIRED` ou emitir notificações preventivas antes do vencimento.
+   - _Impacto:_ Assinaturas vencidas só são detectadas quando o motorista tenta abrir o app ou quando o servidor é provocado. Motoristas não recebem alerta de renovação pró-ativa.
 
 ### Severidade Alta (P1)
 
 4. **Lógica de Comissão Residual e Conflitante com a Taxa Zero [Confirmado]:**
-   - *Evidência:* `src/lib/finops-pix-engine.ts:108-129` calcula 5% de taxa de cooperativa; `src/lib/superadmin-config.ts:240` mantém `taxaAdministrativaPercent: 12.0`; `src/routes/app.admin.configuracoes.tsx:462` persiste `platform_fee_percent: 10.0`; `src/lib/revenue/billing-engine.ts:181-248` deduz mensalidades de saques de corridas.
-   - *Impacto:* Embora a trigger `trg_rides_zero_commission` force 0% na tabela `rides`, motores periféricos geram desinformação e potenciais deduções indevidas em carteiras.
+   - _Evidência:_ `src/lib/finops-pix-engine.ts:108-129` calcula 5% de taxa de cooperativa; `src/lib/superadmin-config.ts:240` mantém `taxaAdministrativaPercent: 12.0`; `src/routes/app.admin.configuracoes.tsx:462` persiste `platform_fee_percent: 10.0`; `src/lib/revenue/billing-engine.ts:181-248` deduz mensalidades de saques de corridas.
+   - _Impacto:_ Embora a trigger `trg_rides_zero_commission` force 0% na tabela `rides`, motores periféricos geram desinformação e potenciais deduções indevidas em carteiras.
 
 5. **Ausência de Isolamento por `tenant_id` em `driver_subscriptions` e `monetization_plans` [Confirmado]:**
-   - *Evidência:* `public.driver_subscriptions` e `public.monetization_plans` são tabelas globais sem chave estrangeira para `white_label_tenants`.
-   - *Impacto:* Franqueados não conseguem customizar pacotes e diárias sem afetar outras cidades ou sofrer colisões em consultas diretas.
+   - _Evidência:_ `public.driver_subscriptions` e `public.monetization_plans` são tabelas globais sem chave estrangeira para `white_label_tenants`.
+   - _Impacto:_ Franqueados não conseguem customizar pacotes e diárias sem afetar outras cidades ou sofrer colisões em consultas diretas.
 
 6. **Métricas de Observabilidade Processadas Exclusivamente no Navegador [Confirmado]:**
-   - *Evidência:* `driverSubscriptionService.getExecutiveSaaSMetrics` calcula MRR, ARR e Churn percorrendo listas em memória no cliente. A tabela `partiu_driver_revenue_metrics` não possui pipeline de ingestão.
-   - *Impacto:* Impossibilidade de obter relatórios consolidados confiáveis para investidores e franqueados.
+   - _Evidência:_ `driverSubscriptionService.getExecutiveSaaSMetrics` calcula MRR, ARR e Churn percorrendo listas em memória no cliente. A tabela `partiu_driver_revenue_metrics` não possui pipeline de ingestão.
+   - _Impacto:_ Impossibilidade de obter relatórios consolidados confiáveis para investidores e franqueados.
 
 ### Severidade Média (P2)
 
 7. **Provedores de Pagamento Simulados (Stubs) no Adaptador [Confirmado]:**
-   - *Evidência:* `PaymentProviderAdapter.ts` simula Stripe, Pagar.me, PagBank e Efí gerando chaves estáticas e strings de simulação.
-   - *Impacto:* Falha silenciosa caso um administrador tente ativar um gateway que não seja Mercado Pago ou Asaas.
+   - _Evidência:_ `PaymentProviderAdapter.ts` simula Stripe, Pagar.me, PagBank e Efí gerando chaves estáticas e strings de simulação.
+   - _Impacto:_ Falha silenciosa caso um administrador tente ativar um gateway que não seja Mercado Pago ou Asaas.
 
 8. **Ausência de Trilha de Auditoria para Ações Manuais do Suporte [Confirmado]:**
-   - *Evidência:* Concessão de cortesias e bloqueios em `driverSubscriptionService` atualizam o estado em memória sem gravar registros imutáveis em `subscription_events` com ID do operador.
-   - *Impacto:* Falta de conformidade e rastreabilidade para investigações de fraudes internas.
+   - _Evidência:_ Concessão de cortesias e bloqueios em `driverSubscriptionService` atualizam o estado em memória sem gravar registros imutáveis em `subscription_events` com ID do operador.
+   - _Impacto:_ Falta de conformidade e rastreabilidade para investigações de fraudes internas.
 
 ---
 
@@ -407,6 +412,7 @@ A autorização do motorista para ficar online e receber viagens segue a seguint
 ## 10. Plano de migração, testes e reversão
 
 ### Estratégia de Migração (Aditiva e Segura)
+
 1. **Migration Aditiva no Supabase:**
    - Criar arquivo `supabase/migrations/20261011_monetization_canonical_consolidation.sql`.
    - Adicionar coluna `tenant_id` na tabela `driver_subscriptions` com valor padrão `'tenant-itaperuna'`.

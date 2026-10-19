@@ -1,1 +1,1 @@
-export * from './geohash-cache';
+export * from "./geohash-cache";

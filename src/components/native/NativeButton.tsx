@@ -42,7 +42,7 @@ export const NativeButton = forwardRef<HTMLButtonElement, NativeButtonProps>(
       rippleColor,
       ...props
     },
-    ref
+    ref,
   ) => {
     const { appConfig } = useTheme();
     const { colors, ui } = appConfig.branding;
@@ -68,21 +68,27 @@ export const NativeButton = forwardRef<HTMLButtonElement, NativeButtonProps>(
     let effectiveRippleColor = rippleColor;
 
     if (variant === "filled") {
-      dynamicStyle.backgroundColor = isHovered && !isDisabled ? colors.primaryHover : colors.primary;
+      dynamicStyle.backgroundColor =
+        isHovered && !isDisabled ? colors.primaryHover : colors.primary;
       dynamicStyle.color = "#FFFFFF";
-      dynamicStyle.boxShadow = isDisabled ? "none" : "0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08)";
+      dynamicStyle.boxShadow = isDisabled
+        ? "none"
+        : "0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08)";
       if (!effectiveRippleColor) effectiveRippleColor = "rgba(255, 255, 255, 0.35)";
     } else if (variant === "tonal") {
-      dynamicStyle.backgroundColor = isHovered && !isDisabled ? colors.inputBorder : colors.inputBackground;
+      dynamicStyle.backgroundColor =
+        isHovered && !isDisabled ? colors.inputBorder : colors.inputBackground;
       dynamicStyle.color = colors.textPrimary;
       if (!effectiveRippleColor) effectiveRippleColor = `${colors.primary}25`;
     } else if (variant === "outlined") {
-      dynamicStyle.backgroundColor = isHovered && !isDisabled ? colors.inputBackground : "transparent";
+      dynamicStyle.backgroundColor =
+        isHovered && !isDisabled ? colors.inputBackground : "transparent";
       dynamicStyle.border = `1.5px solid ${colors.inputBorder}`;
       dynamicStyle.color = colors.textPrimary;
       if (!effectiveRippleColor) effectiveRippleColor = `${colors.primary}20`;
     } else if (variant === "text") {
-      dynamicStyle.backgroundColor = isHovered && !isDisabled ? colors.inputBackground : "transparent";
+      dynamicStyle.backgroundColor =
+        isHovered && !isDisabled ? colors.inputBackground : "transparent";
       dynamicStyle.color = isHovered && !isDisabled ? colors.primaryHover : colors.primary;
       if (!effectiveRippleColor) effectiveRippleColor = `${colors.primary}18`;
     } else if (variant === "danger") {
@@ -126,7 +132,7 @@ export const NativeButton = forwardRef<HTMLButtonElement, NativeButtonProps>(
         )}
       </button>
     );
-  }
+  },
 );
 
 NativeButton.displayName = "NativeButton";

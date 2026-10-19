@@ -26,8 +26,10 @@ export function SplashScreen({ onFinish, minDurationMs = 550 }: SplashScreenProp
   // Mapeamento dinâmico estrito do White Label corporativo
   const appName = branding?.app_name || brandTheme.nomeApp || "PARTIU";
   const companyName = branding?.company_name || brandTheme.sloganApp || "Mobilidade urbana";
-  const primaryColor = branding?.primary_color || brandTheme.corPrimaria || "var(--brand-primary, #FF6B00)";
-  const secondaryColor = branding?.secondary_color || brandTheme.corSecundaria || "var(--brand-secondary, #FFB800)";
+  const primaryColor =
+    branding?.primary_color || brandTheme.corPrimaria || "var(--brand-primary, #FF6B00)";
+  const secondaryColor =
+    branding?.secondary_color || brandTheme.corSecundaria || "var(--brand-secondary, #FFB800)";
   const logoSrc = branding?.splash_logo_url || branding?.logo_url || "/favicon.svg";
 
   useEffect(() => {
@@ -101,9 +103,7 @@ export function SplashScreen({ onFinish, minDurationMs = 550 }: SplashScreenProp
             aria-hidden="true"
           />
 
-          <div
-            className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-white p-3.5 flex items-center justify-center border border-slate-100 shadow-[0_12px_36px_rgba(0,0,0,0.08)] transition-transform duration-500"
-          >
+          <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-white p-3.5 flex items-center justify-center border border-slate-100 shadow-[0_12px_36px_rgba(0,0,0,0.08)] transition-transform duration-500">
             {hasLogoError || !logoSrc ? (
               <div
                 className="w-full h-full rounded-2xl flex items-center justify-center"

@@ -1,6 +1,6 @@
 /**
  * PARTIU REINFORCEMENT LEARNING DISPATCH POLICY ENGINE
- * 
+ *
  * Substitui a atribuição de pesos fixos no DriverScore por uma política adaptativa
  * baseada em aprendizado por reforço (Contextual Bandits / Policy Gradients).
  * Ajusta os pesos continuamente para maximizar conclusões, minimizar cancelamentos e reduzir ETA.
@@ -48,18 +48,21 @@ export class DispatchPolicyEngine {
     weightEta: 0.25,
     weightAcceptanceRate: 0.18,
     weightCancellationRate: 0.15,
-    weightDriverRating: 0.10,
+    weightDriverRating: 0.1,
     weightConsecutiveTrips: 0.05,
     weightIdleTime: 0.03,
     weightCategoryTier: 0.02,
     learningRate: 0.005,
-    episodesCount: 1420
+    episodesCount: 1420,
   };
 
   /**
    * Avalia um candidato utilizando a política atual de pesos aprendidos
    */
-  public evaluateCandidate(candidate: CandidateEvaluationContext): { score: number; rankMultiplier: number } {
+  public evaluateCandidate(candidate: CandidateEvaluationContext): {
+    score: number;
+    rankMultiplier: number;
+  } {
     const w = this.weights;
 
     // Normalização das variáveis entre 0.0 e 1.0
@@ -73,15 +76,15 @@ export class DispatchPolicyEngine {
     const normCat = candidate.isVehicleCategoryMatch ? 1.0 : 0.6;
 
     // Função de valor da política Q(s, a)
-    const policyValue = 
-      (normDist * w.weightDistance) +
-      (normEta * w.weightEta) +
-      (normAccept * w.weightAcceptanceRate) +
-      (normCancel * w.weightCancellationRate) +
-      (normRating * w.weightDriverRating) +
-      (normConsecutive * w.weightConsecutiveTrips) +
-      (normIdle * w.weightIdleTime) +
-      (normCat * w.weightCategoryTier);
+    const policyValue =
+      normDist * w.weightDistance +
+      normEta * w.weightEta +
+      normAccept * w.weightAcceptanceRate +
+      normCancel * w.weightCancellationRate +
+      normRating * w.weightDriverRating +
+      normConsecutive * w.weightConsecutiveTrips +
+      normIdle * w.weightIdleTime +
+      normCat * w.weightCategoryTier;
 
     const finalScore = Number((policyValue * 100).toFixed(2));
     const rankMultiplier = Number((1.0 + policyValue * 0.2).toFixed(3));
@@ -92,7 +95,10 @@ export class DispatchPolicyEngine {
   /**
    * Calcula o sinal de recompensa R e atualiza a política de pesos via Policy Gradient
    */
-  public reportTripOutcomeAndLearn(outcome: TripOutcomeReward): { reward: number; weightsUpdated: boolean } {
+  public reportTripOutcomeAndLearn(outcome: TripOutcomeReward): {
+    reward: number;
+    weightsUpdated: boolean;
+  } {
     // Função de recompensa multiobjetivo
     let reward = 0;
 
@@ -127,17 +133,23 @@ export class DispatchPolicyEngine {
 
     if (reward > 0) {
       // Se a corrida teve desfecho excelente, reforça critérios de avaliação e aceitação
-      this.weights.weightAcceptanceRate = Math.min(0.28, this.weights.weightAcceptanceRate + lr * 0.5);
+      this.weights.weightAcceptanceRate = Math.min(
+        0.28,
+        this.weights.weightAcceptanceRate + lr * 0.5,
+      );
       this.weights.weightDriverRating = Math.min(0.18, this.weights.weightDriverRating + lr * 0.3);
-      this.weights.weightEta = Math.min(0.30, this.weights.weightEta + lr * 0.2);
+      this.weights.weightEta = Math.min(0.3, this.weights.weightEta + lr * 0.2);
     } else {
       // Se houve cancelamento ou atraso, aumenta o rigor sobre proximidade física e cancelamento
-      this.weights.weightCancellationRate = Math.min(0.25, this.weights.weightCancellationRate + lr * 0.6);
-      this.weights.weightDistance = Math.min(0.30, this.weights.weightDistance + lr * 0.4);
+      this.weights.weightCancellationRate = Math.min(
+        0.25,
+        this.weights.weightCancellationRate + lr * 0.6,
+      );
+      this.weights.weightDistance = Math.min(0.3, this.weights.weightDistance + lr * 0.4);
     }
 
     // Re-normalização estocástica para garantir que a soma dos pesos seja igual a 1.0
-    const sum = 
+    const sum =
       this.weights.weightDistance +
       this.weights.weightEta +
       this.weights.weightAcceptanceRate +
@@ -150,17 +162,23 @@ export class DispatchPolicyEngine {
     if (sum > 0) {
       this.weights.weightDistance = Number((this.weights.weightDistance / sum).toFixed(4));
       this.weights.weightEta = Number((this.weights.weightEta / sum).toFixed(4));
-      this.weights.weightAcceptanceRate = Number((this.weights.weightAcceptanceRate / sum).toFixed(4));
-      this.weights.weightCancellationRate = Number((this.weights.weightCancellationRate / sum).toFixed(4));
+      this.weights.weightAcceptanceRate = Number(
+        (this.weights.weightAcceptanceRate / sum).toFixed(4),
+      );
+      this.weights.weightCancellationRate = Number(
+        (this.weights.weightCancellationRate / sum).toFixed(4),
+      );
       this.weights.weightDriverRating = Number((this.weights.weightDriverRating / sum).toFixed(4));
-      this.weights.weightConsecutiveTrips = Number((this.weights.weightConsecutiveTrips / sum).toFixed(4));
+      this.weights.weightConsecutiveTrips = Number(
+        (this.weights.weightConsecutiveTrips / sum).toFixed(4),
+      );
       this.weights.weightIdleTime = Number((this.weights.weightIdleTime / sum).toFixed(4));
       this.weights.weightCategoryTier = Number((this.weights.weightCategoryTier / sum).toFixed(4));
     }
 
     return {
       reward: Number(reward.toFixed(3)),
-      weightsUpdated: true
+      weightsUpdated: true,
     };
   }
 

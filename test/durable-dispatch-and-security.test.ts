@@ -1,6 +1,11 @@
 import { describe, test, expect } from "./test-harness.mjs";
 import { atomicMatchingEngine } from "../src/lib/dispatch-atomic/atomic-matching.ts";
-import { motoristaAceitarCorrida, MOTORISTA_PADRAO, type CorridaPartiu, type MotoristaInfo } from "../src/lib/partiu-engine.ts";
+import {
+  motoristaAceitarCorrida,
+  MOTORISTA_PADRAO,
+  type CorridaPartiu,
+  type MotoristaInfo,
+} from "../src/lib/partiu-engine.ts";
 import { driverOfferEngine } from "../src/lib/driver/driver-offer-engine.ts";
 import { progressiveDispatchEngine } from "../src/services/ProgressiveDispatchEngine.ts";
 import { matchingEngine } from "../src/services/MatchingEngine.ts";
@@ -120,7 +125,11 @@ describe("🛡️ PARTIU — SERVER-DURABLE DISPATCH & SECURITY INVARIANTS (9 AD
     // IF v_ride.offered_driver_id IS NOT NULL AND v_ride.offered_driver_id <> v_driver_id THEN RAISE EXCEPTION 'OFFER_NOT_YOURS'
     const validateOfferOwnership = (offeredDriverId: string | null, claimingDriverId: string) => {
       if (offeredDriverId && offeredDriverId !== claimingDriverId) {
-        return { success: false, code: "OFFER_NOT_YOURS", message: "Esta oferta foi direcionada a outro condutor." };
+        return {
+          success: false,
+          code: "OFFER_NOT_YOURS",
+          message: "Esta oferta foi direcionada a outro condutor.",
+        };
       }
       return { success: true, code: "OFFER_VALID" };
     };
@@ -137,7 +146,11 @@ describe("🛡️ PARTIU — SERVER-DURABLE DISPATCH & SECURITY INVARIANTS (9 AD
     const anonymousCall = (authUid: string | null, inputDriverId: string | null) => {
       const driverId = authUid || inputDriverId;
       if (!driverId) {
-        return { success: false, code: "AUTH_REQUIRED", message: "Autenticação obrigatória para aceitar corrida." };
+        return {
+          success: false,
+          code: "AUTH_REQUIRED",
+          message: "Autenticação obrigatória para aceitar corrida.",
+        };
       }
       return { success: true, driverId };
     };
@@ -154,18 +167,24 @@ describe("🛡️ PARTIU — SERVER-DURABLE DISPATCH & SECURITY INVARIANTS (9 AD
     const simulateTriggerColumnProtection = (
       oldRow: Record<string, any>,
       newRow: Record<string, any>,
-      callerRole: string
+      callerRole: string,
     ) => {
       if (callerRole === "service_role") return { allowed: true };
 
       if (oldRow.fare_price !== newRow.fare_price) {
-        throw new Error("COLUNA_IMUTAVEL: fare_price não pode ser alterado diretamente pelo cliente.");
+        throw new Error(
+          "COLUNA_IMUTAVEL: fare_price não pode ser alterado diretamente pelo cliente.",
+        );
       }
       if (oldRow.offered_driver_id !== newRow.offered_driver_id) {
-        throw new Error("COLUNA_IMUTAVEL: offered_driver_id é gerenciado exclusivamente pelo servidor.");
+        throw new Error(
+          "COLUNA_IMUTAVEL: offered_driver_id é gerenciado exclusivamente pelo servidor.",
+        );
       }
       if (oldRow.status !== newRow.status && newRow.status === "ACCEPTED") {
-        throw new Error("STATUS_NAO_AUTORIZADO: Passageiro não pode alterar o status da corrida para ACCEPTED.");
+        throw new Error(
+          "STATUS_NAO_AUTORIZADO: Passageiro não pode alterar o status da corrida para ACCEPTED.",
+        );
       }
       return { allowed: true };
     };
@@ -182,7 +201,7 @@ describe("🛡️ PARTIU — SERVER-DURABLE DISPATCH & SECURITY INVARIANTS (9 AD
       simulateTriggerColumnProtection(
         currentRide,
         { ...currentRide, fare_price: 1.0 },
-        "authenticated"
+        "authenticated",
       );
     }).toThrow("COLUNA_IMUTAVEL: fare_price");
 
@@ -191,7 +210,7 @@ describe("🛡️ PARTIU — SERVER-DURABLE DISPATCH & SECURITY INVARIANTS (9 AD
       simulateTriggerColumnProtection(
         currentRide,
         { ...currentRide, offered_driver_id: "drv-amigo" },
-        "authenticated"
+        "authenticated",
       );
     }).toThrow("COLUNA_IMUTAVEL: offered_driver_id");
 
@@ -200,7 +219,7 @@ describe("🛡️ PARTIU — SERVER-DURABLE DISPATCH & SECURITY INVARIANTS (9 AD
       simulateTriggerColumnProtection(
         currentRide,
         { ...currentRide, status: "ACCEPTED" },
-        "authenticated"
+        "authenticated",
       );
     }).toThrow("STATUS_NAO_AUTORIZADO");
   });

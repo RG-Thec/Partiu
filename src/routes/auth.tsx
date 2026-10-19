@@ -33,7 +33,8 @@ export const Route = createFileRoute("/auth")({
       { property: "og:title", content: "Entrar | PARTIU Mobilidade" },
       {
         property: "og:description",
-        content: "Carro, moto e entregas em minutos com tarifa justa e acompanhamento em tempo real.",
+        content:
+          "Carro, moto e entregas em minutos com tarifa justa e acompanhamento em tempo real.",
       },
       { property: "og:type", content: "website" },
     ],
@@ -43,5 +44,7 @@ export const Route = createFileRoute("/auth")({
 
 export function AuthPagePartiu() {
   const { redirect, role, tenant } = Route.useSearch();
-  return <PartiuAppAuthGate redirectDestination={redirect} initialRole={role} initialTenantId={tenant} />;
+  return (
+    <PartiuAppAuthGate redirectDestination={redirect} initialRole={role} initialTenantId={tenant} />
+  );
 }

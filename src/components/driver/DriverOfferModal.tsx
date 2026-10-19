@@ -90,8 +90,7 @@ export const DriverOfferModal = memo(function DriverOfferModal({
   const tempoEmbarqueMin = oferta.tempoAteEmbarqueMin ?? 3;
   const distanciaViagemTexto = `${oferta.distanciaKm ? oferta.distanciaKm.toFixed(1).replace(".", ",") : "7,4"} km`;
   const ganhoKmCalculado =
-    oferta.ganhoPorKm ||
-    (oferta.distanciaKm > 0 ? oferta.valorLiquido / oferta.distanciaKm : 3.85);
+    oferta.ganhoPorKm || (oferta.distanciaKm > 0 ? oferta.valorLiquido / oferta.distanciaKm : 3.85);
 
   const handleAccept = () => {
     if (accepted) return;
@@ -144,7 +143,9 @@ export const DriverOfferModal = memo(function DriverOfferModal({
   }, [accepted]);
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 ${isNightMode ? "dark" : ""}`}>
+    <div
+      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 ${isNightMode ? "dark" : ""}`}
+    >
       <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-[28px] sm:rounded-[32px] p-3.5 sm:p-5 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_20px_60px_rgba(0,0,0,0.25)] border border-slate-100 dark:border-slate-800 text-slate-900 dark:text-white animate-in slide-in-from-bottom duration-300 select-none text-center max-h-[94dvh] overflow-y-auto scrollbar-none relative">
         {/* Botão Superior de Recusa Rápida (Thumb-zone / Ergonomia Veicular com uma mão) */}
         <button
@@ -194,10 +195,7 @@ export const DriverOfferModal = memo(function DriverOfferModal({
             >
               {secondsRemaining}
             </span>
-            <span
-              className="text-[10px] font-bold -mt-0.5"
-              style={{ color: colors.textSecondary }}
-            >
+            <span className="text-[10px] font-bold -mt-0.5" style={{ color: colors.textSecondary }}>
               seg
             </span>
           </div>
@@ -242,10 +240,7 @@ export const DriverOfferModal = memo(function DriverOfferModal({
               borderRadius: ui.borderRadius,
             }}
           >
-            <MapPin
-              className="w-3.5 h-3.5 mx-auto mb-0.5"
-              style={{ color: colors.primary }}
-            />
+            <MapPin className="w-3.5 h-3.5 mx-auto mb-0.5" style={{ color: colors.primary }} />
             <div
               className="text-xs sm:text-sm font-bold leading-tight"
               style={{ color: colors.textPrimary }}
@@ -269,10 +264,7 @@ export const DriverOfferModal = memo(function DriverOfferModal({
               borderRadius: ui.borderRadius,
             }}
           >
-            <Clock
-              className="w-3.5 h-3.5 mx-auto mb-0.5"
-              style={{ color: colors.primary }}
-            />
+            <Clock className="w-3.5 h-3.5 mx-auto mb-0.5" style={{ color: colors.primary }} />
             <div
               className="text-xs sm:text-sm font-bold leading-tight"
               style={{ color: colors.textPrimary }}

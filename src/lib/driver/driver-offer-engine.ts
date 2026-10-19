@@ -17,14 +17,7 @@ import { subscriptionEngine } from "../revenue/subscription-engine";
 import { driverWalletEngine } from "../revenue/driver-wallet";
 
 export type DriverOfferStatus =
-  | "CREATED"
-  | "SENT"
-  | "VIEWED"
-  | "ACCEPTED"
-  | "REJECTED"
-  | "EXPIRED"
-  | "CANCELLED"
-  | "SUPERSEDED";
+  "CREATED" | "SENT" | "VIEWED" | "ACCEPTED" | "REJECTED" | "EXPIRED" | "CANCELLED" | "SUPERSEDED";
 
 export interface DriverOffer {
   id: string;
@@ -66,7 +59,14 @@ export interface AcceptOfferResult {
   success: boolean;
   offer?: DriverOffer | undefined;
   assignedRideId?: string | undefined;
-  error?: "OFFER_NOT_FOUND" | "OFFER_EXPIRED" | "ALREADY_CLAIMED" | "INVALID_STATUS" | "REAL_DRIVER_DATA_REQUIRED" | string | undefined;
+  error?:
+    | "OFFER_NOT_FOUND"
+    | "OFFER_EXPIRED"
+    | "ALREADY_CLAIMED"
+    | "INVALID_STATUS"
+    | "REAL_DRIVER_DATA_REQUIRED"
+    | string
+    | undefined;
   message: string;
   fencingToken?: number | undefined;
 }
@@ -118,9 +118,10 @@ export class DriverOfferEngine {
     });
 
     const driverEarnings = settlement.driverNetEarningsBrl;
-    const farePerKm = params.ride.distanciaKm > 0
-      ? Number((driverEarnings / params.ride.distanciaKm).toFixed(2))
-      : 0;
+    const farePerKm =
+      params.ride.distanciaKm > 0
+        ? Number((driverEarnings / params.ride.distanciaKm).toFixed(2))
+        : 0;
 
     const offer: DriverOffer = {
       id: offerId,
@@ -167,7 +168,7 @@ export class DriverOfferEngine {
     offerId: string,
     driverId: string,
     idempotencyKey: string,
-    motoristaInfo?: MotoristaInfo
+    motoristaInfo?: MotoristaInfo,
   ): Promise<AcceptOfferResult> {
     // 0. Validação estrita de identidade do condutor (Zero Mock / Zero Fallback)
     if (!motoristaInfo || !motoristaInfo.id) {
@@ -234,7 +235,7 @@ export class DriverOfferEngine {
         status: "PROCURANDO",
         criadoEm: offer.createdAt,
       },
-      motoristaInfo
+      motoristaInfo,
     );
 
     if (!claimResult.success) {
@@ -266,7 +267,7 @@ export class DriverOfferEngine {
     offerId: string,
     driverId: string,
     idempotencyKey?: string | undefined,
-    motoristaInfo?: MotoristaInfo | undefined
+    motoristaInfo?: MotoristaInfo | undefined,
   ): Promise<AcceptOfferResult> {
     if (!motoristaInfo || !motoristaInfo.id) {
       return {
@@ -279,7 +280,7 @@ export class DriverOfferEngine {
       offerId,
       driverId,
       idempotencyKey || `IDEM-CLAIM-${offerId}-${driverId}`,
-      motoristaInfo
+      motoristaInfo,
     );
   }
 
@@ -289,7 +290,7 @@ export class DriverOfferEngine {
   public rejectOffer(
     offerId: string,
     driverId?: string | undefined,
-    reason?: string | undefined
+    reason?: string | undefined,
   ): void {
     const offer = this.offers.get(offerId);
     if (offer) {

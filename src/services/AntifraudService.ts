@@ -15,12 +15,25 @@
  */
 
 import { routingService, type RouteMetrics } from "./RoutingService";
-import { pricingService, type SupportedVehicleCategory, type ItemizedQuote } from "./PricingService";
+import {
+  pricingService,
+  type SupportedVehicleCategory,
+  type ItemizedQuote,
+} from "./PricingService";
 
 export interface RideVerificationRequest {
   pickupCoordinates: [number, number];
   destinationCoordinates: [number, number];
-  category: SupportedVehicleCategory | "MOTO" | "CARRO" | "EXECUTIVO" | "FLASH" | "ENTREGA" | "TURISMO" | "VAN" | string;
+  category:
+    | SupportedVehicleCategory
+    | "MOTO"
+    | "CARRO"
+    | "EXECUTIVO"
+    | "FLASH"
+    | "ENTREGA"
+    | "TURISMO"
+    | "VAN"
+    | string;
   clientClaimedFare?: number;
   passengerId?: string;
   passengerName?: string;
@@ -55,7 +68,9 @@ export class AntifraudService {
   /**
    * Valida e audita o pedido de corrida recalculando todas as variáveis no backend / in-process
    */
-  public async verifyAndAuthorizeRide(request: RideVerificationRequest): Promise<RideVerificationResult> {
+  public async verifyAndAuthorizeRide(
+    request: RideVerificationRequest,
+  ): Promise<RideVerificationResult> {
     const { pickupCoordinates, destinationCoordinates, category, clientClaimedFare } = request;
 
     // 1. Verificação de Coordenadas Físicas Válidas
@@ -63,9 +78,18 @@ export class AntifraudService {
     const [dLng, dLat] = destinationCoordinates;
 
     if (
-      isNaN(pLng) || isNaN(pLat) || isNaN(dLng) || isNaN(dLat) ||
-      pLat < -90 || pLat > 90 || dLat < -90 || dLat > 90 ||
-      pLng < -180 || pLng > 180 || dLng < -180 || dLng > 180
+      isNaN(pLng) ||
+      isNaN(pLat) ||
+      isNaN(dLng) ||
+      isNaN(dLat) ||
+      pLat < -90 ||
+      pLat > 90 ||
+      dLat < -90 ||
+      dLat > 90 ||
+      pLng < -180 ||
+      pLng > 180 ||
+      dLng < -180 ||
+      dLng > 180
     ) {
       return {
         isApproved: false,
@@ -98,7 +122,12 @@ export class AntifraudService {
     else if (category === "PARTIU_VAN") officialCategory = "PARTIU_VAN";
 
     // 4. Recálculo Mandatório da Tarifa Dinâmica (com geofencing de praça e sobretaxa)
-    const multiQuotes = pricingService.calculateMultiCategoryQuotes(verifiedRoute, {}, 0, pickupCoordinates);
+    const multiQuotes = pricingService.calculateMultiCategoryQuotes(
+      verifiedRoute,
+      {},
+      0,
+      pickupCoordinates,
+    );
     const categoryQuote = multiQuotes[officialCategory];
     const verifiedFare = categoryQuote.priceBrl;
 
@@ -143,7 +172,12 @@ export class AntifraudService {
     clientFareBrl: number;
     clientDistanceKm?: number;
     clientDurationMinutes?: number;
-  }): Promise<{ isValid: boolean; tamperDetected: boolean; rejectionReason?: string | undefined; verifiedFare: number }> {
+  }): Promise<{
+    isValid: boolean;
+    tamperDetected: boolean;
+    rejectionReason?: string | undefined;
+    verifiedFare: number;
+  }> {
     const res = await this.verifyAndAuthorizeRide({
       pickupCoordinates: params.origemCoords,
       destinationCoordinates: params.destinoCoords,

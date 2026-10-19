@@ -171,11 +171,7 @@ export const DestinationCard = memo(function DestinationCard({
         {temHistorico && (
           <div className="border-t border-slate-100 pt-0.5">
             {itensHistorico.slice(0, 1).map((item) => (
-              <RecentAddressItemRow
-                key={item.id}
-                item={item}
-                onSelect={onSelectAddress}
-              />
+              <RecentAddressItemRow key={item.id} item={item} onSelect={onSelectAddress} />
             ))}
           </div>
         )}

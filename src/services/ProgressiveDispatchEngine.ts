@@ -87,7 +87,7 @@ export interface ProgressiveDispatchSession {
   waveMessage: string;
   waveSecondsRemaining: number;
   waveDurationSeconds: number;
-  
+
   // Janela Total Estendida de até 10 Minutos (600s)
   totalSearchDurationSeconds: number;
   totalSearchSecondsRemaining: number;
@@ -99,25 +99,27 @@ export interface ProgressiveDispatchSession {
   trustProfile?: DriverTrustProfile | undefined;
   viewingDrivers: DriverViewingProfile[];
   currentViewingDriver: DriverViewingProfile | null;
-  
+
   // Cascata de Condutores
   candidates: CandidateDriverProfile[];
   currentCandidateIndex: number;
   currentCandidate: CandidateDriverProfile | null;
   cascadeSecondsRemaining: number;
   rejectedDriverIds: string[];
-  
+
   // Resultados
   acceptedDriver?: CandidateDriverProfile | undefined;
-  
+
   // Fast Recovery
   isFastRecoveryAvailable: boolean;
-  recoveryDriver?: {
-    driverId: string;
-    driverName: string;
-    distanceMeters: number;
-  } | undefined;
-  
+  recoveryDriver?:
+    | {
+        driverId: string;
+        driverName: string;
+        distanceMeters: number;
+      }
+    | undefined;
+
   startedAt: number;
   updatedAt: number;
 }
@@ -197,7 +199,7 @@ export class ProgressiveDispatchEngine {
       window.dispatchEvent(
         new CustomEvent("partiu:progressive_dispatch_updated", {
           detail: clone,
-        })
+        }),
       );
 
       // Emite Delta Update mínimo (Fase 1)
@@ -213,7 +215,7 @@ export class ProgressiveDispatchEngine {
             trustProfile: clone.trustProfile,
             updatedAt: clone.updatedAt,
           },
-        })
+        }),
       );
     }
   }
@@ -247,21 +249,29 @@ export class ProgressiveDispatchEngine {
     try {
       const settings = appSettingsService.getSettings();
       if ((settings as any)?.pricing?.maxSearchRadiusKm) {
-        wave3Radius = Math.max(6000, Math.min(10000, (settings as any).pricing.maxSearchRadiusKm * 1000));
+        wave3Radius = Math.max(
+          6000,
+          Math.min(10000, (settings as any).pricing.maxSearchRadiusKm * 1000),
+        );
       }
     } catch (_) {}
 
     // Duração total configurável de até 10 minutos (padrão 600s / fallback 60s em testes legados)
-    const totalDuration = params.searchTimeoutSeconds !== undefined ? params.searchTimeoutSeconds : 60;
-    const waveDurations = totalDuration >= 600
-      ? { 1: 120, 2: 180, 3: 300 } // 10 minutos: 2 min + 3 min + 5 min
-      : totalDuration > 60
-      ? {
-          1: Math.max(20, Math.round(totalDuration * 0.2)),
-          2: Math.max(20, Math.round(totalDuration * 0.3)),
-          3: totalDuration - Math.max(20, Math.round(totalDuration * 0.2)) - Math.max(20, Math.round(totalDuration * 0.3)),
-        }
-      : { 1: 20, 2: 20, 3: 20 }; // 60 segundos legado / testes unitários
+    const totalDuration =
+      params.searchTimeoutSeconds !== undefined ? params.searchTimeoutSeconds : 60;
+    const waveDurations =
+      totalDuration >= 600
+        ? { 1: 120, 2: 180, 3: 300 } // 10 minutos: 2 min + 3 min + 5 min
+        : totalDuration > 60
+          ? {
+              1: Math.max(20, Math.round(totalDuration * 0.2)),
+              2: Math.max(20, Math.round(totalDuration * 0.3)),
+              3:
+                totalDuration -
+                Math.max(20, Math.round(totalDuration * 0.2)) -
+                Math.max(20, Math.round(totalDuration * 0.3)),
+            }
+          : { 1: 20, 2: 20, 3: 20 }; // 60 segundos legado / testes unitários
 
     const initialWaveConfig = this.WAVE_CONFIGS[1];
     const initialWaveSeconds = waveDurations[1];
@@ -315,7 +325,7 @@ export class ProgressiveDispatchEngine {
     rideId: string,
     wave: ProgressiveWave,
     wave3RadiusMeters: number,
-    waveDurations: { [key in ProgressiveWave]: number } = { 1: 20, 2: 20, 3: 20 }
+    waveDurations: { [key in ProgressiveWave]: number } = { 1: 20, 2: 20, 3: 20 },
   ): Promise<void> {
     if (this.cancelledRideIds.has(rideId)) return;
     const session = this.activeSessions.get(rideId);
@@ -379,7 +389,7 @@ export class ProgressiveDispatchEngine {
 
       s.totalSearchSecondsRemaining = Math.max(0, (s.totalSearchSecondsRemaining ?? 60) - 1);
       s.waveSecondsRemaining = Math.max(0, s.waveSecondsRemaining - 1);
-      
+
       // Contagem da cascata do motorista atual
       if (s.currentCandidate) {
         s.cascadeSecondsRemaining = Math.max(0, s.cascadeSecondsRemaining - 1);
@@ -417,7 +427,12 @@ export class ProgressiveDispatchEngine {
   public advanceCascade(rideId: string): void {
     if (this.cancelledRideIds.has(rideId)) return;
     const session = this.activeSessions.get(rideId);
-    if (!session || session.status === "DRIVER_ASSIGNED" || session.status === "TIMEOUT" || session.status === "CANCELLED") {
+    if (
+      !session ||
+      session.status === "DRIVER_ASSIGNED" ||
+      session.status === "TIMEOUT" ||
+      session.status === "CANCELLED"
+    ) {
       return;
     }
 
@@ -443,7 +458,8 @@ export class ProgressiveDispatchEngine {
       session.currentCandidate = null;
       session.currentNotifiedDriverId = null;
       session.dispatchStatus = `SEARCHING_R${session.currentWave}` as LiveRingingMicroStatus;
-      session.waveMessage = this.WAVE_CONFIGS[session.currentWave]?.message || "Buscando condutores...";
+      session.waveMessage =
+        this.WAVE_CONFIGS[session.currentWave]?.message || "Buscando condutores...";
     }
 
     session.updatedAt = Date.now();
@@ -455,17 +471,23 @@ export class ProgressiveDispatchEngine {
    */
   public registerDriverViewing(
     rideId: string,
-    driver: Partial<DriverViewingProfile> & { driverId: string }
+    driver: Partial<DriverViewingProfile> & { driverId: string },
   ): void {
     const session = this.activeSessions.get(rideId);
-    if (!session || session.status === "DRIVER_ASSIGNED" || session.status === "TIMEOUT" || session.status === "CANCELLED") {
+    if (
+      !session ||
+      session.status === "DRIVER_ASSIGNED" ||
+      session.status === "TIMEOUT" ||
+      session.status === "CANCELLED"
+    ) {
       return;
     }
 
     const viewingProfile: DriverViewingProfile = {
       driverId: driver.driverId,
       fullName: driver.fullName || (driver as any).name || "Motorista Parceiro",
-      firstName: driver.firstName || ((driver as any).name || "Motorista").split(" ")[0] || "Motorista",
+      firstName:
+        driver.firstName || ((driver as any).name || "Motorista").split(" ")[0] || "Motorista",
       avatarUrl: driver.avatarUrl || "",
       rating: Number(driver.rating) || 5.0,
       vehicleModel: driver.vehicleModel || (session.category === "MOTO" ? "Moto" : "Carro"),
@@ -479,7 +501,9 @@ export class ProgressiveDispatchEngine {
     };
 
     if (!session.viewingDrivers) session.viewingDrivers = [];
-    const existingIndex = session.viewingDrivers.findIndex((d) => d.driverId === viewingProfile.driverId);
+    const existingIndex = session.viewingDrivers.findIndex(
+      (d) => d.driverId === viewingProfile.driverId,
+    );
     if (existingIndex >= 0) {
       session.viewingDrivers[existingIndex] = viewingProfile;
     } else {
@@ -501,7 +525,7 @@ export class ProgressiveDispatchEngine {
             viewingDriver: viewingProfile,
             viewingDrivers: session.viewingDrivers,
           },
-        })
+        }),
       );
     }
 
@@ -529,7 +553,7 @@ export class ProgressiveDispatchEngine {
     rideId: string,
     completedWave: ProgressiveWave,
     wave3RadiusMeters: number,
-    waveDurations: { [key in ProgressiveWave]: number } = { 1: 20, 2: 20, 3: 20 }
+    waveDurations: { [key in ProgressiveWave]: number } = { 1: 20, 2: 20, 3: 20 },
   ): void {
     if (this.cancelledRideIds.has(rideId)) return;
     const session = this.activeSessions.get(rideId);
@@ -585,7 +609,7 @@ export class ProgressiveDispatchEngine {
       window.dispatchEvent(
         new CustomEvent("partiu:dispatch_ride_timeout", {
           detail: { rideId, session: { ...session } },
-        })
+        }),
       );
     }
 
@@ -596,7 +620,10 @@ export class ProgressiveDispatchEngine {
   /**
    * Aceita corrida e provisiona o perfil completo de confiança (Driver Trust Center)
    */
-  public acceptRide(rideId: string, driver?: CandidateDriverProfile): ProgressiveDispatchSession | null {
+  public acceptRide(
+    rideId: string,
+    driver?: CandidateDriverProfile,
+  ): ProgressiveDispatchSession | null {
     const session = this.activeSessions.get(rideId);
     if (!session || session.status === "DRIVER_ASSIGNED" || session.status === "CANCELLED") {
       return session || null;
@@ -604,7 +631,9 @@ export class ProgressiveDispatchEngine {
 
     const assignedDriver = driver || session.currentCandidate || session.candidates[0];
     if (!assignedDriver || !assignedDriver.driverId) {
-      console.warn("[ProgressiveDispatchEngine] acceptRide invocado sem dados válidos do condutor. Rejeitando mock.");
+      console.warn(
+        "[ProgressiveDispatchEngine] acceptRide invocado sem dados válidos do condutor. Rejeitando mock.",
+      );
       return null;
     }
 
@@ -651,7 +680,7 @@ export class ProgressiveDispatchEngine {
             trustProfile,
             session: { ...session },
           },
-        })
+        }),
       );
     }
 
@@ -677,7 +706,7 @@ export class ProgressiveDispatchEngine {
       window.dispatchEvent(
         new CustomEvent("partiu:dispatch_ride_cancelled", {
           detail: { rideId, reason },
-        })
+        }),
       );
     }
   }
@@ -685,7 +714,10 @@ export class ProgressiveDispatchEngine {
   /**
    * Tenta novamente a partir do TIMEOUT (Reinicia o ciclo em REQUESTED / Onda 1 com janela de 10 minutos)
    */
-  public retrySearch(rideId: string, searchTimeoutSeconds = 600): Promise<ProgressiveDispatchSession | undefined> {
+  public retrySearch(
+    rideId: string,
+    searchTimeoutSeconds = 600,
+  ): Promise<ProgressiveDispatchSession | undefined> {
     const session = this.activeSessions.get(rideId);
     if (!session) return Promise.resolve(undefined);
 
@@ -742,7 +774,7 @@ export class ProgressiveDispatchEngine {
           window.dispatchEvent(
             new CustomEvent("partiu:dispatch_fast_recovery_available", {
               detail: { rideId, driver: driverData },
-            })
+            }),
           );
         }
       }
@@ -758,7 +790,7 @@ export class ProgressiveDispatchEngine {
    */
   private async fetchEligibleDrivers(
     session: ProgressiveDispatchSession,
-    radiusMeters: number
+    radiusMeters: number,
   ): Promise<CandidateDriverProfile[]> {
     if (isSupabaseConfigured()) {
       try {
@@ -856,7 +888,12 @@ export class ProgressiveDispatchEngine {
                         .eq("driver_id", updated.driver_id)
                         .maybeSingle();
 
-                      if (loc && !isNaN(loc.latitude) && !isNaN(loc.longitude) && (loc.latitude !== 0 || loc.longitude !== 0)) {
+                      if (
+                        loc &&
+                        !isNaN(loc.latitude) &&
+                        !isNaN(loc.longitude) &&
+                        (loc.latitude !== 0 || loc.longitude !== 0)
+                      ) {
                         driverLat = Number(loc.latitude);
                         driverLng = Number(loc.longitude);
                         driverHeading = Number(loc.heading || 0);
@@ -869,7 +906,7 @@ export class ProgressiveDispatchEngine {
                     session.pickupCoords[1],
                     session.pickupCoords[0],
                     driverLat,
-                    driverLng
+                    driverLng,
                   );
                   const etaMin = Math.max(1, Math.round(distMeters / 400));
 
@@ -904,13 +941,16 @@ export class ProgressiveDispatchEngine {
                 session.currentWave = updated.dispatch_wave as ProgressiveWave;
                 session.waveSecondsRemaining = 15;
                 session.waveDurationSeconds = 15;
-                session.dispatchStatus = `SEARCHING_R${updated.dispatch_wave}` as LiveRingingMicroStatus;
-                session.waveMessage = this.WAVE_CONFIGS[session.currentWave]?.message || "Buscando condutores na região...";
+                session.dispatchStatus =
+                  `SEARCHING_R${updated.dispatch_wave}` as LiveRingingMicroStatus;
+                session.waveMessage =
+                  this.WAVE_CONFIGS[session.currentWave]?.message ||
+                  "Buscando condutores na região...";
                 session.updatedAt = Date.now();
                 this.notify(session);
               }
             }
-          }
+          },
         )
         .on("broadcast", { event: "driver_viewing" }, (event: any) => {
           if (event?.payload?.viewingDriver) {
@@ -930,7 +970,7 @@ export class ProgressiveDispatchEngine {
    */
   private async notifyCandidateDriver(
     session: ProgressiveDispatchSession,
-    candidate: CandidateDriverProfile
+    candidate: CandidateDriverProfile,
   ): Promise<void> {
     if (!candidate?.driverId) return;
 
@@ -947,7 +987,10 @@ export class ProgressiveDispatchEngine {
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return Math.round(R * c);
   }

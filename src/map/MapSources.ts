@@ -58,7 +58,7 @@ export class MapSources {
       category: "CARRO" | "MOTO" | string;
       heading?: number;
       status?: "ONLINE" | "BUSY" | "ON_TRIP";
-    }[]
+    }[],
   ): GeoJSON.FeatureCollection {
     const features: GeoJSON.Feature[] = (drivers || []).map((d) => {
       const icon = d.category === "MOTO" ? MAP_ASSETS.MOTO : MAP_ASSETS.CARRO;
@@ -91,7 +91,7 @@ export class MapSources {
    */
   public static createPinsGeoJSON(
     pickup?: [number, number],
-    destination?: [number, number]
+    destination?: [number, number],
   ): GeoJSON.FeatureCollection {
     const features: GeoJSON.Feature[] = [];
 
@@ -156,7 +156,7 @@ export class MapSources {
   public static updateSourceData(
     map: mapboxgl.Map,
     sourceId: string,
-    data: GeoJSON.FeatureCollection
+    data: GeoJSON.FeatureCollection,
   ): void {
     if (!map || !map.getSource) return;
     const source = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined;

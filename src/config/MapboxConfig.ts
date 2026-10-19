@@ -165,7 +165,9 @@ export class MapboxConfig {
   public static isOfficialMatrizTenant(tenantId?: string): boolean {
     const tid =
       tenantId ||
-      (typeof window !== "undefined" ? WhiteLabelEngine.getInstance()?.getActiveTenantId?.() : undefined) ||
+      (typeof window !== "undefined"
+        ? WhiteLabelEngine.getInstance()?.getActiveTenantId?.()
+        : undefined) ||
       "default";
     return tid === "default" || tid === "matriz-br" || tid === "matriz";
   }
@@ -189,7 +191,9 @@ export class MapboxConfig {
   } {
     const targetTenantId =
       tenantId ||
-      (typeof window !== "undefined" ? WhiteLabelEngine.getInstance()?.getActiveTenantId?.() : undefined) ||
+      (typeof window !== "undefined"
+        ? WhiteLabelEngine.getInstance()?.getActiveTenantId?.()
+        : undefined) ||
       "default";
 
     const isMatriz = MapboxConfig.isOfficialMatrizTenant(targetTenantId);
@@ -202,7 +206,11 @@ export class MapboxConfig {
       const wlEngine = WhiteLabelEngine.getInstance();
       const config = wlEngine.getTenantConfig(targetTenantId);
       if (config?.geo) {
-        if (config.geo.mapProvider === "google" || config.geo.mapProvider === "osm" || config.geo.mapProvider === "mapbox") {
+        if (
+          config.geo.mapProvider === "google" ||
+          config.geo.mapProvider === "osm" ||
+          config.geo.mapProvider === "mapbox"
+        ) {
           provider = config.geo.mapProvider;
         }
         mapboxAccessToken = (config.geo.mapboxAccessToken || "").trim();
@@ -223,18 +231,17 @@ export class MapboxConfig {
     const hasOwnMapboxKey = Boolean(
       mapboxAccessToken.startsWith("pk.") &&
       mapboxAccessToken.length > 20 &&
-      !mapboxAccessToken.includes("example")
+      !mapboxAccessToken.includes("example"),
     );
     const hasOwnGoogleKey = Boolean(
-      googleMapsApiKey.length > 15 &&
-      !googleMapsApiKey.includes("example")
+      googleMapsApiKey.length > 15 && !googleMapsApiKey.includes("example"),
     );
 
     const effectiveMapboxToken = hasOwnMapboxKey
       ? mapboxAccessToken
       : isMatriz
-      ? MapboxConfig.getMatrizOfficialToken()
-      : "";
+        ? MapboxConfig.getMatrizOfficialToken()
+        : "";
 
     const effectiveGoogleApiKey = hasOwnGoogleKey ? googleMapsApiKey : "";
 
@@ -292,9 +299,7 @@ export class MapboxConfig {
   /**
    * Valida online se um token Mapbox fornecido é autêntico e tem permissão pública
    */
-  public static async testMapboxToken(
-    token: string
-  ): Promise<{ valid: boolean; message: string }> {
+  public static async testMapboxToken(token: string): Promise<{ valid: boolean; message: string }> {
     const cleanToken = (token || "").trim();
     if (!cleanToken) {
       return { valid: false, message: "Token Mapbox não informado." };
@@ -311,7 +316,7 @@ export class MapboxConfig {
 
     try {
       const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/brasil.json?access_token=${encodeURIComponent(
-        cleanToken
+        cleanToken,
       )}&limit=1`;
       const res = await fetch(endpoint, { method: "GET" });
       if (res.status === 200) {
@@ -320,7 +325,8 @@ export class MapboxConfig {
       if (res.status === 401 || res.status === 403) {
         return {
           valid: false,
-          message: "Token Mapbox rejeitado pela API (401/403). Verifique se a chave é válida e pública.",
+          message:
+            "Token Mapbox rejeitado pela API (401/403). Verifique se a chave é válida e pública.",
         };
       }
       return {
@@ -339,7 +345,7 @@ export class MapboxConfig {
    * Valida o formato da chave Google Maps Platform
    */
   public static async testGoogleMapsApiKey(
-    apiKey: string
+    apiKey: string,
   ): Promise<{ valid: boolean; message: string }> {
     const cleanKey = (apiKey || "").trim();
     if (!cleanKey) {
@@ -376,7 +382,9 @@ export class MapboxConfig {
    */
   public static hasValidToken(tenantId?: string): boolean {
     const token = MapboxConfig.getAccessToken(tenantId);
-    return Boolean(token && token.startsWith("pk.") && !token.includes("example") && token.length > 20);
+    return Boolean(
+      token && token.startsWith("pk.") && !token.includes("example") && token.length > 20,
+    );
   }
 
   /**

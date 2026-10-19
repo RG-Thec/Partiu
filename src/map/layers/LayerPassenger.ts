@@ -38,16 +38,9 @@ export class LayerPassenger {
         type: "circle",
         source: MAP_SOURCES.USER_LOCATION,
         paint: {
-          "circle-radius": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            12, 16,
-            16, 26,
-            18, 36,
-          ],
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 16, 16, 26, 18, 36],
           "circle-color": "#3B82F6",
-          "circle-opacity": 0.20,
+          "circle-opacity": 0.2,
           "circle-stroke-width": 1.5,
           "circle-stroke-color": "#60A5FA",
           "circle-stroke-opacity": 0.45,
@@ -62,14 +55,7 @@ export class LayerPassenger {
         type: "circle",
         source: MAP_SOURCES.USER_LOCATION,
         paint: {
-          "circle-radius": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            12, 6,
-            16, 8,
-            18, 10,
-          ],
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 6, 16, 8, 18, 10],
           "circle-color": "#0088FF",
           "circle-stroke-width": 2.5,
           "circle-stroke-color": "#FFFFFF",
@@ -86,7 +72,8 @@ export class LayerPassenger {
     this.currentCoords = coords;
     if (!this.map || !this.isInitialized) return;
 
-    const source = this.map.getSource(MAP_SOURCES.USER_LOCATION) as mapboxgl.GeoJSONSource | undefined;
+    const source = this.map.getSource(MAP_SOURCES.USER_LOCATION) as
+      mapboxgl.GeoJSONSource | undefined;
     if (source) {
       source.setData({
         type: "FeatureCollection",

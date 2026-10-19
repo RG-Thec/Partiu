@@ -22,7 +22,10 @@ export function WhiteLabelProgressBar({
   const percentage = Math.min(100, Math.max(0, (currentStep / totalSteps) * 100));
 
   return (
-    <div className={`w-full space-y-2 select-none ${className}`} style={{ fontFamily: ui.fontFamily }}>
+    <div
+      className={`w-full space-y-2 select-none ${className}`}
+      style={{ fontFamily: ui.fontFamily }}
+    >
       <div className="flex items-center justify-between text-xs font-bold">
         <span
           className="uppercase tracking-wider font-extrabold text-[11px]"

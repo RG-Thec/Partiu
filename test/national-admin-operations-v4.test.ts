@@ -121,7 +121,8 @@ describe("SUITE 36: PARTIU NATIONAL ADMIN V4 — Fleet Restriction (CARRO & MOTO
     }
     return {
       valido: false,
-      motivo: "A plataforma PARTIU permite estritamente as categorias CARRO e MOTO. Vans, micro-ônibus e outros modais são bloqueados.",
+      motivo:
+        "A plataforma PARTIU permite estritamente as categorias CARRO e MOTO. Vans, micro-ônibus e outros modais são bloqueados.",
     };
   }
 
@@ -328,7 +329,7 @@ describe("SUITE 39: PARTIU NATIONAL ADMIN V4 — Express White Label Onboarding 
         comissao: 10.0,
         pix: "pix@app.com",
         whatsapp: "24999",
-      })
+      }),
     ).toThrow("Passo 1 incompleto");
   });
 });
@@ -405,7 +406,9 @@ describe("40. PARTIU DRIVER WALLET, PREPAID COMMISSIONS & PIX GATEWAY (Sprint 3)
   test("4. Recarga Pix & Conciliação: Aprovação credita saldo e desbloqueia motorista", () => {
     // mot-3 está com saldo zero/negativo e bloqueado por saldo insuficiente
     const pedidos = carregarPedidosRecarga();
-    const pedidoPendente = pedidos.find((p) => p.motoristaId === "mot-3" && p.status === "PENDENTE");
+    const pedidoPendente = pedidos.find(
+      (p) => p.motoristaId === "mot-3" && p.status === "PENDENTE",
+    );
     expect(pedidoPendente).toBeDefined();
 
     if (pedidoPendente) {
@@ -488,7 +491,7 @@ describe("41. PARTIU LANDING CMS, MAPS FINOPS & DATA GOVERNANCE (Sprint 4)", () 
 
   test("2. CMS Landing: Atualização dinâmica de seções (Hero e B2B) e restauração canônica", () => {
     const original = carregarCmsLandingData();
-    
+
     // Atualiza com novo título
     salvarCmsLandingData({
       hero: {
@@ -617,4 +620,3 @@ describe("41. PARTIU LANDING CMS, MAPS FINOPS & DATA GOVERNANCE (Sprint 4)", () 
     expect(backups.some((b) => b.id === dump.id)).toBe(true);
   });
 });
-

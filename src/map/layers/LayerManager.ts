@@ -22,12 +22,7 @@ import { LayerReservations } from "./LayerReservations";
 import { LayerHeatmap } from "./LayerHeatmap";
 
 export type MapLayerName =
-  | "drivers"
-  | "passenger"
-  | "trips"
-  | "deliveries"
-  | "reservations"
-  | "heatmap";
+  "drivers" | "passenger" | "trips" | "deliveries" | "reservations" | "heatmap";
 
 export class LayerManager {
   public readonly drivers = new LayerDrivers();
@@ -40,10 +35,13 @@ export class LayerManager {
   private map: mapboxgl.Map | null = null;
   private isInitialized = false;
 
-  public init(map: mapboxgl.Map, options: {
-    onDriverClick?: (driver: any) => void;
-    onReservationSelect?: (point: any) => void;
-  } = {}): void {
+  public init(
+    map: mapboxgl.Map,
+    options: {
+      onDriverClick?: (driver: any) => void;
+      onReservationSelect?: (point: any) => void;
+    } = {},
+  ): void {
     this.map = map;
 
     this.heatmap.init(map);

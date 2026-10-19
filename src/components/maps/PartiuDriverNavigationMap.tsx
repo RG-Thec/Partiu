@@ -49,7 +49,9 @@ export const PartiuDriverNavigationMap = memo(function PartiuDriverNavigationMap
   const targetMarkerRef = useRef<mapboxgl.Marker | null>(null);
 
   // Telemetria física real do motorista
-  const [currentDriverPos, setCurrentDriverPos] = useState<[number, number]>(() => driverCoords || [0, 0]);
+  const [currentDriverPos, setCurrentDriverPos] = useState<[number, number]>(
+    () => driverCoords || [0, 0],
+  );
   const [currentHeading, setCurrentHeading] = useState<number>(0);
   const [currentSpeed, setCurrentSpeed] = useState<number>(0);
 
@@ -153,12 +155,9 @@ export const PartiuDriverNavigationMap = memo(function PartiuDriverNavigationMap
       const hasValidToken = Boolean(
         mapConfig.effectiveMapboxToken &&
         mapConfig.effectiveMapboxToken.startsWith("pk.") &&
-        mapConfig.effectiveMapboxToken.length > 20
+        mapConfig.effectiveMapboxToken.length > 20,
       );
-      const isGoogleTiles = Boolean(
-        mapConfig.provider === "google" &&
-        mapConfig.hasOwnGoogleKey
-      );
+      const isGoogleTiles = Boolean(mapConfig.provider === "google" && mapConfig.hasOwnGoogleKey);
 
       if (hasValidToken) {
         mapboxgl.accessToken = mapConfig.effectiveMapboxToken;
@@ -347,10 +346,12 @@ export const PartiuDriverNavigationMap = memo(function PartiuDriverNavigationMap
   // 4. OBTENÇÃO DA ROTA REAL MAPBOX (driving-traffic) SEM DADOS SINTÉTICOS
   useEffect(() => {
     let cancel = false;
-    const isHeading = estado === "HEADING_TO_PICKUP" || estado === "ACCEPTED" || estado === "WAITING_PIN";
+    const isHeading =
+      estado === "HEADING_TO_PICKUP" || estado === "ACCEPTED" || estado === "WAITING_PIN";
     const isInTrip = estado === "IN_PROGRESS" || estado === "IN_TRANSIT";
 
-    const validDriverCoords = currentDriverPos[0] !== 0 && currentDriverPos[1] !== 0 ? currentDriverPos : undefined;
+    const validDriverCoords =
+      currentDriverPos[0] !== 0 && currentDriverPos[1] !== 0 ? currentDriverPos : undefined;
 
     // Se já temos uma rota ativa, avalia se o motorista continua sobre a via ou se desviou
     if (activeRouteCoords.length >= 2 && validDriverCoords) {
@@ -410,13 +411,16 @@ export const PartiuDriverNavigationMap = memo(function PartiuDriverNavigationMap
     if (!map || !mapLoaded) return;
 
     const routeSource = map.getSource("driver-route") as mapboxgl.GeoJSONSource | undefined;
-    const isHeading = estado === "HEADING_TO_PICKUP" || estado === "ACCEPTED" || estado === "WAITING_PIN";
+    const isHeading =
+      estado === "HEADING_TO_PICKUP" || estado === "ACCEPTED" || estado === "WAITING_PIN";
     const isInTrip = estado === "IN_PROGRESS" || estado === "IN_TRANSIT";
 
     if (isHeading) {
       try {
         map.setPaintProperty("driver-route-active", "line-color", "#10B981");
-      } catch (err) { silentCatchWarn("PartiuDriverNavigationMap", err); }
+      } catch (err) {
+        silentCatchWarn("PartiuDriverNavigationMap", err);
+      }
 
       if (routeSource && activeRouteCoords.length >= 2) {
         routeSource.setData({
@@ -453,7 +457,9 @@ export const PartiuDriverNavigationMap = memo(function PartiuDriverNavigationMap
     } else if (isInTrip) {
       try {
         map.setPaintProperty("driver-route-active", "line-color", "#2563EB");
-      } catch (err) { silentCatchWarn("PartiuDriverNavigationMap", err); }
+      } catch (err) {
+        silentCatchWarn("PartiuDriverNavigationMap", err);
+      }
 
       if (routeSource && activeRouteCoords.length >= 2) {
         routeSource.setData({
@@ -529,7 +535,15 @@ export const PartiuDriverNavigationMap = memo(function PartiuDriverNavigationMap
         });
       }
     }
-  }, [mapLoaded, estado, activeRouteCoords, currentDriverPos, currentHeading, pickupCoords, destinationCoords]);
+  }, [
+    mapLoaded,
+    estado,
+    activeRouteCoords,
+    currentDriverPos,
+    currentHeading,
+    pickupCoords,
+    destinationCoords,
+  ]);
 
   // 3.1 VISIBILIDADE DO HEATMAP DE DEMANDA H3 (ATIVO EM IDLE / BUSCA DE CORRIDA)
   useEffect(() => {
@@ -541,7 +555,11 @@ export const PartiuDriverNavigationMap = memo(function PartiuDriverNavigationMap
         map.setLayoutProperty("h3-demand-fill", "visibility", isDemandVisible ? "visible" : "none");
       }
       if (map.getLayer("h3-demand-outline")) {
-        map.setLayoutProperty("h3-demand-outline", "visibility", isDemandVisible ? "visible" : "none");
+        map.setLayoutProperty(
+          "h3-demand-outline",
+          "visibility",
+          isDemandVisible ? "visible" : "none",
+        );
       }
     } catch (err) {
       silentCatchWarn("PartiuDriverNavigationMap.h3Visibility", err);
@@ -559,13 +577,15 @@ export const PartiuDriverNavigationMap = memo(function PartiuDriverNavigationMap
   function handleAbrirGoogleMaps() {
     const target = pickupCoords || destinationCoords;
     if (!target) return;
-    window.open(`https://www.google.com/maps/dir/?api=1&destination=${target[1]},${target[0]}`, "_blank");
+    window.open(
+      `https://www.google.com/maps/dir/?api=1&destination=${target[1]},${target[0]}`,
+      "_blank",
+    );
   }
 
   return (
     <div className={`relative w-full h-full overflow-hidden bg-[#f1f3f4] ${className}`}>
       <div ref={mapContainer} className="w-full h-full" />
-
 
       {/* BANNER SUPERIOR DE NAVEGAÇÃO TURN-BY-TURN (Estilo Waze/Uber) */}
       {(estado === "HEADING_TO_PICKUP" || estado === "IN_PROGRESS") && (

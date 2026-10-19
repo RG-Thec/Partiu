@@ -94,9 +94,7 @@ export function ProfilePagePartiu() {
   const [cpf, setCpf] = useState(() => {
     if (typeof window === "undefined") return "";
     return (
-      supabaseAuthService.getStoredSession()?.cpf ||
-      localStorage.getItem("partiu_user_cpf") ||
-      ""
+      supabaseAuthService.getStoredSession()?.cpf || localStorage.getItem("partiu_user_cpf") || ""
     );
   });
 
@@ -126,17 +124,23 @@ export function ProfilePagePartiu() {
         const perfil = await userService.getCurrentUserProfile();
         const sess = supabaseAuthService.getStoredSession();
 
-        const cachedNome = typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : "";
-        const cachedEmail = typeof window !== "undefined" ? localStorage.getItem("partiu_user_email") : "";
-        const cachedTelefone = typeof window !== "undefined"
-          ? localStorage.getItem("partiu_user_phone") || localStorage.getItem("partiu_user_telefone")
-          : "";
-        const cachedCpf = typeof window !== "undefined" ? localStorage.getItem("partiu_user_cpf") : "";
-        const cachedAvatar = typeof window !== "undefined"
-          ? localStorage.getItem("partiu_user_avatar") ||
-            localStorage.getItem("partiu_user_foto") ||
-            localStorage.getItem("partiu_user_selfie")
-          : "";
+        const cachedNome =
+          typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : "";
+        const cachedEmail =
+          typeof window !== "undefined" ? localStorage.getItem("partiu_user_email") : "";
+        const cachedTelefone =
+          typeof window !== "undefined"
+            ? localStorage.getItem("partiu_user_phone") ||
+              localStorage.getItem("partiu_user_telefone")
+            : "";
+        const cachedCpf =
+          typeof window !== "undefined" ? localStorage.getItem("partiu_user_cpf") : "";
+        const cachedAvatar =
+          typeof window !== "undefined"
+            ? localStorage.getItem("partiu_user_avatar") ||
+              localStorage.getItem("partiu_user_foto") ||
+              localStorage.getItem("partiu_user_selfie")
+            : "";
 
         const resolvedNome =
           (perfil.name && perfil.name !== "Passageiro" ? perfil.name : null) ||
@@ -286,7 +290,6 @@ export function ProfilePagePartiu() {
     }
   }
 
-
   function handleToggleAc(val: boolean) {
     setArCondicionado(val);
     userService.updateUserPreferences({ prefAc: val });
@@ -317,10 +320,12 @@ export function ProfilePagePartiu() {
   const effectiveName =
     (nome && nome !== "Passageiro" ? nome : null) ||
     (typeof window !== "undefined"
-      ? (localStorage.getItem("partiu_user_nome") && localStorage.getItem("partiu_user_nome") !== "Passageiro"
+      ? (localStorage.getItem("partiu_user_nome") &&
+        localStorage.getItem("partiu_user_nome") !== "Passageiro"
           ? localStorage.getItem("partiu_user_nome")
           : null) ||
-        (supabaseAuthService.getStoredSession()?.name && supabaseAuthService.getStoredSession()?.name !== "Passageiro"
+        (supabaseAuthService.getStoredSession()?.name &&
+        supabaseAuthService.getStoredSession()?.name !== "Passageiro"
           ? supabaseAuthService.getStoredSession()?.name
           : null)
       : null) ||
@@ -416,7 +421,11 @@ export function ProfilePagePartiu() {
           </div>
 
           <h2 className="text-lg font-bold text-foreground">{effectiveName}</h2>
-          <p className="text-xs text-muted-foreground">{email || (typeof window !== "undefined" ? localStorage.getItem("partiu_user_email") : "") || "passageiro@partiu.app"}</p>
+          <p className="text-xs text-muted-foreground">
+            {email ||
+              (typeof window !== "undefined" ? localStorage.getItem("partiu_user_email") : "") ||
+              "passageiro@partiu.app"}
+          </p>
 
           <div className="flex items-center gap-3 mt-4 pt-4 border-t border-border w-full justify-center">
             <div
@@ -520,12 +529,7 @@ export function ProfilePagePartiu() {
             />
 
             <div className="pt-2">
-              <WhiteLabelButton
-                type="submit"
-                variant="primary"
-                fullWidth
-                isLoading={salvando}
-              >
+              <WhiteLabelButton type="submit" variant="primary" fullWidth isLoading={salvando}>
                 Salvar perfil
               </WhiteLabelButton>
             </div>
@@ -559,7 +563,9 @@ export function ProfilePagePartiu() {
                   </div>
                   <div>
                     <p className="text-xs font-bold text-foreground">Ar-condicionado</p>
-                    <p className="text-[11px] text-muted-foreground">Solicitar climatização ao motorista parceiro</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Solicitar climatização ao motorista parceiro
+                    </p>
                   </div>
                 </div>
                 <input
@@ -586,7 +592,9 @@ export function ProfilePagePartiu() {
                   </div>
                   <div>
                     <p className="text-xs font-bold text-foreground">Viagem silenciosa</p>
-                    <p className="text-[11px] text-muted-foreground">Prefiro viajar sem som automotivo alto</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Prefiro viajar sem som automotivo alto
+                    </p>
                   </div>
                 </div>
                 <input
@@ -610,9 +618,12 @@ export function ProfilePagePartiu() {
             >
               <ShieldCheck className="h-5 w-5 shrink-0 mt-0.5" style={{ color: colors.primary }} />
               <div>
-                <h4 className="text-xs font-bold text-foreground">Privacidade &amp; Proteção de Dados</h4>
+                <h4 className="text-xs font-bold text-foreground">
+                  Privacidade &amp; Proteção de Dados
+                </h4>
                 <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
-                  Seus dados são protegidos por Row-Level Security no Supabase e utilizados estritamente para identificação durante corridas urbanas e entregas expressas.
+                  Seus dados são protegidos por Row-Level Security no Supabase e utilizados
+                  estritamente para identificação durante corridas urbanas e entregas expressas.
                 </p>
               </div>
             </section>
@@ -643,7 +654,9 @@ export function ProfilePagePartiu() {
             <div className="flex items-center justify-between pb-3 border-b border-border mb-3">
               <div>
                 <h3 className="text-sm font-bold text-foreground">Sua Foto de Perfil</h3>
-                <p className="text-[11px] text-muted-foreground">Tire sua foto ao vivo pela câmera do celular</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Tire sua foto ao vivo pela câmera do celular
+                </p>
               </div>
               <button
                 type="button"

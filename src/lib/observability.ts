@@ -107,9 +107,10 @@ async function checkPostgres(agora: string): Promise<StatusSubsistema> {
       identificador: "postgres_postgis",
       status: latencia > 2000 ? "degraded" : "healthy",
       latenciaMs: latencia,
-      mensagem: latencia > 2000
-        ? `Resposta lenta (${latencia}ms > 2000ms threshold).`
-        : `Query respondida em ${latencia}ms.`,
+      mensagem:
+        latencia > 2000
+          ? `Resposta lenta (${latencia}ms > 2000ms threshold).`
+          : `Query respondida em ${latencia}ms.`,
       ultimaVerificacao: agora,
     };
   } catch (err: unknown) {
@@ -203,7 +204,8 @@ function checkIotTelemetry(agora: string): StatusSubsistema {
     identificador: "iot_telemetry",
     status: "healthy",
     latenciaMs: 0,
-    mensagem: "Módulo de telemetria com deadband geográfico ativo. Status depende de vans conectadas.",
+    mensagem:
+      "Módulo de telemetria com deadband geográfico ativo. Status depende de vans conectadas.",
     ultimaVerificacao: agora,
   };
 }

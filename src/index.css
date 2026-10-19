@@ -4,7 +4,8 @@
 /* EFEITOS PROFISSIONAIS DA LANDING PAGE                                     */
 /* ========================================================================= */
 @keyframes landing-car-float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px) scale(1.05);
   }
   50% {
@@ -46,7 +47,8 @@
 }
 
 @keyframes landing-card-breathe {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {

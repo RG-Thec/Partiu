@@ -1,6 +1,6 @@
 /**
  * PARTIU LOGISTICS MARKETPLACE
- * 
+ *
  * Marketplace Logístico Autônomo para Fretes Urbanos, Regionais e Cross-Docking.
  * Controla:
  * - Oferta de transportadores e operadores parceiros
@@ -9,10 +9,7 @@
  */
 
 export type FreightServiceLevel =
-  | 'URBANO_FLASH_60M'
-  | 'SAME_DAY_REGIONAL'
-  | 'TRANSFERENCIA_INTERMUNICIPAL'
-  | 'CROSS_DOCKING_HUB';
+  "URBANO_FLASH_60M" | "SAME_DAY_REGIONAL" | "TRANSFERENCIA_INTERMUNICIPAL" | "CROSS_DOCKING_HUB";
 
 export interface FreightQuoteRequest {
   senderId: string;
@@ -45,7 +42,7 @@ export interface FreightQuoteResult {
 export interface LogisticsCarrier {
   carrierId: string;
   carrierName: string;
-  carrierType: 'AUTONOMO_MOTO' | 'AUTONOMO_CARRO' | 'COOPERATIVA_VANS' | 'OPERADOR_FROTA_REGIONAL';
+  carrierType: "AUTONOMO_MOTO" | "AUTONOMO_CARRO" | "COOPERATIVA_VANS" | "OPERADOR_FROTA_REGIONAL";
   availableCapacityKg: number;
   coveredCityIds: string[];
   currentHubStationId?: string | undefined;
@@ -66,7 +63,7 @@ export interface ActiveFreightOrder {
   finalFreightPriceBrl: number;
   assignedCarrierId?: string | undefined;
   carrierName?: string | undefined;
-  status: 'SOLICITADO' | 'ALOCADO' | 'EM_CROSS_DOCKING' | 'EM_ROTA' | 'ENTREGUE' | 'CANCELADO';
+  status: "SOLICITADO" | "ALOCADO" | "EM_CROSS_DOCKING" | "EM_ROTA" | "ENTREGUE" | "CANCELADO";
   createdTimestamp: number;
   deliveredTimestamp?: number | undefined;
 }
@@ -92,38 +89,38 @@ export class LogisticsMarketplace {
   private initializeDefaultCarriers(): void {
     const defaultCarriers: LogisticsCarrier[] = [
       {
-        carrierId: 'CARRIER-COOP-01',
-        carrierName: 'Cooperativa TransNoroeste Vans',
-        carrierType: 'COOPERATIVA_VANS',
+        carrierId: "CARRIER-COOP-01",
+        carrierName: "Cooperativa TransNoroeste Vans",
+        carrierType: "COOPERATIVA_VANS",
         availableCapacityKg: 1800,
-        coveredCityIds: ['itaperuna-rj', 'campos-rj', 'muriae-mg'],
+        coveredCityIds: ["itaperuna-rj", "campos-rj", "muriae-mg"],
         ratingScore: 4.89,
         totalCompletedDeliveries: 4200,
-        isActive: true
+        isActive: true,
       },
       {
-        carrierId: 'CARRIER-FLASH-02',
-        carrierName: 'Rede Flash Entregas Urbanas',
-        carrierType: 'AUTONOMO_MOTO',
+        carrierId: "CARRIER-FLASH-02",
+        carrierName: "Rede Flash Entregas Urbanas",
+        carrierType: "AUTONOMO_MOTO",
         availableCapacityKg: 45,
-        coveredCityIds: ['itaperuna-rj', 'campos-rj'],
+        coveredCityIds: ["itaperuna-rj", "campos-rj"],
         ratingScore: 4.94,
         totalCompletedDeliveries: 12850,
-        isActive: true
+        isActive: true,
       },
       {
-        carrierId: 'CARRIER-FROTA-03',
-        carrierName: 'Logística Regional Costa do Sol',
-        carrierType: 'OPERADOR_FROTA_REGIONAL',
+        carrierId: "CARRIER-FROTA-03",
+        carrierName: "Logística Regional Costa do Sol",
+        carrierType: "OPERADOR_FROTA_REGIONAL",
         availableCapacityKg: 5000,
-        coveredCityIds: ['macae-rj', 'cabo-frio-rj', 'campos-rj'],
+        coveredCityIds: ["macae-rj", "cabo-frio-rj", "campos-rj"],
         ratingScore: 4.78,
         totalCompletedDeliveries: 2310,
-        isActive: true
-      }
+        isActive: true,
+      },
     ];
 
-    defaultCarriers.forEach(c => this.registerCarrier(c));
+    defaultCarriers.forEach((c) => this.registerCarrier(c));
   }
 
   public registerCarrier(carrier: LogisticsCarrier): void {
@@ -148,35 +145,37 @@ export class LogisticsMarketplace {
     let estimatedHours = Math.max(1, Math.round(request.distanceKm / 45));
 
     switch (request.serviceLevel) {
-      case 'URBANO_FLASH_60M':
+      case "URBANO_FLASH_60M":
         baseRate = 12.0;
-        ratePerKm = 1.20;
+        ratePerKm = 1.2;
         urgencyMultiplier = 1.45;
         estimatedHours = 1.0;
         break;
-      case 'SAME_DAY_REGIONAL':
+      case "SAME_DAY_REGIONAL":
         baseRate = 25.0;
         ratePerKm = 0.65;
-        urgencyMultiplier = 1.20;
+        urgencyMultiplier = 1.2;
         estimatedHours = Math.min(6, Math.max(2, Math.round(request.distanceKm / 40)));
         break;
-      case 'TRANSFERENCIA_INTERMUNICIPAL':
+      case "TRANSFERENCIA_INTERMUNICIPAL":
         baseRate = 35.0;
         ratePerKm = 0.45;
         urgencyMultiplier = 1.0;
         estimatedHours = Math.max(3, Math.round(request.distanceKm / 50));
         break;
-      case 'CROSS_DOCKING_HUB':
+      case "CROSS_DOCKING_HUB":
         baseRate = 20.0;
         ratePerKm = 0.38;
-        urgencyMultiplier = 0.90; // Ganho de escala do hub
+        urgencyMultiplier = 0.9; // Ganho de escala do hub
         estimatedHours = Math.max(4, Math.round(request.distanceKm / 45) + 2); // +2h de triagem
         break;
     }
 
-    const weightSurcharge = request.weightKg > 5 ? Number(((request.weightKg - 5) * 1.35).toFixed(2)) : 0;
-    const insuranceFee = Number((Math.max(1.50, request.declaredValueBrl * 0.003)).toFixed(2));
-    const subtotal = (baseRate + (request.distanceKm * ratePerKm) + weightSurcharge) * urgencyMultiplier;
+    const weightSurcharge =
+      request.weightKg > 5 ? Number(((request.weightKg - 5) * 1.35).toFixed(2)) : 0;
+    const insuranceFee = Number(Math.max(1.5, request.declaredValueBrl * 0.003).toFixed(2));
+    const subtotal =
+      (baseRate + request.distanceKm * ratePerKm + weightSurcharge) * urgencyMultiplier;
     const finalPrice = Number((subtotal + insuranceFee).toFixed(2));
     const carrierPayout = Number((finalPrice * 0.95).toFixed(2)); // 95% para transportador (take-rate 5%)
     const platformTakeRate = Number((finalPrice - carrierPayout).toFixed(2));
@@ -195,21 +194,30 @@ export class LogisticsMarketplace {
       finalFreightPriceBrl: finalPrice,
       carrierPayoutBrl: carrierPayout,
       platformTakeRateBrl: platformTakeRate,
-      validUntil: Date.now() + 30 * 60 * 1000 // Válido por 30 min
+      validUntil: Date.now() + 30 * 60 * 1000, // Válido por 30 min
     };
   }
 
   /**
    * Confirma e cria uma ordem de frete a partir de cotação aprovada
    */
-  public createFreightOrder(quote: FreightQuoteResult, senderId: string, originCity: string, destinationCity: string, weightKg: number, volumeLiters: number): ActiveFreightOrder {
+  public createFreightOrder(
+    quote: FreightQuoteResult,
+    senderId: string,
+    originCity: string,
+    destinationCity: string,
+    weightKg: number,
+    volumeLiters: number,
+  ): ActiveFreightOrder {
     const orderId = `ORD-LOG-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
     // Alocação automática do melhor transportador compatível
-    const eligibleCarriers = Array.from(this.carriers.values()).filter(c =>
-      c.isActive &&
-      c.availableCapacityKg >= weightKg &&
-      (c.coveredCityIds.includes(originCity.toLowerCase()) || c.coveredCityIds.includes(destinationCity.toLowerCase()))
+    const eligibleCarriers = Array.from(this.carriers.values()).filter(
+      (c) =>
+        c.isActive &&
+        c.availableCapacityKg >= weightKg &&
+        (c.coveredCityIds.includes(originCity.toLowerCase()) ||
+          c.coveredCityIds.includes(destinationCity.toLowerCase())),
     );
 
     let assignedCarrierId: string | undefined = undefined;
@@ -233,8 +241,8 @@ export class LogisticsMarketplace {
       finalFreightPriceBrl: quote.finalFreightPriceBrl,
       assignedCarrierId,
       carrierName,
-      status: assignedCarrierId ? 'ALOCADO' : 'SOLICITADO',
-      createdTimestamp: Date.now()
+      status: assignedCarrierId ? "ALOCADO" : "SOLICITADO",
+      createdTimestamp: Date.now(),
     };
 
     this.activeOrders.set(orderId, order);
@@ -255,7 +263,9 @@ export class LogisticsMarketplace {
   public getMarketplaceStats(): LogisticsMarketplaceStats {
     const orders = Array.from(this.activeOrders.values());
     const totalOrdersCount = orders.length;
-    const totalGmvFretesBrl = Number(orders.reduce((sum, o) => sum + o.finalFreightPriceBrl, 0).toFixed(2));
+    const totalGmvFretesBrl = Number(
+      orders.reduce((sum, o) => sum + o.finalFreightPriceBrl, 0).toFixed(2),
+    );
     const totalCarrierPayoutBrl = Number((totalGmvFretesBrl * 0.85).toFixed(2));
     const totalPlatformRevenueBrl = Number((totalGmvFretesBrl - totalCarrierPayoutBrl).toFixed(2));
     const totalWeightDeliveredKg = orders.reduce((sum, o) => sum + o.weightKg, 0);
@@ -266,8 +276,8 @@ export class LogisticsMarketplace {
       totalCarrierPayoutBrl,
       totalPlatformRevenueBrl,
       totalWeightDeliveredKg,
-      activeCarriersCount: Array.from(this.carriers.values()).filter(c => c.isActive).length,
-      averageOnTimeDeliveryRatePct: 98.4
+      activeCarriersCount: Array.from(this.carriers.values()).filter((c) => c.isActive).length,
+      averageOnTimeDeliveryRatePct: 98.4,
     };
   }
 }

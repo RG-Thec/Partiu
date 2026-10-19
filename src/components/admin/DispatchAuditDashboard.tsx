@@ -31,11 +31,14 @@ import {
 } from "lucide-react";
 import { matchingEngine, type CandidateDriverProfile } from "@/services/MatchingEngine";
 import { dispatchQueueBuilder, type DispatchSession } from "@/services/DispatchQueueBuilder";
-import { realtimeConnectionManager, type ConnectionMetrics } from "@/services/RealtimeConnectionManager";
+import {
+  realtimeConnectionManager,
+  type ConnectionMetrics,
+} from "@/services/RealtimeConnectionManager";
 
 export function DispatchAuditDashboard() {
   const [metrics, setMetrics] = useState<ConnectionMetrics>(() =>
-    realtimeConnectionManager.getMetrics()
+    realtimeConnectionManager.getMetrics(),
   );
   const [activeSession, setActiveSession] = useState<DispatchSession | null>(null);
   const [testLog, setTestLog] = useState<string[]>([]);
@@ -52,7 +55,9 @@ export function DispatchAuditDashboard() {
   useEffect(() => {
     return dispatchQueueBuilder.onDispatchEvent((session) => {
       setActiveSession(session);
-      addLog(`Sessão #${session.rideId.slice(0, 6)}: status ${session.status} (Motorista ${session.currentIndex + 1}/${session.candidates.length})`);
+      addLog(
+        `Sessão #${session.rideId.slice(0, 6)}: status ${session.status} (Motorista ${session.currentIndex + 1}/${session.candidates.length})`,
+      );
     });
   }, []);
 
@@ -78,7 +83,9 @@ export function DispatchAuditDashboard() {
       });
 
       const latency = Date.now() - start;
-      addLog(`Matching executado em ${latency}ms com ${session.candidates.length} candidatos no ranking.`);
+      addLog(
+        `Matching executado em ${latency}ms com ${session.candidates.length} candidatos no ranking.`,
+      );
     } catch (err: any) {
       addLog(`Erro na simulação: ${err.message}`);
     } finally {
@@ -161,8 +168,8 @@ export function DispatchAuditDashboard() {
                 metrics.state === "CONNECTED"
                   ? "bg-emerald-400"
                   : metrics.state === "RECONNECTING"
-                  ? "bg-primary-600 animate-pulse"
-                  : "bg-rose-500"
+                    ? "bg-primary-600 animate-pulse"
+                    : "bg-rose-500"
               }`}
             />
             {metrics.state}
@@ -245,7 +252,11 @@ export function DispatchAuditDashboard() {
                   return (
                     <tr
                       key={c.driverId}
-                      className={isCurrent ? "bg-primary-600/10 text-primary-500 font-bold" : "text-slate-300"}
+                      className={
+                        isCurrent
+                          ? "bg-primary-600/10 text-primary-500 font-bold"
+                          : "text-slate-300"
+                      }
                     >
                       <td className="py-2">#{idx + 1}</td>
                       <td className="py-2">{c.driverName || c.name}</td>

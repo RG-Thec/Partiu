@@ -47,7 +47,7 @@ export function formatarDataHora(
   input: Date | string | number,
   options?: Intl.DateTimeFormatOptions,
   customTimezone?: string,
-  locale = "pt-BR"
+  locale = "pt-BR",
 ): string {
   try {
     const date = toSafeDate(input);
@@ -74,14 +74,9 @@ export function formatarDataHora(
 export function formatarHoraMinuto(
   input: Date | string | number,
   customTimezone?: string,
-  locale = "pt-BR"
+  locale = "pt-BR",
 ): string {
-  return formatarDataHora(
-    input,
-    { hour: "2-digit", minute: "2-digit" },
-    customTimezone,
-    locale
-  );
+  return formatarDataHora(input, { hour: "2-digit", minute: "2-digit" }, customTimezone, locale);
 }
 
 /**
@@ -90,24 +85,20 @@ export function formatarHoraMinuto(
 export function formatarDataCurta(
   input: Date | string | number,
   customTimezone?: string,
-  locale = "pt-BR"
+  locale = "pt-BR",
 ): string {
   return formatarDataHora(
     input,
     { day: "2-digit", month: "2-digit", year: "numeric" },
     customTimezone,
-    locale
+    locale,
   );
 }
 
 /**
  * Formatação de moeda universal e configurável por tenant (BRL, USD, EUR, etc.)
  */
-export function formatarMoeda(
-  valor: number,
-  moedaCodigo = "BRL",
-  locale = "pt-BR"
-): string {
+export function formatarMoeda(valor: number, moedaCodigo = "BRL", locale = "pt-BR"): string {
   try {
     return new Intl.NumberFormat(locale, {
       style: "currency",

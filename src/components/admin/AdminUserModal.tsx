@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { X, ShieldCheck, Building2, User, Mail, Lock, CheckCircle2, AlertTriangle } from "lucide-react";
+import {
+  X,
+  ShieldCheck,
+  Building2,
+  User,
+  Mail,
+  Lock,
+  CheckCircle2,
+  AlertTriangle,
+} from "lucide-react";
 import type { AdminRole } from "@/lib/admin-rbac";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 
@@ -33,7 +42,9 @@ export function AdminUserModal({
   const [email, setEmail] = useState(initialUser?.email || "");
   const [senha, setSenha] = useState("");
   const [role, setRole] = useState<AdminRole>(initialUser?.role || "FRANQUEADO");
-  const [tenantId, setTenantId] = useState<string>(initialUser?.tenant_id || pracasDisponiveis[0]?.id || "");
+  const [tenantId, setTenantId] = useState<string>(
+    initialUser?.tenant_id || pracasDisponiveis[0]?.id || "",
+  );
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -65,7 +76,9 @@ export function AdminUserModal({
         email: email.trim().toLowerCase(),
         role,
         tenant_id: isSuper ? null : tenantId,
-        praca_nome: isSuper ? "Acesso Global (Todos os Tenants)" : pracaSelecionada?.nome || "Regional",
+        praca_nome: isSuper
+          ? "Acesso Global (Todos os Tenants)"
+          : pracaSelecionada?.nome || "Regional",
         ativo: true,
         created_at: initialUser?.created_at || new Date().toISOString(),
       };
@@ -220,7 +233,8 @@ export function AdminUserModal({
                 </select>
               </div>
               <p className="text-[11px] text-slate-400 leading-relaxed">
-                🔒 <strong>Isolamento RLS:</strong> O Franqueado terá acesso restrito exclusivamente aos motoristas, corridas e faturamento desta praça.
+                🔒 <strong>Isolamento RLS:</strong> O Franqueado terá acesso restrito exclusivamente
+                aos motoristas, corridas e faturamento desta praça.
               </p>
             </div>
           ) : (
@@ -230,7 +244,8 @@ export function AdminUserModal({
                 <span>Acesso Global Holding / Matriz</span>
               </div>
               <p className="text-[11px] text-slate-400 leading-relaxed">
-                🌐 O Super Administrador possui visibilidade total de todos os tenants, configurações avançadas do sistema, finops consolidado e catálogos globais.
+                🌐 O Super Administrador possui visibilidade total de todos os tenants,
+                configurações avançadas do sistema, finops consolidado e catálogos globais.
               </p>
             </div>
           )}

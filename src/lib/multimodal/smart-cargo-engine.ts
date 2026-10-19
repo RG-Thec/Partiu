@@ -1,10 +1,10 @@
 /**
  * PARTIU SMART CARGO ENGINE
- * 
+ *
  * Motor de Monetização de Capacidade Ociosa Física de Veículos.
  * Transforma porta-malas vazios de carros particulares, bagageiros de vans e
  * micro-ônibus em malha de entrega expressa colaborativa (Crowd-shipping).
- * 
+ *
  * Responsável por:
  * - Identificação de volume livre (litros / m³) e peso disponível (kg)
  * - Alocação de encomendas leves e fracionadas em viagens pré-existentes
@@ -44,7 +44,7 @@ export interface CargoPackageItem {
   pickupAddress: string;
   deliveryAddress: string;
   dimensions: CargoDimensions;
-  category: 'DOCUMENTO' | 'ELETRONICO' | 'VESTUARIO' | 'ALIMENTO_SECO' | 'PECA_AUTOMOTIVA';
+  category: "DOCUMENTO" | "ELETRONICO" | "VESTUARIO" | "ALIMENTO_SECO" | "PECA_AUTOMOTIVA";
   isFragile: boolean;
   declaredValueBrl: number;
 }
@@ -61,7 +61,7 @@ export interface CargoMatchAllocation {
   driverEarningsBrl: number;
   platformFeeBrl: number;
   co2SavedGrams: number;
-  status: 'PENDENTE_CONFIRMACAO' | 'ACEITO' | 'COLETADO' | 'EM_TRANSITO' | 'ENTREGUE';
+  status: "PENDENTE_CONFIRMACAO" | "ACEITO" | "COLETADO" | "EM_TRANSITO" | "ENTREGUE";
   timestamp: number;
 }
 
@@ -106,13 +106,16 @@ export class SmartCargoEngine {
     cargo: CargoPackageItem,
     originCity: string,
     destinationCity: string,
-    distanceKm: number
+    distanceKm: number,
   ): CargoMatchAllocation | null {
     const packageVolumeLiters = this.calculateVolumeLiters(cargo.dimensions);
-    const effectiveWeightKg = Math.max(cargo.dimensions.weightKg, this.calculateCubedWeightKg(cargo.dimensions));
+    const effectiveWeightKg = Math.max(
+      cargo.dimensions.weightKg,
+      this.calculateCubedWeightKg(cargo.dimensions),
+    );
 
     // Filtra veículos com rota compatível e capacidade livre
-    const eligibleTrunks = Array.from(this.registeredTrunkSpaces.values()).filter(trunk => {
+    const eligibleTrunks = Array.from(this.registeredTrunkSpaces.values()).filter((trunk) => {
       const routeMatch =
         trunk.currentRouteOrigin.toLowerCase().includes(originCity.toLowerCase()) &&
         trunk.currentRouteDestination.toLowerCase().includes(destinationCity.toLowerCase());
@@ -133,7 +136,7 @@ export class SmartCargoEngine {
 
     // Cálculo dinâmico do frete colaborativo:
     // Base R$ 12,00 + R$ 0.40/km + R$ 1.50/kg efetivo
-    const freightPriceBrl = Number((12.0 + (distanceKm * 0.40) + (effectiveWeightKg * 1.50)).toFixed(2));
+    const freightPriceBrl = Number((12.0 + distanceKm * 0.4 + effectiveWeightKg * 1.5).toFixed(2));
     const driverEarningsBrl = Number((freightPriceBrl * 0.85).toFixed(2)); // 85% para o motorista
     const platformFeeBrl = Number((freightPriceBrl - driverEarningsBrl).toFixed(2));
 
@@ -143,8 +146,12 @@ export class SmartCargoEngine {
     const matchId = `SC-MATCH-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
     // Atualiza capacidade disponível do veículo
-    selectedTrunk.availableVolumeLiters = Number((selectedTrunk.availableVolumeLiters - packageVolumeLiters).toFixed(2));
-    selectedTrunk.availableWeightKg = Number((selectedTrunk.availableWeightKg - effectiveWeightKg).toFixed(2));
+    selectedTrunk.availableVolumeLiters = Number(
+      (selectedTrunk.availableVolumeLiters - packageVolumeLiters).toFixed(2),
+    );
+    selectedTrunk.availableWeightKg = Number(
+      (selectedTrunk.availableWeightKg - effectiveWeightKg).toFixed(2),
+    );
 
     const allocation: CargoMatchAllocation = {
       matchId,
@@ -158,8 +165,8 @@ export class SmartCargoEngine {
       driverEarningsBrl,
       platformFeeBrl,
       co2SavedGrams,
-      status: 'ACEITO',
-      timestamp: Date.now()
+      status: "ACEITO",
+      timestamp: Date.now(),
     };
 
     this.activeCargoMatches.set(matchId, allocation);

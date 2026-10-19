@@ -68,7 +68,7 @@ export function AdminCaixaPage() {
         cooperativa: acc.cooperativa + Number(c.valor_cooperativa),
         motoristas: acc.motoristas + Number(c.valor_liquido_motorista || c.total_bruto),
       }),
-      { bruto: 0, cooperativa: 0, motoristas: 0 }
+      { bruto: 0, cooperativa: 0, motoristas: 0 },
     );
   }, [caixas]);
 
@@ -85,7 +85,7 @@ export function AdminCaixaPage() {
 
   const pendentesLiquidacao = useMemo(
     () => caixas.filter((c) => c.status === "aberto" || c.status === "fechado").length,
-    [caixas]
+    [caixas],
   );
 
   async function handleSalvarFechamento(e: React.FormEvent) {
@@ -254,7 +254,14 @@ export function AdminCaixaPage() {
                 onClick={() => {
                   exportarParaCSV(
                     "fechamento_caixa_partiu",
-                    ["Data", "Motorista ID", "Total Bruto", "Taxa Plataforma", "Repasse Liquido", "Status"],
+                    [
+                      "Data",
+                      "Motorista ID",
+                      "Total Bruto",
+                      "Taxa Plataforma",
+                      "Repasse Liquido",
+                      "Status",
+                    ],
                     caixasFiltrados.map((c) => [
                       c.data_referencia,
                       c.motorista_id,
@@ -262,7 +269,7 @@ export function AdminCaixaPage() {
                       c.valor_cooperativa,
                       c.valor_liquido_motorista || c.total_bruto,
                       c.status,
-                    ])
+                    ]),
                   );
                 }}
               >
@@ -355,10 +362,10 @@ export function AdminCaixaPage() {
                 {st === "TODOS"
                   ? "Todos"
                   : st === "aberto"
-                  ? "Em Aberto"
-                  : st === "fechado"
-                  ? "Conciliados"
-                  : "Liquidados"}
+                    ? "Em Aberto"
+                    : st === "fechado"
+                      ? "Conciliados"
+                      : "Liquidados"}
               </button>
             ))}
           </div>

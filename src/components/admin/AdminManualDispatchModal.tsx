@@ -36,11 +36,15 @@ export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> =
   const [telefone, setTelefone] = useState("");
   const [origem, setOrigem] = useState("");
   const [destino, setDestino] = useState("");
-  const [modalidade, setModalidade] = useState<"POP" | "MOTO" | "PLUS" | "MULHER" | "ENTREGA">("POP");
+  const [modalidade, setModalidade] = useState<"POP" | "MOTO" | "PLUS" | "MULHER" | "ENTREGA">(
+    "POP",
+  );
   const [valorSugerido, setValorSugerido] = useState<string>("16.50");
   const [tipoDespacho, setTipoDespacho] = useState<"RADAR" | "DIRETO">("RADAR");
   const [motoristaId, setMotoristaId] = useState<string>("");
-  const [motoristasOnline, setMotoristasOnline] = useState<{ id: string; nome: string; veiculo: string; placa: string }[]>([]);
+  const [motoristasOnline, setMotoristasOnline] = useState<
+    { id: string; nome: string; veiculo: string; placa: string }[]
+  >([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sucesso, setSucesso] = useState<{ id: string; pin: string } | null>(null);
 
@@ -90,7 +94,7 @@ export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> =
                 nome: m.nome_completo || "Motorista Parceiro",
                 veiculo: m.veiculo_modelo || "Veículo Cadastrado",
                 placa: m.veiculo_placa || "---",
-              }))
+              })),
             );
             if (data[0]) setMotoristaId((data[0] as any).id);
           }
@@ -153,18 +157,24 @@ export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> =
         modalidade === "ENTREGA"
           ? "ENTREGA_FLASH"
           : modalidade === "MOTO"
-          ? "CORRIDA_MOTO"
-          : modalidade === "PLUS"
-          ? "CORRIDA_PLUS"
-          : modalidade === "MULHER"
-          ? "CORRIDA_MULHER"
-          : "CORRIDA_POP",
+            ? "CORRIDA_MOTO"
+            : modalidade === "PLUS"
+              ? "CORRIDA_PLUS"
+              : modalidade === "MULHER"
+                ? "CORRIDA_MULHER"
+                : "CORRIDA_POP",
       passageiro: passageiroNome,
       telefone,
       origem,
       destino,
-      motorista: tipoDespacho === "DIRETO" && motoristaSelecionado ? motoristaSelecionado.nome : "Disparando Radar...",
-      veiculo: tipoDespacho === "DIRETO" && motoristaSelecionado ? motoristaSelecionado.veiculo : "Aguardando aceite",
+      motorista:
+        tipoDespacho === "DIRETO" && motoristaSelecionado
+          ? motoristaSelecionado.nome
+          : "Disparando Radar...",
+      veiculo:
+        tipoDespacho === "DIRETO" && motoristaSelecionado
+          ? motoristaSelecionado.veiculo
+          : "Aguardando aceite",
       placa: tipoDespacho === "DIRETO" && motoristaSelecionado ? motoristaSelecionado.placa : "---",
       valor: parseFloat(valorSugerido) || 16.5,
       pin,
@@ -199,7 +209,7 @@ export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> =
       window.dispatchEvent(
         new CustomEvent("partiu:corrida-atualizada", {
           detail: novoDespacho,
-        })
+        }),
       );
     }
 
@@ -237,7 +247,8 @@ export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> =
                 Novo Chamado Manual (Central &amp; WhatsApp)
               </h2>
               <span className="text-[11px] text-slate-500 font-medium">
-                Atendimento telefônico • {cidadePadrao ? `Praça: ${cidadePadrao}` : "Despacho imediato de frota"}
+                Atendimento telefônico •{" "}
+                {cidadePadrao ? `Praça: ${cidadePadrao}` : "Despacho imediato de frota"}
               </span>
             </div>
           </div>
@@ -258,10 +269,13 @@ export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> =
               <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
               <h3 className="text-lg font-black text-slate-950">Chamado Despachado com Sucesso!</h3>
               <p className="text-xs text-slate-600">
-                O chamado foi enfileirado na central. Informe o PIN de segurança para o passageiro por telefone/WhatsApp:
+                O chamado foi enfileirado na central. Informe o PIN de segurança para o passageiro
+                por telefone/WhatsApp:
               </p>
               <div className="p-3 bg-white rounded-xl border border-emerald-300 inline-block px-6">
-                <span className="text-[11px] text-slate-400 font-bold uppercase block">PIN de Embarque</span>
+                <span className="text-[11px] text-slate-400 font-bold uppercase block">
+                  PIN de Embarque
+                </span>
                 <span className="text-3xl font-mono font-black text-emerald-700 tracking-widest">
                   {sucesso.pin}
                 </span>
@@ -345,7 +359,9 @@ export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> =
               {/* Modalidade e Tarifa */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-600">Categoria do Veículo</label>
+                  <label className="text-[11px] font-bold text-slate-600">
+                    Categoria do Veículo
+                  </label>
                   <select
                     value={modalidade}
                     onChange={(e) => setModalidade(e.target.value as any)}
@@ -393,7 +409,9 @@ export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> =
 
               {/* Modo de Alocação de Frota */}
               <div className="space-y-2 p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80">
-                <label className="text-[11px] font-bold text-slate-700 block">Tipo de Alocação de Motorista</label>
+                <label className="text-[11px] font-bold text-slate-700 block">
+                  Tipo de Alocação de Motorista
+                </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
@@ -450,7 +468,9 @@ export const AdminManualDispatchModal: React.FC<AdminManualDispatchModalProps> =
                 className="w-full h-14 rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-xl transition active:scale-98 cursor-pointer disabled:opacity-50"
               >
                 <Send className="w-4 h-4" />
-                <span>{isSubmitting ? "Despachando Chamado..." : "DESPACHAR CHAMADO IMEDIATAMENTE"}</span>
+                <span>
+                  {isSubmitting ? "Despachando Chamado..." : "DESPACHAR CHAMADO IMEDIATAMENTE"}
+                </span>
               </button>
             </form>
           )}

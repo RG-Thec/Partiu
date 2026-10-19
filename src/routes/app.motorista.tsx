@@ -103,7 +103,10 @@ import { ChatBottomSheet } from "@/components/chat/ChatBottomSheet";
 import { DriverDestinationModal } from "@/components/driver/DriverDestinationModal";
 import { VirtualTaximeterModal } from "@/components/driver/VirtualTaximeterModal";
 import { DriverWelcomeGate } from "@/components/driver/DriverWelcomeGate";
-import { driverDestinationModeService, type DriverDestination } from "@/services/DriverDestinationModeService";
+import {
+  driverDestinationModeService,
+  type DriverDestination,
+} from "@/services/DriverDestinationModeService";
 import { h3DispatchEngine, geofenceArrivalService } from "@/lib/spatial";
 import { computePixCrc16 } from "@/services/payment/PaymentProviderAdapter";
 import { chatRealtimeService } from "@/services/ChatRealtimeService";
@@ -161,14 +164,14 @@ export function extrairOfertaDeCorrida(c: CorridaPartiu, nomeApp: string = "PART
   const tipo: "CARRO" | "MOTO" | "ENTREGA" = isEntrega
     ? "ENTREGA"
     : c.modalidade === "MOTO"
-    ? "MOTO"
-    : "CARRO";
+      ? "MOTO"
+      : "CARRO";
 
   const titulo = isEntrega
     ? `${nomeApp} Flash • ${c.descricaoPacote || "Entrega Urbana"}`
     : c.modalidade === "MOTO"
-    ? `${nomeApp} Moto • Corrida Ágil`
-    : `${nomeApp} Pop • Corrida Urbana`;
+      ? `${nomeApp} Moto • Corrida Ágil`
+      : `${nomeApp} Pop • Corrida Urbana`;
 
   const sess = isEntrega ? getActiveDeliverySession() : null;
 
@@ -179,8 +182,8 @@ export function extrairOfertaDeCorrida(c: CorridaPartiu, nomeApp: string = "PART
     passageiro: isEntrega
       ? `${c.passageiroNome} ➔ ${c.destinatarioNome || "Destinatário"}`
       : c.isForOtherPerson
-      ? `${c.otherPersonName || c.passageiroNome} (Pedido por ${c.solicitanteNome || "Passageiro"})`
-      : c.passageiroNome,
+        ? `${c.otherPersonName || c.passageiroNome} (Pedido por ${c.solicitanteNome || "Passageiro"})`
+        : c.passageiroNome,
     origem: c.origem,
     destino: c.destino,
     distanciaKm: c.distanciaKm,
@@ -219,20 +222,24 @@ export function extrairOfertaDeCorrida(c: CorridaPartiu, nomeApp: string = "PART
 }
 
 export function extrairOfertaDeRideSupabase(r: any, nomeApp: string = "PARTIU") {
-  const isEntrega = Boolean(r.is_delivery || r.isEntrega || (r.modalidade && r.modalidade.startsWith("ENTREGA")));
+  const isEntrega = Boolean(
+    r.is_delivery || r.isEntrega || (r.modalidade && r.modalidade.startsWith("ENTREGA")),
+  );
   const tipo: "CARRO" | "MOTO" | "ENTREGA" = isEntrega
     ? "ENTREGA"
     : r.modalidade === "MOTO"
-    ? "MOTO"
-    : "CARRO";
+      ? "MOTO"
+      : "CARRO";
 
   const titulo = isEntrega
     ? `${nomeApp} Flash • ${r.package_description || r.descricaoPacote || "Entrega Urbana"}`
     : r.modalidade === "MOTO"
-    ? `${nomeApp} Moto • Corrida Ágil`
-    : `${nomeApp} Pop • Corrida Urbana`;
+      ? `${nomeApp} Moto • Corrida Ágil`
+      : `${nomeApp} Pop • Corrida Urbana`;
 
-  const valorLiquido = Number(r.driver_earnings || r.valorLiquido || (r.price ? r.price * 0.9 : r.valor || 15));
+  const valorLiquido = Number(
+    r.driver_earnings || r.valorLiquido || (r.price ? r.price * 0.9 : r.valor || 15),
+  );
   const valorBruto = Number(r.price || r.valor || r.grossFare || valorLiquido);
 
   return {
@@ -248,7 +255,8 @@ export function extrairOfertaDeRideSupabase(r: any, nomeApp: string = "PARTIU") 
     valorLiquido,
     valorBruto,
     taxaPartiu: Math.max(0, valorBruto - valorLiquido),
-    comissaoPercentual: valorBruto > 0 ? Math.round(((valorBruto - valorLiquido) / valorBruto) * 100) : 0,
+    comissaoPercentual:
+      valorBruto > 0 ? Math.round(((valorBruto - valorLiquido) / valorBruto) * 100) : 0,
     planoNome: "Diária SaaS (0% Comissão)",
     economiaVsUber: Math.round(valorBruto * 0.2 * 100) / 100,
     contribuicaoProtecao: 0,
@@ -271,8 +279,14 @@ export function extrairOfertaDeRideSupabase(r: any, nomeApp: string = "PARTIU") 
     descricaoPacote: r.package_description || r.descricaoPacote,
     pickupOtp: r.pickup_otp || r.pin,
     deliveryOtp: r.delivery_otp || r.pin,
-    origemCoords: (r.origin_lat && r.origin_lng) ? { lat: Number(r.origin_lat), lng: Number(r.origin_lng) } : r.origemCoords,
-    destinoCoords: (r.destination_lat && r.destination_lng) ? { lat: Number(r.destination_lat), lng: Number(r.destination_lng) } : r.destinoCoords,
+    origemCoords:
+      r.origin_lat && r.origin_lng
+        ? { lat: Number(r.origin_lat), lng: Number(r.origin_lng) }
+        : r.origemCoords,
+    destinoCoords:
+      r.destination_lat && r.destination_lng
+        ? { lat: Number(r.destination_lat), lng: Number(r.destination_lng) }
+        : r.destinoCoords,
     descontoCupom: Number(r.coupon_discount || r.descontoCupom || 0),
     codigoCupom: r.coupon_code || r.codigoCupom,
     valorOriginal: Number(r.original_fare || r.valorOriginal || valorBruto),
@@ -280,9 +294,10 @@ export function extrairOfertaDeRideSupabase(r: any, nomeApp: string = "PARTIU") 
 }
 
 export function PartiuDriverCockpitGuarded() {
-  const activeUser = typeof window !== "undefined" 
-    ? (supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null) 
-    : null;
+  const activeUser =
+    typeof window !== "undefined"
+      ? supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null
+      : null;
   const isRegisteredDriver = activeUser?.role === "MOTORISTA";
 
   if (!isRegisteredDriver) {
@@ -338,8 +353,15 @@ export function PartiuDriverCockpit() {
   const accentColor = branding?.accent_color || corSecundaria || "#FFB800";
   const brandGradient = `linear-gradient(135deg, var(--header-gradient-start, ${corCabecalhoInicio}) 0%, var(--header-gradient-end, ${corCabecalhoFim}) 100%)`;
 
-  const activeUser = typeof window !== "undefined" ? (supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null) : null;
-  const effectiveDriverId = activeUser?.id || (typeof window !== "undefined" ? localStorage.getItem("partiu_motorista_ativo") || "driver-active" : "driver-active");
+  const activeUser =
+    typeof window !== "undefined"
+      ? supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null
+      : null;
+  const effectiveDriverId =
+    activeUser?.id ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("partiu_motorista_ativo") || "driver-active"
+      : "driver-active");
 
   // Status de Moderação Documental (Supabase Profiles & Realtime)
   const [driverApprovalStatus, setDriverApprovalStatus] = useState<string>(() => {
@@ -373,7 +395,7 @@ export function PartiuDriverCockpit() {
               supabaseAuthService.saveStoredSession(current);
             }
           }
-        }
+        },
       )
       .subscribe();
 
@@ -437,7 +459,7 @@ export function PartiuDriverCockpit() {
       veiculoPlaca: (activeUser as any)?.vehiclePlate || "",
       veiculoCor: (activeUser as any)?.vehicleColor || "",
       modalidade: ((activeUser as any)?.vehicleType === "MOTO" ? "MOTO" : "CARRO") as any,
-      categoria: ((activeUser as any)?.vehicleType === "MOTO" ? "MOTO" : "CARRO"),
+      categoria: (activeUser as any)?.vehicleType === "MOTO" ? "MOTO" : "CARRO",
       avaliacao: 5.0,
       avaliacaoMedia: 5.0,
       rating: 5.0,
@@ -515,7 +537,7 @@ export function PartiuDriverCockpit() {
       (list) => {
         const unread = list.filter((n) => !n.isRead).length;
         setUnreadNotificationsCount(unread);
-      }
+      },
     );
 
     // Tenta registrar push notification se o usuário já tiver concedido permissão
@@ -558,7 +580,7 @@ export function PartiuDriverCockpit() {
   // Monitoramento contínuo da diária / assinatura SaaS e renovação 1-toque
   const dailyPass = useDriverDailyPass(
     perfilMotorista.id,
-    perfilMotorista.categoria === "MOTO" ? "MOTO" : "CARRO"
+    perfilMotorista.categoria === "MOTO" ? "MOTO" : "CARRO",
   );
   const diariaCountdownTexto = dailyPass.diariaCountdownTexto;
 
@@ -566,10 +588,15 @@ export function PartiuDriverCockpit() {
   const [ganhosHoje, setGanhosHoje] = useState(() => getGanhosHojeMotorista());
   const [corridasFeitas, setCorridasFeitas] = useState(() => {
     try {
-      const historico = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("partiu_historico_corridas") || "[]") : [];
+      const historico =
+        typeof window !== "undefined"
+          ? JSON.parse(localStorage.getItem("partiu_historico_corridas") || "[]")
+          : [];
       const hoje = new Date().toDateString();
       return Array.isArray(historico)
-        ? historico.filter((c: any) => c.status === "CONCLUIDA" && new Date(c.criadoEm).toDateString() === hoje).length
+        ? historico.filter(
+            (c: any) => c.status === "CONCLUIDA" && new Date(c.criadoEm).toDateString() === hoje,
+          ).length
         : 0;
     } catch {
       return 0;
@@ -592,7 +619,9 @@ export function PartiuDriverCockpit() {
   });
 
   // Corrida ativa sincronizada
-  const [corridaSincronizada, setCorridaSincronizada] = useState<CorridaPartiu | null>(() => getCorridaAtiva());
+  const [corridaSincronizada, setCorridaSincronizada] = useState<CorridaPartiu | null>(() =>
+    getCorridaAtiva(),
+  );
 
   // Inicia ou pausa transmissão inteligente de localização conforme disponibilidade
   useEffect(() => {
@@ -619,13 +648,13 @@ export function PartiuDriverCockpit() {
 
   // Assinatura, Carteira e Receita (Fase 19)
   const [subscription, setSubscription] = useState<DriverSubscription>(() =>
-    subscriptionEngine.getDriverSubscription(perfilMotorista.id)
+    subscriptionEngine.getDriverSubscription(perfilMotorista.id),
   );
   const [driverPlan, setDriverPlan] = useState<DriverPlan | undefined>(() =>
-    subscriptionEngine.getPlanById(subscription.planId)
+    subscriptionEngine.getPlanById(subscription.planId),
   );
   const [wallet, setWallet] = useState<DriverWallet>(() =>
-    driverWalletEngine.getWallet(perfilMotorista.id)
+    driverWalletEngine.getWallet(perfilMotorista.id),
   );
   const [modalPlanosAberto, setModalPlanosAberto] = useState(false);
   const [modalEconomiaAberto, setModalEconomiaAberto] = useState(false);
@@ -643,7 +672,7 @@ export function PartiuDriverCockpit() {
   } | null>(null);
   const [modalAssinaturaSaasAberto, setModalAssinaturaSaasAberto] = useState(false);
   const [destinoAtivo, setDestinoAtivo] = useState<DriverDestination | null>(() =>
-    driverDestinationModeService.getActiveDestination(perfilMotorista.id)
+    driverDestinationModeService.getActiveDestination(perfilMotorista.id),
   );
 
   // Oferta Ativa no Trip Radar com Transparência de Taxa (Auditoria 4)
@@ -678,7 +707,13 @@ export function PartiuDriverCockpit() {
     deliveryOtp?: string | undefined;
   } | null>(() => {
     const c = getCorridaAtiva();
-    if (c && (c.status === "A_CAMINHO" || c.status === "CHEGOU" || c.status === "EM_VIAGEM" || c.status === "PROCURANDO")) {
+    if (
+      c &&
+      (c.status === "A_CAMINHO" ||
+        c.status === "CHEGOU" ||
+        c.status === "EM_VIAGEM" ||
+        c.status === "PROCURANDO")
+    ) {
       return extrairOfertaDeCorrida(c, "PARTIU");
     }
     return null;
@@ -706,7 +741,7 @@ export function PartiuDriverCockpit() {
       },
       (count) => {
         setDriverUnreadCount(count);
-      }
+      },
     );
     return cleanup;
   }, [ofertaAtiva?.id]);
@@ -715,7 +750,9 @@ export function PartiuDriverCockpit() {
   useEffect(() => {
     if (dailyPass.isExpired && isOnline) {
       setIsOnline(false);
-      setErroElegibilidade("Sua diária expirou. Pague a nova diária via PIX para continuar recebendo chamados.");
+      setErroElegibilidade(
+        "Sua diária expirou. Pague a nova diária via PIX para continuar recebendo chamados.",
+      );
       voiceAlerts.anunciarDiariaExpirando(0);
     }
   }, [dailyPass.isExpired, isOnline, voiceAlerts]);
@@ -804,7 +841,9 @@ export function PartiuDriverCockpit() {
             firstName: (perfilMotorista.nome || "Motorista").split(" ")[0],
             avatarUrl: perfilMotorista.fotoUrl || "",
             rating: perfilMotorista.avaliacao || 5.0,
-            vehicleModel: perfilMotorista.veiculoModelo || (perfilMotorista.categoria === "MOTO" ? "Motocicleta" : "Veículo de Passeio"),
+            vehicleModel:
+              perfilMotorista.veiculoModelo ||
+              (perfilMotorista.categoria === "MOTO" ? "Motocicleta" : "Veículo de Passeio"),
             vehicleColor: perfilMotorista.veiculoCor || "",
             licensePlate: perfilMotorista.veiculoPlaca || "",
             category: perfilMotorista.categoria || "CARRO",
@@ -841,7 +880,9 @@ export function PartiuDriverCockpit() {
     const handleClaimRejected = (e: any) => {
       setEstadoCockpit("IDLE");
       setOfertaAtiva(null);
-      setErroElegibilidade(e.detail?.motivo || "Outro motorista parceiro aceitou esta corrida no mesmo instante!");
+      setErroElegibilidade(
+        e.detail?.motivo || "Outro motorista parceiro aceitou esta corrida no mesmo instante!",
+      );
     };
 
     window.addEventListener("partiu:corrida-atualizada", handleAtualizacao);
@@ -875,8 +916,14 @@ export function PartiuDriverCockpit() {
           const row = payload.new as any;
           if (!row || !row.id) return;
 
-          if (row.status === "SEARCHING" || row.status === "PROCURANDO" || row.status === "OFFERED") {
-            const exp = row.offer_expires_at ? new Date(row.offer_expires_at).getTime() : Date.now() + 15000;
+          if (
+            row.status === "SEARCHING" ||
+            row.status === "PROCURANDO" ||
+            row.status === "OFFERED"
+          ) {
+            const exp = row.offer_expires_at
+              ? new Date(row.offer_expires_at).getTime()
+              : Date.now() + 15000;
             if (exp > Date.now()) {
               const oferta = extrairOfertaDeRideSupabase(row, nomeApp);
               setOfertaAtiva(oferta);
@@ -890,7 +937,9 @@ export function PartiuDriverCockpit() {
                   firstName: (perfilMotorista.nome || "Motorista").split(" ")[0],
                   avatarUrl: perfilMotorista.fotoUrl || "",
                   rating: perfilMotorista.avaliacao || 5.0,
-                  vehicleModel: perfilMotorista.veiculoModelo || (perfilMotorista.categoria === "MOTO" ? "Motocicleta" : "Veículo de Passeio"),
+                  vehicleModel:
+                    perfilMotorista.veiculoModelo ||
+                    (perfilMotorista.categoria === "MOTO" ? "Motocicleta" : "Veículo de Passeio"),
                   vehicleColor: perfilMotorista.veiculoCor || "",
                   licensePlate: perfilMotorista.veiculoPlaca || "",
                   category: perfilMotorista.categoria || "CARRO",
@@ -905,7 +954,7 @@ export function PartiuDriverCockpit() {
               setOfertaAtiva(null);
             }
           }
-        }
+        },
       )
       .on(
         "postgres_changes",
@@ -925,7 +974,7 @@ export function PartiuDriverCockpit() {
               setErroElegibilidade("A corrida foi cancelada pelo passageiro.");
             }
           }
-        }
+        },
       )
       .subscribe();
 
@@ -944,7 +993,9 @@ export function PartiuDriverCockpit() {
           const oferta = extrairOfertaDeRideSupabase(data, nomeApp);
           setOfertaAtiva(oferta);
           setEstadoCockpit("OFFER");
-          const exp = data.offer_expires_at ? new Date(data.offer_expires_at).getTime() : Date.now() + 15000;
+          const exp = data.offer_expires_at
+            ? new Date(data.offer_expires_at).getTime()
+            : Date.now() + 15000;
           setTempoRegressivo(Math.max(5, Math.round((exp - Date.now()) / 1000)));
           dispararAlertaRadar();
         }
@@ -974,25 +1025,31 @@ export function PartiuDriverCockpit() {
     if (!isOnline) {
       // 0. Bloqueio por Moderação Operacional
       if (driverApprovalStatus === "pendente") {
-        setErroElegibilidade("Seu cadastro está em análise pela moderação operacional. Aguarde a aprovação dos documentos para ficar ONLINE.");
+        setErroElegibilidade(
+          "Seu cadastro está em análise pela moderação operacional. Aguarde a aprovação dos documentos para ficar ONLINE.",
+        );
         return;
       }
       if (driverApprovalStatus === "rejeitado") {
-        setErroElegibilidade("Seu cadastro foi reprovado pela moderação. Acesse o suporte para regularizar seus documentos.");
+        setErroElegibilidade(
+          "Seu cadastro foi reprovado pela moderação. Acesse o suporte para regularizar seus documentos.",
+        );
         return;
       }
 
       // 1. Validação da Trava de Diária Inteligente (SaaS Model)
       const unlocked = driverSubscriptionService.isDriverUnlocked(perfilMotorista.id);
       if (!unlocked) {
-        setErroElegibilidade("Acesso operacional bloqueado. Efetue o pagamento da sua diária via PIX para começar a receber chamados.");
+        setErroElegibilidade(
+          "Acesso operacional bloqueado. Efetue o pagamento da sua diária via PIX para começar a receber chamados.",
+        );
         setModalAssinaturaSaasAberto(true);
         return;
       }
       const currentSub = subscriptionEngine.getDriverSubscription(perfilMotorista.id);
       if (currentSub.status === "SUSPENDED" || currentSub.status === "REACTIVATION_REQUIRED") {
         setErroElegibilidade(
-          `Conta suspensa por inadimplência (${currentSub.accumulatedDebtBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}). Regularize via PIX para voltar a rodar.`
+          `Conta suspensa por inadimplência (${currentSub.accumulatedDebtBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}). Regularize via PIX para voltar a rodar.`,
         );
         setModalRegularizacaoAberto(true);
         return;
@@ -1071,7 +1128,9 @@ export function PartiuDriverCockpit() {
         if (rpcRes && rpcRes.sucesso === false) {
           setEstadoCockpit("IDLE");
           setOfertaAtiva(null);
-          setErroElegibilidade(rpcRes.mensagem || "Outro motorista parceiro aceitou esta corrida no mesmo instante!");
+          setErroElegibilidade(
+            rpcRes.mensagem || "Outro motorista parceiro aceitou esta corrida no mesmo instante!",
+          );
           return;
         }
       } catch (err: any) {
@@ -1153,7 +1212,12 @@ export function PartiuDriverCockpit() {
   useEffect(() => {
     if (estadoCockpit !== "HEADING_TO_PICKUP" || !ofertaAtiva) return;
     const targetCoords = (ofertaAtiva as any).origemCoords;
-    if (!targetCoords || typeof targetCoords.lat !== "number" || typeof targetCoords.lng !== "number") return;
+    if (
+      !targetCoords ||
+      typeof targetCoords.lat !== "number" ||
+      typeof targetCoords.lng !== "number"
+    )
+      return;
 
     const unsubscribe = driverLocationService.onLocationUpdate((telemetry) => {
       if (!telemetry.lat || !telemetry.lng) return;
@@ -1161,7 +1225,7 @@ export function PartiuDriverCockpit() {
         ofertaAtiva.id,
         { lat: telemetry.lat, lng: telemetry.lng },
         { lat: targetCoords.lat, lng: targetCoords.lng },
-        50
+        50,
       );
 
       if (shouldArrive) {
@@ -1178,7 +1242,7 @@ export function PartiuDriverCockpit() {
   // FASE 2: Cancelamento Operacional do Condutor com Registro Auditado
   function handleConfirmarCancelamentoMotorista(
     reasonCode: DriverCancelReasonCode,
-    reasonLabel: string
+    reasonLabel: string,
   ) {
     if (!ofertaAtiva) return;
     setIsCancelandoCorrida(true);
@@ -1191,10 +1255,16 @@ export function PartiuDriverCockpit() {
         reasonLabel,
       });
 
-      driverStateMachine.safeTransitionRide("ONLINE", perfilMotorista.id, ofertaAtiva.id, "DRIVER", {
-        reasonCode,
-        reasonLabel,
-      });
+      driverStateMachine.safeTransitionRide(
+        "ONLINE",
+        perfilMotorista.id,
+        ofertaAtiva.id,
+        "DRIVER",
+        {
+          reasonCode,
+          reasonLabel,
+        },
+      );
 
       setEstadoCockpit("IDLE");
       setOfertaAtiva(null);
@@ -1225,22 +1295,34 @@ export function PartiuDriverCockpit() {
       if (res.sucesso) {
         // Credita R$ 4,50 como crédito operacional para abater na próxima diária SaaS (Modelo Zero-Custódia)
         const creditsKey = `partiu_driver_daily_credits_${perfilMotorista.id}`;
-        const currentCredits = Number(localStorage.getItem(creditsKey) || localStorage.getItem("partiu_driver_daily_credits") || 0);
+        const currentCredits = Number(
+          localStorage.getItem(creditsKey) ||
+            localStorage.getItem("partiu_driver_daily_credits") ||
+            0,
+        );
         const updatedCredits = Number((currentCredits + 4.5).toFixed(2));
         localStorage.setItem(creditsKey, String(updatedCredits));
         localStorage.setItem("partiu_driver_daily_credits", String(updatedCredits));
 
-        driverStateMachine.safeTransitionRide("ONLINE", perfilMotorista.id, ofertaAtiva.id, "DRIVER", {
-          cancellationType: "NO_SHOW",
-          feeCreditedBrl: 4.5,
-        });
+        driverStateMachine.safeTransitionRide(
+          "ONLINE",
+          perfilMotorista.id,
+          ofertaAtiva.id,
+          "DRIVER",
+          {
+            cancellationType: "NO_SHOW",
+            feeCreditedBrl: 4.5,
+          },
+        );
 
         setEstadoCockpit("IDLE");
         setOfertaAtiva(null);
         setModalNoShowConfirmAberto(false);
         setPinDigitado("");
         setErroPin("");
-        alert("Passageiro ausente confirmado. Você recebeu R$ 4,50 de crédito operacional para abater na sua próxima diária do aplicativo!");
+        alert(
+          "Passageiro ausente confirmado. Você recebeu R$ 4,50 de crédito operacional para abater na sua próxima diária do aplicativo!",
+        );
       }
     } catch (err: any) {
       alert(err.message || "Erro ao processar cancelamento por no-show.");
@@ -1264,7 +1346,7 @@ export function PartiuDriverCockpit() {
         lat: coordsAlvo?.lat,
         lng: coordsAlvo?.lng,
       },
-      provedor
+      provedor,
     );
   }
 
@@ -1419,7 +1501,7 @@ export function PartiuDriverCockpit() {
       driverSubscriptionService.addOperationalCredit(perfilMotorista.id, desconto);
       toast.success(
         `🎁 Subsídio de Cupom: R$ ${desconto.toFixed(2).replace(".", ",")} creditado com sucesso para abater na sua próxima diária!`,
-        { duration: 6000 }
+        { duration: 6000 },
       );
     }
 
@@ -1525,7 +1607,7 @@ export function PartiuDriverCockpit() {
         perfilMotorista.id,
         `RET-${ofertaAtiva.id}`,
         returnDetails.driverReturnCompensationBrl / 0.88,
-        "ENTREGA"
+        "ENTREGA",
       );
       const summary = driverLedgerEngine.getEarningsSummary(perfilMotorista.id);
       setGanhosHoje(summary.availableBalanceCents / 100);
@@ -1536,7 +1618,9 @@ export function PartiuDriverCockpit() {
       setEstadoCockpit("IDLE");
       setOfertaAtiva(null);
       if (somAtivo) tocarAlertaFimViagem();
-      alert(`Devolução concluída! Compensação de R$ ${returnDetails.driverReturnCompensationBrl.toFixed(2)} recebida diretamente do passageiro.`);
+      alert(
+        `Devolução concluída! Compensação de R$ ${returnDetails.driverReturnCompensationBrl.toFixed(2)} recebida diretamente do passageiro.`,
+      );
     } else {
       setErroPinDevolucao(res.message);
     }
@@ -1545,8 +1629,10 @@ export function PartiuDriverCockpit() {
   function handleConcluirEntregaNormal() {
     if (!ofertaAtiva) return;
 
-    const lat = Number((ofertaAtiva as any).destLat || (ofertaAtiva as any).destinoCoords?.lat) || 0;
-    const lng = Number((ofertaAtiva as any).destLng || (ofertaAtiva as any).destinoCoords?.lng) || 0;
+    const lat =
+      Number((ofertaAtiva as any).destLat || (ofertaAtiva as any).destinoCoords?.lat) || 0;
+    const lng =
+      Number((ofertaAtiva as any).destLng || (ofertaAtiva as any).destinoCoords?.lng) || 0;
 
     deliveryProofEngine.registerProof({
       deliveryId: ofertaAtiva.id,
@@ -1562,7 +1648,9 @@ export function PartiuDriverCockpit() {
     const nextStop = deliveryMultiStopEngine.advanceToNextStop(ofertaAtiva.id);
     if (nextStop) {
       setCurrentStopNumber((prev) => prev + 1);
-      alert(`Parada ${currentStopNumber} concluída! Deslocando para a próxima parada: ${nextStop.address}`);
+      alert(
+        `Parada ${currentStopNumber} concluída! Deslocando para a próxima parada: ${nextStop.address}`,
+      );
       return;
     }
 
@@ -1572,7 +1660,7 @@ export function PartiuDriverCockpit() {
   async function handleLogoutMotorista() {
     if (estadoCockpit !== "IDLE") {
       const confirma = window.confirm(
-        "Atenção: você possui uma corrida em andamento ou solicitação pendente! Deseja realmente sair do aplicativo?"
+        "Atenção: você possui uma corrida em andamento ou solicitação pendente! Deseja realmente sair do aplicativo?",
       );
       if (!confirma) return;
     }
@@ -1733,7 +1821,9 @@ export function PartiuDriverCockpit() {
             rideId: ofertaAtiva.id,
             passageiro: ofertaAtiva.passageiro,
             passageiroAvaliacao: (ofertaAtiva as any).passageiroAvaliacao || 4.95,
-            valorLiquido: Number(ofertaAtiva.valorLiquido || (ofertaAtiva as any).valorBruto || 24.9),
+            valorLiquido: Number(
+              ofertaAtiva.valorLiquido || (ofertaAtiva as any).valorBruto || 24.9,
+            ),
             distanciaKm: Number(ofertaAtiva.distanciaKm || 4.2),
             duracaoMin: Number((ofertaAtiva as any).duracaoMin || 12),
             origem: ofertaAtiva.origem,
@@ -1813,10 +1903,6 @@ export function PartiuDriverCockpit() {
         />
       )}
 
-
-
-
-
       {/* =================================================================== */}
       {/* MODAL OFICIAL: MODO DESTINO DO MOTORISTA ("IR PARA CASA")           */}
       {/* =================================================================== */}
@@ -1848,9 +1934,15 @@ export function PartiuDriverCockpit() {
           amountBrl={Number(ofertaAtiva.valorLiquido || ofertaAtiva.valorBruto || 24.9)}
           descontoCupom={Number((ofertaAtiva as any).descontoCupom || 0)}
           codigoCupom={(ofertaAtiva as any).codigoCupom}
-          valorOriginal={Number((ofertaAtiva as any).valorOriginal || ofertaAtiva.valorBruto || ofertaAtiva.valorLiquido)}
+          valorOriginal={Number(
+            (ofertaAtiva as any).valorOriginal ||
+              ofertaAtiva.valorBruto ||
+              ofertaAtiva.valorLiquido,
+          )}
           driverName={perfilMotorista.nome}
-          driverPixKey={perfilMotorista.chavePix || perfilMotorista.cpf || perfilMotorista.telefone || ""}
+          driverPixKey={
+            perfilMotorista.chavePix || perfilMotorista.cpf || perfilMotorista.telefone || ""
+          }
           driverCity={cidadeOperacional.toUpperCase()}
           distanceKm={Number(ofertaAtiva.distanciaKm || 4.2)}
           onClose={() => setModalAcertoCorridaAberto(false)}
@@ -1927,7 +2019,9 @@ export function PartiuDriverCockpit() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <Percent className="w-5 h-5" style={{ color: accentColor }} />
-                <h3 className="text-base font-black text-slate-950">Planos de Assinatura {nomeApp}</h3>
+                <h3 className="text-base font-black text-slate-950">
+                  Planos de Assinatura {nomeApp}
+                </h3>
               </div>
               <button
                 type="button"
@@ -1939,7 +2033,8 @@ export function PartiuDriverCockpit() {
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              Escolha o plano que melhor se adapta à sua rotina. No {nomeApp} você tem 0% de comissão retida e 100% do valor de cada corrida fica no seu bolso.
+              Escolha o plano que melhor se adapta à sua rotina. No {nomeApp} você tem 0% de
+              comissão retida e 100% do valor de cada corrida fica no seu bolso.
             </p>
 
             {/* Lista dos 4 Planos Oficiais */}
@@ -1954,19 +2049,29 @@ export function PartiuDriverCockpit() {
                         ? "border-slate-900 bg-slate-50/80 shadow-md"
                         : "border-slate-200 bg-slate-50 hover:border-slate-300"
                     }`}
-                    style={isSelected ? { borderColor: corPrimaria, backgroundColor: `${corPrimaria}06` } : {}}
+                    style={
+                      isSelected
+                        ? { borderColor: corPrimaria, backgroundColor: `${corPrimaria}06` }
+                        : {}
+                    }
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className={`w-3 h-3 rounded-full ${plan.badgeColor}`} />
                         <h4 className="font-black text-sm text-slate-950">{plan.name}</h4>
                         {plan.isPopular && (
-                          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full" style={{ backgroundColor: `${accentColor}20`, color: corPrimaria }}>
+                          <span
+                            className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full"
+                            style={{ backgroundColor: `${accentColor}20`, color: corPrimaria }}
+                          >
                             Mais Popular
                           </span>
                         )}
                         {isSelected && (
-                          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full" style={{ backgroundColor: `${accentColor}20`, color: corPrimaria }}>
+                          <span
+                            className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full"
+                            style={{ backgroundColor: `${accentColor}20`, color: corPrimaria }}
+                          >
                             Plano Atual ✓
                           </span>
                         )}
@@ -1987,13 +2092,18 @@ export function PartiuDriverCockpit() {
 
                     <div className="mt-2 pt-2 border-t border-slate-200/70 flex items-center justify-between">
                       <span className="text-xs text-slate-700 font-semibold">
-                        {plan.commissionPercent <= 3 ? "⭐ Atendimento VIP Prioritário" : "Suporte Regular no App"}
+                        {plan.commissionPercent <= 3
+                          ? "⭐ Atendimento VIP Prioritário"
+                          : "Suporte Regular no App"}
                       </span>
                       {!isSelected ? (
                         <button
                           type="button"
                           onClick={() => {
-                            const updated = subscriptionEngine.changeDriverPlan(perfilMotorista.id, plan.id);
+                            const updated = subscriptionEngine.changeDriverPlan(
+                              perfilMotorista.id,
+                              plan.id,
+                            );
                             setSubscription(updated);
                             setDriverPlan(plan);
                           }}
@@ -2002,7 +2112,9 @@ export function PartiuDriverCockpit() {
                           Mudar para {plan.name}
                         </button>
                       ) : (
-                        <span className="text-xs font-bold" style={{ color: corPrimaria }}>Ativo</span>
+                        <span className="text-xs font-bold" style={{ color: corPrimaria }}>
+                          Ativo
+                        </span>
                       )}
                     </div>
                   </div>
@@ -2030,7 +2142,9 @@ export function PartiuDriverCockpit() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <PiggyBank className="w-5 h-5" style={{ color: accentColor }} />
-                <h3 className="text-base font-black text-slate-950">Seu Faturamento &amp; Economia</h3>
+                <h3 className="text-base font-black text-slate-950">
+                  Seu Faturamento &amp; Economia
+                </h3>
               </div>
               <button
                 type="button"
@@ -2052,7 +2166,11 @@ export function PartiuDriverCockpit() {
                 Economia Real no Seu Bolso (Mês)
               </span>
               <div className="text-3xl font-black" style={{ color: corPrimaria }}>
-                +{wallet.totalSavingsVersusUberBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                +
+                {wallet.totalSavingsVersusUberBrl.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
               </div>
               <p className="text-xs text-slate-600">
                 Comparativo direto com os 20% cobrados pelos aplicativos tradicionais.
@@ -2064,25 +2182,43 @@ export function PartiuDriverCockpit() {
               <div className="flex justify-between items-center text-slate-600">
                 <span>Ganhos Brutos do Mês:</span>
                 <span className="font-bold text-slate-900">
-                  {wallet.totalGrossEarnedBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  {wallet.totalGrossEarnedBrl.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
                 </span>
               </div>
               <div className="flex justify-between items-center text-slate-600">
                 <span>Taxas Pagas ao PARTIU:</span>
                 <span className="font-black" style={{ color: corPrimaria }}>
-                  -{wallet.totalPlatformFeesPaidBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  -
+                  {wallet.totalPlatformFeesPaidBrl.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
                 </span>
               </div>
               <div className="flex justify-between items-center text-slate-600 pt-1 border-t border-slate-200">
                 <span>Quanto pagaria no app tradicional (20%):</span>
                 <span className="font-bold text-rose-700">
-                  -{(wallet.totalGrossEarnedBrl * 0.20).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  -
+                  {(wallet.totalGrossEarnedBrl * 0.2).toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
                 </span>
               </div>
-              <div className="flex justify-between items-center pt-2 border-t border-slate-200 font-bold" style={{ color: corPrimaria }}>
+              <div
+                className="flex justify-between items-center pt-2 border-t border-slate-200 font-bold"
+                style={{ color: corPrimaria }}
+              >
                 <span>Diferença a Seu Favor:</span>
                 <span className="text-sm font-black">
-                  +{wallet.totalSavingsVersusUberBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  +
+                  {wallet.totalSavingsVersusUberBrl.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
                 </span>
               </div>
             </div>
@@ -2107,7 +2243,9 @@ export function PartiuDriverCockpit() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-rose-600" />
-                <h3 className="text-base font-black text-slate-950">Regularização de Inadimplência</h3>
+                <h3 className="text-base font-black text-slate-950">
+                  Regularização de Inadimplência
+                </h3>
               </div>
               <button
                 type="button"
@@ -2123,7 +2261,10 @@ export function PartiuDriverCockpit() {
                 Débito Total Pendente
               </span>
               <div className="text-3xl font-black text-rose-600">
-                {(subscription.accumulatedDebtBrl || 49.90).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                {(subscription.accumulatedDebtBrl || 49.9).toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
               </div>
               <p className="text-xs text-rose-950 font-medium">
                 Sua conta está temporariamente suspensa para novas corridas no Trip Radar.
@@ -2171,14 +2312,18 @@ export function PartiuDriverCockpit() {
               <button
                 type="button"
                 onClick={() => {
-                  const paidCents = subscription.accumulatedDebtCents || Math.round((subscription.accumulatedDebtBrl || 49.9) * 100);
+                  const paidCents =
+                    subscription.accumulatedDebtCents ||
+                    Math.round((subscription.accumulatedDebtBrl || 49.9) * 100);
                   const updated = subscriptionEngine.clearDebt(perfilMotorista.id, paidCents);
                   setSubscription(updated);
                   setDriverPlan(subscriptionEngine.getPlanById(updated.planId));
                   setWallet(driverWalletEngine.getWallet(perfilMotorista.id));
                   setErroElegibilidade(null);
                   setModalRegularizacaoAberto(false);
-                  alert("Pagamento PIX confirmado com sucesso! Sua conta foi desbloqueada imediatamente.");
+                  alert(
+                    "Pagamento PIX confirmado com sucesso! Sua conta foi desbloqueada imediatamente.",
+                  );
                 }}
                 style={{ background: brandGradient, color: corTextoPrimaria }}
                 className="w-full h-12 rounded-2xl font-black text-xs shadow-lg transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
@@ -2221,8 +2366,12 @@ export function PartiuDriverCockpit() {
                   <UserX className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-foreground">Passageiro Não Compareceu</h3>
-                  <p className="text-xs text-muted-foreground font-semibold">Cobrança de taxa de carência</p>
+                  <h3 className="text-base font-semibold text-foreground">
+                    Passageiro Não Compareceu
+                  </h3>
+                  <p className="text-xs text-muted-foreground font-semibold">
+                    Cobrança de taxa de carência
+                  </p>
                 </div>
               </div>
               <button
@@ -2235,30 +2384,44 @@ export function PartiuDriverCockpit() {
               </button>
             </div>
 
-            <div className="p-4 rounded-2xl border space-y-2 text-xs text-slate-900" style={{ backgroundColor: `${corPrimaria}08`, borderColor: `${corPrimaria}25` }}>
+            <div
+              className="p-4 rounded-2xl border space-y-2 text-xs text-slate-900"
+              style={{ backgroundColor: `${corPrimaria}08`, borderColor: `${corPrimaria}25` }}
+            >
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-slate-800">Tempo no Embarque:</span>
                 <span className="font-mono font-black text-slate-900 text-sm">
                   {Math.floor((waitingTimerStatus?.elapsedSeconds || 300) / 60)}:
-                  {((waitingTimerStatus?.elapsedSeconds || 300) % 60).toString().padStart(2, "0")} min
+                  {((waitingTimerStatus?.elapsedSeconds || 300) % 60).toString().padStart(2, "0")}{" "}
+                  min
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-slate-800">Tolerância Expirada:</span>
-                <span className="font-bold" style={{ color: corPrimaria }}>✓ 5 min cumpridos</span>
+                <span className="font-bold" style={{ color: corPrimaria }}>
+                  ✓ 5 min cumpridos
+                </span>
               </div>
               <div className="flex items-center justify-between border-t border-slate-200 pt-2">
                 <span className="font-bold text-slate-800">Taxa de Cancelamento:</span>
                 <span className="font-black text-slate-900">R$ 6,00</span>
               </div>
-              <div className="flex items-center justify-between bg-white/80 p-2 rounded-xl border" style={{ borderColor: `${accentColor}40` }}>
-                <span className="font-black" style={{ color: corPrimaria }}>Crédito na Próxima Diária:</span>
-                <span className="font-black text-sm" style={{ color: corPrimaria }}>+ R$ 4,50</span>
+              <div
+                className="flex items-center justify-between bg-white/80 p-2 rounded-xl border"
+                style={{ borderColor: `${accentColor}40` }}
+              >
+                <span className="font-black" style={{ color: corPrimaria }}>
+                  Crédito na Próxima Diária:
+                </span>
+                <span className="font-black text-sm" style={{ color: corPrimaria }}>
+                  + R$ 4,50
+                </span>
               </div>
             </div>
 
             <p className="text-xs text-slate-700 font-medium text-center leading-relaxed">
-              Esta corrida será encerrada sem penalizar sua taxa de cancelamento. Você recebeu R$ 4,50 de crédito operacional que abaterá a sua próxima diária do app.
+              Esta corrida será encerrada sem penalizar sua taxa de cancelamento. Você recebeu R$
+              4,50 de crédito operacional que abaterá a sua próxima diária do app.
             </p>
 
             <div className="space-y-2 pt-1">
@@ -2268,7 +2431,9 @@ export function PartiuDriverCockpit() {
                 onClick={handleConfirmarNoShow}
                 className="w-full h-13 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-black text-sm shadow-xl transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>{isProcessandoNoShow ? "PROCESSANDO..." : "CONFIRMAR & ABATER R$ 4,50 NA DIÁRIA"}</span>
+                <span>
+                  {isProcessandoNoShow ? "PROCESSANDO..." : "CONFIRMAR & ABATER R$ 4,50 NA DIÁRIA"}
+                </span>
               </button>
               <button
                 type="button"
@@ -2293,17 +2458,23 @@ export function PartiuDriverCockpit() {
           rideId={ofertaAtiva.id}
           currentUserType="DRIVER"
           currentUserId={perfilMotorista.id}
-          partnerName={ofertaAtiva.destinatarioNome && ofertaAtiva.tipo === "ENTREGA" ? ofertaAtiva.destinatarioNome : ofertaAtiva.passageiro}
+          partnerName={
+            ofertaAtiva.destinatarioNome && ofertaAtiva.tipo === "ENTREGA"
+              ? ofertaAtiva.destinatarioNome
+              : ofertaAtiva.passageiro
+          }
           partnerPhoto={ofertaAtiva.passageiroFoto}
-          partnerRoleLabel={ofertaAtiva.tipo === "ENTREGA" ? "Destinatário / Remetente" : "Passageiro"}
+          partnerRoleLabel={
+            ofertaAtiva.tipo === "ENTREGA" ? "Destinatário / Remetente" : "Passageiro"
+          }
           rideStatus={
             estadoCockpit === "HEADING_TO_PICKUP"
               ? "A_CAMINHO"
               : estadoCockpit === "WAITING_PIN"
-              ? "CHEGOU"
-              : estadoCockpit === "IN_PROGRESS"
-              ? "EM_VIAGEM"
-              : "PROCURANDO"
+                ? "CHEGOU"
+                : estadoCockpit === "IN_PROGRESS"
+                  ? "EM_VIAGEM"
+                  : "PROCURANDO"
           }
         />
       )}
@@ -2328,12 +2499,12 @@ export function PartiuDriverCockpit() {
               !isOnline
                 ? "bottom-[210px] sm:bottom-[225px]"
                 : estadoCockpit === "IDLE"
-                ? "bottom-[260px] sm:bottom-[275px]"
-                : estadoCockpit === "HEADING_TO_PICKUP"
-                ? "bottom-[340px] sm:bottom-[355px]"
-                : estadoCockpit === "WAITING_PIN"
-                ? "bottom-[370px] sm:bottom-[385px]"
-                : "bottom-[340px] sm:bottom-[355px]"
+                  ? "bottom-[260px] sm:bottom-[275px]"
+                  : estadoCockpit === "HEADING_TO_PICKUP"
+                    ? "bottom-[340px] sm:bottom-[355px]"
+                    : estadoCockpit === "WAITING_PIN"
+                      ? "bottom-[370px] sm:bottom-[385px]"
+                      : "bottom-[340px] sm:bottom-[355px]"
             }`}
             title="Centralizar Minha Posição"
             aria-label="Centralizar no Mapa"
@@ -2347,12 +2518,12 @@ export function PartiuDriverCockpit() {
               !isOnline
                 ? "bottom-[210px] sm:bottom-[225px]"
                 : estadoCockpit === "IDLE"
-                ? "bottom-[260px] sm:bottom-[275px]"
-                : estadoCockpit === "HEADING_TO_PICKUP"
-                ? "bottom-[340px] sm:bottom-[355px]"
-                : estadoCockpit === "WAITING_PIN"
-                ? "bottom-[370px] sm:bottom-[385px]"
-                : "bottom-[340px] sm:bottom-[355px]"
+                  ? "bottom-[260px] sm:bottom-[275px]"
+                  : estadoCockpit === "HEADING_TO_PICKUP"
+                    ? "bottom-[340px] sm:bottom-[355px]"
+                    : estadoCockpit === "WAITING_PIN"
+                      ? "bottom-[370px] sm:bottom-[385px]"
+                      : "bottom-[340px] sm:bottom-[355px]"
             }`}
           >
             <button
@@ -2366,7 +2537,9 @@ export function PartiuDriverCockpit() {
               title="Central de Emergência SOS 190"
             >
               <SirenIcon className="w-4 h-4 text-rose-600" />
-              <span className="text-[8.5px] font-black tracking-wider leading-none mt-0.5 text-rose-600">SOS</span>
+              <span className="text-[8.5px] font-black tracking-wider leading-none mt-0.5 text-rose-600">
+                SOS
+              </span>
             </button>
           </div>
         </>

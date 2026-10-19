@@ -17,8 +17,6 @@ import type { TelemetriaVeiculo } from "@/lib/superadmin-config";
 import { MapboxConfig } from "@/config/MapboxConfig";
 import { mapboxService } from "@/services/MapboxService";
 
-
-
 interface VanLive {
   id: string;
   placa: string;
@@ -114,12 +112,9 @@ export function MapboxLiveMap({
     const hasValidToken = Boolean(
       mapConfig.effectiveMapboxToken &&
       mapConfig.effectiveMapboxToken.startsWith("pk.") &&
-      mapConfig.effectiveMapboxToken.length > 20
+      mapConfig.effectiveMapboxToken.length > 20,
     );
-    const isGoogleTiles = Boolean(
-      mapConfig.provider === "google" &&
-      mapConfig.hasOwnGoogleKey
-    );
+    const isGoogleTiles = Boolean(mapConfig.provider === "google" && mapConfig.hasOwnGoogleKey);
 
     if (hasValidToken) {
       mapboxgl.accessToken = mapConfig.effectiveMapboxToken;
@@ -224,7 +219,6 @@ export function MapboxLiveMap({
 
         new mapboxgl.Marker(el).setLngLat([ponto.lng, ponto.lat]).addTo(mapInstance);
       });
-
     });
 
     return () => {

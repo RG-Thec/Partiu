@@ -7,10 +7,46 @@ import { matchingEngine } from "../src/services/MatchingEngine.ts";
 describe("SUITE 49: WAVE DISPATCHING & 99 SAFETY FILTERS (99MULHER + USER BLOCKS)", () => {
   test("1. Filtro 99Mulher: Descarta 100% de condutores não-femininos", () => {
     const candidates: CandidateH3Driver[] = [
-      { driverId: "drv-ana", lat: -21.205, lng: -41.888, cell: "89a", ring: 0, distanceApproxMeters: 100, lastSeenTimestamp: Date.now(), gender: "FEMALE" },
-      { driverId: "drv-carlos", lat: -21.206, lng: -41.889, cell: "89b", ring: 0, distanceApproxMeters: 150, lastSeenTimestamp: Date.now(), gender: "MALE" },
-      { driverId: "drv-julia", lat: -21.207, lng: -41.890, cell: "89c", ring: 1, distanceApproxMeters: 300, lastSeenTimestamp: Date.now(), gender: "FEMALE" },
-      { driverId: "drv-marcos", lat: -21.208, lng: -41.891, cell: "89d", ring: 1, distanceApproxMeters: 400, lastSeenTimestamp: Date.now(), gender: "UNSPECIFIED" },
+      {
+        driverId: "drv-ana",
+        lat: -21.205,
+        lng: -41.888,
+        cell: "89a",
+        ring: 0,
+        distanceApproxMeters: 100,
+        lastSeenTimestamp: Date.now(),
+        gender: "FEMALE",
+      },
+      {
+        driverId: "drv-carlos",
+        lat: -21.206,
+        lng: -41.889,
+        cell: "89b",
+        ring: 0,
+        distanceApproxMeters: 150,
+        lastSeenTimestamp: Date.now(),
+        gender: "MALE",
+      },
+      {
+        driverId: "drv-julia",
+        lat: -21.207,
+        lng: -41.89,
+        cell: "89c",
+        ring: 1,
+        distanceApproxMeters: 300,
+        lastSeenTimestamp: Date.now(),
+        gender: "FEMALE",
+      },
+      {
+        driverId: "drv-marcos",
+        lat: -21.208,
+        lng: -41.891,
+        cell: "89d",
+        ring: 1,
+        distanceApproxMeters: 400,
+        lastSeenTimestamp: Date.now(),
+        gender: "UNSPECIFIED",
+      },
     ];
 
     const filtered = h3DispatchEngine.filterFemaleDrivers(candidates);
@@ -26,9 +62,33 @@ describe("SUITE 49: WAVE DISPATCHING & 99 SAFETY FILTERS (99MULHER + USER BLOCKS
 
   test("2. Bloqueio Mútuo (user_blocks): Exclui condutores bloqueados", () => {
     const candidates: CandidateH3Driver[] = [
-      { driverId: "drv-1", lat: -21.205, lng: -41.888, cell: "89a", ring: 0, distanceApproxMeters: 100, lastSeenTimestamp: Date.now() },
-      { driverId: "drv-2", lat: -21.206, lng: -41.889, cell: "89b", ring: 0, distanceApproxMeters: 150, lastSeenTimestamp: Date.now() },
-      { driverId: "drv-3", lat: -21.207, lng: -41.890, cell: "89c", ring: 1, distanceApproxMeters: 300, lastSeenTimestamp: Date.now() },
+      {
+        driverId: "drv-1",
+        lat: -21.205,
+        lng: -41.888,
+        cell: "89a",
+        ring: 0,
+        distanceApproxMeters: 100,
+        lastSeenTimestamp: Date.now(),
+      },
+      {
+        driverId: "drv-2",
+        lat: -21.206,
+        lng: -41.889,
+        cell: "89b",
+        ring: 0,
+        distanceApproxMeters: 150,
+        lastSeenTimestamp: Date.now(),
+      },
+      {
+        driverId: "drv-3",
+        lat: -21.207,
+        lng: -41.89,
+        cell: "89c",
+        ring: 1,
+        distanceApproxMeters: 300,
+        lastSeenTimestamp: Date.now(),
+      },
     ];
 
     const blockedIds = new Set(["drv-2"]);
@@ -76,8 +136,24 @@ describe("SUITE 49: WAVE DISPATCHING & 99 SAFETY FILTERS (99MULHER + USER BLOCKS
     const rideId = "ride-wave-test-1";
 
     const batch: CandidateH3Driver[] = [
-      { driverId: "drv-wave-1", lat: -21.205, lng: -41.888, cell: "89a", ring: 0, distanceApproxMeters: 450, lastSeenTimestamp: Date.now() },
-      { driverId: "drv-wave-2", lat: -21.206, lng: -41.889, cell: "89a", ring: 0, distanceApproxMeters: 900, lastSeenTimestamp: Date.now() },
+      {
+        driverId: "drv-wave-1",
+        lat: -21.205,
+        lng: -41.888,
+        cell: "89a",
+        ring: 0,
+        distanceApproxMeters: 450,
+        lastSeenTimestamp: Date.now(),
+      },
+      {
+        driverId: "drv-wave-2",
+        lat: -21.206,
+        lng: -41.889,
+        cell: "89a",
+        ring: 0,
+        distanceApproxMeters: 900,
+        lastSeenTimestamp: Date.now(),
+      },
     ];
 
     const offers = await h3DispatchEngine.publishWaveOffers(rideId, batch, 1, 15000);
@@ -108,8 +184,24 @@ describe("SUITE 49: WAVE DISPATCHING & 99 SAFETY FILTERS (99MULHER + USER BLOCKS
     await redisLuaEngine.setDriverOnline(driverB, now);
 
     const batch: CandidateH3Driver[] = [
-      { driverId: driverA, lat: -21.205, lng: -41.888, cell: "89a", ring: 0, distanceApproxMeters: 200, lastSeenTimestamp: now },
-      { driverId: driverB, lat: -21.206, lng: -41.889, cell: "89a", ring: 0, distanceApproxMeters: 250, lastSeenTimestamp: now },
+      {
+        driverId: driverA,
+        lat: -21.205,
+        lng: -41.888,
+        cell: "89a",
+        ring: 0,
+        distanceApproxMeters: 200,
+        lastSeenTimestamp: now,
+      },
+      {
+        driverId: driverB,
+        lat: -21.206,
+        lng: -41.889,
+        cell: "89a",
+        ring: 0,
+        distanceApproxMeters: 250,
+        lastSeenTimestamp: now,
+      },
     ];
 
     await h3DispatchEngine.publishWaveOffers(rideId, batch, 1, 15000);
@@ -145,10 +237,42 @@ describe("SUITE 49: WAVE DISPATCHING & 99 SAFETY FILTERS (99MULHER + USER BLOCKS
     }
 
     const candidates: CandidateH3Driver[] = [
-      { driverId: "drv-1", lat: -21.205, lng: -41.888, cell: "89a", ring: 0, distanceApproxMeters: 100, lastSeenTimestamp: now },
-      { driverId: "drv-2", lat: -21.206, lng: -41.889, cell: "89a", ring: 0, distanceApproxMeters: 200, lastSeenTimestamp: now },
-      { driverId: "drv-3", lat: -21.207, lng: -41.890, cell: "89a", ring: 1, distanceApproxMeters: 300, lastSeenTimestamp: now },
-      { driverId: "drv-4", lat: -21.208, lng: -41.891, cell: "89a", ring: 1, distanceApproxMeters: 400, lastSeenTimestamp: now },
+      {
+        driverId: "drv-1",
+        lat: -21.205,
+        lng: -41.888,
+        cell: "89a",
+        ring: 0,
+        distanceApproxMeters: 100,
+        lastSeenTimestamp: now,
+      },
+      {
+        driverId: "drv-2",
+        lat: -21.206,
+        lng: -41.889,
+        cell: "89a",
+        ring: 0,
+        distanceApproxMeters: 200,
+        lastSeenTimestamp: now,
+      },
+      {
+        driverId: "drv-3",
+        lat: -21.207,
+        lng: -41.89,
+        cell: "89a",
+        ring: 1,
+        distanceApproxMeters: 300,
+        lastSeenTimestamp: now,
+      },
+      {
+        driverId: "drv-4",
+        lat: -21.208,
+        lng: -41.891,
+        cell: "89a",
+        ring: 1,
+        distanceApproxMeters: 400,
+        lastSeenTimestamp: now,
+      },
     ];
 
     // Simula recusa em segundo plano para a Onda 1 e aceite para drv-3 na Onda 2
@@ -163,11 +287,11 @@ describe("SUITE 49: WAVE DISPATCHING & 99 SAFETY FILTERS (99MULHER + USER BLOCKS
       }, 150);
     }, 100);
 
-    const result = await h3DispatchEngine.executeWaveDispatch(
-      rideId,
-      candidates,
-      { waveSize: 2, offerTtlMs: 2000, maxWaves: 2 }
-    );
+    const result = await h3DispatchEngine.executeWaveDispatch(rideId, candidates, {
+      waveSize: 2,
+      offerTtlMs: 2000,
+      maxWaves: 2,
+    });
 
     expect(result.success).toBe(true);
     expect(result.assignedDriverId).toBe("drv-3");

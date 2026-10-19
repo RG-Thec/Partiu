@@ -156,13 +156,19 @@ export class RideRatingService {
 
     // Se o usuário avaliado for o usuário ativo localmente, atualiza cache e emite evento
     if (typeof window !== "undefined") {
-      const currentUserId = localStorage.getItem("partiu_user_id") || localStorage.getItem("partiu_user_phone");
-      if (currentUserId && (currentUserId === rating.toUserId || rating.toUserId.includes(currentUserId))) {
+      const currentUserId =
+        localStorage.getItem("partiu_user_id") || localStorage.getItem("partiu_user_phone");
+      if (
+        currentUserId &&
+        (currentUserId === rating.toUserId || rating.toUserId.includes(currentUserId))
+      ) {
         try {
           localStorage.setItem("partiu_user_rating", String(newAverage));
         } catch {}
       }
-      window.dispatchEvent(new CustomEvent("partiu:user-profile-updated", { detail: { rating: newAverage } }));
+      window.dispatchEvent(
+        new CustomEvent("partiu:user-profile-updated", { detail: { rating: newAverage } }),
+      );
       window.dispatchEvent(new CustomEvent("partiu:rating-submitted", { detail: rating }));
     }
 
@@ -253,10 +259,7 @@ export class RideRatingService {
     this.localRatings.delete(id);
     if (isSupabaseConfigured() && supabase) {
       try {
-        const { error } = await (supabase as any)
-          .from("ride_ratings")
-          .delete()
-          .eq("id", id);
+        const { error } = await (supabase as any).from("ride_ratings").delete().eq("id", id);
         if (error) {
           silentCatchWarn("RideRatingService.deleteRating", error);
           return false;
@@ -290,7 +293,7 @@ export class RideRatingService {
 
     if (list.length === 0 && this.localRatings.size > 0) {
       list = Array.from(this.localRatings.values()).sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
     }
 

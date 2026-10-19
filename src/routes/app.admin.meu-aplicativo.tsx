@@ -46,7 +46,8 @@ export const Route = createFileRoute("/app/admin/meu-aplicativo")({
       { title: "Meu Aplicativo & Geração de APK | PARTIU Admin" },
       {
         name: "description",
-        content: "Distribuição PWA, geração de APK nativo, domínio próprio e parametrização de mapas por franquia.",
+        content:
+          "Distribuição PWA, geração de APK nativo, domínio próprio e parametrização de mapas por franquia.",
       },
     ],
   }),
@@ -81,7 +82,7 @@ export default function MeuAplicativoPage() {
     if (effectiveTenantId && effectiveTenantId !== "default") {
       return tenantDomainService.getOrCreateDomainForTenant(
         effectiveTenantId,
-        conta.tenantNome || branding.app_name || "Franquia Regional"
+        conta.tenantNome || branding.app_name || "Franquia Regional",
       );
     }
     return undefined;
@@ -99,7 +100,7 @@ export default function MeuAplicativoPage() {
     if (!found && effectiveTenantId && effectiveTenantId !== "default") {
       found = tenantDomainService.getOrCreateDomainForTenant(
         effectiveTenantId,
-        conta.tenantNome || branding.app_name || "Franquia Regional"
+        conta.tenantNome || branding.app_name || "Franquia Regional",
       );
     }
     setDominioRecord(found);
@@ -183,12 +184,14 @@ export default function MeuAplicativoPage() {
   }, [dominioRecord, effectiveTenantId]);
 
   const driverAppUrl = useMemo(() => {
-    if (typeof window === "undefined") return `/app/motorista?tenant=${encodeURIComponent(effectiveTenantId)}`;
+    if (typeof window === "undefined")
+      return `/app/motorista?tenant=${encodeURIComponent(effectiveTenantId)}`;
     return `${window.location.origin}/app/motorista?tenant=${encodeURIComponent(effectiveTenantId)}`;
   }, [effectiveTenantId]);
 
   const ordersAppUrl = useMemo(() => {
-    if (typeof window === "undefined") return `/app/encomendas?tenant=${encodeURIComponent(effectiveTenantId)}`;
+    if (typeof window === "undefined")
+      return `/app/encomendas?tenant=${encodeURIComponent(effectiveTenantId)}`;
     return `${window.location.origin}/app/encomendas?tenant=${encodeURIComponent(effectiveTenantId)}`;
   }, [effectiveTenantId]);
 
@@ -197,8 +200,12 @@ export default function MeuAplicativoPage() {
     return MapboxConfig.getTenantMapConfig(effectiveTenantId);
   }, [effectiveTenantId]);
 
-  const [mapProvider, setMapProvider] = useState<"google" | "mapbox" | "osm">(tenantMapConfig.provider);
-  const [mapboxTokenInput, setMapboxTokenInput] = useState<string>(tenantMapConfig.mapboxAccessToken);
+  const [mapProvider, setMapProvider] = useState<"google" | "mapbox" | "osm">(
+    tenantMapConfig.provider,
+  );
+  const [mapboxTokenInput, setMapboxTokenInput] = useState<string>(
+    tenantMapConfig.mapboxAccessToken,
+  );
   const [googleKeyInput, setGoogleKeyInput] = useState<string>(tenantMapConfig.googleMapsApiKey);
   const [centerLatInput, setCenterLatInput] = useState<number>(tenantMapConfig.center[1]);
   const [centerLngInput, setCenterLngInput] = useState<number>(tenantMapConfig.center[0]);
@@ -211,7 +218,10 @@ export default function MeuAplicativoPage() {
   const [showGoogleKey, setShowGoogleKey] = useState(false);
   const [testandoMapa, setTestandoMapa] = useState(false);
   const [salvandoMapa, setSalvandoMapa] = useState(false);
-  const [resultadoTesteMapa, setResultadoTesteMapa] = useState<{ valid: boolean; message: string } | null>(null);
+  const [resultadoTesteMapa, setResultadoTesteMapa] = useState<{
+    valid: boolean;
+    message: string;
+  } | null>(null);
 
   // Recarregar configurações de mapas ao alternar de franquia
   useEffect(() => {
@@ -248,11 +258,17 @@ export default function MeuAplicativoPage() {
 
   function handleCompartilharWhatsApp(tipo: "PASSAGEIRO" | "MOTORISTA" | "GERAL") {
     const nomeApp = branding.app_name || "PARTIU";
-    const urlAlvo = tipo === "MOTORISTA" ? driverAppUrl : tipo === "GERAL" ? appUrl : passengerAppUrl;
-    const texto = tipo === "MOTORISTA"
-      ? `🚗 Venha dirigir no aplicativo ${nomeApp}! Repasse no PIX D+0 e suporte local. Cadastre-se pelo link oficial: ${urlAlvo}`
-      : `📲 Baixe e peça sua viagem no ${nomeApp}! Mais conforto, preço justo e segurança na nossa cidade: ${urlAlvo}`;
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`, "_blank", "noopener,noreferrer");
+    const urlAlvo =
+      tipo === "MOTORISTA" ? driverAppUrl : tipo === "GERAL" ? appUrl : passengerAppUrl;
+    const texto =
+      tipo === "MOTORISTA"
+        ? `🚗 Venha dirigir no aplicativo ${nomeApp}! Repasse no PIX D+0 e suporte local. Cadastre-se pelo link oficial: ${urlAlvo}`
+        : `📲 Baixe e peça sua viagem no ${nomeApp}! Mais conforto, preço justo e segurança na nossa cidade: ${urlAlvo}`;
+    window.open(
+      `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
   }
 
   async function handleTestarChaveMapa() {
@@ -392,7 +408,8 @@ export default function MeuAplicativoPage() {
             Meu Aplicativo &amp; Geração de APK
           </h1>
           <p className="text-sm text-slate-300 mt-1 max-w-2xl">
-            Painel unificado de distribuição do app ({branding.app_name || "Sua Praça"}). Gerencie links, empacotamento nativo Android, domínio e provedores de mapas.
+            Painel unificado de distribuição do app ({branding.app_name || "Sua Praça"}). Gerencie
+            links, empacotamento nativo Android, domínio e provedores de mapas.
           </p>
         </div>
 
@@ -418,7 +435,9 @@ export default function MeuAplicativoPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">App da Praça</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+              App da Praça
+            </span>
             <span className="text-sm font-black text-white mt-0.5 block truncate max-w-[130px]">
               {branding.app_name || "PARTIU"}
             </span>
@@ -428,7 +447,9 @@ export default function MeuAplicativoPage() {
 
         <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Domínio Web</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+              Domínio Web
+            </span>
             <span className="text-xs font-bold text-emerald-400 mt-0.5 block flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5" />
               {dominioRecord?.status === "ATIVO" ? "Próprio Ativo" : "Provisório SSL"}
@@ -439,9 +460,15 @@ export default function MeuAplicativoPage() {
 
         <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Motor Cartográfico</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+              Motor Cartográfico
+            </span>
             <span className="text-xs font-bold text-indigo-400 mt-0.5 block uppercase">
-              {mapProvider === "mapbox" ? "Mapbox 3D" : mapProvider === "google" ? "Google Maps" : "CARTO Grátis"}
+              {mapProvider === "mapbox"
+                ? "Mapbox 3D"
+                : mapProvider === "google"
+                  ? "Google Maps"
+                  : "CARTO Grátis"}
             </span>
           </div>
           <Navigation className="w-5 h-5 text-indigo-400/80" />
@@ -449,7 +476,9 @@ export default function MeuAplicativoPage() {
 
         <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Nuvem &amp; Tenant</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+              Nuvem &amp; Tenant
+            </span>
             <span className="text-xs font-mono font-bold text-slate-200 mt-0.5 block truncate max-w-[130px]">
               {effectiveTenantId}
             </span>
@@ -631,8 +660,12 @@ export default function MeuAplicativoPage() {
               <div className="flex items-center gap-3">
                 <Palette className="w-5 h-5 text-primary shrink-0" />
                 <div>
-                  <span className="text-xs font-bold text-white block">Quer alterar cores, logos ou ícones?</span>
-                  <span className="text-[11px] text-slate-400 block">Personalize o logotipo, splash screen e paletas no White Label Studio.</span>
+                  <span className="text-xs font-bold text-white block">
+                    Quer alterar cores, logos ou ícones?
+                  </span>
+                  <span className="text-[11px] text-slate-400 block">
+                    Personalize o logotipo, splash screen e paletas no White Label Studio.
+                  </span>
                 </div>
               </div>
               <Link
@@ -656,7 +689,9 @@ export default function MeuAplicativoPage() {
                 <button
                   onClick={() => setQrCodeMode("OFICIAL")}
                   className={`px-2 py-0.5 rounded font-bold transition cursor-pointer ${
-                    qrCodeMode === "OFICIAL" ? "bg-primary text-slate-950" : "text-slate-400 hover:text-white"
+                    qrCodeMode === "OFICIAL"
+                      ? "bg-primary text-slate-950"
+                      : "text-slate-400 hover:text-white"
                   }`}
                 >
                   Oficial
@@ -664,7 +699,9 @@ export default function MeuAplicativoPage() {
                 <button
                   onClick={() => setQrCodeMode("PREVIEW")}
                   className={`px-2 py-0.5 rounded font-bold transition cursor-pointer ${
-                    qrCodeMode === "PREVIEW" ? "bg-primary text-slate-950" : "text-slate-400 hover:text-white"
+                    qrCodeMode === "PREVIEW"
+                      ? "bg-primary text-slate-950"
+                      : "text-slate-400 hover:text-white"
                   }`}
                 >
                   Preview
@@ -715,7 +752,8 @@ export default function MeuAplicativoPage() {
                   Empacotar Aplicativo Nativo Android (APK / AAB)
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Converta o PWA da sua franquia em um APK instalável ou pacote para a Google Play Console.
+                  Converta o PWA da sua franquia em um APK instalável ou pacote para a Google Play
+                  Console.
                 </p>
               </div>
 
@@ -747,7 +785,8 @@ export default function MeuAplicativoPage() {
                 </div>
                 <h4 className="text-xs font-bold text-white">Copiar URL Oficial</h4>
                 <p className="text-[11px] text-slate-400">
-                  A URL já carrega os parâmetros da praça <strong className="text-white">({branding.app_name})</strong>.
+                  A URL já carrega os parâmetros da praça{" "}
+                  <strong className="text-white">({branding.app_name})</strong>.
                 </p>
               </div>
 
@@ -785,7 +824,9 @@ export default function MeuAplicativoPage() {
             <div className="p-3.5 rounded-xl bg-blue-950/30 border border-blue-800/40 text-xs text-blue-300 flex items-center gap-2.5">
               <HelpCircle className="w-4 h-4 text-blue-400 shrink-0" />
               <span>
-                <strong>Nota Técnica:</strong> O Service Worker do sistema possui cache inteligente, push notifications e geolocalização em segundo plano já homologados para lojas de aplicativos.
+                <strong>Nota Técnica:</strong> O Service Worker do sistema possui cache inteligente,
+                push notifications e geolocalização em segundo plano já homologados para lojas de
+                aplicativos.
               </span>
             </div>
           </div>
@@ -803,7 +844,8 @@ export default function MeuAplicativoPage() {
                   Domínio Próprio da Franquia
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Cadastre seu endereço exclusivo (ex: app.suafranquia.com.br) para operar com marca 100% própria.
+                  Cadastre seu endereço exclusivo (ex: app.suafranquia.com.br) para operar com marca
+                  100% própria.
                 </p>
               </div>
             </div>
@@ -935,7 +977,9 @@ export default function MeuAplicativoPage() {
                     <span className="font-bold text-xs text-white">Mapbox GL JS</span>
                     {mapProvider === "mapbox" && <CheckCircle2 className="w-4 h-4 text-primary" />}
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1">Visual 3D vetorial ultra-rápido (Padrão Uber).</p>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Visual 3D vetorial ultra-rápido (Padrão Uber).
+                  </p>
                 </button>
 
                 <button
@@ -951,7 +995,9 @@ export default function MeuAplicativoPage() {
                     <span className="font-bold text-xs text-white">Google Maps</span>
                     {mapProvider === "google" && <CheckCircle2 className="w-4 h-4 text-primary" />}
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1">Tiles oficiais, trânsito real e satélite.</p>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Tiles oficiais, trânsito real e satélite.
+                  </p>
                 </button>
 
                 <button
@@ -967,7 +1013,9 @@ export default function MeuAplicativoPage() {
                     <span className="font-bold text-xs text-white">CARTO / OSM</span>
                     {mapProvider === "osm" && <CheckCircle2 className="w-4 h-4 text-primary" />}
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1">100% gratuito e sem custos por requisição.</p>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    100% gratuito e sem custos por requisição.
+                  </p>
                 </button>
               </div>
 
@@ -984,7 +1032,11 @@ export default function MeuAplicativoPage() {
                       onClick={() => setShowMapboxToken(!showMapboxToken)}
                       className="text-xs text-slate-400 hover:text-white flex items-center gap-1 cursor-pointer"
                     >
-                      {showMapboxToken ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                      {showMapboxToken ? (
+                        <EyeOff className="w-3 h-3" />
+                      ) : (
+                        <Eye className="w-3 h-3" />
+                      )}
                       {showMapboxToken ? "Ocultar" : "Mostrar"}
                     </button>
                   </div>

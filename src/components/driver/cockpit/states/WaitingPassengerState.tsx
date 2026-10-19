@@ -1,4 +1,13 @@
-import { Star, ShieldCheck, MessageCircle, Phone, KeyRound, UserX, CheckCircle2, ChevronRight } from "lucide-react";
+import {
+  Star,
+  ShieldCheck,
+  MessageCircle,
+  Phone,
+  KeyRound,
+  UserX,
+  CheckCircle2,
+  ChevronRight,
+} from "lucide-react";
 import type { WaitingTimerStatus } from "@/lib/partiu-engine";
 import { DriverSlideAction } from "../DriverSlideAction";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
@@ -51,7 +60,10 @@ export function WaitingPassengerState({
     <div className="space-y-3.5 animate-in fade-in slide-in-from-bottom duration-300">
       {/* Cabeçalho do Estado */}
       <div className="flex items-center justify-between border-b border-border/70 pb-2.5">
-        <div className="flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider" style={{ color: colors.primary }}>
+        <div
+          className="flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider"
+          style={{ color: colors.primary }}
+        >
           <CheckCircle2 className="w-4.5 h-4.5" style={{ color: colors.primary }} />
           <span>{isEntrega ? "Coleta" : "Aguardando embarque"}</span>
         </div>
@@ -89,8 +101,13 @@ export function WaitingPassengerState({
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <h3 className="text-xs sm:text-sm font-extrabold text-foreground truncate">{passageiroNome}</h3>
-              <span className="text-xs font-bold flex items-center gap-0.5" style={{ color: colors.primary }}>
+              <h3 className="text-xs sm:text-sm font-extrabold text-foreground truncate">
+                {passageiroNome}
+              </h3>
+              <span
+                className="text-xs font-bold flex items-center gap-0.5"
+                style={{ color: colors.primary }}
+              >
                 <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                 {passageiroAvaliacao.toFixed(2)}
               </span>
@@ -223,7 +240,10 @@ export function WaitingPassengerState({
 
       {/* Rodapé com Embarque Protegido e Cancelamento */}
       <div className="flex items-center justify-between pt-1 text-xs px-1">
-        <span className="font-bold flex items-center gap-1.5 text-[11px]" style={{ color: colors.primary }}>
+        <span
+          className="font-bold flex items-center gap-1.5 text-[11px]"
+          style={{ color: colors.primary }}
+        >
           <ShieldCheck className="w-3.5 h-3.5" style={{ color: colors.primary }} />
           Embarque protegido
         </span>

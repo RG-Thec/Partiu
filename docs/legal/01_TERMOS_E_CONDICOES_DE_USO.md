@@ -1,4 +1,5 @@
 # 📜 TERMOS E CONDIÇÕES GERAIS DE USO DA PLATAFORMA PARTIU
+
 **Versão Oficial 4.0 — Vigência a partir de 2026**
 
 ---
@@ -7,13 +8,13 @@
 
 A plataforma tecnológica **PARTIU** é de propriedade e operada por:
 
-* **Razão Social:** [NOME DA EMPRESA]
-* **CNPJ:** [00.000.000/0000-00]
-* **Endereço da Sede:** [ENDEREÇO COMPLETO]
-* **E-mail Geral de Contato:** [contato@empresa.com]
-* **Encarregado de Dados (DPO / LGPD):** [dpo@empresa.com]
-* **Canal Oficial de WhatsApp:** [(00) 00000-0000]
-* **Portal Oficial:** [https://partiumobilidade.com.br]
+- **Razão Social:** [NOME DA EMPRESA]
+- **CNPJ:** [00.000.000/0000-00]
+- **Endereço da Sede:** [ENDEREÇO COMPLETO]
+- **E-mail Geral de Contato:** [contato@empresa.com]
+- **Encarregado de Dados (DPO / LGPD):** [dpo@empresa.com]
+- **Canal Oficial de WhatsApp:** [(00) 00000-0000]
+- **Portal Oficial:** [https://partiumobilidade.com.br]
 
 Doravante denominada simplesmente **"PARTIU"** ou **"Plataforma"**.
 
@@ -51,16 +52,16 @@ Doravante denominada simplesmente **"PARTIU"** ou **"Plataforma"**.
 
 Para os efeitos destes Termos, adotam-se as seguintes definições:
 
-| Termo | Definição Operacional e Jurídica |
-| :--- | :--- |
-| **PARTIU / Plataforma** | Solução tecnológica composta por aplicativos móveis, portais web, APIs e infraestrutura de servidores sob modelo SaaS destinada a conectar de forma autônoma Usuários e Condutores Parceiros. |
-| **Passageiro / Usuário** | Pessoa física plenamente capaz devidamente cadastrada na Plataforma que solicita serviços autônomos de mobilidade individual ou transporte de pequenos volumes. |
-| **Motorista Parceiro** | Profissional autônomo devidamente habilitado e cadastrado, titular de licença temporária de uso do software PARTIU, que oferece transporte privado individual de passageiros por sua conta e risco. |
-| **Entregador Parceiro** | Profissional autônomo cadastrado que realiza o transporte de pequenas cargas e mercadorias nas modalidades Carro ou Moto. |
-| **Franqueado / Operador Local** | Entidade comercial independente responsável pelo licenciamento territorial, fomento comercial e suporte administrativo em determinada praça municipal. |
-| **Corrida** | Serviço autônomo de transporte de passageiro ajustado diretamente entre Passageiro e Motorista Parceiro por meio da intermediação tecnológica da Plataforma. |
-| **Entrega** | Serviço autônomo de transporte de encomendas e volumes regulamentado pelos Termos do Módulo de Entregas. |
-| **Duplo PIN** | Mecanismo criptográfico de segurança para entregas composto pelo PIN 1 (Coleta) e PIN 2 (Entrega), com força probatória de aceite e custódia. |
+| Termo                           | Definição Operacional e Jurídica                                                                                                                                                                    |
+| :------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **PARTIU / Plataforma**         | Solução tecnológica composta por aplicativos móveis, portais web, APIs e infraestrutura de servidores sob modelo SaaS destinada a conectar de forma autônoma Usuários e Condutores Parceiros.       |
+| **Passageiro / Usuário**        | Pessoa física plenamente capaz devidamente cadastrada na Plataforma que solicita serviços autônomos de mobilidade individual ou transporte de pequenos volumes.                                     |
+| **Motorista Parceiro**          | Profissional autônomo devidamente habilitado e cadastrado, titular de licença temporária de uso do software PARTIU, que oferece transporte privado individual de passageiros por sua conta e risco. |
+| **Entregador Parceiro**         | Profissional autônomo cadastrado que realiza o transporte de pequenas cargas e mercadorias nas modalidades Carro ou Moto.                                                                           |
+| **Franqueado / Operador Local** | Entidade comercial independente responsável pelo licenciamento territorial, fomento comercial e suporte administrativo em determinada praça municipal.                                              |
+| **Corrida**                     | Serviço autônomo de transporte de passageiro ajustado diretamente entre Passageiro e Motorista Parceiro por meio da intermediação tecnológica da Plataforma.                                        |
+| **Entrega**                     | Serviço autônomo de transporte de encomendas e volumes regulamentado pelos Termos do Módulo de Entregas.                                                                                            |
+| **Duplo PIN**                   | Mecanismo criptográfico de segurança para entregas composto pelo PIN 1 (Coleta) e PIN 2 (Entrega), com força probatória de aceite e custódia.                                                       |
 
 ---
 
@@ -70,9 +71,10 @@ Para os efeitos destes Termos, adotam-se as seguintes definições:
 > **CLÁUSULA DE NATUREZA ESSENCIAL — LEIA COM ATENÇÃO:**
 > **A PARTIU NÃO É TRANSPORTADORA, NÃO PRESTA SERVIÇOS DE TRANSPORTE E NÃO OPERA COMO EMPRESA DE LOGÍSTICA.**
 
-3.1. **Licenciadora de Software SaaS:** A PARTIU atua **exclusivamente** como empresa de tecnologia, provedora de aplicação de internet e licenciadora de software sob demanda (SaaS — *Software as a Service*), cujo escopo reside única e estritamente na facilitação do encontro de vontades entre passageiros que demandam locomoção e condutores autônomos credenciados que disponibilizam capacidade de transporte.
+3.1. **Licenciadora de Software SaaS:** A PARTIU atua **exclusivamente** como empresa de tecnologia, provedora de aplicação de internet e licenciadora de software sob demanda (SaaS — _Software as a Service_), cujo escopo reside única e estritamente na facilitação do encontro de vontades entre passageiros que demandam locomoção e condutores autônomos credenciados que disponibilizam capacidade de transporte.
 
 3.2. **Ausência de Frota e de Vínculo:**
+
 - A PARTIU **não possui frota própria de veículos**;
 - A PARTIU **não emprega motoristas nem entregadores**;
 - A PARTIU **não gerencia rotinas, não fixa jornadas e não estabelece horários mínimos ou máximos de trabalho**;
@@ -86,8 +88,9 @@ Para os efeitos destes Termos, adotam-se as seguintes definições:
 ## 4. CATEGORIAS E MODAIS DE OPERAÇÃO PERMITIDOS (CARRO E MOTO)
 
 4.1. **Exclusividade Modal:** A Plataforma opera **única e exclusivamente** com os seguintes modais de transporte individual privado:
-* 🚗 **CARRO:** Veículo automotor de passeio devidamente registrado e licenciado pelo órgão de trânsito competente;
-* 🏍️ **MOTO:** Veículo automotor de duas rodas (motocicleta) devidamente equipado e conduzido com os equipamentos de proteção individual obrigatórios por lei.
+
+- 🚗 **CARRO:** Veículo automotor de passeio devidamente registrado e licenciado pelo órgão de trânsito competente;
+- 🏍️ **MOTO:** Veículo automotor de duas rodas (motocicleta) devidamente equipado e conduzido com os equipamentos de proteção individual obrigatórios por lei.
 
 4.2. **Bloqueio Categórico de Outros Modais:** Fica expressamente consignado que a PARTIU **não opera, não licencia e não tolera o cadastramento ou operação de vans, micro-ônibus, lotações ou ônibus de transporte coletivo** em seu marketplace de mobilidade individual e entregas. Qualquer tentativa de inserção ou utilização de modais não autorizados acarretará o cancelamento sumário do cadastro e eventual comunicação às autoridades competentes.
 
@@ -122,11 +125,13 @@ Para os efeitos destes Termos, adotam-se as seguintes definições:
 > **O PAGAMENTO DA CORRIDA É EFETUADO DIRETAMENTE ENTRE PASSAGEIRO E MOTORISTA.**
 
 7.1. **Meios Aceitos:** O Passageiro efetuará a liquidação do valor da corrida diretamente ao Motorista Parceiro ao término do percurso, utilizando uma das seguintes modalidades acordadas:
-* 💵 **Dinheiro em espécie;**
-* 📱 **Transferência PIX direta** (feita na conta/chave cadastrada do próprio Motorista Parceiro);
-* 💳 **Cartão de Débito ou Crédito** na maquininha particular de cobrança do Motorista Parceiro.
+
+- 💵 **Dinheiro em espécie;**
+- 📱 **Transferência PIX direta** (feita na conta/chave cadastrada do próprio Motorista Parceiro);
+- 💳 **Cartão de Débito ou Crédito** na maquininha particular de cobrança do Motorista Parceiro.
 
 7.2. **Ausência de Intermediação ou Custódia de Valores de Corridas:**
+
 - A PARTIU **não atua como instituição bancária, financeira ou de pagamento**;
 - A PARTIU **não recebe, não processa, não retém e não custodia o dinheiro das corridas**;
 - A PARTIU **não desconta qualquer porcentagem ou comissão sobre o valor da corrida**;
@@ -141,6 +146,7 @@ Para os efeitos destes Termos, adotam-se as seguintes definições:
 8.1. **Dever de Civilidade:** É dever de todos os Usuários e Condutores tratar-se mutuamente com respeito, cordialidade e dignidade.
 
 8.2. **Condutas Estritamente Proibidas:** É terminantemente vedado na Plataforma e no interior dos veículos parceiros:
+
 - Praticar qualquer forma de discriminação fundada em raça, gênero, orientação sexual, cor, etnia, religião, deficiência ou origem social;
 - Praticar atos de assédio sexual, moral, importunação ou comportamento invasivo;
 - Portar armas de fogo, armas brancas, artefatos explosivos ou munições, ressalvados agentes da lei em serviço mediante identificação;
@@ -154,11 +160,12 @@ Para os efeitos destes Termos, adotam-se as seguintes definições:
 ## 9. LIMITAÇÃO EXCLUSIVA DE RESPONSABILIDADE DA PLATAFORMA
 
 9.1. **Limites de Responsabilidade Legal:** Na máxima extensão permitida pela legislação aplicável, a PARTIU não será responsabilizada por:
-* ⚠️ **Conduta Individual das Partes:** Atos, omissões, infrações de trânsito, crimes, acidentes ou comportamentos inadequados praticados por motoristas, passageiros ou terceiros;
-* ⚠️ **Objetos Esquecidos:** A guarda de pertences pessoais é de responsabilidade estrita e exclusiva do Passageiro. A Plataforma disponibilizará canal de contato para viabilizar a devolução, mas não assume qualquer dever de indenização por perdas, danos ou extravios;
-* ⚠️ **Conflitos Interpessoais:** Desavenças comerciais, cobranças externas de valores ou discussões ocorridas fora da mediação tecnológica da Plataforma;
-* ⚠️ **Inconsistências de Telecomunicações e GPS:** Falhas, atrasos de conexão, imprecisões no sinal de GPS provenientes de satélites ou indisponibilidade de serviços de internet das operadoras de telecomunicação;
-* ⚠️ **Caso Fortuito ou Força Maior:** Fatos imprevisíveis ou inevitáveis decorrentes de enchentes, paralisações, manifestações públicas, desastres naturais ou determinações do Poder Público (art. 393 do Código Civil).
+
+- ⚠️ **Conduta Individual das Partes:** Atos, omissões, infrações de trânsito, crimes, acidentes ou comportamentos inadequados praticados por motoristas, passageiros ou terceiros;
+- ⚠️ **Objetos Esquecidos:** A guarda de pertences pessoais é de responsabilidade estrita e exclusiva do Passageiro. A Plataforma disponibilizará canal de contato para viabilizar a devolução, mas não assume qualquer dever de indenização por perdas, danos ou extravios;
+- ⚠️ **Conflitos Interpessoais:** Desavenças comerciais, cobranças externas de valores ou discussões ocorridas fora da mediação tecnológica da Plataforma;
+- ⚠️ **Inconsistências de Telecomunicações e GPS:** Falhas, atrasos de conexão, imprecisões no sinal de GPS provenientes de satélites ou indisponibilidade de serviços de internet das operadoras de telecomunicação;
+- ⚠️ **Caso Fortuito ou Força Maior:** Fatos imprevisíveis ou inevitáveis decorrentes de enchentes, paralisações, manifestações públicas, desastres naturais ou determinações do Poder Público (art. 393 do Código Civil).
 
 ---
 
@@ -166,13 +173,14 @@ Para os efeitos destes Termos, adotam-se as seguintes definições:
 
 10.1. **Titularidade dos Ativos:** Todos os direitos de propriedade intelectual, marcas, patentes, segredos de negócio, algoritmos, designs de interface, bases de dados, logotipos e códigos-fonte relativos à PARTIU pertencem com exclusividade à Controladora [NOME DA EMPRESA].
 
-10.2. **Licença Concedida:** O Usuário recebe uma licença de uso pessoal, não exclusiva, gratuita, intransferível e revogável dos aplicativos móveis da PARTIU, sendo expressamente vedado realizar engenharia reversa, descompilação, cópia, sublicenciamento ou extração automatizada de dados (*scraping*).
+10.2. **Licença Concedida:** O Usuário recebe uma licença de uso pessoal, não exclusiva, gratuita, intransferível e revogável dos aplicativos móveis da PARTIU, sendo expressamente vedado realizar engenharia reversa, descompilação, cópia, sublicenciamento ou extração automatizada de dados (_scraping_).
 
 ---
 
 ## 11. SUSPENSÃO, BLOQUEIO E RESCISÃO
 
 11.1. **Direito de Interrupção de Acesso:** A PARTIU reserva-se o direito de advertir, suspender temporariamente ou cancelar definitivamente a conta de qualquer Usuário, a seu exclusivo critério e sem necessidade de notificação prévia, sempre que constatar:
+
 - Violação reiterada a qualquer dispositivo destes Termos de Uso ou das diretrizes comunitárias;
 - Avaliação média de conduta sistematicamente inferior ao índice de qualidade da praça;
 - Fornecimento de dados falsos, incompletos ou uso de cartões de terceiros sem autorização;
@@ -192,6 +200,6 @@ Para os efeitos destes Termos, adotam-se as seguintes definições:
 
 ## 13. DECLARAÇÃO DE CONCORDÂNCIA E ACEITE ELETRÔNICO
 
-Ao marcar a caixa de diálogo *"Li e concordo com os Termos e Condições Gerais de Uso"* e prosseguir com a criação da conta ou acesso à Plataforma, o Usuário formaliza sua aceitação irrestrita e integral a todas as cláusulas deste instrumento.
+Ao marcar a caixa de diálogo _"Li e concordo com os Termos e Condições Gerais de Uso"_ e prosseguir com a criação da conta ou acesso à Plataforma, o Usuário formaliza sua aceitação irrestrita e integral a todas as cláusulas deste instrumento.
 
-*Documento gerado em conformidade com o Marco Civil da Internet (Lei nº 12.965/2014) e Código Civil Brasileiro.*
+_Documento gerado em conformidade com o Marco Civil da Internet (Lei nº 12.965/2014) e Código Civil Brasileiro._

@@ -1,13 +1,13 @@
 /**
  * PARTIU PASSENGER TRUST ENGINE
- * 
+ *
  * Motor Orquestrador do Índice de Confiança do Passageiro (Passenger Trust Index - PTI).
  * Integra perfis comportamentais, prevenção a fraudes e telemetria da frota.
  */
 
-import { PassengerTrustProfile, passengerTrustScoreEngine } from './trust-score';
-import { PassengerBehaviorMetrics } from './behavior-analysis';
-import { PassengerReputationRecord } from './reputation-engine';
+import { PassengerTrustProfile, passengerTrustScoreEngine } from "./trust-score";
+import { PassengerBehaviorMetrics } from "./behavior-analysis";
+import { PassengerReputationRecord } from "./reputation-engine";
 
 export interface CityPassengerTrustIndexReport {
   cityId: string;
@@ -23,7 +23,7 @@ export interface CityPassengerTrustIndexReport {
     bloqueado: number;
   };
   totalBlockedAccounts: number;
-  cityTrustRating: 'REDE_ALTA_CONFIANCA' | 'REDE_SAUDAVEL' | 'ATENCAO_FRAUDES';
+  cityTrustRating: "REDE_ALTA_CONFIANCA" | "REDE_SAUDAVEL" | "ATENCAO_FRAUDES";
 }
 
 export class PassengerTrustEngine {
@@ -34,7 +34,7 @@ export class PassengerTrustEngine {
    */
   public evaluatePassenger(
     behavior: PassengerBehaviorMetrics,
-    reputation: PassengerReputationRecord
+    reputation: PassengerReputationRecord,
   ): PassengerTrustProfile {
     const profile = passengerTrustScoreEngine.computeTrustProfile(behavior, reputation);
     this.profiles.set(profile.passengerId, profile);
@@ -52,7 +52,10 @@ export class PassengerTrustEngine {
   /**
    * Gera o Passenger Trust Index (PTI) agregado para uma praça municipal
    */
-  public calculateCityPassengerTrustIndex(cityId: string, cityName: string): CityPassengerTrustIndexReport {
+  public calculateCityPassengerTrustIndex(
+    cityId: string,
+    cityName: string,
+  ): CityPassengerTrustIndexReport {
     const all = Array.from(this.profiles.values());
     const count = all.length > 0 ? all.length : 1;
 
@@ -64,21 +67,21 @@ export class PassengerTrustEngine {
     let restrito = 0;
     let bloqueado = 0;
 
-    all.forEach(p => {
+    all.forEach((p) => {
       sumScore += p.overallTrustScore;
-      if (p.tier === 'ELITE') elite++;
-      else if (p.tier === 'PREMIUM') premium++;
-      else if (p.tier === 'CONFIAVEL') confiavel++;
-      else if (p.tier === 'OBSERVACAO') observacao++;
-      else if (p.tier === 'RESTRITO') restrito++;
-      else if (p.tier === 'BLOQUEADO') bloqueado++;
+      if (p.tier === "ELITE") elite++;
+      else if (p.tier === "PREMIUM") premium++;
+      else if (p.tier === "CONFIAVEL") confiavel++;
+      else if (p.tier === "OBSERVACAO") observacao++;
+      else if (p.tier === "RESTRITO") restrito++;
+      else if (p.tier === "BLOQUEADO") bloqueado++;
     });
 
     const averageTrustScore = all.length > 0 ? Math.round(sumScore / count) : 81;
 
-    let cityTrustRating: CityPassengerTrustIndexReport['cityTrustRating'] = 'REDE_SAUDAVEL';
-    if (averageTrustScore >= 85) cityTrustRating = 'REDE_ALTA_CONFIANCA';
-    else if (averageTrustScore < 65) cityTrustRating = 'ATENCAO_FRAUDES';
+    let cityTrustRating: CityPassengerTrustIndexReport["cityTrustRating"] = "REDE_SAUDAVEL";
+    if (averageTrustScore >= 85) cityTrustRating = "REDE_ALTA_CONFIANCA";
+    else if (averageTrustScore < 65) cityTrustRating = "ATENCAO_FRAUDES";
 
     return {
       cityId,
@@ -91,10 +94,10 @@ export class PassengerTrustEngine {
         confiavel: Number(((confiavel / count) * 100).toFixed(1)),
         observacao: Number(((observacao / count) * 100).toFixed(1)),
         restrito: Number(((restrito / count) * 100).toFixed(1)),
-        bloqueado: Number(((bloqueado / count) * 100).toFixed(1))
+        bloqueado: Number(((bloqueado / count) * 100).toFixed(1)),
       },
       totalBlockedAccounts: bloqueado,
-      cityTrustRating
+      cityTrustRating,
     };
   }
 }

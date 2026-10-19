@@ -1,13 +1,13 @@
 /**
  * AUTONOMOUS CAPITAL ALLOCATION ENGINE
- * 
+ *
  * Motor de Alocação Autônoma de Capital Financeiro e Investimento:
  * Decide autonomamente:
  * - Onde investir capital de tesouraria?
  * - Onde expandir frotas e novas operações?
  * - Onde subsidiar passageiros e motoristas?
  * - Onde reduzir incentivos e otimizar margem líquida?
- * 
+ *
  * Baseado na otimização multiobjetivo de:
  * ROI, Payback, LTV, CAC, Market Share e Expansion Score
  */
@@ -15,7 +15,7 @@
 export interface CapitalAllocationCandidate {
   cityId: string;
   cityName: string;
-  tipoOportunidade: 'NOVA_EXPANSAO' | 'ACELERACAO_MKT' | 'SUBSIDIO_LIQUIDEZ' | 'OTIMIZACAO_MARGEM';
+  tipoOportunidade: "NOVA_EXPANSAO" | "ACELERACAO_MKT" | "SUBSIDIO_LIQUIDEZ" | "OTIMIZACAO_MARGEM";
   capitalRequeridoBrl: number;
   roiEstimadoPct: number;
   paybackDias: number;
@@ -27,11 +27,11 @@ export interface CapitalAllocationCandidate {
 export interface CapitalAllocationDecision {
   cityId: string;
   cityName: string;
-  tipoOportunidade: CapitalAllocationCandidate['tipoOportunidade'];
+  tipoOportunidade: CapitalAllocationCandidate["tipoOportunidade"];
   capitalAlocadoBrl: number;
   retornoEsperadoGmvBrl: number;
   retornoEsperadoReceitaBrl: number;
-  prioridade: 'P0_ESTRATEGICA' | 'P1_ALTA' | 'P2_APROVADA' | 'REJEITADA';
+  prioridade: "P0_ESTRATEGICA" | "P1_ALTA" | "P2_APROVADA" | "REJEITADA";
   scoreAtratividadeCapital: number; // 0 a 100
   justificativaAlocacao: string;
 }
@@ -53,7 +53,7 @@ export class CapitalAllocationEngine {
    */
   public allocateCapitalPortfolio(
     orcamentoDisponivelBrl: number,
-    candidates: CapitalAllocationCandidate[]
+    candidates: CapitalAllocationCandidate[],
   ): CapitalAllocationPortfolio {
     const timestamp = Date.now();
     let saldo = orcamentoDisponivelBrl;
@@ -64,17 +64,23 @@ export class CapitalAllocationEngine {
     const scoredCandidates = candidates.map((c) => {
       const scoreRoi = Math.max(0, Math.min(100, (c.roiEstimadoPct / 200.0) * 100));
       const scoreLtvCac = Math.max(0, Math.min(100, (c.ltvCacRatio / 5.0) * 100));
-      const scorePayback = Math.max(0, Math.min(100, 100 - (c.paybackDias * 1.2)));
+      const scorePayback = Math.max(0, Math.min(100, 100 - c.paybackDias * 1.2));
       const scoreExpansion = Math.max(0, Math.min(100, c.expansionScore));
       const scoreMarketShare = Math.max(0, Math.min(100, 100 - c.marketShareAtualPct)); // Mais espaço para crescer
 
-      const atratividade = Math.max(5, Math.min(99, Math.round(
-        scoreRoi * 0.30 +
-        scoreLtvCac * 0.25 +
-        scorePayback * 0.20 +
-        scoreExpansion * 0.15 +
-        scoreMarketShare * 0.10
-      )));
+      const atratividade = Math.max(
+        5,
+        Math.min(
+          99,
+          Math.round(
+            scoreRoi * 0.3 +
+              scoreLtvCac * 0.25 +
+              scorePayback * 0.2 +
+              scoreExpansion * 0.15 +
+              scoreMarketShare * 0.1,
+          ),
+        ),
+      );
 
       return { ...c, atratividade };
     });
@@ -109,9 +115,9 @@ export class CapitalAllocationEngine {
           capitalAlocadoBrl: capital,
           retornoEsperadoGmvBrl: gmvRetorno,
           retornoEsperadoReceitaBrl: receitaRetorno,
-          prioridade: c.atratividade >= 80 ? 'P0_ESTRATEGICA' : 'P1_ALTA',
+          prioridade: c.atratividade >= 80 ? "P0_ESTRATEGICA" : "P1_ALTA",
           scoreAtratividadeCapital: c.atratividade,
-          justificativaAlocacao: `Alocação de R$ ${capital.toLocaleString('pt-BR')} aprovada para [${c.tipoOportunidade}]. Score: ${c.atratividade}/100, ROI: ${c.roiEstimadoPct}%, Payback: ${c.paybackDias}d, LTV/CAC: ${c.ltvCacRatio}x.`
+          justificativaAlocacao: `Alocação de R$ ${capital.toLocaleString("pt-BR")} aprovada para [${c.tipoOportunidade}]. Score: ${c.atratividade}/100, ROI: ${c.roiEstimadoPct}%, Payback: ${c.paybackDias}d, LTV/CAC: ${c.ltvCacRatio}x.`,
         });
       } else {
         decisoes.push({
@@ -121,19 +127,22 @@ export class CapitalAllocationEngine {
           capitalAlocadoBrl: 0,
           retornoEsperadoGmvBrl: 0,
           retornoEsperadoReceitaBrl: 0,
-          prioridade: 'REJEITADA',
+          prioridade: "REJEITADA",
           scoreAtratividadeCapital: c.atratividade,
-          justificativaAlocacao: c.atratividade < 60 
-            ? `Rejeitado por baixa atratividade econômica (${c.atratividade}/100).` 
-            : `Rejeitado por restrição orçamentária no ciclo atual.`
+          justificativaAlocacao:
+            c.atratividade < 60
+              ? `Rejeitado por baixa atratividade econômica (${c.atratividade}/100).`
+              : `Rejeitado por restrição orçamentária no ciclo atual.`,
         });
       }
     });
 
-    const roiMedio = capitalTotalAlocado > 0 ? Number((somaRoiPonderado / capitalTotalAlocado).toFixed(1)) : 0;
-    const paybackMedio = capitalTotalAlocado > 0 ? Number((somaPaybackPonderado / capitalTotalAlocado).toFixed(1)) : 0;
+    const roiMedio =
+      capitalTotalAlocado > 0 ? Number((somaRoiPonderado / capitalTotalAlocado).toFixed(1)) : 0;
+    const paybackMedio =
+      capitalTotalAlocado > 0 ? Number((somaPaybackPonderado / capitalTotalAlocado).toFixed(1)) : 0;
 
-    const sintese = `O Autonomous Capital Allocation Engine alocou R$ ${capitalTotalAlocado.toLocaleString('pt-BR')} de R$ ${orcamentoDisponivelBrl.toLocaleString('pt-BR')} disponíveis em ${decisoes.filter((d) => d.capitalAlocadoBrl > 0).length} praças prioritárias com ROI médio ponderado de ${roiMedio}% e Payback médio de ${paybackMedio} dias.`;
+    const sintese = `O Autonomous Capital Allocation Engine alocou R$ ${capitalTotalAlocado.toLocaleString("pt-BR")} de R$ ${orcamentoDisponivelBrl.toLocaleString("pt-BR")} disponíveis em ${decisoes.filter((d) => d.capitalAlocadoBrl > 0).length} praças prioritárias com ROI médio ponderado de ${roiMedio}% e Payback médio de ${paybackMedio} dias.`;
 
     return {
       timestamp,
@@ -143,7 +152,7 @@ export class CapitalAllocationEngine {
       roiMedioPonderadoPct: roiMedio,
       paybackMedioPonderadoDias: paybackMedio,
       decisoesAlocadas: decisoes,
-      sinteseExecutivaTesouraria: sintese
+      sinteseExecutivaTesouraria: sintese,
     };
   }
 }

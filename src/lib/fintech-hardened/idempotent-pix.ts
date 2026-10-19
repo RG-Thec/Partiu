@@ -1,6 +1,6 @@
 /**
  * PARTIU TITANIUM SHIELD — IDEMPOTENT PIX ENGINE
- * 
+ *
  * Motor Transacional PIX com proteção estrita:
  * - 1 PIX = 1 Liquidação sempre (Zero Double-Spending)
  * - Validação obrigatória de assinatura HMAC SHA-256 em webhooks de PSPs
@@ -8,9 +8,8 @@
  * - Bloqueio pessimista de saldo no saque D+0 para motoristas parceiros
  */
 
-import { transactionalLedger } from './transactional-ledger';
+import { transactionalLedger } from "./transactional-ledger";
 import { silentCatchWarn } from "@/lib/structured-logger";
-
 
 export interface PixWebhookPayload {
   endToEndId: string;
@@ -49,15 +48,21 @@ export class IdempotentPixEngine {
   /**
    * Valida a assinatura HMAC SHA-256 enviada no cabeçalho do webhook do PSP
    */
-  public verifyWebhookSignature(payloadRaw: string, receivedSignature: string, secret: string): boolean {
+  public verifyWebhookSignature(
+    payloadRaw: string,
+    receivedSignature: string,
+    secret: string,
+  ): boolean {
     if (!receivedSignature || !secret) return false;
 
-    if (typeof require !== 'undefined') {
+    if (typeof require !== "undefined") {
       try {
-        const crypto = require('crypto');
-        const hmac = crypto.createHmac('sha256', secret).update(payloadRaw).digest('hex');
+        const crypto = require("crypto");
+        const hmac = crypto.createHmac("sha256", secret).update(payloadRaw).digest("hex");
         return crypto.timingSafeEqual(Buffer.from(hmac), Buffer.from(receivedSignature));
-      } catch (err) { silentCatchWarn("idempotent-pix", err); }
+      } catch (err) {
+        silentCatchWarn("idempotent-pix", err);
+      }
     }
 
     return false;
@@ -72,7 +77,7 @@ export class IdempotentPixEngine {
       const existing = this.settledEndToEndIds.get(payload.endToEndId)!;
       return {
         ...existing,
-        idempotentReplay: true
+        idempotentReplay: true,
       };
     }
 
@@ -87,18 +92,18 @@ export class IdempotentPixEngine {
         description: `Liquidação PIX IN ${payload.endToEndId} - ${payload.payerName}`,
         postings: [
           {
-            accountId: '1.1.01_PSP_CLEARING',
-            entryType: 'DEBIT',
+            accountId: "1.1.01_PSP_CLEARING",
+            entryType: "DEBIT",
             amountCents: payload.amountCents,
-            description: `Recebimento PIX IN ${payload.endToEndId}`
+            description: `Recebimento PIX IN ${payload.endToEndId}`,
           },
           {
-            accountId: '2.1.01_ESCROW_TRIPS',
-            entryType: 'CREDIT',
+            accountId: "2.1.01_ESCROW_TRIPS",
+            entryType: "CREDIT",
             amountCents: payload.amountCents,
-            description: `Custódia Escrow Viagem ${payload.txId}`
-          }
-        ]
+            description: `Custódia Escrow Viagem ${payload.txId}`,
+          },
+        ],
       });
 
       await transactionalLedger.commitTransaction(prep.transactionId);
@@ -109,7 +114,7 @@ export class IdempotentPixEngine {
         amountBrl,
         settledAt: Date.now(),
         idempotentReplay: false,
-        ledgerTransactionId: prep.transactionId
+        ledgerTransactionId: prep.transactionId,
       };
 
       this.settledEndToEndIds.set(payload.endToEndId, result);
@@ -121,7 +126,7 @@ export class IdempotentPixEngine {
         amountBrl,
         settledAt: Date.now(),
         idempotentReplay: false,
-        error: err?.message || 'Falha ao liquidar PIX'
+        error: err?.message || "Falha ao liquidar PIX",
       };
     }
   }
@@ -140,7 +145,8 @@ export class IdempotentPixEngine {
     if (this.balanceLocks.has(params.driverId)) {
       return {
         success: false,
-        error: 'CONCURRENT_CASHOUT_IN_PROGRESS: Já existe uma solicitação de saque sendo processada.'
+        error:
+          "CONCURRENT_CASHOUT_IN_PROGRESS: Já existe uma solicitação de saque sendo processada.",
       };
     }
 
@@ -148,7 +154,7 @@ export class IdempotentPixEngine {
     if (params.amountCents <= 0 || params.currentBalanceCents < params.amountCents) {
       return {
         success: false,
-        error: `INSUFFICIENT_FUNDS: Saldo insuficiente (${params.currentBalanceCents} cents < ${params.amountCents} cents).`
+        error: `INSUFFICIENT_FUNDS: Saldo insuficiente (${params.currentBalanceCents} cents < ${params.amountCents} cents).`,
       };
     }
 
@@ -163,30 +169,30 @@ export class IdempotentPixEngine {
         description: `Saque PIX OUT D+0 para motorista ${params.driverId} - Chave ${params.pixKey}`,
         postings: [
           {
-            accountId: '2.1.02_DRIVER_PAYABLE',
-            entryType: 'DEBIT',
+            accountId: "2.1.02_DRIVER_PAYABLE",
+            entryType: "DEBIT",
             amountCents: params.amountCents,
-            description: `Dedução do repasse líquido do motorista ${params.driverId}`
+            description: `Dedução do repasse líquido do motorista ${params.driverId}`,
           },
           {
-            accountId: '1.1.02_BANK_RESERVE',
-            entryType: 'CREDIT',
+            accountId: "1.1.02_BANK_RESERVE",
+            entryType: "CREDIT",
             amountCents: params.amountCents,
-            description: `Desembolso bancário instantâneo ${endToEndId}`
-          }
-        ]
+            description: `Desembolso bancário instantâneo ${endToEndId}`,
+          },
+        ],
       });
 
       await transactionalLedger.commitTransaction(prep.transactionId);
 
       return {
         success: true,
-        endToEndId
+        endToEndId,
       };
     } catch (err: any) {
       return {
         success: false,
-        error: err?.message || 'Falha na liquidação do saque PIX'
+        error: err?.message || "Falha na liquidação do saque PIX",
       };
     } finally {
       this.balanceLocks.delete(params.driverId);

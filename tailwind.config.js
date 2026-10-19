@@ -16,7 +16,7 @@ export default {
           "border-subtle": "var(--brand-border-subtle, #E2E8F0)",
           "border-active": "var(--brand-border-active, #D0E6FF)",
           "pill-bg": "var(--brand-pill-bg, #F1F5F9)",
-          "soft": "var(--brand-soft, #F0F7FF)",
+          soft: "var(--brand-soft, #F0F7FF)",
           "surface-highlight": "var(--brand-surface-highlight, #E8F4FD)",
           "dark-navy": "var(--brand-dark-navy, #0A2342)",
         },

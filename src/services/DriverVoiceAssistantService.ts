@@ -43,7 +43,7 @@ export class DriverVoiceAssistantService {
       const voices = window.speechSynthesis.getVoices();
       // Prioriza vozes em Português do Brasil (pt-BR)
       const ptBrVoice = voices.find(
-        (v) => v.lang.toLowerCase() === "pt-br" || v.lang.toLowerCase() === "pt_br"
+        (v) => v.lang.toLowerCase() === "pt-br" || v.lang.toLowerCase() === "pt_br",
       );
       const ptVoice = voices.find((v) => v.lang.toLowerCase().startsWith("pt"));
       this.selectedVoice = ptBrVoice || ptVoice || null;
@@ -124,7 +124,7 @@ export class DriverVoiceAssistantService {
       priority?: "NORMAL" | "HIGH";
       rate?: number;
       pitch?: number;
-    } = {}
+    } = {},
   ): void {
     if (!this.isSupported || !this.isEnabled || !text.trim()) return;
 

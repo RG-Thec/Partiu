@@ -68,7 +68,10 @@ export const listarPassageiros = createServerFn({ method: "GET" })
     const emails = new Map<string, string | null>();
     try {
       if (typeof (supabaseAdmin as any)?.auth?.admin?.listUsers === "function") {
-        const { data: usuarios } = await (supabaseAdmin as any).auth.admin.listUsers({ page: 1, perPage: 200 });
+        const { data: usuarios } = await (supabaseAdmin as any).auth.admin.listUsers({
+          page: 1,
+          perPage: 200,
+        });
         if (usuarios?.users) {
           usuarios.users.forEach((u: any) => {
             if (u?.id) emails.set(u.id, u.email ?? null);
@@ -79,7 +82,7 @@ export const listarPassageiros = createServerFn({ method: "GET" })
 
     // Filtrar passageiros (role = 'passenger', 'passageiro', 'user' ou sem role motorista/franqueado)
     const passageiros = (perfis ?? []).filter(
-      (p: any) => p.role !== "motorista" && p.role !== "driver" && p.role !== "franqueado"
+      (p: any) => p.role !== "motorista" && p.role !== "driver" && p.role !== "franqueado",
     );
 
     return passageiros.map((p: any) => ({

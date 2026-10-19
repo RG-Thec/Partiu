@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { hapticFeedback } from '@/lib/haptics/haptic-feedback';
+import { useState, useRef, useCallback, useEffect } from "react";
+import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
 
-export type SnapPointKey = 'COLLAPSED' | 'HALF' | 'EXPANDED' | 'FULL';
+export type SnapPointKey = "COLLAPSED" | "HALF" | "EXPANDED" | "FULL";
 
 export interface SnapPointConfig {
   key: SnapPointKey | string;
@@ -34,7 +34,7 @@ export function useBottomSheetGesture({
   sortedSnapPoints.current = [...snapPoints].sort((a, b) => a.height - b.height);
 
   const [activeSnapKey, setActiveSnapKey] = useState<string>(
-    initialSnapKey || sortedSnapPoints.current[0]?.key || 'HALF'
+    initialSnapKey || sortedSnapPoints.current[0]?.key || "HALF",
   );
 
   const [currentHeight, setCurrentHeight] = useState<number>(0);
@@ -51,7 +51,7 @@ export function useBottomSheetGesture({
 
   // Converte a configuração de snap point para pixels reais
   const resolveHeightPx = useCallback((cfg: SnapPointConfig): number => {
-    const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+    const vh = typeof window !== "undefined" ? window.innerHeight : 800;
     if (cfg.height <= 1) {
       return Math.round(vh * cfg.height);
     }
@@ -60,7 +60,8 @@ export function useBottomSheetGesture({
 
   // Inicializa altura
   useEffect(() => {
-    const target = sortedSnapPoints.current.find((s) => s.key === activeSnapKey) || sortedSnapPoints.current[0];
+    const target =
+      sortedSnapPoints.current.find((s) => s.key === activeSnapKey) || sortedSnapPoints.current[0];
     if (target) {
       setCurrentHeight(resolveHeightPx(target));
     }
@@ -76,8 +77,8 @@ export function useBottomSheetGesture({
         }
       }
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [activeSnapKey, resolveHeightPx]);
 
   /**
@@ -97,7 +98,7 @@ export function useBottomSheetGesture({
       setCurrentHeight(targetPx);
       onSnapChange?.(snapKey);
     },
-    [activeSnapKey, onSnapChange, resolveHeightPx]
+    [activeSnapKey, onSnapChange, resolveHeightPx],
   );
 
   /**
@@ -119,7 +120,7 @@ export function useBottomSheetGesture({
       velocityRef.current = 0;
       startHeightRef.current = currentHeight;
     },
-    [currentHeight]
+    [currentHeight],
   );
 
   /**
@@ -165,7 +166,7 @@ export function useBottomSheetGesture({
 
       setCurrentHeight(Math.max(0, Math.round(newHeight)));
     },
-    [dismissible, resolveHeightPx]
+    [dismissible, resolveHeightPx],
   );
 
   /**
@@ -245,11 +246,11 @@ export function useBottomSheetGesture({
         const onMouseMove = (ev: MouseEvent) => handleTouchMove(ev.clientY);
         const onMouseUp = () => {
           handleTouchEnd();
-          window.removeEventListener('mousemove', onMouseMove);
-          window.removeEventListener('mouseup', onMouseUp);
+          window.removeEventListener("mousemove", onMouseMove);
+          window.removeEventListener("mouseup", onMouseUp);
         };
-        window.addEventListener('mousemove', onMouseMove);
-        window.addEventListener('mouseup', onMouseUp);
+        window.addEventListener("mousemove", onMouseMove);
+        window.addEventListener("mouseup", onMouseUp);
       },
     },
   };

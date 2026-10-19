@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { ArrowRight, MapPin, User, Car, Star, ShieldCheck, Clock, Zap, CheckCircle2, Bike, Package } from "lucide-react";
+import {
+  ArrowRight,
+  MapPin,
+  User,
+  Car,
+  Star,
+  ShieldCheck,
+  Clock,
+  Zap,
+  CheckCircle2,
+  Bike,
+  Package,
+} from "lucide-react";
 import type { HeroConfig, ActionItem, ThemeConfig, MapCardConfig } from "@/types/mobilityLanding";
 import { VehiclePerspectiveGraphic } from "@/components/passenger/VehiclePerspectiveGraphic";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
@@ -21,13 +33,15 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
 }) => {
   const primaryColor = theme?.primary || "#FF6B00";
   const secondaryColor = theme?.secondary || "#FFB800";
-  const [activeCategory, setActiveCategory] = useState<"economico" | "comfort" | "moto" | "entrega">("economico");
+  const [activeCategory, setActiveCategory] = useState<
+    "economico" | "comfort" | "moto" | "entrega"
+  >("economico");
   const [vehicleMode, setVehicleMode] = useState<"car" | "moto">("car");
 
   // Sessão ativa do usuário para redirecionamento inteligente
   const [currentUser] = useState<any>(() => {
     return typeof window !== "undefined"
-      ? (supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null)
+      ? supabaseAuthService?.getCurrentUser?.() || supabaseAuthService?.getStoredSession?.() || null
       : null;
   });
 
@@ -59,7 +73,12 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
 
     if (targetUrl === "/app") {
       if (currentUser) {
-        resolvedUrl = currentUser.role === "MOTORISTA" ? "/app/motorista" : currentUser.role === "ADMIN" ? "/app/admin" : "/app";
+        resolvedUrl =
+          currentUser.role === "MOTORISTA"
+            ? "/app/motorista"
+            : currentUser.role === "ADMIN"
+              ? "/app/admin"
+              : "/app";
       } else {
         // Usuário não autenticado: barreira profissional obrigatória de cadastro
         resolvedUrl = "/cadastro-passageiro";
@@ -158,7 +177,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             )}
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 max-w-xs mx-auto leading-relaxed">
-            {hero.description || "Viagens rápidas e seguras no seu dia a dia com os melhores motoristas da cidade."}
+            {hero.description ||
+              "Viagens rápidas e seguras no seu dia a dia com os melhores motoristas da cidade."}
           </p>
         </div>
 
@@ -333,7 +353,9 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
 
           {/* Badge de Categorias Oficiais: Carro & Moto - Largo Horizontalmente, Fino na Vertical (-20%) */}
           <div className="inline-flex items-center gap-1.5 p-0.5 rounded-full bg-slate-100/90 border border-slate-200/80 shadow-2xs">
-            <span className="text-[10.5px] font-bold text-slate-500 pl-2.5 pr-0.5">Categorias:</span>
+            <span className="text-[10.5px] font-bold text-slate-500 pl-2.5 pr-0.5">
+              Categorias:
+            </span>
             <div className="flex items-center gap-1">
               <button
                 type="button"
@@ -395,9 +417,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                     <div
                       className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-2xs transition-transform duration-200 group-hover:scale-105"
                       style={{
-                        background: isPassenger
-                          ? "rgba(255, 255, 255, 0.22)"
-                          : `${primaryColor}15`,
+                        background: isPassenger ? "rgba(255, 255, 255, 0.22)" : `${primaryColor}15`,
                         border: isPassenger
                           ? "1px solid rgba(255, 255, 255, 0.35)"
                           : `1px solid ${primaryColor}30`,
@@ -406,10 +426,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                       {isPassenger ? (
                         <User className="w-4.5 h-4.5 text-white stroke-[2.2]" />
                       ) : (
-                        <Car
-                          className="w-4.5 h-4.5 stroke-[2.2]"
-                          style={{ color: primaryColor }}
-                        />
+                        <Car className="w-4.5 h-4.5 stroke-[2.2]" style={{ color: primaryColor }} />
                       )}
                     </div>
                     <div className="flex flex-col text-left">
@@ -511,9 +528,36 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 preserveAspectRatio="xMidYMid slice"
               >
                 {/* Parques e Áreas Urbanas Verdes em Tom Suave */}
-                <rect x="220" y="150" width="90" height="90" rx="14" fill="#ECFDF5" stroke="#D1FAE5" strokeWidth="1" />
-                <rect x="15" y="15" width="80" height="60" rx="12" fill="#ECFDF5" stroke="#D1FAE5" strokeWidth="1" />
-                <rect x="180" y="20" width="60" height="40" rx="10" fill="#F0FDF4" stroke="#DCFCE7" strokeWidth="1" />
+                <rect
+                  x="220"
+                  y="150"
+                  width="90"
+                  height="90"
+                  rx="14"
+                  fill="#ECFDF5"
+                  stroke="#D1FAE5"
+                  strokeWidth="1"
+                />
+                <rect
+                  x="15"
+                  y="15"
+                  width="80"
+                  height="60"
+                  rx="12"
+                  fill="#ECFDF5"
+                  stroke="#D1FAE5"
+                  strokeWidth="1"
+                />
+                <rect
+                  x="180"
+                  y="20"
+                  width="60"
+                  height="40"
+                  rx="10"
+                  fill="#F0FDF4"
+                  stroke="#DCFCE7"
+                  strokeWidth="1"
+                />
 
                 {/* Malha Viária da Cidade (Bordas de Asfalto Claro) */}
                 <path d="M-10 60 H330" stroke="#E2E8F0" strokeWidth="16" />
@@ -597,7 +641,9 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                     {activeEta.split("\n").map((line, i) => (
                       <span
                         key={i}
-                        className={i === 0 ? "font-normal opacity-90 text-[9px]" : "font-black tracking-wide"}
+                        className={
+                          i === 0 ? "font-normal opacity-90 text-[9px]" : "font-black tracking-wide"
+                        }
                       >
                         {line}
                       </span>
@@ -682,13 +728,17 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                     >
                       <IconComponent
                         className={`w-5 h-5 transition-transform duration-300 ${
-                          isSelected ? "text-white stroke-[2.4]" : "text-slate-600 group-hover:text-slate-900"
+                          isSelected
+                            ? "text-white stroke-[2.4]"
+                            : "text-slate-600 group-hover:text-slate-900"
                         }`}
                       />
                     </div>
                     <span
                       className={`text-[10px] mt-1.5 transition-colors leading-none tracking-tight ${
-                        isSelected ? "font-bold text-slate-900" : "font-medium text-slate-500 group-hover:text-slate-700"
+                        isSelected
+                          ? "font-bold text-slate-900"
+                          : "font-medium text-slate-500 group-hover:text-slate-700"
                       }`}
                     >
                       {cat.label}
@@ -706,8 +756,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                     {activeCategory === "moto"
                       ? "1 Passageiro • Capacete Higienizado"
                       : activeCategory === "entrega"
-                      ? "Até 15kg • Baú Lacrado"
-                      : "4 Lugares • Ar-Condicionado"}
+                        ? "Até 15kg • Baú Lacrado"
+                        : "4 Lugares • Ar-Condicionado"}
                   </span>
                   <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 flex items-center gap-0.5">
                     <CheckCircle2 className="w-2.5 h-2.5" />
@@ -729,32 +779,35 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                     {activeCategory === "economico"
                       ? "Partiu Econômico"
                       : activeCategory === "comfort"
-                      ? "Partiu Comfort"
-                      : activeCategory === "moto"
-                      ? "Partiu Moto Express"
-                      : "Partiu Encomendas Flash"}
+                        ? "Partiu Comfort"
+                        : activeCategory === "moto"
+                          ? "Partiu Moto Express"
+                          : "Partiu Encomendas Flash"}
                   </span>
                   <span className="text-[10px] text-slate-500 font-medium leading-none mt-0.5">
                     {activeCategory === "economico"
                       ? "Chevrolet Onix ou similar"
                       : activeCategory === "comfort"
-                      ? "Sedan espaçoso com ar"
-                      : activeCategory === "moto"
-                      ? "Honda CG 160 • Agilidade urbana"
-                      : "Entrega expressa ponto a ponto"}
+                        ? "Sedan espaçoso com ar"
+                        : activeCategory === "moto"
+                          ? "Honda CG 160 • Agilidade urbana"
+                          : "Entrega expressa ponto a ponto"}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <div className="text-right">
-                    <div className="text-xs sm:text-sm font-black text-slate-900 leading-none" style={{ color: primaryColor }}>
+                    <div
+                      className="text-xs sm:text-sm font-black text-slate-900 leading-none"
+                      style={{ color: primaryColor }}
+                    >
                       {activeCategory === "economico"
                         ? "R$ 14,90"
                         : activeCategory === "comfort"
-                        ? "R$ 19,90"
-                        : activeCategory === "moto"
-                        ? "R$ 8,90"
-                        : "R$ 10,50"}
+                          ? "R$ 19,90"
+                          : activeCategory === "moto"
+                            ? "R$ 8,90"
+                            : "R$ 10,50"}
                     </div>
                     <span className="text-[9px] text-slate-400 font-medium">estimado</span>
                   </div>

@@ -157,8 +157,8 @@ export function setupGlobalErrorLogging(): void {
           event.reason instanceof Error
             ? event.reason.message
             : typeof event.reason === "string"
-            ? event.reason
-            : "unknown rejection",
+              ? event.reason
+              : "unknown rejection",
       },
     });
   });

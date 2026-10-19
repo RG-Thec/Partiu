@@ -116,7 +116,9 @@ export function useGeolocation() {
         setPermissaoConcedida(true);
         try {
           localStorage.setItem("partiu_gps_permitido", "true");
-        } catch (err) { silentCatchWarn("use-geolocation", err); }
+        } catch (err) {
+          silentCatchWarn("use-geolocation", err);
+        }
 
         // Resolução dinâmica universal de endereço e cidade em qualquer lugar do mundo
         reverseGeocodingService
@@ -156,7 +158,9 @@ export function useGeolocation() {
         setPermissaoConcedida(true);
         solicitarLocalizacao();
       }
-    } catch (err) { silentCatchWarn("use-geolocation", err); }
+    } catch (err) {
+      silentCatchWarn("use-geolocation", err);
+    }
   }, [solicitarLocalizacao]);
 
   return {

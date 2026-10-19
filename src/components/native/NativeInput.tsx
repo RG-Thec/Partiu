@@ -49,7 +49,7 @@ export const NativeInput = forwardRef<HTMLInputElement, NativeInputProps>(
       style,
       ...props
     },
-    ref
+    ref,
   ) => {
     const generatedId = useId();
     const inputId = props.id || generatedId;
@@ -70,14 +70,15 @@ export const NativeInput = forwardRef<HTMLInputElement, NativeInputProps>(
     const wrapperBorderColor = hasError
       ? "#EF4444"
       : isFocused
-      ? colors.primary
-      : colors.inputBorder;
+        ? colors.primary
+        : colors.inputBorder;
 
-    const wrapperBoxShadow = isFocused && !hasError
-      ? `0 0 0 3px ${colors.primary}25`
-      : hasError
-      ? "0 0 0 3px rgba(239, 68, 68, 0.2)"
-      : "none";
+    const wrapperBoxShadow =
+      isFocused && !hasError
+        ? `0 0 0 3px ${colors.primary}25`
+        : hasError
+          ? "0 0 0 3px rgba(239, 68, 68, 0.2)"
+          : "none";
 
     return (
       <div
@@ -131,8 +132,8 @@ export const NativeInput = forwardRef<HTMLInputElement, NativeInputProps>(
                   color: hasError
                     ? "#EF4444"
                     : isFloatingActive
-                    ? colors.primary
-                    : colors.textSecondary,
+                      ? colors.primary
+                      : colors.textSecondary,
                 }}
               >
                 {label}
@@ -209,7 +210,7 @@ export const NativeInput = forwardRef<HTMLInputElement, NativeInputProps>(
         ) : null}
       </div>
     );
-  }
+  },
 );
 
 NativeInput.displayName = "NativeInput";

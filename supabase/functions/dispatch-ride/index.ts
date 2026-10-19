@@ -31,19 +31,22 @@ serve(async (req: Request) => {
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return new Response(
         JSON.stringify({ success: false, error: "Token de autenticação ausente." }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: { user }, error: authError } = await userClient.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await userClient.auth.getUser();
 
     if (authError || !user) {
       return new Response(
         JSON.stringify({ success: false, error: "Token inválido ou expirado." }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
     // ── FIM AUTH GUARD ────────────────────────────────────────────────────
@@ -68,20 +71,26 @@ serve(async (req: Request) => {
           success: false,
           error: "rideId, pickupCoordinates (ou pickup_lat e pickup_lng) são obrigatórios.",
         }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
     // 1. Verificação de idempotência e prevenção de duplo despacho (P1-02)
     const { data: existingRide } = await supabase
       .from("rides")
-      .select("id, status, offered_driver_id, offer_expires_at, dispatch_started_at, passenger_id, dispatch_attempt")
+      .select(
+        "id, status, offered_driver_id, offer_expires_at, dispatch_started_at, passenger_id, dispatch_attempt",
+      )
       .eq("id", rideId)
       .maybeSingle();
 
     if (existingRide) {
       // Se a corrida já foi aceita, concluída ou cancelada, encerra sem reprocessar
-      if (["ACCEPTED", "IN_PROGRESS", "A_CAMINHO", "EM_VIAGEM", "COMPLETED", "CANCELLED"].includes(existingRide.status)) {
+      if (
+        ["ACCEPTED", "IN_PROGRESS", "A_CAMINHO", "EM_VIAGEM", "COMPLETED", "CANCELLED"].includes(
+          existingRide.status,
+        )
+      ) {
         return new Response(
           JSON.stringify({
             success: true,
@@ -90,7 +99,7 @@ serve(async (req: Request) => {
             currentStatus: existingRide.status,
             message: `Corrida já está no status '${existingRide.status}'. Despacho ignorado.`,
           }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
 
@@ -107,7 +116,7 @@ serve(async (req: Request) => {
               expiresAt: expiresAtMs,
               message: "Oferta ativa em andamento para condutor.",
             }),
-            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
           );
         }
       }
@@ -129,7 +138,7 @@ serve(async (req: Request) => {
               error: "RATE_LIMIT_EXCEEDED",
               message: "Limite de solicitações de despacho por minuto atingido.",
             }),
-            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
           );
         }
       } catch (_) {
@@ -146,7 +155,7 @@ serve(async (req: Request) => {
         p_category: category,
         p_radius_meters: maxRadiusKm * 1000,
         p_limit: 10,
-      }
+      },
     );
 
     if (matchError) {
@@ -167,7 +176,7 @@ serve(async (req: Request) => {
           dispatchLatencyMs,
           message: "Nenhum condutor elegível disponível no raio operacional de 10km.",
         }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -179,16 +188,19 @@ serve(async (req: Request) => {
 
     // 6. Registra oferta formal atômica no banco com metadados de onda (P0-01 / P0-03)
     try {
-      await supabase.from("rides").update({
-        offered_driver_id: selectedCandidate.driver_id,
-        offered_at: new Date().toISOString(),
-        offer_expires_at: offerExpiresAtIso,
-        status: "OFFERED",
-        dispatch_wave: wave,
-        dispatch_attempt: currentAttempt,
-        dispatch_started_at: existingRide?.dispatch_started_at || new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }).eq("id", rideId);
+      await supabase
+        .from("rides")
+        .update({
+          offered_driver_id: selectedCandidate.driver_id,
+          offered_at: new Date().toISOString(),
+          offer_expires_at: offerExpiresAtIso,
+          status: "OFFERED",
+          dispatch_wave: wave,
+          dispatch_attempt: currentAttempt,
+          dispatch_started_at: existingRide?.dispatch_started_at || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", rideId);
 
       // 7. Registro de observabilidade e emissão de tempo real segura via postgres_changes
       // A mutação em public.rides dispara o evento postgres_changes protegido por RLS (drivers_can_read_assigned_offers),
@@ -224,7 +236,7 @@ serve(async (req: Request) => {
         candidatesCount: candidates.length,
         dispatchLatencyMs,
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err: any) {
     console.error("[dispatch-ride] Exceção crítica:", err);
@@ -233,7 +245,7 @@ serve(async (req: Request) => {
         success: false,
         error: err.message || "Erro interno de despacho",
       }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });

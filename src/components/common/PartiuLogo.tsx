@@ -4,13 +4,13 @@ export interface PartiuLogoProps {
   className?: string;
   variant?: "full" | "compact" | "icon" | "centered";
   size?: "sm" | "md" | "lg" | "xl";
-  appName?: string;       // Nome da marca configurado no painel admin (padrão PARTIU)
-  tagline?: string;       // Slogan/tagline configurado no painel admin (padrão MAIS MOBILIDADE PARA VOCÊ)
-  primaryColor?: string;  // Cor primária do símbolo aerodinâmico (padrão #FF6B00 Laranja)
-  secondaryColor?: string;// Cor secundária do texto da marca (padrão #FFB800 Amarelo)
-  accentColor?: string;   // Suporte retrocompatível
-  textColor?: string;     // Cor explícita para o texto do appName
-  taglineColor?: string;  // Cor explícita para o texto do slogan/tagline
+  appName?: string; // Nome da marca configurado no painel admin (padrão PARTIU)
+  tagline?: string; // Slogan/tagline configurado no painel admin (padrão MAIS MOBILIDADE PARA VOCÊ)
+  primaryColor?: string; // Cor primária do símbolo aerodinâmico (padrão #FF6B00 Laranja)
+  secondaryColor?: string; // Cor secundária do texto da marca (padrão #FFB800 Amarelo)
+  accentColor?: string; // Suporte retrocompatível
+  textColor?: string; // Cor explícita para o texto do appName
+  taglineColor?: string; // Cor explícita para o texto do slogan/tagline
 }
 
 /**
@@ -49,8 +49,16 @@ export const PartiuLogo = memo(function PartiuLogo({
 
   // Resolução de cores dinâmicas da marca (Padrão Oficial: #FF6B00 e #FFB800)
   const symbolColor = primaryColor || "var(--brand-primary-vibrant, var(--color-primary, #FF6B00))";
-  const resolvedTextColor = textColor || secondaryColor || accentColor || "var(--brand-primary-accent, var(--color-secondary, #FFB800))";
-  const resolvedTaglineColor = taglineColor || secondaryColor || accentColor || "var(--brand-primary-accent, var(--color-secondary, #FFB800))";
+  const resolvedTextColor =
+    textColor ||
+    secondaryColor ||
+    accentColor ||
+    "var(--brand-primary-accent, var(--color-secondary, #FFB800))";
+  const resolvedTaglineColor =
+    taglineColor ||
+    secondaryColor ||
+    accentColor ||
+    "var(--brand-primary-accent, var(--color-secondary, #FFB800))";
 
   // Textos dinâmicos que seguem o Painel Administrativo
   const displayAppName = (appName || "PARTIU").trim();
@@ -121,7 +129,8 @@ export const PartiuLogo = memo(function PartiuLogo({
             fontWeight: 900,
             letterSpacing: "-0.02em",
             lineHeight: 1,
-            fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            fontFamily:
+              "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
           }}
           className="tracking-tight uppercase font-black"
         >
@@ -146,7 +155,8 @@ export const PartiuLogo = memo(function PartiuLogo({
             fontWeight: 900,
             letterSpacing: "-0.02em",
             lineHeight: 1.1,
-            fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            fontFamily:
+              "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
           }}
           className="font-black uppercase tracking-tight truncate max-w-full"
         >
@@ -162,7 +172,8 @@ export const PartiuLogo = memo(function PartiuLogo({
               letterSpacing: "0.14em",
               lineHeight: 1.1,
               marginTop: 2,
-              fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+              fontFamily:
+                "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
               opacity: 0.88,
             }}
             className="uppercase font-bold tracking-widest whitespace-nowrap truncate max-w-full"
@@ -214,7 +225,8 @@ export const PartiuLogo = memo(function PartiuLogo({
             fontWeight: 900,
             letterSpacing: "-0.015em",
             lineHeight: 1,
-            fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            fontFamily:
+              "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
           }}
           className="font-black uppercase tracking-tight"
         >
@@ -230,7 +242,8 @@ export const PartiuLogo = memo(function PartiuLogo({
               letterSpacing: "0.16em",
               lineHeight: 1,
               marginTop: 3,
-              fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+              fontFamily:
+                "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
               opacity: 0.95,
             }}
             className="uppercase font-bold tracking-widest whitespace-nowrap"

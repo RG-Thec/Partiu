@@ -78,7 +78,10 @@ export function DriverHeader({
                 }}
               />
             ) : (
-              <span className="text-[11px] font-black tracking-tight" style={{ color: colors.primary }}>
+              <span
+                className="text-[11px] font-black tracking-tight"
+                style={{ color: colors.primary }}
+              >
                 {driverInitials}
               </span>
             )}
@@ -152,10 +155,18 @@ export function DriverHeader({
               onClick={onToggleNightMode}
               style={{ borderRadius: ui.borderRadius }}
               className="w-10 h-10 min-h-[40px] min-w-[40px] flex items-center justify-center text-foreground hover:bg-muted active:scale-90 transition cursor-pointer"
-              title={isNightMode ? "Modo Diurno (clique para alternar)" : "Modo Noturno (clique para alternar)"}
+              title={
+                isNightMode
+                  ? "Modo Diurno (clique para alternar)"
+                  : "Modo Noturno (clique para alternar)"
+              }
               aria-label={isNightMode ? "Ativar modo diurno" : "Ativar modo noturno"}
             >
-              {isNightMode ? <Sun className="w-4 h-4 text-amber-400 stroke-[2]" /> : <Moon className="w-4 h-4 stroke-[2]" />}
+              {isNightMode ? (
+                <Sun className="w-4 h-4 text-amber-400 stroke-[2]" />
+              ) : (
+                <Moon className="w-4 h-4 stroke-[2]" />
+              )}
             </button>
           )}
 
@@ -168,10 +179,20 @@ export function DriverHeader({
               color: somAtivo ? colors.primary : undefined,
             }}
             className="w-10 h-10 min-h-[40px] min-w-[40px] flex items-center justify-center transition active:scale-90 cursor-pointer hover:bg-muted"
-            title={somAtivo ? "Som ativado (clique para silenciar)" : "Som silenciado (clique para ativar)"}
-            aria-label={somAtivo ? "Desativar alerta sonoro de chamadas" : "Ativar alerta sonoro de chamadas"}
+            title={
+              somAtivo
+                ? "Som ativado (clique para silenciar)"
+                : "Som silenciado (clique para ativar)"
+            }
+            aria-label={
+              somAtivo ? "Desativar alerta sonoro de chamadas" : "Ativar alerta sonoro de chamadas"
+            }
           >
-            {somAtivo ? <Volume2 className="w-4 h-4 stroke-[2]" /> : <VolumeX className="w-4 h-4 stroke-[2]" />}
+            {somAtivo ? (
+              <Volume2 className="w-4 h-4 stroke-[2]" />
+            ) : (
+              <VolumeX className="w-4 h-4 stroke-[2]" />
+            )}
           </button>
 
           {/* Sino de Notificações com Badge Numérico */}

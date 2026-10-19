@@ -31,7 +31,11 @@ function rgbToHex(r: number, g: number, b: number): string {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-function mixColors(c1: [number, number, number], c2: [number, number, number], weight: number): string {
+function mixColors(
+  c1: [number, number, number],
+  c2: [number, number, number],
+  weight: number,
+): string {
   const r = c1[0] * (1 - weight) + c2[0] * weight;
   const g = c1[1] * (1 - weight) + c2[1] * weight;
   const b = c1[2] * (1 - weight) + c2[2] * weight;
@@ -46,8 +50,8 @@ export function generatePrimaryPalette(baseHex: string) {
   return {
     50: mixColors(baseRgb, white, 0.94),
     100: mixColors(baseRgb, white, 0.85),
-    200: mixColors(baseRgb, white, 0.70),
-    300: mixColors(baseRgb, white, 0.50),
+    200: mixColors(baseRgb, white, 0.7),
+    300: mixColors(baseRgb, white, 0.5),
     400: mixColors(baseRgb, white, 0.25),
     500: baseHex,
     600: mixColors(baseRgb, black, 0.12),
@@ -117,18 +121,20 @@ export function updateBrowserFavicon(faviconUrl: string): void {
     const mimeType = isSvg
       ? "image/svg+xml"
       : faviconUrl.endsWith(".ico")
-      ? "image/x-icon"
-      : faviconUrl.endsWith(".webp")
-      ? "image/webp"
-      : "image/png";
+        ? "image/x-icon"
+        : faviconUrl.endsWith(".webp")
+          ? "image/webp"
+          : "image/png";
 
     // Adiciona timestamp para forçar quebra de cache em URLs http/https
     const hrefWithCacheBust = faviconUrl.startsWith("http")
-      ? (faviconUrl.includes("?") ? `${faviconUrl}&t=${Date.now()}` : `${faviconUrl}?t=${Date.now()}`)
+      ? faviconUrl.includes("?")
+        ? `${faviconUrl}&t=${Date.now()}`
+        : `${faviconUrl}?t=${Date.now()}`
       : faviconUrl;
 
     const existingIcons = document.querySelectorAll<HTMLLinkElement>(
-      "link[rel*='icon'], link[rel='apple-touch-icon']"
+      "link[rel*='icon'], link[rel='apple-touch-icon']",
     );
 
     if (existingIcons.length > 0) {
@@ -164,7 +170,7 @@ export function updateBrowserFavicon(faviconUrl: string): void {
     window.dispatchEvent(
       new CustomEvent("partiu:favicon-updated", {
         detail: { faviconUrl },
-      })
+      }),
     );
   } catch (err) {
     silentCatchWarn("ThemeEngine:updateBrowserFavicon", err);
@@ -210,7 +216,9 @@ export function updateWebManifestAndMeta(branding: AppBrandingRecord): void {
     }
 
     // 2. Meta Apple Mobile Web App Title (tela inicial iOS)
-    let metaAppleTitle = document.querySelector<HTMLMetaElement>("meta[name='apple-mobile-web-app-title']");
+    let metaAppleTitle = document.querySelector<HTMLMetaElement>(
+      "meta[name='apple-mobile-web-app-title']",
+    );
     if (metaAppleTitle) {
       metaAppleTitle.content = appName;
     } else {
@@ -332,10 +340,8 @@ export class ThemeEngine {
       const isFooterSynced = branding.footer_sync_with_header !== false;
       const footerStart = isFooterSynced
         ? headerStart
-        : (branding.footer_gradient_start || headerStart);
-      const footerEnd = isFooterSynced
-        ? headerEnd
-        : (branding.footer_gradient_end || headerEnd);
+        : branding.footer_gradient_start || headerStart;
+      const footerEnd = isFooterSynced ? headerEnd : branding.footer_gradient_end || headerEnd;
 
       root.style.setProperty("--footer-gradient-start", footerStart);
       root.style.setProperty("--footer-gradient-end", footerEnd);
@@ -421,7 +427,11 @@ export class ThemeEngine {
       // 7. Atualização Dinâmica do Document Title e Favicon
       if (branding.app_name) {
         const currentTitle = document.title;
-        if (!currentTitle || currentTitle.includes("PARTIU") || currentTitle.includes("Mobilidade")) {
+        if (
+          !currentTitle ||
+          currentTitle.includes("PARTIU") ||
+          currentTitle.includes("Mobilidade")
+        ) {
           document.title = `${branding.app_name} — ${branding.company_name || "Mobilidade Inteligente"}`;
         }
       }
@@ -439,7 +449,7 @@ export class ThemeEngine {
       window.dispatchEvent(
         new CustomEvent("partiu:theme-palette-updated", {
           detail: { primaryColor, palette, branding },
-        })
+        }),
       );
     } catch (err) {
       silentCatchWarn("ThemeEngine:applyTheme", err);
@@ -451,7 +461,11 @@ export class ThemeEngine {
    * atualizando todos os tokens CSS, persistindo no localStorage e disparando
    * eventos para atualização reativa de todos os componentes da aplicação.
    */
-  public applyMonochromaticPalette(palette: MonochromaticPalette, appName?: string, tenantId?: string): void {
+  public applyMonochromaticPalette(
+    palette: MonochromaticPalette,
+    appName?: string,
+    tenantId?: string,
+  ): void {
     if (typeof document === "undefined") return;
 
     try {
@@ -525,7 +539,8 @@ export class ThemeEngine {
       const resolvedTenantId =
         tenantId ||
         (typeof window !== "undefined"
-          ? localStorage.getItem("partiu_active_tenant_id_v2") || localStorage.getItem("partiu_wl_active_tenant_v1")
+          ? localStorage.getItem("partiu_active_tenant_id_v2") ||
+            localStorage.getItem("partiu_wl_active_tenant_v1")
           : null) ||
         "default";
 
@@ -539,7 +554,8 @@ export class ThemeEngine {
         localStorage.setItem("partiu_branding_header_end", c.headerGradientEnd);
 
         // Atualiza cache canônico v2 consumido pelo BrandingProvider
-        const currentBrandingV2Raw = localStorage.getItem(`partiu_branding_tenant_${resolvedTenantId}`) ||
+        const currentBrandingV2Raw =
+          localStorage.getItem(`partiu_branding_tenant_${resolvedTenantId}`) ||
           localStorage.getItem("partiu_active_branding_v2");
         const baseV2 = currentBrandingV2Raw ? JSON.parse(currentBrandingV2Raw) : {};
         updatedV2 = {
@@ -563,7 +579,10 @@ export class ThemeEngine {
           updated_at: new Date().toISOString(),
         };
 
-        localStorage.setItem(`partiu_branding_tenant_${resolvedTenantId}`, JSON.stringify(updatedV2));
+        localStorage.setItem(
+          `partiu_branding_tenant_${resolvedTenantId}`,
+          JSON.stringify(updatedV2),
+        );
         localStorage.setItem("partiu_active_branding_v2", JSON.stringify(updatedV2));
       } catch {}
 
@@ -590,7 +609,7 @@ export class ThemeEngine {
         window.dispatchEvent(
           new CustomEvent("partiu:theme-palette-updated", {
             detail: { palette, primaryColor: c.primary },
-          })
+          }),
         );
         window.dispatchEvent(new Event("storage"));
       }

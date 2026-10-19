@@ -36,8 +36,7 @@ export function getStoredLandingPageData(tenantId?: string): MobilityLandingPage
         : parsed.hero?.carImageUrl;
     const cleanedBrandName =
       parsed.header?.brandName === "SUA MARCA" ? "" : parsed.header?.brandName;
-    const cleanedPrimary =
-      parsed.theme?.primary === "#007AFF" ? "" : parsed.theme?.primary;
+    const cleanedPrimary = parsed.theme?.primary === "#007AFF" ? "" : parsed.theme?.primary;
 
     return {
       ...defaultMobilityLandingData,
@@ -57,16 +56,24 @@ export function getStoredLandingPageData(tenantId?: string): MobilityLandingPage
         ...(parsed.hero || {}),
         carImageUrl: cleanedCarImage || "",
       },
-      actions: parsed.actions && parsed.actions.length > 0 ? parsed.actions : defaultMobilityLandingData.actions,
-      features: parsed.features && parsed.features.length > 0 ? parsed.features : defaultMobilityLandingData.features,
+      actions:
+        parsed.actions && parsed.actions.length > 0
+          ? parsed.actions
+          : defaultMobilityLandingData.actions,
+      features:
+        parsed.features && parsed.features.length > 0
+          ? parsed.features
+          : defaultMobilityLandingData.features,
       reasonSection: {
         ...defaultMobilityLandingData.reasonSection,
         ...(parsed.reasonSection || {}),
         brandName:
-          parsed.reasonSection?.brandName === "SUA MARCA?" || parsed.reasonSection?.brandName === "SUA MARCA"
+          parsed.reasonSection?.brandName === "SUA MARCA?" ||
+          parsed.reasonSection?.brandName === "SUA MARCA"
             ? ""
             : parsed.reasonSection?.brandName,
-        checklist: parsed.reasonSection?.checklist || defaultMobilityLandingData.reasonSection.checklist,
+        checklist:
+          parsed.reasonSection?.checklist || defaultMobilityLandingData.reasonSection.checklist,
         mapCard: {
           ...defaultMobilityLandingData.reasonSection.mapCard,
           ...(parsed.reasonSection?.mapCard || {}),
@@ -97,7 +104,7 @@ export function saveStoredLandingPageData(data: MobilityLandingPageData, tenantI
     window.dispatchEvent(
       new CustomEvent("partiu:landing-page-updated", {
         detail: { data, tenantId: tenantId || "default" },
-      })
+      }),
     );
   } catch (err) {
     console.warn("Erro ao salvar landing page data no localStorage:", err);
@@ -118,7 +125,7 @@ export function resetStoredLandingPageData(tenantId?: string): MobilityLandingPa
       window.dispatchEvent(
         new CustomEvent("partiu:landing-page-updated", {
           detail: { data: defaultMobilityLandingData, tenantId: tenantId || "default" },
-        })
+        }),
       );
     } catch {}
   }

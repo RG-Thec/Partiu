@@ -26,7 +26,9 @@ export function AdminTabBar({
 }: AdminTabBarProps) {
   if (variant === "underline") {
     return (
-      <div className={`flex items-center gap-6 border-b ${adminTokens.colors.cardBorder} overflow-x-auto scrollbar-none ${className}`}>
+      <div
+        className={`flex items-center gap-6 border-b ${adminTokens.colors.cardBorder} overflow-x-auto scrollbar-none ${className}`}
+      >
         {tabs.map((tab) => {
           const isActive = tab.id === activeTab;
           return (
@@ -48,10 +50,10 @@ export function AdminTabBar({
                     tab.badgeVariant === "critical"
                       ? "bg-rose-500 text-white"
                       : tab.badgeVariant === "warning"
-                      ? "bg-amber-500 text-white"
-                      : isActive
-                      ? "bg-primary/15 text-primary"
-                      : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
+                        ? "bg-amber-500 text-white"
+                        : isActive
+                          ? "bg-primary/15 text-primary"
+                          : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
                   }`}
                 >
                   {tab.badge}
@@ -93,10 +95,10 @@ export function AdminTabBar({
                   tab.badgeVariant === "critical"
                     ? "bg-rose-500 text-white"
                     : tab.badgeVariant === "warning"
-                    ? "bg-amber-500 text-white"
-                    : isActive
-                    ? "bg-primary/15 text-primary"
-                    : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
+                      ? "bg-amber-500 text-white"
+                      : isActive
+                        ? "bg-primary/15 text-primary"
+                        : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
                 }`}
               >
                 {tab.badge}

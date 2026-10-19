@@ -22,7 +22,7 @@
 
 export interface TenantMarketStats {
   tenantId: string;
-  demandCount: number;         // Passageiros buscando / chamados ativos na praça
+  demandCount: number; // Passageiros buscando / chamados ativos na praça
   availableDriversCount: number; // Motoristas online e livres (não em rota)
   lastUpdated: number;
 }
@@ -82,7 +82,11 @@ export class SurgeEngine {
   /**
    * Define override administrativo manual com suporte a tenant e tempo de expiração
    */
-  public setAdminOverride(multiplier: number, durationMinutes: number = 30, tenantId: string = "default"): void {
+  public setAdminOverride(
+    multiplier: number,
+    durationMinutes: number = 30,
+    tenantId: string = "default",
+  ): void {
     const clamped = Math.max(1.0, Math.min(3.0, multiplier));
     const expiresAt = durationMinutes > 0 ? Date.now() + durationMinutes * 60 * 1000 : null;
 
@@ -96,7 +100,7 @@ export class SurgeEngine {
       window.dispatchEvent(
         new CustomEvent("partiu:surge-updated", {
           detail: { tenantId, multiplier: clamped, isOverride: clamped > 1.0 },
-        })
+        }),
       );
     }
   }
@@ -111,7 +115,7 @@ export class SurgeEngine {
       window.dispatchEvent(
         new CustomEvent("partiu:surge-updated", {
           detail: { tenantId, multiplier: 1.0, isOverride: false },
-        })
+        }),
       );
     }
   }
@@ -122,7 +126,7 @@ export class SurgeEngine {
   public updateTenantMarketState(
     tenantId: string = "default",
     demandCount: number,
-    availableDriversCount: number
+    availableDriversCount: number,
   ): void {
     this.tenantMarketStats.set(tenantId, {
       tenantId,
@@ -135,7 +139,7 @@ export class SurgeEngine {
       window.dispatchEvent(
         new CustomEvent("partiu:surge-updated", {
           detail: { tenantId, demandCount, availableDriversCount },
-        })
+        }),
       );
     }
   }
@@ -175,7 +179,9 @@ export class SurgeEngine {
   /**
    * Verifica se há override administrativo persistido no LocalStorage para o tenant
    */
-  public getStoredTenantOverride(tenantId: string = "default"): { multiplier: number; expiresAt: number | null } | null {
+  public getStoredTenantOverride(
+    tenantId: string = "default",
+  ): { multiplier: number; expiresAt: number | null } | null {
     // 1. Checa memória primeiro
     const mem = this.tenantOverrides.get(tenantId);
     if (mem) {
@@ -190,7 +196,9 @@ export class SurgeEngine {
     if (typeof localStorage !== "undefined") {
       try {
         const storageKeys = [
-          tenantId && tenantId !== "default" ? `partiu_dispatch_algorithm_settings_${tenantId}` : null,
+          tenantId && tenantId !== "default"
+            ? `partiu_dispatch_algorithm_settings_${tenantId}`
+            : null,
           "partiu_dispatch_algorithm_settings",
         ].filter(Boolean) as string[];
 
@@ -229,7 +237,9 @@ export class SurgeEngine {
     if (typeof localStorage !== "undefined") {
       try {
         const storageKeys = [
-          tenantId && tenantId !== "default" ? `partiu_dispatch_algorithm_settings_${tenantId}` : null,
+          tenantId && tenantId !== "default"
+            ? `partiu_dispatch_algorithm_settings_${tenantId}`
+            : null,
           "partiu_dispatch_algorithm_settings",
         ].filter(Boolean) as string[];
 
@@ -263,7 +273,10 @@ export class SurgeEngine {
   /**
    * Calcula o multiplicador dinâmico oficial da corrida com suporte a IA e Live Override
    */
-  public calculateSurge(context: Partial<SurgeContext> = {}, targetTenantId?: string): SurgeCalculationResult {
+  public calculateSurge(
+    context: Partial<SurgeContext> = {},
+    targetTenantId?: string,
+  ): SurgeCalculationResult {
     const tenantId = targetTenantId || context.tenantId || "default";
 
     // =========================================================================
@@ -339,7 +352,10 @@ export class SurgeEngine {
       };
     }
     const stats = this.getTenantMarketStats(tenantId);
-    const demand = Math.max(1, context.demandCount ?? context.activeRequestsCount ?? stats.demandCount);
+    const demand = Math.max(
+      1,
+      context.demandCount ?? context.activeRequestsCount ?? stats.demandCount,
+    );
     const supply = Math.max(1, context.availableDriversCount ?? stats.availableDriversCount);
     const ratio = demand / supply;
 
@@ -364,11 +380,15 @@ export class SurgeEngine {
     } else if (ratio > 2.3) {
       demandFactor = 1.8;
       calculatedMultiplier = Math.max(calculatedMultiplier, 1.8);
-      reasons.push(`Alta procura e pico severo de chamados na região (${demand} chamados para ${supply} motoristas)`);
+      reasons.push(
+        `Alta procura e pico severo de chamados na região (${demand} chamados para ${supply} motoristas)`,
+      );
     } else if (ratio > 1.8) {
       demandFactor = 1.6;
       calculatedMultiplier = Math.max(calculatedMultiplier, 1.6);
-      reasons.push(`Alta procura e escassez de veículos disponíveis na praça (${demand} chamados para ${supply} motoristas)`);
+      reasons.push(
+        `Alta procura e escassez de veículos disponíveis na praça (${demand} chamados para ${supply} motoristas)`,
+      );
     } else if (ratio > 1.3) {
       demandFactor = 1.4;
       calculatedMultiplier = Math.max(calculatedMultiplier, 1.4);
@@ -430,7 +450,7 @@ export class SurgeEngine {
    */
   public calculateTenantSurge(
     tenantId: string = "default",
-    extraContext: Partial<SurgeContext> = {}
+    extraContext: Partial<SurgeContext> = {},
   ): SurgeCalculationResult {
     return this.calculateSurge({ ...extraContext, tenantId }, tenantId);
   }

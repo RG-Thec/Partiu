@@ -1,8 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import {
-  getIdentidadeVisual,
-  type ConfigIdentidadeVisual,
-} from "@/lib/superadmin-config";
+import { getIdentidadeVisual, type ConfigIdentidadeVisual } from "@/lib/superadmin-config";
 import {
   whiteLabelEngine,
   type WhiteLabelFullConfig,
@@ -31,7 +28,10 @@ export function useBrandTheme() {
 
   useEffect(() => {
     function handleWhiteLabelAtualizacao(e: any) {
-      const novaConfig = (e.detail?.config || (e.detail?.brandCenter ? e.detail : null)) || whiteLabelEngine.getActiveConfig();
+      const novaConfig =
+        e.detail?.config ||
+        (e.detail?.brandCenter ? e.detail : null) ||
+        whiteLabelEngine.getActiveConfig();
       setConfig(novaConfig);
       setActiveTenant(whiteLabelEngine.getActiveTenant());
     }
@@ -76,50 +76,57 @@ export function useBrandTheme() {
         };
         const br = radiusMap[updated.designSystem?.raioBordas] || "16px";
         const currentActiveTenant = whiteLabelEngine.getActiveTenant();
-        void brandingCtx.updateBranding({
-          tenant_id: currentActiveTenant.tenantId,
-          app_name: updated.brandCenter?.nomePlataforma,
-          company_name: updated.nativeApp?.razaoSocial || updated.brandCenter?.slogan,
-          primary_color: prim?.corPrincipal,
-          secondary_color: prim?.corSecundaria,
-          accent_color: prim?.corTerciaria || prim?.corSecundaria,
-          background_color: prim?.corFundoApp,
-          surface_color: prim?.corSuperficieCard,
-          text_primary: prim?.corTextoPrincipal,
-          header_gradient_start: prim?.corPrincipal,
-          header_gradient_end: prim?.corSecundaria,
-          logo_url: updated.brandCenter?.logos?.logoPrincipalUrl,
-          favicon_url: updated.brandCenter?.favicons?.faviconDesktopUrl,
-          splash_logo_url: updated.brandCenter?.splash?.splashAndroidUrl || updated.nativeApp?.splashAndroidUrl,
-          font_family: updated.typography?.familiaPrincipal || "Plus Jakarta Sans",
-          border_radius: br,
-        }, currentActiveTenant.tenantId);
+        void brandingCtx.updateBranding(
+          {
+            tenant_id: currentActiveTenant.tenantId,
+            app_name: updated.brandCenter?.nomePlataforma,
+            company_name: updated.nativeApp?.razaoSocial || updated.brandCenter?.slogan,
+            primary_color: prim?.corPrincipal,
+            secondary_color: prim?.corSecundaria,
+            accent_color: prim?.corTerciaria || prim?.corSecundaria,
+            background_color: prim?.corFundoApp,
+            surface_color: prim?.corSuperficieCard,
+            text_primary: prim?.corTextoPrincipal,
+            header_gradient_start: prim?.corPrincipal,
+            header_gradient_end: prim?.corSecundaria,
+            logo_url: updated.brandCenter?.logos?.logoPrincipalUrl,
+            favicon_url: updated.brandCenter?.favicons?.faviconDesktopUrl,
+            splash_logo_url:
+              updated.brandCenter?.splash?.splashAndroidUrl || updated.nativeApp?.splashAndroidUrl,
+            font_family: updated.typography?.familiaPrincipal || "Plus Jakarta Sans",
+            border_radius: br,
+          },
+          currentActiveTenant.tenantId,
+        );
       }
 
       return updated;
     },
-    [brandingCtx]
+    [brandingCtx],
   );
 
-  const switchTenant = useCallback((tenantId: string) => {
-    try {
-      const t = whiteLabelEngine.switchTenant(tenantId);
-      if (t) {
-        setActiveTenant(t);
-        setConfig(t.configuracaoCompleta);
-        if (brandingCtx?.setTenantId) {
-          void brandingCtx.setTenantId(t.tenantId);
+  const switchTenant = useCallback(
+    (tenantId: string) => {
+      try {
+        const t = whiteLabelEngine.switchTenant(tenantId);
+        if (t) {
+          setActiveTenant(t);
+          setConfig(t.configuracaoCompleta);
+          if (brandingCtx?.setTenantId) {
+            void brandingCtx.setTenantId(t.tenantId);
+          }
         }
+        return t;
+      } catch (err) {
+        console.warn("[useBrandTheme] Falha ao alternar tenant:", err);
+        const fallback = whiteLabelEngine.getActiveTenant();
+        setActiveTenant(fallback);
+        setConfig(fallback.configuracaoCompleta);
+        return fallback;
       }
-      return t;
-    } catch (err) {
-      console.warn("[useBrandTheme] Falha ao alternar tenant:", err);
-      const fallback = whiteLabelEngine.getActiveTenant();
-      setActiveTenant(fallback);
-      setConfig(fallback.configuracaoCompleta);
-      return fallback;
-    }
-  }, [brandingCtx]);
+    },
+    [brandingCtx],
+  );
 
   const cloneTenant = useCallback(
     (
@@ -131,7 +138,7 @@ export function useBrandTheme() {
       adminSenha?: string,
       responsavelNome?: string,
       responsavelTelefone?: string,
-      territorioOptions?: Partial<TerritorioExclusivoConfig>
+      territorioOptions?: Partial<TerritorioExclusivoConfig>,
     ) => {
       const cloned = whiteLabelEngine.cloneTenant(
         activeTenant.tenantId,
@@ -143,11 +150,11 @@ export function useBrandTheme() {
         adminSenha,
         responsavelNome,
         responsavelTelefone,
-        territorioOptions
+        territorioOptions,
       );
       return cloned;
     },
-    [activeTenant.tenantId]
+    [activeTenant.tenantId],
   );
 
   const updateTenantTerritory = useCallback(
@@ -156,31 +163,22 @@ export function useBrandTheme() {
       setActiveTenant(whiteLabelEngine.getActiveTenant());
       return updated;
     },
-    []
+    [],
   );
 
-  const updateTenantCredentials = useCallback(
-    (tenantId: string, email: string, senha: string) => {
-      return whiteLabelEngine.updateTenantCredentials(tenantId, email, senha);
-    },
-    []
-  );
+  const updateTenantCredentials = useCallback((tenantId: string, email: string, senha: string) => {
+    return whiteLabelEngine.updateTenantCredentials(tenantId, email, senha);
+  }, []);
 
-  const deleteTenant = useCallback(
-    async (tenantId: string) => {
-      return await whiteLabelEngine.deleteTenant(tenantId);
-    },
-    []
-  );
+  const deleteTenant = useCallback(async (tenantId: string) => {
+    return await whiteLabelEngine.deleteTenant(tenantId);
+  }, []);
 
-  const toggleBusinessModel = useCallback(
-    (verticalId: BusinessVerticalId, ativo: boolean) => {
-      const updated = whiteLabelEngine.toggleBusinessModel(verticalId, ativo);
-      setConfig(updated);
-      return updated;
-    },
-    []
-  );
+  const toggleBusinessModel = useCallback((verticalId: BusinessVerticalId, ativo: boolean) => {
+    const updated = whiteLabelEngine.toggleBusinessModel(verticalId, ativo);
+    setConfig(updated);
+    return updated;
+  }, []);
 
   const reorderHomeBlocks = useCallback((blocks: HomeBlockItem[]) => {
     const updated = whiteLabelEngine.reorderHomeBlocks(blocks);
@@ -188,16 +186,19 @@ export function useBrandTheme() {
     return updated;
   }, []);
 
-  const applyPreset = useCallback((presetId: string) => {
-    const updated = whiteLabelEngine.applyPreset(presetId);
-    if (updated) {
-      setConfig(updated);
-      if (brandingCtx?.applyPreset) {
-        void brandingCtx.applyPreset(presetId);
+  const applyPreset = useCallback(
+    (presetId: string) => {
+      const updated = whiteLabelEngine.applyPreset(presetId);
+      if (updated) {
+        setConfig(updated);
+        if (brandingCtx?.applyPreset) {
+          void brandingCtx.applyPreset(presetId);
+        }
       }
-    }
-    return Boolean(updated);
-  }, [brandingCtx]);
+      return Boolean(updated);
+    },
+    [brandingCtx],
+  );
 
   const resetToDefaults = useCallback(() => {
     const fresh = whiteLabelEngine.resetToDefaults();
@@ -209,15 +210,41 @@ export function useBrandTheme() {
   }, [brandingCtx]);
 
   // Mapeamentos unificados: Branding Supabase Realtime tem precedência máxima, seguido de WhiteLabel e legado
-  const nomeApp = branding?.app_name || config.brandCenter?.nomePlataforma || identidade.nomeApp || "PARTIU";
-  const sloganApp = branding?.company_name || config.brandCenter?.slogan || identidade.sloganApp || "Mobilidade inteligente para sua cidade";
-  const corPrimaria = branding?.primary_color || config.designSystem?.paletaPrimaria?.corPrincipal || identidade.corPrimaria || "#FF6B00";
-  const corPrimariaHover = config.designSystem?.paletaPrimaria?.corPrincipalHover || branding?.secondary_color || identidade.corPrimariaHover || "#EA580C";
-  const corSecundaria = branding?.secondary_color || config.designSystem?.paletaPrimaria?.corSecundaria || identidade.corSecundaria || "#FFB800";
-  const corTextoPrimaria = branding?.text_primary || config.designSystem?.paletaPrimaria?.corTextoPrincipal || identidade.corTextoPrimaria || "#0F172A";
-  const corFundoApp = branding?.background_color || config.designSystem?.paletaPrimaria?.corFundoApp || identidade.corFundoApp || "#FAFAFA";
+  const nomeApp =
+    branding?.app_name || config.brandCenter?.nomePlataforma || identidade.nomeApp || "PARTIU";
+  const sloganApp =
+    branding?.company_name ||
+    config.brandCenter?.slogan ||
+    identidade.sloganApp ||
+    "Mobilidade inteligente para sua cidade";
+  const corPrimaria =
+    branding?.primary_color ||
+    config.designSystem?.paletaPrimaria?.corPrincipal ||
+    identidade.corPrimaria ||
+    "#FF6B00";
+  const corPrimariaHover =
+    config.designSystem?.paletaPrimaria?.corPrincipalHover ||
+    branding?.secondary_color ||
+    identidade.corPrimariaHover ||
+    "#EA580C";
+  const corSecundaria =
+    branding?.secondary_color ||
+    config.designSystem?.paletaPrimaria?.corSecundaria ||
+    identidade.corSecundaria ||
+    "#FFB800";
+  const corTextoPrimaria =
+    branding?.text_primary ||
+    config.designSystem?.paletaPrimaria?.corTextoPrincipal ||
+    identidade.corTextoPrimaria ||
+    "#0F172A";
+  const corFundoApp =
+    branding?.background_color ||
+    config.designSystem?.paletaPrimaria?.corFundoApp ||
+    identidade.corFundoApp ||
+    "#FAFAFA";
   const nomeModuloPay = "99Pay";
-  const nomeModuloEntrega = config.businessModels?.verticais?.DELIVERY_FLASH?.nomeExibicao || "Entrega";
+  const nomeModuloEntrega =
+    config.businessModels?.verticais?.DELIVERY_FLASH?.nomeExibicao || "Entrega";
 
   // Gradientes e Sincronização Cabeçalho ↔ Rodapé
   const corCabecalhoInicio = branding?.header_gradient_start || corPrimaria || "#FF6B00";
@@ -225,10 +252,10 @@ export function useBrandTheme() {
   const rodapeSincronizadoComCabecalho = branding?.footer_sync_with_header !== false;
   const corRodapeInicio = rodapeSincronizadoComCabecalho
     ? corCabecalhoInicio
-    : (branding?.footer_gradient_start || corCabecalhoInicio);
+    : branding?.footer_gradient_start || corCabecalhoInicio;
   const corRodapeFim = rodapeSincronizadoComCabecalho
     ? corCabecalhoFim
-    : (branding?.footer_gradient_end || corCabecalhoFim);
+    : branding?.footer_gradient_end || corCabecalhoFim;
 
   return {
     // Legado 100% preservado
@@ -250,7 +277,9 @@ export function useBrandTheme() {
     bannerComunicacao: identidade.bannerComunicacao,
     bannersComunicacao: identidade.bannersComunicacao?.length
       ? identidade.bannersComunicacao
-      : (identidade.bannerComunicacao ? [identidade.bannerComunicacao] : []),
+      : identidade.bannerComunicacao
+        ? [identidade.bannerComunicacao]
+        : [],
     cardsMobilidade: identidade.cardsMobilidade || [],
     bannerCredito: identidade.bannerCredito || identidade.bannerComunicacao,
     cardsFinancas: identidade.cardsFinancas || [],

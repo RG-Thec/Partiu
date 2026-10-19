@@ -139,7 +139,8 @@ function applyCssVariablesToRoot(config: AppConfig) {
   const textPrimary = colors?.textPrimary || DEFAULT_APP_CONFIG.branding.colors.textPrimary;
   const textSecondary = colors?.textSecondary || DEFAULT_APP_CONFIG.branding.colors.textSecondary;
   const inputBorder = colors?.inputBorder || DEFAULT_APP_CONFIG.branding.colors.inputBorder;
-  const inputBackground = colors?.inputBackground || DEFAULT_APP_CONFIG.branding.colors.inputBackground;
+  const inputBackground =
+    colors?.inputBackground || DEFAULT_APP_CONFIG.branding.colors.inputBackground;
   const borderRadius = ui?.borderRadius || DEFAULT_APP_CONFIG.branding.ui.borderRadius;
   const buttonShadow = ui?.buttonShadow || DEFAULT_APP_CONFIG.branding.ui.buttonShadow;
   const fontFamily = ui?.fontFamily || DEFAULT_APP_CONFIG.branding.ui.fontFamily;
@@ -232,7 +233,8 @@ export function WhiteLabelThemeProvider({
                     background: b.background_color || DEFAULT_APP_CONFIG.branding.colors.background,
                     surface: b.surface_color || DEFAULT_APP_CONFIG.branding.colors.surface,
                     textPrimary: b.text_primary || DEFAULT_APP_CONFIG.branding.colors.textPrimary,
-                    textSecondary: b.text_secondary || DEFAULT_APP_CONFIG.branding.colors.textSecondary,
+                    textSecondary:
+                      b.text_secondary || DEFAULT_APP_CONFIG.branding.colors.textSecondary,
                     inputBorder: DEFAULT_APP_CONFIG.branding.colors.inputBorder,
                     inputBackground: DEFAULT_APP_CONFIG.branding.colors.inputBackground,
                   },
@@ -264,7 +266,8 @@ export function WhiteLabelThemeProvider({
                   background: b.background_color || DEFAULT_APP_CONFIG.branding.colors.background,
                   surface: b.surface_color || DEFAULT_APP_CONFIG.branding.colors.surface,
                   textPrimary: b.text_primary || DEFAULT_APP_CONFIG.branding.colors.textPrimary,
-                  textSecondary: b.text_secondary || DEFAULT_APP_CONFIG.branding.colors.textSecondary,
+                  textSecondary:
+                    b.text_secondary || DEFAULT_APP_CONFIG.branding.colors.textSecondary,
                   inputBorder: DEFAULT_APP_CONFIG.branding.colors.inputBorder,
                   inputBackground: DEFAULT_APP_CONFIG.branding.colors.inputBackground,
                 },
@@ -330,8 +333,10 @@ export function WhiteLabelThemeProvider({
       setAppConfigState((prev) => {
         const prevColors = prev?.branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
         const prevUi = prev?.branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
-        const primary = b.primary_color || prevColors.primary || DEFAULT_APP_CONFIG.branding.colors.primary;
-        const targetAppName = b.app_name || prev?.branding?.appName || DEFAULT_APP_CONFIG.branding.appName;
+        const primary =
+          b.primary_color || prevColors.primary || DEFAULT_APP_CONFIG.branding.colors.primary;
+        const targetAppName =
+          b.app_name || prev?.branding?.appName || DEFAULT_APP_CONFIG.branding.appName;
 
         if (
           prev?.branding?.appName === targetAppName &&
@@ -378,7 +383,10 @@ export function WhiteLabelThemeProvider({
   // Escuta atualizações do WhiteLabelEngine e sincronização entre abas/janelas
   useEffect(() => {
     function handleWhiteLabelUpdated(e: any) {
-      const cfg = e?.detail?.config || (e?.detail?.brandCenter ? e.detail : null) || (typeof window !== "undefined" ? whiteLabelEngine.getActiveConfig() : null);
+      const cfg =
+        e?.detail?.config ||
+        (e?.detail?.brandCenter ? e.detail : null) ||
+        (typeof window !== "undefined" ? whiteLabelEngine.getActiveConfig() : null);
       if (!cfg) return;
       const prim = cfg.designSystem?.paletaPrimaria;
       const primCor = prim?.corPrincipal;
@@ -386,7 +394,10 @@ export function WhiteLabelThemeProvider({
       setAppConfigState((prev) => {
         const prevColors = prev?.branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
         const prevUi = prev?.branding?.ui || DEFAULT_APP_CONFIG.branding.ui;
-        const targetAppName = cfg.brandCenter?.nomePlataforma || prev?.branding?.appName || DEFAULT_APP_CONFIG.branding.appName;
+        const targetAppName =
+          cfg.brandCenter?.nomePlataforma ||
+          prev?.branding?.appName ||
+          DEFAULT_APP_CONFIG.branding.appName;
         return {
           ...prev,
           branding: {
@@ -436,8 +447,9 @@ export function WhiteLabelThemeProvider({
   useEffect(() => {
     applyCssVariablesToRoot(appConfig);
     try {
-      const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-      const tid = urlParams ? (urlParams.get("tenant") || urlParams.get("tenant_id")) : null;
+      const urlParams =
+        typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+      const tid = urlParams ? urlParams.get("tenant") || urlParams.get("tenant_id") : null;
       if (!tid || tid === "default") {
         localStorage.setItem(STORAGE_KEY_WL_CONFIG, JSON.stringify(appConfig));
       } else {
@@ -488,14 +500,15 @@ export function WhiteLabelThemeProvider({
         return next;
       });
     },
-    [globalBranding]
+    [globalBranding],
   );
 
   const updateBrandingColors = useCallback(
     (partialColors: Partial<AppConfigBrandingColors>) => {
       setAppConfigState((prev) => {
         const prevColors = prev?.branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
-        const primary = partialColors.primary || prevColors.primary || DEFAULT_APP_CONFIG.branding.colors.primary;
+        const primary =
+          partialColors.primary || prevColors.primary || DEFAULT_APP_CONFIG.branding.colors.primary;
         const newColors = {
           ...prevColors,
           ...partialColors,
@@ -525,7 +538,7 @@ export function WhiteLabelThemeProvider({
         };
       });
     },
-    [globalBranding]
+    [globalBranding],
   );
 
   const updateFeatures = useCallback((partialFeatures: Partial<AppConfigFeatures>) => {
@@ -575,7 +588,15 @@ export function WhiteLabelThemeProvider({
       setTheme: noopSetTheme,
       toggleTheme: noopToggleTheme,
     }),
-    [appConfig, updateAppConfig, updateBrandingColors, updateFeatures, resetTheme, noopSetTheme, noopToggleTheme]
+    [
+      appConfig,
+      updateAppConfig,
+      updateBrandingColors,
+      updateFeatures,
+      resetTheme,
+      noopSetTheme,
+      noopToggleTheme,
+    ],
   );
 
   return <WhiteLabelContext.Provider value={value}>{children}</WhiteLabelContext.Provider>;

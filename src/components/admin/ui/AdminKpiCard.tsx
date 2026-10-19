@@ -56,11 +56,7 @@ export function AdminKpiCard({
           <span className={adminTokens.typography.kpiLabel}>{label}</span>
           <div className="flex items-center gap-1.5">
             {badge}
-            {icon && (
-              <div className={`p-2.5 rounded-xl shrink-0 ${iconBgMap}`}>
-                {icon}
-              </div>
-            )}
+            {icon && <div className={`p-2.5 rounded-xl shrink-0 ${iconBgMap}`}>{icon}</div>}
           </div>
         </div>
 
@@ -80,8 +76,8 @@ export function AdminKpiCard({
                   trend.positive === true
                     ? "text-emerald-600 dark:text-emerald-400"
                     : trend.positive === false
-                    ? "text-rose-600 dark:text-rose-400"
-                    : "text-slate-500 dark:text-slate-400"
+                      ? "text-rose-600 dark:text-rose-400"
+                      : "text-slate-500 dark:text-slate-400"
                 }`}
               >
                 {trend.positive === true && <TrendingUp className="h-3.5 w-3.5 stroke-[2.5]" />}
@@ -90,7 +86,9 @@ export function AdminKpiCard({
                 {trend.value}
               </span>
               {trend.label && (
-                <span className="text-slate-400 dark:text-slate-500 font-medium">{trend.label}</span>
+                <span className="text-slate-400 dark:text-slate-500 font-medium">
+                  {trend.label}
+                </span>
               )}
             </div>
           ) : (
@@ -98,7 +96,9 @@ export function AdminKpiCard({
           )}
 
           {subtext && (
-            <span className="text-slate-400 dark:text-slate-500 text-[11px] font-medium">{subtext}</span>
+            <span className="text-slate-400 dark:text-slate-500 text-[11px] font-medium">
+              {subtext}
+            </span>
           )}
         </div>
       )}

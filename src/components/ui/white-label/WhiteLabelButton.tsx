@@ -26,7 +26,7 @@ export const WhiteLabelButton = React.forwardRef<HTMLButtonElement, WhiteLabelBu
       style,
       ...props
     },
-    ref
+    ref,
   ) => {
     const { appConfig } = useTheme();
     const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
@@ -57,11 +57,13 @@ export const WhiteLabelButton = React.forwardRef<HTMLButtonElement, WhiteLabelBu
       dynamicStyle.backgroundColor = colors.secondary;
       dynamicStyle.color = "#FFFFFF";
     } else if (variant === "outline") {
-      dynamicStyle.backgroundColor = isHovered && !disabled ? colors.inputBackground : "transparent";
+      dynamicStyle.backgroundColor =
+        isHovered && !disabled ? colors.inputBackground : "transparent";
       dynamicStyle.border = `1.5px solid ${colors.inputBorder}`;
       dynamicStyle.color = colors.textPrimary;
     } else if (variant === "ghost") {
-      dynamicStyle.backgroundColor = isHovered && !disabled ? colors.inputBackground : "transparent";
+      dynamicStyle.backgroundColor =
+        isHovered && !disabled ? colors.inputBackground : "transparent";
       dynamicStyle.color = colors.textPrimary;
     } else if (variant === "link") {
       dynamicStyle.backgroundColor = "transparent";
@@ -92,7 +94,7 @@ export const WhiteLabelButton = React.forwardRef<HTMLButtonElement, WhiteLabelBu
         {!isLoading && rightIcon && <span className="shrink-0">{rightIcon}</span>}
       </button>
     );
-  }
+  },
 );
 
 WhiteLabelButton.displayName = "WhiteLabelButton";

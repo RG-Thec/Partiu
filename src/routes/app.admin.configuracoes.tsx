@@ -44,14 +44,16 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import {
-  getSuperAdminConfig,
-  saveSuperAdminConfig,
-} from "@/lib/superadmin-config";
+import { getSuperAdminConfig, saveSuperAdminConfig } from "@/lib/superadmin-config";
 import { appSettingsService } from "@/lib/ecosystem/app-settings-service";
 import { isSuperAdmin, getAdminRole } from "@/lib/admin-rbac";
 import { useBranding } from "@/hooks/useBranding";
-import { themeEngine, generatePrimaryPalette, updateBrowserFavicon, generateSvgFavicon } from "@/lib/branding/ThemeEngine";
+import {
+  themeEngine,
+  generatePrimaryPalette,
+  updateBrowserFavicon,
+  generateSvgFavicon,
+} from "@/lib/branding/ThemeEngine";
 import { PalettePickerSection } from "@/components/admin/PalettePickerSection";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { GuardiaoAcesso } from "@/components/admin/GuardiaoAcesso";
@@ -120,7 +122,8 @@ export function ConfiguracoesAdminPage() {
       } catch {}
       setSucessoFavicon(true);
       setTimeout(() => setSucessoFavicon(false), 3000);
-    } catch {} finally {
+    } catch {
+    } finally {
       setSalvandoFavicon(false);
     }
   }
@@ -272,7 +275,11 @@ export function ConfiguracoesAdminPage() {
               email: u.email,
               role: u.is_super_admin || u.role === "super_admin" ? "SUPER_ADMIN" : "FRANQUEADO",
               tenant_id: u.tenant_id,
-              praca_nome: u.is_super_admin ? "Acesso Global (Holding)" : (u.tenant_id ? `Praça ${u.tenant_id}` : "Regional"),
+              praca_nome: u.is_super_admin
+                ? "Acesso Global (Holding)"
+                : u.tenant_id
+                  ? `Praça ${u.tenant_id}`
+                  : "Regional",
               ativo: u.ativo !== false,
               created_at: u.created_at || new Date().toISOString(),
             }));
@@ -322,7 +329,9 @@ export function ConfiguracoesAdminPage() {
   const [sucessoAvancado, setSucessoAvancado] = useState(false);
 
   // Gateway Primário & Mercado Pago
-  const [activeGateway, setActiveGateway] = useState<"MERCADO_PAGO" | "ASAAS" | "EFI_BANK" | "MANUAL">("MERCADO_PAGO");
+  const [activeGateway, setActiveGateway] = useState<
+    "MERCADO_PAGO" | "ASAAS" | "EFI_BANK" | "MANUAL"
+  >("MERCADO_PAGO");
   const [mercadopagoAccessToken, setMercadopagoAccessToken] = useState("");
   const [mercadopagoPublicKey, setMercadopagoPublicKey] = useState("");
   const [mercadopagoWebhookSecret, setMercadopagoWebhookSecret] = useState("");
@@ -359,10 +368,14 @@ export function ConfiguracoesAdminPage() {
       const cfg = getSuperAdminConfig();
       if (cfg.tarifas?.raioBuscaKm) setRaioInicialKm(String(cfg.tarifas.raioBuscaKm));
       if (cfg.tarifas?.partiuPop) {
-        if (cfg.tarifas.partiuPop.tarifaBase) setTarifaBaseEssencial(String(cfg.tarifas.partiuPop.tarifaBase));
-        if (cfg.tarifas.partiuPop.valorKm) setValorKmEssencial(String(cfg.tarifas.partiuPop.valorKm));
-        if (cfg.tarifas.partiuPop.valorMinuto) setValorMinutoEssencial(String(cfg.tarifas.partiuPop.valorMinuto));
-        if (cfg.tarifas.partiuPop.tarifaMinima) setTarifaMinimaEssencial(String(cfg.tarifas.partiuPop.tarifaMinima));
+        if (cfg.tarifas.partiuPop.tarifaBase)
+          setTarifaBaseEssencial(String(cfg.tarifas.partiuPop.tarifaBase));
+        if (cfg.tarifas.partiuPop.valorKm)
+          setValorKmEssencial(String(cfg.tarifas.partiuPop.valorKm));
+        if (cfg.tarifas.partiuPop.valorMinuto)
+          setValorMinutoEssencial(String(cfg.tarifas.partiuPop.valorMinuto));
+        if (cfg.tarifas.partiuPop.tarifaMinima)
+          setTarifaMinimaEssencial(String(cfg.tarifas.partiuPop.tarifaMinima));
       }
       if (cfg.estrategicos?.taxaCooperativaPercent) {
         setComissaoFranquia(String(cfg.estrategicos.taxaCooperativaPercent));
@@ -388,7 +401,12 @@ export function ConfiguracoesAdminPage() {
 
       const superAdminConfig = getSuperAdminConfig();
       if (superAdminConfig.pix) {
-        superAdminConfig.pix.gateway = activeGateway === "MERCADO_PAGO" ? "mercadopago" : activeGateway === "ASAAS" ? "asaas" : "manual";
+        superAdminConfig.pix.gateway =
+          activeGateway === "MERCADO_PAGO"
+            ? "mercadopago"
+            : activeGateway === "ASAAS"
+              ? "asaas"
+              : "manual";
         superAdminConfig.pix.mercadoPagoAccessToken = mercadopagoAccessToken;
         superAdminConfig.pix.mercadoPagoPublicKey = mercadopagoPublicKey;
         superAdminConfig.pix.mercadoPagoWebhookSecret = mercadopagoWebhookSecret;
@@ -447,9 +465,7 @@ export function ConfiguracoesAdminPage() {
     if (isSupabaseConfigured()) {
       void (async () => {
         try {
-          const { data } = await (supabase as any)
-            .from("white_label_tenants")
-            .select("*");
+          const { data } = await (supabase as any).from("white_label_tenants").select("*");
           if (data && data.length > 0) {
             const mapped: CidadeTenant[] = data.map((t: any) => ({
               id: t.id,
@@ -602,7 +618,8 @@ export function ConfiguracoesAdminPage() {
               Configurações &amp; <span className="text-[#0088FF]">White Label Expresso</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-normal mt-1 leading-relaxed">
-              Configurações essenciais sempre acessíveis, dados técnicos protegidos por desafio de segurança e assistente de ativação de cidade em 4 passos.
+              Configurações essenciais sempre acessíveis, dados técnicos protegidos por desafio de
+              segurança e assistente de ativação de cidade em 4 passos.
             </p>
           </div>
         </div>
@@ -614,7 +631,9 @@ export function ConfiguracoesAdminPage() {
           type="button"
           onClick={() => setAbaAtiva("essencial")}
           className={`flex items-center gap-2.5 px-5 sm:px-7 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm lg:text-base font-black transition-all cursor-pointer ${
-            abaAtiva === "essencial" ? "bg-slate-950 text-white shadow-md" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            abaAtiva === "essencial"
+              ? "bg-slate-950 text-white shadow-md"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
           <CheckCircle2 className="h-5 w-5 text-[#0088FF]" />
@@ -628,7 +647,9 @@ export function ConfiguracoesAdminPage() {
           type="button"
           onClick={() => setAbaAtiva("whitelabel")}
           className={`flex items-center gap-2.5 px-5 sm:px-7 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm lg:text-base font-black transition-all cursor-pointer ${
-            abaAtiva === "whitelabel" ? "bg-slate-950 text-white shadow-md" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            abaAtiva === "whitelabel"
+              ? "bg-slate-950 text-white shadow-md"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
           <Sparkles className="h-5 w-5 text-[#0088FF]" />
@@ -642,7 +663,9 @@ export function ConfiguracoesAdminPage() {
           type="button"
           onClick={() => setAbaAtiva("avancado")}
           className={`flex items-center gap-2.5 px-5 sm:px-7 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm lg:text-base font-black transition-all cursor-pointer ${
-            abaAtiva === "avancado" ? "bg-slate-950 text-white shadow-md" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            abaAtiva === "avancado"
+              ? "bg-slate-950 text-white shadow-md"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
           {modoAvancadoDesbloqueado ? (
@@ -651,9 +674,13 @@ export function ConfiguracoesAdminPage() {
             <Lock className="h-5 w-5 text-rose-500" />
           )}
           <span>Modo Avançado</span>
-          <span className={`ml-1 rounded-full px-3 py-1 text-xs sm:text-sm font-bold ${
-            modoAvancadoDesbloqueado ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"
-          }`}>
+          <span
+            className={`ml-1 rounded-full px-3 py-1 text-xs sm:text-sm font-bold ${
+              modoAvancadoDesbloqueado
+                ? "bg-emerald-100 text-emerald-800"
+                : "bg-red-100 text-red-800"
+            }`}
+          >
             {modoAvancadoDesbloqueado ? "Desbloqueado" : "Protegido"}
           </span>
         </button>
@@ -662,7 +689,9 @@ export function ConfiguracoesAdminPage() {
           type="button"
           onClick={() => setAbaAtiva("equipe")}
           className={`flex items-center gap-2.5 px-5 sm:px-7 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm lg:text-base font-black transition-all cursor-pointer ${
-            abaAtiva === "equipe" ? "bg-slate-950 text-white shadow-md" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            abaAtiva === "equipe"
+              ? "bg-slate-950 text-white shadow-md"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
           }`}
         >
           <Shield className="h-5 w-5 text-indigo-500" />
@@ -678,7 +707,9 @@ export function ConfiguracoesAdminPage() {
         <form onSubmit={handleSalvarEssencial} className="space-y-6 sm:space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-900">Configurações Operacionais Essenciais</h2>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900">
+                Configurações Operacionais Essenciais
+              </h2>
               <p className="text-base sm:text-lg text-slate-600 font-medium mt-1">
                 Parâmetros vitais de operação diária sem exposição a dados técnicos complexos.
               </p>
@@ -702,7 +733,9 @@ export function ConfiguracoesAdminPage() {
           {/* Card de Cor Primária & Identidade Visual Global */}
           <div className="bg-white p-6 sm:p-10 rounded-3xl border border-slate-200/90 shadow-sm space-y-6 sm:space-y-8">
             {/* Seletor de Paletas Monocromáticas de 1-Clique */}
-            <PalettePickerSection onPaletteSelect={(p) => setCorPrimariaApp(p?.colors?.primary || "#FF6B00")} />
+            <PalettePickerSection
+              onPaletteSelect={(p) => setCorPrimariaApp(p?.colors?.primary || "#FF6B00")}
+            />
 
             {/* Ajuste Fino Personalizado e Salvar */}
             <div className="pt-6 sm:pt-8 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -776,7 +809,9 @@ export function ConfiguracoesAdminPage() {
 
                 {/* Cores Rápidas Predefinidas */}
                 <div className="space-y-2.5 pt-1">
-                  <span className="text-sm sm:text-base font-bold text-slate-700">Paletas Populares de Mobilidade:</span>
+                  <span className="text-sm sm:text-base font-bold text-slate-700">
+                    Paletas Populares de Mobilidade:
+                  </span>
                   <div className="flex flex-wrap gap-2.5">
                     {[
                       { nome: "Laranja Solar (Padrão PARTIU)", hex: "#FF6B00" },
@@ -850,7 +885,8 @@ export function ConfiguracoesAdminPage() {
                   </span>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
-                  Esta cor gera automaticamente todas as tonalidades semânticas (50 a 900, fundos, contrastes e realces) em conformidade com as diretrizes do frontend &amp; UI/UX.
+                  Esta cor gera automaticamente todas as tonalidades semânticas (50 a 900, fundos,
+                  contrastes e realces) em conformidade com as diretrizes do frontend &amp; UI/UX.
                 </p>
               </div>
 
@@ -864,7 +900,9 @@ export function ConfiguracoesAdminPage() {
                     </span>
                   </div>
                   <span className="text-xs sm:text-sm font-bold px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-700">
-                    {faviconUrlApp.startsWith("data:image/svg") ? "✨ SVG Dinâmico" : "🖼️ URL Customizada"}
+                    {faviconUrlApp.startsWith("data:image/svg")
+                      ? "✨ SVG Dinâmico"
+                      : "🖼️ URL Customizada"}
                   </span>
                 </div>
 
@@ -883,7 +921,9 @@ export function ConfiguracoesAdminPage() {
                         className="w-5 h-5 object-contain"
                       />
                     </div>
-                    <span className="truncate">{branding?.app_name || "PARTIU"} — Mobilidade Urbana</span>
+                    <span className="truncate">
+                      {branding?.app_name || "PARTIU"} — Mobilidade Urbana
+                    </span>
                     <span className="text-slate-400 text-base ml-auto">×</span>
                   </div>
                 </div>
@@ -960,7 +1000,8 @@ export function ConfiguracoesAdminPage() {
                   </h3>
                 </div>
                 <p className="text-sm sm:text-base text-slate-600 font-medium mt-1">
-                  Composição de valores por quilometragem e tempo para cálculo de estimativa e encerramento.
+                  Composição de valores por quilometragem e tempo para cálculo de estimativa e
+                  encerramento.
                 </p>
               </div>
               <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-800 text-xs sm:text-sm font-black border border-emerald-200 self-start sm:self-auto">
@@ -975,7 +1016,9 @@ export function ConfiguracoesAdminPage() {
                   Tarifa Base / Bandeirada
                 </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-bold text-slate-400">R$</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-bold text-slate-400">
+                    R$
+                  </span>
                   <input
                     type="number"
                     step="0.10"
@@ -992,7 +1035,9 @@ export function ConfiguracoesAdminPage() {
                   Valor por KM Rodado
                 </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-bold text-slate-400">R$</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-bold text-slate-400">
+                    R$
+                  </span>
                   <input
                     type="number"
                     step="0.10"
@@ -1009,7 +1054,9 @@ export function ConfiguracoesAdminPage() {
                   Valor por Minuto
                 </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-bold text-slate-400">R$</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-bold text-slate-400">
+                    R$
+                  </span>
                   <input
                     type="number"
                     step="0.05"
@@ -1018,7 +1065,9 @@ export function ConfiguracoesAdminPage() {
                     className="w-full h-14 sm:h-16 pl-12 pr-4 rounded-2xl border border-slate-300 text-base sm:text-lg font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
                   />
                 </div>
-                <p className="text-xs text-slate-500 font-medium">Multiplicado pelo tempo em trânsito.</p>
+                <p className="text-xs text-slate-500 font-medium">
+                  Multiplicado pelo tempo em trânsito.
+                </p>
               </div>
 
               <div className="space-y-2.5">
@@ -1026,7 +1075,9 @@ export function ConfiguracoesAdminPage() {
                   Tarifa Mínima Garantida (Piso)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-bold text-slate-400">R$</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-bold text-slate-400">
+                    R$
+                  </span>
                   <input
                     type="number"
                     step="0.50"
@@ -1035,7 +1086,9 @@ export function ConfiguracoesAdminPage() {
                     className="w-full h-14 sm:h-16 pl-12 pr-4 rounded-2xl border border-slate-300 text-base sm:text-lg font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
                   />
                 </div>
-                <p className="text-xs text-slate-500 font-medium">Valor mínimo cobrado por corrida.</p>
+                <p className="text-xs text-slate-500 font-medium">
+                  Valor mínimo cobrado por corrida.
+                </p>
               </div>
             </div>
           </div>
@@ -1051,7 +1104,8 @@ export function ConfiguracoesAdminPage() {
                   </h3>
                 </div>
                 <p className="text-sm sm:text-base text-slate-600 font-medium mt-1">
-                  Configurações de retenção da plataforma e algoritmos progressivos de despacho de motoristas.
+                  Configurações de retenção da plataforma e algoritmos progressivos de despacho de
+                  motoristas.
                 </p>
               </div>
               <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 text-blue-900 text-xs sm:text-sm font-black border border-blue-200 self-start sm:self-auto">
@@ -1073,7 +1127,10 @@ export function ConfiguracoesAdminPage() {
                   </span>
                 </div>
                 <p className="text-xs text-emerald-900 font-medium leading-relaxed">
-                  A plataforma opera com <strong>taxa zero por viagem</strong>. O motorista recebe 100% do valor da corrida. O faturamento da franquia e da plataforma é gerado exclusivamente por assinaturas e diárias SaaS gerenciadas no módulo de Monetização.
+                  A plataforma opera com <strong>taxa zero por viagem</strong>. O motorista recebe
+                  100% do valor da corrida. O faturamento da franquia e da plataforma é gerado
+                  exclusivamente por assinaturas e diárias SaaS gerenciadas no módulo de
+                  Monetização.
                 </p>
                 <div className="pt-1 flex items-center gap-2 text-[11px] font-bold text-emerald-800">
                   <span>Repasse Líquido D+0: 100%</span>
@@ -1095,9 +1152,13 @@ export function ConfiguracoesAdminPage() {
                     onChange={(e) => setRaioInicialKm(e.target.value)}
                     className="w-full h-14 sm:h-16 px-5 pr-14 rounded-2xl border border-slate-300 text-base sm:text-lg font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
                   />
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-bold text-slate-400">km</span>
+                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-bold text-slate-400">
+                    km
+                  </span>
                 </div>
-                <p className="text-xs text-slate-500 font-medium">Distância inicial dos motoristas mais próximos.</p>
+                <p className="text-xs text-slate-500 font-medium">
+                  Distância inicial dos motoristas mais próximos.
+                </p>
               </div>
 
               {/* Expansão do Raio & Limite */}
@@ -1113,9 +1174,13 @@ export function ConfiguracoesAdminPage() {
                     onChange={(e) => setRaioIncrementoKmPorMin(e.target.value)}
                     className="w-full h-14 sm:h-16 px-5 pr-18 rounded-2xl border border-slate-300 text-base sm:text-lg font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-bold text-slate-400">km/min</span>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-bold text-slate-400">
+                    km/min
+                  </span>
                 </div>
-                <p className="text-xs text-slate-500 font-medium">Aumenta o raio a cada minuto de busca.</p>
+                <p className="text-xs text-slate-500 font-medium">
+                  Aumenta o raio a cada minuto de busca.
+                </p>
               </div>
             </div>
 
@@ -1131,16 +1196,23 @@ export function ConfiguracoesAdminPage() {
                     onChange={(e) => setTempoLimiteBuscaMin(e.target.value)}
                     className="w-full h-14 sm:h-16 px-5 pr-16 rounded-2xl border border-slate-300 text-base sm:text-lg font-black text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
                   />
-                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-bold text-slate-400">min</span>
+                  <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs sm:text-sm font-bold text-slate-400">
+                    min
+                  </span>
                 </div>
-                <p className="text-xs text-slate-500 font-medium">Tempo até declarar sem motoristas disponíveis.</p>
+                <p className="text-xs text-slate-500 font-medium">
+                  Tempo até declarar sem motoristas disponíveis.
+                </p>
               </div>
 
               <div className="space-y-2.5 flex flex-col justify-end">
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-600 font-medium flex items-center gap-3">
                   <Clock className="h-6 w-6 text-[#0088FF] shrink-0" />
                   <span>
-                    O algoritmo expande progressivamente o despacho a partir de <strong>{raioInicialKm} km</strong>, aumentando <strong>+{raioIncrementoKmPorMin} km</strong> por minuto até o limite de <strong>{tempoLimiteBuscaMin} min</strong>.
+                    O algoritmo expande progressivamente o despacho a partir de{" "}
+                    <strong>{raioInicialKm} km</strong>, aumentando{" "}
+                    <strong>+{raioIncrementoKmPorMin} km</strong> por minuto até o limite de{" "}
+                    <strong>{tempoLimiteBuscaMin} min</strong>.
                   </span>
                 </div>
               </div>
@@ -1159,7 +1231,9 @@ export function ConfiguracoesAdminPage() {
                 onChange={(e) => setCidadeOperacao(e.target.value)}
                 className="w-full h-14 sm:h-16 px-5 rounded-2xl border border-slate-300 text-base sm:text-lg font-bold text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
               />
-              <p className="text-xs sm:text-sm text-slate-500 font-medium">Região de cobertura padrão das corridas.</p>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium">
+                Região de cobertura padrão das corridas.
+              </p>
             </div>
 
             {/* Modelo Econômico da Franquia */}
@@ -1173,7 +1247,9 @@ export function ConfiguracoesAdminPage() {
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-emerald-900 font-medium leading-relaxed">
-                No modelo PARTIU, nenhuma comissão é retida sobre corridas. O faturamento da franquia e plataforma ocorre exclusivamente via planos de acesso do motorista (diárias, semanais e mensais).
+                No modelo PARTIU, nenhuma comissão é retida sobre corridas. O faturamento da
+                franquia e plataforma ocorre exclusivamente via planos de acesso do motorista
+                (diárias, semanais e mensais).
               </p>
             </div>
 
@@ -1188,7 +1264,9 @@ export function ConfiguracoesAdminPage() {
                 onChange={(e) => setWhatsappSuporte(e.target.value)}
                 className="w-full h-14 sm:h-16 px-5 rounded-2xl border border-slate-300 text-base sm:text-lg font-bold text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
               />
-              <p className="text-xs sm:text-sm text-slate-500 font-medium">Canal direto de suporte ao passageiro.</p>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium">
+                Canal direto de suporte ao passageiro.
+              </p>
             </div>
 
             {/* Chave PIX */}
@@ -1202,7 +1280,9 @@ export function ConfiguracoesAdminPage() {
                 onChange={(e) => setChavePixPadrao(e.target.value)}
                 className="w-full h-14 sm:h-16 px-5 rounded-2xl border border-slate-300 text-base sm:text-lg font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
               />
-              <p className="text-xs sm:text-sm text-slate-500 font-medium">Chave utilizada para emissão de cobranças PIX Copia e Cola nos aplicativos.</p>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium">
+                Chave utilizada para emissão de cobranças PIX Copia e Cola nos aplicativos.
+              </p>
             </div>
           </div>
         </form>
@@ -1214,9 +1294,12 @@ export function ConfiguracoesAdminPage() {
           <div className="bg-white p-6 sm:p-10 rounded-3xl border border-slate-200 shadow-xs space-y-6 sm:space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
               <div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900">Assistente de Onboarding White Label (4 Passos)</h2>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900">
+                  Assistente de Onboarding White Label (4 Passos)
+                </h2>
                 <p className="text-sm sm:text-base text-slate-600 font-medium mt-1">
-                  Substitui mais de 60 campos técnicos por um fluxo de ativação rápida em menos de 15 minutos.
+                  Substitui mais de 60 campos técnicos por um fluxo de ativação rápida em menos de
+                  15 minutos.
                 </p>
               </div>
 
@@ -1229,8 +1312,8 @@ export function ConfiguracoesAdminPage() {
                       passoWizard === step
                         ? "bg-slate-950 text-white shadow-md scale-105"
                         : passoWizard > step
-                        ? "bg-emerald-500 text-white"
-                        : "bg-slate-100 text-slate-400"
+                          ? "bg-emerald-500 text-white"
+                          : "bg-slate-100 text-slate-400"
                     }`}
                   >
                     {passoWizard > step ? <Check className="h-5 w-5" /> : step}
@@ -1243,14 +1326,22 @@ export function ConfiguracoesAdminPage() {
             {passoWizard === 1 && (
               <div className="space-y-5 max-w-xl animate-in fade-in">
                 <div className="space-y-1">
-                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-primary-700">Passo 1 de 4</span>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900">Identificação da Cidade &amp; Aplicativo</h3>
-                  <p className="text-xs sm:text-sm text-slate-600 font-medium">Defina o município de expansão e o nome comercial do app.</p>
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-primary-700">
+                    Passo 1 de 4
+                  </span>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900">
+                    Identificação da Cidade &amp; Aplicativo
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-600 font-medium">
+                    Defina o município de expansão e o nome comercial do app.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-3 gap-3.5">
                   <div className="col-span-2">
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Cidade:</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                      Cidade:
+                    </label>
                     <input
                       type="text"
                       value={wlCidade}
@@ -1259,7 +1350,9 @@ export function ConfiguracoesAdminPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">UF:</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                      UF:
+                    </label>
                     <input
                       type="text"
                       maxLength={2}
@@ -1271,7 +1364,9 @@ export function ConfiguracoesAdminPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Nome Comercial do App:</label>
+                  <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                    Nome Comercial do App:
+                  </label>
                   <input
                     type="text"
                     value={wlNomeApp}
@@ -1296,14 +1391,22 @@ export function ConfiguracoesAdminPage() {
             {passoWizard === 2 && (
               <div className="space-y-5 max-w-xl animate-in fade-in">
                 <div className="space-y-1">
-                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-primary-700">Passo 2 de 4</span>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900">Identidade Visual &amp; Preset de Estilo</h3>
-                  <p className="text-xs sm:text-sm text-slate-600 font-medium">Cores da marca e o acabamento estético do aplicativo local.</p>
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-primary-700">
+                    Passo 2 de 4
+                  </span>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900">
+                    Identidade Visual &amp; Preset de Estilo
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-600 font-medium">
+                    Cores da marca e o acabamento estético do aplicativo local.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Cor Primária da Marca:</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                      Cor Primária da Marca:
+                    </label>
                     <div className="flex items-center gap-2.5">
                       <input
                         type="color"
@@ -1321,7 +1424,9 @@ export function ConfiguracoesAdminPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Preset Visual:</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                      Preset Visual:
+                    </label>
                     <select
                       value={wlPreset}
                       onChange={(e: any) => setWlPreset(e.target.value)}
@@ -1336,7 +1441,9 @@ export function ConfiguracoesAdminPage() {
 
                 {/* Preview Rápido */}
                 <div className="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50 space-y-2.5">
-                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-600 block">Prévia do Botão Principal:</span>
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-600 block">
+                    Prévia do Botão Principal:
+                  </span>
                   <button
                     type="button"
                     style={{ backgroundColor: wlCorPrimaria }}
@@ -1369,14 +1476,22 @@ export function ConfiguracoesAdminPage() {
             {passoWizard === 3 && (
               <div className="space-y-5 max-w-xl animate-in fade-in">
                 <div className="space-y-1">
-                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-primary-700">Passo 3 de 4</span>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900">Tarifas da Cidade &amp; Repasse SaaS</h3>
-                  <p className="text-xs sm:text-sm text-slate-600 font-medium">0% de taxa por corrida • Repasse de mensalidades SaaS da praça.</p>
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-primary-700">
+                    Passo 3 de 4
+                  </span>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900">
+                    Tarifas da Cidade &amp; Repasse SaaS
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-600 font-medium">
+                    0% de taxa por corrida • Repasse de mensalidades SaaS da praça.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Tarifa Base Corrida (R$):</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                      Tarifa Base Corrida (R$):
+                    </label>
                     <input
                       type="number"
                       step="0.5"
@@ -1387,7 +1502,9 @@ export function ConfiguracoesAdminPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Comissão por Corrida (% Taxa Zero):</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                      Comissão por Corrida (% Taxa Zero):
+                    </label>
                     <input
                       type="number"
                       step="0.5"
@@ -1421,13 +1538,21 @@ export function ConfiguracoesAdminPage() {
             {passoWizard === 4 && (
               <div className="space-y-5 max-w-xl animate-in fade-in">
                 <div className="space-y-1">
-                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-primary-700">Passo 4 de 4</span>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900">Canais Operacionais &amp; Ativação</h3>
-                  <p className="text-xs sm:text-sm text-slate-600 font-medium">Chave PIX para recebimentos e WhatsApp oficial da praça.</p>
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-primary-700">
+                    Passo 4 de 4
+                  </span>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900">
+                    Canais Operacionais &amp; Ativação
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-600 font-medium">
+                    Chave PIX para recebimentos e WhatsApp oficial da praça.
+                  </p>
                 </div>
 
                 <div>
-                  <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Chave PIX da Cidade:</label>
+                  <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                    Chave PIX da Cidade:
+                  </label>
                   <input
                     type="text"
                     value={wlPix}
@@ -1437,7 +1562,9 @@ export function ConfiguracoesAdminPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">WhatsApp de Suporte da Cidade:</label>
+                  <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                    WhatsApp de Suporte da Cidade:
+                  </label>
                   <input
                     type="text"
                     value={wlWhatsapp}
@@ -1450,10 +1577,13 @@ export function ConfiguracoesAdminPage() {
                   <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-3">
                     <div className="flex items-center gap-2 font-black text-base sm:text-lg">
                       <CheckCircle2 className="h-6 w-6 text-emerald-600 shrink-0" />
-                      <span>Cidade {wlCidade} ({wlUf}) Ativada com Sucesso!</span>
+                      <span>
+                        Cidade {wlCidade} ({wlUf}) Ativada com Sucesso!
+                      </span>
                     </div>
                     <p className="text-xs sm:text-sm text-emerald-800 font-medium">
-                      O tenant foi provisionado no banco de dados e está pronto para receber cadastros de passageiros e motoristas.
+                      O tenant foi provisionado no banco de dados e está pronto para receber
+                      cadastros de passageiros e motoristas.
                     </p>
                     <button
                       type="button"
@@ -1491,23 +1621,39 @@ export function ConfiguracoesAdminPage() {
 
           {/* Lista de Cidades Ativas */}
           <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-            <h3 className="text-base sm:text-lg font-black text-slate-900">Cidades Ativas na Rede PARTIU ({cidadesAtivas.length})</h3>
+            <h3 className="text-base sm:text-lg font-black text-slate-900">
+              Cidades Ativas na Rede PARTIU ({cidadesAtivas.length})
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {cidadesAtivas.map((c) => (
-                <div key={c.id} className="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-between">
+                <div
+                  key={c.id}
+                  className="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-between"
+                >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2.5">
-                      <span className="h-3.5 w-3.5 rounded-full shrink-0" style={{ backgroundColor: c.corPrimaria }} />
-                      <p className="font-bold text-sm sm:text-base text-slate-900">{c.nome} - {c.uf}</p>
+                      <span
+                        className="h-3.5 w-3.5 rounded-full shrink-0"
+                        style={{ backgroundColor: c.corPrimaria }}
+                      />
+                      <p className="font-bold text-sm sm:text-base text-slate-900">
+                        {c.nome} - {c.uf}
+                      </p>
                       <span className="px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-xs font-black">
                         {c.status}
                       </span>
                     </div>
-                    <p className="text-xs sm:text-sm text-slate-500 font-medium">App: {c.nomeApp} | Preset: {c.preset}</p>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium">
+                      App: {c.nomeApp} | Preset: {c.preset}
+                    </p>
                   </div>
                   <div className="text-right">
-                    <span className="block text-xs font-black text-emerald-700 uppercase">Taxa Corrida: 0%</span>
-                    <span className="text-[11px] text-slate-500 font-bold">Repasse SaaS: {c.comissaoPercent}%</span>
+                    <span className="block text-xs font-black text-emerald-700 uppercase">
+                      Taxa Corrida: 0%
+                    </span>
+                    <span className="text-[11px] text-slate-500 font-bold">
+                      Repasse SaaS: {c.comissaoPercent}%
+                    </span>
                   </div>
                 </div>
               ))}
@@ -1525,9 +1671,13 @@ export function ConfiguracoesAdminPage() {
                 <Lock className="h-10 w-10" />
               </div>
               <div className="space-y-2">
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900">Área Técnica Protegida (Modo Avançado)</h2>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900">
+                  Área Técnica Protegida (Modo Avançado)
+                </h2>
                 <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-lg mx-auto font-medium">
-                  Esta seção contém credenciais críticas de infraestrutura (API Keys, Webhooks, DNS e Variáveis de Sistema). O acesso requer confirmação explícita para evitar alterações acidentais.
+                  Esta seção contém credenciais críticas de infraestrutura (API Keys, Webhooks, DNS
+                  e Variáveis de Sistema). O acesso requer confirmação explícita para evitar
+                  alterações acidentais.
                 </p>
               </div>
 
@@ -1545,7 +1695,9 @@ export function ConfiguracoesAdminPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-amber-50 p-4 sm:p-5 rounded-2xl border border-amber-300">
                 <div className="flex items-center gap-2.5 text-sm sm:text-base font-bold text-amber-950">
                   <ShieldCheck className="h-5 w-5 text-amber-700 shrink-0" />
-                  <span>Modo Avançado Desbloqueado com Sucesso. Atenção ao alterar chaves de produção.</span>
+                  <span>
+                    Modo Avançado Desbloqueado com Sucesso. Atenção ao alterar chaves de produção.
+                  </span>
                 </div>
                 <button
                   type="button"
@@ -1565,13 +1717,16 @@ export function ConfiguracoesAdminPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2.5 flex-wrap">
-                        <h3 className="text-lg sm:text-xl font-black text-slate-900">Mercado Pago Oficial (PIX D+0)</h3>
+                        <h3 className="text-lg sm:text-xl font-black text-slate-900">
+                          Mercado Pago Oficial (PIX D+0)
+                        </h3>
                         <span className="px-3 py-1 rounded-full text-xs font-black tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">
                           Recomendado • Produção
                         </span>
                       </div>
                       <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1">
-                        Receba pagamentos das diárias e assinaturas de motoristas com liquidação instantânea via PIX.
+                        Receba pagamentos das diárias e assinaturas de motoristas com liquidação
+                        instantânea via PIX.
                       </p>
                     </div>
                   </div>
@@ -1631,7 +1786,16 @@ export function ConfiguracoesAdminPage() {
                       className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 font-mono text-xs sm:text-sm bg-slate-50 focus:bg-white focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 outline-none transition font-bold"
                     />
                     <p className="text-xs text-slate-500 mt-1.5 font-medium">
-                      Obtenha em: <a href="https://www.mercadopago.com.br/developers/panel" target="_blank" rel="noreferrer" className="text-sky-600 underline font-bold">Mercado Pago Developers</a> &gt; Suas integrações &gt; Credenciais de produção.
+                      Obtenha em:{" "}
+                      <a
+                        href="https://www.mercadopago.com.br/developers/panel"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sky-600 underline font-bold"
+                      >
+                        Mercado Pago Developers
+                      </a>{" "}
+                      &gt; Suas integrações &gt; Credenciais de produção.
                     </p>
                   </div>
 
@@ -1666,9 +1830,13 @@ export function ConfiguracoesAdminPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                   <div className="p-4 rounded-2xl bg-white border border-slate-200 flex items-center justify-between">
                     <div>
-                      <span className="block text-sm sm:text-base font-bold text-slate-800">Modo Sandbox (Testes)</span>
+                      <span className="block text-sm sm:text-base font-bold text-slate-800">
+                        Modo Sandbox (Testes)
+                      </span>
                       <span className="text-xs sm:text-sm text-slate-500 font-medium">
-                        {mercadopagoSandbox ? "Usando ambiente de testes do Mercado Pago" : "Operando em ambiente real de Produção"}
+                        {mercadopagoSandbox
+                          ? "Usando ambiente de testes do Mercado Pago"
+                          : "Operando em ambiente real de Produção"}
                       </span>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -1683,13 +1851,17 @@ export function ConfiguracoesAdminPage() {
                   </div>
 
                   <div className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col justify-between">
-                    <span className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 mb-1.5">URL de Webhook no Mercado Pago (Edge Function):</span>
+                    <span className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-800 mb-1.5">
+                      URL de Webhook no Mercado Pago (Edge Function):
+                    </span>
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
                         readOnly
                         value={
-                          typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_URL && !import.meta.env.VITE_SUPABASE_URL.includes("SEU_PROJETO")
+                          typeof import.meta !== "undefined" &&
+                          import.meta.env?.VITE_SUPABASE_URL &&
+                          !import.meta.env.VITE_SUPABASE_URL.includes("SEU_PROJETO")
                             ? `${import.meta.env.VITE_SUPABASE_URL.replace(/\/$/, "")}/functions/v1/payment-webhook`
                             : "https://<SEU_PROJETO>.supabase.co/functions/v1/payment-webhook"
                         }
@@ -1698,16 +1870,23 @@ export function ConfiguracoesAdminPage() {
                       <button
                         type="button"
                         onClick={() => {
-                          const url = typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_URL && !import.meta.env.VITE_SUPABASE_URL.includes("SEU_PROJETO")
-                            ? `${import.meta.env.VITE_SUPABASE_URL.replace(/\/$/, "")}/functions/v1/payment-webhook`
-                            : "https://<SEU_PROJETO>.supabase.co/functions/v1/payment-webhook";
+                          const url =
+                            typeof import.meta !== "undefined" &&
+                            import.meta.env?.VITE_SUPABASE_URL &&
+                            !import.meta.env.VITE_SUPABASE_URL.includes("SEU_PROJETO")
+                              ? `${import.meta.env.VITE_SUPABASE_URL.replace(/\/$/, "")}/functions/v1/payment-webhook`
+                              : "https://<SEU_PROJETO>.supabase.co/functions/v1/payment-webhook";
                           navigator.clipboard?.writeText(url);
                           setCopiadoWebhookUrl(true);
                           setTimeout(() => setCopiadoWebhookUrl(false), 2000);
                         }}
                         className="h-10 sm:h-11 px-4 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-black text-xs sm:text-sm flex items-center gap-1.5 shrink-0 transition cursor-pointer active:scale-95 shadow-xs"
                       >
-                        {copiadoWebhookUrl ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        {copiadoWebhookUrl ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
                         <span>{copiadoWebhookUrl ? "Copiado!" : "Copiar"}</span>
                       </button>
                     </div>
@@ -1718,12 +1897,16 @@ export function ConfiguracoesAdminPage() {
               {/* Card Secundário: Demais Credenciais de Infraestrutura */}
               <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs space-y-5">
                 <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-                  <h3 className="text-base sm:text-lg font-black text-slate-900">Demais Credenciais &amp; Parâmetros de Cluster</h3>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900">
+                    Demais Credenciais &amp; Parâmetros de Cluster
+                  </h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Google Maps Platform API Key:</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                      Google Maps Platform API Key:
+                    </label>
                     <input
                       type={mostrarChaves ? "text" : "password"}
                       value={googleMapsKey}
@@ -1733,7 +1916,9 @@ export function ConfiguracoesAdminPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Asaas API Token (Fallback):</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                      Asaas API Token (Fallback):
+                    </label>
                     <input
                       type={mostrarChaves ? "text" : "password"}
                       value={asaasApiKey}
@@ -1743,7 +1928,9 @@ export function ConfiguracoesAdminPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Stripe Secret Key (Opcional):</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                      Stripe Secret Key (Opcional):
+                    </label>
                     <input
                       type={mostrarChaves ? "text" : "password"}
                       value={stripeSecretKey}
@@ -1753,7 +1940,9 @@ export function ConfiguracoesAdminPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">Global Webhook Secret (HMAC):</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                      Global Webhook Secret (HMAC):
+                    </label>
                     <input
                       type={mostrarChaves ? "text" : "password"}
                       value={webhookSecret}
@@ -1765,7 +1954,9 @@ export function ConfiguracoesAdminPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-4 border-t border-slate-200">
                   <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">DNS / Endpoint Base:</label>
+                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                      DNS / Endpoint Base:
+                    </label>
                     <input
                       type="text"
                       value={dnsUrl}
@@ -1787,7 +1978,8 @@ export function ConfiguracoesAdminPage() {
                       className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold text-slate-900"
                     />
                     <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1.5">
-                      Padrão atual: 600s (10 minutos). Se nenhum motorista aceitar, o passageiro poderá continuar buscando ou cancelar.
+                      Padrão atual: 600s (10 minutos). Se nenhum motorista aceitar, o passageiro
+                      poderá continuar buscando ou cancelar.
                     </p>
                   </div>
                 </div>
@@ -1795,7 +1987,10 @@ export function ConfiguracoesAdminPage() {
                 {sucessoAvancado && (
                   <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-sm font-bold flex items-center gap-2.5 animate-in fade-in">
                     <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
-                    <span>Configurações do Mercado Pago e parâmetros técnicos salvos com sucesso no cluster!</span>
+                    <span>
+                      Configurações do Mercado Pago e parâmetros técnicos salvos com sucesso no
+                      cluster!
+                    </span>
                   </div>
                 )}
 
@@ -1811,7 +2006,11 @@ export function ConfiguracoesAdminPage() {
                     ) : (
                       <Save className="h-4.5 w-4.5" />
                     )}
-                    <span>{salvandoTecnico ? "Salvando no Cluster..." : "Salvar Configurações Técnicas & Mercado Pago"}</span>
+                    <span>
+                      {salvandoTecnico
+                        ? "Salvando no Cluster..."
+                        : "Salvar Configurações Técnicas & Mercado Pago"}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1833,7 +2032,8 @@ export function ConfiguracoesAdminPage() {
                 Gestão de Administradores &amp; Acesso
               </h2>
               <p className="text-base sm:text-lg text-slate-600 font-medium mt-1">
-                Controle simplificado e purificado: Matriz Global (Super Admin) ou Operador Regional (Franqueado).
+                Controle simplificado e purificado: Matriz Global (Super Admin) ou Operador Regional
+                (Franqueado).
               </p>
             </div>
 
@@ -1858,7 +2058,8 @@ export function ConfiguracoesAdminPage() {
                 <span>Super Administrador (Acesso Total)</span>
               </div>
               <p className="text-xs text-amber-800 leading-relaxed">
-                Acesso global irrestrito a todos os tenants e praças, configurações avançadas do sistema, ledger contábil central, gateways e catálogos globais.
+                Acesso global irrestrito a todos os tenants e praças, configurações avançadas do
+                sistema, ledger contábil central, gateways e catálogos globais.
               </p>
             </div>
 
@@ -1868,7 +2069,8 @@ export function ConfiguracoesAdminPage() {
                 <span>Franqueado (Acesso Local Regional)</span>
               </div>
               <p className="text-xs text-indigo-800 leading-relaxed">
-                Isolamento estrito multi-tenant garantido por Row Level Security (RLS). Autonomia para gerenciar exclusivamente a sua praça, motoristas, chamados e faturamento local.
+                Isolamento estrito multi-tenant garantido por Row Level Security (RLS). Autonomia
+                para gerenciar exclusivamente a sua praça, motoristas, chamados e faturamento local.
               </p>
             </div>
           </div>
@@ -1892,12 +2094,8 @@ export function ConfiguracoesAdminPage() {
                     const isSuper = u.role === "SUPER_ADMIN";
                     return (
                       <tr key={u.id} className="hover:bg-slate-50/80 transition">
-                        <td className="py-4 px-6 font-bold text-slate-900">
-                          {u.nome}
-                        </td>
-                        <td className="py-4 px-6 text-slate-600 font-mono">
-                          {u.email}
-                        </td>
+                        <td className="py-4 px-6 font-bold text-slate-900">{u.nome}</td>
+                        <td className="py-4 px-6 text-slate-600 font-mono">{u.email}</td>
                         <td className="py-4 px-6">
                           <span
                             className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase ${
@@ -1906,8 +2104,14 @@ export function ConfiguracoesAdminPage() {
                                 : "bg-indigo-100 text-indigo-900 border border-indigo-300"
                             }`}
                           >
-                            {isSuper ? <ShieldCheck className="h-3.5 w-3.5 text-amber-700" /> : <Building2 className="h-3.5 w-3.5 text-indigo-700" />}
-                            {isSuper ? "Super Administrador (Acesso Total)" : "Franqueado (Acesso Local)"}
+                            {isSuper ? (
+                              <ShieldCheck className="h-3.5 w-3.5 text-amber-700" />
+                            ) : (
+                              <Building2 className="h-3.5 w-3.5 text-indigo-700" />
+                            )}
+                            {isSuper
+                              ? "Super Administrador (Acesso Total)"
+                              : "Franqueado (Acesso Local)"}
                           </span>
                         </td>
                         <td className="py-4 px-6 text-slate-700 font-semibold">
@@ -1949,7 +2153,9 @@ export function ConfiguracoesAdminPage() {
             <div className="flex items-center justify-between border-b border-slate-200 pb-4">
               <div className="flex items-center gap-2.5 text-rose-600">
                 <ShieldAlert className="h-6 w-6" />
-                <h3 className="text-lg sm:text-xl font-black text-slate-900">Confirmação de Segurança</h3>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900">
+                  Confirmação de Segurança
+                </h3>
               </div>
               <button
                 type="button"
@@ -1962,7 +2168,8 @@ export function ConfiguracoesAdminPage() {
 
             <form onSubmit={handleDesbloquearAvancado} className="space-y-4">
               <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed">
-                Para liberar as configurações avançadas e chaves de API, digite a palavra <strong className="text-slate-950 font-black">DESBLOQUEAR</strong> abaixo:
+                Para liberar as configurações avançadas e chaves de API, digite a palavra{" "}
+                <strong className="text-slate-950 font-black">DESBLOQUEAR</strong> abaixo:
               </p>
 
               <input

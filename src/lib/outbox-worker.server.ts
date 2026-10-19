@@ -151,14 +151,12 @@ export async function runOutboxWorkerBatch(
               })
               .eq("id", event.id);
 
-            await (supabaseAdmin as any)
-              .from("event_dead_letters")
-              .insert({
-                outbox_id: event.id,
-                event_type: event.event_type,
-                payload: event.payload,
-                error_message: errorMessage,
-              });
+            await (supabaseAdmin as any).from("event_dead_letters").insert({
+              outbox_id: event.id,
+              event_type: event.event_type,
+              payload: event.payload,
+              error_message: errorMessage,
+            });
           } catch {}
         }
       } else {

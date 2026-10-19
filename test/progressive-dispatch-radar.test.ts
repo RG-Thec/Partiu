@@ -12,7 +12,7 @@ describe("SUITE 40: PARTIU DISPATCH V4 — Canonical State Machine & Guard Invar
   test("Transição Canônica de Ondas: REQUESTED -> R1 -> R2 -> R3 -> TIMEOUT", () => {
     // 1. REQUESTED -> SEARCHING_R1
     expect(PASSENGER_RIDE_TRANSITIONS["REQUESTED"].includes("SEARCHING_R1")).toBe(true);
-    
+
     // 2. SEARCHING_R1 -> SEARCHING_R2
     expect(PASSENGER_RIDE_TRANSITIONS["SEARCHING_R1"].includes("SEARCHING_R2")).toBe(true);
 
@@ -57,7 +57,7 @@ describe("SUITE 41: PARTIU DISPATCH V4 — Progressive Radius Expansion (PostGIS
     expect(session.status).toBe("SEARCHING_R1");
     expect(
       session.waveMessage === "Buscando motoristas próximos..." ||
-      session.waveMessage.includes("analisando seu pedido")
+        session.waveMessage.includes("analisando seu pedido"),
     ).toBe(true);
 
     progressiveDispatchEngine.cleanup("test-ride-wave1");
@@ -214,4 +214,3 @@ describe("SUITE 46: PARTIU CANCELLATION HARDENING — Anti-Resurrection & Clean 
     expect(progressiveDispatchEngine.getSession("test-ride-atomic-cancel")).toBeUndefined();
   });
 });
-

@@ -4,24 +4,25 @@
 
 ## Index
 
-| ID | Title | Feature | Persona | Traces | Status | Last audit |
-|----|-------|---------|---------|--------|--------|------------|
-| SCN-001 | Solicitação de corrida com preço garantido | Solicitação de Viagem | P-01 | ST-001, FLW-01 (JTBD-01, JRN-01/#1) | implemented | 2026-10-02 |
-| SCN-002 | Aceite de corrida no cockpit do motorista | Despacho de Corridas | P-02 | ST-002, FLW-02 (JTBD-02, JRN-02/#2) | implemented | 2026-10-02 |
-| SCN-003 | Acompanhamento En Route e acionamento de SOS | Segurança em Viagem | P-01 | ST-003, FLW-03 (JTBD-01, JRN-01/#4) | implemented | 2026-10-02 |
-| SCN-004 | Liquidação financeira instantânea via Pix | FinOps e Ledger | P-02 | ST-004, FLW-04 (JTBD-02, JRN-02/#5) | implemented | 2026-10-02 |
-| SCN-005 | Onboarding e seleção de modalidade de cadastro | Onboarding e Acesso | P-01 | ST-005, FLW-05 (JTBD-01, JRN-01/#1) | implemented | 2026-10-02 |
-| SCN-006 | Resiliência offline e preservação de estado da corrida | Resiliência e Rede | P-01 | ST-006, FLW-06 (JTBD-01, JRN-01/#3) | implemented | 2026-10-02 |
-| SCN-007 | Consulta de histórico de viagens e envio de encomendas | Atividade e Encomendas | P-01 | ST-007, FLW-07 (JTBD-01, JRN-01/#5) | implemented | 2026-10-02 |
-| SCN-008 | Telemetria executiva e despacho operacional administrativo | Governança e Operação | P-03 | ST-008, FLW-08 (JTBD-03, JRN-01/#2) | implemented | 2026-10-02 |
-| SCN-009 | Tarifa dinâmica automática de alta demanda e sobretaxa administrativa imediata | Tarifa Dinâmica & Despacho | P-01, P-03 | ST-001, ST-008, FLW-01, FLW-08 | implemented | 2026-10-11 |
-| SCN-010 | Governança White Label com segregação regional e sincronização em tempo real | Identidade & White Label | P-03 | ST-008, FLW-08 (JTBD-03, JRN-01/#2) | implemented | 2026-10-12 |
-| SCN-011 | Gestão Central de Franqueados e Multi-Tenant com Visualização Fluida e Ações Imediatas | Gestão Central de Franqueados & Multi-Tenant | P-03 | ST-008, FLW-08 (JTBD-03, JRN-01/#2) | implemented | 2026-10-12 |
-| SCN-012 | Governança territorial e bloqueio de cadastros e corridas fora da região da franquia | Delimitação Geográfica & Anti-Invasão | P-01, P-02, P-03 | ST-005, ST-008, FLW-05, FLW-08 | implemented | 2026-10-16 |
+| ID      | Title                                                                                  | Feature                                      | Persona          | Traces                              | Status      | Last audit |
+| ------- | -------------------------------------------------------------------------------------- | -------------------------------------------- | ---------------- | ----------------------------------- | ----------- | ---------- |
+| SCN-001 | Solicitação de corrida com preço garantido                                             | Solicitação de Viagem                        | P-01             | ST-001, FLW-01 (JTBD-01, JRN-01/#1) | implemented | 2026-10-02 |
+| SCN-002 | Aceite de corrida no cockpit do motorista                                              | Despacho de Corridas                         | P-02             | ST-002, FLW-02 (JTBD-02, JRN-02/#2) | implemented | 2026-10-02 |
+| SCN-003 | Acompanhamento En Route e acionamento de SOS                                           | Segurança em Viagem                          | P-01             | ST-003, FLW-03 (JTBD-01, JRN-01/#4) | implemented | 2026-10-02 |
+| SCN-004 | Liquidação financeira instantânea via Pix                                              | FinOps e Ledger                              | P-02             | ST-004, FLW-04 (JTBD-02, JRN-02/#5) | implemented | 2026-10-02 |
+| SCN-005 | Onboarding e seleção de modalidade de cadastro                                         | Onboarding e Acesso                          | P-01             | ST-005, FLW-05 (JTBD-01, JRN-01/#1) | implemented | 2026-10-02 |
+| SCN-006 | Resiliência offline e preservação de estado da corrida                                 | Resiliência e Rede                           | P-01             | ST-006, FLW-06 (JTBD-01, JRN-01/#3) | implemented | 2026-10-02 |
+| SCN-007 | Consulta de histórico de viagens e envio de encomendas                                 | Atividade e Encomendas                       | P-01             | ST-007, FLW-07 (JTBD-01, JRN-01/#5) | implemented | 2026-10-02 |
+| SCN-008 | Telemetria executiva e despacho operacional administrativo                             | Governança e Operação                        | P-03             | ST-008, FLW-08 (JTBD-03, JRN-01/#2) | implemented | 2026-10-02 |
+| SCN-009 | Tarifa dinâmica automática de alta demanda e sobretaxa administrativa imediata         | Tarifa Dinâmica & Despacho                   | P-01, P-03       | ST-001, ST-008, FLW-01, FLW-08      | implemented | 2026-10-11 |
+| SCN-010 | Governança White Label com segregação regional e sincronização em tempo real           | Identidade & White Label                     | P-03             | ST-008, FLW-08 (JTBD-03, JRN-01/#2) | implemented | 2026-10-12 |
+| SCN-011 | Gestão Central de Franqueados e Multi-Tenant com Visualização Fluida e Ações Imediatas | Gestão Central de Franqueados & Multi-Tenant | P-03             | ST-008, FLW-08 (JTBD-03, JRN-01/#2) | implemented | 2026-10-12 |
+| SCN-012 | Governança territorial e bloqueio de cadastros e corridas fora da região da franquia   | Delimitação Geográfica & Anti-Invasão        | P-01, P-02, P-03 | ST-005, ST-008, FLW-05, FLW-08      | implemented | 2026-10-16 |
 
 ## Personas
 
 Definidas e documentadas em `docs/ux/foundation.md`:
+
 - P-01: Passageiro Urbano Cotidiano
 - P-02: Motorista Parceiro Autônomo
 - P-03: Gestor de Frota e Franqueado Regional
@@ -31,6 +32,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 ## Solicitação de Viagem
 
 ### SCN-001: Solicitação de corrida com preço garantido
+
 - **Persona:** P-01
 - **Feature:** Solicitação de Viagem
 - **Traces:** ST-001, FLW-01 (JTBD-01, JRN-01/#1)
@@ -52,6 +54,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 ## Despacho de Corridas
 
 ### SCN-002: Aceite de corrida no cockpit do motorista
+
 - **Persona:** P-02
 - **Feature:** Despacho de Corridas
 - **Traces:** ST-002, FLW-02 (JTBD-02, JRN-02/#2)
@@ -73,6 +76,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 ## Segurança em Viagem
 
 ### SCN-003: Acompanhamento En Route e acionamento de SOS
+
 - **Persona:** P-01
 - **Feature:** Segurança em Viagem
 - **Traces:** ST-003, FLW-03 (JTBD-01, JRN-01/#4)
@@ -94,6 +98,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 ## FinOps e Ledger
 
 ### SCN-004: Liquidação financeira instantânea via Pix
+
 - **Persona:** P-02
 - **Feature:** FinOps e Ledger
 - **Traces:** ST-004, FLW-04 (JTBD-02, JRN-02/#5)
@@ -115,6 +120,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 ## Onboarding e Acesso
 
 ### SCN-005: Onboarding e seleção de modalidade de cadastro
+
 - **Persona:** P-01
 - **Feature:** Onboarding e Acesso
 - **Traces:** ST-005, FLW-05 (JTBD-01, JRN-01/#1)
@@ -136,6 +142,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 ## Resiliência e Rede
 
 ### SCN-006: Resiliência offline e preservação de estado da corrida
+
 - **Persona:** P-01
 - **Feature:** Resiliência e Rede
 - **Traces:** ST-006, FLW-06 (JTBD-01, JRN-01/#3)
@@ -157,6 +164,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 ## Atividade e Encomendas
 
 ### SCN-007: Consulta de histórico de viagens e envio de encomendas
+
 - **Persona:** P-01
 - **Feature:** Atividade e Encomendas
 - **Traces:** ST-007, FLW-07 (JTBD-01, JRN-01/#5)
@@ -178,6 +186,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 ## Governança e Operação
 
 ### SCN-008: Telemetria executiva e despacho operacional administrativo
+
 - **Persona:** P-03
 - **Feature:** Governança e Operação
 - **Traces:** ST-008, FLW-08 (JTBD-03, JRN-01/#2)
@@ -199,6 +208,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 ## Tarifa Dinâmica & Despacho
 
 ### SCN-009: Tarifa dinâmica automática de alta demanda e sobretaxa administrativa imediata
+
 - **Persona:** P-01, P-03
 - **Feature:** Tarifa Dinâmica & Despacho
 - **Traces:** ST-001, ST-008, FLW-01, FLW-08 (JTBD-01, JTBD-03)
@@ -220,6 +230,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 ## Identidade & White Label
 
 ### SCN-010: Governança White Label com segregação regional e sincronização em tempo real
+
 - **Persona:** P-03
 - **Feature:** Identidade & White Label Studio
 - **Traces:** ST-008, FLW-08 (JTBD-03, JRN-01/#2)
@@ -242,6 +253,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Product:** unobserved
 
 ### SCN-011: Gestão Central de Franqueados e Multi-Tenant com Visualização Fluida e Ações Imediatas
+
 - **Persona:** P-03
 - **Feature:** Gestão Central de Franqueados & Multi-Tenant
 - **Traces:** ST-008, FLW-08 (JTBD-03, JRN-01/#2)
@@ -263,6 +275,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 ## Delimitação Geográfica & Anti-Invasão
 
 ### SCN-012: Governança territorial e bloqueio de cadastros e corridas fora da região da franquia
+
 - **Persona:** P-01, P-02, P-03
 - **Feature:** Delimitação Geográfica & Anti-Invasão
 - **Traces:** ST-005, ST-008, FLW-05, FLW-08 (JTBD-01, JTBD-03)
@@ -280,4 +293,3 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Status:** implemented
 - **Coverage:** src/lib/geo/territory-guard.ts:1-250, src/lib/auth/supabase-auth-service.ts:160-260, src/components/auth/PartiuAppAuthGate.tsx:390-440, src/components/passenger/PassengerReviewRouteSheet.tsx:320-370, src/components/passenger/route-sheet/RouteSheetFooter.tsx:25-70, src/components/admin/whitelabel/CloneTenantModal.tsx:180-280, src/routes/app.admin.franqueados.tsx:1150-1250
 - **Product:** unobserved
-

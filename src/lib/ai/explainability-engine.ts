@@ -1,19 +1,19 @@
 /**
  * DECISION EXPLAINABILITY ENGINE (XAI)
- * 
+ *
  * Garante que nenhuma ação ou decisão autônoma seja executada como uma 'caixa preta'.
  * Gera a 'DecisionExplanation' estruturada contendo fatores, pesos ponderados,
  * impactos financeiro e operacional projetados e análise contrafactual.
  */
 
-import { NationalDecision } from './executive-board';
-import { AgentRecommendation } from './agents/agent-contract';
+import { NationalDecision } from "./executive-board";
+import { AgentRecommendation } from "./agents/agent-contract";
 
 export interface DecisionFactorWeight {
   nomeFator: string;
   valorObservado: string | number;
   pesoRelativoPct: number;
-  direcaoImpacto: 'POSITIVO' | 'NEGATIVO' | 'NEUTRO';
+  direcaoImpacto: "POSITIVO" | "NEGATIVO" | "NEUTRO";
 }
 
 export interface DecisionExplanation {
@@ -37,7 +37,7 @@ export interface DecisionExplanation {
   };
   analiseContrafactual: {
     cenarioSemAcao: string;
-    riscoInacao: 'BAIXO' | 'MEDIO' | 'ALTO' | 'CRITICO';
+    riscoInacao: "BAIXO" | "MEDIO" | "ALTO" | "CRITICO";
   };
 }
 
@@ -48,33 +48,38 @@ export class ExplainabilityEngine {
   public explainRecommendation(rec: AgentRecommendation): DecisionExplanation {
     const fatores: DecisionFactorWeight[] = [
       {
-        nomeFator: 'Nível de Urgência Operacional',
+        nomeFator: "Nível de Urgência Operacional",
         valorObservado: rec.priority,
         pesoRelativoPct: 35,
-        direcaoImpacto: rec.priority === 'P0' || rec.priority === 'P1' ? 'POSITIVO' : 'NEUTRO'
+        direcaoImpacto: rec.priority === "P0" || rec.priority === "P1" ? "POSITIVO" : "NEUTRO",
       },
       {
-        nomeFator: 'Confiança Estatística do Modelo',
+        nomeFator: "Confiança Estatística do Modelo",
         valorObservado: `${(rec.confidenceScore * 100).toFixed(1)}%`,
         pesoRelativoPct: 25,
-        direcaoImpacto: 'POSITIVO'
+        direcaoImpacto: "POSITIVO",
       },
       {
-        nomeFator: 'Equilíbrio Oferta / Demanda',
-        valorObservado: 'Déficit Projetado',
+        nomeFator: "Equilíbrio Oferta / Demanda",
+        valorObservado: "Déficit Projetado",
         pesoRelativoPct: 20,
-        direcaoImpacto: 'NEGATIVO'
+        direcaoImpacto: "NEGATIVO",
       },
       {
-        nomeFator: 'Retorno sobre Margem',
-        valorObservado: rec.expectedImpact.revenueDeltaBrl ? `+R$ ${rec.expectedImpact.revenueDeltaBrl}` : 'Estável',
+        nomeFator: "Retorno sobre Margem",
+        valorObservado: rec.expectedImpact.revenueDeltaBrl
+          ? `+R$ ${rec.expectedImpact.revenueDeltaBrl}`
+          : "Estável",
         pesoRelativoPct: 20,
-        direcaoImpacto: 'POSITIVO'
-      }
+        direcaoImpacto: "POSITIVO",
+      },
     ];
 
     const receitaDelta = rec.expectedImpact.revenueDeltaBrl || 0;
-    const custoIncentivo = ((rec.parameters['bonusReais'] as number) || (rec.parameters['limiteDescontoBrl'] as number) || 0);
+    const custoIncentivo =
+      (rec.parameters["bonusReais"] as number) ||
+      (rec.parameters["limiteDescontoBrl"] as number) ||
+      0;
     const roi = custoIncentivo > 0 ? ((receitaDelta - custoIncentivo) / custoIncentivo) * 100 : 250;
 
     return {
@@ -88,18 +93,19 @@ export class ExplainabilityEngine {
         variacaoEtaMinutos: rec.expectedImpact.etaVariationMinutes || 0,
         variacaoAceitePct: rec.expectedImpact.completionRateDeltaPct || 0,
         variacaoCancelamentoPct: -1.8,
-        resumo: `Melhora de ${rec.expectedImpact.completionRateDeltaPct || 2.5}% na taxa de conclusão de viagens.`
+        resumo: `Melhora de ${rec.expectedImpact.completionRateDeltaPct || 2.5}% na taxa de conclusão de viagens.`,
       },
       impactoFinanceiro: {
         variacaoReceitaBrl: receitaDelta,
         variacaoGanhosMotoristaBrl: rec.expectedImpact.driverEarningsDeltaBrl || 0,
         custoIncentivoBrl: custoIncentivo,
-        roiEstimadoPct: Number(roi.toFixed(1))
+        roiEstimadoPct: Number(roi.toFixed(1)),
       },
       analiseContrafactual: {
-        cenarioSemAcao: 'Sem a intervenção, haveria elevação do tempo de espera em até 3.8 min e aumento de 8% nos cancelamentos.',
-        riscoInacao: rec.priority === 'P0' ? 'CRITICO' : rec.priority === 'P1' ? 'ALTO' : 'MEDIO'
-      }
+        cenarioSemAcao:
+          "Sem a intervenção, haveria elevação do tempo de espera em até 3.8 min e aumento de 8% nos cancelamentos.",
+        riscoInacao: rec.priority === "P0" ? "CRITICO" : rec.priority === "P1" ? "ALTO" : "MEDIO",
+      },
     };
   }
 

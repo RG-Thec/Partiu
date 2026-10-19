@@ -8,10 +8,10 @@ import {
 describe("🌐 WHITE-LABEL DOMAIN RESOLVER & DYNAMIC MANIFEST ENGINE", () => {
   test("1.1 Normalização e limpeza de hostnames (cleanHostname)", () => {
     expect(tenantDomainService.cleanHostname("https://app.mobe-saopaulo.com.br:3000/app")).toBe(
-      "app.mobe-saopaulo.com.br"
+      "app.mobe-saopaulo.com.br",
     );
     expect(tenantDomainService.cleanHostname("HTTP://APP.PARTIUMOBE.COM.BR/")).toBe(
-      "app.partiumobe.com.br"
+      "app.partiumobe.com.br",
     );
     expect(tenantDomainService.cleanHostname("localhost:5173")).toBe("localhost");
   });
@@ -71,7 +71,7 @@ describe("🌐 WHITE-LABEL DOMAIN RESOLVER & DYNAMIC MANIFEST ENGINE", () => {
   test("2.1 Geração dinâmica de Web App Manifest para PWA e APK", () => {
     const manifestCampos = tenantDomainService.generateDynamicManifest(
       "tenant-campos",
-      "https://app.mobe-saopaulo.com.br"
+      "https://app.mobe-saopaulo.com.br",
     );
     expect(manifestCampos.short_name).toBe("GO MOBILIDADE");
     expect(manifestCampos.theme_color).toBe("#2563EB"); // Cor do preset Campos
@@ -81,7 +81,7 @@ describe("🌐 WHITE-LABEL DOMAIN RESOLVER & DYNAMIC MANIFEST ENGINE", () => {
 
     const manifestItaperuna = tenantDomainService.generateDynamicManifest(
       "tenant-itaperuna",
-      "https://app.partiumobe.com.br"
+      "https://app.partiumobe.com.br",
     );
     expect(manifestItaperuna.short_name).toBe("PARTIU");
     expect(manifestItaperuna.theme_color).toBe("#FF6B00"); // Laranja solar
@@ -93,7 +93,7 @@ describe("🌐 WHITE-LABEL DOMAIN RESOLVER & DYNAMIC MANIFEST ENGINE", () => {
     const reg = tenantDomainService.registerCustomDomain(
       "tenant-teste-v6",
       testDomain,
-      "Franquia Teste V6"
+      "Franquia Teste V6",
     );
     expect(reg.sucesso).toBe(true);
     expect(reg.record?.status).toBe("PENDENTE");

@@ -13,13 +13,8 @@
 import { revenueNotifications } from "./revenue-notifications";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
-
 export type SubscriptionStatus =
-  | "ACTIVE"
-  | "PENDING"
-  | "GRACE_PERIOD"
-  | "SUSPENDED"
-  | "REACTIVATION_REQUIRED";
+  "ACTIVE" | "PENDING" | "GRACE_PERIOD" | "SUSPENDED" | "REACTIVATION_REQUIRED";
 
 export type BillingCycle = "DAILY" | "WEEKLY" | "MONTHLY";
 
@@ -111,10 +106,10 @@ export const INITIAL_DRIVER_PLANS: DriverPlan[] = [
     id: "plano-bronze",
     name: "Bronze (Diária Flex)",
     description: "Diária de 24h para quem roda sob demanda sem compromisso fixo",
-    monthlyFeeBrl: 149.90,
+    monthlyFeeBrl: 149.9,
     monthlyFeeCents: 14990,
-    dailyFeeBrl: 14.90,
-    weeklyFeeBrl: 49.90,
+    dailyFeeBrl: 14.9,
+    weeklyFeeBrl: 49.9,
     billingCycle: "DAILY",
     commissionPercent: 0.0,
     dispatchWeightPercent: 1.15,
@@ -135,13 +130,13 @@ export const INITIAL_DRIVER_PLANS: DriverPlan[] = [
     id: "plano-prata",
     name: "Prata (Semanal Pro)",
     description: "Assinatura semanal para quem roda de forma contínua com desconto",
-    monthlyFeeBrl: 199.90,
+    monthlyFeeBrl: 199.9,
     monthlyFeeCents: 19990,
-    dailyFeeBrl: 12.50,
-    weeklyFeeBrl: 69.90,
+    dailyFeeBrl: 12.5,
+    weeklyFeeBrl: 69.9,
     billingCycle: "WEEKLY",
     commissionPercent: 0.0,
-    dispatchWeightPercent: 1.30,
+    dispatchWeightPercent: 1.3,
     features: [
       "ZERO COMISSÃO (0.0% por corrida)",
       "100% dos ganhos ficam com você",
@@ -158,13 +153,13 @@ export const INITIAL_DRIVER_PLANS: DriverPlan[] = [
     id: "plano-ouro",
     name: "Ouro (Mensal Ilimitado)",
     description: "Mensalidade fixa de máxima economia. Roda o mês inteiro com 0% taxa.",
-    monthlyFeeBrl: 99.90,
+    monthlyFeeBrl: 99.9,
     monthlyFeeCents: 9990,
-    dailyFeeBrl: 4.90,
-    weeklyFeeBrl: 29.90,
+    dailyFeeBrl: 4.9,
+    weeklyFeeBrl: 29.9,
     billingCycle: "MONTHLY",
     commissionPercent: 0.0,
-    dispatchWeightPercent: 1.50,
+    dispatchWeightPercent: 1.5,
     goldThresholdBrl: 0,
     postThresholdCommissionPercent: 0.0,
     features: [
@@ -231,7 +226,9 @@ export class SubscriptionEngine {
     if (typeof window === "undefined") return;
     try {
       localStorage.setItem(STORAGE_PLANS_KEY, JSON.stringify(Array.from(this.plans.values())));
-    } catch (err) { silentCatchWarn("subscription-engine", err); }
+    } catch (err) {
+      silentCatchWarn("subscription-engine", err);
+    }
   }
 
   private saveSubscriptions(): void {
@@ -239,9 +236,11 @@ export class SubscriptionEngine {
     try {
       localStorage.setItem(
         STORAGE_SUBSCRIPTIONS_KEY,
-        JSON.stringify(Array.from(this.subscriptions.values()))
+        JSON.stringify(Array.from(this.subscriptions.values())),
       );
-    } catch (err) { silentCatchWarn("subscription-engine", err); }
+    } catch (err) {
+      silentCatchWarn("subscription-engine", err);
+    }
   }
 
   // ============================================================================
@@ -275,11 +274,20 @@ export class SubscriptionEngine {
       description: params.description,
       monthlyFeeBrl: params.monthlyFeeBrl,
       monthlyFeeCents: Math.round(params.monthlyFeeBrl * 100),
-      dailyFeeBrl: params.dailyFeeBrl ?? (params.monthlyFeeBrl > 0 ? Number((params.monthlyFeeBrl / 20).toFixed(2)) : 0),
-      weeklyFeeBrl: params.weeklyFeeBrl ?? (params.monthlyFeeBrl > 0 ? Number((params.monthlyFeeBrl / 3.5).toFixed(2)) : 0),
+      dailyFeeBrl:
+        params.dailyFeeBrl ??
+        (params.monthlyFeeBrl > 0 ? Number((params.monthlyFeeBrl / 20).toFixed(2)) : 0),
+      weeklyFeeBrl:
+        params.weeklyFeeBrl ??
+        (params.monthlyFeeBrl > 0 ? Number((params.monthlyFeeBrl / 3.5).toFixed(2)) : 0),
       billingCycle: params.billingCycle ?? "MONTHLY",
       commissionPercent: params.commissionPercent,
-      dispatchWeightPercent: params.commissionPercent === 0 ? 1.50 : Number((Math.min(1.50, Math.max(1.00, 1.00 + (5.0 - params.commissionPercent) * 0.10))).toFixed(2)),
+      dispatchWeightPercent:
+        params.commissionPercent === 0
+          ? 1.5
+          : Number(
+              Math.min(1.5, Math.max(1.0, 1.0 + (5.0 - params.commissionPercent) * 0.1)).toFixed(2),
+            ),
       features: params.features || ["Taxa diferenciada", "Repasse PIX D+0"],
       badgeColor: params.badgeColor || "bg-indigo-500",
       active: true,
@@ -457,7 +465,8 @@ export class SubscriptionEngine {
 
     // Se possui débitos acumulados e venceu o ciclo
     if (sub.accumulatedDebtCents > 0 && now > sub.nextBillingDate) {
-      const graceEnd = sub.gracePeriodEndsAt || (sub.nextBillingDate + sub.gracePeriodDays * 86400000);
+      const graceEnd =
+        sub.gracePeriodEndsAt || sub.nextBillingDate + sub.gracePeriodDays * 86400000;
       if (now <= graceEnd) {
         if (sub.status !== "GRACE_PERIOD") {
           sub.status = "GRACE_PERIOD";

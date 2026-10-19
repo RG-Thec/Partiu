@@ -29,7 +29,14 @@ export function SubscriptionSuccessModal({
   title = "🎉 Dia liberado!",
   subtitle = "Boas corridas. Você está 100% livre de comissões.",
 }: SubscriptionSuccessModalProps) {
-  const { corPrimaria, corSecundaria, corTextoPrimaria, corCabecalhoInicio, corCabecalhoFim, branding } = useBrandTheme();
+  const {
+    corPrimaria,
+    corSecundaria,
+    corTextoPrimaria,
+    corCabecalhoInicio,
+    corCabecalhoFim,
+    branding,
+  } = useBrandTheme();
   const accentColor = branding?.accent_color || corSecundaria || "#00C6FF";
   const [countdown, setCountdown] = useState(2);
 
@@ -63,7 +70,9 @@ export function SubscriptionSuccessModal({
           osc.stop(now + idx * 0.08 + 0.5);
         });
       }
-    } catch (err) { silentCatchWarn("SubscriptionSuccessModal", err); }
+    } catch (err) {
+      silentCatchWarn("SubscriptionSuccessModal", err);
+    }
 
     const timer = setInterval(() => {
       setCountdown((prev) => {

@@ -7,7 +7,6 @@
 import { subscriptionEngine } from "./revenue/subscription-engine";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
-
 export interface GeoCoordinate {
   latitude: number;
   longitude: number;
@@ -103,7 +102,7 @@ export function estimateEtaMinutes(distanceKm: number): number {
 export function scoreDriverCandidate(
   driver: CandidateDriver,
   request: DispatchTripRequest,
-  regionalEarningsFloorBrl: number = 38.0
+  regionalEarningsFloorBrl: number = 38.0,
 ): DispatchScoreBreakdown {
   const distanceKm = calculateHaversineKm(driver.location, request.pickup);
   const etaMinutes = estimateEtaMinutes(distanceKm);
@@ -161,7 +160,8 @@ export function scoreDriverCandidate(
   // 10. FinOps Equity: Ganhos Médios por Hora (Target R$ 38 a R$ 52/h)
   let earningsEquityBoost = 0;
   if (driver.hourlyEarningsToday < regionalEarningsFloorBrl) {
-    const deficitRatio = (regionalEarningsFloorBrl - driver.hourlyEarningsToday) / regionalEarningsFloorBrl;
+    const deficitRatio =
+      (regionalEarningsFloorBrl - driver.hourlyEarningsToday) / regionalEarningsFloorBrl;
     earningsEquityBoost = Math.min(12, deficitRatio * 12);
   }
 
@@ -194,8 +194,8 @@ export function scoreDriverCandidate(
         earningsEquityBoost +
         predictiveChainBonus -
         rejectionPenalty
-      ).toFixed(2)
-    )
+      ).toFixed(2),
+    ),
   );
 
   return {
@@ -246,7 +246,7 @@ export interface FairMarketplaceScore {
 
 export function calculateFairMarketplaceScore(
   driver: CandidateDriver & { planWeight?: number | undefined },
-  request: DispatchTripRequest
+  request: DispatchTripRequest,
 ): FairMarketplaceScore {
   const distanceKm = calculateHaversineKm(driver.location, request.pickup);
   const etaMinutes = estimateEtaMinutes(distanceKm);
@@ -271,11 +271,11 @@ export function calculateFairMarketplaceScore(
   // O plano atua estritamente como um desempate inteligente (máx 2.5 pontos de 100),
   // garantindo que NUNCA supere proximidade, menor ETA ou qualidade do condutor.
   const rawWeight = driver.planWeight !== undefined ? driver.planWeight : 1.15;
-  const clampedWeight = Math.max(1.0, Math.min(1.50, rawWeight));
+  const clampedWeight = Math.max(1.0, Math.min(1.5, rawWeight));
   const planScore = Number(((clampedWeight - 1.0) * 5.0).toFixed(2)); // 0 a 2.5 pontos
 
   const totalScore = Number(
-    (distanceScore + ratingScore + acceptanceScore + onlineTimeScore + planScore).toFixed(2)
+    (distanceScore + ratingScore + acceptanceScore + onlineTimeScore + planScore).toFixed(2),
   );
 
   return {
@@ -300,11 +300,14 @@ export function calculateFairMarketplaceScore(
 export function rankDriversForDispatch(
   drivers: CandidateDriver[],
   request: DispatchTripRequest,
-  regionalEarningsFloorBrl: number = 38.0
+  regionalEarningsFloorBrl: number = 38.0,
 ): DispatchScoreBreakdown[] {
   return drivers
     .filter((d) => {
-      if (!d.isOnline || (d.currentTripStatus !== "IDLE" && d.currentTripStatus !== "ENDING_TRIP")) {
+      if (
+        !d.isOnline ||
+        (d.currentTripStatus !== "IDLE" && d.currentTripStatus !== "ENDING_TRIP")
+      ) {
         return false;
       }
       try {
@@ -312,7 +315,9 @@ export function rankDriversForDispatch(
         if (sub.status === "SUSPENDED" || sub.status === "REACTIVATION_REQUIRED") {
           return false;
         }
-      } catch (err) { silentCatchWarn("partiu-dispatch-engine", err); }
+      } catch (err) {
+        silentCatchWarn("partiu-dispatch-engine", err);
+      }
       return true;
     })
     .map((d) => scoreDriverCandidate(d, request, regionalEarningsFloorBrl))
@@ -327,11 +332,14 @@ export function rankDriversForDispatch(
  */
 export function rankDriversByFairMarketplaceScore(
   drivers: (CandidateDriver & { planWeight?: number | undefined })[],
-  request: DispatchTripRequest
+  request: DispatchTripRequest,
 ): FairMarketplaceScore[] {
   return drivers
     .filter((d) => {
-      if (!d.isOnline || (d.currentTripStatus !== "IDLE" && d.currentTripStatus !== "ENDING_TRIP")) {
+      if (
+        !d.isOnline ||
+        (d.currentTripStatus !== "IDLE" && d.currentTripStatus !== "ENDING_TRIP")
+      ) {
         return false;
       }
       try {
@@ -339,7 +347,9 @@ export function rankDriversByFairMarketplaceScore(
         if (sub.status === "SUSPENDED" || sub.status === "REACTIVATION_REQUIRED") {
           return false;
         }
-      } catch (err) { silentCatchWarn("partiu-dispatch-engine", err); }
+      } catch (err) {
+        silentCatchWarn("partiu-dispatch-engine", err);
+      }
       return true;
     })
     .map((d) => {
@@ -375,7 +385,7 @@ export function rankDriversByFairMarketplaceScore(
  */
 export function selectBestCandidate(
   drivers: CandidateDriver[],
-  request: DispatchTripRequest
+  request: DispatchTripRequest,
 ): DispatchScoreBreakdown | null {
   const ranked = rankDriversForDispatch(drivers, request);
   return ranked[0] ?? null;
@@ -389,7 +399,7 @@ export function selectBestCandidate(
 export function calculateZoneSurge(
   zoneId: string,
   onlineSupplyCount: number,
-  openDemandCount: number
+  openDemandCount: number,
 ): SurgeMultiplierResult {
   if (onlineSupplyCount === 0 && openDemandCount > 0) {
     return {
@@ -455,7 +465,7 @@ export interface CascadingDispatchResult {
 export function executarRedespachoCascata(
   request: DispatchTripRequest,
   availableDrivers: CandidateDriver[],
-  driverTimeoutSeconds: number = 5
+  driverTimeoutSeconds: number = 5,
 ): CascadingDispatchResult {
   const etapas: CascadingDispatchStep[] = [];
   const rejeitadosIds = new Set<string>();
@@ -466,7 +476,7 @@ export function executarRedespachoCascata(
   // Executa cascata determinística de até 4 saltos: 3 tentativas no raio e 1 expansão
   while (tentativa <= 4 && !motoristaAtribuido) {
     const pool = availableDrivers.filter(
-      (d) => !rejeitadosIds.has(d.id) && d.isOnline && d.currentTripStatus !== "BUSY"
+      (d) => !rejeitadosIds.has(d.id) && d.isOnline && d.currentTripStatus !== "BUSY",
     );
 
     const ranked = rankDriversForDispatch(pool, { ...request, maxPickupDistanceKm: raioAtual });
@@ -554,7 +564,10 @@ export function benchmarkDispatchScale(driverCount: number, customRequest?: Disp
     syntheticDrivers.push({
       id: `drv-${i}`,
       name: `Condutor ${i}`,
-      location: { latitude: req.pickup.latitude + latDelta, longitude: req.pickup.longitude + lonDelta },
+      location: {
+        latitude: req.pickup.latitude + latDelta,
+        longitude: req.pickup.longitude + lonDelta,
+      },
       rating: 4.6 + Math.random() * 0.4,
       acceptanceRate: 0.7 + Math.random() * 0.3,
       cancellationRate: Math.random() * 0.08,

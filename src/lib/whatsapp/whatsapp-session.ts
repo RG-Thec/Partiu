@@ -1,20 +1,20 @@
 /**
  * PARTIU WHATSAPP SESSION ENGINE
- * 
+ *
  * Gerenciador de Sessão e Estado Conversacional para o canal WhatsApp.
  * Mantém o contexto de cada usuário por número de telefone com TTL dinâmico.
  */
 
 export type WhatsAppSessionStep =
-  | 'IDLE'
-  | 'AGUARDANDO_ORIGEM'
-  | 'AGUARDANDO_DESTINO'
-  | 'COTACAO_APRESENTADA'
-  | 'AGUARDANDO_PAGAMENTO_PIX'
-  | 'EM_DESPACHO'
-  | 'EM_VIAGEM'
-  | 'AVALIACAO_PENDENTE'
-  | 'TRANSBORDO_HUMANO';
+  | "IDLE"
+  | "AGUARDANDO_ORIGEM"
+  | "AGUARDANDO_DESTINO"
+  | "COTACAO_APRESENTADA"
+  | "AGUARDANDO_PAGAMENTO_PIX"
+  | "EM_DESPACHO"
+  | "EM_VIAGEM"
+  | "AVALIACAO_PENDENTE"
+  | "TRANSBORDO_HUMANO";
 
 export interface WhatsAppUserSession {
   sessionId: string;
@@ -27,7 +27,7 @@ export interface WhatsAppUserSession {
   destinationText?: string | undefined;
   originCoordinates?: { latitude: number; longitude: number } | undefined;
   destinationCoordinates?: { latitude: number; longitude: number } | undefined;
-  selectedModalidade?: 'POP' | 'MOTO' | 'PLUS' | undefined;
+  selectedModalidade?: "POP" | "MOTO" | "PLUS" | undefined;
   quotedFareBrl?: number | undefined;
   quotedDistanceKm?: number | undefined;
   quotedEtaMinutes?: number | undefined;
@@ -52,7 +52,10 @@ export class WhatsAppSessionManager {
   /**
    * Obtém ou inicializa uma nova sessão para o número
    */
-  public getOrCreateSession(phoneNumber: string, userName: string = 'Passageiro'): WhatsAppUserSession {
+  public getOrCreateSession(
+    phoneNumber: string,
+    userName: string = "Passageiro",
+  ): WhatsAppUserSession {
     const cleanPhone = this.cleanPhoneNumber(phoneNumber);
     const existing = this.sessions.get(cleanPhone);
     const now = Date.now();
@@ -67,13 +70,13 @@ export class WhatsAppSessionManager {
       sessionId: `WPP-SES-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
       phoneNumber: cleanPhone,
       userName,
-      currentStep: 'IDLE',
-      cityId: 'itaperuna-rj',
-      cityName: 'Itaperuna',
+      currentStep: "IDLE",
+      cityId: "itaperuna-rj",
+      cityName: "Itaperuna",
       isHumanTakeover: false,
       createdAt: now,
       lastInteractionAt: now,
-      expiresAt: now + this.defaultTtlMs
+      expiresAt: now + this.defaultTtlMs,
     };
 
     this.sessions.set(cleanPhone, newSession);
@@ -91,11 +94,14 @@ export class WhatsAppSessionManager {
     return session;
   }
 
-  public updateSession(phoneNumber: string, updates: Partial<WhatsAppUserSession>): WhatsAppUserSession {
+  public updateSession(
+    phoneNumber: string,
+    updates: Partial<WhatsAppUserSession>,
+  ): WhatsAppUserSession {
     const session = this.getOrCreateSession(phoneNumber);
     Object.assign(session, updates, {
       lastInteractionAt: Date.now(),
-      expiresAt: Date.now() + this.defaultTtlMs
+      expiresAt: Date.now() + this.defaultTtlMs,
     });
     return session;
   }
@@ -106,13 +112,13 @@ export class WhatsAppSessionManager {
   }
 
   public cleanPhoneNumber(phone: string): string {
-    return phone.replace(/\D/g, '');
+    return phone.replace(/\D/g, "");
   }
 
   public getActiveSessionsCount(): number {
     const now = Date.now();
     let count = 0;
-    this.sessions.forEach(s => {
+    this.sessions.forEach((s) => {
       if (s.expiresAt > now) count++;
     });
     return count;

@@ -62,7 +62,7 @@ export function trackPartiuEvent(
   userType: "RIDER" | "DRIVER" | "CORPORATE_ADMIN" | "OPERATOR",
   zoneId: string,
   metadata: Record<string, string | number | boolean> = {},
-  tripId?: string
+  tripId?: string,
 ): EventTrackingPayload {
   const event: EventTrackingPayload = {
     eventId: `EVT-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
@@ -70,7 +70,10 @@ export function trackPartiuEvent(
     timestamp: Date.now(),
     userId,
     userType,
-    sessionId: typeof window !== "undefined" ? sessionStorage.getItem("partiu_session") || "session-default" : "node-session",
+    sessionId:
+      typeof window !== "undefined"
+        ? sessionStorage.getItem("partiu_session") || "session-default"
+        : "node-session",
     zoneId,
     tripId,
     metadata,
@@ -131,7 +134,8 @@ export function predictDriverChurnRisk(params: {
 
   if (finalProb >= 65) {
     riskLevel = "ALTO";
-    action = "Disparar garantia de ganho mínimo (Missão: Complete 8 corridas e garanta R$ 180) e contato da Central.";
+    action =
+      "Disparar garantia de ganho mínimo (Missão: Complete 8 corridas e garanta R$ 180) e contato da Central.";
   } else if (finalProb >= 40) {
     riskLevel = "MEDIO";
     action = "Enviar push com mapa de alta demanda e convite para abastecer com desconto Ouro.";
@@ -155,7 +159,7 @@ export function predictTripEtaWithAi(
   destinationZone: string,
   distanceKm: number,
   hourOfDay: number,
-  isRaining: boolean
+  isRaining: boolean,
 ): MachineLearningEtaPrediction {
   const baseSpeedKmh = 28;
   const baseMinutes = (distanceKm / baseSpeedKmh) * 60;

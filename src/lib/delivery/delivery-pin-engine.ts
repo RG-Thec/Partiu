@@ -56,7 +56,7 @@ export class DeliveryPinEngine {
   public verifyOtp(
     targetKey: string, // deliveryId ou stopId
     inputOtp: string,
-    expectedOtp: string
+    expectedOtp: string,
   ): PinVerificationResult {
     // 1. Checa se o alvo está bloqueado por tentativas anteriores
     const { isLocked, remainingSeconds } = this.isPinLocked(targetKey);
@@ -128,7 +128,7 @@ export class DeliveryPinEngine {
     recipientName: string,
     otp: string,
     trackingUrl: string,
-    senderName: string
+    senderName: string,
   ): { phone: string; message: string; whatsappUrl: string } {
     const cleanPhone = recipientPhone.replace(/\D/g, "");
     const message = `Olá, ${recipientName}! Seu entregador PARTIU chegou com uma encomenda enviada por ${senderName}. Seu código de liberação é *${otp}*. Acompanhe em tempo real: ${trackingUrl}`;

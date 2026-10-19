@@ -47,15 +47,15 @@ import {
   Check,
   RefreshCw,
 } from "lucide-react";
-import { getCorridaAtiva, obterPainelSaudeCidade, type CorridaPartiu, type CityHealthDashboardData } from "@/lib/partiu-engine";
+import {
+  getCorridaAtiva,
+  obterPainelSaudeCidade,
+  type CorridaPartiu,
+  type CityHealthDashboardData,
+} from "@/lib/partiu-engine";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { AdminManualDispatchModal } from "@/components/admin/AdminManualDispatchModal";
-import {
-  AdminPageHeader,
-  AdminBadge,
-  AdminActionButton,
-  AdminTabBar,
-} from "@/components/admin/ui";
+import { AdminPageHeader, AdminBadge, AdminActionButton, AdminTabBar } from "@/components/admin/ui";
 import { Switch } from "@/components/ui/switch";
 import { useAdminCity } from "@/contexts/AdminCityContext";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -134,12 +134,16 @@ export function DespachoCentralCorridas() {
   const { isFranqueado, isSuperAdmin, tenantId } = useAdminAuth();
   const tenantAlvo = isFranqueado && tenantId ? tenantId : pracaAtiva?.id || "default";
   const [abaAtiva, setAbaAtiva] = useState<"FILA_DESPACHO" | "REGRAS_SURGE">("FILA_DESPACHO");
-  
+
   // Fila de Despacho & Monitoramento
   const [itens, setItens] = useState<ItemDespachoMock[]>([]);
   const [filtro, setFiltro] = useState<"TODAS" | "CORRIDAS" | "ENTREGAS">("TODAS");
-  const [statusFiltro, setStatusFiltro] = useState<"TODAS" | "PROCURANDO" | "EM_ROTA" | "FINALIZADAS">("TODAS");
-  const [modoExibicao, setModoExibicao] = useState<"FILA_COMPACTA" | "GRADE_CARTOES">("FILA_COMPACTA");
+  const [statusFiltro, setStatusFiltro] = useState<
+    "TODAS" | "PROCURANDO" | "EM_ROTA" | "FINALIZADAS"
+  >("TODAS");
+  const [modoExibicao, setModoExibicao] = useState<"FILA_COMPACTA" | "GRADE_CARTOES">(
+    "FILA_COMPACTA",
+  );
   const [busca, setBusca] = useState("");
   const [carregandoCorridas, setCarregandoCorridas] = useState(false);
   const [copiadoId, setCopiadoId] = useState<string | null>(null);
@@ -149,12 +153,13 @@ export function DespachoCentralCorridas() {
 
   // Métricas 100% Reais de Despacho & Marketplace
   const saudeCidade = useMemo(() => {
-    const frotaFiltrada = isFranqueado && tenantId
-      ? frotaBanco.filter((v: any) => v.tenantId === tenantId || v.tenant_id === tenantId)
-      : frotaBanco;
+    const frotaFiltrada =
+      isFranqueado && tenantId
+        ? frotaBanco.filter((v: any) => v.tenantId === tenantId || v.tenant_id === tenantId)
+        : frotaBanco;
 
     const motoristasOnline = frotaFiltrada.filter(
-      (v) => v.status === "em_rota" || v.status === "parado"
+      (v) => v.status === "em_rota" || v.status === "parado",
     ).length;
     const motoristasEmViagem = frotaFiltrada.filter((v) => v.status === "em_rota").length;
 
@@ -163,9 +168,8 @@ export function DespachoCentralCorridas() {
 
     const totalChamadas = itens.length;
     const chamadasAceitas = itens.filter((i) => i.status !== "PROCURANDO").length;
-    const taxaAceitePercent = totalChamadas > 0
-      ? Number(((chamadasAceitas / totalChamadas) * 100).toFixed(1))
-      : 0.0;
+    const taxaAceitePercent =
+      totalChamadas > 0 ? Number(((chamadasAceitas / totalChamadas) * 100).toFixed(1)) : 0.0;
 
     const todayStr = new Date().toISOString().slice(0, 10);
     const gmvBancoHoje = ridesBanco
@@ -190,10 +194,10 @@ export function DespachoCentralCorridas() {
 
   // Configurações do Algoritmo de Despacho & Surge Pricing
   const [dispatchSettings, setDispatchSettings] = useState<DispatchAlgorithmSettings>(() =>
-    carregarConfiguracoesDespacho(tenantAlvo)
+    carregarConfiguracoesDespacho(tenantAlvo),
   );
   const [surgeRules, setSurgeRules] = useState<SurgeRule[]>(() => carregarRegrasSurge());
-  
+
   // Live Override Controls
   const [liveOverrideMultiplicador, setLiveOverrideMultiplicador] = useState(1.4);
   const [liveOverrideDuracaoMinutos, setLiveOverrideDuracaoMinutos] = useState(30);
@@ -233,7 +237,10 @@ export function DespachoCentralCorridas() {
   // Inteligência de Mercado Automática (Padrão 99 / Uber)
   const autoSurge = useMemo(() => {
     const demandCount = Math.max(1, saudeCidade.corridasAtivas);
-    const availableDriversCount = Math.max(1, saudeCidade.motoristasOnline - saudeCidade.motoristasEmViagem);
+    const availableDriversCount = Math.max(
+      1,
+      saudeCidade.motoristasOnline - saudeCidade.motoristasEmViagem,
+    );
     surgeEngine.updateTenantMarketState(tenantAlvo, demandCount, availableDriversCount);
     return surgeEngine.calculateSurge(
       {
@@ -241,7 +248,7 @@ export function DespachoCentralCorridas() {
         availableDriversCount,
         isAutoSurgeEnabled: dispatchSettings.autoSurgeAtivo !== false,
       },
-      tenantAlvo
+      tenantAlvo,
     );
   }, [
     saudeCidade.corridasAtivas,
@@ -256,7 +263,7 @@ export function DespachoCentralCorridas() {
     showToast(
       checked
         ? "Tarifa dinâmica automática ativada na praça"
-        : "Tarifa dinâmica automática desativada na praça"
+        : "Tarifa dinâmica automática desativada na praça",
     );
   };
 
@@ -293,24 +300,23 @@ export function DespachoCentralCorridas() {
         query = query.or(`praca_id.eq.${pracaAtiva.id},tenant_id.eq.${pracaAtiva.id}`);
       }
 
-      const { data, error } = await query
-        .order("created_at", { ascending: false })
-        .limit(100);
+      const { data, error } = await query.order("created_at", { ascending: false }).limit(100);
 
       if (!error && data && data.length > 0) {
         const reais: ItemDespachoMock[] = data.map((c: any) => {
           const { relativo, hora } = formatarTempoDecorrido(c.created_at);
           return {
             id: c.codigo_viagem || c.id,
-            tipo: c.is_entrega || c.modalidade?.startsWith("ENTREGA")
-              ? "ENTREGA_FLASH"
-              : c.modalidade === "MOTO"
-                ? "CORRIDA_MOTO"
-                : c.modalidade === "PLUS"
-                  ? "CORRIDA_PLUS"
-                  : c.modalidade === "MULHER"
-                    ? "CORRIDA_MULHER"
-                    : "CORRIDA_POP",
+            tipo:
+              c.is_entrega || c.modalidade?.startsWith("ENTREGA")
+                ? "ENTREGA_FLASH"
+                : c.modalidade === "MOTO"
+                  ? "CORRIDA_MOTO"
+                  : c.modalidade === "PLUS"
+                    ? "CORRIDA_PLUS"
+                    : c.modalidade === "MULHER"
+                      ? "CORRIDA_MULHER"
+                      : "CORRIDA_POP",
             passageiro: c.passageiro_nome || "Passageiro",
             telefone: c.passageiro_telefone || "(22) 99999-0000",
             origem: c.origem_endereco || "Origem em rota",
@@ -355,13 +361,14 @@ export function DespachoCentralCorridas() {
       if (real && (real.status as string) !== "IDLE") {
         const itemReal: ItemDespachoMock = {
           id: real.id,
-          tipo: real.modalidade === "MOTO"
-            ? "CORRIDA_MOTO"
-            : real.isEntrega
-              ? "ENTREGA_FLASH"
-              : real.modalidade === "MULHER"
-                ? "CORRIDA_MULHER"
-                : "CORRIDA_POP",
+          tipo:
+            real.modalidade === "MOTO"
+              ? "CORRIDA_MOTO"
+              : real.isEntrega
+                ? "ENTREGA_FLASH"
+                : real.modalidade === "MULHER"
+                  ? "CORRIDA_MULHER"
+                  : "CORRIDA_POP",
           passageiro: real.passageiroNome || "Passageiro App",
           telefone: real.passageiroTelefone || "(22) 99999-0000",
           origem: real.origem || "Origem via GPS",
@@ -396,13 +403,9 @@ export function DespachoCentralCorridas() {
     // Subscrição em Tempo Real (Supabase Realtime)
     const channel = supabase
       .channel(`admin-despacho-realtime-${Date.now()}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "partiu_corridas" },
-        () => {
-          void carregarCorridasDoBanco();
-        }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "partiu_corridas" }, () => {
+        void carregarCorridasDoBanco();
+      })
       .subscribe();
 
     const interval = setInterval(() => {
@@ -417,7 +420,12 @@ export function DespachoCentralCorridas() {
   }, [carregarCorridasDoBanco]);
 
   const handleCancelarCorrida = async (codigoViagem: string) => {
-    if (!window.confirm(`Deseja realmente cancelar a chamada ${codigoViagem}? Isso atualizará o status no banco de dados e liberará a fila operacional.`)) return;
+    if (
+      !window.confirm(
+        `Deseja realmente cancelar a chamada ${codigoViagem}? Isso atualizará o status no banco de dados e liberará a fila operacional.`,
+      )
+    )
+      return;
     try {
       if (isSupabaseConfigured()) {
         const { error } = await (supabase as any)
@@ -436,9 +444,7 @@ export function DespachoCentralCorridas() {
         }
       }
       setItens((prev) =>
-        prev.map((item) =>
-          item.id === codigoViagem ? { ...item, status: "CANCELADA" } : item
-        )
+        prev.map((item) => (item.id === codigoViagem ? { ...item, status: "CANCELADA" } : item)),
       );
       showToast(`Chamada ${codigoViagem} cancelada com sucesso.`);
     } catch {
@@ -466,13 +472,17 @@ export function DespachoCentralCorridas() {
   const handleAtivarLiveOverride = () => {
     ativarLiveSurgeOverride(liveOverrideMultiplicador, liveOverrideDuracaoMinutos, tenantAlvo);
     recarregarConfiguracoes();
-    showToast(`Sobretaxa de x${liveOverrideMultiplicador.toFixed(1)} aplicada por ${liveOverrideDuracaoMinutos} minutos!`);
+    showToast(
+      `Sobretaxa de x${liveOverrideMultiplicador.toFixed(1)} aplicada por ${liveOverrideDuracaoMinutos} minutos!`,
+    );
   };
 
   const handleDesativarLiveOverride = () => {
     desativarLiveSurgeOverride(tenantAlvo);
     recarregarConfiguracoes();
-    showToast("Sobretaxa administrativa desativada. Retornado à inteligência automática de alta demanda.");
+    showToast(
+      "Sobretaxa administrativa desativada. Retornado à inteligência automática de alta demanda.",
+    );
   };
 
   // Handlers de Regras de Surge
@@ -520,8 +530,14 @@ export function DespachoCentralCorridas() {
 
       // Filtro por Ciclo Operacional / Status
       if (statusFiltro === "PROCURANDO" && item.status !== "PROCURANDO") return false;
-      if (statusFiltro === "EM_ROTA" && item.status !== "A_CAMINHO" && item.status !== "EM_VIAGEM") return false;
-      if (statusFiltro === "FINALIZADAS" && item.status !== "CONCLUIDA" && item.status !== "CANCELADA") return false;
+      if (statusFiltro === "EM_ROTA" && item.status !== "A_CAMINHO" && item.status !== "EM_VIAGEM")
+        return false;
+      if (
+        statusFiltro === "FINALIZADAS" &&
+        item.status !== "CONCLUIDA" &&
+        item.status !== "CANCELADA"
+      )
+        return false;
 
       // Busca textual ampla
       if (busca.trim()) {
@@ -533,7 +549,15 @@ export function DespachoCentralCorridas() {
         const matchPin = item.pin.includes(termo);
         const matchOrigem = item.origem.toLowerCase().includes(termo);
         const matchDestino = item.destino.toLowerCase().includes(termo);
-        if (!matchId && !matchPassageiro && !matchMotorista && !matchPlaca && !matchPin && !matchOrigem && !matchDestino) {
+        if (
+          !matchId &&
+          !matchPassageiro &&
+          !matchMotorista &&
+          !matchPlaca &&
+          !matchPin &&
+          !matchOrigem &&
+          !matchDestino
+        ) {
           return false;
         }
       }
@@ -582,7 +606,11 @@ export function DespachoCentralCorridas() {
         onChange={(tab) => setAbaAtiva(tab as any)}
         tabs={[
           { id: "FILA_DESPACHO", label: "Fila ao Vivo", icon: <Radio className="w-3.5 h-3.5" /> },
-          { id: "REGRAS_SURGE", label: "Regras & Surge", icon: <Sliders className="w-3.5 h-3.5" /> },
+          {
+            id: "REGRAS_SURGE",
+            label: "Regras & Surge",
+            icon: <Sliders className="w-3.5 h-3.5" />,
+          },
         ]}
       />
 
@@ -608,11 +636,14 @@ export function DespachoCentralCorridas() {
                 </span>
                 <h2 className="text-lg font-black text-foreground tracking-tight flex items-center gap-2">
                   <Activity className="w-5 h-5 text-amber-500" />
-                  Painel de Saúde da Cidade {!isNacional ? `(${pracaAtiva.labelCompleto})` : "& Marketplace (Nacional)"}
+                  Painel de Saúde da Cidade{" "}
+                  {!isNacional ? `(${pracaAtiva.labelCompleto})` : "& Marketplace (Nacional)"}
                 </h2>
               </div>
               <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-border/60">
-                <span className={`w-2 h-2 rounded-full ${saudeCidade.corridasAtivas > 0 ? "bg-emerald-500" : "bg-slate-400"}`} />
+                <span
+                  className={`w-2 h-2 rounded-full ${saudeCidade.corridasAtivas > 0 ? "bg-emerald-500" : "bg-slate-400"}`}
+                />
                 <span>
                   {saudeCidade.corridasAtivas > 0
                     ? `Liquidez Ativa: ${saudeCidade.taxaAceitePercent.toFixed(1)}% Atendimento`
@@ -628,7 +659,9 @@ export function DespachoCentralCorridas() {
                   <span className="text-[11px] font-bold">Motoristas Online</span>
                   <Users className="w-4 h-4 text-muted-foreground/60" />
                 </div>
-                <span className="text-2xl font-black text-foreground">{saudeCidade.motoristasOnline}</span>
+                <span className="text-2xl font-black text-foreground">
+                  {saudeCidade.motoristasOnline}
+                </span>
                 <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block mt-0.5">
                   {saudeCidade.motoristasEmViagem} em rota ativa
                 </span>
@@ -639,7 +672,9 @@ export function DespachoCentralCorridas() {
                   <span className="text-[11px] font-bold">Corridas Ativas</span>
                   <Car className="w-4 h-4 text-muted-foreground/60" />
                 </div>
-                <span className="text-2xl font-black text-foreground">{saudeCidade.corridasAtivas}</span>
+                <span className="text-2xl font-black text-foreground">
+                  {saudeCidade.corridasAtivas}
+                </span>
                 <span className="text-[10px] text-primary font-bold block mt-0.5">
                   {saudeCidade.corridasAtivas > 0 ? "Tempo real" : "Sem chamados ativos"}
                 </span>
@@ -650,7 +685,9 @@ export function DespachoCentralCorridas() {
                   <span className="text-[11px] font-bold">Tempo Médio Espera</span>
                   <Clock className="w-4 h-4 text-muted-foreground/60" />
                 </div>
-                <span className="text-2xl font-black text-foreground">{saudeCidade.tempoMedioEsperaMinutos.toFixed(1)} min</span>
+                <span className="text-2xl font-black text-foreground">
+                  {saudeCidade.tempoMedioEsperaMinutos.toFixed(1)} min
+                </span>
                 <span className="text-[10px] text-muted-foreground font-medium block mt-0.5">
                   {saudeCidade.corridasAtivas > 0 ? "Dentro da meta" : "Sem chamados"}
                 </span>
@@ -661,7 +698,9 @@ export function DespachoCentralCorridas() {
                   <span className="text-[11px] font-bold">Taxa Aceite</span>
                   <CheckCircle2 className="w-4 h-4 text-muted-foreground/60" />
                 </div>
-                <span className="text-2xl font-black text-foreground">{saudeCidade.taxaAceitePercent.toFixed(1)}%</span>
+                <span className="text-2xl font-black text-foreground">
+                  {saudeCidade.taxaAceitePercent.toFixed(1)}%
+                </span>
                 <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block mt-0.5">
                   {saudeCidade.corridasAtivas > 0 ? "Alta conversão" : "Aguardando chamados"}
                 </span>
@@ -675,7 +714,9 @@ export function DespachoCentralCorridas() {
                 <span className="text-2xl font-black text-foreground">
                   R$ {saudeCidade.receitaBrutaHojeBrl.toFixed(2).replace(".", ",")}
                 </span>
-                <span className="text-[10px] text-muted-foreground font-medium block mt-0.5">GMV acumulado</span>
+                <span className="text-[10px] text-muted-foreground font-medium block mt-0.5">
+                  GMV acumulado
+                </span>
               </div>
 
               <div className="bg-muted/30 p-4 rounded-2xl border border-border/60">
@@ -783,7 +824,9 @@ export function DespachoCentralCorridas() {
                   className="p-2 rounded-xl bg-muted/60 hover:bg-muted border border-border/60 text-muted-foreground hover:text-foreground transition cursor-pointer disabled:opacity-50"
                   title="Atualizar lista agora"
                 >
-                  <RefreshCw className={`w-4 h-4 ${carregandoCorridas ? "animate-spin text-primary" : ""}`} />
+                  <RefreshCw
+                    className={`w-4 h-4 ${carregandoCorridas ? "animate-spin text-primary" : ""}`}
+                  />
                 </button>
               </div>
             </div>
@@ -867,12 +910,14 @@ export function DespachoCentralCorridas() {
                 </span>
                 <span>•</span>
                 <span>
-                  Exibindo <strong>{listaFiltrada.length}</strong> de <strong>{itens.length}</strong> chamados
+                  Exibindo <strong>{listaFiltrada.length}</strong> de{" "}
+                  <strong>{itens.length}</strong> chamados
                 </span>
               </div>
 
               <div className="text-[11px] text-muted-foreground hidden sm:block">
-                Rolagem interna ativa • {modoExibicao === "FILA_COMPACTA" ? "Visão em Fila Rápida" : "Visão em Grade"}
+                Rolagem interna ativa •{" "}
+                {modoExibicao === "FILA_COMPACTA" ? "Visão em Fila Rápida" : "Visão em Grade"}
               </div>
             </div>
 
@@ -880,7 +925,9 @@ export function DespachoCentralCorridas() {
             {listaFiltrada.length === 0 ? (
               <div className="py-16 text-center text-muted-foreground space-y-2">
                 <Radio className="w-8 h-8 mx-auto text-muted-foreground/30 animate-pulse" />
-                <p className="font-bold text-sm text-foreground">Nenhuma corrida encontrada na fila</p>
+                <p className="font-bold text-sm text-foreground">
+                  Nenhuma corrida encontrada na fila
+                </p>
                 <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                   {busca
                     ? "Nenhum resultado corresponde aos termos da pesquisa. Tente limpar os filtros."
@@ -911,7 +958,9 @@ export function DespachoCentralCorridas() {
 
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-mono text-xs font-black text-foreground">{item.id}</span>
+                          <span className="font-mono text-xs font-black text-foreground">
+                            {item.id}
+                          </span>
                           <button
                             type="button"
                             onClick={() => handleCopiarId(item.id)}
@@ -930,8 +979,8 @@ export function DespachoCentralCorridas() {
                             {item.tipo === "CORRIDA_MOTO"
                               ? "Moto"
                               : item.tipo === "ENTREGA_FLASH"
-                              ? "Entrega"
-                              : "Carro Pop"}
+                                ? "Entrega"
+                                : "Carro Pop"}
                           </span>
                           <span>•</span>
                           <span title={item.horarioFormatado}>{item.tempoDecorrido}</span>
@@ -946,24 +995,24 @@ export function DespachoCentralCorridas() {
                           item.status === "EM_VIAGEM"
                             ? "bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20"
                             : item.status === "A_CAMINHO"
-                            ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20"
-                            : item.status === "CONCLUIDA"
-                            ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
-                            : item.status === "CANCELADA"
-                            ? "bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20"
-                            : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20"
+                              ? "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20"
+                              : item.status === "CONCLUIDA"
+                                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
+                                : item.status === "CANCELADA"
+                                  ? "bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/20"
+                                  : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20"
                         }`}
                       >
                         <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
                         {item.status === "PROCURANDO"
                           ? "Buscando parceiro"
                           : item.status === "A_CAMINHO"
-                          ? "A caminho"
-                          : item.status === "EM_VIAGEM"
-                          ? "Em viagem"
-                          : item.status === "CONCLUIDA"
-                          ? "Concluída"
-                          : "Cancelada"}
+                            ? "A caminho"
+                            : item.status === "EM_VIAGEM"
+                              ? "Em viagem"
+                              : item.status === "CONCLUIDA"
+                                ? "Concluída"
+                                : "Cancelada"}
                       </span>
                     </div>
 
@@ -986,17 +1035,23 @@ export function DespachoCentralCorridas() {
                     {/* Bloco 4: Passageiro & PIN */}
                     <div className="shrink-0 lg:w-44 text-xs">
                       <div className="flex items-center justify-between gap-1">
-                        <span className="font-bold text-foreground truncate">{item.passageiro}</span>
+                        <span className="font-bold text-foreground truncate">
+                          {item.passageiro}
+                        </span>
                         <span className="px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground text-[10px] font-mono font-black shrink-0">
                           PIN {item.pin}
                         </span>
                       </div>
-                      <span className="text-[10px] text-muted-foreground block">{item.telefone}</span>
+                      <span className="text-[10px] text-muted-foreground block">
+                        {item.telefone}
+                      </span>
                     </div>
 
                     {/* Bloco 5: Motorista Parceiro */}
                     <div className="shrink-0 lg:w-48 text-xs">
-                      <span className="text-[10px] text-muted-foreground block">Condutor Parceiro:</span>
+                      <span className="text-[10px] text-muted-foreground block">
+                        Condutor Parceiro:
+                      </span>
                       <span
                         className={`font-bold truncate block ${
                           item.motorista === "Buscando parceiro..."
@@ -1014,7 +1069,9 @@ export function DespachoCentralCorridas() {
                     {/* Bloco 6: Valor e Ações */}
                     <div className="flex items-center justify-between lg:justify-end gap-3 shrink-0 lg:w-40 pt-1 lg:pt-0 border-t lg:border-t-0 border-border/40">
                       <div className="text-left lg:text-right">
-                        <span className="text-[9px] uppercase font-bold text-muted-foreground block">Valor</span>
+                        <span className="text-[9px] uppercase font-bold text-muted-foreground block">
+                          Valor
+                        </span>
                         <strong className="text-sm font-mono font-black text-emerald-600 dark:text-emerald-400">
                           R$ {item.valor.toFixed(2).replace(".", ",")}
                         </strong>
@@ -1060,7 +1117,9 @@ export function DespachoCentralCorridas() {
                     >
                       <div className="flex items-center justify-between pb-2 border-b border-border/60">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-mono text-xs font-black text-foreground">{item.id}</span>
+                          <span className="font-mono text-xs font-black text-foreground">
+                            {item.id}
+                          </span>
                           <button
                             type="button"
                             onClick={() => handleCopiarId(item.id)}
@@ -1075,12 +1134,12 @@ export function DespachoCentralCorridas() {
                             item.status === "EM_VIAGEM"
                               ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
                               : item.status === "A_CAMINHO"
-                              ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
-                              : item.status === "CONCLUIDA"
-                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                              : item.status === "CANCELADA"
-                              ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
-                              : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                                ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
+                                : item.status === "CONCLUIDA"
+                                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                                  : item.status === "CANCELADA"
+                                    ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
                           }`}
                         >
                           <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
@@ -1092,8 +1151,13 @@ export function DespachoCentralCorridas() {
                         <div className="flex items-start gap-2">
                           <MapPin className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
                           <div className="min-w-0">
-                            <span className="text-[9px] text-muted-foreground uppercase font-bold block">Origem</span>
-                            <span className="text-foreground font-medium truncate block" title={item.origem}>
+                            <span className="text-[9px] text-muted-foreground uppercase font-bold block">
+                              Origem
+                            </span>
+                            <span
+                              className="text-foreground font-medium truncate block"
+                              title={item.origem}
+                            >
                               {item.origem}
                             </span>
                           </div>
@@ -1102,8 +1166,13 @@ export function DespachoCentralCorridas() {
                         <div className="flex items-start gap-2">
                           <MapPin className="w-3.5 h-3.5 text-blue-500 mt-0.5 shrink-0" />
                           <div className="min-w-0">
-                            <span className="text-[9px] text-muted-foreground uppercase font-bold block">Destino</span>
-                            <span className="text-foreground font-medium truncate block" title={item.destino}>
+                            <span className="text-[9px] text-muted-foreground uppercase font-bold block">
+                              Destino
+                            </span>
+                            <span
+                              className="text-foreground font-medium truncate block"
+                              title={item.destino}
+                            >
                               {item.destino}
                             </span>
                           </div>
@@ -1112,7 +1181,9 @@ export function DespachoCentralCorridas() {
 
                       <div className="p-2.5 bg-muted/40 rounded-xl border border-border/50 flex items-center justify-between">
                         <div>
-                          <span className="text-xs font-bold text-foreground block">{item.passageiro}</span>
+                          <span className="text-xs font-bold text-foreground block">
+                            {item.passageiro}
+                          </span>
                           <span className="text-[10px] text-muted-foreground">{item.telefone}</span>
                         </div>
 
@@ -1124,8 +1195,12 @@ export function DespachoCentralCorridas() {
 
                       <div className="text-xs pt-1 flex items-center justify-between border-t border-border/40">
                         <div>
-                          <span className="text-[9px] text-muted-foreground font-bold block">Condutor Parceiro</span>
-                          <span className="font-bold text-foreground truncate block max-w-[130px]">{item.motorista}</span>
+                          <span className="text-[9px] text-muted-foreground font-bold block">
+                            Condutor Parceiro
+                          </span>
+                          <span className="font-bold text-foreground truncate block max-w-[130px]">
+                            {item.motorista}
+                          </span>
                           <span className="text-[10px] text-muted-foreground block">
                             {item.veiculo} • <strong>{item.placa}</strong>
                           </span>
@@ -1173,26 +1248,29 @@ export function DespachoCentralCorridas() {
                     <h3 className="text-lg font-black text-foreground">
                       Inteligência de Demanda Automática (Padrão Uber / 99)
                     </h3>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                      dispatchSettings.liveOverrideAtivo
-                        ? "bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30"
-                        : dispatchSettings.autoSurgeAtivo === false
-                        ? "bg-muted text-muted-foreground border border-border"
-                        : autoSurge.isSurgeActive
-                        ? "bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30 animate-pulse"
-                        : "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
-                    }`}>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                        dispatchSettings.liveOverrideAtivo
+                          ? "bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                          : dispatchSettings.autoSurgeAtivo === false
+                            ? "bg-muted text-muted-foreground border border-border"
+                            : autoSurge.isSurgeActive
+                              ? "bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30 animate-pulse"
+                              : "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+                      }`}
+                    >
                       {dispatchSettings.liveOverrideAtivo
                         ? "SOBREPOSTO POR LIVE OVERRIDE"
                         : dispatchSettings.autoSurgeAtivo === false
-                        ? "TARIFA AUTOMÁTICA DESATIVADA (FIXA 1.0x)"
-                        : autoSurge.isSurgeActive
-                        ? `ALTA DEMANDA AUTOMÁTICA x${autoSurge.multiplier.toFixed(1)}`
-                        : "EQUILÍBRIO NORMAL (1.0x)"}
+                          ? "TARIFA AUTOMÁTICA DESATIVADA (FIXA 1.0x)"
+                          : autoSurge.isSurgeActive
+                            ? `ALTA DEMANDA AUTOMÁTICA x${autoSurge.multiplier.toFixed(1)}`
+                            : "EQUILÍBRIO NORMAL (1.0x)"}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    O aplicativo calcula e aplica multiplicadores dinâmicos automaticamente conforme o volume de chamados de passageiros vs condutores livres na praça.
+                    O aplicativo calcula e aplica multiplicadores dinâmicos automaticamente conforme
+                    o volume de chamados de passageiros vs condutores livres na praça.
                   </p>
                 </div>
               </div>
@@ -1208,7 +1286,9 @@ export function DespachoCentralCorridas() {
                     htmlFor="switch-auto-surge"
                     className="text-xs font-bold cursor-pointer text-foreground select-none"
                   >
-                    {dispatchSettings.autoSurgeAtivo !== false ? "Tarifa automática ativa" : "Tarifa automática desativada"}
+                    {dispatchSettings.autoSurgeAtivo !== false
+                      ? "Tarifa automática ativa"
+                      : "Tarifa automática desativada"}
                   </label>
                 </div>
 
@@ -1216,12 +1296,20 @@ export function DespachoCentralCorridas() {
                   <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                     Multiplicador Vigente na Praça
                   </span>
-                  <span className={`text-2xl font-black ${
-                    (dispatchSettings.liveOverrideAtivo ? dispatchSettings.liveOverrideMultiplicador : autoSurge.multiplier) > 1.0
-                      ? "text-amber-500"
-                      : "text-foreground"
-                  }`}>
-                    x{(dispatchSettings.liveOverrideAtivo ? dispatchSettings.liveOverrideMultiplicador : autoSurge.multiplier).toFixed(1)}
+                  <span
+                    className={`text-2xl font-black ${
+                      (dispatchSettings.liveOverrideAtivo
+                        ? dispatchSettings.liveOverrideMultiplicador
+                        : autoSurge.multiplier) > 1.0
+                        ? "text-amber-500"
+                        : "text-foreground"
+                    }`}
+                  >
+                    x
+                    {(dispatchSettings.liveOverrideAtivo
+                      ? dispatchSettings.liveOverrideMultiplicador
+                      : autoSurge.multiplier
+                    ).toFixed(1)}
                   </span>
                 </div>
               </div>
@@ -1230,32 +1318,49 @@ export function DespachoCentralCorridas() {
             {/* Grid de Métricas de Liquidez em Tempo Real */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="p-3.5 rounded-2xl bg-muted/50 border border-border/60">
-                <span className="text-[11px] font-bold text-muted-foreground block">Demanda da Praça</span>
+                <span className="text-[11px] font-bold text-muted-foreground block">
+                  Demanda da Praça
+                </span>
                 <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-xl font-black text-foreground">{autoSurge.demandCount}</span>
+                  <span className="text-xl font-black text-foreground">
+                    {autoSurge.demandCount}
+                  </span>
                   <span className="text-[11px] text-muted-foreground">chamados</span>
                 </div>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-muted/50 border border-border/60">
-                <span className="text-[11px] font-bold text-muted-foreground block">Motoristas Livres</span>
+                <span className="text-[11px] font-bold text-muted-foreground block">
+                  Motoristas Livres
+                </span>
                 <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-xl font-black text-foreground">{autoSurge.availableDriversCount}</span>
+                  <span className="text-xl font-black text-foreground">
+                    {autoSurge.availableDriversCount}
+                  </span>
                   <span className="text-[11px] text-muted-foreground">disponíveis</span>
                 </div>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-muted/50 border border-border/60">
-                <span className="text-[11px] font-bold text-muted-foreground block">Razão Demanda/Oferta</span>
+                <span className="text-[11px] font-bold text-muted-foreground block">
+                  Razão Demanda/Oferta
+                </span>
                 <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-xl font-black text-foreground">{autoSurge.supplyDemandRatio.toFixed(2)}</span>
+                  <span className="text-xl font-black text-foreground">
+                    {autoSurge.supplyDemandRatio.toFixed(2)}
+                  </span>
                   <span className="text-[11px] text-muted-foreground">procura/veículo</span>
                 </div>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-muted/50 border border-border/60">
-                <span className="text-[11px] font-bold text-muted-foreground block">Status do Algoritmo</span>
-                <span className="text-xs font-black text-foreground block mt-1.5 truncate" title={autoSurge.reason}>
+                <span className="text-[11px] font-bold text-muted-foreground block">
+                  Status do Algoritmo
+                </span>
+                <span
+                  className="text-xs font-black text-foreground block mt-1.5 truncate"
+                  title={autoSurge.reason}
+                >
                   {autoSurge.reason}
                 </span>
               </div>
@@ -1265,7 +1370,10 @@ export function DespachoCentralCorridas() {
               <div className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-muted/40 border border-border/80 text-xs text-muted-foreground">
                 <Sliders className="w-4 h-4 text-muted-foreground shrink-0" />
                 <span>
-                  O modo automático está <strong>desativado</strong> para esta praça. Todas as novas corridas estão sendo tarifadas com multiplicador base 1.0x (sem acréscimo dinâmico por alta procura). Para forçar uma sobretaxa momentânea, utilize a Sobretaxa Imediata abaixo.
+                  O modo automático está <strong>desativado</strong> para esta praça. Todas as novas
+                  corridas estão sendo tarifadas com multiplicador base 1.0x (sem acréscimo dinâmico
+                  por alta procura). Para forçar uma sobretaxa momentânea, utilize a Sobretaxa
+                  Imediata abaixo.
                 </span>
               </div>
             )}
@@ -1275,11 +1383,13 @@ export function DespachoCentralCorridas() {
           <div className="p-5 sm:p-6 rounded-3xl bg-card border border-border/80 shadow-2xs space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-4">
               <div className="flex items-center gap-3">
-                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${
-                  dispatchSettings.liveOverrideAtivo
-                    ? "bg-amber-500/10 text-amber-500 animate-pulse"
-                    : "bg-primary/10 text-primary"
-                }`}>
+                <div
+                  className={`w-11 h-11 rounded-2xl flex items-center justify-center ${
+                    dispatchSettings.liveOverrideAtivo
+                      ? "bg-amber-500/10 text-amber-500 animate-pulse"
+                      : "bg-primary/10 text-primary"
+                  }`}
+                >
                   <Zap className="w-5 h-5" />
                 </div>
                 <div>
@@ -1289,12 +1399,16 @@ export function DespachoCentralCorridas() {
                     </h3>
                     {dispatchSettings.liveOverrideAtivo && (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-slate-950 animate-pulse">
-                        SOBRETAXA ATIVA x{dispatchSettings.liveOverrideMultiplicador.toFixed(1)} {minutosRestantesOverride > 0 ? `(${minutosRestantesOverride}m restantes)` : ""}
+                        SOBRETAXA ATIVA x{dispatchSettings.liveOverrideMultiplicador.toFixed(1)}{" "}
+                        {minutosRestantesOverride > 0
+                          ? `(${minutosRestantesOverride}m restantes)`
+                          : ""}
                       </span>
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Força multiplicador dinâmico de alta demanda instantaneamente em todas as novas corridas da praça.
+                    Força multiplicador dinâmico de alta demanda instantaneamente em todas as novas
+                    corridas da praça.
                   </p>
                 </div>
               </div>
@@ -1324,7 +1438,10 @@ export function DespachoCentralCorridas() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-foreground block">
-                  Multiplicador Instantâneo: <span className="text-primary font-black">x{liveOverrideMultiplicador.toFixed(1)}</span>
+                  Multiplicador Instantâneo:{" "}
+                  <span className="text-primary font-black">
+                    x{liveOverrideMultiplicador.toFixed(1)}
+                  </span>
                 </label>
                 <div className="flex items-center gap-2">
                   {[1.2, 1.4, 1.6, 1.8, 2.0].map((m) => (
@@ -1346,7 +1463,10 @@ export function DespachoCentralCorridas() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-foreground block">
-                  Duração do Override: <span className="text-primary font-black">{liveOverrideDuracaoMinutos} minutos</span>
+                  Duração do Override:{" "}
+                  <span className="text-primary font-black">
+                    {liveOverrideDuracaoMinutos} minutos
+                  </span>
                 </label>
                 <div className="flex items-center gap-2">
                   {[15, 30, 60, 120].map((min) => (
@@ -1380,7 +1500,8 @@ export function DespachoCentralCorridas() {
                     Parâmetros do Algoritmo de Raio Progressivo &amp; Take Rate
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    Ajuste o comportamento do matching de condutores e as taxas retidas pela plataforma.
+                    Ajuste o comportamento do matching de condutores e as taxas retidas pela
+                    plataforma.
                   </p>
                 </div>
               </div>
@@ -1389,7 +1510,9 @@ export function DespachoCentralCorridas() {
             <form onSubmit={handleSalvarParametros} className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Raio Inicial de Busca (km)</label>
+                  <label className="text-xs font-bold text-foreground">
+                    Raio Inicial de Busca (km)
+                  </label>
                   <input
                     type="number"
                     step="0.5"
@@ -1405,11 +1528,15 @@ export function DespachoCentralCorridas() {
                     }
                     className="w-full min-h-11 h-11 px-3.5 rounded-xl bg-background border border-border font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                   />
-                  <span className="text-[10px] text-muted-foreground block">Onda 1: motoristas imediatos</span>
+                  <span className="text-[10px] text-muted-foreground block">
+                    Onda 1: motoristas imediatos
+                  </span>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Expansão por Minuto (km/min)</label>
+                  <label className="text-xs font-bold text-foreground">
+                    Expansão por Minuto (km/min)
+                  </label>
                   <input
                     type="number"
                     step="0.5"
@@ -1425,11 +1552,15 @@ export function DespachoCentralCorridas() {
                     }
                     className="w-full min-h-11 h-11 px-3.5 rounded-xl bg-background border border-border font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                   />
-                  <span className="text-[10px] text-muted-foreground block">Crescimento radial a cada 60s</span>
+                  <span className="text-[10px] text-muted-foreground block">
+                    Crescimento radial a cada 60s
+                  </span>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Teto Radial Máximo (km)</label>
+                  <label className="text-xs font-bold text-foreground">
+                    Teto Radial Máximo (km)
+                  </label>
                   <input
                     type="number"
                     step="1"
@@ -1445,13 +1576,17 @@ export function DespachoCentralCorridas() {
                     }
                     className="w-full min-h-11 h-11 px-3.5 rounded-xl bg-background border border-border font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                   />
-                  <span className="text-[10px] text-muted-foreground block">Distância máxima motorista × corrida</span>
+                  <span className="text-[10px] text-muted-foreground block">
+                    Distância máxima motorista × corrida
+                  </span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Timeout Geral de Busca (segundos)</label>
+                  <label className="text-xs font-bold text-foreground">
+                    Timeout Geral de Busca (segundos)
+                  </label>
                   <input
                     type="number"
                     step="10"
@@ -1467,11 +1602,15 @@ export function DespachoCentralCorridas() {
                     }
                     className="w-full min-h-11 h-11 px-3.5 rounded-xl bg-background border border-border font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                   />
-                  <span className="text-[10px] text-muted-foreground block">Auto-cancelamento se ninguém aceitar</span>
+                  <span className="text-[10px] text-muted-foreground block">
+                    Auto-cancelamento se ninguém aceitar
+                  </span>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Piso Mínimo Garantido (R$)</label>
+                  <label className="text-xs font-bold text-foreground">
+                    Piso Mínimo Garantido (R$)
+                  </label>
                   <input
                     type="number"
                     step="0.50"
@@ -1487,11 +1626,15 @@ export function DespachoCentralCorridas() {
                     }
                     className="w-full min-h-11 h-11 px-3.5 rounded-xl bg-background border border-border font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                   />
-                  <span className="text-[10px] text-muted-foreground block">Tarifa mínima aceita</span>
+                  <span className="text-[10px] text-muted-foreground block">
+                    Tarifa mínima aceita
+                  </span>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Tolerância Cancelamento (minutos)</label>
+                  <label className="text-xs font-bold text-foreground">
+                    Tolerância Cancelamento (minutos)
+                  </label>
                   <input
                     type="number"
                     step="1"
@@ -1507,7 +1650,9 @@ export function DespachoCentralCorridas() {
                     }
                     className="w-full min-h-11 h-11 px-3.5 rounded-xl bg-background border border-border font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                   />
-                  <span className="text-[10px] text-muted-foreground block">Cancelamento sem cobrança de taxa</span>
+                  <span className="text-[10px] text-muted-foreground block">
+                    Cancelamento sem cobrança de taxa
+                  </span>
                 </div>
 
                 <div className="space-y-1.5">
@@ -1527,7 +1672,9 @@ export function DespachoCentralCorridas() {
                     }
                     className="w-full min-h-11 h-11 px-3.5 rounded-xl bg-background border border-border font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                   />
-                  <span className="text-[10px] text-muted-foreground block">Adicional por parada intermediária</span>
+                  <span className="text-[10px] text-muted-foreground block">
+                    Adicional por parada intermediária
+                  </span>
                 </div>
               </div>
 
@@ -1544,13 +1691,18 @@ export function DespachoCentralCorridas() {
                     </span>
                   </div>
                   <p className="text-[11px] text-emerald-800/90 mt-0.5">
-                    No modelo econômico do PARTIU, a comissão é <strong>estritamente 0% (100% repassado ao motorista)</strong>. A receita da franquia e da plataforma é gerada exclusivamente via mensalidades e diárias SaaS dos motoristas.
+                    No modelo econômico do PARTIU, a comissão é{" "}
+                    <strong>estritamente 0% (100% repassado ao motorista)</strong>. A receita da
+                    franquia e da plataforma é gerada exclusivamente via mensalidades e diárias SaaS
+                    dos motoristas.
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-emerald-300 shrink-0">
                   <span className="text-xs font-black text-emerald-700">0.0%</span>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase">Fixo / Imutável</span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase">
+                    Fixo / Imutável
+                  </span>
                 </div>
               </div>
 
@@ -1585,7 +1737,8 @@ export function DespachoCentralCorridas() {
                     Regras Automatizadas de Tarifa Dinâmica (Surge Pricing)
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    Defina sobretaxas automáticas por janela de horário, fim de semana ou alerta climático.
+                    Defina sobretaxas automáticas por janela de horário, fim de semana ou alerta
+                    climático.
                   </p>
                 </div>
               </div>
@@ -1625,9 +1778,15 @@ export function DespachoCentralCorridas() {
 
                       <td className="py-3.5 px-4">
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-bold bg-muted text-foreground">
-                          {regra.gatilho === "HORARIO" && <Clock className="w-3 h-3 text-blue-500" />}
-                          {regra.gatilho === "CLIMA" && <CloudRain className="w-3 h-3 text-cyan-500" />}
-                          {regra.gatilho === "EVENTO" && <Sparkles className="w-3 h-3 text-purple-500" />}
+                          {regra.gatilho === "HORARIO" && (
+                            <Clock className="w-3 h-3 text-blue-500" />
+                          )}
+                          {regra.gatilho === "CLIMA" && (
+                            <CloudRain className="w-3 h-3 text-cyan-500" />
+                          )}
+                          {regra.gatilho === "EVENTO" && (
+                            <Sparkles className="w-3 h-3 text-purple-500" />
+                          )}
                           {regra.gatilho}
                         </span>
                       </td>
@@ -1706,8 +1865,12 @@ export function DespachoCentralCorridas() {
                   <Flame className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-black text-foreground">Nova Regra de Tarifa Dinâmica</h2>
-                  <p className="text-xs text-muted-foreground">Configure um multiplicador para horários de alta demanda.</p>
+                  <h2 className="text-lg font-black text-foreground">
+                    Nova Regra de Tarifa Dinâmica
+                  </h2>
+                  <p className="text-xs text-muted-foreground">
+                    Configure um multiplicador para horários de alta demanda.
+                  </p>
                 </div>
               </div>
               <button
@@ -1792,9 +1955,12 @@ export function DespachoCentralCorridas() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-foreground">
-                    Multiplicador da Sobretaxa: <span className="text-primary font-black">x{formRegraMult.toFixed(2)}</span>
+                    Multiplicador da Sobretaxa:{" "}
+                    <span className="text-primary font-black">x{formRegraMult.toFixed(2)}</span>
                   </label>
-                  <span className="text-[11px] text-muted-foreground">+{(Math.round((formRegraMult - 1) * 100))}% de valor</span>
+                  <span className="text-[11px] text-muted-foreground">
+                    +{Math.round((formRegraMult - 1) * 100)}% de valor
+                  </span>
                 </div>
                 <input
                   type="range"

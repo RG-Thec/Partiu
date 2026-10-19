@@ -9,7 +9,7 @@ O modelo de negócios do **PARTIU MOBE** foi estruturado em torno de uma premiss
 > **TAXA ZERO POR CORRIDA (0% TAKE RATE):**  
 > O motorista parceiro fica com **100% do valor bruto** de cada viagem realizada. A plataforma **NÃO retém comissões percentuais** nem desconta créditos fracionados a cada corrida concluída.
 
-A monetização da plataforma decorre **exclusivamente de assinaturas de acesso (*Software as a Service - SaaS*)** pagas periodicamente pelos condutores cadastrados.
+A monetização da plataforma decorre **exclusivamente de assinaturas de acesso (_Software as a Service - SaaS_)** pagas periodicamente pelos condutores cadastrados.
 
 ```mermaid
 flowchart TD
@@ -27,7 +27,7 @@ flowchart TD
         ConfirmacaoWebhook["Webhook Seguro do Gateway (HMAC + Idempotência)"]
         LiberacaoImediata["Liberação Instantânea no App (Ficar Online)"]
         FaturamentoSaaS["Receita Recorrente Previsível (MRR da Franquia & Matriz)"]
-        
+
         MotoristaAssina --> PixAutomatico
         PixAutomatico --> ConfirmacaoWebhook
         ConfirmacaoWebhook --> LiberacaoImediata
@@ -41,16 +41,18 @@ flowchart TD
 
 Os planos são parametrizáveis no Painel Administrativo (`/app/admin/monetizacao`) e contemplam diferentes perfis de trabalho (motoristas em tempo integral, condutores de fins de semana e iniciantes em teste):
 
-| Identificador | Nome do Plano | Periodicidade | Preço Sugerido (BRL) | Dias de Carência | Período de Degustação (*Trial*) | Take Rate por Corrida |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `plano_diario_24h` | **Diária Express (24h)** | Diário (1 dia) | R$ 12,00 | 0 dias | 0 dias | **0,0%** |
-| `plano_semanal` | **Semanal Flex** | Semanal (7 dias) | R$ 45,00 | 1 dia | 0 dias | **0,0%** |
-| `plano_mensal_pro` | **Mensal Pro (Recomendado)** | Mensal (30 dias) | R$ 149,90 | 3 dias | 3, 7 ou 30 dias (configurável) | **0,0%** |
-| `plano_trimestral` | **Trimestral Fidelidade** | Trimestral (90 dias) | R$ 389,00 | 5 dias | 0 dias | **0,0%** |
-| `plano_anual_vip` | **Anual VIP Platinum** | Anual (365 dias) | R$ 1.290,00 | 7 dias | 0 dias | **0,0%** |
+| Identificador      | Nome do Plano                | Periodicidade        | Preço Sugerido (BRL) | Dias de Carência | Período de Degustação (_Trial_) | Take Rate por Corrida |
+| :----------------- | :--------------------------- | :------------------- | :------------------- | :--------------- | :------------------------------ | :-------------------- |
+| `plano_diario_24h` | **Diária Express (24h)**     | Diário (1 dia)       | R$ 12,00             | 0 dias           | 0 dias                          | **0,0%**              |
+| `plano_semanal`    | **Semanal Flex**             | Semanal (7 dias)     | R$ 45,00             | 1 dia            | 0 dias                          | **0,0%**              |
+| `plano_mensal_pro` | **Mensal Pro (Recomendado)** | Mensal (30 dias)     | R$ 149,90            | 3 dias           | 3, 7 ou 30 dias (configurável)  | **0,0%**              |
+| `plano_trimestral` | **Trimestral Fidelidade**    | Trimestral (90 dias) | R$ 389,00            | 5 dias           | 0 dias                          | **0,0%**              |
+| `plano_anual_vip`  | **Anual VIP Platinum**       | Anual (365 dias)     | R$ 1.290,00          | 7 dias           | 0 dias                          | **0,0%**              |
 
 ### Configurador Visual de Trial (Degustação):
+
 O administrador pode selecionar a política de degustação para novos motoristas aprovados:
+
 - **Desativado (0 dias):** Exige contratação de plano imediatamente após aprovação documental.
 - **Trial Rápido (3 dias):** Ideal para onboarding agressivo com conversão rápida.
 - **Trial Padrão (7 dias):** Recomendado para maturação da praça e adesão inicial da frota.
@@ -112,10 +114,13 @@ A plataforma integra-se a múltiplos provedores Pix autorizados pelo BACEN (Merc
 ## 5. Auditoria Administrativa, Cortesia & Separação Contábil
 
 ### Concessão de Dias de Cortesia:
+
 Operadores autorizados no painel executivo podem conceder dias adicionais de bonificação para um motorista (por exemplo, 3 a 30 dias em caso de premiação ou resolução de suporte):
+
 - A ação registra um evento imutável de auditoria contendo: ID do administrador, justificativa operacional, data/hora e saldo de dias estendido.
 
 ### Separação Contábil Estrita (Zero Confisco de Ganhos):
+
 - Os saques e repasses relativos às corridas concluídas pelos motoristas são **100% isolados** do sistema de cobrança de mensalidades.
 - A plataforma **NÃO realiza débitos automáticos** de mensalidades sobre os ganhos de corridas dos motoristas.
 - O motorista possui soberania total sobre seus rendimentos de transporte.
@@ -145,6 +150,7 @@ LIMIT 10;
 ## 7. Repasse de Royalties entre Matriz e Franquias Regionais
 
 Nas praças operadas por franqueados:
+
 - **Royalties das Assinaturas:** O franqueado regional retém entre **70% e 90%** do valor líquido das assinaturas pagas pelos motoristas cadastrados em sua praça.
 - **Taxa Tecnológica da Matriz:** A matriz da plataforma retém entre **10% e 30%** para cobrir custos de infraestrutura em nuvem, servidores PostGIS, CDN, mapas e desenvolvimento contínuo.
 - **Corridas:** Nenhuma taxa é deduzida das corridas (0% de take rate em qualquer nível da organização).
@@ -154,6 +160,7 @@ Nas praças operadas por franqueados:
 ## 8. Métricas Executivas SaaS
 
 O painel de gestão executiva (`/app/admin/monetizacao`) acompanha em tempo real:
+
 - **MRR (Monthly Recurring Revenue):** Receita recorrente mensal acumulada.
 - **ARR (Annual Recurring Revenue):** Faturamento anual projetado (`MRR * 12`).
 - **LTV (Lifetime Value):** Tempo médio de retenção multiplicado pela mensalidade média.

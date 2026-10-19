@@ -16,13 +16,13 @@ Identidade verbal do PARTIU: direto, resolutivo, transparente e focado em mobili
 
 As cinco dimensões calibradas para a plataforma:
 
-| Axis | The product IS | The product IS NOT |
-|---|---|---|
-| Confidence | Confiante, claro e assertivo em tarifas e rotas | Arrogante, impositivo ou evasivo |
-| Register | Profissional, acessível e funcional | Informal em demasia ou excessivamente burocrático |
-| Distance | Próximo do cotidiano dos passageiros e motoristas parceiros | Frio, impessoal ou bajulador |
-| Humor | Neutro e sereno, respeitando o tempo do usuário | Irrelevante, cômico ou invasivo em momentos críticos |
-| Density | Sucinto e objetivo, priorizando leitura rápida no trânsito | Prolixo, redundante ou vago |
+| Axis       | The product IS                                              | The product IS NOT                                   |
+| ---------- | ----------------------------------------------------------- | ---------------------------------------------------- |
+| Confidence | Confiante, claro e assertivo em tarifas e rotas             | Arrogante, impositivo ou evasivo                     |
+| Register   | Profissional, acessível e funcional                         | Informal em demasia ou excessivamente burocrático    |
+| Distance   | Próximo do cotidiano dos passageiros e motoristas parceiros | Frio, impessoal ou bajulador                         |
+| Humor      | Neutro e sereno, respeitando o tempo do usuário             | Irrelevante, cômico ou invasivo em momentos críticos |
+| Density    | Sucinto e objetivo, priorizando leitura rápida no trânsito  | Prolixo, redundante ou vago                          |
 
 ## Narrative
 

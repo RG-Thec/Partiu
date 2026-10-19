@@ -46,7 +46,9 @@ export function expect(actual) {
         },
         toEqual(expected) {
           if (JSON.stringify(actual) === JSON.stringify(expected)) {
-            throw new Error(`Expected '${JSON.stringify(actual)}' NOT to equal '${JSON.stringify(expected)}'`);
+            throw new Error(
+              `Expected '${JSON.stringify(actual)}' NOT to equal '${JSON.stringify(expected)}'`,
+            );
           }
         },
         toThrow() {
@@ -54,7 +56,9 @@ export function expect(actual) {
             try {
               actual();
             } catch (err) {
-              throw new Error(`Expected function NOT to throw, but it threw: ${err?.message || err}`);
+              throw new Error(
+                `Expected function NOT to throw, but it threw: ${err?.message || err}`,
+              );
             }
           }
         },

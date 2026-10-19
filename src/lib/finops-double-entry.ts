@@ -121,7 +121,9 @@ export async function registrarEntradaEscrow(
       console.warn(`[FinOps Ledger] Inserção remota em contingência: ${error.message}`);
     }
   } catch (err: any) {
-    console.warn(`[FinOps Ledger] Falha de conexão na persistência remota (contingência offline ativa): ${err?.message}`);
+    console.warn(
+      `[FinOps Ledger] Falha de conexão na persistência remota (contingência offline ativa): ${err?.message}`,
+    );
   }
 
   return {
@@ -219,7 +221,9 @@ export async function liquidarSplitViagem(
       console.warn(`[FinOps Ledger] Inserção remota do split em contingência: ${error.message}`);
     }
   } catch (err: any) {
-    console.warn(`[FinOps Ledger] Falha de conexão na persistência remota do split (contingência offline ativa): ${err?.message}`);
+    console.warn(
+      `[FinOps Ledger] Falha de conexão na persistência remota do split (contingência offline ativa): ${err?.message}`,
+    );
   }
 
   return {

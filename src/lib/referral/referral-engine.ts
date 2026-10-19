@@ -95,7 +95,9 @@ export class ReferralEngine {
         const arr = JSON.parse(savedRecords) as ReferralRecord[];
         arr.forEach((r) => this.referrals.set(r.id, r));
       }
-    } catch (err) { silentCatchWarn("referral-engine", err); }
+    } catch (err) {
+      silentCatchWarn("referral-engine", err);
+    }
   }
 
   private saveData(): void {
@@ -104,7 +106,9 @@ export class ReferralEngine {
       localStorage.setItem(STORAGE_REFERRAL_CONFIG_KEY, JSON.stringify(this.config));
       const arr = Array.from(this.referrals.values());
       localStorage.setItem(STORAGE_REFERRALS_DATA_KEY, JSON.stringify(arr));
-    } catch (err) { silentCatchWarn("referral-engine", err); }
+    } catch (err) {
+      silentCatchWarn("referral-engine", err);
+    }
   }
 
   private seedMockDataIfEmpty(): void {
@@ -227,7 +231,9 @@ export class ReferralEngine {
 
     const isDriver = params.referrerRole === "DRIVER";
     const targetTrips = isDriver ? this.config.driverTargetTrips : 1;
-    let baseBonus = isDriver ? this.config.driverFixedBonusBrl : this.config.passengerDiscountBonusBrl;
+    let baseBonus = isDriver
+      ? this.config.driverFixedBonusBrl
+      : this.config.passengerDiscountBonusBrl;
 
     if (this.config.temporaryCampaignActive) {
       baseBonus = Number((baseBonus * this.config.temporaryCampaignMultiplier).toFixed(2));
@@ -265,7 +271,7 @@ export class ReferralEngine {
    */
   public recordTripCompletion(referredId: string): ReferralRecord | null {
     const record = Array.from(this.referrals.values()).find(
-      (r) => r.referredId === referredId && r.status === "PENDING"
+      (r) => r.referredId === referredId && r.status === "PENDING",
     );
     if (!record) return null;
 
@@ -309,7 +315,8 @@ export class ReferralEngine {
 
     // K-Factor viral estimado (indicações convertidas / base de usuários)
     const converted = all.filter((r) => r.status === "PAID").length;
-    const kFactor = all.length > 0 ? Number((converted / Math.max(1, all.length * 0.7)).toFixed(2)) : 0;
+    const kFactor =
+      all.length > 0 ? Number((converted / Math.max(1, all.length * 0.7)).toFixed(2)) : 0;
 
     return {
       totalReferrals: all.length,

@@ -12,7 +12,6 @@
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
-
 export interface GlobalAppSettings {
   id: string;
   whatsappSupport: string;
@@ -83,7 +82,9 @@ export class AppSettingsService {
           this.cachedSettings = JSON.parse(stored);
           return this.cachedSettings!;
         }
-      } catch (err) { silentCatchWarn("AppSettingsService", err); }
+      } catch (err) {
+        silentCatchWarn("AppSettingsService", err);
+      }
     }
     return DEFAULT_SETTINGS;
   }
@@ -99,7 +100,8 @@ export class AppSettingsService {
     try {
       const { data, error } = await (supabase as any)
         .from("app_settings")
-        .select(`
+        .select(
+          `
           id,
           whatsapp_support,
           phone_emergency,
@@ -117,7 +119,8 @@ export class AppSettingsService {
           referral_bonus_brl,
           referral_discount_brl,
           referral_active
-        `)
+        `,
+        )
         .eq("id", "global")
         .maybeSingle();
 
@@ -167,7 +170,9 @@ export class AppSettingsService {
     if (typeof window !== "undefined") {
       try {
         localStorage.setItem(STORAGE_SETTINGS_KEY, JSON.stringify(updated));
-      } catch (err) { silentCatchWarn("AppSettingsService", err); }
+      } catch (err) {
+        silentCatchWarn("AppSettingsService", err);
+      }
     }
 
     this.notifyListeners(updated);
@@ -193,7 +198,9 @@ export class AppSettingsService {
           referral_discount_brl: updated.referralDiscountBrl,
           referral_active: updated.referralActive,
         });
-      } catch (err) { silentCatchWarn("AppSettingsService", err); }
+      } catch (err) {
+        silentCatchWarn("AppSettingsService", err);
+      }
     }
 
     return updated;
@@ -214,7 +221,9 @@ export class AppSettingsService {
     for (const listener of this.listeners) {
       try {
         listener(settings);
-      } catch (err) { silentCatchWarn("AppSettingsService", err); }
+      } catch (err) {
+        silentCatchWarn("AppSettingsService", err);
+      }
     }
   }
 
@@ -227,15 +236,13 @@ export class AppSettingsService {
     try {
       supabase
         .channel("public:app_settings")
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "app_settings" },
-          () => {
-            void this.fetchSettings();
-          }
-        )
+        .on("postgres_changes", { event: "*", schema: "public", table: "app_settings" }, () => {
+          void this.fetchSettings();
+        })
         .subscribe();
-    } catch (err) { silentCatchWarn("AppSettingsService", err); }
+    } catch (err) {
+      silentCatchWarn("AppSettingsService", err);
+    }
   }
 }
 

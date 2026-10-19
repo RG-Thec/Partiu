@@ -52,7 +52,12 @@ import {
   type DriverSubscriptionRecord,
 } from "@/lib/ecosystem/driver-subscription-service";
 import { appSettingsService } from "@/lib/ecosystem/app-settings-service";
-import { useCaixaAdmin, usePartiuRides, usePartiuRidesRealtime, useMotoristas } from "@/lib/partiu-db";
+import {
+  useCaixaAdmin,
+  usePartiuRides,
+  usePartiuRidesRealtime,
+  useMotoristas,
+} from "@/lib/partiu-db";
 import { getAdminRole, isFranqueado } from "@/lib/admin-rbac";
 import { useAdminCity } from "@/contexts/AdminCityContext";
 
@@ -77,7 +82,8 @@ export function PainelFinanceiroUnificadoPage() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get("tab");
-      if (tab === "diarias" || tab === "tarifas" || tab === "assinaturas") return tab as AbaFinanceiro;
+      if (tab === "diarias" || tab === "tarifas" || tab === "assinaturas")
+        return tab as AbaFinanceiro;
     }
     return "consolidado";
   });
@@ -100,7 +106,12 @@ export function PainelFinanceiroUnificadoPage() {
       const dest = (r.destination_address || "").toLowerCase();
       const city = (r.city || r.cidade || "").toLowerCase();
       const tenant = (r.tenant_id || r.praca_id || "").toLowerCase();
-      return orig.includes(nomeCidade) || dest.includes(nomeCidade) || city.includes(nomeCidade) || tenant === pracaId;
+      return (
+        orig.includes(nomeCidade) ||
+        dest.includes(nomeCidade) ||
+        city.includes(nomeCidade) ||
+        tenant === pracaId
+      );
     });
   }, [ridesBanco, isNacional, pracaAtiva]);
 
@@ -152,14 +163,16 @@ export function PainelFinanceiroUnificadoPage() {
   }, [caixasFiltrados]);
 
   // 2. GESTÃO DE MONETIZAÇÃO SAAS WHITE LABEL & CONFIGURAÇÕES PIX
-  const [monetizacao, setMonetizacao] = useState<ConfigMonetizacaoWhiteLabel>(() => getMonetizacaoConfig());
+  const [monetizacao, setMonetizacao] = useState<ConfigMonetizacaoWhiteLabel>(() =>
+    getMonetizacaoConfig(),
+  );
   const [salvandoMonetizacao, setSalvandoMonetizacao] = useState(false);
   const [sucessoMonetizacao, setSucessoMonetizacao] = useState(false);
   const [chavePixAdminCopiada, setChavePixAdminCopiada] = useState(false);
 
   // 3. EXTRATO DE ASSINATURAS E DIÁRIAS REAIS DOS MOTORISTAS
   const [assinaturas, setAssinaturas] = useState<DriverSubscriptionRecord[]>(() =>
-    driverSubscriptionService.getAllSubscriptions()
+    driverSubscriptionService.getAllSubscriptions(),
   );
   const saasMetrics = useMemo(() => driverSubscriptionService.getSaaSMetrics(), [assinaturas]);
 
@@ -217,9 +230,6 @@ export function PainelFinanceiroUnificadoPage() {
   const [salvandoTarifas, setSalvandoTarifas] = useState(false);
   const [sucessoTarifas, setSucessoTarifas] = useState(false);
   const [erroTarifas, setErroTarifas] = useState<string | null>(null);
-
-
-
 
   function handleSalvarTarifas(e: React.FormEvent) {
     e.preventDefault();
@@ -313,7 +323,10 @@ export function PainelFinanceiroUnificadoPage() {
           <div className="flex items-center gap-2 mb-1">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              FinOps &amp; Governança SaaS • {isFranqueado(adminRole) ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
+              FinOps &amp; Governança SaaS •{" "}
+              {isFranqueado(adminRole)
+                ? `Franquia ${pracaAtiva?.nome || "Regional"}`
+                : "Gestão Nacional"}
             </span>
           </div>
           <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
@@ -326,14 +339,19 @@ export function PainelFinanceiroUnificadoPage() {
             </span>
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Consolidação de diárias SaaS, faturamento de motoristas 100% direto e parametrização tarifária.
+            Consolidação de diárias SaaS, faturamento de motoristas 100% direto e parametrização
+            tarifária.
           </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
-            onClick={() => alert("Relatório contábil gerado! O arquivo CSV do livro-razão está pronto para download.")}
+            onClick={() =>
+              alert(
+                "Relatório contábil gerado! O arquivo CSV do livro-razão está pronto para download.",
+              )
+            }
             className="flex h-10 items-center gap-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 px-4 text-xs font-black shadow-xs transition-all cursor-pointer"
           >
             <Download className="h-3.5 w-3.5 text-primary" />
@@ -406,7 +424,9 @@ export function PainelFinanceiroUnificadoPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             {/* Volume de Corridas (Hoje) */}
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Volume Hoje (GMV)</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                Volume Hoje (GMV)
+              </span>
               <div className="pt-2">
                 <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                   R$ {receitaHoje.toFixed(2).replace(".", ",")}
@@ -419,7 +439,9 @@ export function PainelFinanceiroUnificadoPage() {
 
             {/* Volume do Mês */}
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Volume Mês (GMV)</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                Volume Mês (GMV)
+              </span>
               <div className="pt-2">
                 <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                   R$ {receitaMes.toFixed(2).replace(".", ",")}
@@ -432,10 +454,15 @@ export function PainelFinanceiroUnificadoPage() {
 
             {/* Faturamento SaaS (Receita Real da Plataforma) */}
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Receita SaaS Hoje</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                Receita SaaS Hoje
+              </span>
               <div className="pt-2">
                 <p className="text-xl sm:text-2xl font-black text-emerald-600 tracking-tight">
-                  R$ {Math.max(faturamentoSaasHoje, saasMetrics.totalRevenueToday).toFixed(2).replace(".", ",")}
+                  R${" "}
+                  {Math.max(faturamentoSaasHoje, saasMetrics.totalRevenueToday)
+                    .toFixed(2)
+                    .replace(".", ",")}
                 </p>
                 <span className="text-[11px] text-emerald-700 font-bold mt-1 block truncate">
                   Mensalidades &amp; Diárias
@@ -445,7 +472,9 @@ export function PainelFinanceiroUnificadoPage() {
 
             {/* Economia da Frota */}
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Economia dos Condutores</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                Economia dos Condutores
+              </span>
               <div className="pt-2">
                 <p className="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
                   R$ {(receitaHoje * 0.25).toFixed(2).replace(".", ",")}
@@ -458,7 +487,9 @@ export function PainelFinanceiroUnificadoPage() {
 
             {/* Condutores Desbloqueados */}
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between col-span-2 sm:col-span-1">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Acessos SaaS Ativos</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                Acessos SaaS Ativos
+              </span>
               <div className="pt-2">
                 <p className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                   {saasMetrics.activeDriversCount}
@@ -477,15 +508,22 @@ export function PainelFinanceiroUnificadoPage() {
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-sm font-black text-slate-900">Livro-Razão (Ledger) com Validação Estrita</h3>
+                <h3 className="text-sm font-black text-slate-900">
+                  Livro-Razão (Ledger) com Validação Estrita
+                </h3>
                 <p className="text-xs text-slate-500 font-normal mt-0.5">
-                  Todas as transações são auditadas em centavos inteiros (Minor Units). Zero divergência de saldo ou inconsistência contábil.
+                  Todas as transações são auditadas em centavos inteiros (Minor Units). Zero
+                  divergência de saldo ou inconsistência contábil.
                 </p>
               </div>
             </div>
             <button
               type="button"
-              onClick={() => alert("Relatório contábil gerado! O arquivo CSV do livro-razão está pronto para download.")}
+              onClick={() =>
+                alert(
+                  "Relatório contábil gerado! O arquivo CSV do livro-razão está pronto para download.",
+                )
+              }
               className="flex h-10 items-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 px-4 text-xs font-black transition-all cursor-pointer shrink-0"
             >
               <Download className="h-3.5 w-3.5" />
@@ -504,7 +542,8 @@ export function PainelFinanceiroUnificadoPage() {
                 Monetização SaaS White Label &amp; Planos de Acesso
               </h2>
               <p className="text-xs text-slate-500">
-                100% de flexibilidade para ativar/desativar modalidades, definir preços de diárias e configurar o PIX recebedor da plataforma.
+                100% de flexibilidade para ativar/desativar modalidades, definir preços de diárias e
+                configurar o PIX recebedor da plataforma.
               </p>
             </div>
             <button
@@ -513,14 +552,19 @@ export function PainelFinanceiroUnificadoPage() {
               className="flex h-11 items-center justify-center gap-2 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white px-5 text-xs font-black shadow-xs transition-all cursor-pointer shrink-0"
             >
               <Save className="h-4 w-4 text-primary" />
-              <span>{salvandoMonetizacao ? "Salvando..." : "Salvar Configurações de Monetização"}</span>
+              <span>
+                {salvandoMonetizacao ? "Salvando..." : "Salvar Configurações de Monetização"}
+              </span>
             </button>
           </div>
 
           {sucessoMonetizacao && (
             <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center gap-2 animate-in fade-in">
               <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-              <span>Configurações de monetização e chave PIX salvas com sucesso! As telas dos condutores e passageiros foram atualizadas em tempo real.</span>
+              <span>
+                Configurações de monetização e chave PIX salvas com sucesso! As telas dos condutores
+                e passageiros foram atualizadas em tempo real.
+              </span>
             </div>
           )}
 
@@ -536,7 +580,8 @@ export function PainelFinanceiroUnificadoPage() {
                     Conta PIX Recebedora da Operação (Administrador)
                   </h3>
                   <p className="text-[11px] text-slate-500">
-                    Todos os pagamentos de diárias e assinaturas dos condutores cairão diretamente nesta conta bancária.
+                    Todos os pagamentos de diárias e assinaturas dos condutores cairão diretamente
+                    nesta conta bancária.
                   </p>
                 </div>
               </div>
@@ -546,17 +591,25 @@ export function PainelFinanceiroUnificadoPage() {
                 onClick={handleCopiarChaveAdmin}
                 className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 transition cursor-pointer"
               >
-                {chavePixAdminCopiada ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                {chavePixAdminCopiada ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
                 <span>{chavePixAdminCopiada ? "Copiada!" : "Copiar Chave"}</span>
               </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5 pt-1">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Tipo de Chave:</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Tipo de Chave:
+                </label>
                 <select
                   value={monetizacao.tipoChavePixAdmin}
-                  onChange={(e) => setMonetizacao({ ...monetizacao, tipoChavePixAdmin: e.target.value as any })}
+                  onChange={(e) =>
+                    setMonetizacao({ ...monetizacao, tipoChavePixAdmin: e.target.value as any })
+                  }
                   className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold focus:ring-2 focus:ring-slate-950 bg-white"
                 >
                   <option value="cnpj">CNPJ</option>
@@ -568,29 +621,39 @@ export function PainelFinanceiroUnificadoPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Chave PIX Oficial:</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Chave PIX Oficial:
+                </label>
                 <input
                   type="text"
                   value={monetizacao.chavePixAdmin}
-                  onChange={(e) => setMonetizacao({ ...monetizacao, chavePixAdmin: e.target.value })}
+                  onChange={(e) =>
+                    setMonetizacao({ ...monetizacao, chavePixAdmin: e.target.value })
+                  }
                   placeholder="ex: financeiro@partiu.app"
                   className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold font-mono focus:ring-2 focus:ring-slate-950"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Nome do Beneficiário / Razão Social:</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Nome do Beneficiário / Razão Social:
+                </label>
                 <input
                   type="text"
                   value={monetizacao.beneficiarioAdmin}
-                  onChange={(e) => setMonetizacao({ ...monetizacao, beneficiarioAdmin: e.target.value })}
+                  onChange={(e) =>
+                    setMonetizacao({ ...monetizacao, beneficiarioAdmin: e.target.value })
+                  }
                   placeholder="Nome do Titular"
                   className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold focus:ring-2 focus:ring-slate-950"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Cidade da Conta (Bacen EMV):</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Cidade da Conta (Bacen EMV):
+                </label>
                 <input
                   type="text"
                   value={monetizacao.cidadeAdmin}
@@ -605,9 +668,13 @@ export function PainelFinanceiroUnificadoPage() {
           {/* SEÇÃO B: CICLOS E MODALIDADES DE ASSINATURA (CARRO E MOTO) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* 1. DIÁRIA PRÉ-PAGA (24H) */}
-            <div className={`p-5 rounded-3xl border transition-all ${
-              monetizacao.diariaAtiva ? "bg-white border-slate-200 shadow-xs" : "bg-slate-50 border-slate-200 opacity-60"
-            }`}>
+            <div
+              className={`p-5 rounded-3xl border transition-all ${
+                monetizacao.diariaAtiva
+                  ? "bg-white border-slate-200 shadow-xs"
+                  : "bg-slate-50 border-slate-200 opacity-60"
+              }`}
+            >
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2.5">
                   <div className="h-9 w-9 rounded-xl bg-primary-50 text-amber-900 flex items-center justify-center font-black">
@@ -615,13 +682,17 @@ export function PainelFinanceiroUnificadoPage() {
                   </div>
                   <div>
                     <h4 className="text-sm font-black text-slate-900">Diária Pré-Paga</h4>
-                    <span className="text-[11px] text-slate-400 font-medium">Liberação por exatas 24 horas</span>
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      Liberação por exatas 24 horas
+                    </span>
                   </div>
                 </div>
 
                 <button
                   type="button"
-                  onClick={() => setMonetizacao({ ...monetizacao, diariaAtiva: !monetizacao.diariaAtiva })}
+                  onClick={() =>
+                    setMonetizacao({ ...monetizacao, diariaAtiva: !monetizacao.diariaAtiva })
+                  }
                   className="text-slate-700 hover:text-slate-900 cursor-pointer"
                   title={monetizacao.diariaAtiva ? "Desativar Diária" : "Ativar Diária"}
                 >
@@ -635,30 +706,42 @@ export function PainelFinanceiroUnificadoPage() {
 
               <div className="space-y-3 pt-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Preço Carro (24h):</label>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Preço Carro (24h):
+                  </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">R$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">
+                      R$
+                    </span>
                     <input
                       type="number"
                       step="0.10"
                       disabled={!monetizacao.diariaAtiva}
                       value={monetizacao.diariaCarro}
-                      onChange={(e) => setMonetizacao({ ...monetizacao, diariaCarro: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setMonetizacao({ ...monetizacao, diariaCarro: Number(e.target.value) })
+                      }
                       className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-300 text-xs font-black"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Preço Moto (24h):</label>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Preço Moto (24h):
+                  </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">R$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">
+                      R$
+                    </span>
                     <input
                       type="number"
                       step="0.10"
                       disabled={!monetizacao.diariaAtiva}
                       value={monetizacao.diariaMoto}
-                      onChange={(e) => setMonetizacao({ ...monetizacao, diariaMoto: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setMonetizacao({ ...monetizacao, diariaMoto: Number(e.target.value) })
+                      }
                       className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-300 text-xs font-black"
                     />
                   </div>
@@ -667,9 +750,13 @@ export function PainelFinanceiroUnificadoPage() {
             </div>
 
             {/* 2. PLANO SEMANAL (7 DIAS) */}
-            <div className={`p-5 rounded-3xl border transition-all ${
-              monetizacao.semanalAtivo ? "bg-white border-slate-200 shadow-xs" : "bg-slate-50 border-slate-200 opacity-60"
-            }`}>
+            <div
+              className={`p-5 rounded-3xl border transition-all ${
+                monetizacao.semanalAtivo
+                  ? "bg-white border-slate-200 shadow-xs"
+                  : "bg-slate-50 border-slate-200 opacity-60"
+              }`}
+            >
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2.5">
                   <div className="h-9 w-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-black">
@@ -677,13 +764,17 @@ export function PainelFinanceiroUnificadoPage() {
                   </div>
                   <div>
                     <h4 className="text-sm font-black text-slate-900">Plano Semanal</h4>
-                    <span className="text-[11px] text-slate-400 font-medium">Liberação por 7 dias contínuos</span>
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      Liberação por 7 dias contínuos
+                    </span>
                   </div>
                 </div>
 
                 <button
                   type="button"
-                  onClick={() => setMonetizacao({ ...monetizacao, semanalAtivo: !monetizacao.semanalAtivo })}
+                  onClick={() =>
+                    setMonetizacao({ ...monetizacao, semanalAtivo: !monetizacao.semanalAtivo })
+                  }
                   className="text-slate-700 hover:text-slate-900 cursor-pointer"
                   title={monetizacao.semanalAtivo ? "Desativar Semanal" : "Ativar Semanal"}
                 >
@@ -697,30 +788,42 @@ export function PainelFinanceiroUnificadoPage() {
 
               <div className="space-y-3 pt-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Preço Carro (7 dias):</label>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Preço Carro (7 dias):
+                  </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">R$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">
+                      R$
+                    </span>
                     <input
                       type="number"
                       step="1.00"
                       disabled={!monetizacao.semanalAtivo}
                       value={monetizacao.semanalCarro}
-                      onChange={(e) => setMonetizacao({ ...monetizacao, semanalCarro: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setMonetizacao({ ...monetizacao, semanalCarro: Number(e.target.value) })
+                      }
                       className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-300 text-xs font-black"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Preço Moto (7 dias):</label>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Preço Moto (7 dias):
+                  </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">R$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">
+                      R$
+                    </span>
                     <input
                       type="number"
                       step="1.00"
                       disabled={!monetizacao.semanalAtivo}
                       value={monetizacao.semanalMoto}
-                      onChange={(e) => setMonetizacao({ ...monetizacao, semanalMoto: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setMonetizacao({ ...monetizacao, semanalMoto: Number(e.target.value) })
+                      }
                       className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-300 text-xs font-black"
                     />
                   </div>
@@ -729,9 +832,13 @@ export function PainelFinanceiroUnificadoPage() {
             </div>
 
             {/* 3. PLANO MENSAL (30 DIAS) */}
-            <div className={`p-5 rounded-3xl border transition-all ${
-              monetizacao.mensalAtivo ? "bg-white border-slate-200 shadow-xs" : "bg-slate-50 border-slate-200 opacity-60"
-            }`}>
+            <div
+              className={`p-5 rounded-3xl border transition-all ${
+                monetizacao.mensalAtivo
+                  ? "bg-white border-slate-200 shadow-xs"
+                  : "bg-slate-50 border-slate-200 opacity-60"
+              }`}
+            >
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-2.5">
                   <div className="h-9 w-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-black">
@@ -739,13 +846,17 @@ export function PainelFinanceiroUnificadoPage() {
                   </div>
                   <div>
                     <h4 className="text-sm font-black text-slate-900">Plano Mensal</h4>
-                    <span className="text-[11px] text-slate-400 font-medium">Liberação por 30 dias contínuos</span>
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      Liberação por 30 dias contínuos
+                    </span>
                   </div>
                 </div>
 
                 <button
                   type="button"
-                  onClick={() => setMonetizacao({ ...monetizacao, mensalAtivo: !monetizacao.mensalAtivo })}
+                  onClick={() =>
+                    setMonetizacao({ ...monetizacao, mensalAtivo: !monetizacao.mensalAtivo })
+                  }
                   className="text-slate-700 hover:text-slate-900 cursor-pointer"
                   title={monetizacao.mensalAtivo ? "Desativar Mensal" : "Ativar Mensal"}
                 >
@@ -759,30 +870,42 @@ export function PainelFinanceiroUnificadoPage() {
 
               <div className="space-y-3 pt-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Preço Carro (30 dias):</label>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Preço Carro (30 dias):
+                  </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">R$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">
+                      R$
+                    </span>
                     <input
                       type="number"
                       step="1.00"
                       disabled={!monetizacao.mensalAtivo}
                       value={monetizacao.mensalCarro}
-                      onChange={(e) => setMonetizacao({ ...monetizacao, mensalCarro: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setMonetizacao({ ...monetizacao, mensalCarro: Number(e.target.value) })
+                      }
                       className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-300 text-xs font-black"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Preço Moto (30 dias):</label>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Preço Moto (30 dias):
+                  </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">R$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">
+                      R$
+                    </span>
                     <input
                       type="number"
                       step="1.00"
                       disabled={!monetizacao.mensalAtivo}
                       value={monetizacao.mensalMoto}
-                      onChange={(e) => setMonetizacao({ ...monetizacao, mensalMoto: Number(e.target.value) })}
+                      onChange={(e) =>
+                        setMonetizacao({ ...monetizacao, mensalMoto: Number(e.target.value) })
+                      }
                       className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-300 text-xs font-black"
                     />
                   </div>
@@ -794,9 +917,13 @@ export function PainelFinanceiroUnificadoPage() {
           {/* SEÇÃO C: MÓDULOS DE CRESCIMENTO & BENEFÍCIOS B2B (WHITE LABEL) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Trial / Degustação Grátis */}
-            <div className={`p-4 rounded-3xl border transition-all ${
-              monetizacao.trialAtivo ? "bg-white border-slate-200 shadow-xs" : "bg-slate-50 border-slate-200 opacity-60"
-            }`}>
+            <div
+              className={`p-4 rounded-3xl border transition-all ${
+                monetizacao.trialAtivo
+                  ? "bg-white border-slate-200 shadow-xs"
+                  : "bg-slate-50 border-slate-200 opacity-60"
+              }`}
+            >
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-2">
                   <Gift className="w-4 h-4 text-emerald-600" />
@@ -804,7 +931,9 @@ export function PainelFinanceiroUnificadoPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setMonetizacao({ ...monetizacao, trialAtivo: !monetizacao.trialAtivo })}
+                  onClick={() =>
+                    setMonetizacao({ ...monetizacao, trialAtivo: !monetizacao.trialAtivo })
+                  }
                   className="cursor-pointer"
                 >
                   {monetizacao.trialAtivo ? (
@@ -818,23 +947,31 @@ export function PainelFinanceiroUnificadoPage() {
                 Dias grátis concedidos aos novos motoristas aprovados antes da primeira diária.
               </p>
               <div>
-                <label className="block text-[10px] font-bold text-slate-600 mb-1">Dias de Cortesia:</label>
+                <label className="block text-[10px] font-bold text-slate-600 mb-1">
+                  Dias de Cortesia:
+                </label>
                 <input
                   type="number"
                   min="0"
                   max="30"
                   disabled={!monetizacao.trialAtivo}
                   value={monetizacao.trialDias}
-                  onChange={(e) => setMonetizacao({ ...monetizacao, trialDias: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setMonetizacao({ ...monetizacao, trialDias: Number(e.target.value) })
+                  }
                   className="w-full h-9 px-2.5 rounded-xl border border-slate-300 text-xs font-black"
                 />
               </div>
             </div>
 
             {/* Indique e Ganhe */}
-            <div className={`p-4 rounded-3xl border transition-all ${
-              monetizacao.programaIndicacaoAtivo ? "bg-white border-slate-200 shadow-xs" : "bg-slate-50 border-slate-200 opacity-60"
-            }`}>
+            <div
+              className={`p-4 rounded-3xl border transition-all ${
+                monetizacao.programaIndicacaoAtivo
+                  ? "bg-white border-slate-200 shadow-xs"
+                  : "bg-slate-50 border-slate-200 opacity-60"
+              }`}
+            >
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-blue-600" />
@@ -842,7 +979,12 @@ export function PainelFinanceiroUnificadoPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setMonetizacao({ ...monetizacao, programaIndicacaoAtivo: !monetizacao.programaIndicacaoAtivo })}
+                  onClick={() =>
+                    setMonetizacao({
+                      ...monetizacao,
+                      programaIndicacaoAtivo: !monetizacao.programaIndicacaoAtivo,
+                    })
+                  }
                   className="cursor-pointer"
                 >
                   {monetizacao.programaIndicacaoAtivo ? (
@@ -856,31 +998,49 @@ export function PainelFinanceiroUnificadoPage() {
                 Motorista ganha dias grátis ao indicar outro parceiro que seja aprovado.
               </p>
               <div>
-                <label className="block text-[10px] font-bold text-slate-600 mb-1">Dias Bônus por Indicação:</label>
+                <label className="block text-[10px] font-bold text-slate-600 mb-1">
+                  Dias Bônus por Indicação:
+                </label>
                 <input
                   type="number"
                   min="1"
                   max="30"
                   disabled={!monetizacao.programaIndicacaoAtivo}
                   value={monetizacao.programaIndicacaoDiasBonus}
-                  onChange={(e) => setMonetizacao({ ...monetizacao, programaIndicacaoDiasBonus: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setMonetizacao({
+                      ...monetizacao,
+                      programaIndicacaoDiasBonus: Number(e.target.value),
+                    })
+                  }
                   className="w-full h-9 px-2.5 rounded-xl border border-slate-300 text-xs font-black"
                 />
               </div>
             </div>
 
             {/* Clube VIP Passageiro */}
-            <div className={`p-4 rounded-3xl border transition-all ${
-              monetizacao.clubeVipPassageiroAtivo ? "bg-white border-slate-200 shadow-xs" : "bg-slate-50 border-slate-200 opacity-60"
-            }`}>
+            <div
+              className={`p-4 rounded-3xl border transition-all ${
+                monetizacao.clubeVipPassageiroAtivo
+                  ? "bg-white border-slate-200 shadow-xs"
+                  : "bg-slate-50 border-slate-200 opacity-60"
+              }`}
+            >
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-amber-500" />
-                  <span className="text-xs font-black text-slate-900">Clube Prime (Passageiro)</span>
+                  <span className="text-xs font-black text-slate-900">
+                    Clube Prime (Passageiro)
+                  </span>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setMonetizacao({ ...monetizacao, clubeVipPassageiroAtivo: !monetizacao.clubeVipPassageiroAtivo })}
+                  onClick={() =>
+                    setMonetizacao({
+                      ...monetizacao,
+                      clubeVipPassageiroAtivo: !monetizacao.clubeVipPassageiroAtivo,
+                    })
+                  }
                   className="cursor-pointer"
                 >
                   {monetizacao.clubeVipPassageiroAtivo ? (
@@ -894,22 +1054,30 @@ export function PainelFinanceiroUnificadoPage() {
                 Assinatura mensal para passageiros com prioridade no despacho e descontos.
               </p>
               <div>
-                <label className="block text-[10px] font-bold text-slate-600 mb-1">Mensalidade Passageiro (R$):</label>
+                <label className="block text-[10px] font-bold text-slate-600 mb-1">
+                  Mensalidade Passageiro (R$):
+                </label>
                 <input
                   type="number"
                   step="0.50"
                   disabled={!monetizacao.clubeVipPassageiroAtivo}
                   value={monetizacao.clubeVipPrecoMensal}
-                  onChange={(e) => setMonetizacao({ ...monetizacao, clubeVipPrecoMensal: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setMonetizacao({ ...monetizacao, clubeVipPrecoMensal: Number(e.target.value) })
+                  }
                   className="w-full h-9 px-2.5 rounded-xl border border-slate-300 text-xs font-black"
                 />
               </div>
             </div>
 
             {/* Clube de Vantagens e Parcerias B2B */}
-            <div className={`p-4 rounded-3xl border transition-all ${
-              monetizacao.clubeBeneficiosParceriasAtivo ? "bg-white border-slate-200 shadow-xs" : "bg-slate-50 border-slate-200 opacity-60"
-            }`}>
+            <div
+              className={`p-4 rounded-3xl border transition-all ${
+                monetizacao.clubeBeneficiosParceriasAtivo
+                  ? "bg-white border-slate-200 shadow-xs"
+                  : "bg-slate-50 border-slate-200 opacity-60"
+              }`}
+            >
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <div className="flex items-center gap-2">
                   <Building className="w-4 h-4 text-indigo-600" />
@@ -917,7 +1085,12 @@ export function PainelFinanceiroUnificadoPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setMonetizacao({ ...monetizacao, clubeBeneficiosParceriasAtivo: !monetizacao.clubeBeneficiosParceriasAtivo })}
+                  onClick={() =>
+                    setMonetizacao({
+                      ...monetizacao,
+                      clubeBeneficiosParceriasAtivo: !monetizacao.clubeBeneficiosParceriasAtivo,
+                    })
+                  }
                   className="cursor-pointer"
                 >
                   {monetizacao.clubeBeneficiosParceriasAtivo ? (
@@ -928,13 +1101,20 @@ export function PainelFinanceiroUnificadoPage() {
                 </button>
               </div>
               <p className="text-[10.5px] text-slate-500 mt-2 mb-2 leading-tight">
-                Módulo para exibir parceiros locais da cidade (postos, oficinas e seguros) com descontos.
+                Módulo para exibir parceiros locais da cidade (postos, oficinas e seguros) com
+                descontos.
               </p>
               <div className="pt-2">
-                <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-black uppercase ${
-                  monetizacao.clubeBeneficiosParceriasAtivo ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-500"
-                }`}>
-                  {monetizacao.clubeBeneficiosParceriasAtivo ? "Módulo Ativo no App" : "Módulo Desativado"}
+                <span
+                  className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-black uppercase ${
+                    monetizacao.clubeBeneficiosParceriasAtivo
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-slate-200 text-slate-500"
+                  }`}
+                >
+                  {monetizacao.clubeBeneficiosParceriasAtivo
+                    ? "Módulo Ativo no App"
+                    : "Módulo Desativado"}
                 </span>
               </div>
             </div>
@@ -991,45 +1171,61 @@ export function PainelFinanceiroUnificadoPage() {
 
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Tarifa Base (Bandeirada):</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Tarifa Base (Bandeirada):
+                  </label>
                   <input
                     type="number"
                     step="0.10"
                     value={tarifasCarro.tarifaBase}
-                    onChange={(e) => setTarifasCarro({ ...tarifasCarro, tarifaBase: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setTarifasCarro({ ...tarifasCarro, tarifaBase: Number(e.target.value) })
+                    }
                     className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Preço por KM:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Preço por KM:
+                  </label>
                   <input
                     type="number"
                     step="0.10"
                     value={tarifasCarro.valorKm}
-                    onChange={(e) => setTarifasCarro({ ...tarifasCarro, valorKm: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setTarifasCarro({ ...tarifasCarro, valorKm: Number(e.target.value) })
+                    }
                     className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Preço por Minuto:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Preço por Minuto:
+                  </label>
                   <input
                     type="number"
                     step="0.05"
                     value={tarifasCarro.valorMinuto}
-                    onChange={(e) => setTarifasCarro({ ...tarifasCarro, valorMinuto: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setTarifasCarro({ ...tarifasCarro, valorMinuto: Number(e.target.value) })
+                    }
                     className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Tarifa Mínima:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Tarifa Mínima:
+                  </label>
                   <input
                     type="number"
                     step="0.50"
                     value={tarifasCarro.tarifaMinima}
-                    onChange={(e) => setTarifasCarro({ ...tarifasCarro, tarifaMinima: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setTarifasCarro({ ...tarifasCarro, tarifaMinima: Number(e.target.value) })
+                    }
                     className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold"
                   />
                 </div>
@@ -1050,45 +1246,61 @@ export function PainelFinanceiroUnificadoPage() {
 
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Tarifa Base (Bandeirada):</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Tarifa Base (Bandeirada):
+                  </label>
                   <input
                     type="number"
                     step="0.10"
                     value={tarifasMoto.tarifaBase}
-                    onChange={(e) => setTarifasMoto({ ...tarifasMoto, tarifaBase: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setTarifasMoto({ ...tarifasMoto, tarifaBase: Number(e.target.value) })
+                    }
                     className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Preço por KM:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Preço por KM:
+                  </label>
                   <input
                     type="number"
                     step="0.10"
                     value={tarifasMoto.valorKm}
-                    onChange={(e) => setTarifasMoto({ ...tarifasMoto, valorKm: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setTarifasMoto({ ...tarifasMoto, valorKm: Number(e.target.value) })
+                    }
                     className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Preço por Minuto:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Preço por Minuto:
+                  </label>
                   <input
                     type="number"
                     step="0.05"
                     value={tarifasMoto.valorMinuto}
-                    onChange={(e) => setTarifasMoto({ ...tarifasMoto, valorMinuto: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setTarifasMoto({ ...tarifasMoto, valorMinuto: Number(e.target.value) })
+                    }
                     className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Tarifa Mínima:</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Tarifa Mínima:
+                  </label>
                   <input
                     type="number"
                     step="0.50"
                     value={tarifasMoto.tarifaMinima}
-                    onChange={(e) => setTarifasMoto({ ...tarifasMoto, tarifaMinima: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setTarifasMoto({ ...tarifasMoto, tarifaMinima: Number(e.target.value) })
+                    }
                     className="w-full h-11 px-3 rounded-xl border border-slate-300 text-xs font-bold"
                   />
                 </div>
@@ -1107,7 +1319,8 @@ export function PainelFinanceiroUnificadoPage() {
                 Extrato de Assinaturas &amp; Diárias Ativas (SaaS)
               </h2>
               <p className="text-xs text-slate-500">
-                Histórico auditado de pagamentos de diárias e assinaturas efetuadas pelos motoristas à plataforma via PIX.
+                Histórico auditado de pagamentos de diárias e assinaturas efetuadas pelos motoristas
+                à plataforma via PIX.
               </p>
             </div>
 
@@ -1189,15 +1402,24 @@ export function PainelFinanceiroUnificadoPage() {
                 const tempoRestante = driverSubscriptionService.getRemainingTime(sub);
 
                 return (
-                  <div key={sub.id} className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-xs space-y-2.5">
+                  <div
+                    key={sub.id}
+                    className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-xs space-y-2.5"
+                  >
                     <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-black shrink-0 ${
-                          sub.vehicle_type === "CARRO" ? "bg-blue-50 text-blue-800" : "bg-amber-50 text-amber-800"
-                        }`}>
+                        <span
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-black shrink-0 ${
+                            sub.vehicle_type === "CARRO"
+                              ? "bg-blue-50 text-blue-800"
+                              : "bg-amber-50 text-amber-800"
+                          }`}
+                        >
                           {sub.vehicle_type}
                         </span>
-                        <p className="font-bold text-slate-900 text-xs truncate">Condutor: {sub.driver_id}</p>
+                        <p className="font-bold text-slate-900 text-xs truncate">
+                          Condutor: {sub.driver_id}
+                        </p>
                       </div>
                       <span className="font-black text-slate-950 text-xs shrink-0">
                         R$ {sub.amount_paid.toFixed(2).replace(".", ",")}
@@ -1206,13 +1428,20 @@ export function PainelFinanceiroUnificadoPage() {
 
                     <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2 rounded-xl border border-slate-100">
                       <div>
-                        <span className="text-[10px] font-black uppercase text-slate-400 block">Início:</span>
+                        <span className="text-[10px] font-black uppercase text-slate-400 block">
+                          Início:
+                        </span>
                         <p className="font-mono font-bold text-slate-800 text-[11px]">
-                          {new Date(sub.starts_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                          {new Date(sub.starts_at).toLocaleTimeString("pt-BR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </p>
                       </div>
                       <div>
-                        <span className="text-[10px] font-black uppercase text-slate-400 block">Validade:</span>
+                        <span className="text-[10px] font-black uppercase text-slate-400 block">
+                          Validade:
+                        </span>
                         <p className="font-bold text-slate-700 text-[11px]">
                           {isAtiva ? `⏱️ Restam ${tempoRestante.formatted}` : "❌ Expirada"}
                         </p>
@@ -1220,9 +1449,11 @@ export function PainelFinanceiroUnificadoPage() {
                     </div>
 
                     <div className="flex items-center justify-between gap-2 pt-0.5">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                        isAtiva ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
-                      }`}>
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                          isAtiva ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                        }`}
+                      >
                         {isAtiva ? "● Liberado" : "● Bloqueado"}
                       </span>
 
@@ -1253,7 +1484,10 @@ export function PainelFinanceiroUnificadoPage() {
                 <tbody className="divide-y divide-slate-100 text-xs">
                   {assinaturas.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-8 px-4 text-center text-slate-400 text-xs font-medium">
+                      <td
+                        colSpan={6}
+                        className="py-8 px-4 text-center text-slate-400 text-xs font-medium"
+                      >
                         Nenhuma diária ou assinatura registrada até o momento.
                       </td>
                     </tr>
@@ -1268,9 +1502,13 @@ export function PainelFinanceiroUnificadoPage() {
                         <tr key={sub.id} className="hover:bg-slate-50/70 transition-colors">
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
-                              <span className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
-                                sub.vehicle_type === "CARRO" ? "bg-blue-50 text-blue-800 border border-blue-200" : "bg-amber-50 text-amber-800 border border-amber-200"
-                              }`}>
+                              <span
+                                className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
+                                  sub.vehicle_type === "CARRO"
+                                    ? "bg-blue-50 text-blue-800 border border-blue-200"
+                                    : "bg-amber-50 text-amber-800 border border-amber-200"
+                                }`}
+                              >
                                 {sub.vehicle_type}
                               </span>
                               <span className="font-bold text-slate-900">{sub.driver_id}</span>
@@ -1279,7 +1517,10 @@ export function PainelFinanceiroUnificadoPage() {
 
                           <td className="py-3 px-4 font-mono text-slate-600 text-xs">
                             {new Date(sub.starts_at).toLocaleDateString("pt-BR")} às{" "}
-                            {new Date(sub.starts_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                            {new Date(sub.starts_at).toLocaleTimeString("pt-BR", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </td>
 
                           <td className="py-3 px-4 font-medium text-slate-700">
@@ -1299,11 +1540,13 @@ export function PainelFinanceiroUnificadoPage() {
                           </td>
 
                           <td className="py-3 px-4">
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${
-                              isAtiva
-                                ? "bg-emerald-100 text-emerald-800"
-                                : "bg-rose-100 text-rose-800"
-                            }`}>
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${
+                                isAtiva
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : "bg-rose-100 text-rose-800"
+                              }`}
+                            >
                               {isAtiva ? "● Liberado" : "● Bloqueado"}
                             </span>
                           </td>

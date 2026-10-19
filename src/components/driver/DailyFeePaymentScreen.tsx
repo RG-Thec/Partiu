@@ -33,7 +33,15 @@ export const DailyFeePaymentScreen = memo(function DailyFeePaymentScreen({
   vehicleType = "CARRO",
   onPaymentSuccess,
 }: DailyFeePaymentScreenProps) {
-  const { nomeApp, corPrimaria, corTextoPrimaria, corCabecalhoInicio, corCabecalhoFim, branding, activeTenant } = useBrandTheme();
+  const {
+    nomeApp,
+    corPrimaria,
+    corTextoPrimaria,
+    corCabecalhoInicio,
+    corCabecalhoFim,
+    branding,
+    activeTenant,
+  } = useBrandTheme();
   const accentColor = branding?.accent_color || corPrimaria || "#0088FF";
   const activeTenantId = branding?.tenant_id || activeTenant?.tenantId;
   const [pixData, setPixData] = useState<GeneratedPixPayment | null>(null);
@@ -44,10 +52,16 @@ export const DailyFeePaymentScreen = memo(function DailyFeePaymentScreen({
   const [tabQr, setTabQr] = useState<"qrcode" | "copiacola">("copiacola");
 
   const settings = appSettingsService.getSettings();
-  const valorDiaria = pixData?.amount || (vehicleType === "MOTO" ? settings.daily_fee_moto : settings.daily_fee_car);
+  const valorDiaria =
+    pixData?.amount || (vehicleType === "MOTO" ? settings.daily_fee_moto : settings.daily_fee_car);
 
   useEffect(() => {
-    const pix = driverSubscriptionService.generateDailyFeePix(driverId, vehicleType, "DAILY", activeTenantId);
+    const pix = driverSubscriptionService.generateDailyFeePix(
+      driverId,
+      vehicleType,
+      "DAILY",
+      activeTenantId,
+    );
     setPixData(pix);
   }, [driverId, vehicleType, activeTenantId]);
 
@@ -69,7 +83,9 @@ export const DailyFeePaymentScreen = memo(function DailyFeePaymentScreen({
           onPaymentSuccess();
         }, 1200);
       } else {
-        setStatusMsg("Pagamento ainda em processamento. Assim que o PIX for compensado pelo banco, a liberação será instantânea.");
+        setStatusMsg(
+          "Pagamento ainda em processamento. Assim que o PIX for compensado pelo banco, a liberação será instantânea.",
+        );
       }
     } finally {
       setVerificando(false);
@@ -99,9 +115,7 @@ export const DailyFeePaymentScreen = memo(function DailyFeePaymentScreen({
               >
                 TRAVA DE DIÁRIA • SAAS {nomeApp}
               </span>
-              <h2 className="text-lg font-black text-white leading-tight">
-                Cockpit Bloqueado
-              </h2>
+              <h2 className="text-lg font-black text-white leading-tight">Cockpit Bloqueado</h2>
             </div>
           </div>
 
@@ -136,11 +150,10 @@ export const DailyFeePaymentScreen = memo(function DailyFeePaymentScreen({
             0%
           </div>
           <div className="text-xs">
-            <span className="font-black block text-white">
-              ZERO Comissão por Corrida!
-            </span>
+            <span className="font-black block text-white">ZERO Comissão por Corrida!</span>
             <span className="text-slate-300">
-              Você fica com <strong>100% do valor bruto</strong> de todas as corridas e entregas. Pague apenas a diária fixa.
+              Você fica com <strong>100% do valor bruto</strong> de todas as corridas e entregas.
+              Pague apenas a diária fixa.
             </span>
           </div>
         </div>
@@ -188,9 +201,7 @@ export const DailyFeePaymentScreen = memo(function DailyFeePaymentScreen({
                   : {}
               }
               className={`flex-1 py-1.5 rounded-lg transition ${
-                tabQr === "copiacola"
-                  ? "shadow-xs"
-                  : "text-slate-300 hover:text-white"
+                tabQr === "copiacola" ? "shadow-xs" : "text-slate-300 hover:text-white"
               }`}
             >
               PIX Copia e Cola
@@ -207,9 +218,7 @@ export const DailyFeePaymentScreen = memo(function DailyFeePaymentScreen({
                   : {}
               }
               className={`flex-1 py-1.5 rounded-lg transition ${
-                tabQr === "qrcode"
-                  ? "shadow-xs"
-                  : "text-slate-300 hover:text-white"
+                tabQr === "qrcode" ? "shadow-xs" : "text-slate-300 hover:text-white"
               }`}
             >
               QR Code

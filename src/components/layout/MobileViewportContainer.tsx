@@ -35,7 +35,9 @@ export function MobileViewportContainer({ children }: MobileViewportContainerPro
   return (
     <div className="min-h-[100dvh] w-full max-w-full overflow-x-hidden bg-muted/40 flex justify-center">
       <div className="w-full max-w-full sm:max-w-[440px] md:max-w-[460px] min-h-[100dvh] bg-background text-foreground relative sm:shadow-2xl sm:border-x sm:border-border/60 flex flex-col overflow-x-hidden">
-        <div className="flex-1 w-full max-w-full flex flex-col relative overflow-x-hidden">{children}</div>
+        <div className="flex-1 w-full max-w-full flex flex-col relative overflow-x-hidden">
+          {children}
+        </div>
       </div>
     </div>
   );

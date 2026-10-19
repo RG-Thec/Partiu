@@ -1,6 +1,6 @@
 /**
  * PARTIU REGIONAL ECONOMY ENGINE
- * 
+ *
  * Modelagem Econômica da Circulação Monetária Local e Riqueza Retida.
  * Audita o impacto socioeconômico da plataforma ao reter capital no município e cooperativas.
  */
@@ -26,19 +26,25 @@ export class RegionalEconomyEngine {
     cityId: string,
     cityName: string,
     monthlyGmvBrl: number,
-    activeDriversCount: number
+    activeDriversCount: number,
   ): RegionalEconomyMetrics {
     // 88% do GMV fica diretamente com os motoristas locais
     const driverEarningsRetainedBrl = Number((monthlyGmvBrl * 0.88).toFixed(2));
-    
+
     // Gasto induzido no comércio local (alimentação, postos, manutenção) via Ads e parcerias
     const localCommerceSpendFromAdsBrl = Number((monthlyGmvBrl * 0.085).toFixed(2));
-    
+
     // Lucro da franquia local reinvestido no município
     const franchiseLocalProfitBrl = Number((monthlyGmvBrl * 0.035).toFixed(2));
 
-    const totalWealthRetainedLocallyBrl = Number((driverEarningsRetainedBrl + localCommerceSpendFromAdsBrl + franchiseLocalProfitBrl).toFixed(2));
-    const wealthRetentionRatePct = Number(((totalWealthRetainedLocallyBrl / monthlyGmvBrl) * 100).toFixed(1));
+    const totalWealthRetainedLocallyBrl = Number(
+      (driverEarningsRetainedBrl + localCommerceSpendFromAdsBrl + franchiseLocalProfitBrl).toFixed(
+        2,
+      ),
+    );
+    const wealthRetentionRatePct = Number(
+      ((totalWealthRetainedLocallyBrl / monthlyGmvBrl) * 100).toFixed(1),
+    );
 
     // Multiplicador Econômico Regional: cada R$ 1,00 movimentado circula gerando R$ 1,68 no comércio local
     const regionalKeynesianMultiplier = 1.68;
@@ -54,7 +60,7 @@ export class RegionalEconomyEngine {
       totalWealthRetainedLocallyBrl,
       wealthRetentionRatePct,
       regionalKeynesianMultiplier,
-      directJobsSupportedCount
+      directJobsSupportedCount,
     };
   }
 }

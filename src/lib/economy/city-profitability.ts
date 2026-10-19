@@ -1,6 +1,6 @@
 /**
  * CITY PROFITABILITY ENGINE
- * 
+ *
  * Modela a viabilidade econômico-financeira de cada praça municipal:
  * - GMV, Revenue, Take Rate e Margem de Contribuição Líquida
  * - CAC (Custo de Aquisição por Passageiro e Motorista) e LTV
@@ -9,47 +9,51 @@
  * - CityProfitabilityIndex (0 a 100) e Ranking Nacional Automático
  */
 
-import { listAllCities, CityOperationConfig } from '../partiu-city-os';
-import { digitalTwinEngine } from '../partiu-digital-twin';
+import { listAllCities, CityOperationConfig } from "../partiu-city-os";
+import { digitalTwinEngine } from "../partiu-digital-twin";
 
 export interface CityFinancialMetrics {
   cityId: string;
   cityName: string;
   uf: string;
   populacao: number;
-  
+
   // Volume e Faturamento Mensal Projetado
   corridasMensaisEstimadas: number;
   ticketMedioBrl: number;
   gmvMensalBrl: number;
   takeRateEfetivoPct: number;
   receitaBrutaMensalBrl: number;
-  
+
   // Custos Operacionais e Custos Variáveis
   custoGatewaysBrl: number; // ~2.2% do GMV
   custoInfraTelemetriaBrl: number;
   custoSeguroViagemBrl: number; // ~R$ 0,35 por corrida
   custosVariaveisTotaisBrl: number;
-  
+
   // Subsídios e Marketing
   subsidiosBonusMotoristasBrl: number;
   subsidiosDescontosPassageirosBrl: number;
   custoMarketingAquisicaoBrl: number;
-  
+
   // Margem e Retorno
   margemContribuicaoBrl: number;
   margemContribuicaoPct: number;
   cacPassageiroBrl: number;
   ltvPassageiroBrl: number;
   razaoLtvCac: number;
-  
+
   roiAnualizadoPct: number;
   paybackMeses: number;
-  
+
   // Índices
   expansionScore: number; // 0 a 100
   cityProfitabilityIndex: number; // 0 a 100
-  tierLucratividade: 'ESTRELA_ALTA_RENTABILIDADE' | 'CRESCIMENTO_SUSTENTAVEL' | 'EM_MATURACAO' | 'DEFICITARIA_REESTRUTURAR';
+  tierLucratividade:
+    | "ESTRELA_ALTA_RENTABILIDADE"
+    | "CRESCIMENTO_SUSTENTAVEL"
+    | "EM_MATURACAO"
+    | "DEFICITARIA_REESTRUTURAR";
   recomendacaoFinOps: string;
 }
 
@@ -72,18 +76,21 @@ export class CityProfitabilityEngine {
    */
   public calculateCityProfitability(city: CityOperationConfig): CityFinancialMetrics {
     const twin = digitalTwinEngine.getCityTwin(city.cityId);
-    
+
     // Estimativas baseadas no twin operacional e na população
-    const corridasDia = Math.max(120, Math.round(twin.corridasEmAndamento * 24 + twin.motoristasOnline * 6));
+    const corridasDia = Math.max(
+      120,
+      Math.round(twin.corridasEmAndamento * 24 + twin.motoristasOnline * 6),
+    );
     const corridasMensais = corridasDia * 30;
     const bandeirada = city.fares?.pop?.bandeirada || 6.5;
     const valorKm = city.fares?.pop?.valorKm || 2.4;
     const ticketMedio = Number((bandeirada + 5.5 * valorKm).toFixed(2));
-    
+
     const gmvMensal = Math.round(corridasMensais * ticketMedio);
     const takeRate = city.fares?.platformTakeRatePercent || 5.0; // Padrão base 5.0% (Modelo Híbrido: Planos de Assinatura + Comissão)
     const receitaBruta = Math.round(gmvMensal * (takeRate / 100.0));
-    
+
     // Custos diretos variáveis
     const custoGateways = Math.round(gmvMensal * 0.022); // 2.2%
     const custoInfra = Math.round(corridasMensais * 0.08); // R$ 0,08 por chamada em nuvem
@@ -108,52 +115,67 @@ export class CityProfitabilityEngine {
 
     // Payback do investimento inicial e ROI
     const raio = city.operatingRadiusKm || 12;
-    const investimentoAtivacaoPraca = Math.round(35000 + (raio * 1500));
-    const paybackMeses = margemContribuicao > 0 
-      ? Number((investimentoAtivacaoPraca / margemContribuicao).toFixed(1))
-      : 36.0;
-    
+    const investimentoAtivacaoPraca = Math.round(35000 + raio * 1500);
+    const paybackMeses =
+      margemContribuicao > 0
+        ? Number((investimentoAtivacaoPraca / margemContribuicao).toFixed(1))
+        : 36.0;
+
     const lucroAnualProjetado = margemContribuicao * 12;
-    const roiAnualizado = Number(((lucroAnualProjetado / investimentoAtivacaoPraca) * 100).toFixed(1));
+    const roiAnualizado = Number(
+      ((lucroAnualProjetado / investimentoAtivacaoPraca) * 100).toFixed(1),
+    );
 
     // Expansion Score baseado em densidade populacional e penetração de mercado
     const populacaoEstimada = city.monthlyTripsTarget ? city.monthlyTripsTarget * 12 : 75000;
     const taxaPenetracao = (corridasDia / populacaoEstimada) * 1000;
-    const expansionScore = Math.max(10, Math.min(98, Math.round(
-      (Math.min(150000, populacaoEstimada) / 150000) * 40 +
-      Math.min(50, taxaPenetracao * 10) +
-      (city.isActive ? 20 : 0)
-    )));
+    const expansionScore = Math.max(
+      10,
+      Math.min(
+        98,
+        Math.round(
+          (Math.min(150000, populacaoEstimada) / 150000) * 40 +
+            Math.min(50, taxaPenetracao * 10) +
+            (city.isActive ? 20 : 0),
+        ),
+      ),
+    );
 
     // CityProfitabilityIndex (0 a 100):
     // Pondera Margem (35%), LTV/CAC (25%), Payback (20%), Volume GMV (20%)
     const scoreMargem = Math.max(0, Math.min(100, margemPct * 2));
     const scoreLtvCac = Math.max(0, Math.min(100, (razaoLtvCac / 4.0) * 100));
-    const scorePayback = Math.max(0, Math.min(100, 100 - (paybackMeses * 4.0)));
+    const scorePayback = Math.max(0, Math.min(100, 100 - paybackMeses * 4.0));
     const scoreVolume = Math.max(0, Math.min(100, (gmvMensal / 300000) * 100));
 
-    const profitabilityIndex = Math.max(5, Math.min(99, Math.round(
-      scoreMargem * 0.35 +
-      scoreLtvCac * 0.25 +
-      scorePayback * 0.20 +
-      scoreVolume * 0.20
-    )));
+    const profitabilityIndex = Math.max(
+      5,
+      Math.min(
+        99,
+        Math.round(
+          scoreMargem * 0.35 + scoreLtvCac * 0.25 + scorePayback * 0.2 + scoreVolume * 0.2,
+        ),
+      ),
+    );
 
-    let tier: CityFinancialMetrics['tierLucratividade'] = 'CRESCIMENTO_SUSTENTAVEL';
-    let recomendacao = 'Manter estratégia operacional equilibrada.';
+    let tier: CityFinancialMetrics["tierLucratividade"] = "CRESCIMENTO_SUSTENTAVEL";
+    let recomendacao = "Manter estratégia operacional equilibrada.";
 
     if (profitabilityIndex >= 80 && margemPct >= 40) {
-      tier = 'ESTRELA_ALTA_RENTABILIDADE';
-      recomendacao = 'Praça consolidada de alta margem. Alavancar reinvestimento para acelerar satélites.';
+      tier = "ESTRELA_ALTA_RENTABILIDADE";
+      recomendacao =
+        "Praça consolidada de alta margem. Alavancar reinvestimento para acelerar satélites.";
     } else if (profitabilityIndex >= 60) {
-      tier = 'CRESCIMENTO_SUSTENTAVEL';
-      recomendacao = 'Equilíbrio financeiro positivo. Otimizar subsídios para expandir margem líquida.';
+      tier = "CRESCIMENTO_SUSTENTAVEL";
+      recomendacao =
+        "Equilíbrio financeiro positivo. Otimizar subsídios para expandir margem líquida.";
     } else if (profitabilityIndex >= 40) {
-      tier = 'EM_MATURACAO';
-      recomendacao = 'Praça em fase de maturação. Monitorar CAC e elevar retenção orgânica.';
+      tier = "EM_MATURACAO";
+      recomendacao = "Praça em fase de maturação. Monitorar CAC e elevar retenção orgânica.";
     } else {
-      tier = 'DEFICITARIA_REESTRUTURAR';
-      recomendacao = 'Praça deficitária com margem comprimida. Cortar subsídios de vale e recalibrar raio.';
+      tier = "DEFICITARIA_REESTRUTURAR";
+      recomendacao =
+        "Praça deficitária com margem comprimida. Cortar subsídios de vale e recalibrar raio.";
     }
 
     return {
@@ -183,7 +205,7 @@ export class CityProfitabilityEngine {
       expansionScore,
       cityProfitabilityIndex: profitabilityIndex,
       tierLucratividade: tier,
-      recomendacaoFinOps: recomendacao
+      recomendacaoFinOps: recomendacao,
     };
   }
 
@@ -225,7 +247,7 @@ export class CityProfitabilityEngine {
       razaoLtvCacMediaNacional: ltvCacMedia,
       rankingCidades: metricsList,
       cidadesMaisLucrativas,
-      cidadesPrioridadeAjuste
+      cidadesPrioridadeAjuste,
     };
   }
 }

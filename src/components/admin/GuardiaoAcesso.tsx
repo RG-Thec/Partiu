@@ -27,7 +27,11 @@ export function GuardiaoAcesso({
   const contaAtiva = getContaAtiva();
 
   // 1. Bloqueio por Franquia Suspensa / Desativada (Kill Switch pelo Super Admin)
-  if (role === "FRANQUEADO" && contaAtiva.tenantId && whiteLabelEngine.isTenantSuspended(contaAtiva.tenantId)) {
+  if (
+    role === "FRANQUEADO" &&
+    contaAtiva.tenantId &&
+    whiteLabelEngine.isTenantSuspended(contaAtiva.tenantId)
+  ) {
     return (
       <div className="w-full min-h-[550px] flex items-center justify-center p-6 animate-in fade-in">
         <div className="w-full max-w-md bg-white rounded-3xl p-8 border-2 border-rose-200 text-center shadow-xl space-y-5">
@@ -43,8 +47,10 @@ export function GuardiaoAcesso({
               Acesso ao Painel Suspenso
             </h2>
             <p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
-              O plano de operação da sua franquia (<strong>{contaAtiva.tenantNome || contaAtiva.tenantId}</strong>) foi desativado pelo Super Administrador da holding.
-              O aplicativo da sua praça foi retirado do ar e as ferramentas administrativas estão temporariamente bloqueadas.
+              O plano de operação da sua franquia (
+              <strong>{contaAtiva.tenantNome || contaAtiva.tenantId}</strong>) foi desativado pelo
+              Super Administrador da holding. O aplicativo da sua praça foi retirado do ar e as
+              ferramentas administrativas estão temporariamente bloqueadas.
             </p>
           </div>
 
@@ -54,7 +60,8 @@ export function GuardiaoAcesso({
               <span>Contate a Diretoria Central</span>
             </div>
             <p className="text-[11px] text-rose-600">
-              Para reativar sua praça e restabelecer o aplicativo aos motoristas e passageiros, regularize sua situação com a administração central.
+              Para reativar sua praça e restabelecer o aplicativo aos motoristas e passageiros,
+              regularize sua situação com a administração central.
             </p>
           </div>
         </div>
@@ -83,8 +90,8 @@ export function GuardiaoAcesso({
             </h2>
             <p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
               Seu perfil atual de acesso é <strong>Franqueado Regional (Acesso Local)</strong>.
-              Configurações globais da holding, catálogo nacional e credenciais de infraestrutura são
-              restritos exclusivamente ao <strong>Super Administrador</strong> do sistema.
+              Configurações globais da holding, catálogo nacional e credenciais de infraestrutura
+              são restritos exclusivamente ao <strong>Super Administrador</strong> do sistema.
             </p>
           </div>
 

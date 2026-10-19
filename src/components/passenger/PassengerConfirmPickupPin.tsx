@@ -32,7 +32,9 @@ export function PassengerConfirmPickupPin() {
             ) : (
               <>
                 <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
-                <span>Ponto de encontro do {categoriaVeiculo === "MOTO" ? "motoboy" : "motorista"}</span>
+                <span>
+                  Ponto de encontro do {categoriaVeiculo === "MOTO" ? "motoboy" : "motorista"}
+                </span>
               </>
             )}
           </div>

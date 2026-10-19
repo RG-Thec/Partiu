@@ -1,15 +1,22 @@
 /**
  * PARTIU WHATSAPP BOOKING & NLP ENGINE
- * 
+ *
  * Processamento de Linguagem Natural (NLP) e Geocoding Heurístico para solicitações no WhatsApp.
  * Extrai intenções, endereços de origem e destino, calcula cotações instantâneas por modalidade.
  */
 
 export interface WhatsAppNlpResult {
-  intent: 'PEDIR_CORRIDA' | 'CONFIRMAR_COTACAO' | 'CANCELAR' | 'STATUS_CORRIDA' | 'AJUDA_HUMANO' | 'SAUDACAO' | 'DESCONHECIDO';
+  intent:
+    | "PEDIR_CORRIDA"
+    | "CONFIRMAR_COTACAO"
+    | "CANCELAR"
+    | "STATUS_CORRIDA"
+    | "AJUDA_HUMANO"
+    | "SAUDACAO"
+    | "DESCONHECIDO";
   detectedOrigin?: string | undefined;
   detectedDestination?: string | undefined;
-  detectedModalidade?: 'POP' | 'MOTO' | undefined;
+  detectedModalidade?: "POP" | "MOTO" | undefined;
   confidence: number;
 }
 
@@ -26,12 +33,32 @@ export interface WhatsAppFareQuote {
 
 export class WhatsAppBookingEngine {
   private knownCityPois: Record<string, { lat: number; lng: number; aliases: string[] }> = {
-    'centro': { lat: -21.2056, lng: -41.8872, aliases: ['centro', 'calcadao', 'praca', 'prefeitura', 'banco'] },
-    'aeroporto': { lat: -21.1980, lng: -41.8750, aliases: ['aeroporto', 'rodoviaria', 'terminal', 'embarque'] },
-    'unig': { lat: -21.2180, lng: -41.8990, aliases: ['unig', 'faculdade', 'universidade', 'campus'] },
-    'hospital': { lat: -21.2090, lng: -41.8830, aliases: ['hospital', 'sao jose', 'upa', 'pronto socorro'] },
-    'vinhosa': { lat: -21.2189, lng: -41.9012, aliases: ['vinhosa', 'posto vinhosa', 'avenida vinhosa'] },
-    'ceasa': { lat: -21.2250, lng: -41.8700, aliases: ['ceasa', 'mercado produtor', 'distrito industrial'] }
+    centro: {
+      lat: -21.2056,
+      lng: -41.8872,
+      aliases: ["centro", "calcadao", "praca", "prefeitura", "banco"],
+    },
+    aeroporto: {
+      lat: -21.198,
+      lng: -41.875,
+      aliases: ["aeroporto", "rodoviaria", "terminal", "embarque"],
+    },
+    unig: { lat: -21.218, lng: -41.899, aliases: ["unig", "faculdade", "universidade", "campus"] },
+    hospital: {
+      lat: -21.209,
+      lng: -41.883,
+      aliases: ["hospital", "sao jose", "upa", "pronto socorro"],
+    },
+    vinhosa: {
+      lat: -21.2189,
+      lng: -41.9012,
+      aliases: ["vinhosa", "posto vinhosa", "avenida vinhosa"],
+    },
+    ceasa: {
+      lat: -21.225,
+      lng: -41.87,
+      aliases: ["ceasa", "mercado produtor", "distrito industrial"],
+    },
   };
 
   /**
@@ -42,30 +69,32 @@ export class WhatsAppBookingEngine {
 
     // 1. Saudação
     if (/^(oi|ola|olá|bom dia|boa tarde|boa noite|opa|salve|e ai|e aí)$/i.test(text)) {
-      return { intent: 'SAUDACAO', confidence: 0.98 };
+      return { intent: "SAUDACAO", confidence: 0.98 };
     }
 
     // 2. Ajuda / Suporte Humano
     if (/ajuda|humano|atendente|falar com alguem|falar com atendente|suporte/i.test(text)) {
-      return { intent: 'AJUDA_HUMANO', confidence: 0.95 };
+      return { intent: "AJUDA_HUMANO", confidence: 0.95 };
     }
 
     // 3. Cancelamento
     if (/cancelar|cancela|desistir|nao quero mais|não quero mais|para/i.test(text)) {
-      return { intent: 'CANCELAR', confidence: 0.94 };
+      return { intent: "CANCELAR", confidence: 0.94 };
     }
 
     // 4. Status de Corrida
     if (/onde esta|onde tá|status|cade o motorista|cadê o motorista|demora/i.test(text)) {
-      return { intent: 'STATUS_CORRIDA', confidence: 0.90 };
+      return { intent: "STATUS_CORRIDA", confidence: 0.9 };
     }
 
     // 5. Confirmação de Cotação (ex: "1", "carro", "pop", "quero carro", "confirmo", "sim", "vai de moto")
-    if (/^(1|carro|pop|quero carro|quero pop|opcao 1|opção 1|sim|confirmo|confirmar)$/i.test(text)) {
-      return { intent: 'CONFIRMAR_COTACAO', detectedModalidade: 'POP', confidence: 0.96 };
+    if (
+      /^(1|carro|pop|quero carro|quero pop|opcao 1|opção 1|sim|confirmo|confirmar)$/i.test(text)
+    ) {
+      return { intent: "CONFIRMAR_COTACAO", detectedModalidade: "POP", confidence: 0.96 };
     }
     if (/^(2|moto|quero moto|opcao 2|opção 2|vai de moto)$/i.test(text)) {
-      return { intent: 'CONFIRMAR_COTACAO', detectedModalidade: 'MOTO', confidence: 0.96 };
+      return { intent: "CONFIRMAR_COTACAO", detectedModalidade: "MOTO", confidence: 0.96 };
     }
 
     // 6. Solicitação de Corrida com Origem e Destino
@@ -73,7 +102,9 @@ export class WhatsAppBookingEngine {
     let destination: string | undefined = undefined;
 
     // Padrão: "de X para Y" ou "do X pro Y" ou "estou em X e vou para Y"
-    const matchDePara = text.match(/(?:de|do|da|em|estou no|estou na)\s+([^,]+?)\s+(?:para|pro|pra|vou pro|vou pra|ate|até)\s+([^,]+)/i);
+    const matchDePara = text.match(
+      /(?:de|do|da|em|estou no|estou na)\s+([^,]+?)\s+(?:para|pro|pra|vou pro|vou pra|ate|até)\s+([^,]+)/i,
+    );
     if (matchDePara && matchDePara[1] && matchDePara[2]) {
       origin = matchDePara[1].trim();
       destination = matchDePara[2].trim();
@@ -85,34 +116,38 @@ export class WhatsAppBookingEngine {
       }
     }
 
-    let detectedModalidade: 'POP' | 'MOTO' = 'POP';
-    if (/moto/i.test(text)) detectedModalidade = 'MOTO';
+    let detectedModalidade: "POP" | "MOTO" = "POP";
+    if (/moto/i.test(text)) detectedModalidade = "MOTO";
 
     if (destination) {
       return {
-        intent: 'PEDIR_CORRIDA',
-        detectedOrigin: origin || 'Sua localização atual',
+        intent: "PEDIR_CORRIDA",
+        detectedOrigin: origin || "Sua localização atual",
         detectedDestination: destination,
         detectedModalidade,
-        confidence: 0.88
+        confidence: 0.88,
       };
     }
 
-    return { intent: 'DESCONHECIDO', confidence: 0.20 };
+    return { intent: "DESCONHECIDO", confidence: 0.2 };
   }
 
   /**
    * Geocoding heurístico para mapeamento de coordenadas municipais
    */
-  public resolveCoordinates(addressText: string): { latitude: number; longitude: number; normalizedName: string } {
+  public resolveCoordinates(addressText: string): {
+    latitude: number;
+    longitude: number;
+    normalizedName: string;
+  } {
     const clean = addressText.toLowerCase();
-    
+
     for (const [key, poi] of Object.entries(this.knownCityPois)) {
-      if (poi.aliases.some(alias => clean.includes(alias))) {
+      if (poi.aliases.some((alias) => clean.includes(alias))) {
         return {
           latitude: poi.lat,
           longitude: poi.lng,
-          normalizedName: key.toUpperCase()
+          normalizedName: key.toUpperCase(),
         };
       }
     }
@@ -121,7 +156,7 @@ export class WhatsAppBookingEngine {
     return {
       latitude: -21.2056 + (Math.random() * 0.01 - 0.005),
       longitude: -41.8872 + (Math.random() * 0.01 - 0.005),
-      normalizedName: addressText
+      normalizedName: addressText,
     };
   }
 
@@ -141,8 +176,10 @@ export class WhatsAppBookingEngine {
     const estimatedDurationMin = Math.max(4, Math.round((distanceKm / 28) * 60));
 
     // Tarifas PARTIU
-    const popFare = Number((6.0 + (distanceKm * 2.10) + (estimatedDurationMin * 0.28)).toFixed(2));
-    const motoFare = Number(Math.max(5.50, 4.0 + (distanceKm * 1.30) + (estimatedDurationMin * 0.18)).toFixed(2));
+    const popFare = Number((6.0 + distanceKm * 2.1 + estimatedDurationMin * 0.28).toFixed(2));
+    const motoFare = Number(
+      Math.max(5.5, 4.0 + distanceKm * 1.3 + estimatedDurationMin * 0.18).toFixed(2),
+    );
 
     return {
       originAddress: orig.normalizedName,
@@ -150,9 +187,9 @@ export class WhatsAppBookingEngine {
       distanceKm,
       estimatedDurationMin,
       options: {
-        pop: { fareBrl: Math.max(8.50, popFare), etaMin: 3, label: 'Carro Comum (4 lugares)' },
-        moto: { fareBrl: motoFare, etaMin: 2, label: 'Moto Comum (Rápido e Econômico)' }
-      }
+        pop: { fareBrl: Math.max(8.5, popFare), etaMin: 3, label: "Carro Comum (4 lugares)" },
+        moto: { fareBrl: motoFare, etaMin: 2, label: "Moto Comum (Rápido e Econômico)" },
+      },
     };
   }
 }

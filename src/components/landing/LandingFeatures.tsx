@@ -7,10 +7,7 @@ interface LandingFeaturesProps {
   theme: ThemeConfig;
 }
 
-export const LandingFeatures: React.FC<LandingFeaturesProps> = ({
-  features,
-  theme,
-}) => {
+export const LandingFeatures: React.FC<LandingFeaturesProps> = ({ features, theme }) => {
   // Ícones padrões correspondentes aos 4 pilares caso a URL falhe ou não venha definida
   const fallbackIcons = [
     <Shield key="0" className="w-5 h-5 text-sky-600 stroke-[2.2]" />,
@@ -40,9 +37,7 @@ export const LandingFeatures: React.FC<LandingFeaturesProps> = ({
               />
 
               {/* Ícone com Container Arredondado */}
-              <div
-                className="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs transition-transform duration-300 group-hover:scale-105 bg-slate-50 border border-slate-200/80"
-              >
+              <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs transition-transform duration-300 group-hover:scale-105 bg-slate-50 border border-slate-200/80">
                 {feature.iconUrl ? (
                   <img
                     src={feature.iconUrl}

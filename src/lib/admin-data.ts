@@ -39,7 +39,13 @@ export type Despesa = {
 export type RotaHistorico = {
   id: string;
   nome: string;
-  modalidade: "Urbana" | "Flash" | "Partiu Mulher" | "Rotas Escolares" | "Shuttles de Empresa" | "Intermunicipal";
+  modalidade:
+    | "Urbana"
+    | "Flash"
+    | "Partiu Mulher"
+    | "Rotas Escolares"
+    | "Shuttles de Empresa"
+    | "Intermunicipal";
   trajeto: string;
   data: string;
   paradas: number;

@@ -1,25 +1,25 @@
 /**
  * PARTIU LOCAL ADS MARKETPLACE
- * 
+ *
  * Marketplace de Publicidade Hiperlocal para o Comércio Regional.
  * Monetiza a atenção dos passageiros direcionando fluxo para o comércio de cada cidade.
  */
 
-import { LocalAdCampaign, adsAuctionEngine, AdAuctionBidResult } from './ads-auction-engine';
-import { adsTargetingEngine } from './ads-targeting-engine';
-import { adsBillingEngine } from './ads-billing-engine';
-import { adsAnalyticsEngine, CampaignPerformanceMetrics } from './ads-analytics';
+import { LocalAdCampaign, adsAuctionEngine, AdAuctionBidResult } from "./ads-auction-engine";
+import { adsTargetingEngine } from "./ads-targeting-engine";
+import { adsBillingEngine } from "./ads-billing-engine";
+import { adsAnalyticsEngine, CampaignPerformanceMetrics } from "./ads-analytics";
 
 export interface LocalBusinessScoreReport {
   advertiserId: string;
   businessName: string;
-  category: LocalAdCampaign['category'];
+  category: LocalAdCampaign["category"];
   clickThroughRatePct: number;
   conversionRatePct: number;
   roasMultiplier: number;
   retentionRatePct: number;
   localBusinessScore: number; // 0 a 100
-  rating: 'ALTO_RETORNO' | 'DESEMPENHO_POSITIVO' | 'OTIMIZACAO_NECESSARIA';
+  rating: "ALTO_RETORNO" | "DESEMPENHO_POSITIVO" | "OTIMIZACAO_NECESSARIA";
 }
 
 export class AdsMarketplace {
@@ -32,68 +32,73 @@ export class AdsMarketplace {
   private initializeDefaultCampaigns(): void {
     const defaultAds: LocalAdCampaign[] = [
       {
-        campaignId: 'AD-FAR-01',
-        advertiserId: 'ADV-FARMA-CENTRAL',
-        businessName: 'Farmácia Central Popular',
-        category: 'FARMACIA',
-        cityId: 'itaperuna-rj',
-        headline: 'Medicamentos com 20% OFF no PIX',
-        descriptionText: 'Apresente este voucher do PARTIU e garanta entrega grátis e desconto!',
-        callToActionUrl: 'https://farmaciacentralita.com.br/partiu',
-        pricingModel: 'CPC',
-        maxBidBrl: 1.80,
+        campaignId: "AD-FAR-01",
+        advertiserId: "ADV-FARMA-CENTRAL",
+        businessName: "Farmácia Central Popular",
+        category: "FARMACIA",
+        cityId: "itaperuna-rj",
+        headline: "Medicamentos com 20% OFF no PIX",
+        descriptionText: "Apresente este voucher do PARTIU e garanta entrega grátis e desconto!",
+        callToActionUrl: "https://farmaciacentralita.com.br/partiu",
+        pricingModel: "CPC",
+        maxBidBrl: 1.8,
         dailyBudgetBrl: 150.0,
         currentDaySpendBrl: 42.0,
         targetLatitude: -21.2056,
         targetLongitude: -41.8872,
         maxRadiusKm: 6.0,
-        isActive: true
+        isActive: true,
       },
       {
-        campaignId: 'AD-POS-02',
-        advertiserId: 'ADV-POSTO-VINHOSA',
-        businessName: 'Posto Petrobrás Vinhosa',
-        category: 'POSTO_COMBUSTIVEL',
-        cityId: 'itaperuna-rj',
-        headline: 'Gasolina e Etanol com R$ 0,15 de Desconto por Litro',
-        descriptionText: 'Exclusivo para motoristas e passageiros PARTIU cadastrados.',
-        callToActionUrl: 'https://postovinhosa.com.br/partiu-desconto',
-        pricingModel: 'CPA',
-        maxBidBrl: 6.50,
+        campaignId: "AD-POS-02",
+        advertiserId: "ADV-POSTO-VINHOSA",
+        businessName: "Posto Petrobrás Vinhosa",
+        category: "POSTO_COMBUSTIVEL",
+        cityId: "itaperuna-rj",
+        headline: "Gasolina e Etanol com R$ 0,15 de Desconto por Litro",
+        descriptionText: "Exclusivo para motoristas e passageiros PARTIU cadastrados.",
+        callToActionUrl: "https://postovinhosa.com.br/partiu-desconto",
+        pricingModel: "CPA",
+        maxBidBrl: 6.5,
         dailyBudgetBrl: 250.0,
         currentDaySpendBrl: 65.0,
         targetLatitude: -21.2189,
         targetLongitude: -41.9012,
         maxRadiusKm: 8.0,
-        isActive: true
+        isActive: true,
       },
       {
-        campaignId: 'AD-RES-03',
-        advertiserId: 'ADV-REST-MACAE',
-        businessName: 'Restaurante e Frutos do Mar Cavaleiros',
-        category: 'RESTAURANTE',
-        cityId: 'macae-rj',
-        headline: 'Almoço Executivo na Orla dos Cavaleiros',
-        descriptionText: 'Venha de PARTIU e ganhe uma sobremesa cortesia no almoço.',
-        callToActionUrl: 'https://cavaleirosrest.com.br/promocao-partiu',
-        pricingModel: 'CPM',
+        campaignId: "AD-RES-03",
+        advertiserId: "ADV-REST-MACAE",
+        businessName: "Restaurante e Frutos do Mar Cavaleiros",
+        category: "RESTAURANTE",
+        cityId: "macae-rj",
+        headline: "Almoço Executivo na Orla dos Cavaleiros",
+        descriptionText: "Venha de PARTIU e ganhe uma sobremesa cortesia no almoço.",
+        callToActionUrl: "https://cavaleirosrest.com.br/promocao-partiu",
+        pricingModel: "CPM",
         maxBidBrl: 18.0,
         dailyBudgetBrl: 180.0,
         currentDaySpendBrl: 54.0,
         targetLatitude: -22.408,
         targetLongitude: -41.772,
         maxRadiusKm: 5.0,
-        isActive: true
-      }
+        isActive: true,
+      },
     ];
 
-    defaultAds.forEach(ad => this.registerCampaign(ad));
+    defaultAds.forEach((ad) => this.registerCampaign(ad));
   }
 
   public registerCampaign(campaign: LocalAdCampaign): void {
     this.campaigns.set(campaign.campaignId, campaign);
     if (!adsBillingEngine.getAccount(campaign.advertiserId)) {
-      adsBillingEngine.registerAdvertiser(campaign.advertiserId, campaign.businessName, '00.000.000/0001-00', 500.0);
+      adsBillingEngine.registerAdvertiser(
+        campaign.advertiserId,
+        campaign.businessName,
+        "00.000.000/0001-00",
+        500.0,
+      );
     }
   }
 
@@ -112,21 +117,39 @@ export class AdsMarketplace {
     cityId: string,
     passengerLat: number,
     passengerLng: number,
-    categoryFilter?: LocalAdCampaign['category']
+    categoryFilter?: LocalAdCampaign["category"],
   ): AdAuctionBidResult | null {
     const all = Array.from(this.campaigns.values());
-    const eligible = adsTargetingEngine.filterEligibleCampaigns(all, cityId, passengerLat, passengerLng, categoryFilter);
+    const eligible = adsTargetingEngine.filterEligibleCampaigns(
+      all,
+      cityId,
+      passengerLat,
+      passengerLng,
+      categoryFilter,
+    );
 
     if (eligible.length === 0) return null;
 
     const firstCampaign = eligible[0]!;
-    const dist = adsTargetingEngine.calculateDistanceKm(passengerLat, passengerLng, firstCampaign.targetLatitude, firstCampaign.targetLongitude);
+    const dist = adsTargetingEngine.calculateDistanceKm(
+      passengerLat,
+      passengerLng,
+      firstCampaign.targetLatitude,
+      firstCampaign.targetLongitude,
+    );
     const auctionResult = adsAuctionEngine.executeAuction(eligible, dist);
 
     if (auctionResult) {
       // Registra impressão e debita custo
-      adsAnalyticsEngine.recordImpression(auctionResult.winnerCampaign.campaignId, auctionResult.effectivePriceBrl);
-      adsBillingEngine.chargeAdEvent(auctionResult.winnerCampaign.advertiserId, auctionResult.effectivePriceBrl, 'Impressão servida');
+      adsAnalyticsEngine.recordImpression(
+        auctionResult.winnerCampaign.campaignId,
+        auctionResult.effectivePriceBrl,
+      );
+      adsBillingEngine.chargeAdEvent(
+        auctionResult.winnerCampaign.advertiserId,
+        auctionResult.effectivePriceBrl,
+        "Impressão servida",
+      );
     }
 
     return auctionResult;
@@ -137,8 +160,8 @@ export class AdsMarketplace {
    */
   public calculateLocalBusinessScore(campaignId: string): LocalBusinessScoreReport {
     const campaign = this.campaigns.get(campaignId);
-    const name = campaign?.businessName || 'Comércio Local Anunciante';
-    const category = campaign?.category || 'LOJA';
+    const name = campaign?.businessName || "Comércio Local Anunciante";
+    const category = campaign?.category || "LOJA";
     const metrics = adsAnalyticsEngine.getCampaignMetrics(campaignId, name);
 
     // Score: CTR (30%), Conversão (30%), ROAS (25%), Retenção estimada (15%)
@@ -148,14 +171,17 @@ export class AdsMarketplace {
     const retentionRatePct = 78.5;
     const scoreRet = (retentionRatePct / 100) * 15;
 
-    const localBusinessScore = Math.min(100, Math.round(scoreCtr + scoreConv + scoreRoas + scoreRet));
+    const localBusinessScore = Math.min(
+      100,
+      Math.round(scoreCtr + scoreConv + scoreRoas + scoreRet),
+    );
 
-    let rating: LocalBusinessScoreReport['rating'] = 'DESEMPENHO_POSITIVO';
-    if (localBusinessScore >= 85) rating = 'ALTO_RETORNO';
-    else if (localBusinessScore < 60) rating = 'OTIMIZACAO_NECESSARIA';
+    let rating: LocalBusinessScoreReport["rating"] = "DESEMPENHO_POSITIVO";
+    if (localBusinessScore >= 85) rating = "ALTO_RETORNO";
+    else if (localBusinessScore < 60) rating = "OTIMIZACAO_NECESSARIA";
 
     return {
-      advertiserId: campaign?.advertiserId || 'ADV-DEFAULT',
+      advertiserId: campaign?.advertiserId || "ADV-DEFAULT",
       businessName: name,
       category,
       clickThroughRatePct: metrics.clickThroughRatePct,
@@ -163,7 +189,7 @@ export class AdsMarketplace {
       roasMultiplier: metrics.returnOnAdSpendMultiplier,
       retentionRatePct,
       localBusinessScore,
-      rating
+      rating,
     };
   }
 }

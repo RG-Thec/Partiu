@@ -28,8 +28,8 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
     tipoChavePixAdmin: (monetization?.tipoChavePixAdmin as TipoChavePix) || "email",
     beneficiarioAdmin: monetization?.beneficiarioAdmin || "",
     cidadeAdmin: monetization?.cidadeAdmin || "",
-    diariaCarro: monetization?.diariaCarro ?? 19.90,
-    diariaMoto: monetization?.diariaMoto ?? 11.90,
+    diariaCarro: monetization?.diariaCarro ?? 19.9,
+    diariaMoto: monetization?.diariaMoto ?? 11.9,
     gatewayProvider: (monetization?.gatewayProvider as GatewayProvider) || "mercadopago",
   }));
 
@@ -37,49 +37,55 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingRef = useRef<boolean>(false);
 
-  const flushUpdates = useCallback((overrideData?: MonetizationFormData) => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-      debounceTimerRef.current = null;
-    }
-    isTypingRef.current = false;
-    const current = overrideData || pendingDataRef.current;
+  const flushUpdates = useCallback(
+    (overrideData?: MonetizationFormData) => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+      isTypingRef.current = false;
+      const current = overrideData || pendingDataRef.current;
 
-    const updated = {
-      ...monetization,
-      ...current,
-    };
-    updateConfig({
-      monetization: updated,
-    });
-    saveMonetizacaoConfig({
-      chavePixAdmin: updated.chavePixAdmin,
-      tipoChavePixAdmin: updated.tipoChavePixAdmin,
-      beneficiarioAdmin: updated.beneficiarioAdmin,
-      cidadeAdmin: updated.cidadeAdmin,
-      diariaCarro: updated.diariaCarro,
-      diariaMoto: updated.diariaMoto,
-      gateway: updated.gatewayProvider,
-    });
-    onSaveFeedback();
-  }, [monetization, updateConfig, onSaveFeedback]);
+      const updated = {
+        ...monetization,
+        ...current,
+      };
+      updateConfig({
+        monetization: updated,
+      });
+      saveMonetizacaoConfig({
+        chavePixAdmin: updated.chavePixAdmin,
+        tipoChavePixAdmin: updated.tipoChavePixAdmin,
+        beneficiarioAdmin: updated.beneficiarioAdmin,
+        cidadeAdmin: updated.cidadeAdmin,
+        diariaCarro: updated.diariaCarro,
+        diariaMoto: updated.diariaMoto,
+        gateway: updated.gatewayProvider,
+      });
+      onSaveFeedback();
+    },
+    [monetization, updateConfig, onSaveFeedback],
+  );
 
-  const handleFieldChange = useCallback((field: keyof MonetizationFormData, value: any) => {
-    isTypingRef.current = true;
-    setFormData((prev) => {
-      const next = { ...prev, [field]: value };
-      pendingDataRef.current = next;
-      return next;
-    });
+  const handleFieldChange = useCallback(
+    (field: keyof MonetizationFormData, value: any) => {
+      isTypingRef.current = true;
+      setFormData((prev) => {
+        const next = { ...prev, [field]: value };
+        pendingDataRef.current = next;
+        return next;
+      });
 
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
 
-    debounceTimerRef.current = setTimeout(() => {
-      flushUpdates();
-    }, 400);
-  }, [flushUpdates]);
+      debounceTimerRef.current = setTimeout(() => {
+        flushUpdates();
+      }, 400);
+    },
+    [flushUpdates],
+  );
 
   const handleBlur = useCallback(() => {
     if (debounceTimerRef.current) {
@@ -95,8 +101,8 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
       tipoChavePixAdmin: (monetization?.tipoChavePixAdmin as TipoChavePix) || "email",
       beneficiarioAdmin: monetization?.beneficiarioAdmin || "",
       cidadeAdmin: monetization?.cidadeAdmin || "",
-      diariaCarro: monetization?.diariaCarro ?? 19.90,
-      diariaMoto: monetization?.diariaMoto ?? 11.90,
+      diariaCarro: monetization?.diariaCarro ?? 19.9,
+      diariaMoto: monetization?.diariaMoto ?? 11.9,
       gatewayProvider: (monetization?.gatewayProvider as GatewayProvider) || "mercadopago",
     };
     setFormData(next);
@@ -126,7 +132,7 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
       debounceTimerRef.current = null;
     }
     const planosAtualizados = (monetization?.planos || []).map((p) =>
-      p.id === planoId ? { ...p, ativo } : p
+      p.id === planoId ? { ...p, ativo } : p,
     );
     const updated = {
       ...monetization,
@@ -154,7 +160,8 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
           Módulo 8: Planos &amp; Monetização da Franquia
         </h2>
         <p className="text-xs text-slate-500 mt-1">
-          Configure a chave PIX exclusiva para recebimento das diárias SaaS dos motoristas e defina os planos de acesso da sua praça. Sincronização imediata no aplicativo do motorista.
+          Configure a chave PIX exclusiva para recebimento das diárias SaaS dos motoristas e defina
+          os planos de acesso da sua praça. Sincronização imediata no aplicativo do motorista.
         </p>
       </div>
 
@@ -165,7 +172,8 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
           <span>Conta PIX Recebedora das Diárias &amp; Assinaturas (Exclusiva da Praça)</span>
         </div>
         <p className="text-xs text-slate-500">
-          Esta chave PIX será impressa no QR Code e no código Copia-e-Cola exibidos aos motoristas cadastrados nesta cidade no momento da ativação do acesso de 24h.
+          Esta chave PIX será impressa no QR Code e no código Copia-e-Cola exibidos aos motoristas
+          cadastrados nesta cidade no momento da ativação do acesso de 24h.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
@@ -184,12 +192,12 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">
-              Tipo de Chave
-            </label>
+            <label className="text-xs font-bold text-slate-700 block mb-1">Tipo de Chave</label>
             <select
               value={formData.tipoChavePixAdmin}
-              onChange={(e: any) => handleFieldChange("tipoChavePixAdmin", e.target.value as TipoChavePix)}
+              onChange={(e: any) =>
+                handleFieldChange("tipoChavePixAdmin", e.target.value as TipoChavePix)
+              }
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] focus:ring-1 focus:ring-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none transition"
             >
               <option value="email">E-mail</option>
@@ -238,7 +246,7 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
               type="number"
               step="0.10"
               value={formData.diariaCarro}
-              onChange={(e) => handleFieldChange("diariaCarro", Number(e.target.value) || 19.90)}
+              onChange={(e) => handleFieldChange("diariaCarro", Number(e.target.value) || 19.9)}
               onBlur={handleBlur}
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 font-mono outline-none"
             />
@@ -252,7 +260,7 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
               type="number"
               step="0.10"
               value={formData.diariaMoto}
-              onChange={(e) => handleFieldChange("diariaMoto", Number(e.target.value) || 11.90)}
+              onChange={(e) => handleFieldChange("diariaMoto", Number(e.target.value) || 11.9)}
               onBlur={handleBlur}
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 font-mono outline-none"
             />
@@ -264,7 +272,9 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
             </label>
             <select
               value={formData.gatewayProvider}
-              onChange={(e: any) => handleFieldChange("gatewayProvider", e.target.value as GatewayProvider)}
+              onChange={(e: any) =>
+                handleFieldChange("gatewayProvider", e.target.value as GatewayProvider)
+              }
               className="w-full bg-white border border-slate-200 focus:border-[#0088FF] rounded-xl px-3 py-2 text-xs text-slate-800 outline-none"
             >
               <option value="mercadopago">Mercado Pago</option>
@@ -325,15 +335,11 @@ export function MonetizationTab({ onSaveFeedback }: MonetizationTabProps) {
                 </div>
                 <div>
                   <span className="text-slate-500 block text-[10px]">Diária</span>
-                  <span className="font-bold text-white">
-                    R$ {plano.diariaBrl.toFixed(2)}
-                  </span>
+                  <span className="font-bold text-white">R$ {plano.diariaBrl.toFixed(2)}</span>
                 </div>
                 <div>
                   <span className="text-slate-500 block text-[10px]">Despacho VIP</span>
-                  <span className="font-bold text-primary-600">
-                    {plano.pesoDespacho}x
-                  </span>
+                  <span className="font-bold text-primary-600">{plano.pesoDespacho}x</span>
                 </div>
                 <button
                   type="button"

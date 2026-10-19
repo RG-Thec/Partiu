@@ -57,7 +57,9 @@ async function main() {
     console.log(`Configurando Super Admin: ${admin.email}...`);
 
     // 1. Verifica se usuário já existe em auth.users
-    const userRes = await client.query("SELECT id FROM auth.users WHERE email = $1;", [admin.email]);
+    const userRes = await client.query("SELECT id FROM auth.users WHERE email = $1;", [
+      admin.email,
+    ]);
     let userId: string;
 
     const userMetadata = JSON.stringify({
@@ -103,7 +105,7 @@ async function main() {
           NOW()
         );
         `,
-        [userId, admin.email, admin.password, JSON.stringify(userMetaObj)]
+        [userId, admin.email, admin.password, JSON.stringify(userMetaObj)],
       );
       console.log(`✅ Usuário ${admin.email} criado em auth.users.`);
     } else {
@@ -131,13 +133,16 @@ async function main() {
             updated_at = NOW()
         WHERE id = $1::uuid;
         `,
-        [userId, admin.password, JSON.stringify(userMetaObj)]
+        [userId, admin.password, JSON.stringify(userMetaObj)],
       );
       console.log(`✅ Usuário ${admin.email} atualizado com nova senha.`);
     }
 
     // 2. Garantir registro em auth.identities
-    const identRes = await client.query("SELECT id FROM auth.identities WHERE user_id = $1::uuid;", [userId]);
+    const identRes = await client.query(
+      "SELECT id FROM auth.identities WHERE user_id = $1::uuid;",
+      [userId],
+    );
     const identityData = JSON.stringify({
       sub: userId,
       email: admin.email,
@@ -170,7 +175,7 @@ async function main() {
           NOW()
         );
         `,
-        [userId, identityData]
+        [userId, identityData],
       );
       console.log(`✅ Identidade inserida em auth.identities.`);
     } else {
@@ -181,13 +186,15 @@ async function main() {
             updated_at = NOW()
         WHERE user_id = $1::uuid;
         `,
-        [userId, identityData]
+        [userId, identityData],
       );
       console.log(`✅ Identidade atualizada em auth.identities.`);
     }
 
     // 3. Garantir registro em public.profiles
-    const profileRes = await client.query("SELECT id FROM public.profiles WHERE id = $1::uuid;", [userId]);
+    const profileRes = await client.query("SELECT id FROM public.profiles WHERE id = $1::uuid;", [
+      userId,
+    ]);
     if (profileRes.rows.length === 0) {
       await client.query(
         `
@@ -207,7 +214,7 @@ async function main() {
           NOW()
         );
         `,
-        [userId, admin.email, admin.name]
+        [userId, admin.email, admin.name],
       );
       console.log(`✅ Perfil inserido em public.profiles.`);
     } else {
@@ -219,13 +226,16 @@ async function main() {
             updated_at = NOW()
         WHERE id = $1::uuid;
         `,
-        [userId, admin.name]
+        [userId, admin.name],
       );
       console.log(`✅ Perfil atualizado em public.profiles.`);
     }
 
     // 4. Garantir registro em public.admin_users
-    const adminUserRes = await client.query("SELECT id FROM public.admin_users WHERE user_id = $1::uuid OR email = $2;", [userId, admin.email]);
+    const adminUserRes = await client.query(
+      "SELECT id FROM public.admin_users WHERE user_id = $1::uuid OR email = $2;",
+      [userId, admin.email],
+    );
     if (adminUserRes.rows.length === 0) {
       await client.query(
         `
@@ -253,7 +263,7 @@ async function main() {
           NOW()
         );
         `,
-        [userId, admin.email, admin.name]
+        [userId, admin.email, admin.name],
       );
       console.log(`✅ Registro inserido em public.admin_users.`);
     } else {
@@ -270,13 +280,16 @@ async function main() {
             updated_at = NOW()
         WHERE id = $4::uuid;
         `,
-        [userId, admin.email, admin.name, adminUserRes.rows[0].id]
+        [userId, admin.email, admin.name, adminUserRes.rows[0].id],
       );
       console.log(`✅ Registro atualizado em public.admin_users.`);
     }
 
     // 5. Garantir registro em public.user_roles
-    const roleRes = await client.query("SELECT id FROM public.user_roles WHERE user_id = $1::uuid;", [userId]);
+    const roleRes = await client.query(
+      "SELECT id FROM public.user_roles WHERE user_id = $1::uuid;",
+      [userId],
+    );
     if (roleRes.rows.length === 0) {
       await client.query(
         `
@@ -292,7 +305,7 @@ async function main() {
           NOW()
         );
         `,
-        [userId]
+        [userId],
       );
       console.log(`✅ Papel inserido em public.user_roles.`);
     } else {
@@ -302,7 +315,7 @@ async function main() {
         SET role = 'superadmin'
         WHERE user_id = $1::uuid;
         `,
-        [userId]
+        [userId],
       );
       console.log(`✅ Papel atualizado em public.user_roles.`);
     }

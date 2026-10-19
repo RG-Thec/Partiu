@@ -11,7 +11,6 @@ import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { supabaseAuthService, type AuthUserProfile } from "@/lib/auth/supabase-auth-service";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
-
 export interface UserPreferences {
   prefPushNotifications: boolean;
   prefSoundsHaptics: boolean;
@@ -80,18 +79,23 @@ export class UserService {
       } catch {}
     }
 
-    const localName = typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : null;
-    const localAvatar = typeof window !== "undefined"
-      ? localStorage.getItem("partiu_user_avatar") ||
-        localStorage.getItem("partiu_user_foto") ||
-        localStorage.getItem("partiu_user_selfie")
-      : null;
-    const localPhone = typeof window !== "undefined"
-      ? localStorage.getItem("partiu_user_phone") || localStorage.getItem("partiu_user_telefone")
-      : null;
+    const localName =
+      typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : null;
+    const localAvatar =
+      typeof window !== "undefined"
+        ? localStorage.getItem("partiu_user_avatar") ||
+          localStorage.getItem("partiu_user_foto") ||
+          localStorage.getItem("partiu_user_selfie")
+        : null;
+    const localPhone =
+      typeof window !== "undefined"
+        ? localStorage.getItem("partiu_user_phone") || localStorage.getItem("partiu_user_telefone")
+        : null;
     const localCpf = typeof window !== "undefined" ? localStorage.getItem("partiu_user_cpf") : null;
-    const localEmail = typeof window !== "undefined" ? localStorage.getItem("partiu_user_email") : null;
-    const localRating = typeof window !== "undefined" ? localStorage.getItem("partiu_user_rating") : null;
+    const localEmail =
+      typeof window !== "undefined" ? localStorage.getItem("partiu_user_email") : null;
+    const localRating =
+      typeof window !== "undefined" ? localStorage.getItem("partiu_user_rating") : null;
 
     const sessionName = session?.name && session.name !== "Passageiro" ? session.name : null;
     const sessionEmail = session?.email || null;
@@ -124,7 +128,9 @@ export class UserService {
     try {
       const targetUserId = session?.id;
       if (targetUserId) {
-        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetUserId);
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          targetUserId,
+        );
 
         const fetchRemote = async (): Promise<{ paxData: any; profData: any }> => {
           let query = (supabase as any).from("partiu_passageiros").select("*");
@@ -148,7 +154,7 @@ export class UserService {
         };
 
         const timeoutPromise = new Promise<{ paxData: any; profData: any }>((resolve) =>
-          setTimeout(() => resolve({ paxData: null, profData: null }), 2000)
+          setTimeout(() => resolve({ paxData: null, profData: null }), 2000),
         );
 
         const { paxData, profData } = await Promise.race([fetchRemote(), timeoutPromise]);
@@ -156,7 +162,8 @@ export class UserService {
         if (paxData) {
           base = {
             ...base,
-            name: (paxData.nome && paxData.nome !== "Passageiro" ? paxData.nome : null) || base.name,
+            name:
+              (paxData.nome && paxData.nome !== "Passageiro" ? paxData.nome : null) || base.name,
             phone: paxData.telefone || base.phone,
             cpf: paxData.cpf || base.cpf,
             email: paxData.email || base.email,
@@ -164,7 +171,8 @@ export class UserService {
             rating: paxData.rating ? Number(paxData.rating) : base.rating,
             totalTrips: paxData.total_viagens || base.totalTrips,
             preferences: {
-              prefPushNotifications: paxData.pref_push_notifications ?? base.preferences.prefPushNotifications,
+              prefPushNotifications:
+                paxData.pref_push_notifications ?? base.preferences.prefPushNotifications,
               prefSoundsHaptics: paxData.pref_sounds_haptics ?? base.preferences.prefSoundsHaptics,
               prefAc: paxData.pref_ac ?? base.preferences.prefAc,
               prefQuietTrip: paxData.pref_quiet_trip ?? base.preferences.prefQuietTrip,
@@ -179,7 +187,9 @@ export class UserService {
             } catch {}
           }
           if (base.name && base.name !== "Passageiro" && typeof window !== "undefined") {
-            try { localStorage.setItem("partiu_user_nome", base.name); } catch {}
+            try {
+              localStorage.setItem("partiu_user_nome", base.name);
+            } catch {}
           }
           if (base.phone && typeof window !== "undefined") {
             try {
@@ -188,10 +198,14 @@ export class UserService {
             } catch {}
           }
           if (base.cpf && typeof window !== "undefined") {
-            try { localStorage.setItem("partiu_user_cpf", base.cpf); } catch {}
+            try {
+              localStorage.setItem("partiu_user_cpf", base.cpf);
+            } catch {}
           }
           if (base.email && typeof window !== "undefined") {
-            try { localStorage.setItem("partiu_user_email", base.email); } catch {}
+            try {
+              localStorage.setItem("partiu_user_email", base.email);
+            } catch {}
           }
           this.saveStoredPreferences(base.preferences);
           return base;
@@ -200,7 +214,10 @@ export class UserService {
         if (profData) {
           base = {
             ...base,
-            name: (profData.full_name && profData.full_name !== "Passageiro" ? profData.full_name : null) || base.name,
+            name:
+              (profData.full_name && profData.full_name !== "Passageiro"
+                ? profData.full_name
+                : null) || base.name,
             phone: profData.phone || base.phone,
             cpf: profData.cpf || base.cpf,
             avatarUrl: profData.avatar_url || base.avatarUrl,
@@ -213,7 +230,9 @@ export class UserService {
             } catch {}
           }
           if (base.name && base.name !== "Passageiro" && typeof window !== "undefined") {
-            try { localStorage.setItem("partiu_user_nome", base.name); } catch {}
+            try {
+              localStorage.setItem("partiu_user_nome", base.name);
+            } catch {}
           }
           if (base.phone && typeof window !== "undefined") {
             try {
@@ -222,14 +241,20 @@ export class UserService {
             } catch {}
           }
           if (base.cpf && typeof window !== "undefined") {
-            try { localStorage.setItem("partiu_user_cpf", base.cpf); } catch {}
+            try {
+              localStorage.setItem("partiu_user_cpf", base.cpf);
+            } catch {}
           }
           if (base.email && typeof window !== "undefined") {
-            try { localStorage.setItem("partiu_user_email", base.email); } catch {}
+            try {
+              localStorage.setItem("partiu_user_email", base.email);
+            } catch {}
           }
         }
       }
-    } catch (err) { silentCatchWarn("UserService", err); }
+    } catch (err) {
+      silentCatchWarn("UserService", err);
+    }
 
     return base;
   }
@@ -262,7 +287,7 @@ export class UserService {
       window.dispatchEvent(
         new CustomEvent("partiu:user-profile-updated", {
           detail: { name: data.name, avatarUrl: data.avatarUrl, phone: data.phone, cpf: data.cpf },
-        })
+        }),
       );
     }
 
@@ -277,7 +302,8 @@ export class UserService {
       : {
           id: userId || `usr-pax-${Date.now().toString(36)}`,
           name: data.name || "Passageiro",
-          email: typeof window !== "undefined" ? localStorage.getItem("partiu_user_email") || "" : "",
+          email:
+            typeof window !== "undefined" ? localStorage.getItem("partiu_user_email") || "" : "",
           phone: data.phone || "",
           cpf: data.cpf || "",
           role: "PASSAGEIRO",
@@ -291,17 +317,17 @@ export class UserService {
     // 2. Atualiza Supabase
     if (isSupabaseConfigured() && userId) {
       try {
-        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          userId,
+        );
 
-        let paxQuery = (supabase as any)
-          .from("partiu_passageiros")
-          .update({
-            nome: data.name,
-            telefone: data.phone,
-            cpf: data.cpf || undefined,
-            foto_url: data.avatarUrl || undefined,
-            updated_at: new Date().toISOString(),
-          });
+        let paxQuery = (supabase as any).from("partiu_passageiros").update({
+          nome: data.name,
+          telefone: data.phone,
+          cpf: data.cpf || undefined,
+          foto_url: data.avatarUrl || undefined,
+          updated_at: new Date().toISOString(),
+        });
 
         if (isUuid) {
           paxQuery = paxQuery.or(`user_id.eq.${userId},id.eq.${userId}`);
@@ -334,7 +360,9 @@ export class UserService {
   /**
    * Upload real de avatar no Supabase Storage (bucket 'avatares')
    */
-  public async uploadAvatar(file: File): Promise<{ success: boolean; url?: string; error?: string }> {
+  public async uploadAvatar(
+    file: File,
+  ): Promise<{ success: boolean; url?: string; error?: string }> {
     if (!file) return { success: false, error: "Arquivo inválido" };
 
     const fileExt = file.name.split(".").pop() || "jpg";
@@ -354,8 +382,14 @@ export class UserService {
           const { data } = supabase.storage.from("avatares").getPublicUrl(filePath);
           if (data?.publicUrl) {
             await this.updateUserProfile({
-              name: typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") || "Passageiro" : "Passageiro",
-              phone: typeof window !== "undefined" ? localStorage.getItem("partiu_user_phone") || "" : "",
+              name:
+                typeof window !== "undefined"
+                  ? localStorage.getItem("partiu_user_nome") || "Passageiro"
+                  : "Passageiro",
+              phone:
+                typeof window !== "undefined"
+                  ? localStorage.getItem("partiu_user_phone") || ""
+                  : "",
               avatarUrl: data.publicUrl,
             });
             return { success: true, url: data.publicUrl };
@@ -377,8 +411,12 @@ export class UserService {
           localStorage.setItem("partiu_user_selfie", base64);
         }
         await this.updateUserProfile({
-          name: typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") || "Passageiro" : "Passageiro",
-          phone: typeof window !== "undefined" ? localStorage.getItem("partiu_user_phone") || "" : "",
+          name:
+            typeof window !== "undefined"
+              ? localStorage.getItem("partiu_user_nome") || "Passageiro"
+              : "Passageiro",
+          phone:
+            typeof window !== "undefined" ? localStorage.getItem("partiu_user_phone") || "" : "",
           avatarUrl: base64,
         });
         resolve({ success: true, url: base64 });
@@ -407,17 +445,17 @@ export class UserService {
       if (!userId) return;
 
       try {
-        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
-        let updateQuery = (supabase as any)
-          .from("partiu_passageiros")
-          .update({
-            pref_push_notifications: updated.prefPushNotifications,
-            pref_sounds_haptics: updated.prefSoundsHaptics,
-            pref_ac: updated.prefAc,
-            pref_quiet_trip: updated.prefQuietTrip,
-            pref_require_pin: updated.prefRequirePin,
-            updated_at: new Date().toISOString(),
-          });
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          userId,
+        );
+        let updateQuery = (supabase as any).from("partiu_passageiros").update({
+          pref_push_notifications: updated.prefPushNotifications,
+          pref_sounds_haptics: updated.prefSoundsHaptics,
+          pref_ac: updated.prefAc,
+          pref_quiet_trip: updated.prefQuietTrip,
+          pref_require_pin: updated.prefRequirePin,
+          updated_at: new Date().toISOString(),
+        });
 
         if (isUuid) {
           updateQuery = updateQuery.or(`user_id.eq.${userId},id.eq.${userId}`);
@@ -426,7 +464,9 @@ export class UserService {
         }
 
         await updateQuery;
-      } catch (err) { silentCatchWarn("UserService", err); }
+      } catch (err) {
+        silentCatchWarn("UserService", err);
+      }
     }, 800);
   }
 
@@ -435,7 +475,9 @@ export class UserService {
     try {
       const raw = localStorage.getItem(STORAGE_PREFERENCES_KEY);
       if (raw) return JSON.parse(raw);
-    } catch (err) { silentCatchWarn("UserService", err); }
+    } catch (err) {
+      silentCatchWarn("UserService", err);
+    }
     return DEFAULT_PROFILE.preferences;
   }
 
@@ -443,7 +485,9 @@ export class UserService {
     if (typeof window === "undefined") return;
     try {
       localStorage.setItem(STORAGE_PREFERENCES_KEY, JSON.stringify(prefs));
-    } catch (err) { silentCatchWarn("UserService", err); }
+    } catch (err) {
+      silentCatchWarn("UserService", err);
+    }
   }
 }
 

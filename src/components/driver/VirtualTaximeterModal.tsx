@@ -146,8 +146,12 @@ export const VirtualTaximeterModal: React.FC<VirtualTaximeterModalProps> = ({
               ⏱️
             </div>
             <div>
-              <h2 className="text-base font-black text-white tracking-tight">Taxímetro Virtual Inteligente</h2>
-              <span className="text-xs text-slate-300 font-semibold">Corrida de Rua • Pega Direto</span>
+              <h2 className="text-base font-black text-white tracking-tight">
+                Taxímetro Virtual Inteligente
+              </h2>
+              <span className="text-xs text-slate-300 font-semibold">
+                Corrida de Rua • Pega Direto
+              </span>
             </div>
           </div>
 
@@ -261,7 +265,8 @@ export const VirtualTaximeterModal: React.FC<VirtualTaximeterModalProps> = ({
                   {receipt.fareBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                 </span>
                 <span className="text-xs text-emerald-300 font-bold block">
-                  Líquido Condutor: R$ {receipt.netDriverBrl.toFixed(2)} • Taxa Plataforma (10%): R$ {receipt.platformFeeBrl.toFixed(2)}
+                  Líquido Condutor: R$ {receipt.netDriverBrl.toFixed(2)} • Taxa Plataforma (10%): R${" "}
+                  {receipt.platformFeeBrl.toFixed(2)}
                 </span>
               </div>
 
@@ -318,8 +323,8 @@ export const VirtualTaximeterModal: React.FC<VirtualTaximeterModalProps> = ({
                       state.status === "RUNNING"
                         ? "text-emerald-400"
                         : state.status === "PAUSED"
-                        ? "text-amber-400"
-                        : "text-slate-400"
+                          ? "text-amber-400"
+                          : "text-slate-400"
                     }`}
                   >
                     <span
@@ -327,17 +332,24 @@ export const VirtualTaximeterModal: React.FC<VirtualTaximeterModalProps> = ({
                         state.status === "RUNNING"
                           ? "bg-emerald-400 animate-pulse"
                           : state.status === "PAUSED"
-                          ? "bg-amber-400"
-                          : "bg-slate-500"
+                            ? "bg-amber-400"
+                            : "bg-slate-500"
                       }`}
                     />
-                    {state.status === "RUNNING" ? "RODANDO" : state.status === "PAUSED" ? "EM ESPERA" : "AGUARDANDO"}
+                    {state.status === "RUNNING"
+                      ? "RODANDO"
+                      : state.status === "PAUSED"
+                        ? "EM ESPERA"
+                        : "AGUARDANDO"}
                   </span>
                 </div>
 
                 <div className="py-2">
                   <span className="text-4xl sm:text-5xl font-mono font-black text-emerald-400 tracking-tight block">
-                    {state.currentFareBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    {state.currentFareBrl.toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
                   </span>
                 </div>
 
@@ -360,7 +372,9 @@ export const VirtualTaximeterModal: React.FC<VirtualTaximeterModalProps> = ({
                   <span className="text-xl font-mono font-black text-white block">
                     {state.currentSpeedKmH}
                   </span>
-                  <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">km/h</span>
+                  <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+                    km/h
+                  </span>
                 </div>
 
                 {/* Odômetro */}
@@ -371,7 +385,9 @@ export const VirtualTaximeterModal: React.FC<VirtualTaximeterModalProps> = ({
                   <span className="text-xl font-mono font-black text-white block">
                     {state.distanceKm.toFixed(2)}
                   </span>
-                  <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">km rodados</span>
+                  <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+                    km rodados
+                  </span>
                 </div>
 
                 {/* Cronômetro */}
@@ -382,7 +398,9 @@ export const VirtualTaximeterModal: React.FC<VirtualTaximeterModalProps> = ({
                   <span className="text-xl font-mono font-black text-white block">
                     {formatElapsed(state.elapsedSeconds)}
                   </span>
-                  <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">tempo</span>
+                  <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+                    tempo
+                  </span>
                 </div>
               </div>
 

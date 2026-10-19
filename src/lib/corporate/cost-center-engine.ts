@@ -1,6 +1,6 @@
 /**
  * PARTIU COST CENTER ENGINE
- * 
+ *
  * Gestão de Centros de Custo e Dotação Orçamentária Corporativa.
  * Permite rateio de despesas de viagens corporativas e auditoria contábil.
  */
@@ -28,43 +28,50 @@ export class CorporateCostCenterEngine {
   private initializeDefaultCorporateCostCenters(): void {
     const defaultCCs: CorporateCostCenter[] = [
       {
-        costCenterCode: 'CC-ENG-2026',
-        corporateId: 'CORP-PETRO-01',
-        name: 'Centro de Custos Engenharia de Campo',
-        department: 'Engenharia',
+        costCenterCode: "CC-ENG-2026",
+        corporateId: "CORP-PETRO-01",
+        name: "Centro de Custos Engenharia de Campo",
+        department: "Engenharia",
         monthlyBudgetBrl: 25000.0,
         currentSpendBrl: 8420.0,
         availableBudgetBrl: 16580.0,
-        managerEmail: 'rodrigo.alvarenga@petroserv.com.br',
+        managerEmail: "rodrigo.alvarenga@petroserv.com.br",
         isOverBudget: false,
-        isActive: true
+        isActive: true,
       },
       {
-        costCenterCode: 'CC-OPS-2026',
-        corporateId: 'CORP-PETRO-01',
-        name: 'Centro de Custos Operações Portuárias',
-        department: 'Operações Offshore',
+        costCenterCode: "CC-OPS-2026",
+        corporateId: "CORP-PETRO-01",
+        name: "Centro de Custos Operações Portuárias",
+        department: "Operações Offshore",
         monthlyBudgetBrl: 40000.0,
         currentSpendBrl: 12300.0,
         availableBudgetBrl: 27700.0,
-        managerEmail: 'operacoes@petroserv.com.br',
+        managerEmail: "operacoes@petroserv.com.br",
         isOverBudget: false,
-        isActive: true
-      }
+        isActive: true,
+      },
     ];
 
-    defaultCCs.forEach(cc => this.registerCorporateCostCenter(cc));
+    defaultCCs.forEach((cc) => this.registerCorporateCostCenter(cc));
   }
 
   public registerCorporateCostCenter(costCenter: CorporateCostCenter): void {
     this.costCenters.set(`${costCenter.corporateId}_${costCenter.costCenterCode}`, costCenter);
   }
 
-  public getCorporateCostCenter(corporateId: string, costCenterCode: string): CorporateCostCenter | undefined {
+  public getCorporateCostCenter(
+    corporateId: string,
+    costCenterCode: string,
+  ): CorporateCostCenter | undefined {
     return this.costCenters.get(`${corporateId}_${costCenterCode}`);
   }
 
-  public debitCorporateCostCenter(corporateId: string, costCenterCode: string, amountBrl: number): boolean {
+  public debitCorporateCostCenter(
+    corporateId: string,
+    costCenterCode: string,
+    amountBrl: number,
+  ): boolean {
     const cc = this.getCorporateCostCenter(corporateId, costCenterCode);
     if (!cc || !cc.isActive) return false;
 
@@ -75,7 +82,7 @@ export class CorporateCostCenterEngine {
   }
 
   public getCorporateCostCentersByCorporate(corporateId: string): CorporateCostCenter[] {
-    return Array.from(this.costCenters.values()).filter(cc => cc.corporateId === corporateId);
+    return Array.from(this.costCenters.values()).filter((cc) => cc.corporateId === corporateId);
   }
 
   // Aliases for seamless compatibility
@@ -83,7 +90,10 @@ export class CorporateCostCenterEngine {
     this.registerCorporateCostCenter(costCenter);
   }
 
-  public getCostCenter(corporateId: string, costCenterCode: string): CorporateCostCenter | undefined {
+  public getCostCenter(
+    corporateId: string,
+    costCenterCode: string,
+  ): CorporateCostCenter | undefined {
     return this.getCorporateCostCenter(corporateId, costCenterCode);
   }
 

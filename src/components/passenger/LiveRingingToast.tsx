@@ -19,4 +19,3 @@ export const LiveRingingToast = memo(function LiveRingingToast() {
   // efeito glassmorphism e acima da barra de progresso da busca.
   return null;
 });
-

@@ -6,6 +6,7 @@ screens.md). Scenarios in scenarios.md trace to FLW-IDs and must cover every
 node and edge. -->
 
 ### FLW-01: Solicitação e Embarque da Corrida
+
 - **Traces:** ST-001 (JTBD-01, JRN-01/#1)
 - **Goal:** Passageiro solicita categoria com preço garantido, localiza motorista parceiro próximo e realiza o embarque
 - **Entry points:** Tela inicial do passageiro
@@ -29,13 +30,14 @@ flowchart TD
 ```
 
 - **Screens traversed:**
-  | Screen | States used here |
-  |--------|------------------|
-  | SCR-08 Mapa e Solicitação de Viagem | success, loading, error |
-  | SCR-09 Experiência En Route | success |
-  | SCR-14 Cockpit Operacional do Motorista | success |
+  | Screen                                  | States used here        |
+  | --------------------------------------- | ----------------------- |
+  | SCR-08 Mapa e Solicitação de Viagem     | success, loading, error |
+  | SCR-09 Experiência En Route             | success                 |
+  | SCR-14 Cockpit Operacional do Motorista | success                 |
 
 ### FLW-02: Cumprimento e Finalização de Corrida pelo Motorista
+
 - **Traces:** ST-002 (JTBD-02, JRN-02/#2)
 - **Goal:** Motorista aceita chamada no cockpit, cumpre o trajeto com navegação fluida e conclui a corrida
 - **Entry points:** Cockpit operacional do motorista
@@ -58,13 +60,14 @@ flowchart TD
 ```
 
 - **Screens traversed:**
-  | Screen | States used here |
-  |--------|------------------|
-  | SCR-09 Experiência En Route | success |
-  | SCR-14 Cockpit Operacional do Motorista | success, error |
-  | SCR-20 Gestão Financeira e Caixa D+0 | success |
+  | Screen                                  | States used here |
+  | --------------------------------------- | ---------------- |
+  | SCR-09 Experiência En Route             | success          |
+  | SCR-14 Cockpit Operacional do Motorista | success, error   |
+  | SCR-20 Gestão Financeira e Caixa D+0    | success          |
 
 ### FLW-03: Gestão de Emergência e Acionamento de SOS
+
 - **Traces:** ST-003 (JTBD-01, JRN-01/#4)
 - **Goal:** Usuário em situação de perigo dispara o protocolo de segurança operacional e chamada para 190
 - **Entry points:** Botão SOS em destaque permanente na tela de viagem
@@ -84,13 +87,14 @@ flowchart TD
 ```
 
 - **Screens traversed:**
-  | Screen | States used here |
-  |--------|------------------|
-  | SCR-09 Experiência En Route | success |
-  | SCR-10 Central de SOS e Emergência | success, error |
-  | SCR-22 Central de Incidentes SOS Admin | success |
+  | Screen                                 | States used here |
+  | -------------------------------------- | ---------------- |
+  | SCR-09 Experiência En Route            | success          |
+  | SCR-10 Central de SOS e Emergência     | success, error   |
+  | SCR-22 Central de Incidentes SOS Admin | success          |
 
 ### FLW-04: Liquidação Financeira Instantânea com Split Pix
+
 - **Traces:** ST-004 (JTBD-02, JRN-02/#5)
 - **Goal:** Cobrança debitada e valor líquido transferido com liquidação imediata e registro contábil de partidas dobradas
 - **Entry points:** Finalização da corrida pelo condutor
@@ -112,12 +116,13 @@ flowchart TD
 ```
 
 - **Screens traversed:**
-  | Screen | States used here |
-  |--------|------------------|
-  | SCR-14 Cockpit Operacional do Motorista | success |
-  | SCR-20 Gestão Financeira e Caixa D+0 | success, error |
+  | Screen                                  | States used here |
+  | --------------------------------------- | ---------------- |
+  | SCR-14 Cockpit Operacional do Motorista | success          |
+  | SCR-20 Gestão Financeira e Caixa D+0    | success, error   |
 
 ### FLW-05: Onboarding e Autenticação Unificada
+
 - **Traces:** ST-005 (JTBD-01, JRN-01/#1)
 - **Goal:** Apresentar a plataforma, permitir seleção entre passageiro e motorista e concluir o cadastro
 - **Entry points:** Landing page pública ou splash inicial
@@ -139,16 +144,17 @@ flowchart TD
 ```
 
 - **Screens traversed:**
-  | Screen | States used here |
-  |--------|------------------|
-  | SCR-01 Tela Inicial e Landing Page | success |
-  | SCR-02 Tela de Carregamento e Splash | success, loading |
+  | Screen                                        | States used here        |
+  | --------------------------------------------- | ----------------------- |
+  | SCR-01 Tela Inicial e Landing Page            | success                 |
+  | SCR-02 Tela de Carregamento e Splash          | success, loading        |
   | SCR-03 Tela de Login e Autenticação Unificada | success, error, loading |
-  | SCR-04 Seleção de Modalidade de Cadastro | success |
-  | SCR-05 Cadastro de Passageiro | success, error |
-  | SCR-06 Cadastro de Motorista Parceiro | success, error |
+  | SCR-04 Seleção de Modalidade de Cadastro      | success                 |
+  | SCR-05 Cadastro de Passageiro                 | success, error          |
+  | SCR-06 Cadastro de Motorista Parceiro         | success, error          |
 
 ### FLW-06: Resiliência Offline e Sincronização de Rede
+
 - **Traces:** ST-006 (JTBD-01, JRN-01/#3)
 - **Goal:** Proteger o estado da corrida durante quedas transitórias de conectividade
 - **Entry points:** Oscilação de dados móveis em segundo plano
@@ -167,13 +173,14 @@ flowchart TD
 ```
 
 - **Screens traversed:**
-  | Screen | States used here |
-  |--------|------------------|
-  | SCR-07 Banner de Resiliência de Rede e Modo Offline | success, error |
-  | SCR-08 Mapa e Solicitação de Viagem | success |
-  | SCR-14 Cockpit Operacional do Motorista | success |
+  | Screen                                              | States used here |
+  | --------------------------------------------------- | ---------------- |
+  | SCR-07 Banner de Resiliência de Rede e Modo Offline | success, error   |
+  | SCR-08 Mapa e Solicitação de Viagem                 | success          |
+  | SCR-14 Cockpit Operacional do Motorista             | success          |
 
 ### FLW-07: Consulta de Histórico e Encomendas
+
 - **Traces:** ST-007 (JTBD-01, JRN-01/#5)
 - **Goal:** Permitir ao usuário consultar corridas anteriores, gerenciar perfil e solicitar entregas
 - **Entry points:** Menu inferior do passageiro
@@ -191,13 +198,14 @@ flowchart TD
 ```
 
 - **Screens traversed:**
-  | Screen | States used here |
-  |--------|------------------|
+  | Screen                                   | States used here      |
+  | ---------------------------------------- | --------------------- |
   | SCR-11 Bilhetes e Histórico de Atividade | success, empty, error |
-  | SCR-12 Envio de Encomendas Expressas | success, error |
-  | SCR-13 Perfil do Passageiro | success, error |
+  | SCR-12 Envio de Encomendas Expressas     | success, error        |
+  | SCR-13 Perfil do Passageiro              | success, error        |
 
 ### FLW-08: Governança e Painel Administrativo
+
 - **Traces:** ST-008 (JTBD-03, JRN-01/#2)
 - **Goal:** Fornecer ao gestor visão global de telemetria, aprovação de condutores e personalização
 - **Entry points:** Rota administrativa restrita (/app/admin)
@@ -221,14 +229,14 @@ flowchart TD
 ```
 
 - **Screens traversed:**
-  | Screen | States used here |
-  |--------|------------------|
-  | SCR-15 Painel Administrativo Geral e Layout | success |
-  | SCR-16 Dashboard Executivo e Telemetria | success |
-  | SCR-17 Central de Despacho e Operação ao Vivo | success |
-  | SCR-18 Gestão de Motoristas e Frota | success |
-  | SCR-19 Gestão de Passageiros | success |
-  | SCR-21 Estúdio White Label | success |
-  | SCR-23 Configurações Globais do Sistema | success |
-  | SCR-24 Diagnóstico Geoespacial & WebGL | success |
-  | SCR-25 Gestão Central de Franqueados & Multi-Tenant | success |
+  | Screen                                              | States used here |
+  | --------------------------------------------------- | ---------------- |
+  | SCR-15 Painel Administrativo Geral e Layout         | success          |
+  | SCR-16 Dashboard Executivo e Telemetria             | success          |
+  | SCR-17 Central de Despacho e Operação ao Vivo       | success          |
+  | SCR-18 Gestão de Motoristas e Frota                 | success          |
+  | SCR-19 Gestão de Passageiros                        | success          |
+  | SCR-21 Estúdio White Label                          | success          |
+  | SCR-23 Configurações Globais do Sistema             | success          |
+  | SCR-24 Diagnóstico Geoespacial & WebGL              | success          |
+  | SCR-25 Gestão Central de Franqueados & Multi-Tenant | success          |

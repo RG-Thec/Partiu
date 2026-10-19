@@ -94,11 +94,15 @@ export function RouteSheetFooter({
             {pagamentoNaMaquininha
               ? "Maquininha do Motorista"
               : formaPagamento === "pix"
-              ? "PIX Direto"
-              : paymentInfo.label}
+                ? "PIX Direto"
+                : paymentInfo.label}
           </span>
           <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full shrink-0">
-            {pagamentoNaMaquininha ? "Cartão" : formaPagamento === "pix" ? "Instantâneo" : "Presencial"}
+            {pagamentoNaMaquininha
+              ? "Cartão"
+              : formaPagamento === "pix"
+                ? "Instantâneo"
+                : "Presencial"}
           </span>
         </div>
 
@@ -116,9 +120,12 @@ export function RouteSheetFooter({
         <div className="flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs animate-in fade-in">
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <div className="min-w-0">
-            <p className="font-bold text-amber-950 dark:text-amber-100">Fora da Área de Atendimento</p>
+            <p className="font-bold text-amber-950 dark:text-amber-100">
+              Fora da Área de Atendimento
+            </p>
             <p className="text-[11px] text-amber-800 dark:text-amber-300 mt-0.5 leading-snug">
-              {territoryStatusMessage || "O ponto de embarque selecionado está fora da área de atuação desta praça."}
+              {territoryStatusMessage ||
+                "O ponto de embarque selecionado está fora da área de atuação desta praça."}
             </p>
           </div>
         </div>
@@ -143,12 +150,12 @@ export function RouteSheetFooter({
           isOutsideServiceArea
             ? undefined
             : corPrimaria && corSecundaria
-            ? {
-                backgroundImage: `linear-gradient(to right, ${corPrimaria}, ${corSecundaria})`,
-              }
-            : corPrimaria
-            ? { backgroundColor: corPrimaria }
-            : undefined
+              ? {
+                  backgroundImage: `linear-gradient(to right, ${corPrimaria}, ${corSecundaria})`,
+                }
+              : corPrimaria
+                ? { backgroundColor: corPrimaria }
+                : undefined
         }
       >
         {isOutsideServiceArea ? (

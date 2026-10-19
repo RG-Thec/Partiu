@@ -56,7 +56,9 @@ export function SubscriptionProvider({
 }) {
   const [accessDecision, setAccessDecision] = useState<DriverAccessDecision>(defaultDecision);
   const [plans, setPlans] = useState<MonetizationPlan[]>(DEFAULT_MONETIZATION_PLANS);
-  const [selectedPlan, setSelectedPlan] = useState<MonetizationPlan | undefined>(DEFAULT_MONETIZATION_PLANS[0]);
+  const [selectedPlan, setSelectedPlan] = useState<MonetizationPlan | undefined>(
+    DEFAULT_MONETIZATION_PLANS[0],
+  );
   const [cycleType, setCycleType] = useState<"DAILY" | "WEEKLY" | "MONTHLY">("DAILY");
   const [activeBilling, setActiveBilling] = useState<DriverBillingRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -131,7 +133,7 @@ export function SubscriptionProvider({
             if (payload.new && payload.new.status === "ACTIVE") {
               triggerInstantActivation();
             }
-          }
+          },
         )
         .subscribe();
     }
@@ -148,7 +150,11 @@ export function SubscriptionProvider({
   const generateBilling = async (planId?: string): Promise<DriverBillingRecord | null> => {
     const targetPlanId = planId || selectedPlan?.id || plans[0]?.id || "plano-diaria-essencial";
     try {
-      const billing = await pixBillingService.createDriverBilling(driverId, targetPlanId, cycleType);
+      const billing = await pixBillingService.createDriverBilling(
+        driverId,
+        targetPlanId,
+        cycleType,
+      );
       setActiveBilling(billing);
       return billing;
     } catch (err) {

@@ -1,6 +1,6 @@
 /**
  * PARTIU ADS ANALYTICS & TELEMETRY
- * 
+ *
  * Telemetria e Análise de Performance de Campanhas Publicitárias do Comércio Local.
  */
 
@@ -19,7 +19,10 @@ export interface CampaignPerformanceMetrics {
 }
 
 export class AdsAnalyticsEngine {
-  private metrics: Map<string, { impressions: number; clicks: number; conversions: number; spend: number }> = new Map();
+  private metrics: Map<
+    string,
+    { impressions: number; clicks: number; conversions: number; spend: number }
+  > = new Map();
 
   public recordImpression(campaignId: string, costBrl: number = 0): void {
     const entry = this.getOrCreate(campaignId);
@@ -49,10 +52,17 @@ export class AdsAnalyticsEngine {
   }
 
   public getCampaignMetrics(campaignId: string, businessName: string): CampaignPerformanceMetrics {
-    const raw = this.metrics.get(campaignId) || { impressions: 1250, clicks: 58, conversions: 14, spend: 82.50 };
+    const raw = this.metrics.get(campaignId) || {
+      impressions: 1250,
+      clicks: 58,
+      conversions: 14,
+      spend: 82.5,
+    };
 
-    const ctr = raw.impressions > 0 ? Number(((raw.clicks / raw.impressions) * 100).toFixed(2)) : 4.64;
-    const convRate = raw.clicks > 0 ? Number(((raw.conversions / raw.clicks) * 100).toFixed(2)) : 24.14;
+    const ctr =
+      raw.impressions > 0 ? Number(((raw.clicks / raw.impressions) * 100).toFixed(2)) : 4.64;
+    const convRate =
+      raw.clicks > 0 ? Number(((raw.conversions / raw.clicks) * 100).toFixed(2)) : 24.14;
     const avgCpc = raw.clicks > 0 ? Number((raw.spend / raw.clicks).toFixed(2)) : 1.42;
     const avgCpa = raw.conversions > 0 ? Number((raw.spend / raw.conversions).toFixed(2)) : 5.89;
 
@@ -71,7 +81,7 @@ export class AdsAnalyticsEngine {
       conversionRatePct: convRate,
       averageCpcBrl: avgCpc,
       averageCpaBrl: avgCpa,
-      returnOnAdSpendMultiplier: roas
+      returnOnAdSpendMultiplier: roas,
     };
   }
 }

@@ -48,33 +48,59 @@ export const Route = createFileRoute("/app/admin/locais")({
 });
 
 const ESTADOS_BRASIL = [
-  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
-  "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN",
-  "RS", "RO", "RR", "SC", "SP", "SE", "TO"
+  "AC",
+  "AL",
+  "AP",
+  "AM",
+  "BA",
+  "CE",
+  "DF",
+  "ES",
+  "GO",
+  "MA",
+  "MT",
+  "MS",
+  "MG",
+  "PA",
+  "PB",
+  "PR",
+  "PE",
+  "PI",
+  "RJ",
+  "RN",
+  "RS",
+  "RO",
+  "RR",
+  "SC",
+  "SP",
+  "SE",
+  "TO",
 ];
 
 const COORDENADAS_PREDEFINIDAS: Record<string, { lat: number; lng: number }> = {
-  "Itaperuna": { lat: -21.2054, lng: -41.8892 },
+  Itaperuna: { lat: -21.2054, lng: -41.8892 },
   "Campos dos Goytacazes": { lat: -21.7545, lng: -41.3244 },
   "São Paulo": { lat: -23.5505, lng: -46.6333 },
   "Rio de Janeiro": { lat: -22.9068, lng: -43.1729 },
   "Belo Horizonte": { lat: -19.9167, lng: -43.9345 },
-  "Salvador": { lat: -12.9714, lng: -38.5014 },
-  "Recife": { lat: -8.0476, lng: -34.8770 },
-  "Fortaleza": { lat: -3.7319, lng: -38.5267 },
-  "Brasília": { lat: -15.7975, lng: -47.8919 },
-  "Curitiba": { lat: -25.4284, lng: -49.2733 },
+  Salvador: { lat: -12.9714, lng: -38.5014 },
+  Recife: { lat: -8.0476, lng: -34.877 },
+  Fortaleza: { lat: -3.7319, lng: -38.5267 },
+  Brasília: { lat: -15.7975, lng: -47.8919 },
+  Curitiba: { lat: -25.4284, lng: -49.2733 },
 };
 
 export function AdminLocaisPage() {
   const { pracaAtiva, selecionarPraca } = useAdminCity();
   const adminRole = getAdminRole();
   const [pracas, setPracas] = useState<AdminPracaOperacao[]>(() =>
-    carregarPracasDisponiveis().filter((p) => p.id !== "todas")
+    carregarPracasDisponiveis().filter((p) => p.id !== "todas"),
   );
   const [busca, setBusca] = useState("");
-  const [filtroStatus, setFiltroStatus] = useState<"TODOS" | "ATIVA" | "EM_CONFIGURACAO" | "PAUSADA">("TODOS");
-  
+  const [filtroStatus, setFiltroStatus] = useState<
+    "TODOS" | "ATIVA" | "EM_CONFIGURACAO" | "PAUSADA"
+  >("TODOS");
+
   // Modal de Criação / Edição
   const [modalAberto, setModalAberto] = useState(false);
   const [pracaEmEdicao, setPracaEmEdicao] = useState<AdminPracaOperacao | null>(null);
@@ -193,7 +219,11 @@ export function AdminLocaisPage() {
   };
 
   const handleRemover = (id: string, nome: string) => {
-    if (window.confirm(`Tem certeza que deseja excluir a praça "${nome}"? Esta ação removerá o raio de despacho desta região.`)) {
+    if (
+      window.confirm(
+        `Tem certeza que deseja excluir a praça "${nome}"? Esta ação removerá o raio de despacho desta região.`,
+      )
+    ) {
       removerPraca(id);
       recarregarPracas();
       setSucessoFeedback(`Praça ${nome} removida.`);
@@ -234,7 +264,10 @@ export function AdminLocaisPage() {
           <div className="flex items-center gap-2 mb-1">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              Expansão &amp; Gestão Territorial • {isFranqueado(adminRole) ? `Franquia ${pracaAtiva?.nome || "Regional"}` : "Gestão Nacional"}
+              Expansão &amp; Gestão Territorial •{" "}
+              {isFranqueado(adminRole)
+                ? `Franquia ${pracaAtiva?.nome || "Regional"}`
+                : "Gestão Nacional"}
             </span>
           </div>
           <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
@@ -244,7 +277,8 @@ export function AdminLocaisPage() {
             </span>
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Parametrização de raio de despacho (km), coordenadas do GPS e status de operação por praça.
+            Parametrização de raio de despacho (km), coordenadas do GPS e status de operação por
+            praça.
           </p>
         </div>
 
@@ -294,20 +328,18 @@ export function AdminLocaisPage() {
             <span className="text-[10px] font-black uppercase text-emerald-600">Praças Ativas</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </div>
-          <div className="text-xl sm:text-2xl font-black text-emerald-600">
-            {ativasCount}
-          </div>
+          <div className="text-xl sm:text-2xl font-black text-emerald-600">{ativasCount}</div>
           <div className="text-[11px] text-emerald-700/80 mt-0.5">Despacho em tempo real</div>
         </div>
 
         <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
           <div className="flex items-center justify-between text-slate-500 mb-1">
-            <span className="text-[10px] font-black uppercase text-amber-600">Em Expansão / Config</span>
+            <span className="text-[10px] font-black uppercase text-amber-600">
+              Em Expansão / Config
+            </span>
             <Clock className="w-4 h-4 text-amber-500" />
           </div>
-          <div className="text-xl sm:text-2xl font-black text-amber-600">
-            {emConfigCount}
-          </div>
+          <div className="text-xl sm:text-2xl font-black text-amber-600">{emConfigCount}</div>
           <div className="text-[11px] text-amber-700/80 mt-0.5">Fase de cadastramento</div>
         </div>
 
@@ -432,7 +464,9 @@ export function AdminLocaisPage() {
                       <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500">
                         <div className="flex items-center gap-1 text-slate-700 font-semibold">
                           <MapPin className="w-3 h-3 text-[#0088FF]" />
-                          <span>{praca.lat.toFixed(4)}, {praca.lng.toFixed(4)}</span>
+                          <span>
+                            {praca.lat.toFixed(4)}, {praca.lng.toFixed(4)}
+                          </span>
                         </div>
                         <a
                           href={`https://www.google.com/maps?q=${praca.lat},${praca.lng}`}
@@ -556,16 +590,18 @@ export function AdminLocaisPage() {
                   Sugestões Rápidas:
                 </label>
                 <div className="flex flex-wrap gap-1">
-                  {Object.keys(COORDENADAS_PREDEFINIDAS).slice(0, 6).map((cidade) => (
-                    <button
-                      key={cidade}
-                      type="button"
-                      onClick={() => handleSugestaoCidade(cidade)}
-                      className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
-                    >
-                      {cidade}
-                    </button>
-                  ))}
+                  {Object.keys(COORDENADAS_PREDEFINIDAS)
+                    .slice(0, 6)
+                    .map((cidade) => (
+                      <button
+                        key={cidade}
+                        type="button"
+                        onClick={() => handleSugestaoCidade(cidade)}
+                        className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
+                      >
+                        {cidade}
+                      </button>
+                    ))}
                 </div>
               </div>
             )}
@@ -573,7 +609,9 @@ export function AdminLocaisPage() {
             <form onSubmit={handleSalvarPraca} className="space-y-3">
               <div className="grid grid-cols-3 gap-2.5">
                 <div className="col-span-2 space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Nome da Cidade</label>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                    Nome da Cidade
+                  </label>
                   <input
                     type="text"
                     required
@@ -584,7 +622,9 @@ export function AdminLocaisPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">UF</label>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                    UF
+                  </label>
                   <select
                     value={formUf}
                     onChange={(e) => setFormUf(e.target.value)}
@@ -601,7 +641,9 @@ export function AdminLocaisPage() {
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Latitude Central</label>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                    Latitude Central
+                  </label>
                   <input
                     type="text"
                     required
@@ -612,7 +654,9 @@ export function AdminLocaisPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Longitude Central</label>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                    Longitude Central
+                  </label>
                   <input
                     type="text"
                     required
@@ -627,7 +671,8 @@ export function AdminLocaisPage() {
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">
-                    Raio de Despacho: <span className="text-primary font-black">{formRaioKm} km</span>
+                    Raio de Despacho:{" "}
+                    <span className="text-primary font-black">{formRaioKm} km</span>
                   </label>
                   <span className="text-[10px] text-slate-500">Padrão: 15-30 km</span>
                 </div>
@@ -643,7 +688,9 @@ export function AdminLocaisPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Status Operacional</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                  Status Operacional
+                </label>
                 <div className="grid grid-cols-3 gap-1.5">
                   {(["ATIVA", "EM_CONFIGURACAO", "PAUSADA"] as const).map((st) => (
                     <button

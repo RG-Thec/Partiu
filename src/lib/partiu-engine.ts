@@ -225,13 +225,7 @@ export type ModalidadePartiu =
   | "ENTREGA_CARRO";
 
 export type StatusCorrida =
-  | "IDLE"
-  | "PROCURANDO"
-  | "A_CAMINHO"
-  | "CHEGOU"
-  | "EM_VIAGEM"
-  | "CONCLUIDA"
-  | "CANCELADA";
+  "IDLE" | "PROCURANDO" | "A_CAMINHO" | "CHEGOU" | "EM_VIAGEM" | "CONCLUIDA" | "CANCELADA";
 
 export interface MotoristaInfo {
   id: string;
@@ -288,7 +282,8 @@ export interface CorridaPartiu {
   valorOriginal?: number | undefined;
   descontoCupom?: number | undefined;
   codigoCupom?: string | undefined;
-  paradas?: Array<{ id: string; endereco: string; coords?: { lat: number; lng: number } }> | undefined;
+  paradas?:
+    Array<{ id: string; endereco: string; coords?: { lat: number; lng: number } }> | undefined;
   paradasConcluidas?: number | undefined;
   isDestinationMode?: boolean | undefined;
   surgeMultiplier?: number | undefined;
@@ -391,7 +386,9 @@ export function tocarAlertaRadar() {
     gain.connect(audioCtx.destination);
     osc.start();
     osc.stop(audioCtx.currentTime + 0.2);
-  } catch (err) { silentCatchWarn("partiu-engine", err); }
+  } catch (err) {
+    silentCatchWarn("partiu-engine", err);
+  }
 }
 
 // Toca sino harmônico quando o motorista chega ao local de embarque (estilo Uber/99)
@@ -424,7 +421,9 @@ export function tocarAlertaChegada() {
     gain2.connect(audioCtx.destination);
     osc2.start(agora + 0.12);
     osc2.stop(agora + 0.4);
-  } catch (err) { silentCatchWarn("partiu-engine", err); }
+  } catch (err) {
+    silentCatchWarn("partiu-engine", err);
+  }
 }
 
 // Toca acorde ascendente ao confirmar o PIN e iniciar a viagem
@@ -447,7 +446,9 @@ export function tocarAlertaInicioViagem() {
       osc.start(agora + idx * 0.08);
       osc.stop(agora + idx * 0.08 + 0.2);
     });
-  } catch (err) { silentCatchWarn("partiu-engine", err); }
+  } catch (err) {
+    silentCatchWarn("partiu-engine", err);
+  }
 }
 
 // Toca acorde suave de finalização de viagem
@@ -470,7 +471,9 @@ export function tocarAlertaFimViagem() {
       osc.start(agora + idx * 0.1);
       osc.stop(agora + idx * 0.1 + 0.35);
     });
-  } catch (err) { silentCatchWarn("partiu-engine", err); }
+  } catch (err) {
+    silentCatchWarn("partiu-engine", err);
+  }
 }
 
 // 1. Obter corrida ativa (Cache local sincronizado com Supabase)
@@ -513,7 +516,8 @@ export function criarNovaCorrida(params: {
   valorOriginal?: number | undefined;
   descontoCupom?: number | undefined;
   codigoCupom?: string | undefined;
-  paradas?: Array<{ id: string; endereco: string; coords?: { lat: number; lng: number } }> | undefined;
+  paradas?:
+    Array<{ id: string; endereco: string; coords?: { lat: number; lng: number } }> | undefined;
   isDestinationMode?: boolean | undefined;
   surgeMultiplier?: number | undefined;
 }): CorridaPartiu {
@@ -536,7 +540,9 @@ export function criarNovaCorrida(params: {
 
   const resolvedPassengerId =
     params.passageiroId ||
-    (typeof window !== "undefined" ? localStorage.getItem("partiu_user_id") || undefined : undefined);
+    (typeof window !== "undefined"
+      ? localStorage.getItem("partiu_user_id") || undefined
+      : undefined);
 
   const corrida: CorridaPartiu = {
     id,
@@ -625,8 +631,12 @@ export function motoristaAceitarCorrida(motorista?: MotoristaInfo): CorridaParti
   if (!atual) return null;
 
   if (!motorista || !motorista.id) {
-    console.error("[partiu-engine] Erro fatal: motoristaAceitarCorrida chamado sem dados válidos do condutor.");
-    throw new Error("REAL_DRIVER_DATA_REQUIRED: Tentativa de aceite de corrida sem dados válidos do motorista.");
+    console.error(
+      "[partiu-engine] Erro fatal: motoristaAceitarCorrida chamado sem dados válidos do condutor.",
+    );
+    throw new Error(
+      "REAL_DRIVER_DATA_REQUIRED: Tentativa de aceite de corrida sem dados válidos do motorista.",
+    );
   }
 
   const condutor = motorista;
@@ -645,7 +655,9 @@ export function motoristaAceitarCorrida(motorista?: MotoristaInfo): CorridaParti
     driverStateMachine.transitionRide(condutor.id, atual.id, "OFFER_ACCEPTED", "DRIVER");
     driverStateMachine.transitionRide(condutor.id, atual.id, "HEADING_TO_PICKUP", "DRIVER");
     void redisLuaEngine.assignAndEvict(condutor.id);
-  } catch (err) { silentCatchWarn("partiu-engine", err); }
+  } catch (err) {
+    silentCatchWarn("partiu-engine", err);
+  }
 
   corridaMemoria = atualizada;
   if (typeof window !== "undefined") {
@@ -708,7 +720,9 @@ export function motoristaChegouAoLocal(): CorridaPartiu | null {
       driverStateMachine.transitionRide(atual.motorista.id, atual.id, "ARRIVED", "DRIVER");
       driverStateMachine.transitionRide(atual.motorista.id, atual.id, "WAITING", "DRIVER");
       driverTelemetryEngine.startWaitingTimer(atual.motorista.id, atual.id);
-    } catch (err) { silentCatchWarn("partiu-engine", err); }
+    } catch (err) {
+      silentCatchWarn("partiu-engine", err);
+    }
   }
 
   // Sincroniza Siga Minha Viagem
@@ -749,10 +763,14 @@ export function motoristaChegouAoLocal(): CorridaPartiu | null {
 }
 
 // 5. Smart Passenger Boarding (Modelo Profissional 99 / Uber — Sem PIN Obrigatório)
-export function confirmarEmbarqueEIniciarViagem(params?: {
-  overrideGeofence?: boolean | undefined;
-  pinOpcional?: string | undefined;
-} | undefined): { sucesso: boolean; mensagem?: string; corrida?: CorridaPartiu } {
+export function confirmarEmbarqueEIniciarViagem(
+  params?:
+    | {
+        overrideGeofence?: boolean | undefined;
+        pinOpcional?: string | undefined;
+      }
+    | undefined,
+): { sucesso: boolean; mensagem?: string; corrida?: CorridaPartiu } {
   const atual = getCorridaAtiva();
   if (!atual) return { sucesso: false, mensagem: "Nenhuma corrida ativa no momento." };
 
@@ -781,7 +799,9 @@ export function confirmarEmbarqueEIniciarViagem(params?: {
   try {
     driverStateMachine.transitionRide(driverId, atual.id, "BOARDING", "DRIVER");
     driverStateMachine.transitionRide(driverId, atual.id, "IN_TRIP", "DRIVER");
-  } catch (err) { silentCatchWarn("partiu-engine", err); }
+  } catch (err) {
+    silentCatchWarn("partiu-engine", err);
+  }
 
   const atualizada: CorridaPartiu = {
     ...atual,
@@ -821,7 +841,10 @@ export function confirmarEmbarqueEIniciarViagem(params?: {
 }
 
 // 5.1 Validação de PIN de 4 dígitos no embarque (Modo Legado / Opcional)
-export function validarPinEIniciarViagem(pinDigitado: string): { sucesso: boolean; mensagem?: string } {
+export function validarPinEIniciarViagem(pinDigitado: string): {
+  sucesso: boolean;
+  mensagem?: string;
+} {
   return confirmarEmbarqueEIniciarViagem({
     pinOpcional: pinDigitado,
   });
@@ -891,15 +914,12 @@ export function finalizarViagem(): CorridaPartiu | null {
     driverStateMachine.transitionRide(condutorId, atual.id, "COMPLETING", "DRIVER");
     driverStateMachine.transitionRide(condutorId, atual.id, "COMPLETED", "DRIVER");
     void redisLuaEngine.releaseToCell(condutorId);
-  } catch (err) { silentCatchWarn("partiu-engine", err); }
+  } catch (err) {
+    silentCatchWarn("partiu-engine", err);
+  }
 
   // Executa liquidação imutável no ledger financeiro (centavos / minor units)
-  driverLedgerEngine.settleTripRide(
-    condutorId,
-    atual.id,
-    atual.valor,
-    atual.modalidade
-  );
+  driverLedgerEngine.settleTripRide(condutorId, atual.id, atual.valor, atual.modalidade);
 
   const summary = driverLedgerEngine.getEarningsSummary(condutorId);
 
@@ -932,7 +952,7 @@ export function finalizarViagem(): CorridaPartiu | null {
     // Persiste saldo auditado do ledger (convertido de centavos para reais)
     localStorage.setItem(
       STORAGE_KEY_GANHOS_MOTORISTA,
-      (summary.availableBalanceCents / 100).toFixed(2)
+      (summary.availableBalanceCents / 100).toFixed(2),
     );
   }
 
@@ -943,10 +963,14 @@ export function finalizarViagem(): CorridaPartiu | null {
 }
 
 // 7. Cancelar corrida / entrega (com auditoria de taxa de cancelamento tardio e motivos estruturados)
-export function cancelarCorrida(params?: {
-  reasonCode?: string;
-  reasonLabel?: string;
-} | string): CancellationFeeSettlement | null {
+export function cancelarCorrida(
+  params?:
+    | {
+        reasonCode?: string;
+        reasonLabel?: string;
+      }
+    | string,
+): CancellationFeeSettlement | null {
   const reasonCode = typeof params === "string" ? params : params?.reasonCode;
   const reasonLabel = typeof params === "object" ? params?.reasonLabel : undefined;
 
@@ -965,14 +989,13 @@ export function cancelarCorrida(params?: {
     // Tolerância de carência de 2 minutos (120s) padrão Uber/99
     const isLateCancellation =
       !isExemptReason &&
-      ((atual.status === "A_CAMINHO" && elapsedSeconds > 120) ||
-      atual.status === "CHEGOU");
+      ((atual.status === "A_CAMINHO" && elapsedSeconds > 120) || atual.status === "CHEGOU");
 
     if (isLateCancellation) {
       feeSettlement = processarCancelamentoComMulta(
         atual.id,
         atual.passageiroTelefone || "passageiro-default",
-        atual.motorista.id
+        atual.motorista.id,
       );
     }
   }
@@ -1044,10 +1067,14 @@ export function cancelarCorridaPeloMotorista(params: DriverCancellationParams): 
     localStorage.removeItem(STORAGE_KEY_CORRIDA);
 
     try {
-      const existingCancels = JSON.parse(localStorage.getItem("partiu_driver_cancellations") || "[]");
+      const existingCancels = JSON.parse(
+        localStorage.getItem("partiu_driver_cancellations") || "[]",
+      );
       existingCancels.unshift(cancelRecord);
       localStorage.setItem("partiu_driver_cancellations", JSON.stringify(existingCancels));
-    } catch (err) { silentCatchWarn("partiu-engine", err); }
+    } catch (err) {
+      silentCatchWarn("partiu-engine", err);
+    }
 
     window.dispatchEvent(
       new CustomEvent("partiu:corrida-cancelada", {
@@ -1058,13 +1085,15 @@ export function cancelarCorridaPeloMotorista(params: DriverCancellationParams): 
           cancelledBy: "DRIVER",
           timestamp,
         },
-      })
+      }),
     );
   }
 
   try {
     atomicMatchingEngine.releaseRide(params.rideId, params.driverId);
-  } catch (err) { silentCatchWarn("partiu-engine", err); }
+  } catch (err) {
+    silentCatchWarn("partiu-engine", err);
+  }
 
   cancelDeliverySession(`Cancelado pelo condutor: ${params.reasonLabel}`);
   void cancelarCorridaDistribuida(params.rideId);
@@ -1091,11 +1120,7 @@ export function cancelarCorridaPorNoShow(params: {
   const passengerPhone = params.passengerPhone || atual?.passageiroTelefone || "passageiro-default";
 
   // Processa taxa de R$ 6,00 (creditando R$ 4,50 diretamente ao condutor no ledger)
-  const settlement = processarCancelamentoComMulta(
-    params.rideId,
-    passengerPhone,
-    params.driverId
-  );
+  const settlement = processarCancelamentoComMulta(params.rideId, passengerPhone, params.driverId);
 
   const timestamp = Date.now();
   const noShowRecord = {
@@ -1116,7 +1141,9 @@ export function cancelarCorridaPorNoShow(params: {
       const existingNoShows = JSON.parse(localStorage.getItem("partiu_no_show_records") || "[]");
       existingNoShows.unshift(noShowRecord);
       localStorage.setItem("partiu_no_show_records", JSON.stringify(existingNoShows));
-    } catch (err) { silentCatchWarn("partiu-engine", err); }
+    } catch (err) {
+      silentCatchWarn("partiu-engine", err);
+    }
 
     window.dispatchEvent(
       new CustomEvent("partiu:corrida-cancelada", {
@@ -1128,13 +1155,15 @@ export function cancelarCorridaPorNoShow(params: {
           settlement,
           timestamp,
         },
-      })
+      }),
     );
   }
 
   try {
     atomicMatchingEngine.releaseRide(params.rideId, params.driverId);
-  } catch (err) { silentCatchWarn("partiu-engine", err); }
+  } catch (err) {
+    silentCatchWarn("partiu-engine", err);
+  }
 
   cancelDeliverySession("Passageiro ausente no local de embarque");
   void cancelarCorridaDistribuida(params.rideId);
@@ -1143,7 +1172,8 @@ export function cancelarCorridaPorNoShow(params: {
   return {
     sucesso: true,
     settlement,
-    mensagem: "Corrida cancelada por não comparecimento. Taxa de cancelamento creditada via PIX D+0.",
+    mensagem:
+      "Corrida cancelada por não comparecimento. Taxa de cancelamento creditada via PIX D+0.",
   };
 }
 
@@ -1166,7 +1196,8 @@ export function calcularTaxaCancelamentoPassageiro(): {
     return {
       aplicaTaxa: true,
       valorTaxaBrl: 6.0,
-      motivo: "Motorista já chegou no ponto de encontro. Taxa de R$ 6,00 aplicável para ressarcimento do condutor.",
+      motivo:
+        "Motorista já chegou no ponto de encontro. Taxa de R$ 6,00 aplicável para ressarcimento do condutor.",
     };
   }
 
@@ -1179,7 +1210,8 @@ export function calcularTaxaCancelamentoPassageiro(): {
       return {
         aplicaTaxa: true,
         valorTaxaBrl: 6.0,
-        motivo: "Cancelamento após 3 minutos de corrida aceita. Taxa de R$ 6,00 aplicável para compensação de deslocamento.",
+        motivo:
+          "Cancelamento após 3 minutos de corrida aceita. Taxa de R$ 6,00 aplicável para compensação de deslocamento.",
       };
     }
   }
@@ -1211,7 +1243,7 @@ export function getHistoricoViagens(filter?: {
         !c.id.startsWith("mock-") &&
         c.destino &&
         c.destino !== "Hospital São José do Avaí" &&
-        c.destino !== "Rua Dez de Maio, 188"
+        c.destino !== "Rua Dez de Maio, 188",
     );
 
     if (!filter || (!filter.userId && !filter.phone)) {
@@ -1261,7 +1293,7 @@ export function avaliarCorrida(
   corridaId?: string | undefined,
   nota: number = 5,
   tags: string[] = [],
-  comentario?: string | undefined
+  comentario?: string | undefined,
 ): boolean {
   if (typeof window === "undefined") return false;
   try {
@@ -1327,12 +1359,13 @@ export function isCorridaElegivelParaMotorista(params: {
       params.driverCoords,
       params.corrida.origemCoords,
       params.corrida.destinoCoords,
-      activeDest.coords
+      activeDest.coords,
     );
     if (!converge) {
       return {
         aceitavel: false,
-        motivo: "DESTINATION_MODE_FILTER: Rota não converge para o destino selecionado pelo condutor.",
+        motivo:
+          "DESTINATION_MODE_FILTER: Rota não converge para o destino selecionado pelo condutor.",
       };
     }
   }

@@ -4,7 +4,9 @@ interface DeliveryVehicleIllustrationsProps {
   className?: string;
 }
 
-export function DeliveryVehicleIllustrations({ className = "" }: DeliveryVehicleIllustrationsProps) {
+export function DeliveryVehicleIllustrations({
+  className = "",
+}: DeliveryVehicleIllustrationsProps) {
   return (
     <div className={`w-full flex items-center justify-center gap-6 py-2 select-none ${className}`}>
       {/* 1. MOTO COM PACOTE */}
@@ -59,7 +61,15 @@ export function DeliveryVehicleIllustrations({ className = "" }: DeliveryVehicle
             <path d="M 75,80 L 105,74 L 112,50 L 90,52 Z" fill="#334155" />
 
             {/* Garfo Dianteiro */}
-            <line x1="124" y1="86" x2="108" y2="40" stroke="#94A3B8" strokeWidth="5" strokeLinecap="round" />
+            <line
+              x1="124"
+              y1="86"
+              x2="108"
+              y2="40"
+              stroke="#94A3B8"
+              strokeWidth="5"
+              strokeLinecap="round"
+            />
 
             {/* Carenagem Principal (Branca Aerodinâmica) */}
             <path
@@ -73,7 +83,15 @@ export function DeliveryVehicleIllustrations({ className = "" }: DeliveryVehicle
             <path d="M 44,48 C 50,46 64,46 72,50 C 70,54 58,54 44,52 Z" fill="#0F172A" />
 
             {/* Guidão e Manetes */}
-            <line x1="106" y1="40" x2="114" y2="34" stroke="#0F172A" strokeWidth="4" strokeLinecap="round" />
+            <line
+              x1="106"
+              y1="40"
+              x2="114"
+              y2="34"
+              stroke="#0F172A"
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
             <circle cx="116" cy="32" r="3" fill="#F59E0B" />
 
             {/* Farol Dianteiro LED */}

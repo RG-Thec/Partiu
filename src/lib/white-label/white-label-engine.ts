@@ -36,7 +36,7 @@ const STORAGE_KEY_TENANTS_MAP = "partiu_whitelabel_tenants_registry_v1";
  */
 export function convertWhiteLabelToBrandingRecord(
   config: WhiteLabelFullConfig,
-  tenantId: string
+  tenantId: string,
 ): AppBrandingRecord {
   const prim = config.designSystem?.paletaPrimaria;
   const radiusMap: Record<BorderRadiusOption, string> = {
@@ -53,7 +53,8 @@ export function convertWhiteLabelToBrandingRecord(
   return {
     tenant_id: tenantId,
     app_name: config.brandCenter?.nomePlataforma || "PARTIU",
-    company_name: config.nativeApp?.razaoSocial || config.brandCenter?.slogan || "PARTIU Mobilidade Urbana",
+    company_name:
+      config.nativeApp?.razaoSocial || config.brandCenter?.slogan || "PARTIU Mobilidade Urbana",
     primary_color: prim?.corPrincipal || "#FF6B00",
     secondary_color: prim?.corSecundaria || "#FFB800",
     accent_color: prim?.corTerciaria || prim?.corSecundaria || "#EA580C",
@@ -62,7 +63,8 @@ export function convertWhiteLabelToBrandingRecord(
     text_primary: prim?.corTextoPrincipal || "#0F172A",
     text_secondary: "#475569",
     logo_url: config.brandCenter?.logos?.logoPrincipalUrl || null,
-    splash_logo_url: config.brandCenter?.splash?.splashAndroidUrl || config.nativeApp?.splashAndroidUrl || null,
+    splash_logo_url:
+      config.brandCenter?.splash?.splashAndroidUrl || config.nativeApp?.splashAndroidUrl || null,
     favicon_url: config.brandCenter?.favicons?.faviconDesktopUrl || null,
     app_icon_url: config.nativeApp?.iconeAppUrl || null,
     push_icon_url: config.nativeApp?.iconeNotificacaoPushUrl || null,
@@ -161,12 +163,48 @@ export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
     blocos: [
       { id: "b1", tipo: "HEADER_PERFIL", titulo: "Cabeçalho com Perfil", ordem: 1, ativo: true },
       { id: "b2", tipo: "MAP_WIDGET", titulo: "Radar de Veículos no Mapa", ordem: 2, ativo: true },
-      { id: "b3", tipo: "SEARCH_DESTINATION_CARD", titulo: "Busca de Destino Rápida", ordem: 3, ativo: true },
-      { id: "b4", tipo: "BUSINESS_SERVICES_GRID", titulo: "Grade de Categorias & Serviços", ordem: 4, ativo: true },
-      { id: "b5", tipo: "PROMO_CAROUSEL", titulo: "Carrossel de Banners Promocionais", ordem: 5, ativo: true },
-      { id: "b6", tipo: "FEATURED_ADVANTAGES", titulo: "Vantagens e Diferenciais da Cidade", ordem: 6, ativo: true },
-      { id: "b7", tipo: "ANNOUNCEMENT_BANNER", titulo: "Avisos e Comunicados Importantes", ordem: 7, ativo: true },
-      { id: "b8", tipo: "PROMO_POPUP", titulo: "Popup de Desconto em Primeira Viagem", ordem: 8, ativo: false },
+      {
+        id: "b3",
+        tipo: "SEARCH_DESTINATION_CARD",
+        titulo: "Busca de Destino Rápida",
+        ordem: 3,
+        ativo: true,
+      },
+      {
+        id: "b4",
+        tipo: "BUSINESS_SERVICES_GRID",
+        titulo: "Grade de Categorias & Serviços",
+        ordem: 4,
+        ativo: true,
+      },
+      {
+        id: "b5",
+        tipo: "PROMO_CAROUSEL",
+        titulo: "Carrossel de Banners Promocionais",
+        ordem: 5,
+        ativo: true,
+      },
+      {
+        id: "b6",
+        tipo: "FEATURED_ADVANTAGES",
+        titulo: "Vantagens e Diferenciais da Cidade",
+        ordem: 6,
+        ativo: true,
+      },
+      {
+        id: "b7",
+        tipo: "ANNOUNCEMENT_BANNER",
+        titulo: "Avisos e Comunicados Importantes",
+        ordem: 7,
+        ativo: true,
+      },
+      {
+        id: "b8",
+        tipo: "PROMO_POPUP",
+        titulo: "Popup de Desconto em Primeira Viagem",
+        ordem: 8,
+        ativo: false,
+      },
     ],
     banners: [
       {
@@ -174,7 +212,8 @@ export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
         titulo: "Vá de PARTIU Pop com 20% OFF",
         subtitulo: "Use o cupom PARTIU10 na sua próxima corrida urbana com ar-condicionado",
         badge: "CORRIDAS COM DESCONTO",
-        imagemUrl: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&auto=format&fit=crop&q=80",
+        imagemUrl:
+          "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&auto=format&fit=crop&q=80",
         linkDestino: "/app",
         prioridade: 1,
         ativo: true,
@@ -184,7 +223,8 @@ export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
         titulo: "Envie Documentos e Pacotes em Minutos",
         subtitulo: "Motoboys com rastreamento GPS e confirmação via PIN",
         badge: "ENTREGAS FLASH",
-        imagemUrl: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800&auto=format&fit=crop&q=80",
+        imagemUrl:
+          "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800&auto=format&fit=crop&q=80",
         linkDestino: "/app/encomendas",
         prioridade: 2,
         ativo: true,
@@ -194,7 +234,8 @@ export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
         titulo: "Passe Taxa Zero: 100% Repasse no PIX D+0",
         subtitulo: "Fature sem comissões abusivas no Plano Ouro",
         badge: "MOTORISTAS & ENTREGADORES",
-        imagemUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
+        imagemUrl:
+          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
         linkDestino: "/app/motorista",
         prioridade: 3,
         ativo: true,
@@ -233,17 +274,77 @@ export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
   },
   menuBuilder: {
     itensDrawer: [
-      { id: "m1", rotulo: "Corridas & Destinos", icone: "Car", rota: "/app", ordem: 1, visivel: true },
-      { id: "m2", rotulo: "Envios & Entregas", icone: "Package", rota: "/app/encomendas", ordem: 2, visivel: true },
-      { id: "m3", rotulo: "Minhas Viagens & Histórico", icone: "Clock", rota: "/app/bilhetes", ordem: 3, visivel: true },
-      { id: "m4", rotulo: "Cupons & Descontos", icone: "Tag", rota: "/app", ordem: 4, visivel: true, badge: "Novo", badgeCor: "bg-primary-600 text-slate-950" },
-      { id: "m5", rotulo: "Meu Perfil", icone: "UserCheck", rota: "/app/perfil", ordem: 5, visivel: true },
-      { id: "m6", rotulo: "Painel do Motorista", icone: "Sparkles", rota: "/app/motorista", ordem: 6, visivel: true, badge: "Taxa 0%" },
-      { id: "m7", rotulo: "Painel Administrativo", icone: "Sliders", rota: "/app/admin", ordem: 7, visivel: true, permissao: "ADMIN" },
+      {
+        id: "m1",
+        rotulo: "Corridas & Destinos",
+        icone: "Car",
+        rota: "/app",
+        ordem: 1,
+        visivel: true,
+      },
+      {
+        id: "m2",
+        rotulo: "Envios & Entregas",
+        icone: "Package",
+        rota: "/app/encomendas",
+        ordem: 2,
+        visivel: true,
+      },
+      {
+        id: "m3",
+        rotulo: "Minhas Viagens & Histórico",
+        icone: "Clock",
+        rota: "/app/bilhetes",
+        ordem: 3,
+        visivel: true,
+      },
+      {
+        id: "m4",
+        rotulo: "Cupons & Descontos",
+        icone: "Tag",
+        rota: "/app",
+        ordem: 4,
+        visivel: true,
+        badge: "Novo",
+        badgeCor: "bg-primary-600 text-slate-950",
+      },
+      {
+        id: "m5",
+        rotulo: "Meu Perfil",
+        icone: "UserCheck",
+        rota: "/app/perfil",
+        ordem: 5,
+        visivel: true,
+      },
+      {
+        id: "m6",
+        rotulo: "Painel do Motorista",
+        icone: "Sparkles",
+        rota: "/app/motorista",
+        ordem: 6,
+        visivel: true,
+        badge: "Taxa 0%",
+      },
+      {
+        id: "m7",
+        rotulo: "Painel Administrativo",
+        icone: "Sliders",
+        rota: "/app/admin",
+        ordem: 7,
+        visivel: true,
+        permissao: "ADMIN",
+      },
     ],
     abasNavegacaoInferior: [
       { id: "nav-corridas", rotulo: "Corridas", icone: "Car", rota: "/app", ordem: 1, ativo: true },
-      { id: "nav-entregas", rotulo: "Entregas", icone: "Package", rota: "/app/encomendas", ordem: 2, ativo: true },
+      {
+        id: "nav-entregas",
+        rotulo: "Entregas",
+        icone: "Package",
+        rota: "/app/encomendas",
+        ordem: 2,
+        ativo: true,
+      },
     ],
   },
   businessModels: {
@@ -386,7 +487,11 @@ export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
         semanalBrl: 6.9,
         comissaoPercentual: 0.0,
         pesoDespacho: 1.15,
-        beneficios: ["Zero comissão por corrida", "Prioridade leve de despacho", "Repasse D+0 via PIX"],
+        beneficios: [
+          "Zero comissão por corrida",
+          "Prioridade leve de despacho",
+          "Repasse D+0 via PIX",
+        ],
         ativo: true,
         badgeCor: "bg-amber-700 text-white",
       },
@@ -398,8 +503,12 @@ export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
         diariaBrl: 3.5,
         semanalBrl: 16.9,
         comissaoPercentual: 0.0,
-        pesoDespacho: 1.30,
-        beneficios: ["Zero comissão por corrida", "Prioridade intermediária", "Atendimento VIP WhatsApp"],
+        pesoDespacho: 1.3,
+        beneficios: [
+          "Zero comissão por corrida",
+          "Prioridade intermediária",
+          "Atendimento VIP WhatsApp",
+        ],
         ativo: true,
         badgeCor: "bg-slate-300 text-slate-950",
       },
@@ -411,8 +520,12 @@ export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
         diariaBrl: 6.9,
         semanalBrl: 34.9,
         comissaoPercentual: 0.0,
-        pesoDespacho: 1.50,
-        beneficios: ["ZERO COMISSÃO (0% Take Rate)", "100% do valor da corrida é seu", "Prioridade equilibrada VIP"],
+        pesoDespacho: 1.5,
+        beneficios: [
+          "ZERO COMISSÃO (0% Take Rate)",
+          "100% do valor da corrida é seu",
+          "Prioridade equilibrada VIP",
+        ],
         ativo: true,
         badgeCor: "bg-primary-600 text-slate-950",
       },
@@ -424,8 +537,12 @@ export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
         diariaBrl: 14.9,
         semanalBrl: 79.9,
         comissaoPercentual: 0.0,
-        pesoDespacho: 1.50,
-        beneficios: ["Gestão de até 5 veículos", "ZERO comissão por corrida", "Suporte telefônico dedicado 24h"],
+        pesoDespacho: 1.5,
+        beneficios: [
+          "Gestão de até 5 veículos",
+          "ZERO comissão por corrida",
+          "Suporte telefônico dedicado 24h",
+        ],
         ativo: true,
         badgeCor: "bg-indigo-600 text-white",
       },
@@ -438,12 +555,12 @@ export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
     tipoChavePixAdmin: "email",
     beneficiarioAdmin: "PARTIU Mobilidade Urbana Ltda",
     cidadeAdmin: "Itaperuna",
-    diariaCarro: 19.90,
-    diariaMoto: 11.90,
-    semanalCarro: 99.00,
-    semanalMoto: 59.00,
-    mensalCarro: 349.00,
-    mensalMoto: 199.00,
+    diariaCarro: 19.9,
+    diariaMoto: 11.9,
+    semanalCarro: 99.0,
+    semanalMoto: 59.0,
+    mensalCarro: 349.0,
+    mensalMoto: 199.0,
     gatewayProvider: "mercadopago",
   },
   cms: {
@@ -506,7 +623,8 @@ export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelFullConfig = {
       bloquearDespachoFrotaVizinha: false,
       permitirExpansaoPaga: true,
       valorExpansaoPorCidadeBrl: 0,
-      notasExclusividade: "Franquia Matriz Nacional: atuação irrestrita em 100% do território nacional brasileiro.",
+      notasExclusividade:
+        "Franquia Matriz Nacional: atuação irrestrita em 100% do território nacional brasileiro.",
     },
   },
   nativeApp: {
@@ -747,8 +865,8 @@ const SEED_TENANTS_CORE: WhiteLabelTenantRecord[] = [
         tipoChavePixAdmin: "email",
         beneficiarioAdmin: "PARTIU Holding Nacional",
         cidadeAdmin: "Brasilia",
-        diariaCarro: 19.90,
-        diariaMoto: 11.90,
+        diariaCarro: 19.9,
+        diariaMoto: 11.9,
       },
       geo: {
         ...DEFAULT_WHITELABEL_CONFIG.geo,
@@ -788,8 +906,8 @@ const TEST_FIXTURE_TENANTS: WhiteLabelTenantRecord[] = [
         tipoChavePixAdmin: "email",
         beneficiarioAdmin: "PARTIU Noroeste Fluminense Ltda",
         cidadeAdmin: "Itaperuna",
-        diariaCarro: 19.90,
-        diariaMoto: 11.90,
+        diariaCarro: 19.9,
+        diariaMoto: 11.9,
       },
       geo: {
         ...DEFAULT_WHITELABEL_CONFIG.geo,
@@ -837,8 +955,8 @@ const TEST_FIXTURE_TENANTS: WhiteLabelTenantRecord[] = [
         tipoChavePixAdmin: "email",
         beneficiarioAdmin: "GO Mobilidade Campos Ltda",
         cidadeAdmin: "Campos dos Goytacazes",
-        diariaCarro: 22.00,
-        diariaMoto: 14.00,
+        diariaCarro: 22.0,
+        diariaMoto: 14.0,
       },
       geo: {
         ...DEFAULT_WHITELABEL_CONFIG.geo,
@@ -891,8 +1009,8 @@ const TEST_FIXTURE_TENANTS: WhiteLabelTenantRecord[] = [
         tipoChavePixAdmin: "email",
         beneficiarioAdmin: "BH Mob Mobilidade Urbana Ltda",
         cidadeAdmin: "Belo Horizonte",
-        diariaCarro: 25.00,
-        diariaMoto: 15.00,
+        diariaCarro: 25.0,
+        diariaMoto: 15.0,
       },
       geo: {
         ...DEFAULT_WHITELABEL_CONFIG.geo,
@@ -946,8 +1064,8 @@ const TEST_FIXTURE_TENANTS: WhiteLabelTenantRecord[] = [
         tipoChavePixAdmin: "email",
         beneficiarioAdmin: "BH Mob Mobilidade Urbana Ltda",
         cidadeAdmin: "Belo Horizonte",
-        diariaCarro: 25.00,
-        diariaMoto: 15.00,
+        diariaCarro: 25.0,
+        diariaMoto: 15.0,
       },
       geo: {
         ...DEFAULT_WHITELABEL_CONFIG.geo,
@@ -1009,24 +1127,31 @@ export class WhiteLabelEngine {
               const targetConfig = incomingConfig || this.getActiveConfig();
               this.applyTheme(targetConfig);
               window.dispatchEvent(
-                new CustomEvent("partiu:whitelabel-updated", { detail: targetConfig })
+                new CustomEvent("partiu:whitelabel-updated", { detail: targetConfig }),
               );
               if (incomingBranding) {
                 window.dispatchEvent(
                   new CustomEvent("partiu:theme-palette-updated", {
-                    detail: { branding: incomingBranding, primaryColor: incomingBranding.primary_color },
-                  })
+                    detail: {
+                      branding: incomingBranding,
+                      primaryColor: incomingBranding.primary_color,
+                    },
+                  }),
                 );
               }
               if (targetConfig.monetization) {
                 window.dispatchEvent(
-                  new CustomEvent("partiu:monetizacao-atualizada", { detail: targetConfig.monetization })
+                  new CustomEvent("partiu:monetizacao-atualizada", {
+                    detail: targetConfig.monetization,
+                  }),
                 );
               }
             }
           }
         };
-      } catch (err) { silentCatchWarn("white-label-engine", err); }
+      } catch (err) {
+        silentCatchWarn("white-label-engine", err);
+      }
     }
   }
 
@@ -1060,7 +1185,8 @@ export class WhiteLabelEngine {
 
       // 2. Resolução do Tenant Ativo com Prioridade Estrita:
       // Prioridade 1: Query param na URL (?tenant= ou ?tenant_id=) — Trava imediata da franquia
-      const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+      const urlParams =
+        typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
       const urlTenant = (urlParams?.get("tenant") || urlParams?.get("tenant_id") || "").trim();
 
       if (urlTenant) {
@@ -1084,7 +1210,9 @@ export class WhiteLabelEngine {
         // Prioridade 2: Sessão de administrador franqueado autenticado
         let sessionTenant = "";
         try {
-          const authRaw = localStorage.getItem("partiu_admin_session_auth") || localStorage.getItem("partiu_admin_session");
+          const authRaw =
+            localStorage.getItem("partiu_admin_session_auth") ||
+            localStorage.getItem("partiu_admin_session");
           if (authRaw) {
             const parsed = JSON.parse(authRaw);
             if (parsed?.role === "FRANQUEADO" && parsed?.tenantId) {
@@ -1121,7 +1249,9 @@ export class WhiteLabelEngine {
       if (typeof window !== "undefined") {
         void this.loadTenantsFromSupabase();
       }
-    } catch (err) { silentCatchWarn("white-label-engine", err); }
+    } catch (err) {
+      silentCatchWarn("white-label-engine", err);
+    }
   }
 
   private saveTenantsRegistry(): void {
@@ -1129,12 +1259,14 @@ export class WhiteLabelEngine {
     try {
       localStorage.setItem(
         STORAGE_KEY_TENANTS_MAP,
-        JSON.stringify(Array.from(this.tenantsMap.values()))
+        JSON.stringify(Array.from(this.tenantsMap.values())),
       );
       localStorage.setItem(STORAGE_KEY_ACTIVE_TENANT, this.activeTenantId);
       localStorage.setItem("partiu_active_tenant_id_v2", this.activeTenantId);
       localStorage.setItem("partiu_wl_active_tenant_v1", this.activeTenantId);
-    } catch (err) { silentCatchWarn("white-label-engine", err); }
+    } catch (err) {
+      silentCatchWarn("white-label-engine", err);
+    }
   }
 
   public broadcastUpdate(targetTenantId?: string): void {
@@ -1148,17 +1280,15 @@ export class WhiteLabelEngine {
       const brandingRecord = convertWhiteLabelToBrandingRecord(config, tid);
 
       // 1. Eventos locais nesta aba/janela
-      window.dispatchEvent(
-        new CustomEvent("partiu:whitelabel-updated", { detail: config })
-      );
+      window.dispatchEvent(new CustomEvent("partiu:whitelabel-updated", { detail: config }));
       window.dispatchEvent(
         new CustomEvent("partiu:theme-palette-updated", {
           detail: { branding: brandingRecord, primaryColor: brandingRecord.primary_color },
-        })
+        }),
       );
       if (config.monetization) {
         window.dispatchEvent(
-          new CustomEvent("partiu:monetizacao-atualizada", { detail: config.monetization })
+          new CustomEvent("partiu:monetizacao-atualizada", { detail: config.monetization }),
         );
       }
 
@@ -1281,9 +1411,7 @@ export class WhiteLabelEngine {
   public async loadTenantsFromSupabase(): Promise<WhiteLabelTenantRecord[]> {
     if (!isSupabaseConfigured()) return this.getAllTenants();
     try {
-      const { data, error } = await supabase
-        .from("white_label_tenants" as any)
-        .select("*");
+      const { data, error } = await supabase.from("white_label_tenants" as any).select("*");
       if (error || !data) return this.getAllTenants();
 
       for (const row of data as any[]) {
@@ -1397,7 +1525,11 @@ export class WhiteLabelEngine {
     if (targetId === "default" || targetId === "matriz-br") return true;
     const tenant = this.tenantsMap.get(targetId);
     if (!tenant) return true;
-    if (tenant.ativo === false || tenant.statusPlano === "SUSPENSO" || tenant.statusPlano === "CANCELADO") {
+    if (
+      tenant.ativo === false ||
+      tenant.statusPlano === "SUSPENSO" ||
+      tenant.statusPlano === "CANCELADO"
+    ) {
       return false;
     }
     return true;
@@ -1417,7 +1549,7 @@ export class WhiteLabelEngine {
   public async setTenantStatus(
     tenantId: string,
     status: "ATIVO" | "SUSPENSO",
-    motivo?: string
+    motivo?: string,
   ): Promise<boolean> {
     if (tenantId === "default" || tenantId === "matriz-br") {
       throw new Error("A conta oficial da Matriz Partiu não pode ser suspensa.");
@@ -1431,7 +1563,9 @@ export class WhiteLabelEngine {
     const isAtivo = status === "ATIVO";
     tenant.ativo = isAtivo;
     tenant.statusPlano = status;
-    tenant.motivoBloqueio = isAtivo ? undefined : (motivo || "Plano temporariamente desativado pela administração central.");
+    tenant.motivoBloqueio = isAtivo
+      ? undefined
+      : motivo || "Plano temporariamente desativado pela administração central.";
     tenant.suspensoEm = isAtivo ? undefined : Date.now();
 
     this.tenantsMap.set(tenantId, tenant);
@@ -1442,7 +1576,7 @@ export class WhiteLabelEngine {
       window.dispatchEvent(
         new CustomEvent("partiu:tenant-status-changed", {
           detail: { tenantId, status, isAtivo, motivo: tenant.motivoBloqueio },
-        })
+        }),
       );
     }
 
@@ -1485,7 +1619,8 @@ export class WhiteLabelEngine {
     // Se o tenant excluído era o ativo, reseta para a Matriz
     if (this.activeTenantId === tenantId) {
       this.activeTenantId = "default";
-      const defaultTenant = this.tenantsMap.get("default") || Array.from(this.tenantsMap.values())[0];
+      const defaultTenant =
+        this.tenantsMap.get("default") || Array.from(this.tenantsMap.values())[0];
       if (defaultTenant) {
         this.applyTheme(defaultTenant.configuracaoCompleta);
       }
@@ -1495,9 +1630,7 @@ export class WhiteLabelEngine {
     this.broadcastUpdate();
 
     if (typeof window !== "undefined") {
-      window.dispatchEvent(
-        new CustomEvent("partiu:tenant-deleted", { detail: { tenantId } })
-      );
+      window.dispatchEvent(new CustomEvent("partiu:tenant-deleted", { detail: { tenantId } }));
     }
 
     // Deleta do Supabase
@@ -1526,7 +1659,9 @@ export class WhiteLabelEngine {
   } {
     const list = this.getAllTenants();
     const total = list.length;
-    const ativos = list.filter((t) => t.ativo !== false && t.statusPlano !== "SUSPENSO" && t.statusPlano !== "CANCELADO").length;
+    const ativos = list.filter(
+      (t) => t.ativo !== false && t.statusPlano !== "SUSPENSO" && t.statusPlano !== "CANCELADO",
+    ).length;
     const suspensos = total - ativos;
     return {
       total,
@@ -1581,7 +1716,7 @@ export class WhiteLabelEngine {
       (f) =>
         f.tenantId === cleanId ||
         (cleanId === "tenant-bh" && f.tenantId === "tenant-bhmob") ||
-        (cleanId === "tenant-bhmob" && f.tenantId === "tenant-bh")
+        (cleanId === "tenant-bhmob" && f.tenantId === "tenant-bh"),
     );
     if (fixture) {
       const cloned: WhiteLabelTenantRecord = {
@@ -1605,7 +1740,8 @@ export class WhiteLabelEngine {
           if (b && (b.app_name || b.primary_color)) {
             const dynamicTenant: WhiteLabelTenantRecord = {
               tenantId: cleanId,
-              nomeOperacao: b.app_name || `Franquia ${cleanId.replace(/^tenant-/, "").toUpperCase()}`,
+              nomeOperacao:
+                b.app_name || `Franquia ${cleanId.replace(/^tenant-/, "").toUpperCase()}`,
               cidadeId: `cidade-${cleanId}`,
               cidadeNome: cleanId.includes("bh") ? "Belo Horizonte" : "Cidade Regional",
               uf: cleanId.includes("bh") ? "MG" : "BR",
@@ -1627,8 +1763,12 @@ export class WhiteLabelEngine {
                   ...DEFAULT_WHITELABEL_CONFIG.designSystem,
                   paletaPrimaria: {
                     ...DEFAULT_WHITELABEL_CONFIG.designSystem.paletaPrimaria,
-                    corPrincipal: b.primary_color || DEFAULT_WHITELABEL_CONFIG.designSystem.paletaPrimaria.corPrincipal,
-                    corSecundaria: b.secondary_color || DEFAULT_WHITELABEL_CONFIG.designSystem.paletaPrimaria.corSecundaria,
+                    corPrincipal:
+                      b.primary_color ||
+                      DEFAULT_WHITELABEL_CONFIG.designSystem.paletaPrimaria.corPrincipal,
+                    corSecundaria:
+                      b.secondary_color ||
+                      DEFAULT_WHITELABEL_CONFIG.designSystem.paletaPrimaria.corSecundaria,
                   },
                 },
               },
@@ -1662,8 +1802,12 @@ export class WhiteLabelEngine {
         tenantId: cleanId,
         brandCenter: {
           ...DEFAULT_WHITELABEL_CONFIG.brandCenter,
-          nomePlataforma: isBh ? "BH MOB" : `PARTIU ${cleanId.replace(/^tenant-/, "").toUpperCase()}`,
-          slogan: isBh ? "Mobilidade inteligente na Grande BH" : DEFAULT_WHITELABEL_CONFIG.brandCenter.slogan,
+          nomePlataforma: isBh
+            ? "BH MOB"
+            : `PARTIU ${cleanId.replace(/^tenant-/, "").toUpperCase()}`,
+          slogan: isBh
+            ? "Mobilidade inteligente na Grande BH"
+            : DEFAULT_WHITELABEL_CONFIG.brandCenter.slogan,
         },
         designSystem: {
           ...DEFAULT_WHITELABEL_CONFIG.designSystem,
@@ -1714,7 +1858,7 @@ export class WhiteLabelEngine {
 
   public updateActiveConfig(
     partialConfig: Partial<WhiteLabelFullConfig>,
-    options?: { silent?: boolean; skipPersist?: boolean }
+    options?: { silent?: boolean; skipPersist?: boolean },
   ): WhiteLabelFullConfig {
     const tenant = this.getActiveTenant();
     const updated: WhiteLabelFullConfig = {
@@ -1743,7 +1887,7 @@ export class WhiteLabelEngine {
   public updateTenantConfig(
     tenantId: string,
     partialConfig: Partial<WhiteLabelFullConfig>,
-    options?: { silent?: boolean; skipPersist?: boolean }
+    options?: { silent?: boolean; skipPersist?: boolean },
   ): WhiteLabelFullConfig {
     const tenant = this.tenantsMap.get(tenantId) || this.getActiveTenant();
     const updated: WhiteLabelFullConfig = {
@@ -1777,7 +1921,11 @@ export class WhiteLabelEngine {
    * Atualiza simultaneamente app_branding e white_label_tenant_configs
    */
   public async persistToSupabase(config: WhiteLabelFullConfig, tenantId: string): Promise<boolean> {
-    if (!isSupabaseConfigured() || (typeof process !== "undefined" && process.env.NODE_ENV === "test")) return true;
+    if (
+      !isSupabaseConfigured() ||
+      (typeof process !== "undefined" && process.env.NODE_ENV === "test")
+    )
+      return true;
     try {
       const brandingRecord = convertWhiteLabelToBrandingRecord(config, tenantId);
       const tenant = this.tenantsMap.get(tenantId) || this.getActiveTenant();
@@ -1792,24 +1940,23 @@ export class WhiteLabelEngine {
       }
 
       // 2. Garante persistência da franquia na tabela white_label_tenants
-      const { error: tenantError } = await supabase
-        .from("white_label_tenants" as any)
-        .upsert(
-          {
-            tenant_id: tenantId,
-            operation_name: tenant.nomeOperacao || config.brandCenter?.nomePlataforma || "PARTIU Operação",
-            city_id: tenant.cidadeId || `cidade-${tenantId}`,
-            city_name: tenant.cidadeNome || "Cidade Operacional",
-            state_uf: tenant.uf || "BR",
-            manager_name: tenant.responsavelNome || "Gestão Geral",
-            manager_email: tenant.responsavelEmail || "admin@partiu.app",
-            manager_phone: tenant.responsavelTelefone || "(00) 00000-0000",
-            cnpj: tenant.cnpjFranqueado || null,
-            is_active: true,
-            updated_at: new Date().toISOString(),
-          } as any,
-          { onConflict: "tenant_id" }
-        );
+      const { error: tenantError } = await supabase.from("white_label_tenants" as any).upsert(
+        {
+          tenant_id: tenantId,
+          operation_name:
+            tenant.nomeOperacao || config.brandCenter?.nomePlataforma || "PARTIU Operação",
+          city_id: tenant.cidadeId || `cidade-${tenantId}`,
+          city_name: tenant.cidadeNome || "Cidade Operacional",
+          state_uf: tenant.uf || "BR",
+          manager_name: tenant.responsavelNome || "Gestão Geral",
+          manager_email: tenant.responsavelEmail || "admin@partiu.app",
+          manager_phone: tenant.responsavelTelefone || "(00) 00000-0000",
+          cnpj: tenant.cnpjFranqueado || null,
+          is_active: true,
+          updated_at: new Date().toISOString(),
+        } as any,
+        { onConflict: "tenant_id" },
+      );
 
       if (tenantError) {
         silentCatchWarn("WhiteLabelEngine:persistToSupabase:white_label_tenants", tenantError);
@@ -1835,11 +1982,14 @@ export class WhiteLabelEngine {
             full_snapshot: config,
             updated_at: new Date().toISOString(),
           } as any,
-          { onConflict: "tenant_id" }
+          { onConflict: "tenant_id" },
         );
 
       if (configError) {
-        silentCatchWarn("WhiteLabelEngine:persistToSupabase:white_label_tenant_configs", configError);
+        silentCatchWarn(
+          "WhiteLabelEngine:persistToSupabase:white_label_tenant_configs",
+          configError,
+        );
       }
 
       return !brandingError;
@@ -1856,8 +2006,9 @@ export class WhiteLabelEngine {
     if (!isSupabaseConfigured()) return null;
     try {
       // 1. Tenta carregar o snapshot estruturado de white_label_tenant_configs
-      const { data: configData, error: configError }: { data: any; error: any } = await (supabase
-        .from("white_label_tenant_configs" as any) as any)
+      const { data: configData, error: configError }: { data: any; error: any } = await (
+        supabase.from("white_label_tenant_configs" as any) as any
+      )
         .select("*")
         .eq("tenant_id", tenantId)
         .maybeSingle();
@@ -1890,15 +2041,16 @@ export class WhiteLabelEngine {
         if (tenantId === this.activeTenantId) {
           this.applyTheme(loadedConfig);
           window.dispatchEvent(
-            new CustomEvent("partiu:whitelabel-updated", { detail: loadedConfig })
+            new CustomEvent("partiu:whitelabel-updated", { detail: loadedConfig }),
           );
         }
         return loadedConfig;
       }
 
       // 2. Fallback: Hidrata dados visuais a partir da tabela app_branding
-      const { data: brandingData, error: brandingError }: { data: any; error: any } = await (supabase
-        .from("app_branding" as any) as any)
+      const { data: brandingData, error: brandingError }: { data: any; error: any } = await (
+        supabase.from("app_branding" as any) as any
+      )
         .select("*")
         .eq("tenant_id", tenantId)
         .maybeSingle();
@@ -1918,19 +2070,26 @@ export class WhiteLabelEngine {
             },
             favicons: {
               ...current.brandCenter.favicons,
-              faviconDesktopUrl: brandingData.favicon_url || current.brandCenter.favicons.faviconDesktopUrl,
+              faviconDesktopUrl:
+                brandingData.favicon_url || current.brandCenter.favicons.faviconDesktopUrl,
             },
           },
           designSystem: {
             ...current.designSystem,
             paletaPrimaria: {
               ...current.designSystem.paletaPrimaria,
-              corPrincipal: brandingData.primary_color || current.designSystem.paletaPrimaria.corPrincipal,
-              corSecundaria: brandingData.secondary_color || current.designSystem.paletaPrimaria.corSecundaria,
-              corTerciaria: brandingData.accent_color || current.designSystem.paletaPrimaria.corTerciaria,
-              corFundoApp: brandingData.background_color || current.designSystem.paletaPrimaria.corFundoApp,
-              corSuperficieCard: brandingData.surface_color || current.designSystem.paletaPrimaria.corSuperficieCard,
-              corTextoPrincipal: brandingData.text_primary || current.designSystem.paletaPrimaria.corTextoPrincipal,
+              corPrincipal:
+                brandingData.primary_color || current.designSystem.paletaPrimaria.corPrincipal,
+              corSecundaria:
+                brandingData.secondary_color || current.designSystem.paletaPrimaria.corSecundaria,
+              corTerciaria:
+                brandingData.accent_color || current.designSystem.paletaPrimaria.corTerciaria,
+              corFundoApp:
+                brandingData.background_color || current.designSystem.paletaPrimaria.corFundoApp,
+              corSuperficieCard:
+                brandingData.surface_color || current.designSystem.paletaPrimaria.corSuperficieCard,
+              corTextoPrincipal:
+                brandingData.text_primary || current.designSystem.paletaPrimaria.corTextoPrincipal,
             },
           },
           typography: {
@@ -1948,9 +2107,7 @@ export class WhiteLabelEngine {
         this.saveTenantsRegistry();
         if (tenantId === this.activeTenantId) {
           this.applyTheme(merged);
-          window.dispatchEvent(
-            new CustomEvent("partiu:whitelabel-updated", { detail: merged })
-          );
+          window.dispatchEvent(new CustomEvent("partiu:whitelabel-updated", { detail: merged }));
         }
         return merged;
       }
@@ -1967,7 +2124,10 @@ export class WhiteLabelEngine {
    * (vindo do Supabase ou do BrandingProvider), garantindo que useBrandTheme e todos
    * os componentes dependentes reajam instantaneamente à nova identidade.
    */
-  public syncFromBrandingRecord(record: AppBrandingRecord, options?: { broadcast?: boolean }): void {
+  public syncFromBrandingRecord(
+    record: AppBrandingRecord,
+    options?: { broadcast?: boolean },
+  ): void {
     if (!record || !record.tenant_id) return;
     const tid = record.tenant_id.trim();
     const existing = this.tenantsMap.get(tid);
@@ -1981,7 +2141,8 @@ export class WhiteLabelEngine {
       "24px": "3xl",
       "9999px": "full",
     };
-    const mappedRadius: BorderRadiusOption = radiusMapReverse[record.border_radius || "16px"] || "xl";
+    const mappedRadius: BorderRadiusOption =
+      radiusMapReverse[record.border_radius || "16px"] || "xl";
 
     const baseConfig = existing ? existing.configuracaoCompleta : this.getActiveConfig();
     const updatedConfig: WhiteLabelFullConfig = {
@@ -1998,7 +2159,8 @@ export class WhiteLabelEngine {
         },
         favicons: {
           ...baseConfig.brandCenter.favicons,
-          faviconDesktopUrl: record.favicon_url || baseConfig.brandCenter.favicons.faviconDesktopUrl,
+          faviconDesktopUrl:
+            record.favicon_url || baseConfig.brandCenter.favicons.faviconDesktopUrl,
         },
       },
       designSystem: {
@@ -2007,16 +2169,26 @@ export class WhiteLabelEngine {
         paletaPrimaria: {
           ...baseConfig.designSystem.paletaPrimaria,
           corPrincipal: record.primary_color || baseConfig.designSystem.paletaPrimaria.corPrincipal,
-          corSecundaria: record.secondary_color || baseConfig.designSystem.paletaPrimaria.corSecundaria,
+          corSecundaria:
+            record.secondary_color || baseConfig.designSystem.paletaPrimaria.corSecundaria,
           corTerciaria: record.accent_color || baseConfig.designSystem.paletaPrimaria.corTerciaria,
-          corFundoApp: record.background_color || baseConfig.designSystem.paletaPrimaria.corFundoApp,
-          corSuperficieCard: record.surface_color || baseConfig.designSystem.paletaPrimaria.corSuperficieCard,
-          corTextoPrincipal: record.text_primary || baseConfig.designSystem.paletaPrimaria.corTextoPrincipal,
+          corFundoApp:
+            record.background_color || baseConfig.designSystem.paletaPrimaria.corFundoApp,
+          corSuperficieCard:
+            record.surface_color || baseConfig.designSystem.paletaPrimaria.corSuperficieCard,
+          corTextoPrincipal:
+            record.text_primary || baseConfig.designSystem.paletaPrimaria.corTextoPrincipal,
         },
         gradienteHero: {
           ...baseConfig.designSystem.gradienteHero,
-          corInicio: record.header_gradient_start || record.primary_color || baseConfig.designSystem.gradienteHero.corInicio,
-          corFim: record.header_gradient_end || record.secondary_color || baseConfig.designSystem.gradienteHero.corFim,
+          corInicio:
+            record.header_gradient_start ||
+            record.primary_color ||
+            baseConfig.designSystem.gradienteHero.corInicio,
+          corFim:
+            record.header_gradient_end ||
+            record.secondary_color ||
+            baseConfig.designSystem.gradienteHero.corFim,
         },
       },
       typography: {
@@ -2061,7 +2233,7 @@ export class WhiteLabelEngine {
    */
   public findTenantByCoordinates(
     lat: number,
-    lng: number
+    lng: number,
   ): {
     tenant: WhiteLabelTenantRecord;
     isWithinServiceArea: boolean;
@@ -2127,7 +2299,7 @@ export class WhiteLabelEngine {
     adminSenha?: string,
     responsavelNome?: string,
     responsavelTelefone?: string,
-    territorioOptions?: Partial<TerritorioExclusivoConfig>
+    territorioOptions?: Partial<TerritorioExclusivoConfig>,
   ): WhiteLabelTenantRecord {
     const source = this.tenantsMap.get(sourceTenantId) || this.getActiveTenant();
 
@@ -2152,8 +2324,16 @@ export class WhiteLabelEngine {
 
     // Resolução de Geolocalização e Geofence Automático da Cidade Brasileira
     const resolvida = resolverCidadeBrasil(newCityName, newUf);
-    const latCentro = territorioOptions?.latCentro ?? resolvida?.lat ?? source.configuracaoCompleta?.geo?.coordenadasCentroLat ?? -15.793889;
-    const lngCentro = territorioOptions?.lngCentro ?? resolvida?.lng ?? source.configuracaoCompleta?.geo?.coordenadasCentroLng ?? -47.882778;
+    const latCentro =
+      territorioOptions?.latCentro ??
+      resolvida?.lat ??
+      source.configuracaoCompleta?.geo?.coordenadasCentroLat ??
+      -15.793889;
+    const lngCentro =
+      territorioOptions?.lngCentro ??
+      resolvida?.lng ??
+      source.configuracaoCompleta?.geo?.coordenadasCentroLng ??
+      -47.882778;
     const raioPadraoKm = territorioOptions?.raioMaximoKm ?? resolvida?.raioSugeridoKm ?? 30;
     const cidadeFormatada = resolvida?.nome || newCityName;
     const ufFormatada = resolvida?.uf || newUf;
@@ -2191,12 +2371,15 @@ export class WhiteLabelEngine {
 
     const newTenant: WhiteLabelTenantRecord = {
       tenantId: cleanId,
-      nomeOperacao: operatorName || `${source.configuracaoCompleta.brandCenter.nomePlataforma} ${cidadeFormatada}`,
+      nomeOperacao:
+        operatorName ||
+        `${source.configuracaoCompleta.brandCenter.nomePlataforma} ${cidadeFormatada}`,
       cidadeId: `${cidadeFormatada.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${ufFormatada.toLowerCase()}`,
       cidadeNome: cidadeFormatada,
       uf: ufFormatada,
       responsavelNome: responsavelNome || source.responsavelNome || "Gestor de Franquia",
-      responsavelEmail: adminEmail || source.responsavelEmail || `${cleanId.replace("tenant-", "")}@partiu.app`,
+      responsavelEmail:
+        adminEmail || source.responsavelEmail || `${cleanId.replace("tenant-", "")}@partiu.app`,
       responsavelTelefone: responsavelTelefone || source.responsavelTelefone || "(00) 00000-0000",
       cnpjFranqueado: source.cnpjFranqueado,
       adminEmail: adminEmail || `${cleanId.replace("tenant-", "")}@partiu.app`,
@@ -2220,9 +2403,11 @@ export class WhiteLabelEngine {
 
     // Auto-registra o subdomínio oficial ativo da nova franquia
     try {
-      import("./tenant-domain-service").then((mod) => {
-        mod.tenantDomainService.getOrCreateDomainForTenant(cleanId, newTenant.nomeOperacao);
-      }).catch(() => {});
+      import("./tenant-domain-service")
+        .then((mod) => {
+          mod.tenantDomainService.getOrCreateDomainForTenant(cleanId, newTenant.nomeOperacao);
+        })
+        .catch(() => {});
     } catch {}
 
     return newTenant;
@@ -2233,7 +2418,7 @@ export class WhiteLabelEngine {
    */
   public updateTenantTerritory(
     tenantId: string,
-    partial: Partial<TerritorioExclusivoConfig>
+    partial: Partial<TerritorioExclusivoConfig>,
   ): WhiteLabelTenantRecord {
     const tenant = this.tenantsMap.get(tenantId);
     if (!tenant) throw new Error(`Franqueado '${tenantId}' não encontrado.`);
@@ -2255,7 +2440,7 @@ export class WhiteLabelEngine {
       ...currentTerritorio,
       ...partial,
       isMatrizNacional: isMatriz,
-      modo: isMatriz ? "NACIONAL_IRRESTRITO" : (partial.modo || currentTerritorio.modo),
+      modo: isMatriz ? "NACIONAL_IRRESTRITO" : partial.modo || currentTerritorio.modo,
       raioMaximoKm: isMatriz ? 9999 : (partial.raioMaximoKm ?? currentTerritorio.raioMaximoKm),
     };
 
@@ -2265,8 +2450,10 @@ export class WhiteLabelEngine {
       geo: {
         ...tenant.configuracaoCompleta?.geo,
         raioOperacaoPadraoKm: updatedTerritorio.raioMaximoKm,
-        coordenadasCentroLat: updatedTerritorio.latCentro ?? updatedTerritorio.coordenadasCentroLat ?? -15.793889,
-        coordenadasCentroLng: updatedTerritorio.lngCentro ?? updatedTerritorio.coordenadasCentroLng ?? -47.882778,
+        coordenadasCentroLat:
+          updatedTerritorio.latCentro ?? updatedTerritorio.coordenadasCentroLat ?? -15.793889,
+        coordenadasCentroLng:
+          updatedTerritorio.lngCentro ?? updatedTerritorio.coordenadasCentroLng ?? -47.882778,
         territorio: updatedTerritorio,
       },
     };
@@ -2280,7 +2467,7 @@ export class WhiteLabelEngine {
       window.dispatchEvent(
         new CustomEvent("partiu:territorio-updated", {
           detail: { tenantId, territorio: updatedTerritorio },
-        })
+        }),
       );
     }
 
@@ -2295,7 +2482,10 @@ export class WhiteLabelEngine {
     if (typeof document === "undefined") return;
 
     // 1. Aplica tokens universais via ThemeEngine (fonte única de verdade do design system)
-    const brandingRecord = convertWhiteLabelToBrandingRecord(config, config.tenantId || this.activeTenantId);
+    const brandingRecord = convertWhiteLabelToBrandingRecord(
+      config,
+      config.tenantId || this.activeTenantId,
+    );
     themeEngine.applyTheme(brandingRecord);
 
     const root = document.documentElement;
@@ -2351,7 +2541,9 @@ export class WhiteLabelEngine {
       } else {
         updateBrowserFavicon(generateSvgFavicon(prim.corPrincipal, prim.corSecundaria));
       }
-    } catch (err) { silentCatchWarn("white-label-engine", err); }
+    } catch (err) {
+      silentCatchWarn("white-label-engine", err);
+    }
   }
 
   // ============================================================================
@@ -2359,9 +2551,15 @@ export class WhiteLabelEngine {
   // ============================================================================
 
   public applyPreset(presetId: string): WhiteLabelFullConfig {
-    const norm = presetId.toLowerCase().replace(/^preset-/, "").replace(/[^a-z0-9]/g, "");
+    const norm = presetId
+      .toLowerCase()
+      .replace(/^preset-/, "")
+      .replace(/[^a-z0-9]/g, "");
     const preset = WHITELABEL_PRESETS.find((p) => {
-      const pNorm = p.id.toLowerCase().replace(/^preset-/, "").replace(/[^a-z0-9]/g, "");
+      const pNorm = p.id
+        .toLowerCase()
+        .replace(/^preset-/, "")
+        .replace(/[^a-z0-9]/g, "");
       return p.id === presetId || pNorm === norm || pNorm.includes(norm) || norm.includes(pNorm);
     });
     if (!preset) throw new Error(`Preset '${presetId}' não encontrado.`);
@@ -2434,7 +2632,7 @@ export class WhiteLabelEngine {
         themeConfig: active,
       },
       null,
-      2
+      2,
     );
   }
 
@@ -2443,7 +2641,9 @@ export class WhiteLabelEngine {
       const parsed = JSON.parse(jsonString);
       const targetConfig = parsed.themeConfig || parsed;
       if (!targetConfig.brandCenter || !targetConfig.designSystem) {
-        throw new Error("Arquivo JSON inválido: nós essenciais 'brandCenter' ou 'designSystem' ausentes.");
+        throw new Error(
+          "Arquivo JSON inválido: nós essenciais 'brandCenter' ou 'designSystem' ausentes.",
+        );
       }
       return this.updateActiveConfig(targetConfig);
     } catch (e: any) {

@@ -36,8 +36,8 @@ export function AdminStat({
                 trendPositive === true
                   ? "text-emerald-600 dark:text-emerald-400"
                   : trendPositive === false
-                  ? "text-rose-600 dark:text-rose-400"
-                  : "text-slate-500"
+                    ? "text-rose-600 dark:text-rose-400"
+                    : "text-slate-500"
               }`}
             >
               {trend}

@@ -41,7 +41,7 @@ export class DeliveryReturnEngine {
   public startRecipientWait(
     deliveryId: string,
     stopId: string,
-    gracePeriodSeconds: number = DEFAULT_RETURN_GRACE_SECONDS
+    gracePeriodSeconds: number = DEFAULT_RETURN_GRACE_SECONDS,
   ): RecipientWaitStatus {
     const session: RecipientWaitStatus = {
       deliveryId,
@@ -62,7 +62,7 @@ export class DeliveryReturnEngine {
    */
   public recordContactAttempt(
     deliveryId: string,
-    channel: "CALL" | "MESSAGE" | "BUZZER"
+    channel: "CALL" | "MESSAGE" | "BUZZER",
   ): RecipientWaitStatus | null {
     const session = this.waitSessions.get(deliveryId);
     if (!session) return null;
@@ -87,8 +87,7 @@ export class DeliveryReturnEngine {
 
     // Para liberar devolução, o condutor deve ter aguardado a carência e tentado contato
     session.canInitiateReturn =
-      session.elapsedSeconds >= session.gracePeriodSeconds &&
-      session.contactAttempts.length > 0;
+      session.elapsedSeconds >= session.gracePeriodSeconds && session.contactAttempts.length > 0;
 
     return session;
   }
@@ -96,7 +95,10 @@ export class DeliveryReturnEngine {
   /**
    * Calcula a taxa de devolução ao remetente com base na comissão do plano do entregador (0% Ouro a 5% Free)
    */
-  public calculateReturnFee(distanceKm: number, courierCommissionPercent: number = 5.0): {
+  public calculateReturnFee(
+    distanceKm: number,
+    courierCommissionPercent: number = 5.0,
+  ): {
     totalFeeBrl: number;
     driverCompensationBrl: number;
   } {
@@ -125,7 +127,7 @@ export class DeliveryReturnEngine {
       const waitRemaining = Math.max(0, wait.gracePeriodSeconds - wait.elapsedSeconds);
       if (waitRemaining > 0) {
         throw new Error(
-          `Aguarde o término da tolerância obrigatória de espera (${waitRemaining}s restantes) antes de iniciar a devolução.`
+          `Aguarde o término da tolerância obrigatória de espera (${waitRemaining}s restantes) antes de iniciar a devolução.`,
         );
       }
     }
@@ -150,7 +152,7 @@ export class DeliveryReturnEngine {
       params.deliveryId,
       params.pickupAddress,
       params.senderContact,
-      returnOtp
+      returnOtp,
     );
 
     // Transiciona máquina de estados
@@ -158,13 +160,13 @@ export class DeliveryReturnEngine {
       params.deliveryId,
       "RETURN_REQUIRED",
       "DRIVER",
-      `Devolução iniciada pelo condutor. Motivo: ${params.reason}`
+      `Devolução iniciada pelo condutor. Motivo: ${params.reason}`,
     );
     deliveryStateMachine.transition(
       params.deliveryId,
       "RETURNING_TO_PICKUP",
       "DRIVER",
-      "Condutor em deslocamento de retorno ao ponto de coleta"
+      "Condutor em deslocamento de retorno ao ponto de coleta",
     );
 
     return {
@@ -194,7 +196,7 @@ export class DeliveryReturnEngine {
     const pinRes = deliveryPinEngine.verifyOtp(
       `RETURN-${params.deliveryId}`,
       params.returnOtp,
-      session.returnOtpExpected
+      session.returnOtpExpected,
     );
 
     if (!pinRes.success) {
@@ -223,13 +225,13 @@ export class DeliveryReturnEngine {
       params.deliveryId,
       "RETURNED",
       "DRIVER",
-      "Pacote entregue de volta ao remetente com validação de PIN e foto"
+      "Pacote entregue de volta ao remetente com validação de PIN e foto",
     );
     deliveryStateMachine.transition(
       params.deliveryId,
       "COMPLETED",
       "SYSTEM",
-      "Ciclo de devolução finalizado e liquidado"
+      "Ciclo de devolução finalizado e liquidado",
     );
 
     return {

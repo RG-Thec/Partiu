@@ -130,8 +130,8 @@ describe("SUITE 48: H3 / REDIS SPATIAL INDEXING ENGINE (UBER H3 + ATOMIC LUA)", 
     const mockDrivers = [
       { id: "mot-1", lat: -21.2051, lng: -41.8881 }, // anel 0 ou 1 (bem perto)
       { id: "mot-2", lat: -21.2065, lng: -41.8895 }, // anel 1
-      { id: "mot-3", lat: -21.2090, lng: -41.8920 }, // anel 2
-      { id: "mot-4", lat: -21.2130, lng: -41.8960 }, // anel 3
+      { id: "mot-3", lat: -21.209, lng: -41.892 }, // anel 2
+      { id: "mot-4", lat: -21.213, lng: -41.896 }, // anel 3
       { id: "mot-busy", lat: -21.2052, lng: -41.8882 }, // ocupado (não deve aparecer)
     ];
 
@@ -163,7 +163,9 @@ describe("SUITE 48: H3 / REDIS SPATIAL INDEXING ENGINE (UBER H3 + ATOMIC LUA)", 
 
     // A lista deve estar ordenada por distância crescente
     for (let i = 1; i < candidates.length; i++) {
-      expect(candidates[i].distanceApproxMeters >= candidates[i - 1].distanceApproxMeters).toBe(true);
+      expect(candidates[i].distanceApproxMeters >= candidates[i - 1].distanceApproxMeters).toBe(
+        true,
+      );
     }
   });
 
@@ -180,7 +182,11 @@ describe("SUITE 48: H3 / REDIS SPATIAL INDEXING ENGINE (UBER H3 + ATOMIC LUA)", 
     expect(executions).toBe(1);
 
     // Lock deve ter sido liberado após o bloco
-    const canAcquireAgain = await h3DispatchEngine.withRideLock(rideId, 5000, async () => "SECOND_OK");
+    const canAcquireAgain = await h3DispatchEngine.withRideLock(
+      rideId,
+      5000,
+      async () => "SECOND_OK",
+    );
     expect(canAcquireAgain).toBe("SECOND_OK");
   });
 });

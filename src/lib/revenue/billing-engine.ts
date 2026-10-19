@@ -19,7 +19,6 @@ import { revenueNotifications } from "./revenue-notifications";
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { computePixCrc16 } from "@/services/payment/PaymentProviderAdapter";
 
-
 export interface GovernanceBillingSettings {
   gracePeriodDays: number; // Padrão: 3 dias
   maxDebtLimitBrl: number; // Padrão: R$ 80,00
@@ -33,7 +32,8 @@ export interface GovernanceBillingSettings {
 export interface InvoiceRecord {
   id: string;
   driverId: string;
-  type: "SUBSCRIPTION_MONTHLY" | "PROTECTION_REPLENISHMENT" | "PLATFORM_DEBT" | "CHARGEBACK_RECOVERY";
+  type:
+    "SUBSCRIPTION_MONTHLY" | "PROTECTION_REPLENISHMENT" | "PLATFORM_DEBT" | "CHARGEBACK_RECOVERY";
   amountBrl: number;
   amountCents: number;
   dueDate: number;
@@ -114,7 +114,9 @@ export class BillingEngine {
       if (rawInvoices) {
         this.invoices = JSON.parse(rawInvoices);
       }
-    } catch (err) { silentCatchWarn("billing-engine", err); }
+    } catch (err) {
+      silentCatchWarn("billing-engine", err);
+    }
   }
 
   public saveSettings(newSettings: Partial<GovernanceBillingSettings>): GovernanceBillingSettings {
@@ -122,7 +124,9 @@ export class BillingEngine {
     if (typeof window !== "undefined") {
       try {
         localStorage.setItem(STORAGE_GOVERNANCE_KEY, JSON.stringify(this.settings));
-      } catch (err) { silentCatchWarn("billing-engine", err); }
+      } catch (err) {
+        silentCatchWarn("billing-engine", err);
+      }
     }
     return this.settings;
   }
@@ -139,13 +143,19 @@ export class BillingEngine {
     if (typeof window === "undefined") return;
     try {
       localStorage.setItem(STORAGE_INVOICES_KEY, JSON.stringify(this.invoices));
-    } catch (err) { silentCatchWarn("billing-engine", err); }
+    } catch (err) {
+      silentCatchWarn("billing-engine", err);
+    }
   }
 
   /**
    * Cria uma fatura de cobrança (ex: mensalidade de assinatura)
    */
-  public generateSubscriptionInvoice(driverId: string, monthlyFeeBrl: number, planName: string): InvoiceRecord {
+  public generateSubscriptionInvoice(
+    driverId: string,
+    monthlyFeeBrl: number,
+    planName: string,
+  ): InvoiceRecord {
     const now = Date.now();
     const amountCents = Math.round(monthlyFeeBrl * 100);
 
@@ -193,20 +203,27 @@ export class BillingEngine {
     // Se a assinatura tiver débito acumulado
     if (subscription.accumulatedDebtCents > 0 && this.settings.autoDeductOnWithdrawal) {
       // Se tiver fatura de mensalidade vencida ou carência
-      const monthlyDebtCents = Math.min(subscription.monthlyFeeCents, subscription.accumulatedDebtCents);
+      const monthlyDebtCents = Math.min(
+        subscription.monthlyFeeCents,
+        subscription.accumulatedDebtCents,
+      );
       const otherDebtCents = subscription.accumulatedDebtCents - monthlyDebtCents;
 
       // Dedução de mensalidade
       subscriptionDeductionCents = Math.min(grossBalanceCents, monthlyDebtCents);
       if (subscriptionDeductionCents > 0) {
-        deductionSummary.push(`Mensalidade do Plano: -${(subscriptionDeductionCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`);
+        deductionSummary.push(
+          `Mensalidade do Plano: -${(subscriptionDeductionCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`,
+        );
       }
 
       // Dedução de outras pendências
       const remainingBalance = grossBalanceCents - subscriptionDeductionCents;
       pendingDebtsDeductionCents = Math.min(remainingBalance, otherDebtCents);
       if (pendingDebtsDeductionCents > 0) {
-        deductionSummary.push(`Pendências operacionais: -${(pendingDebtsDeductionCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`);
+        deductionSummary.push(
+          `Pendências operacionais: -${(pendingDebtsDeductionCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`,
+        );
       }
     }
 
@@ -227,7 +244,8 @@ export class BillingEngine {
         pendingDebtsDeductionCents,
         netWithdrawalAvailableBrl: 0,
         netWithdrawalAvailableCents: 0,
-        reason: "Saque bloqueado devido a suspensão de inadimplência. Regularize suas pendências para liberar.",
+        reason:
+          "Saque bloqueado devido a suspensão de inadimplência. Regularize suas pendências para liberar.",
         deductionSummary,
       };
     }
@@ -250,7 +268,11 @@ export class BillingEngine {
   /**
    * Executa a cobrança em cascata (Wallet -> Saldo de Corridas -> PIX -> Cartão)
    */
-  public executeCascadeBilling(driverId: string, invoiceId: string, availableBalanceCents: number): CascadePaymentResult {
+  public executeCascadeBilling(
+    driverId: string,
+    invoiceId: string,
+    availableBalanceCents: number,
+  ): CascadePaymentResult {
     const invoice = this.invoices.find((inv) => inv.id === invoiceId);
     if (!invoice) throw new Error(`Fatura não encontrada: ${invoiceId}`);
     if (invoice.status === "PAID") {

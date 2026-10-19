@@ -32,7 +32,12 @@ export const Route = createFileRoute("/app/sos")({
 
 export function EmergenciaSOSPage() {
   const criarSOS = useCriarAlertaSOS();
-  const { coords, localDetectado, solicitarLocalizacao, carregando: carregandoGps } = useGeolocation();
+  const {
+    coords,
+    localDetectado,
+    solicitarLocalizacao,
+    carregando: carregandoGps,
+  } = useGeolocation();
 
   const [sosAtivado, setSosAtivado] = useState(false);
   const [acionando, setAcionando] = useState(false);
@@ -111,8 +116,9 @@ export function EmergenciaSOSPage() {
               Precisa de ajuda imediata?
             </p>
             <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-md mx-auto leading-relaxed">
-              Ao pressionar o botão SOS, suas coordenadas geográficas e telemetria serão transmitidas
-              instantaneamente para a Central de Segurança PARTIU e você poderá discar diretamente para a Polícia (190).
+              Ao pressionar o botão SOS, suas coordenadas geográficas e telemetria serão
+              transmitidas instantaneamente para a Central de Segurança PARTIU e você poderá discar
+              diretamente para a Polícia (190).
             </p>
           </div>
 
@@ -197,7 +203,8 @@ export function EmergenciaSOSPage() {
               Telemetria Enviada com Sucesso
             </h2>
             <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto leading-relaxed">
-              A Central de Monitoramento PARTIU registrou suas coordenadas geográficas. Caso necessário, ligue imediatamente para a Polícia.
+              A Central de Monitoramento PARTIU registrou suas coordenadas geográficas. Caso
+              necessário, ligue imediatamente para a Polícia.
             </p>
           </div>
 

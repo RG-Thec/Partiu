@@ -13,10 +13,7 @@ import {
   type DispatchSession,
 } from "../src/services/DispatchQueueBuilder.ts";
 import { callAlertService } from "../src/services/CallAlertService.ts";
-import {
-  liveTrackingEngine,
-  type TrackingPosition,
-} from "../src/services/LiveTrackingEngine.ts";
+import { liveTrackingEngine, type TrackingPosition } from "../src/services/LiveTrackingEngine.ts";
 import {
   realtimeConnectionManager,
   type ConnectionState,
@@ -73,8 +70,8 @@ describe("28. PARTIU DISPATCH ENGINE V4 — MODULE 3: Matching Engine & Dispatch
     driverName: "João Free",
     phone: "(22) 99999-2222",
     avatarUrl: "",
-    rating: 4.60,
-    acceptanceRate: 0.70,
+    rating: 4.6,
+    acceptanceRate: 0.7,
     cancellationRate: 0.08,
     vehiclePlate: "ABC-2002",
     vehicleModel: "Gol",
@@ -239,7 +236,7 @@ describe("32. PARTIU DISPATCH ENGINE V4 — MODULE 9: Realtime Connection & Resi
     const metrics = realtimeConnectionManager.getMetrics();
     expect(metrics).toBeDefined();
     expect(["DISCONNECTED", "CONNECTING", "CONNECTED", "RECONNECTING", "ERROR"]).toContain(
-      metrics.state
+      metrics.state,
     );
   });
 });
@@ -259,7 +256,8 @@ describe("33. PARTIU DISPATCH ENGINE V4 — MODULE 11: National Scale Performanc
         vehiclePlate: `ABC-${1000 + i}`,
         vehicleModel: "Carro",
         category: "POP",
-        subscriptionPlan: i % 4 === 0 ? "OURO" : i % 3 === 0 ? "PRATA" : i % 2 === 0 ? "BRONZE" : "FREE",
+        subscriptionPlan:
+          i % 4 === 0 ? "OURO" : i % 3 === 0 ? "PRATA" : i % 2 === 0 ? "BRONZE" : "FREE",
         distanceMeters: 500 + i * 50,
         etaMinutes: 2 + Math.floor(i / 10),
         finalScore: 0,

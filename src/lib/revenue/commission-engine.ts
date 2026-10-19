@@ -118,21 +118,21 @@ export const STANDARD_DRIVER_PLANS = {
     planId: "plano-bronze",
     planName: "Bronze (Diária Flex)",
     commissionPercent: 0.0,
-    monthlyFeeBrl: 29.90,
+    monthlyFeeBrl: 29.9,
     billingCycle: "DAILY",
   },
   PRATA: {
     planId: "plano-prata",
     planName: "Prata (Semanal Pro)",
     commissionPercent: 0.0,
-    monthlyFeeBrl: 69.90,
+    monthlyFeeBrl: 69.9,
     billingCycle: "WEEKLY",
   },
   OURO: {
     planId: "plano-ouro",
     planName: "Ouro (Mensal Ilimitado)",
     commissionPercent: 0.0,
-    monthlyFeeBrl: 149.90,
+    monthlyFeeBrl: 149.9,
     billingCycle: "MONTHLY",
   },
 } as const satisfies Record<string, DriverPlanFeeConfig>;
@@ -167,7 +167,9 @@ export class CommissionEngine {
       if (savedGold) {
         this.goldProtectionConfig = { ...DEFAULT_GOLD_PROTECTION_CONFIG, ...JSON.parse(savedGold) };
       }
-    } catch (err) { silentCatchWarn("commission-engine", err); }
+    } catch (err) {
+      silentCatchWarn("commission-engine", err);
+    }
   }
 
   public getProtectionConfig(): ProtectionFundConfig {
@@ -178,13 +180,21 @@ export class CommissionEngine {
     this.protectionConfig = {
       ...this.protectionConfig,
       ...updates,
-      retentionPerTripCents: updates.retentionPerTripBrl !== undefined ? Math.round(updates.retentionPerTripBrl * 100) : this.protectionConfig.retentionPerTripCents,
-      targetCapCents: updates.targetCapBrl !== undefined ? Math.round(updates.targetCapBrl * 100) : this.protectionConfig.targetCapCents,
+      retentionPerTripCents:
+        updates.retentionPerTripBrl !== undefined
+          ? Math.round(updates.retentionPerTripBrl * 100)
+          : this.protectionConfig.retentionPerTripCents,
+      targetCapCents:
+        updates.targetCapBrl !== undefined
+          ? Math.round(updates.targetCapBrl * 100)
+          : this.protectionConfig.targetCapCents,
     };
     if (typeof window !== "undefined") {
       try {
         localStorage.setItem(STORAGE_PROTECTION_KEY, JSON.stringify(this.protectionConfig));
-      } catch (err) { silentCatchWarn("commission-engine", err); }
+      } catch (err) {
+        silentCatchWarn("commission-engine", err);
+      }
     }
     return { ...this.protectionConfig };
   }
@@ -193,18 +203,26 @@ export class CommissionEngine {
     return { ...this.goldProtectionConfig };
   }
 
-  public updateGoldProtectionConfig(updates: Partial<GoldPlanProtectionConfig>): GoldPlanProtectionConfig {
+  public updateGoldProtectionConfig(
+    updates: Partial<GoldPlanProtectionConfig>,
+  ): GoldPlanProtectionConfig {
     this.goldProtectionConfig = {
       ...this.goldProtectionConfig,
       ...updates,
-      thresholdMonthlyCents: updates.thresholdMonthlyBrl !== undefined
-        ? Math.round(updates.thresholdMonthlyBrl * 100)
-        : this.goldProtectionConfig.thresholdMonthlyCents,
+      thresholdMonthlyCents:
+        updates.thresholdMonthlyBrl !== undefined
+          ? Math.round(updates.thresholdMonthlyBrl * 100)
+          : this.goldProtectionConfig.thresholdMonthlyCents,
     };
     if (typeof window !== "undefined") {
       try {
-        localStorage.setItem(STORAGE_GOLD_PROTECTION_KEY, JSON.stringify(this.goldProtectionConfig));
-      } catch (err) { silentCatchWarn("commission-engine", err); }
+        localStorage.setItem(
+          STORAGE_GOLD_PROTECTION_KEY,
+          JSON.stringify(this.goldProtectionConfig),
+        );
+      } catch (err) {
+        silentCatchWarn("commission-engine", err);
+      }
     }
     return { ...this.goldProtectionConfig };
   }
@@ -250,7 +268,7 @@ export class CommissionEngine {
     // Invariante Contábil Inegociável: Bruto === Líquido + Dedução Total
     if (driverNetEarningsCents + totalPlatformDeductionCents !== grossFareCents) {
       throw new Error(
-        `INVARIANTE_VIOLADA: Split contábil divergente (Bruto: ${grossFareCents}, Líquido: ${driverNetEarningsCents}, Dedução: ${totalPlatformDeductionCents})`
+        `INVARIANTE_VIOLADA: Split contábil divergente (Bruto: ${grossFareCents}, Líquido: ${driverNetEarningsCents}, Dedução: ${totalPlatformDeductionCents})`,
       );
     }
 
@@ -293,7 +311,7 @@ export class CommissionEngine {
       avgGrossFareBrl,
       distribution,
       serverCostPerTripBrl = 0.08,
-      supportCostPerDriverBrl = 4.50,
+      supportCostPerDriverBrl = 4.5,
       paymentGatewayPixPercent = 0.3,
     } = input;
 
@@ -308,9 +326,9 @@ export class CommissionEngine {
 
     // Receita de Assinaturas SaaS (MRR)
     const saasSubscriptionRevenueBrl =
-      (bronzeDrivers * STANDARD_DRIVER_PLANS.BRONZE.monthlyFeeBrl) +
-      (silverDrivers * STANDARD_DRIVER_PLANS.PRATA.monthlyFeeBrl) +
-      (goldDrivers * STANDARD_DRIVER_PLANS.OURO.monthlyFeeBrl);
+      bronzeDrivers * STANDARD_DRIVER_PLANS.BRONZE.monthlyFeeBrl +
+      silverDrivers * STANDARD_DRIVER_PLANS.PRATA.monthlyFeeBrl +
+      goldDrivers * STANDARD_DRIVER_PLANS.OURO.monthlyFeeBrl;
 
     // No modelo de mensalidade pura (0% Take Rate), a comissão variável é ZERO
     const takeRateCommissionsRevenueBrl = 0.0;
@@ -323,25 +341,33 @@ export class CommissionEngine {
     const totalOperationalCostBrl = serverHostingCost + supportCost + gatewayPixCost;
 
     const netPlatformProfitBrl = grossPlatformRevenueBrl - totalOperationalCostBrl;
-    const netMarginPercent = grossPlatformRevenueBrl > 0 ? (netPlatformProfitBrl / grossPlatformRevenueBrl) * 100 : 0;
-    const effectiveTakeRatePercent = totalMarketplaceGMVBrl > 0 ? (grossPlatformRevenueBrl / totalMarketplaceGMVBrl) * 100 : 0;
+    const netMarginPercent =
+      grossPlatformRevenueBrl > 0 ? (netPlatformProfitBrl / grossPlatformRevenueBrl) * 100 : 0;
+    const effectiveTakeRatePercent =
+      totalMarketplaceGMVBrl > 0 ? (grossPlatformRevenueBrl / totalMarketplaceGMVBrl) * 100 : 0;
 
     // Economia do motorista comparado à Uber (20%)
-    const competitorTakeRate20 = totalMarketplaceGMVBrl * 0.20;
+    const competitorTakeRate20 = totalMarketplaceGMVBrl * 0.2;
     const totalDriverEarningsBrl = totalMarketplaceGMVBrl - grossPlatformRevenueBrl;
-    const totalDriverSavingsVsUber20Brl = Math.max(0, competitorTakeRate20 - grossPlatformRevenueBrl);
+    const totalDriverSavingsVsUber20Brl = Math.max(
+      0,
+      competitorTakeRate20 - grossPlatformRevenueBrl,
+    );
 
     // Breakeven & CAC / LTV
-    const fixedMonthlyOverheadBrl = 3500.00;
-    const avgRevenuePerDriverBrl = activeDriversCount > 0 ? grossPlatformRevenueBrl / activeDriversCount : 0;
-    const avgCostPerDriverBrl = activeDriversCount > 0 ? totalOperationalCostBrl / activeDriversCount : 0;
+    const fixedMonthlyOverheadBrl = 3500.0;
+    const avgRevenuePerDriverBrl =
+      activeDriversCount > 0 ? grossPlatformRevenueBrl / activeDriversCount : 0;
+    const avgCostPerDriverBrl =
+      activeDriversCount > 0 ? totalOperationalCostBrl / activeDriversCount : 0;
     const marginPerDriverBrl = Math.max(1, avgRevenuePerDriverBrl - avgCostPerDriverBrl);
     const breakevenDriversCount = Math.ceil(fixedMonthlyOverheadBrl / marginPerDriverBrl);
 
-    const cacEstimatedBrl = 45.00;
+    const cacEstimatedBrl = 45.0;
     const avgDriverLifespanMonths = 14;
     const ltvEstimatedBrl = marginPerDriverBrl * avgDriverLifespanMonths;
-    const ltvCacRatio = cacEstimatedBrl > 0 ? Number((ltvEstimatedBrl / cacEstimatedBrl).toFixed(1)) : 0;
+    const ltvCacRatio =
+      cacEstimatedBrl > 0 ? Number((ltvEstimatedBrl / cacEstimatedBrl).toFixed(1)) : 0;
 
     return {
       totalMonthlyTrips,

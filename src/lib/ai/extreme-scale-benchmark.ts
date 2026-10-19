@@ -1,6 +1,6 @@
 /**
  * PARTIU EXTREME SCALE BENCHMARK ENGINE
- * 
+ *
  * Simula e afere estresse computacional extremo:
  * - 1 milhão, 5 milhões e 10 milhões de motoristas
  * - 100, 500 e 1.000 cidades simultâneas
@@ -20,14 +20,17 @@ export interface ExtremeScaleBenchmarkResult {
   };
   memoriaUtilizadaMb: number;
   custoComputacionalEstimadoUsdPorMilhao: number;
-  status: 'EXCELENTE' | 'APROVADO' | 'DEGRADADO';
+  status: "EXCELENTE" | "APROVADO" | "DEGRADADO";
 }
 
 export class ExtremeScaleBenchmark {
   /**
    * Executa teste de estresse de escala extrema utilizando matrizes contínuas TypedArray
    */
-  public runExtremeBenchmark(totalMotoristas: number, totalCidades: number): ExtremeScaleBenchmarkResult {
+  public runExtremeBenchmark(
+    totalMotoristas: number,
+    totalCidades: number,
+  ): ExtremeScaleBenchmarkResult {
     // Alocação de TypedArrays de 32 bits para suporte massivo de até 10M de elementos com zero GC
     // Para 10M: Float32Array ocupa 40MB
     const cityBatches = totalCidades;
@@ -43,7 +46,9 @@ export class ExtremeScaleBenchmark {
 
     const getMem = () => {
       try {
-        return typeof process !== 'undefined' && process.memoryUsage ? process.memoryUsage().heapUsed : 0;
+        return typeof process !== "undefined" && process.memoryUsage
+          ? process.memoryUsage().heapUsed
+          : 0;
       } catch {
         return 0;
       }
@@ -59,11 +64,11 @@ export class ExtremeScaleBenchmark {
 
     for (let c = 0; c < samplingSize; c++) {
       const startSample = performance.now();
-      
+
       // Avaliação de 500 condutores locais mais próximos na célula da cidade
       let bestScore = -1;
       const targetLat = -21.208;
-      
+
       const localSearchLimit = Math.min(lats.length, 500);
       for (let j = 0; j < localSearchLimit; j++) {
         const latJ = lats[j] ?? 0;
@@ -84,15 +89,23 @@ export class ExtremeScaleBenchmark {
     const memAfter = getMem();
 
     const sampleElapsedMs = t1 - t0;
-    const totalEstimatedElapsedMs = Math.max(1.0, Number((sampleElapsedMs * Math.min(3.0, scalingFactor * 0.25)).toFixed(2)));
+    const totalEstimatedElapsedMs = Math.max(
+      1.0,
+      Number((sampleElapsedMs * Math.min(3.0, scalingFactor * 0.25)).toFixed(2)),
+    );
 
     latencySamples.sort((a, b) => a - b);
-    const p50 = latencySamples[Math.floor(latencySamples.length * 0.50)] ?? 0.05;
-    const p90 = latencySamples[Math.floor(latencySamples.length * 0.90)] ?? 0.12;
-    const p99 = latencySamples[Math.min(latencySamples.length - 1, Math.floor(latencySamples.length * 0.99))] ?? 0.28;
+    const p50 = latencySamples[Math.floor(latencySamples.length * 0.5)] ?? 0.05;
+    const p90 = latencySamples[Math.floor(latencySamples.length * 0.9)] ?? 0.12;
+    const p99 =
+      latencySamples[
+        Math.min(latencySamples.length - 1, Math.floor(latencySamples.length * 0.99))
+      ] ?? 0.28;
 
     const throughput = Math.round((totalMotoristas / Math.max(1, totalEstimatedElapsedMs)) * 1000);
-    const tempoPorMotoristaUs = Number(((totalEstimatedElapsedMs / totalMotoristas) * 1000).toFixed(4));
+    const tempoPorMotoristaUs = Number(
+      ((totalEstimatedElapsedMs / totalMotoristas) * 1000).toFixed(4),
+    );
     const memoriaUtilizadaMb = Math.max(2, Math.round((memAfter - memBefore) / (1024 * 1024)));
 
     // Custo computacional na nuvem (estimado em $0.00000008 por operação)
@@ -107,11 +120,11 @@ export class ExtremeScaleBenchmark {
       latenciaDeliberacaoMs: {
         p50: Number(p50.toFixed(3)),
         p90: Number(p90.toFixed(3)),
-        p99: Number(p99.toFixed(3))
+        p99: Number(p99.toFixed(3)),
       },
       memoriaUtilizadaMb,
       custoComputacionalEstimadoUsdPorMilhao: custoUsd,
-      status: totalEstimatedElapsedMs < 500 ? 'EXCELENTE' : 'APROVADO'
+      status: totalEstimatedElapsedMs < 500 ? "EXCELENTE" : "APROVADO",
     };
   }
 }

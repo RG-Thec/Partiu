@@ -44,7 +44,8 @@ export function bearing(a: LngLat, b: LngLat): number {
   const phi2 = toRad(lat2);
   const deltaLambda = toRad(lng2 - lng1);
   const y = Math.sin(deltaLambda) * Math.cos(phi2);
-  const x = Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(deltaLambda);
+  const x =
+    Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(deltaLambda);
   return (toDeg(Math.atan2(y, x)) + 360) % 360;
 }
 
@@ -58,7 +59,8 @@ export function destination(origin: LngLat, bearingDeg: number, distKm: number):
   const phi1 = toRad(lat);
   const lambda1 = toRad(lng);
 
-  const sinPhi2 = Math.sin(phi1) * Math.cos(delta) + Math.cos(phi1) * Math.sin(delta) * Math.cos(theta);
+  const sinPhi2 =
+    Math.sin(phi1) * Math.cos(delta) + Math.cos(phi1) * Math.sin(delta) * Math.cos(theta);
   const phi2 = Math.asin(Math.min(1, Math.max(-1, sinPhi2)));
   const lambda2 =
     lambda1 +
@@ -75,7 +77,10 @@ export function destination(origin: LngLat, bearingDeg: number, distKm: number):
  * Retorna o Bounding Box [minLng, minLat, maxLng, maxLat] de um anel.
  */
 export function ringBbox(ring: number[][]): [number, number, number, number] {
-  let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+  let minLng = Infinity,
+    minLat = Infinity,
+    maxLng = -Infinity,
+    maxLat = -Infinity;
   for (let i = 0; i < ring.length; i++) {
     const p = ring[i];
     if (p[0] < minLng) minLng = p[0];
@@ -102,9 +107,11 @@ export function pointInPolygon(lng: number, lat: number, ring: number[][]): bool
   // 2. Ray-Casting com regra de bordas semi-abertas para estabilidade
   let inside = false;
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const xi = ring[i][0], yi = ring[i][1];
-    const xj = ring[j][0], yj = ring[j][1];
-    const straddles = (yi > lat) !== (yj > lat);
+    const xi = ring[i][0],
+      yi = ring[i][1];
+    const xj = ring[j][0],
+      yj = ring[j][1];
+    const straddles = yi > lat !== yj > lat;
     if (straddles && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) {
       inside = !inside;
     }

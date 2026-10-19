@@ -1,6 +1,6 @@
 /**
  * PARTIU CORPORATE MOBILITY ENGINE
- * 
+ *
  * Plataforma Corporativa B2B de Gestão de Mobilidade Empresarial.
  * Responsável por:
  * - Empresas parceiras e filiais
@@ -16,7 +16,7 @@ export interface CorporateAccountEmployee {
   phone: string;
   department: string;
   costCenterCode: string;
-  role: 'COLABORADOR' | 'GESTOR_DEPARTAMENTO' | 'ADMIN_EMPRESA';
+  role: "COLABORADOR" | "GESTOR_DEPARTAMENTO" | "ADMIN_EMPRESA";
   monthlyAllowanceBrl: number;
   currentMonthSpentBrl: number;
   isActive: boolean;
@@ -29,7 +29,7 @@ export interface CorporateAccount {
   tradeName: string;
   headquartersCity: string;
   billingEmail: string;
-  billingCycle: 'SEMANAL' | 'QUINZENAL' | 'MENSAL';
+  billingCycle: "SEMANAL" | "QUINZENAL" | "MENSAL";
   creditLimitBrl: number;
   currentOutstandingBrl: number;
   departments: string[];
@@ -49,36 +49,36 @@ export class CorporateEngine {
 
   private initializeDefaultCorporateAccounts(): void {
     const defaultCorp: CorporateAccount = {
-      corporateId: 'CORP-PETRO-01',
-      cnpj: '12.345.678/0001-90',
-      companyName: 'PetroServ Offshore Logística S.A.',
-      tradeName: 'PetroServ Macaé',
-      headquartersCity: 'Macaé',
-      billingEmail: 'financeiro@petroserv.com.br',
-      billingCycle: 'MENSAL',
+      corporateId: "CORP-PETRO-01",
+      cnpj: "12.345.678/0001-90",
+      companyName: "PetroServ Offshore Logística S.A.",
+      tradeName: "PetroServ Macaé",
+      headquartersCity: "Macaé",
+      billingEmail: "financeiro@petroserv.com.br",
+      billingCycle: "MENSAL",
       creditLimitBrl: 75000.0,
       currentOutstandingBrl: 18450.0,
-      departments: ['Operações Offshore', 'Engenharia', 'Diretoria', 'RH'],
+      departments: ["Operações Offshore", "Engenharia", "Diretoria", "RH"],
       activeEmployeesCount: 145,
       paymentTermDays: 30,
       isActive: true,
-      createdAt: Date.now() - 90 * 86400 * 1000
+      createdAt: Date.now() - 90 * 86400 * 1000,
     };
 
     this.registerCorporateAccount(defaultCorp);
 
     const defaultEmp: CorporateAccountEmployee = {
-      employeeId: 'EMP-9001',
-      corporateId: 'CORP-PETRO-01',
-      name: 'Dr. Rodrigo Alvarenga',
-      email: 'rodrigo.alvarenga@petroserv.com.br',
-      phone: '+55 22 99777-1122',
-      department: 'Engenharia',
-      costCenterCode: 'CC-ENG-2026',
-      role: 'GESTOR_DEPARTAMENTO',
+      employeeId: "EMP-9001",
+      corporateId: "CORP-PETRO-01",
+      name: "Dr. Rodrigo Alvarenga",
+      email: "rodrigo.alvarenga@petroserv.com.br",
+      phone: "+55 22 99777-1122",
+      department: "Engenharia",
+      costCenterCode: "CC-ENG-2026",
+      role: "GESTOR_DEPARTAMENTO",
       monthlyAllowanceBrl: 3500.0,
       currentMonthSpentBrl: 1120.0,
-      isActive: true
+      isActive: true,
     };
 
     this.registerEmployee(defaultEmp);
@@ -105,7 +105,7 @@ export class CorporateEngine {
   }
 
   public getEmployeesByCorporate(corporateId: string): CorporateAccountEmployee[] {
-    return Array.from(this.employees.values()).filter(e => e.corporateId === corporateId);
+    return Array.from(this.employees.values()).filter((e) => e.corporateId === corporateId);
   }
 }
 

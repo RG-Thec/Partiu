@@ -74,8 +74,7 @@ const DADOS_PRACAS: PracaComparativo[] = [
   },
 ];
 
-const brl = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export interface DashboardCityComparisonModalProps {
   open: boolean;
@@ -96,12 +95,8 @@ export function DashboardCityComparisonModal({
         <div className="flex items-center gap-2">
           <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
           <div>
-            <p className="font-bold text-slate-900 dark:text-slate-100">
-              {p.cidade}
-            </p>
-            <span className="text-[10px] text-slate-400 font-bold uppercase">
-              {p.estado}
-            </span>
+            <p className="font-bold text-slate-900 dark:text-slate-100">{p.cidade}</p>
+            <span className="text-[10px] text-slate-400 font-bold uppercase">{p.estado}</span>
           </div>
         </div>
       ),
@@ -230,7 +225,8 @@ export function DashboardCityComparisonModal({
 
         <div className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900 text-xs text-blue-800 dark:text-blue-300 flex items-center justify-between">
           <span>
-            💡 <strong>Dica Multi-Tenant:</strong> Clique em qualquer praça para filtrar todo o painel executivo para aquela cidade.
+            💡 <strong>Dica Multi-Tenant:</strong> Clique em qualquer praça para filtrar todo o
+            painel executivo para aquela cidade.
           </span>
         </div>
       </div>

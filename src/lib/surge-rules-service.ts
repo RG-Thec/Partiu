@@ -112,7 +112,8 @@ export function getStorageKeyDispatchSettings(tenantId?: string): string {
 }
 
 export function carregarConfiguracoesDespacho(tenantId?: string): DispatchAlgorithmSettings {
-  if (typeof window === "undefined" && typeof localStorage === "undefined") return DEFAULT_DISPATCH_SETTINGS;
+  if (typeof window === "undefined" && typeof localStorage === "undefined")
+    return DEFAULT_DISPATCH_SETTINGS;
   try {
     const key = getStorageKeyDispatchSettings(tenantId);
     let raw = typeof localStorage !== "undefined" ? localStorage.getItem(key) : null;
@@ -139,7 +140,7 @@ export function carregarConfiguracoesDespacho(tenantId?: string): DispatchAlgori
 
 export function salvarConfiguracoesDespacho(
   novas: Partial<DispatchAlgorithmSettings>,
-  tenantId?: string
+  tenantId?: string,
 ): DispatchAlgorithmSettings {
   const atuais = carregarConfiguracoesDespacho(tenantId);
   const consolidadas = { ...atuais, ...novas };
@@ -157,7 +158,7 @@ export function salvarConfiguracoesDespacho(
     window.dispatchEvent(
       new CustomEvent("partiu:dispatch-settings-updated", {
         detail: { tenantId: tenantId || "default", settings: consolidadas },
-      })
+      }),
     );
   }
 
@@ -231,7 +232,7 @@ export function excluirRegraSurge(id: string): boolean {
 export function ativarLiveSurgeOverride(
   multiplicador: number,
   duracaoMinutos: number = 30,
-  tenantId?: string
+  tenantId?: string,
 ): DispatchAlgorithmSettings {
   const clamped = Math.max(1.0, Math.min(3.0, multiplicador));
   const expiraEm = Date.now() + duracaoMinutos * 60 * 1000;
@@ -246,7 +247,7 @@ export function ativarLiveSurgeOverride(
       liveOverrideMultiplicador: clamped,
       liveOverrideExpiraEm: expiraEm,
     },
-    tid
+    tid,
   );
 }
 
@@ -260,7 +261,7 @@ export function desativarLiveSurgeOverride(tenantId?: string): DispatchAlgorithm
       liveOverrideMultiplicador: 1.0,
       liveOverrideExpiraEm: null,
     },
-    tid
+    tid,
   );
 }
 
@@ -273,7 +274,6 @@ export function alternarAutoSurge(tenantId?: string, ativo?: boolean): DispatchA
     {
       autoSurgeAtivo: novoStatus,
     },
-    tid
+    tid,
   );
 }
-

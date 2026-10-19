@@ -101,7 +101,7 @@ export class DirectionsService {
   public async getRoute(
     origin: [number, number],
     destination: [number, number],
-    options: DirectionsOptions = {}
+    options: DirectionsOptions = {},
   ): Promise<RouteResult> {
     if (!origin || !destination) {
       throw new Error("[DirectionsService] Origem e Destino são obrigatórios.");
@@ -163,7 +163,10 @@ export class DirectionsService {
             const heavyCount = congestions.filter((c) => c === "heavy" || c === "severe").length;
             if (heavyCount > congestions.length * 0.3) {
               congestion = "heavy";
-            } else if (congestions.filter((c) => c === "moderate").length > congestions.length * 0.3) {
+            } else if (
+              congestions.filter((c) => c === "moderate").length >
+              congestions.length * 0.3
+            ) {
               congestion = "moderate";
             }
           }
@@ -188,7 +191,10 @@ export class DirectionsService {
         }
       }
     } catch (error) {
-      console.warn("[DirectionsService] Erro/Timeout ao consultar Mapbox driving-traffic, tentando fallback OSRM:", error);
+      console.warn(
+        "[DirectionsService] Erro/Timeout ao consultar Mapbox driving-traffic, tentando fallback OSRM:",
+        error,
+      );
     } finally {
       clearTimeout(timeoutId);
     }
@@ -201,11 +207,18 @@ export class DirectionsService {
         return osrmResult;
       }
     } catch (e) {
-      console.warn("[DirectionsService] OSRM indisponível, ativando fallback calibrado municipal:", e);
+      console.warn(
+        "[DirectionsService] OSRM indisponível, ativando fallback calibrado municipal:",
+        e,
+      );
     }
 
     // 3. Fallback Determinístico de Rede Urbana (Calibrated Urban Network)
-    const fallbackResult = this.calculateUrbanNetworkFallback(origin, destination, options.waypoints);
+    const fallbackResult = this.calculateUrbanNetworkFallback(
+      origin,
+      destination,
+      options.waypoints,
+    );
     this.routeCache.set(cacheKey, { result: fallbackResult, timestamp: Date.now() });
     return fallbackResult;
   }
@@ -216,11 +229,12 @@ export class DirectionsService {
   private async fetchOsrmFallback(
     origin: [number, number],
     destination: [number, number],
-    waypoints: [number, number][] = []
+    waypoints: [number, number][] = [],
   ): Promise<RouteResult | null> {
-    const customOsrmBase = typeof import.meta !== "undefined" && import.meta.env
-      ? (import.meta.env.VITE_OSRM_URL as string)
-      : undefined;
+    const customOsrmBase =
+      typeof import.meta !== "undefined" && import.meta.env
+        ? (import.meta.env.VITE_OSRM_URL as string)
+        : undefined;
 
     // Se não houver servidor OSRM próprio configurado, recorre à malha urbana calibrada
     if (!customOsrmBase) {
@@ -272,7 +286,7 @@ export class DirectionsService {
   private calculateUrbanNetworkFallback(
     origin: [number, number],
     destination: [number, number],
-    waypoints: [number, number][] = []
+    waypoints: [number, number][] = [],
   ): RouteResult {
     const points: [number, number][] = [origin, ...waypoints, destination];
     let totalRoadKm = 0;
@@ -336,8 +350,13 @@ export class DirectionsService {
   public async matchTrace(
     coordinates: [number, number][],
     radiuses?: number[],
-    timestamps?: number[]
-  ): Promise<{ coordinates: [number, number][]; confidence: number; distanceMeters: number; durationSeconds: number } | null> {
+    timestamps?: number[],
+  ): Promise<{
+    coordinates: [number, number][];
+    confidence: number;
+    distanceMeters: number;
+    durationSeconds: number;
+  } | null> {
     if (!coordinates || coordinates.length < 2) return null;
 
     try {

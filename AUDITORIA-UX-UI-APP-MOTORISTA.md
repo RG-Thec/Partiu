@@ -1,4 +1,5 @@
 # AUDITORIA UX/UI ENTERPRISE — APLICATIVO DO MOTORISTA
+
 ## Plataforma de Mobilidade Urbana PARTIU | Auditoria Profunda, Redesign e Validação Técnica
 
 ---
@@ -57,29 +58,33 @@ O ecossistema do Aplicativo do Motorista organiza-se na seguinte estrutura modul
 ## 4. Diagnóstico por tela e fluxo
 
 ### Cockpit Principal e Mapa
+
 - **Diagnóstico Comprovado:** O mapa vetorial [PartiuDriverNavigationMap.tsx](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/src/components/driver/PartiuDriverNavigationMap.tsx) recebia uma propriedade estática `modoNoturno={false}` na linha 1620 de [app.motorista.tsx](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/src/routes/app.motorista.tsx), ignorando o estado dinâmico `isNightMode` gerido pelo hook `useNightMode()`. Isso causava ofuscamento visual perigoso em condutores operando à noite com brilho intenso de azulejos claros de mapa.
 - **Cabeçalho:** Não havia botão explícito de alternância dia/noite no cabeçalho operacional para controle direto do motorista com uma única mão.
 
 ### Modal de Oferta de Corrida ([DriverOfferModal.tsx](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/src/components/driver/DriverOfferModal.tsx))
+
 - **Diagnóstico Comprovado:** Em telas compactas com altura de 640 dp ou 667 dp (muito comuns em celulares populares utilizados por motoristas), o conteúdo do modal de oferta somava mais de 610 px de altura. Como o temporizador de contagem regressiva utilizava SVG de 96x96 px e os espaçamentos eram generosos, o controle deslizante de aceitação e o botão de recusa ficavam empurrados para além da dobra inferior da tela, obrigando o condutor a rolar a tela enquanto dirige para conseguir aceitar ou recusar a corrida nos 15 segundos de tolerância.
 
 ### Estado Disponível / Radar ([IdleState.tsx](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/src/components/driver/cockpit/states/IdleState.tsx))
+
 - **Diagnóstico Comprovado:** O indicador de status conectado exibia uma animação pulsante incessante (`animate-ping` e `animate-pulse`), transmitindo sensação de instabilidade ou erro iminente. Além disso, havia repetição do badge "0% taxa" colado sobre o valor dos ganhos diários, poluindo o foco nos números principais da sessão.
 
 ### Estado a Caminho do Embarque ([HeadingToPickupState.tsx](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/src/components/driver/cockpit/states/HeadingToPickupState.tsx))
+
 - **Diagnóstico Comprovado:** O botão de cancelamento de emergência da corrida possuía uma área de toque inferior a 28 px de altura com tipografia discreta, gerando dificuldade para acionamento seguro caso o motorista precisasse relatar um impedimento real de trânsito ou problema mecânico.
 
 ---
 
 ## 5. Problemas comprovados e evidências técnicas
 
-| ID | Componente / Arquivo | Problema Comprovado | Risco Operacional |
-| :--- | :--- | :--- | :--- |
-| **BUG-01** | [app.motorista.tsx#L1620](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/src/routes/app.motorista.tsx#L1620) | Propriedade `modoNoturno={false}` fixada como constante no mapa vetorial. | **P0 (Segurança)**: Ofuscamento do condutor no trânsito noturno por tiles com fundo branco. |
-| **BUG-02** | [DriverOfferModal.tsx](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/src/components/driver/DriverOfferModal.tsx) | Altura do modal superior ao viewport em aparelhos 360x640 dp, exigindo rolagem manual. | **P0 (Ergonomia)**: Perda de ofertas por falta de tempo para rolar e aceitar em 15s. |
-| **BUG-03** | [DriverHeader.tsx](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/src/components/driver/cockpit/DriverHeader.tsx) | Ausência de atalho ergonômico de 1 toque para alternar modo noturno no cabeçalho. | **P1 (Usabilidade)**: Impossibilidade de adaptação luminosa rápida ao entrar em túneis ou conduzir à noite. |
-| **BUG-04** | [IdleState.tsx](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/src/components/driver/cockpit/states/IdleState.tsx) | Efeito `animate-ping` intermitente no ponto verde de radar e redundância de badges informativos. | **P2 (Poluição)**: Fadiga visual e sensação de ansiedade durante espera no cockpit. |
-| **BUG-05** | [HeadingToPickupState.tsx](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/src/components/driver/cockpit/states/HeadingToPickupState.tsx) | Alvo tátil do cancelamento com altura de 28 px, abaixo do padrão mínimo ergonômico (40-44 px). | **P2 (Acessibilidade)**: Dificuldade de toque com suporte veicular vibrando. |
+| ID         | Componente / Arquivo                                                                                                                          | Problema Comprovado                                                                              | Risco Operacional                                                                                           |
+| :--------- | :-------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
+| **BUG-01** | [app.motorista.tsx#L1620](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/src/routes/app.motorista.tsx#L1620)                             | Propriedade `modoNoturno={false}` fixada como constante no mapa vetorial.                        | **P0 (Segurança)**: Ofuscamento do condutor no trânsito noturno por tiles com fundo branco.                 |
+| **BUG-02** | [DriverOfferModal.tsx](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/src/components/driver/DriverOfferModal.tsx)                        | Altura do modal superior ao viewport em aparelhos 360x640 dp, exigindo rolagem manual.           | **P0 (Ergonomia)**: Perda de ofertas por falta de tempo para rolar e aceitar em 15s.                        |
+| **BUG-03** | [DriverHeader.tsx](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/src/components/driver/cockpit/DriverHeader.tsx)                        | Ausência de atalho ergonômico de 1 toque para alternar modo noturno no cabeçalho.                | **P1 (Usabilidade)**: Impossibilidade de adaptação luminosa rápida ao entrar em túneis ou conduzir à noite. |
+| **BUG-04** | [IdleState.tsx](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/src/components/driver/cockpit/states/IdleState.tsx)                       | Efeito `animate-ping` intermitente no ponto verde de radar e redundância de badges informativos. | **P2 (Poluição)**: Fadiga visual e sensação de ansiedade durante espera no cockpit.                         |
+| **BUG-05** | [HeadingToPickupState.tsx](file:///c:/Users/Suporte/Desktop/NOVO%20PARTIU-MOBE/src/components/driver/cockpit/states/HeadingToPickupState.tsx) | Alvo tátil do cancelamento com altura de 28 px, abaixo do padrão mínimo ergonômico (40-44 px).   | **P2 (Acessibilidade)**: Dificuldade de toque com suporte veicular vibrando.                                |
 
 ---
 
@@ -186,10 +191,10 @@ As seguintes decisões de design foram implementadas:
 
 ## 14. Comparação entre o estado inicial e o final
 
-| Aspecto | Estado Inicial (Antes) | Estado Final (Depois da Auditoria e Redesign) |
-| :--- | :--- | :--- |
-| **Mapa Noturno** | Travado em modo diurno (`modoNoturno={false}` fixo), ofuscando o condutor no trânsito à noite. | Dinâmico e sincronizado com `isNightMode`, renderizando azulejos Dark Matter para proteção visual. |
-| **Controle de Iluminação** | Sem botão acessível no cockpit operacional. | Botão ergonômico no topo do cockpit com alternância rápida de 1 toque. |
-| **Modal de Oferta de Corrida** | Altura excessiva (+610 px), exigindo rolagem manual para alcançar o botão de aceitar em celulares compactos. | Compactado com proporções otimizadas (zero-scroll), mantendo temporizador nítido e ações 100% visíveis. |
-| **Indicador de Disponibilidade** | Efeito pulsante estressante (`animate-ping`) gerando ansiedade e poluição no radar. | Ponto esmeralda sólido e estável com anel concêntrico suave, comunicando conexão confiável. |
-| **Ação de Cancelamento de Viagem** | Alvo tátil pequeno (28 px de altura) com texto discreto, difícil de acionar em suporte veicular. | Alvo tátil ergonômico com 40 px de altura, borda suave e proteção contra cliques involuntários. |
+| Aspecto                            | Estado Inicial (Antes)                                                                                       | Estado Final (Depois da Auditoria e Redesign)                                                           |
+| :--------------------------------- | :----------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------ |
+| **Mapa Noturno**                   | Travado em modo diurno (`modoNoturno={false}` fixo), ofuscando o condutor no trânsito à noite.               | Dinâmico e sincronizado com `isNightMode`, renderizando azulejos Dark Matter para proteção visual.      |
+| **Controle de Iluminação**         | Sem botão acessível no cockpit operacional.                                                                  | Botão ergonômico no topo do cockpit com alternância rápida de 1 toque.                                  |
+| **Modal de Oferta de Corrida**     | Altura excessiva (+610 px), exigindo rolagem manual para alcançar o botão de aceitar em celulares compactos. | Compactado com proporções otimizadas (zero-scroll), mantendo temporizador nítido e ações 100% visíveis. |
+| **Indicador de Disponibilidade**   | Efeito pulsante estressante (`animate-ping`) gerando ansiedade e poluição no radar.                          | Ponto esmeralda sólido e estável com anel concêntrico suave, comunicando conexão confiável.             |
+| **Ação de Cancelamento de Viagem** | Alvo tátil pequeno (28 px de altura) com texto discreto, difícil de acionar em suporte veicular.             | Alvo tátil ergonômico com 40 px de altura, borda suave e proteção contra cliques involuntários.         |

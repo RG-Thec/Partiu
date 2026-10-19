@@ -152,13 +152,16 @@ async function applyFullSchema() {
 
   // 2. Execução das migrations pendentes
   const migrationsDir = path.resolve(process.cwd(), "supabase", "migrations");
-  const files = fs.readdirSync(migrationsDir)
+  const files = fs
+    .readdirSync(migrationsDir)
     .filter((f) => f.endsWith(".sql"))
     .sort();
 
   // Resetar migrations que falharam para tentar novamente
   await client.query(`DELETE FROM public._partiu_migrations_history WHERE success = false;`);
-  const { rows: appliedRows } = await client.query(`SELECT name FROM public._partiu_migrations_history WHERE success = true;`);
+  const { rows: appliedRows } = await client.query(
+    `SELECT name FROM public._partiu_migrations_history WHERE success = true;`,
+  );
   const appliedSet = new Set(appliedRows.map((r: any) => r.name));
 
   let successCount = 0;
@@ -183,7 +186,7 @@ async function applyFullSchema() {
       await client.query(
         `INSERT INTO public._partiu_migrations_history (name, success) VALUES ($1, true)
          ON CONFLICT (name) DO UPDATE SET success = true, applied_at = NOW(), error_message = NULL;`,
-        [file]
+        [file],
       );
       console.log(`✅ [${file}] APLICADA COM SUCESSO!`);
       successCount++;
@@ -192,7 +195,7 @@ async function applyFullSchema() {
       await client.query(
         `INSERT INTO public._partiu_migrations_history (name, success, error_message) VALUES ($1, false, $2)
          ON CONFLICT (name) DO UPDATE SET success = false, applied_at = NOW(), error_message = $2;`,
-        [file, err.message]
+        [file, err.message],
       );
       errorCount++;
     }
@@ -211,7 +214,7 @@ async function applyFullSchema() {
     "ride_ratings",
     "support_tickets",
     "driver_subscriptions",
-    "banners"
+    "banners",
   ];
 
   for (const table of realtimeTables) {

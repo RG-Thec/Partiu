@@ -1,5 +1,5 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { cn } from "@/lib/utils";
 
 interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   shimmer?: boolean;
@@ -9,9 +9,9 @@ function Skeleton({ className, shimmer = true, ...props }: SkeletonProps) {
   return (
     <div
       className={cn(
-        'rounded-md',
-        shimmer ? 'animate-shimmer' : 'animate-pulse bg-slate-200 dark:bg-slate-800',
-        className
+        "rounded-md",
+        shimmer ? "animate-shimmer" : "animate-pulse bg-slate-200 dark:bg-slate-800",
+        className,
       )}
       {...props}
     />
@@ -25,7 +25,10 @@ export function AddressSearchSkeleton() {
   return (
     <div className="space-y-3 py-2" role="status" aria-label="Carregando endereços...">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="flex items-center gap-3.5 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+        <div
+          key={i}
+          className="flex items-center gap-3.5 p-3 rounded-xl border border-slate-100 dark:border-slate-800"
+        >
           <Skeleton className="w-10 h-10 rounded-full shrink-0" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-3/4 rounded" />

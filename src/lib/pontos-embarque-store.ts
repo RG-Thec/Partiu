@@ -62,11 +62,7 @@ export const PONTOS_EMBARQUE_PADRAO: PontoEmbarqueConfig[] = [
     tipoRotulo: "Terminal de Passageiros",
     referencia: "Terminal de Embarque • Baia 1",
     enderecoCompleto: "Av. do Aeroporto, 100",
-    comodidades: [
-      "🛋️ Sala Climatizada",
-      "🚻 Sanitários",
-      "🛡️ Monitoramento 24h",
-    ],
+    comodidades: ["🛋️ Sala Climatizada", "🚻 Sanitários", "🛡️ Monitoramento 24h"],
     minutosAposSaida: 0,
     distanciaKmEstimada: 4.2,
     fotoUrl:

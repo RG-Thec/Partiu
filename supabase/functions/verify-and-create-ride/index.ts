@@ -41,20 +41,25 @@ serve(async (req: Request) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return new Response(
-        JSON.stringify({ error: "Token de autenticação ausente. Faça login antes de solicitar corrida." }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Token de autenticação ausente. Faça login antes de solicitar corrida.",
+        }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: { user }, error: authError } = await userClient.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await userClient.auth.getUser();
 
     if (authError || !user) {
       return new Response(
         JSON.stringify({ error: "Token inválido ou expirado. Faça login novamente." }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
     // ── FIM AUTH GUARD ────────────────────────────────────────────────────
@@ -66,8 +71,10 @@ serve(async (req: Request) => {
 
     if (!pickupCoordinates || !destinationCoordinates || !category) {
       return new Response(
-        JSON.stringify({ error: "pickupCoordinates, destinationCoordinates e category são obrigatórios." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "pickupCoordinates, destinationCoordinates e category são obrigatórios.",
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -148,7 +155,13 @@ serve(async (req: Request) => {
       minFloor = 35.0;
     }
 
-    const surgeMultiplier = Math.max(1.0, Math.min(3.0, Number(payload.surgeMultiplier) || Number(settingsData?.surge_multiplier) || 1.0));
+    const surgeMultiplier = Math.max(
+      1.0,
+      Math.min(
+        3.0,
+        Number(payload.surgeMultiplier) || Number(settingsData?.surge_multiplier) || 1.0,
+      ),
+    );
     const precoCalculado = Math.max(minFloor, rawCost * categoryMultiplier * surgeMultiplier);
     const precoFinal = Math.round(precoCalculado * 100) / 100;
 
@@ -163,7 +176,7 @@ serve(async (req: Request) => {
             message: `Tarifa informada pelo cliente diverge da tarifa calculada pelo servidor em ${discrepancy.toFixed(1)}%.`,
             serverFare: precoFinal,
           }),
-          { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
     }
@@ -236,7 +249,7 @@ serve(async (req: Request) => {
           message: "Falha ao persistir a corrida no banco de dados.",
           details: insertError.message,
         }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -247,12 +260,12 @@ serve(async (req: Request) => {
         rideId,
         verifiedFare: precoFinal,
       }),
-      { status: 201, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 201, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error: any) {
-    return new Response(
-      JSON.stringify({ error: error.message || "Internal Server Error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: error.message || "Internal Server Error" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

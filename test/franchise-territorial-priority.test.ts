@@ -79,7 +79,7 @@ describe("39. GEOFENCING & PRIORIDADE TERRITORIAL DE FRANQUIAS (SUPER ADMIN)", (
       "curitiba@partiu.app",
       "Senha123!",
       "Gestor Curitiba",
-      "(41) 98888-7777"
+      "(41) 98888-7777",
     );
 
     expect(franquiaCuritiba.territorio).toBeDefined();
@@ -102,7 +102,7 @@ describe("39. GEOFENCING & PRIORIDADE TERRITORIAL DE FRANQUIAS (SUPER ADMIN)", (
       tenantId,
       "Campinas",
       "SP",
-      "Campinas Mob"
+      "Campinas Mob",
     );
 
     // 1. Inicialmente, apenas Campinas está autorizada
@@ -160,10 +160,10 @@ describe("39. GEOFENCING & PRIORIDADE TERRITORIAL DE FRANQUIAS (SUPER ADMIN)", (
     expect(franquiaCuritiba).toBeDefined();
 
     // 1. Cadastro dentro de Curitiba (coordenadas locais) -> PERMITIDO
-    const cadastroDentro = validarAcessoTerritorialParaCadastro(
-      franquiaCuritiba,
-      { lat: -25.4284, lng: -49.2733 }
-    );
+    const cadastroDentro = validarAcessoTerritorialParaCadastro(franquiaCuritiba, {
+      lat: -25.4284,
+      lng: -49.2733,
+    });
     expect(cadastroDentro.permitido).toBe(true);
     expect(cadastroDentro.motivo).toBe("DENTRO_DO_RAIO");
 
@@ -171,16 +171,16 @@ describe("39. GEOFENCING & PRIORIDADE TERRITORIAL DE FRANQUIAS (SUPER ADMIN)", (
     const cadastroCidadeAutorizada = validarAcessoTerritorialParaCadastro(
       franquiaCuritiba,
       null,
-      "Curitiba"
+      "Curitiba",
     );
     expect(cadastroCidadeAutorizada.permitido).toBe(true);
     expect(cadastroCidadeAutorizada.motivo).toBe("CIDADE_LICENCIADA");
 
     // 3. Tentativa de cadastro a partir de São Paulo para a franquia de Curitiba -> BLOQUEADO
-    const cadastroSp = validarAcessoTerritorialParaCadastro(
-      franquiaCuritiba,
-      { lat: -23.5505, lng: -46.6333 }
-    );
+    const cadastroSp = validarAcessoTerritorialParaCadastro(franquiaCuritiba, {
+      lat: -23.5505,
+      lng: -46.6333,
+    });
     expect(cadastroSp.permitido).toBe(false);
     expect(cadastroSp.motivo).toBe("CADASTRO_FORA_DA_PRACA");
     expect(cadastroSp.mensagem).toContain("atua exclusivamente em Curitiba");
@@ -189,7 +189,7 @@ describe("39. GEOFENCING & PRIORIDADE TERRITORIAL DE FRANQUIAS (SUPER ADMIN)", (
     const cadastroOutraCidade = validarAcessoTerritorialParaCadastro(
       franquiaCuritiba,
       null,
-      "Fortaleza"
+      "Fortaleza",
     );
     expect(cadastroOutraCidade.permitido).toBe(false);
     expect(cadastroOutraCidade.motivo).toBe("CIDADE_NAO_LICENCIADA");
@@ -199,7 +199,7 @@ describe("39. GEOFENCING & PRIORIDADE TERRITORIAL DE FRANQUIAS (SUPER ADMIN)", (
     const cadastroMatrizSp = validarAcessoTerritorialParaCadastro(
       matriz,
       { lat: -23.5505, lng: -46.6333 },
-      "São Paulo"
+      "São Paulo",
     );
     expect(cadastroMatrizSp.permitido).toBe(true);
     expect(cadastroMatrizSp.motivo).toBe("MATRIZ_NACIONAL");

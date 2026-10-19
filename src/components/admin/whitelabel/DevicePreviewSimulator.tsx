@@ -47,12 +47,22 @@ export function DevicePreviewSimulator({
   previewMode,
   setPreviewMode,
 }: DevicePreviewSimulatorProps) {
-  const { brand, designSystem, typography, businessModels, geo, appConfig, corPrimaria: themeCorPrimaria, corSecundaria: themeCorSecundaria } = useBrandTheme();
+  const {
+    brand,
+    designSystem,
+    typography,
+    businessModels,
+    geo,
+    appConfig,
+    corPrimaria: themeCorPrimaria,
+    corSecundaria: themeCorSecundaria,
+  } = useBrandTheme();
   const { branding } = useBranding();
 
   const corPrimaria = branding?.primary_color || themeCorPrimaria || "#FF6B00";
   const corSecundaria = branding?.secondary_color || themeCorSecundaria || "#0088FF";
-  const nomeApp = appConfig?.nomeAppExibicao || branding?.app_name || brand?.nomePlataforma || "PARTIU";
+  const nomeApp =
+    appConfig?.nomeAppExibicao || branding?.app_name || brand?.nomePlataforma || "PARTIU";
   const cidadeSede = geo?.cidadeSede || "Brasília, DF";
 
   return (
@@ -160,11 +170,7 @@ export function DevicePreviewSimulator({
         <div
           style={{
             width:
-              previewDevice === "MOBILE"
-                ? "360px"
-                : previewDevice === "TABLET"
-                ? "440px"
-                : "100%",
+              previewDevice === "MOBILE" ? "360px" : previewDevice === "TABLET" ? "440px" : "100%",
             fontFamily: typography?.familiaPrincipal || "Plus Jakarta Sans, sans-serif",
           }}
           className="relative rounded-[48px] border-[10px] border-slate-950 bg-slate-950 text-slate-900 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col transition-all duration-300 min-h-[640px] ring-1 ring-white/10"
@@ -385,7 +391,11 @@ export function DevicePreviewSimulator({
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md ring-1 ring-white/30 overflow-hidden flex items-center justify-center font-black text-xs">
                       {branding?.logo_url ? (
-                        <img src={branding.logo_url} alt="" className="w-full h-full object-contain" />
+                        <img
+                          src={branding.logo_url}
+                          alt=""
+                          className="w-full h-full object-contain"
+                        />
                       ) : (
                         nomeApp.slice(0, 2).toUpperCase()
                       )}
@@ -445,8 +455,8 @@ export function DevicePreviewSimulator({
 
                   <div className="relative z-10 flex items-center justify-between text-[10px] text-slate-400 font-semibold bg-black/60 backdrop-blur-xs p-1.5 rounded-xl border border-white/10">
                     <span className="flex items-center gap-1 text-slate-200">
-                      <Navigation className="w-3 h-3 text-primary" />
-                      5 motoristas disponíveis na sua região
+                      <Navigation className="w-3 h-3 text-primary" />5 motoristas disponíveis na sua
+                      região
                     </span>
                   </div>
                 </div>
@@ -523,7 +533,9 @@ export function DevicePreviewSimulator({
                       <div className="w-7 h-7 rounded-lg bg-slate-800 mx-auto flex items-center justify-center text-rose-400 font-black">
                         <HeartHandshake className="w-3.5 h-3.5" />
                       </div>
-                      <span className="text-[10px] font-bold text-white block truncate">Mulher</span>
+                      <span className="text-[10px] font-bold text-white block truncate">
+                        Mulher
+                      </span>
                       <span className="text-[9px] font-mono font-bold text-emerald-400 block">
                         R$ 12,90
                       </span>

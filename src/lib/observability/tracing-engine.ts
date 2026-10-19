@@ -1,6 +1,6 @@
 /**
  * PARTIU TITANIUM SHIELD — DISTRIBUTED TRACING ENGINE (W3C TRACECONTEXT)
- * 
+ *
  * Implementação do padrão W3C TraceContext:
  * traceparent: 00-{trace_id}-{span_id}-{trace_flags}
  * Permite correlação de chamadas ponta-a-ponta entre cliente, edge, banco e gateways.
@@ -15,11 +15,11 @@ export interface Span {
   endTime?: number | undefined;
   durationMs?: number | undefined;
   attributes: Record<string, string | number | boolean>;
-  status: 'OK' | 'ERROR';
+  status: "OK" | "ERROR";
 }
 
 function randomHex(length: number): string {
-  let hex = '';
+  let hex = "";
   while (hex.length < length) {
     hex += Math.random().toString(16).substring(2);
   }
@@ -47,8 +47,8 @@ export class TracingEngine {
     let traceId = randomHex(32);
     let parentSpanId: string | undefined = undefined;
 
-    if (parentTraceparent && parentTraceparent.startsWith('00-')) {
-      const parts = parentTraceparent.split('-');
+    if (parentTraceparent && parentTraceparent.startsWith("00-")) {
+      const parts = parentTraceparent.split("-");
       if (parts.length >= 4) {
         traceId = parts[1] ?? traceId;
         parentSpanId = parts[2];
@@ -63,7 +63,7 @@ export class TracingEngine {
       name,
       startTime: Date.now(),
       attributes: {},
-      status: 'OK'
+      status: "OK",
     };
 
     this.activeSpans.set(spanId, span);
@@ -75,7 +75,7 @@ export class TracingEngine {
   /**
    * Finaliza o span e calcula a duração
    */
-  public endSpan(spanId: string, status: 'OK' | 'ERROR' = 'OK'): Span | undefined {
+  public endSpan(spanId: string, status: "OK" | "ERROR" = "OK"): Span | undefined {
     const span = this.activeSpans.get(spanId);
     if (!span) return undefined;
 

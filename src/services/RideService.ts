@@ -69,7 +69,8 @@ export class RideService {
       // 1. Busca corridas reais do passageiro na tabela public.rides
       let ridesQuery = (supabase as any)
         .from("rides")
-        .select(`
+        .select(
+          `
           id,
           category,
           status,
@@ -81,7 +82,8 @@ export class RideService {
           is_delivery,
           pickup_otp,
           delivery_otp
-        `)
+        `,
+        )
         .order("created_at", { ascending: false })
         .limit(30);
 
@@ -96,7 +98,9 @@ export class RideService {
       }
 
       const items: UserActivityItem[] = rides.map((c: any) => {
-        const isEntrega = Boolean(c.is_delivery || c.category?.includes("ENTREGA") || c.category?.includes("FLASH"));
+        const isEntrega = Boolean(
+          c.is_delivery || c.category?.includes("ENTREGA") || c.category?.includes("FLASH"),
+        );
         const valorReal = Number(c.fare_brl || 0);
         const dataObj = new Date(c.created_at || Date.now());
         const dataFormatada = dataObj.toLocaleDateString("pt-BR", {
@@ -127,8 +131,8 @@ export class RideService {
         const catFormatada = isEntrega
           ? "PARTIU Flash Entrega"
           : c.category === "MOTO" || c.category === "PARTIU_MOTO"
-          ? "PARTIU Moto"
-          : "PARTIU Pop";
+            ? "PARTIU Moto"
+            : "PARTIU Pop";
 
         return {
           id: c.id,

@@ -177,7 +177,7 @@ const CATEGORIAS_INICIAIS: CategoriaTarifaCustom[] = [
 
 export function AdminVeiculoCatalogoPage() {
   const [abaAtiva, setAbaAtiva] = useState<"CATEGORIAS" | "MARCAS_MODELOS">("CATEGORIAS");
-  
+
   // Categorias de Veículos e Tarifas
   const [categorias, setCategorias] = useState<CategoriaTarifaCustom[]>(() => {
     if (typeof window !== "undefined") {
@@ -214,7 +214,8 @@ export function AdminVeiculoCatalogoPage() {
   const [modalNovoModelo, setModalNovoModelo] = useState(false);
   const [formModeloMarcaId, setFormModeloMarcaId] = useState("");
   const [formModeloNome, setFormModeloNome] = useState("");
-  const [formModeloSugestao, setFormModeloSugestao] = useState<ModeloVeiculo["categoriaSugerida"]>("PARTIU_CARRO");
+  const [formModeloSugestao, setFormModeloSugestao] =
+    useState<ModeloVeiculo["categoriaSugerida"]>("PARTIU_CARRO");
   const [formModeloAnoMinimo, setFormModeloAnoMinimo] = useState(2013);
 
   const [toastFeedback, setToastFeedback] = useState<string | null>(null);
@@ -442,8 +443,8 @@ export function AdminVeiculoCatalogoPage() {
                   Fórmula Oficial de Cálculo de Tarifas (Padrão 99 / Uber)
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Preço = Tarifa Base + (Distância × Preço/Km) + (Duração × Preço/Minuto).
-                  Se o valor for inferior à Tarifa Mínima, o piso garantido é aplicado.
+                  Preço = Tarifa Base + (Distância × Preço/Km) + (Duração × Preço/Minuto). Se o
+                  valor for inferior à Tarifa Mínima, o piso garantido é aplicado.
                 </p>
               </div>
             </div>
@@ -483,7 +484,8 @@ export function AdminVeiculoCatalogoPage() {
                           )}
                         </div>
                         <span className="text-[11px] text-muted-foreground font-semibold">
-                          Capacidade: {cat.capacidade} {cat.capacidade === 1 ? "pessoa" : "passageiros"}
+                          Capacidade: {cat.capacidade}{" "}
+                          {cat.capacidade === 1 ? "pessoa" : "passageiros"}
                         </span>
                       </div>
                     </div>
@@ -498,9 +500,7 @@ export function AdminVeiculoCatalogoPage() {
                     </button>
                   </div>
 
-                  <p className="text-xs text-muted-foreground mb-4 line-clamp-2">
-                    {cat.descricao}
-                  </p>
+                  <p className="text-xs text-muted-foreground mb-4 line-clamp-2">{cat.descricao}</p>
 
                   {/* Detalhamento Tarifário */}
                   <div className="grid grid-cols-2 gap-2 text-xs py-3 border-y border-border/50">
@@ -517,7 +517,9 @@ export function AdminVeiculoCatalogoPage() {
                       </strong>
                     </div>
                     <div>
-                      <span className="text-muted-foreground text-[11px] block">Preço por Minuto</span>
+                      <span className="text-muted-foreground text-[11px] block">
+                        Preço por Minuto
+                      </span>
                       <strong className="text-foreground font-mono">
                         R$ {cat.precoMinuto.toFixed(2).replace(".", ",")}
                       </strong>
@@ -583,7 +585,9 @@ export function AdminVeiculoCatalogoPage() {
               <div className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">
                 {modelos.filter((m) => m.status === "HOMOLOGADO").length}
               </div>
-              <div className="text-[11px] text-muted-foreground mt-0.5">Veículos aceitos no cadastro</div>
+              <div className="text-[11px] text-muted-foreground mt-0.5">
+                Veículos aceitos no cadastro
+              </div>
             </div>
 
             <div className="p-4 rounded-2xl bg-card border border-border/60 shadow-2xs">
@@ -720,7 +724,9 @@ export function AdminVeiculoCatalogoPage() {
                         <tr key={mod.id} className="hover:bg-muted/20 transition-colors">
                           <td className="py-3.5 px-4 sm:px-6">
                             <div className="font-bold text-foreground">{mod.nome}</div>
-                            <div className="text-[11px] text-muted-foreground font-mono">{mod.id}</div>
+                            <div className="text-[11px] text-muted-foreground font-mono">
+                              {mod.id}
+                            </div>
                           </td>
 
                           <td className="py-3.5 px-4">
@@ -760,7 +766,11 @@ export function AdminVeiculoCatalogoPage() {
                               <button
                                 type="button"
                                 onClick={() => handleAlternarStatusModelo(mod.id, mod.nome)}
-                                title={mod.status === "HOMOLOGADO" ? "Descontinuar modelo" : "Homologar modelo"}
+                                title={
+                                  mod.status === "HOMOLOGADO"
+                                    ? "Descontinuar modelo"
+                                    : "Homologar modelo"
+                                }
                                 className="min-h-9 min-w-9 p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
                               >
                                 {mod.status === "HOMOLOGADO" ? (
@@ -861,7 +871,9 @@ export function AdminVeiculoCatalogoPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Tarifa Mínima Garantida (R$)</label>
+                  <label className="text-xs font-bold text-foreground">
+                    Tarifa Mínima Garantida (R$)
+                  </label>
                   <input
                     type="number"
                     step="0.50"
@@ -875,7 +887,9 @@ export function AdminVeiculoCatalogoPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">Multiplicador da Categoria</label>
+                <label className="text-xs font-bold text-foreground">
+                  Multiplicador da Categoria
+                </label>
                 <div className="flex items-center gap-3">
                   <input
                     type="range"
@@ -895,7 +909,9 @@ export function AdminVeiculoCatalogoPage() {
               <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/60">
                 <div>
                   <span className="text-xs font-bold text-foreground block">Modalidade Ativa</span>
-                  <span className="text-[11px] text-muted-foreground">Exibir como opção de escolha aos passageiros</span>
+                  <span className="text-[11px] text-muted-foreground">
+                    Exibir como opção de escolha aos passageiros
+                  </span>
                 </div>
                 <input
                   type="checkbox"
@@ -939,7 +955,9 @@ export function AdminVeiculoCatalogoPage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-black text-foreground">Nova Marca / Montadora</h2>
-                  <p className="text-xs text-muted-foreground">Cadastre uma nova fabricante de veículos.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Cadastre uma nova fabricante de veículos.
+                  </p>
                 </div>
               </div>
               <button
@@ -965,7 +983,9 @@ export function AdminVeiculoCatalogoPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-foreground">Tipo de Veículo Principal</label>
+                <label className="text-xs font-bold text-foreground">
+                  Tipo de Veículo Principal
+                </label>
                 <div className="grid grid-cols-3 gap-2">
                   {(["CARRO", "MOTO", "VAN"] as const).map((t) => (
                     <button
@@ -1029,7 +1049,9 @@ export function AdminVeiculoCatalogoPage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-black text-foreground">Novo Modelo de Veículo</h2>
-                  <p className="text-xs text-muted-foreground">Homologue um modelo vinculado a uma marca.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Homologue um modelo vinculado a uma marca.
+                  </p>
                 </div>
               </div>
               <button
@@ -1089,7 +1111,9 @@ export function AdminVeiculoCatalogoPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground">Ano Mínimo de Fabricação</label>
+                  <label className="text-xs font-bold text-foreground">
+                    Ano Mínimo de Fabricação
+                  </label>
                   <input
                     type="number"
                     min={2005}

@@ -1,5 +1,14 @@
 import { useState, useMemo } from "react";
-import { X, QrCode, Copy, CheckCircle2, MessageCircle, Gift, ShieldAlert, DollarSign } from "lucide-react";
+import {
+  X,
+  QrCode,
+  Copy,
+  CheckCircle2,
+  MessageCircle,
+  Gift,
+  ShieldAlert,
+  DollarSign,
+} from "lucide-react";
 import { driverSubscriptionService } from "@/lib/ecosystem/driver-subscription-service";
 
 export interface DriverCobrancaInfo {
@@ -56,13 +65,15 @@ export function AdminPixCobrancaModal({
     const foneLimpo = (driver?.telefone || "").replace(/\D/g, "");
     const msg = encodeURIComponent(
       `Olá ${driver?.nome}! 👋\n\n` +
-      `Aqui é da gestão do PARTIU (${pracaNome}).\n` +
-      `Para manter seu aplicativo ativo com 0% de taxas nas corridas, segue a chave de renovação do seu plano (${planoNome}):\n\n` +
-      `💰 Valor: R$ ${valorFinal.toFixed(2).replace(".", ",")}\n` +
-      `🔑 Pix Copia e Cola:\n${pixCopiaECola}\n\n` +
-      `Assim que o pagamento for confirmado, seu botão "Ficar Online" é liberado automaticamente!`
+        `Aqui é da gestão do PARTIU (${pracaNome}).\n` +
+        `Para manter seu aplicativo ativo com 0% de taxas nas corridas, segue a chave de renovação do seu plano (${planoNome}):\n\n` +
+        `💰 Valor: R$ ${valorFinal.toFixed(2).replace(".", ",")}\n` +
+        `🔑 Pix Copia e Cola:\n${pixCopiaECola}\n\n` +
+        `Assim que o pagamento for confirmado, seu botão "Ficar Online" é liberado automaticamente!`,
     );
-    const url = foneLimpo ? `https://wa.me/55${foneLimpo}?text=${msg}` : `https://wa.me/?text=${msg}`;
+    const url = foneLimpo
+      ? `https://wa.me/55${foneLimpo}?text=${msg}`
+      : `https://wa.me/?text=${msg}`;
     window.open(url, "_blank");
   }
 
@@ -175,7 +186,9 @@ export function AdminPixCobrancaModal({
           <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
             <div className="text-[11px] text-slate-400 leading-tight">
               <span>Problema temporário no pagamento?</span>
-              <span className="block text-slate-500">Conceda tolerância sem travar a operação.</span>
+              <span className="block text-slate-500">
+                Conceda tolerância sem travar a operação.
+              </span>
             </div>
             <button
               type="button"

@@ -45,10 +45,7 @@ export function useMapCamera(mapRef: React.RefObject<mapboxgl.Map | null>) {
    * Enquadra múltiplos pontos na viewport respeitando paddings de bottom sheets
    */
   const fitBounds = useCallback(
-    (
-      bounds: [[number, number], [number, number]],
-      options: FitBoundsOptions = {}
-    ) => {
+    (bounds: [[number, number], [number, number]], options: FitBoundsOptions = {}) => {
       const map = mapRef.current;
       if (!map || !bounds) return;
 
@@ -70,7 +67,7 @@ export function useMapCamera(mapRef: React.RefObject<mapboxgl.Map | null>) {
         });
       } catch (_) {}
     },
-    [mapRef]
+    [mapRef],
   );
 
   /**
@@ -92,7 +89,7 @@ export function useMapCamera(mapRef: React.RefObject<mapboxgl.Map | null>) {
         });
       } catch (_) {}
     },
-    [mapRef]
+    [mapRef],
   );
 
   /**
@@ -111,7 +108,7 @@ export function useMapCamera(mapRef: React.RefObject<mapboxgl.Map | null>) {
         });
       } catch (_) {}
     },
-    [mapRef]
+    [mapRef],
   );
 
   /**
@@ -126,7 +123,7 @@ export function useMapCamera(mapRef: React.RefObject<mapboxgl.Map | null>) {
         map.zoomTo(zoom, { duration });
       } catch (_) {}
     },
-    [mapRef]
+    [mapRef],
   );
 
   /**
@@ -136,7 +133,7 @@ export function useMapCamera(mapRef: React.RefObject<mapboxgl.Map | null>) {
     (
       driverCoords: [number, number],
       passengerCoords: [number, number],
-      padding?: CameraPadding
+      padding?: CameraPadding,
     ) => {
       if (!driverCoords || !passengerCoords) return;
 
@@ -154,10 +151,10 @@ export function useMapCamera(mapRef: React.RefObject<mapboxgl.Map | null>) {
           padding: padding || { top: 100, bottom: 380, left: 80, right: 80 },
           duration: 900,
           maxZoom: 16.5,
-        }
+        },
       );
     },
-    [fitBounds]
+    [fitBounds],
   );
 
   /**
@@ -167,7 +164,7 @@ export function useMapCamera(mapRef: React.RefObject<mapboxgl.Map | null>) {
     (
       driverCoords: [number, number],
       destinationCoords: [number, number],
-      padding?: CameraPadding
+      padding?: CameraPadding,
     ) => {
       if (!driverCoords || !destinationCoords) return;
 
@@ -185,10 +182,10 @@ export function useMapCamera(mapRef: React.RefObject<mapboxgl.Map | null>) {
           padding: padding || { top: 80, bottom: 350, left: 70, right: 70 },
           duration: 900,
           maxZoom: 16,
-        }
+        },
       );
     },
-    [fitBounds]
+    [fitBounds],
   );
 
   return {

@@ -39,7 +39,10 @@ async function runAuthSuite() {
     role: "PASSAGEIRO",
   });
   assert(!invalidEmail.success, "E-mail malformatado é rejeitado.");
-  assert(invalidEmail.error?.includes("e-mail válido") ?? false, "Mensagem de erro amigável retornada.");
+  assert(
+    invalidEmail.error?.includes("e-mail válido") ?? false,
+    "Mensagem de erro amigável retornada.",
+  );
 
   const shortPass = await supabaseAuthService.signInWithEmail({
     email: "passageiro@partiu.com.br",
@@ -57,7 +60,10 @@ async function runAuthSuite() {
   });
   assert(paxLogin.success, "Passageiro autenticado com sucesso.");
   assert(paxLogin.user?.role === "PASSAGEIRO", "Perfil atribuído como PASSAGEIRO.");
-  assert(paxLogin.redirectUrl === "/app", "Redirecionamento correto para cockpit do passageiro (/app).");
+  assert(
+    paxLogin.redirectUrl === "/app",
+    "Redirecionamento correto para cockpit do passageiro (/app).",
+  );
 
   // 4. Login de Motorista Parceiro por E-mail
   console.log("\n🔹 [TESTE 4] Autenticação de Motorista Parceiro...");
@@ -68,8 +74,14 @@ async function runAuthSuite() {
   });
   assert(drvLogin.success, "Motorista parceiro autenticado com sucesso.");
   assert(drvLogin.user?.role === "MOTORISTA", "Perfil atribuído como MOTORISTA.");
-  assert(drvLogin.redirectUrl === "/app/motorista", "Redirecionamento correto para cockpit do motorista (/app/motorista).");
-  assert(drvLogin.user?.driverApprovalStatus === "aprovado", "Status de homologação do motorista verificado.");
+  assert(
+    drvLogin.redirectUrl === "/app/motorista",
+    "Redirecionamento correto para cockpit do motorista (/app/motorista).",
+  );
+  assert(
+    drvLogin.user?.driverApprovalStatus === "aprovado",
+    "Status de homologação do motorista verificado.",
+  );
 
   // 5. Login de Administrador
   console.log("\n🔹 [TESTE 5] Autenticação de Administrador...");
@@ -80,7 +92,10 @@ async function runAuthSuite() {
   });
   assert(admLogin.success, "Administrador autenticado com sucesso.");
   assert(admLogin.user?.role === "ADMIN", "Perfil atribuído como ADMIN.");
-  assert(admLogin.redirectUrl === "/app/admin", "Redirecionamento correto para Central Admin (/app/admin).");
+  assert(
+    admLogin.redirectUrl === "/app/admin",
+    "Redirecionamento correto para Central Admin (/app/admin).",
+  );
 
   // 6. Cadastro de Novo Passageiro com CPF e Telefone Normalizado
   console.log("\n🔹 [TESTE 6] Cadastro de Novo Passageiro com Formatação Brasileira...");
@@ -93,7 +108,10 @@ async function runAuthSuite() {
   });
   assert(newPax.success, "Novo passageiro cadastrado com sucesso.");
   assert(newPax.user?.name === "Ana Beatriz Santos", "Nome persistido corretamente.");
-  assert(newPax.user?.phone === "(82) 99911-2233", "Telefone normalizado no padrão (DDD) 9XXXX-XXXX.");
+  assert(
+    newPax.user?.phone === "(82) 99911-2233",
+    "Telefone normalizado no padrão (DDD) 9XXXX-XXXX.",
+  );
   assert(newPax.redirectUrl === "/app", "Redirecionamento para /app após cadastro.");
 
   // 7. Login por Celular com OTP
@@ -115,7 +133,10 @@ async function runAuthSuite() {
   assert(demoPax.success && demoPax.redirectUrl === "/app", "Demo Passageiro operacional.");
 
   const demoDrv = supabaseAuthService.quickDemoLogin("MOTORISTA");
-  assert(demoDrv.success && demoDrv.redirectUrl === "/app/motorista", "Demo Motorista operacional.");
+  assert(
+    demoDrv.success && demoDrv.redirectUrl === "/app/motorista",
+    "Demo Motorista operacional.",
+  );
 
   const demoAdm = supabaseAuthService.quickDemoLogin("ADMIN");
   assert(demoAdm.success && demoAdm.redirectUrl === "/app/admin", "Demo Admin operacional.");
@@ -126,7 +147,9 @@ async function runAuthSuite() {
   assert(supabaseAuthService.getStoredSession() === null, "Sessão encerrada e limpa do cache.");
 
   console.log("\n================================================================================");
-  console.log(`🎉 TODOS OS ${passedTests}/${totalTests} TESTES DE AUTENTICAÇÃO SUPABASE PASSARAM COM SUCESSO!`);
+  console.log(
+    `🎉 TODOS OS ${passedTests}/${totalTests} TESTES DE AUTENTICAÇÃO SUPABASE PASSARAM COM SUCESSO!`,
+  );
   console.log("================================================================================\n");
 }
 

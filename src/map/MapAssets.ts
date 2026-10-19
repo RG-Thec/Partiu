@@ -171,6 +171,6 @@ export async function registerAllMapAssets(map: any): Promise<void> {
       } catch (err) {
         console.warn(`[MapAssets] Aviso ao registrar imagem ${id}:`, err);
       }
-    })
+    }),
   );
 }

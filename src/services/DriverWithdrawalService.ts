@@ -177,7 +177,8 @@ export class DriverWithdrawalService {
         newBalanceBrl: 0,
         status: "FAILED",
         createdAt: now,
-        message: "Regra de Segurança: O saque PIX deve ser obrigatoriamente realizado para a chave CPF do titular cadastrado.",
+        message:
+          "Regra de Segurança: O saque PIX deve ser obrigatoriamente realizado para a chave CPF do titular cadastrado.",
       };
     }
 
@@ -196,7 +197,8 @@ export class DriverWithdrawalService {
           newBalanceBrl: 0,
           status: "FAILED",
           createdAt: now,
-          message: "Regra de Titularidade: A chave CPF informada não coincide com o CPF do motorista titular cadastrado.",
+          message:
+            "Regra de Titularidade: A chave CPF informada não coincide com o CPF do motorista titular cadastrado.",
         };
       }
     }
@@ -236,7 +238,7 @@ export class DriverWithdrawalService {
 
     // 2.1 Verificação de saque em processamento (Prevenção de Double-Spending e Race Conditions)
     const hasPendingLocal = Array.from(this.localWithdrawals.values()).some(
-      (w) => w.driverId === input.driverId && (w.status === "PENDING" || w.status === "PROCESSING")
+      (w) => w.driverId === input.driverId && (w.status === "PENDING" || w.status === "PROCESSING"),
     );
     if (hasPendingLocal) {
       return {
@@ -273,7 +275,8 @@ export class DriverWithdrawalService {
             newBalanceBrl: 0,
             status: "FAILED",
             createdAt: now,
-            message: "Já existe uma solicitação de saque em processamento. Aguarde a liquidação antes de solicitar um novo saque.",
+            message:
+              "Já existe uma solicitação de saque em processamento. Aguarde a liquidação antes de solicitar um novo saque.",
           };
         }
       } catch (err) {
@@ -343,13 +346,16 @@ export class DriverWithdrawalService {
     // Persiste no Supabase com proteção de RPC atômico
     if (isSupabaseConfigured() && supabase) {
       try {
-        const { data: rpcRes, error: rpcError } = await (supabase as any).rpc("partiu_solicitar_saque_pix", {
-          p_driver_id: input.driverId,
-          p_amount_cents: Math.round(input.amountBrl * 100),
-          p_pix_key: input.pixKey,
-          p_pix_key_type: input.pixKeyType,
-          p_transfer_id: transferId,
-        });
+        const { data: rpcRes, error: rpcError } = await (supabase as any).rpc(
+          "partiu_solicitar_saque_pix",
+          {
+            p_driver_id: input.driverId,
+            p_amount_cents: Math.round(input.amountBrl * 100),
+            p_pix_key: input.pixKey,
+            p_pix_key_type: input.pixKeyType,
+            p_transfer_id: transferId,
+          },
+        );
 
         if (rpcError) {
           silentCatchWarn("DriverWithdrawalService.requestPixWithdrawal:rpcError", rpcError);
@@ -368,12 +374,12 @@ export class DriverWithdrawalService {
 
   public resetLocalStore(): void {
     this.localWithdrawals.clear();
-    if (typeof process !== "undefined" && (process.env.NODE_ENV === "test" || !isSupabaseConfigured())) {
+    if (
+      typeof process !== "undefined" &&
+      (process.env.NODE_ENV === "test" || !isSupabaseConfigured())
+    ) {
       try {
-        void (supabase as any)
-          .from("driver_pix_withdrawals")
-          .delete()
-          .like("driver_id", "%test%");
+        void (supabase as any).from("driver_pix_withdrawals").delete().like("driver_id", "%test%");
       } catch (err) {
         silentCatchWarn("DriverWithdrawalService.resetLocalStore", err);
       }

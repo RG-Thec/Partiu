@@ -160,7 +160,10 @@ export function AuditLogsViewerTab() {
         filtroCategoria === "TODAS" ||
         (filtroCategoria === "AUTH" && log.action.startsWith("AUTH")) ||
         (filtroCategoria === "DRIVER" && log.action.includes("DRIVER")) ||
-        (filtroCategoria === "FINANCIAL" && (log.action.includes("SETTLEMENT") || log.action.includes("FINANCE") || log.action.includes("CAIXA"))) ||
+        (filtroCategoria === "FINANCIAL" &&
+          (log.action.includes("SETTLEMENT") ||
+            log.action.includes("FINANCE") ||
+            log.action.includes("CAIXA"))) ||
         (filtroCategoria === "BRANDING" && log.action.includes("BRANDING"));
 
       const q = busca.toLowerCase().trim();
@@ -216,9 +219,7 @@ export function AuditLogsViewerTab() {
             {log.entity_name}
           </span>
           {log.entity_id && (
-            <span className="text-[10px] text-slate-400 font-mono">
-              ID: {log.entity_id}
-            </span>
+            <span className="text-[10px] text-slate-400 font-mono">ID: {log.entity_id}</span>
           )}
         </div>
       ),
@@ -239,9 +240,7 @@ export function AuditLogsViewerTab() {
       key: "ip",
       header: "Endereço IP",
       render: (log) => (
-        <span className="font-mono text-xs text-slate-500">
-          {log.ip_address || "—"}
-        </span>
+        <span className="font-mono text-xs text-slate-500">{log.ip_address || "—"}</span>
       ),
     },
     {
@@ -273,7 +272,8 @@ export function AuditLogsViewerTab() {
       description: (
         <div className="space-y-1 mt-0.5">
           <p className="text-xs text-slate-600 dark:text-slate-300">
-            Entidade: <strong className="font-mono">{log.entity_name}</strong> {log.entity_id && `(${log.entity_id})`}
+            Entidade: <strong className="font-mono">{log.entity_name}</strong>{" "}
+            {log.entity_id && `(${log.entity_id})`}
           </p>
           {log.metadata && (
             <pre className="p-2 rounded-lg bg-slate-100 dark:bg-slate-900 text-[10px] font-mono text-slate-700 dark:text-slate-300 overflow-x-auto">
@@ -373,7 +373,7 @@ export function AuditLogsViewerTab() {
                   l.user_id || "",
                   l.ip_address || "",
                   JSON.stringify(l.metadata || {}),
-                ])
+                ]),
               );
             }}
           >
@@ -429,23 +429,41 @@ export function AuditLogsViewerTab() {
             <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 text-xs">
               <div>
                 <span className="text-slate-400 block text-[10px] font-bold uppercase">Ação:</span>
-                <span className="font-bold text-slate-800 dark:text-slate-200">{detalhesLog.action}</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">
+                  {detalhesLog.action}
+                </span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] font-bold uppercase">Entidade:</span>
-                <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{detalhesLog.entity_name}</span>
+                <span className="text-slate-400 block text-[10px] font-bold uppercase">
+                  Entidade:
+                </span>
+                <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                  {detalhesLog.entity_name}
+                </span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] font-bold uppercase">Operador:</span>
-                <span className="font-medium text-slate-800 dark:text-slate-200">{detalhesLog.user_id || "Sistema"}</span>
+                <span className="text-slate-400 block text-[10px] font-bold uppercase">
+                  Operador:
+                </span>
+                <span className="font-medium text-slate-800 dark:text-slate-200">
+                  {detalhesLog.user_id || "Sistema"}
+                </span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] font-bold uppercase">Endereço IP:</span>
-                <span className="font-mono font-medium text-slate-800 dark:text-slate-200">{detalhesLog.ip_address || "—"}</span>
+                <span className="text-slate-400 block text-[10px] font-bold uppercase">
+                  Endereço IP:
+                </span>
+                <span className="font-mono font-medium text-slate-800 dark:text-slate-200">
+                  {detalhesLog.ip_address || "—"}
+                </span>
               </div>
               <div className="col-span-2">
-                <span className="text-slate-400 block text-[10px] font-bold uppercase">Carimbo de Data/Hora:</span>
-                <span className="font-medium text-slate-800 dark:text-slate-200">{new Date(detalhesLog.created_at).toLocaleString("pt-BR")}</span>
+                <span className="text-slate-400 block text-[10px] font-bold uppercase">
+                  Carimbo de Data/Hora:
+                </span>
+                <span className="font-medium text-slate-800 dark:text-slate-200">
+                  {new Date(detalhesLog.created_at).toLocaleString("pt-BR")}
+                </span>
               </div>
             </div>
 

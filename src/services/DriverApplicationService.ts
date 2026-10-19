@@ -13,7 +13,6 @@ import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { silentCatchWarn } from "@/lib/structured-logger";
 
-
 export interface DriverApplicationInput {
   name: string;
   phone: string;
@@ -49,7 +48,7 @@ export class DriverApplicationService {
    * Envia uma nova candidatura de motorista com notificação em tempo real
    */
   public async submitApplication(
-    input: DriverApplicationInput
+    input: DriverApplicationInput,
   ): Promise<{ success: boolean; applicationId: string; message: string }> {
     const session = supabaseAuthService.getStoredSession();
     const userId = session?.id;
@@ -68,7 +67,9 @@ export class DriverApplicationService {
         const stored = JSON.parse(localStorage.getItem(STORAGE_APPLICATIONS_KEY) || "[]");
         stored.unshift(record);
         localStorage.setItem(STORAGE_APPLICATIONS_KEY, JSON.stringify(stored));
-      } catch (err) { silentCatchWarn("DriverApplicationService", err); }
+      } catch (err) {
+        silentCatchWarn("DriverApplicationService", err);
+      }
     }
 
     // 2. Persiste na tabela driver_applications do Supabase

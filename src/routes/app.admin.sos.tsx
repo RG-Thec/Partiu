@@ -48,7 +48,13 @@ export type StatusAtendimentoSOS = "ativo" | "em_atendimento" | "policia_acionad
 
 export interface ItemAlertaPanico {
   id: string;
-  tipo: "seguranca" | "panico_passageiro" | "panico_motorista" | "emergencia_medica" | "acidente" | "pane_mecanica";
+  tipo:
+    | "seguranca"
+    | "panico_passageiro"
+    | "panico_motorista"
+    | "emergencia_medica"
+    | "acidente"
+    | "pane_mecanica";
   tipoSolicitante: TipoUsuarioSOS;
   solicitanteNome: string;
   solicitanteTelefone: string;
@@ -226,7 +232,10 @@ export function CentralPanicoSOSAdminPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `central_panico_sos_partiu_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute(
+      "download",
+      `central_panico_sos_partiu_${new Date().toISOString().slice(0, 10)}.csv`,
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -273,7 +282,8 @@ export function CentralPanicoSOSAdminPage() {
             Central de Pânico &amp; Monitoramento SOS
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl">
-            Painel tático de atendimento a incidentes de segurança urbana acionados por passageiros ou motoristas parceiros com rastreamento GPS e acionamento policial.
+            Painel tático de atendimento a incidentes de segurança urbana acionados por passageiros
+            ou motoristas parceiros com rastreamento GPS e acionamento policial.
           </p>
         </div>
 
@@ -308,18 +318,24 @@ export function CentralPanicoSOSAdminPage() {
             <span className="w-2.5 h-2.5 rounded-full bg-destructive animate-ping" />
           </div>
           <div className="text-2xl sm:text-3xl font-black text-destructive">{contadores.ativo}</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">Exigem intervenção imediata</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">
+            Exigem intervenção imediata
+          </div>
         </div>
 
         <div className="p-4 rounded-2xl bg-card border border-amber-500/30 shadow-2xs">
           <div className="flex items-center justify-between text-muted-foreground mb-1">
-            <span className="text-xs font-bold text-amber-600 dark:text-amber-400">Em Atendimento</span>
+            <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
+              Em Atendimento
+            </span>
             <Clock className="w-4 h-4 text-amber-500" />
           </div>
           <div className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
             {contadores.emAtendimento}
           </div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">Operador em contato com a vítima</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">
+            Operador em contato com a vítima
+          </div>
         </div>
 
         <div className="p-4 rounded-2xl bg-card border border-blue-500/30 shadow-2xs">
@@ -332,18 +348,24 @@ export function CentralPanicoSOSAdminPage() {
           <div className="text-2xl sm:text-3xl font-black text-blue-600 dark:text-blue-400">
             {contadores.policiaAcionada}
           </div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">Viatura a caminho do veículo</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">
+            Viatura a caminho do veículo
+          </div>
         </div>
 
         <div className="p-4 rounded-2xl bg-card border border-emerald-500/30 shadow-2xs">
           <div className="flex items-center justify-between text-muted-foreground mb-1">
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Resolvidos Hoje</span>
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+              Resolvidos Hoje
+            </span>
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">
             {contadores.resolvido}
           </div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">Ocorrências finalizadas em segurança</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">
+            Ocorrências finalizadas em segurança
+          </div>
         </div>
       </section>
 
@@ -362,26 +384,28 @@ export function CentralPanicoSOSAdminPage() {
 
         {/* Filtros de Status */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-          {(["todos", "ativo", "em_atendimento", "policia_acionada", "resolvido"] as const).map((st) => (
-            <button
-              key={st}
-              type="button"
-              onClick={() => setFiltroStatus(st)}
-              className={`min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
-                filtroStatus === st
-                  ? st === "ativo"
-                    ? "bg-destructive text-destructive-foreground shadow-2xs"
-                    : "bg-primary text-primary-foreground shadow-2xs"
-                  : "bg-muted/50 text-muted-foreground hover:bg-muted"
-              }`}
-            >
-              {st === "todos" && `Todos (${alertas.length})`}
-              {st === "ativo" && `Pânico (${contadores.ativo})`}
-              {st === "em_atendimento" && `Em Atendimento (${contadores.emAtendimento})`}
-              {st === "policia_acionada" && `Polícia (${contadores.policiaAcionada})`}
-              {st === "resolvido" && `Resolvidos (${contadores.resolvido})`}
-            </button>
-          ))}
+          {(["todos", "ativo", "em_atendimento", "policia_acionada", "resolvido"] as const).map(
+            (st) => (
+              <button
+                key={st}
+                type="button"
+                onClick={() => setFiltroStatus(st)}
+                className={`min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                  filtroStatus === st
+                    ? st === "ativo"
+                      ? "bg-destructive text-destructive-foreground shadow-2xs"
+                      : "bg-primary text-primary-foreground shadow-2xs"
+                    : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                {st === "todos" && `Todos (${alertas.length})`}
+                {st === "ativo" && `Pânico (${contadores.ativo})`}
+                {st === "em_atendimento" && `Em Atendimento (${contadores.emAtendimento})`}
+                {st === "policia_acionada" && `Polícia (${contadores.policiaAcionada})`}
+                {st === "resolvido" && `Resolvidos (${contadores.resolvido})`}
+              </button>
+            ),
+          )}
         </div>
       </section>
 
@@ -457,7 +481,9 @@ export function CentralPanicoSOSAdminPage() {
                               : "bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20"
                           }`}
                         >
-                          {item.tipoSolicitante === "passageiro" ? "Passageiro" : "Motorista Parceiro"}
+                          {item.tipoSolicitante === "passageiro"
+                            ? "Passageiro"
+                            : "Motorista Parceiro"}
                         </span>
                         <span className="font-mono text-xs text-muted-foreground font-bold">
                           #{item.id}
@@ -465,7 +491,8 @@ export function CentralPanicoSOSAdminPage() {
                       </div>
 
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        Acionado às <strong className="text-foreground">{item.dataHora}</strong> · Telefone:{" "}
+                        Acionado às <strong className="text-foreground">{item.dataHora}</strong> ·
+                        Telefone:{" "}
                         <strong className="text-foreground">{item.solicitanteTelefone}</strong>
                       </p>
                     </div>
@@ -509,7 +536,9 @@ export function CentralPanicoSOSAdminPage() {
                         <MapPin className="w-3.5 h-3.5 text-primary" />
                         Localização Geográfica do Chamado:
                       </span>
-                      <span className="font-mono text-[11px] text-muted-foreground">{item.coordenadas}</span>
+                      <span className="font-mono text-[11px] text-muted-foreground">
+                        {item.coordenadas}
+                      </span>
                     </div>
 
                     <p className="text-foreground font-semibold">{item.endereco}</p>
@@ -545,7 +574,10 @@ export function CentralPanicoSOSAdminPage() {
 
                     <div className="flex items-center justify-between text-foreground">
                       <span>
-                        Veículo: <strong>{item.veiculoModelo} ({item.veiculoCor})</strong>
+                        Veículo:{" "}
+                        <strong>
+                          {item.veiculoModelo} ({item.veiculoCor})
+                        </strong>
                       </span>
                       <span className="font-mono font-black text-xs px-2 py-0.5 rounded-md bg-card border border-border">
                         {item.veiculoPlaca}
@@ -554,7 +586,8 @@ export function CentralPanicoSOSAdminPage() {
 
                     {item.contraparteNome && (
                       <p className="text-muted-foreground">
-                        Outra parte: <strong className="text-foreground">{item.contraparteNome}</strong>
+                        Outra parte:{" "}
+                        <strong className="text-foreground">{item.contraparteNome}</strong>
                       </p>
                     )}
 
@@ -659,7 +692,9 @@ export function CentralPanicoSOSAdminPage() {
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-sm sm:text-base font-black text-slate-900 leading-tight">Concluir Atendimento de Crise</h2>
+                  <h2 className="text-sm sm:text-base font-black text-slate-900 leading-tight">
+                    Concluir Atendimento de Crise
+                  </h2>
                   <p className="text-[11px] text-slate-500 leading-tight">
                     Ocorrência #{alertaParaConcluir.id} · {alertaParaConcluir.solicitanteNome}
                   </p>
@@ -676,7 +711,9 @@ export function CentralPanicoSOSAdminPage() {
 
             <form onSubmit={salvarConclusaoOcorrencia} className="space-y-3">
               <div className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Protocolo Policial / Órgão Externo (Se houver)</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                  Protocolo Policial / Órgão Externo (Se houver)
+                </label>
                 <input
                   type="text"
                   placeholder="Ex: 190-RJ-2026-9812 ou SAMU-04"
