@@ -322,7 +322,9 @@ export const Route = createFileRoute("/app/motorista")({
         content:
           "Estação de trabalho do parceiro PARTIU: Trip Radar em tempo real integrado com solicitações de passageiros e encomendas, Embarque Smart 1-Tap e Repasse Direto 100% Livre de Comissão.",
       },
+      { name: "theme-color", content: "#0F172A" },
     ],
+    links: [{ rel: "manifest", href: "/manifest-motorista.json" }],
   }),
   component: PartiuDriverCockpitGuarded,
 });

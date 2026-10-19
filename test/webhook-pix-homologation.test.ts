@@ -128,8 +128,7 @@ describe("40. HOMOLOGAÇÃO DE WEBHOOKS PIX (MERCADO PAGO & ASAAS)", () => {
     expect(access.is_eligible).toBe(true);
     expect(access.status).toBe("ACTIVE");
 
-    const horasRestantes =
-      (new Date(access.expires_at!).getTime() - Date.now()) / (1000 * 60 * 60);
+    const horasRestantes = (new Date(access.expires_at!).getTime() - Date.now()) / (1000 * 60 * 60);
     expect(horasRestantes >= 160).toBe(true); // ~168 horas (7 dias)
   });
 

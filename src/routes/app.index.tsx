@@ -121,7 +121,9 @@ export const Route = createFileRoute("/app/")({
         content:
           "Solicite carros e motos para transporte urbano com tarifa transparente e agilidade em sua cidade.",
       },
+      { name: "theme-color", content: "#FF6B00" },
     ],
+    links: [{ rel: "manifest", href: "/manifest.json" }],
   }),
   component: PartiuPassengerHomeRoot,
 });

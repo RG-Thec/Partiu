@@ -405,9 +405,7 @@ class BannerService {
    * - Proporção recomendada: entre 1.5 e 2.2 (ex: ~16:9 ou ~350x180)
    * - Largura mínima: 300px
    */
-  public async validateBannerDimensions(
-    imageUrl: string,
-  ): Promise<{
+  public async validateBannerDimensions(imageUrl: string): Promise<{
     isValid: boolean;
     message: string;
     width?: number;

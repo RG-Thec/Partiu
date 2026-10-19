@@ -18,6 +18,7 @@ import { Route as CadastroPassageiroRouteImport } from './routes/cadastro-passag
 import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as EscolherTipoCadastroRouteImport } from './routes/escolher-tipo-cadastro'
 import { Route as LandingRouteImport } from './routes/landing'
+import { Route as MotoristaRouteImport } from './routes/motorista'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppAdminRouteImport } from './routes/app.admin'
 import { Route as AppBilhetesRouteImport } from './routes/app.bilhetes'
@@ -104,6 +105,11 @@ const EscolherTipoCadastroRoute = EscolherTipoCadastroRouteImport.update({
 const LandingRoute = LandingRouteImport.update({
   id: '/landing',
   path: '/landing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MotoristaRoute = MotoristaRouteImport.update({
+  id: '/motorista',
+  path: '/motorista',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -327,6 +333,7 @@ export interface FileRoutesByFullPath {
   '/design-system': typeof DesignSystemRoute
   '/escolher-tipo-cadastro': typeof EscolherTipoCadastroRoute
   '/landing': typeof LandingRoute
+  '/motorista': typeof MotoristaRoute
   '/app/admin': typeof AppAdminRouteWithChildren
   '/app/bilhetes': typeof AppBilhetesRoute
   '/app/encomendas': typeof AppEncomendasRoute
@@ -379,6 +386,7 @@ export interface FileRoutesByTo {
   '/design-system': typeof DesignSystemRoute
   '/escolher-tipo-cadastro': typeof EscolherTipoCadastroRoute
   '/landing': typeof LandingRoute
+  '/motorista': typeof MotoristaRoute
   '/app/bilhetes': typeof AppBilhetesRoute
   '/app/encomendas': typeof AppEncomendasRoute
   '/app/motorista': typeof AppMotoristaRoute
@@ -432,6 +440,7 @@ export interface FileRoutesById {
   '/design-system': typeof DesignSystemRoute
   '/escolher-tipo-cadastro': typeof EscolherTipoCadastroRoute
   '/landing': typeof LandingRoute
+  '/motorista': typeof MotoristaRoute
   '/app/admin': typeof AppAdminRouteWithChildren
   '/app/bilhetes': typeof AppBilhetesRoute
   '/app/encomendas': typeof AppEncomendasRoute
@@ -487,6 +496,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/escolher-tipo-cadastro'
     | '/landing'
+    | '/motorista'
     | '/app/admin'
     | '/app/bilhetes'
     | '/app/encomendas'
@@ -539,6 +549,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/escolher-tipo-cadastro'
     | '/landing'
+    | '/motorista'
     | '/app/bilhetes'
     | '/app/encomendas'
     | '/app/motorista'
@@ -591,6 +602,7 @@ export interface FileRouteTypes {
     | '/design-system'
     | '/escolher-tipo-cadastro'
     | '/landing'
+    | '/motorista'
     | '/app/admin'
     | '/app/bilhetes'
     | '/app/encomendas'
@@ -645,6 +657,7 @@ export interface RootRouteChildren {
   DesignSystemRoute: typeof DesignSystemRoute
   EscolherTipoCadastroRoute: typeof EscolherTipoCadastroRoute
   LandingRoute: typeof LandingRoute
+  MotoristaRoute: typeof MotoristaRoute
   RastreioTokenRoute: typeof RastreioTokenRoute
 }
 
@@ -711,6 +724,13 @@ declare module '@tanstack/react-router' {
       path: '/landing'
       fullPath: '/landing'
       preLoaderRoute: typeof LandingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/motorista': {
+      id: '/motorista'
+      path: '/motorista'
+      fullPath: '/motorista'
+      preLoaderRoute: typeof MotoristaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/': {
@@ -1120,6 +1140,7 @@ const rootRouteChildren: RootRouteChildren = {
   DesignSystemRoute: DesignSystemRoute,
   EscolherTipoCadastroRoute: EscolherTipoCadastroRoute,
   LandingRoute: LandingRoute,
+  MotoristaRoute: MotoristaRoute,
   RastreioTokenRoute: RastreioTokenRoute,
 }
 export const routeTree = rootRouteImport

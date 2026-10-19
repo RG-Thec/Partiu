@@ -48,14 +48,34 @@ export default defineConfig(({ command, mode }) => {
       rollupOptions: {
         output: {
           manualChunks(id: string) {
-            if (id.includes("mapbox-gl")) {
+            const normalizedId = id.replace(/\\/g, "/");
+            if (normalizedId.includes("mapbox-gl")) {
               return "mapbox-vendor";
             }
-            if (id.includes("h3-js")) {
+            if (normalizedId.includes("h3-js")) {
               return "h3-vendor";
             }
-            if (id.includes("@radix-ui")) {
+            if (normalizedId.includes("@radix-ui")) {
               return "radix-vendor";
+            }
+            if (
+              normalizedId.includes("/src/routes/app.admin") ||
+              normalizedId.includes("/src/components/admin/")
+            ) {
+              return "admin-domain";
+            }
+            if (
+              normalizedId.includes("/src/routes/app.motorista") ||
+              normalizedId.includes("/src/components/driver/")
+            ) {
+              return "driver-domain";
+            }
+            if (
+              normalizedId.includes("/src/routes/app.index") ||
+              normalizedId.includes("/src/components/passenger/") ||
+              normalizedId.includes("/src/contexts/PassengerRideContext")
+            ) {
+              return "passenger-domain";
             }
             return undefined;
           },
