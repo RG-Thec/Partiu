@@ -23,14 +23,6 @@ export function PushNotificationPrompt() {
   const pathname = location.pathname;
   const [permissao, setPermissao] = useState<NotificationPermission>("default");
   const [visivel, setVisivel] = useState(false);
-
-  // No cockpit de corridas, encomendas e motorista, o mapa e os controles operacionais nunca devem ser obstruídos por popups flutuantes.
-  const isOperationalFlow =
-    pathname === "/app" ||
-    pathname === "/app/" ||
-    pathname.startsWith("/app/encomendas") ||
-    pathname.startsWith("/app/motorista");
-  if (isOperationalFlow) return null;
   const [testado, setTestado] = useState(false);
   const [mostrarInstrucaoInApp, setMostrarInstrucaoInApp] = useState(false);
   const [linkCopiado, setLinkCopiado] = useState(false);
@@ -50,6 +42,14 @@ export function PushNotificationPrompt() {
       if (timer) clearTimeout(timer);
     };
   }, []);
+
+  // No cockpit de corridas, encomendas e motorista, o mapa e os controles operacionais nunca devem ser obstruídos por popups flutuantes.
+  const isOperationalFlow =
+    pathname === "/app" ||
+    pathname === "/app/" ||
+    pathname.startsWith("/app/encomendas") ||
+    pathname.startsWith("/app/motorista");
+  if (isOperationalFlow) return null;
 
   async function handleAtivar() {
     setAvisoErro(null);

@@ -134,8 +134,8 @@ serve(async (req) => {
 
     // Extrai identificadores comuns dos gateways (Mercado Pago, Asaas, Efí)
     const eventType = body.event || body.type || body.action || "PAYMENT_CONFIRMED";
-    let payment = body.payment || body.data || body;
-    let gatewayReference = payment.id || body.id || payment.txid || body.txid;
+    const payment = body.payment || body.data || body;
+    const gatewayReference = payment.id || body.id || payment.txid || body.txid;
     let billingId = payment.externalReference || body.externalReference || body.billing_id;
     let amount = Number(payment.value || payment.transaction_amount || body.amount || 0);
 

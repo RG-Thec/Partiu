@@ -20,6 +20,32 @@ export function AdminCitySelector() {
   const [busca, setBusca] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Fechar ao clicar fora
+  useEffect(() => {
+    function handleClickFora(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setAberto(false);
+      }
+    }
+    if (aberto) {
+      document.addEventListener("mousedown", handleClickFora);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickFora);
+    };
+  }, [aberto]);
+
+  const pracasFiltradas = useMemo(() => {
+    if (!busca.trim()) return pracas;
+    const termo = busca.toLowerCase().trim();
+    return pracas.filter(
+      (p) =>
+        p.nome.toLowerCase().includes(termo) ||
+        p.uf.toLowerCase().includes(termo) ||
+        p.labelCompleto.toLowerCase().includes(termo),
+    );
+  }, [pracas, busca]);
+
   // Se o usuário for FRANQUEADO, a interface é hardcoded para a praça dele sem dropdown/seletor
   if (isFranqueado) {
     const nomeExibicao =
@@ -46,32 +72,6 @@ export function AdminCitySelector() {
       </div>
     );
   }
-
-  // Fechar ao clicar fora
-  useEffect(() => {
-    function handleClickFora(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setAberto(false);
-      }
-    }
-    if (aberto) {
-      document.addEventListener("mousedown", handleClickFora);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickFora);
-    };
-  }, [aberto]);
-
-  const pracasFiltradas = useMemo(() => {
-    if (!busca.trim()) return pracas;
-    const termo = busca.toLowerCase().trim();
-    return pracas.filter(
-      (p) =>
-        p.nome.toLowerCase().includes(termo) ||
-        p.uf.toLowerCase().includes(termo) ||
-        p.labelCompleto.toLowerCase().includes(termo),
-    );
-  }, [pracas, busca]);
 
   return (
     <div className="relative" ref={dropdownRef}>

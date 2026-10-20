@@ -60,10 +60,10 @@ serve(async (req: Request) => {
     const maxRadiusKm = payload.maxRadiusKm || payload.max_radius_km || 10;
     const wave = payload.wave || 1;
 
-    let pickupLng = payload.pickupCoordinates?.[0] ?? payload.pickup_lng;
-    let pickupLat = payload.pickupCoordinates?.[1] ?? payload.pickup_lat;
-    let destLng = payload.destinationCoordinates?.[0] ?? payload.dropoff_lng;
-    let destLat = payload.destinationCoordinates?.[1] ?? payload.dropoff_lat;
+    const pickupLng = payload.pickupCoordinates?.[0] ?? payload.pickup_lng;
+    const pickupLat = payload.pickupCoordinates?.[1] ?? payload.pickup_lat;
+    const destLng = payload.destinationCoordinates?.[0] ?? payload.dropoff_lng;
+    const destLat = payload.destinationCoordinates?.[1] ?? payload.dropoff_lat;
 
     if (!rideId || pickupLat === undefined || pickupLng === undefined) {
       return new Response(

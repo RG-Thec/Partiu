@@ -155,7 +155,7 @@ export class SurgeEngine {
 
     // Se não houver estatística fresca em memória, tenta consultar localStorage ou dados mock
     let demandCount = 1;
-    let availableDriversCount = 2;
+    const availableDriversCount = 2;
 
     if (typeof localStorage !== "undefined") {
       try {

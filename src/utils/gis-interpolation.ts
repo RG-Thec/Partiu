@@ -72,7 +72,7 @@ export function calculateBearing(p1: [number, number], p2: [number, number]): nu
   const y = Math.sin(dLng) * Math.cos(y2);
   const x = Math.cos(y1) * Math.sin(y2) - Math.sin(y1) * Math.cos(y2) * Math.cos(dLng);
 
-  let brng = (Math.atan2(y, x) * 180) / Math.PI;
+  const brng = (Math.atan2(y, x) * 180) / Math.PI;
   return (brng + 360) % 360;
 }
 

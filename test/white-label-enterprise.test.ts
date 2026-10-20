@@ -372,7 +372,7 @@ async function runTestSuite() {
 
   // Aplica preset 'uber-tech'
   whiteLabelEngine.applyPreset("uber-tech");
-  let cfgUber = whiteLabelEngine.getActiveConfig();
+  const cfgUber = whiteLabelEngine.getActiveConfig();
   assertEqual(
     cfgUber.designSystem.paletaPrimaria.corPrincipal,
     "#000000",
@@ -386,7 +386,7 @@ async function runTestSuite() {
 
   // Aplica preset 'indrive-verde'
   whiteLabelEngine.applyPreset("indrive-verde");
-  let cfgInDrive = whiteLabelEngine.getActiveConfig();
+  const cfgInDrive = whiteLabelEngine.getActiveConfig();
   assertEqual(
     cfgInDrive.designSystem.paletaPrimaria.corPrincipal,
     "#B2F35F",
@@ -395,7 +395,7 @@ async function runTestSuite() {
 
   // Aplica preset 'cabify-roxo'
   whiteLabelEngine.applyPreset("cabify-roxo");
-  let cfgCabify = whiteLabelEngine.getActiveConfig();
+  const cfgCabify = whiteLabelEngine.getActiveConfig();
   assertEqual(
     cfgCabify.designSystem.paletaPrimaria.corPrincipal,
     "#7145D6",

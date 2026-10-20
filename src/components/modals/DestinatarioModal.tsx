@@ -41,7 +41,9 @@ function getEnderecosRecentes(): EnderecoRecenteItem[] {
       const parsed = JSON.parse(salvo);
       if (Array.isArray(parsed)) return parsed;
     }
-  } catch {}
+  } catch {
+    // fallback silencioso caso o localStorage esteja bloqueado
+  }
   return [];
 }
 
@@ -56,6 +58,7 @@ export function DestinatarioModal({
   const [detalhes, setDetalhes] = useState(infoInicial?.detalhes || "");
   const [nome, setNome] = useState(infoInicial?.nome || "");
   const [telefone, setTelefone] = useState(infoInicial?.telefone || "");
+  const [recenteAtivoId, setRecenteAtivoId] = useState<string | null>(null);
 
   if (!aberto) return null;
 
@@ -65,8 +68,6 @@ export function DestinatarioModal({
     if (limpo.length <= 7) return `(${limpo.slice(0, 2)}) ${limpo.slice(2)}`;
     return `(${limpo.slice(0, 2)}) ${limpo.slice(2, 7)}-${limpo.slice(7, 11)}`;
   }
-
-  const [recenteAtivoId, setRecenteAtivoId] = useState<string | null>(null);
 
   function getIniciais(texto: string): string {
     const partes = (texto || "").trim().split(/\s+/).filter(Boolean);

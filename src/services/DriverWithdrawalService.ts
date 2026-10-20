@@ -87,7 +87,7 @@ export class DriverWithdrawalService {
     for (let i = 0; i < 12; i++) {
       sum1 += parseInt(clean.charAt(i), 10) * weights1[i];
     }
-    let rest1 = sum1 % 11;
+    const rest1 = sum1 % 11;
     const digit1 = rest1 < 2 ? 0 : 11 - rest1;
     if (digit1 !== parseInt(clean.charAt(12), 10)) return false;
 
@@ -96,7 +96,7 @@ export class DriverWithdrawalService {
     for (let i = 0; i < 13; i++) {
       sum2 += parseInt(clean.charAt(i), 10) * weights2[i];
     }
-    let rest2 = sum2 % 11;
+    const rest2 = sum2 % 11;
     const digit2 = rest2 < 2 ? 0 : 11 - rest2;
     return digit2 === parseInt(clean.charAt(13), 10);
   }

@@ -93,7 +93,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | success | credenciais válidas      | none — code first | Redireciona para o cockpit ou mapa conforme a role       |
   | error   | credenciais inválidas    | none — code first | Alerta visual discreto com instrução de recuperação      |
   | loading | autenticando no Supabase | none — code first | Botão com spinner de carregamento e campos desabilitados |
-- **Coverage:** src/routes/auth.tsx:1-50, src/components/auth/PartiuAppAuthGate.tsx:1-1548
+- **Coverage:** src/routes/auth.tsx:1-50, src/components/auth/PartiuAppAuthGate.tsx:1-1546
 - **Scenarios:** SCN-005
 - **Resources:** supabaseAuthService, PartiuAppAuthGate
 - **Status:** built
@@ -123,7 +123,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | success | conta criada                  | none — code first | Confirmação exibindo opções "Ir para o login" e "Acessar aplicativo" |
   | error   | CPF ou telefone já cadastrado | none — code first | Alerta explicativo não intrusivo com link para recuperação           |
   | loading | processando cadastro          | none — code first | Indicador de envio com spinner no botão de confirmação               |
-- **Coverage:** src/routes/cadastro-passageiro.tsx:1-495, src/components/auth/PartiuAppAuthGate.tsx:1-1548
+- **Coverage:** src/routes/cadastro-passageiro.tsx:1-495, src/components/auth/PartiuAppAuthGate.tsx:1-1546
 - **Scenarios:** SCN-005
 - **Resources:** supabaseAuthService, useGeolocation
 - **Status:** built

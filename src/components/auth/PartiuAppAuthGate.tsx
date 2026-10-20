@@ -1236,9 +1236,7 @@ export function PartiuAppAuthGate({
                       >
                         0% Taxa
                       </span>
-                      <h4 className="text-xs font-bold leading-tight text-white">
-                        Plano Diário
-                      </h4>
+                      <h4 className="text-xs font-bold leading-tight text-white">Plano Diário</h4>
                       <p className="text-[10px] leading-tight text-slate-400">
                         100% do valor da corrida é seu.
                       </p>
