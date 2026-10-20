@@ -146,17 +146,17 @@ whose code diverges from its record here is a "drifted" finding. -->
 
 ### SCR-07: Banner de Resiliência de Rede e Modo Offline
 
-- **Used by:** FLW-06 step 1
+- **Used by:** FLW-06 step 1, FLW-12 step 1
 - **Purpose:** Informar o estado de conexão e manter buscas/corridas ativas sem ansiedade
-- **Elements:** Alerta não-intrusivo de reconexão, ícone de wifi, confirmação de conexão restabelecida
+- **Elements:** Alerta não-intrusivo de reconexão, ícone de wifi, confirmação de conexão restabelecida, motor de persistência offline Zero-Drop
 - **States:**
   | State   | Trigger            | Figma frame       | Behavior                                             |
   | ------- | ------------------ | ----------------- | ---------------------------------------------------- |
   | success | rede restabelecida | none — code first | Mensagem verde de 2 segundos confirmando reconexão   |
   | error   | sem sinal celular  | none — code first | Aviso discreto informando que a busca continua ativa |
-- **Coverage:** src/components/passenger/NetworkReconnectionBanner.tsx:1-96
-- **Scenarios:** SCN-008
-- **Resources:** RealtimeConnectionManager
+- **Coverage:** src/components/passenger/NetworkReconnectionBanner.tsx:1-102, src/lib/offline/zero-drop-sync.ts:1-245
+- **Scenarios:** SCN-008, SCN-017
+- **Resources:** RealtimeConnectionManager, ZeroDropSyncEngine
 - **Status:** built
 
 ### SCR-08: Mapa e Solicitação de Viagem
@@ -261,9 +261,9 @@ whose code diverges from its record here is a "drifted" finding. -->
 
 ### SCR-14: Cockpit Operacional do Motorista
 
-- **Used by:** FLW-01 step 6, FLW-02 step 1, FLW-04 step 1, FLW-06 step 3
-- **Purpose:** Fornecer ao motorista parceiro controle do modo online, recebimento de chamadas com ganho líquido e métricas diárias com visão desobstruída
-- **Elements:** Barra superior com avatar, menu gaveta, alternador de modo noturno e status online/offline, resumo de ganhos do dia com taxa zero e repasse Pix D+0, modal de oferta zero-scroll com temporizador regressivo de 15s e slider de confirmação de 56px, mapa vetorial com iluminação adaptativa diurna/noturna, atalhos para Waze e Google Maps, botão ergonômico de cancelamento com alvo tátil de 40px
+- **Used by:** FLW-01 step 6, FLW-02 step 1, FLW-04 step 1, FLW-06 step 3, FLW-09 step 1, FLW-12 step 2
+- **Purpose:** Fornecer ao motorista parceiro controle do modo online, recebimento de chamadas com ganho líquido e métricas diárias com visão desobstruída, chamadas em cadeia e navegação externa com 1 toque
+- **Elements:** Barra superior com avatar, menu gaveta, alternador de modo noturno e status online/offline, resumo de ganhos do dia com taxa zero e repasse Pix D+0, modal de oferta zero-scroll com temporizador regressivo de 15s e slider de confirmação de 56px, mapa vetorial com iluminação adaptativa diurna/noturna, atalhos flutuantes e inline para Waze e Google Maps, card de chamadas em cadeia (back-to-back dispatch) para próxima corrida com contagem regressiva, banner de integridade física GNSS (Mock Location Shield), banner de modo de tolerância da diária SaaS com botão de quitação via Pix, botão ergonômico de cancelamento com alvo tátil de 40px
 - **States:**
   | State   | Trigger                     | Figma frame       | Behavior                                                        |
   | ------- | --------------------------- | ----------------- | --------------------------------------------------------------- |
@@ -271,9 +271,9 @@ whose code diverges from its record here is a "drifted" finding. -->
   | empty   | condutor offline            | none — code first | Painel em repouso com resumo das corridas anteriores            |
   | error   | GPS desativado ou sem sinal | none — code first | Alerta visual solicitando ativação do serviço de localização    |
   | loading | conectando ao despacho      | none — code first | Spinner sutil de sincronização com o cluster PostGIS            |
-- **Coverage:** src/routes/app.motorista.tsx:1-2454, src/components/driver/cockpit/DriverHeader.tsx:1-120, src/components/driver/DriverOfferModal.tsx:1-412, src/components/driver/cockpit/states/IdleState.tsx:1-230, src/components/driver/cockpit/states/HeadingToPickupState.tsx:1-130
-- **Scenarios:** SCN-002
-- **Resources:** src/components/driver/, Supabase Realtime
+- **Coverage:** src/routes/app.motorista.tsx:1-2766, src/components/driver/cockpit/DriverHeader.tsx:1-120, src/components/driver/DriverOfferModal.tsx:1-412, src/components/driver/cockpit/states/IdleState.tsx:1-230, src/components/driver/cockpit/states/HeadingToPickupState.tsx:1-130, src/components/driver/ExternalNavigationButton.tsx:1-163, src/components/driver/BackToBackRideCard.tsx:1-124, src/components/driver/MockLocationBanner.tsx:1-45, src/components/driver/SaaSToleranceBanner.tsx:1-45
+- **Scenarios:** SCN-002, SCN-013, SCN-014, SCN-017
+- **Resources:** src/components/driver/, Supabase Realtime, MockLocationShield, BackToBackEngine, SaaSToleranceEngine
 - **Status:** built
 
 ### SCR-15: Painel Administrativo Geral e Layout
@@ -293,47 +293,47 @@ whose code diverges from its record here is a "drifted" finding. -->
 
 ### SCR-16: Dashboard Executivo e Telemetria
 
-- **Used by:** FLW-08 step 2
-- **Purpose:** Visualização de KPIs ao vivo, receita diária, contagem de frotas e mapa integrado
-- **Elements:** Cards de métricas financeiras e operacionais, UniversalMapView com cluster de veículos
+- **Used by:** FLW-08 step 2, FLW-11 step 3
+- **Purpose:** Visualização de KPIs ao vivo, receita diária, contagem de frotas e mapa integrado com acesso direto a ações de reengajamento de usuários inativos
+- **Elements:** Cards de métricas financeiras e operacionais, UniversalMapView com cluster de veículos, botão de ação CRM Reengajamento, modal de disparo de cupons e isenções para passageiros e motoristas inativos há mais de 7 dias
 - **States:**
   | State   | Trigger              | Figma frame       | Behavior                                                  |
   | ------- | -------------------- | ----------------- | --------------------------------------------------------- |
   | success | dados em tempo real  | none — code first | Painel com KPIs atualizados instantaneamente via Supabase |
   | loading | consultando métricas | none — code first | Skeletons nos blocos de indicadores                       |
-- **Coverage:** src/routes/app.admin.index.tsx:1-150
-- **Scenarios:** SCN-010
-- **Resources:** partiu-db, UniversalMapView
+- **Coverage:** src/routes/app.admin.index.tsx:1-455, src/components/admin/ReengagementCrmModal.tsx:1-129
+- **Scenarios:** SCN-010, SCN-016
+- **Resources:** partiu-db, UniversalMapView, ReengagementCrmModal
 - **Status:** built
 
 ### SCR-17: Central de Despacho e Operação ao Vivo
 
-- **Used by:** FLW-08 step 3
-- **Purpose:** Monitoramento cartográfico das corridas em andamento, parâmetros do algoritmo de busca progressiva e tarifas dinâmicas com IA e Live Override
-- **Elements:** Lista de corridas em rota, mapa com rotas ativas, tabela de condutores disponíveis, Card de Inteligência de Demanda Automática (Uber/99) com switch de ativação, Card de Sobretaxa Administrativa Imediata (Live Override)
+- **Used by:** FLW-08 step 3, FLW-10 step 1
+- **Purpose:** Monitoramento cartográfico das corridas em andamento, parâmetros do algoritmo de busca progressiva, tarifas dinâmicas com IA, Live Override e torre de controle com mapa de calor preditivo
+- **Elements:** Lista de corridas em rota, mapa com rotas ativas, tabela de condutores disponíveis, Card de Inteligência de Demanda Automática (Uber/99) com switch de ativação, Card de Sobretaxa Administrativa Imediata (Live Override), botão Demanda Preditiva com modal de clusters de demanda e disparo de alertas de incentivo
 - **States:**
   | State   | Trigger                 | Figma frame       | Behavior                                                                           |
   | ------- | ----------------------- | ----------------- | ---------------------------------------------------------------------------------- |
   | success | operação ativa          | none — code first | Rastreamento em lote das corridas ativas e governança de multiplicadores dinâmicos |
   | empty   | sem corridas no momento | none — code first | Indicador de tranquilidade operacional com tarifa padrão (1.0x)                    |
-- **Coverage:** src/routes/app.admin.despacho.tsx:1-850
-- **Scenarios:** SCN-008, SCN-009
-- **Resources:** PostGIS, Dispatch Engine, SurgeEngine
+- **Coverage:** src/routes/app.admin.despacho.tsx:1-2027, src/components/admin/PredictiveHeatmapModal.tsx:1-150
+- **Scenarios:** SCN-008, SCN-009, SCN-015
+- **Resources:** PostGIS, Dispatch Engine, SurgeEngine, PredictiveHeatmapModal
 - **Status:** built
 
 ### SCR-18: Gestão de Motoristas e Frota
 
-- **Used by:** FLW-08 step 4
-- **Purpose:** Auditoria documental de condutores, moderação de CNH, veículos credenciados e status
-- **Elements:** Tabela de motoristas com filtros de status, modal de inspeção de documentos, botões Aprovar e Bloquear
+- **Used by:** FLW-08 step 4, FLW-11 step 1
+- **Purpose:** Auditoria documental de condutores, moderação de CNH com validação expressa por OCR, veículos credenciados e status
+- **Elements:** Tabela de motoristas com filtros de status, modal de inspeção de documentos, botão OCR CNH na listagem de pendentes com modal de conferência assistida dos dados extraídos e homologação em 1 clique, botões Aprovar e Bloquear
 - **States:**
   | State   | Trigger             | Figma frame       | Behavior                                        |
   | ------- | ------------------- | ----------------- | ----------------------------------------------- |
   | success | lista de condutores | none — code first | Visão de frotas com indicadores de conformidade |
   | loading | buscando base       | none — code first | Skeleton nos registros da tabela                |
-- **Coverage:** src/routes/app.admin.motoristas.tsx:1-150
-- **Scenarios:** SCN-010
-- **Resources:** driverFleetService
+- **Coverage:** src/routes/app.admin.motoristas.tsx:1-2105, src/components/admin/DriverKycFastApprovalModal.tsx:1-134
+- **Scenarios:** SCN-010, SCN-016
+- **Resources:** driverFleetService, DriverKycFastApprovalModal
 - **Status:** built
 
 ### SCR-19: Gestão de Passageiros

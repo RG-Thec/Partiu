@@ -135,6 +135,15 @@ import { DriverDailyPassBanner } from "@/components/driver/cockpit/DriverDailyPa
 import { DriverSosModal } from "@/components/driver/cockpit/DriverSosModal";
 import { DriverApprovalAlert } from "@/components/driver/cockpit/DriverApprovalAlert";
 import { DriverDeliveryModals } from "@/components/driver/cockpit/DriverDeliveryModals";
+import { ExternalNavigationButton } from "@/components/driver/ExternalNavigationButton";
+import { BackToBackRideCard } from "@/components/driver/BackToBackRideCard";
+import { MockLocationBanner } from "@/components/driver/MockLocationBanner";
+import { SaaSToleranceBanner } from "@/components/driver/SaaSToleranceBanner";
+import type { BackToBackCandidate } from "@/lib/driver/back-to-back-engine";
+import { BackToBackEngine } from "@/lib/driver/back-to-back-engine";
+import { MockLocationShield, type SpoofRiskLevel } from "@/lib/geo/mock-location-shield";
+import { SaaSToleranceEngine, type DriverSaaSStatus } from "@/services/subscription/SaaSToleranceEngine";
+import { zeroDropSync } from "@/lib/offline/zero-drop-sync";
 import { toast } from "sonner";
 
 function SirenIcon({ className = "w-5 h-5 text-rose-600" }: { className?: string }) {
@@ -727,6 +736,52 @@ export function PartiuDriverCockpit() {
   const [modoPinOpcional, setModoPinOpcional] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [driverUnreadCount, setDriverUnreadCount] = useState(0);
+
+  // 🔄 FASE EXTRAORDINÁRIA: Back-to-Back Dispatch (Chamadas em Cadeia)
+  const [backToBackCandidate, setBackToBackCandidate] = useState<BackToBackCandidate | null>(null);
+  const [backToBackConfirmed, setBackToBackConfirmed] = useState(false);
+
+  // 🛡️ FASE EXTRAORDINÁRIA: Mock Location Shield & GPS Integrity
+  const [spoofRiskLevel] = useState<SpoofRiskLevel>("SAFE");
+  const [spoofReasons] = useState<string[]>([]);
+
+  // 🎟️ FASE EXTRAORDINÁRIA: Modo de Tolerância SaaS
+  const [driverSaaSStatus] = useState<DriverSaaSStatus>(() => ({
+    driverId: perfilMotorista.id,
+    tenantId: activeTenant?.tenantId || "default",
+    status: dailyPass.isExpired ? "TOLERANCE_MODE" : "ACTIVE",
+    toleranceRidesUsed: 0,
+    maxToleranceRides: 2,
+    pendingDailyFeeCents: dailyPass.isExpired ? 500 : 0,
+  }));
+
+  // Disparo inteligente de chamada em cadeia quando a viagem atual estiver se aproximando do fim
+  useEffect(() => {
+    if (estadoCockpit !== "IN_PROGRESS" || !ofertaAtiva || backToBackConfirmed || backToBackCandidate) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      const dropoffLng = (ofertaAtiva as any).destinoCoords?.lng || -35.735;
+      const dropoffLat = (ofertaAtiva as any).destinoCoords?.lat || -9.665;
+      const candidate = BackToBackEngine.selectBestQueuedRide([dropoffLng, dropoffLat], [
+        {
+          id: `b2b_${Date.now()}`,
+          passageiroNome: "Juliana Mendes",
+          passageiroNota: 4.96,
+          origemEndereco: `${ofertaAtiva.destino} (Próximo à Esquina)`,
+          origemCoords: [dropoffLng + 0.002, dropoffLat + 0.001],
+          destinoEndereco: "Av. Fernandes Lima, 2020",
+          destinoCoords: [dropoffLng + 0.02, dropoffLat + 0.01],
+          valorEstimadoBrl: 18.5,
+          categoria: "CARRO",
+        },
+      ]);
+      if (candidate) {
+        setBackToBackCandidate(candidate);
+      }
+    }, 7000);
+    return () => clearTimeout(timer);
+  }, [estadoCockpit, ofertaAtiva, backToBackConfirmed, backToBackCandidate]);
 
   // Sincronização em tempo real de mensagens não lidas do condutor
   useEffect(() => {
@@ -1539,6 +1594,37 @@ export function PartiuDriverCockpit() {
     setModalAvaliarPassageiroAberto(false);
     setRatingPassageiroData(null);
 
+    // Verificação de chamada em cadeia aceita pelo condutor
+    if (backToBackCandidate && backToBackConfirmed) {
+      toast.success("Iniciando navegação para a próxima chamada em cadeia!");
+      const nextOffer: any = {
+        id: backToBackCandidate.id,
+        tipo: "CARRO",
+        titulo: `${nomeApp} Pop • Chamada em Cadeia`,
+        passageiro: backToBackCandidate.passageiroNome,
+        origem: backToBackCandidate.origemEndereco,
+        destino: backToBackCandidate.destinoEndereco,
+        distanciaKm: 4.5,
+        valorLiquido: backToBackCandidate.valorEstimadoBrl,
+        valorBruto: backToBackCandidate.valorEstimadoBrl,
+        origemCoords: {
+          lng: backToBackCandidate.origemCoords[0],
+          lat: backToBackCandidate.origemCoords[1],
+        },
+        destinoCoords: {
+          lng: backToBackCandidate.destinoCoords[0],
+          lat: backToBackCandidate.destinoCoords[1],
+        },
+        pinCorreto: "1234",
+        isReal: false,
+      };
+      setOfertaAtiva(nextOffer);
+      setEstadoCockpit("HEADING_TO_PICKUP");
+      setBackToBackCandidate(null);
+      setBackToBackConfirmed(false);
+      return;
+    }
+
     // Verificação de corrida consecutiva enfileirada (Back-to-Back Handover)
     const queued = driverConsecutiveRidesEngine.getQueuedRide(perfilMotorista.id);
     if (queued) {
@@ -1755,6 +1841,58 @@ export function PartiuDriverCockpit() {
         }}
         onOpenPlanos={() => setModalAssinaturaSaasAberto(true)}
       />
+
+      {/* 4. Selo de Integridade de GPS Anti-Fake */}
+      <div className="px-4 py-1 flex items-center justify-between">
+        <MockLocationBanner riskLevel={spoofRiskLevel} reasons={spoofReasons} />
+      </div>
+
+      {/* 5. Banner de Modo de Tolerância na Diária SaaS */}
+      {driverSaaSStatus.status === "TOLERANCE_MODE" && (
+        <SaaSToleranceBanner
+          remainingRides={driverSaaSStatus.maxToleranceRides - driverSaaSStatus.toleranceRidesUsed}
+          pendingFeeBrl={driverSaaSStatus.pendingDailyFeeCents / 100}
+          onOpenPaymentModal={() => setModalAssinaturaSaasAberto(true)}
+        />
+      )}
+
+      {/* 6. Card Flutuante de Chamada em Cadeia (Back-to-Back) */}
+      {backToBackCandidate && (
+        <BackToBackRideCard
+          candidate={backToBackCandidate}
+          isConfirmedInQueue={backToBackConfirmed}
+          onAccept={() => {
+            setBackToBackConfirmed(true);
+            toast.success("Chamada aceita em fila! Iniciará após o desembarque atual.");
+          }}
+          onDecline={() => {
+            setBackToBackCandidate(null);
+            setBackToBackConfirmed(false);
+          }}
+        />
+      )}
+
+      {/* 7. Botão Flutuante de 1-Click Waze / Google Maps */}
+      {(estadoCockpit === "HEADING_TO_PICKUP" || estadoCockpit === "IN_PROGRESS") && ofertaAtiva && (
+        <div className="fixed top-24 right-4 z-40">
+          <ExternalNavigationButton
+            variant="floating"
+            destinationLat={
+              estadoCockpit === "HEADING_TO_PICKUP"
+                ? (ofertaAtiva as any).origemCoords?.lat || -9.665
+                : (ofertaAtiva as any).destinoCoords?.lat || -9.665
+            }
+            destinationLng={
+              estadoCockpit === "HEADING_TO_PICKUP"
+                ? (ofertaAtiva as any).origemCoords?.lng || -35.735
+                : (ofertaAtiva as any).destinoCoords?.lng || -35.735
+            }
+            destinationAddress={
+              estadoCockpit === "HEADING_TO_PICKUP" ? ofertaAtiva.origem : ofertaAtiva.destino
+            }
+          />
+        </div>
+      )}
 
       {/* ================================================================= */}
       {/* 3. CONTEXTUAL BOTTOM SHEET (DIRIGIDO PELO ESTADO OPERACIONAL)     */}

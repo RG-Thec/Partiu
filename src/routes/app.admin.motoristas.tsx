@@ -63,6 +63,7 @@ import {
   type ItemCrmCondutor,
   type EstagioCrmKanban,
 } from "@/components/admin/crm/DriverCrmKanban";
+import { DriverKycFastApprovalModal } from "@/components/admin/DriverKycFastApprovalModal";
 
 export const Route = createFileRoute("/app/admin/motoristas")({
   head: () => ({
@@ -149,6 +150,7 @@ export function QuadroMotoristasAdminPage() {
   const [categoriaEdicao, setCategoriaEdicao] = useState<CategoriaPermitida>("CARRO");
   const [salvandoCategoria, setSalvandoCategoria] = useState(false);
   const [modalRejeitarAberto, setModalRejeitarAberto] = useState(false);
+  const [motoristaKycRapido, setMotoristaKycRapido] = useState<MotoristaFrota | null>(null);
   const [motivoRejeicao, setMotivoRejeicao] = useState("Documento CNH ilegível ou vencido");
   const [modalOcrAberto, setModalOcrAberto] = useState(false);
   const [processandoOcr, setProcessandoOcr] = useState(false);
@@ -1023,6 +1025,15 @@ export function QuadroMotoristasAdminPage() {
                             <td className="py-3 px-4 text-right">
                               {isPendente ? (
                                 <div className="inline-flex items-center gap-1.5 justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => setMotoristaKycRapido(m)}
+                                    className="h-8 px-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition shadow-xs flex items-center gap-1 cursor-pointer active:scale-95"
+                                    title="Validação Assistida com OCR de CNH"
+                                  >
+                                    <ShieldCheck className="h-3.5 w-3.5" />
+                                    <span>OCR CNH</span>
+                                  </button>
                                   <button
                                     type="button"
                                     onClick={() => handleAprovar(m)}
@@ -2068,6 +2079,27 @@ export function QuadroMotoristasAdminPage() {
           </div>
         </div>
       )}
+      {/* MODAL OFICIAL: VALIDAÇÃO EXPRESSA COM OCR DE CNH */}
+      <DriverKycFastApprovalModal
+        aberto={Boolean(motoristaKycRapido)}
+        onFechar={() => setMotoristaKycRapido(null)}
+        motorista={
+          motoristaKycRapido
+            ? {
+                id: motoristaKycRapido.id,
+                nome: motoristaKycRapido.nome,
+                cidade: motoristaKycRapido.cidade,
+                telefone: motoristaKycRapido.telefone,
+              }
+            : null
+        }
+        onAprovar={(driverId) => {
+          if (motoristaKycRapido && motoristaKycRapido.id === driverId) {
+            handleAprovar(motoristaKycRapido);
+            setMotoristaKycRapido(null);
+          }
+        }}
+      />
     </div>
   );
 }

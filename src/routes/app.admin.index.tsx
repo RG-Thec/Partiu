@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
-import { RefreshCw, Building2, Bell, BarChart3, MapPin, QrCode } from "lucide-react";
+import { RefreshCw, Building2, Bell, BarChart3, MapPin, QrCode, Sparkles } from "lucide-react";
 import { UniversalMapView } from "@/components/maps/UniversalMapView";
 import {
   useTelemetriaFrota,
@@ -29,6 +29,7 @@ import {
   AdminPixCobrancaModal,
   type DriverCobrancaInfo,
 } from "@/components/admin/AdminPixCobrancaModal";
+import { ReengagementCrmModal } from "@/components/admin/ReengagementCrmModal";
 
 export const Route = createFileRoute("/app/admin/")({
   head: () => ({
@@ -60,6 +61,7 @@ export function SuperAdminDashboardExecutive() {
   const [abaVisao, setAbaVisao] = useState<"executivo" | "mapa_noc">("executivo");
   const [modalComparativoPracas, setModalComparativoPracas] = useState(false);
   const [modalAlertasTelegram, setModalAlertasTelegram] = useState(false);
+  const [modalCrmReengajamento, setModalCrmReengajamento] = useState(false);
 
   // Assinaturas e Contas SaaS do Ecossistema
   const [assinaturas, setAssinaturas] = useState(() =>
@@ -306,6 +308,16 @@ export function SuperAdminDashboardExecutive() {
               <span className="sm:hidden">Telegram</span>
             </AdminActionButton>
 
+            <AdminActionButton
+              variant="outline"
+              size="sm"
+              iconLeft={<Sparkles className="h-4 w-4 text-primary" />}
+              onClick={() => setModalCrmReengajamento(true)}
+            >
+              <span className="hidden sm:inline">CRM Reengajamento</span>
+              <span className="sm:hidden">CRM</span>
+            </AdminActionButton>
+
             {isFranqueado && (
               <AdminActionButton
                 variant="outline"
@@ -431,6 +443,13 @@ export function SuperAdminDashboardExecutive() {
           }}
         />
       )}
+
+      {/* Modal Oficial: CRM de Reengajamento Inteligente */}
+      <ReengagementCrmModal
+        aberto={modalCrmReengajamento}
+        onFechar={() => setModalCrmReengajamento(false)}
+        pracaNome={contaAtiva?.tenantNome || pracaAtiva?.nome || "Praça Regional"}
+      />
     </div>
   );
 }

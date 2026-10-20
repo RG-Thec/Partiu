@@ -15,6 +15,9 @@ Métricas, dados técnicos e parâmetros canônicos da plataforma PARTIU.
 | Taxa de quadros da renderização cartográfica        | 60 FPS      | README.md:49            | 2026-10-02 | 2027-10-02 | yes    |
 | Tempo limite para validação de webhook HMAC         | 5 minutos   | README.md:98            | 2026-10-02 | 2027-10-02 | no     |
 | Tempo de contagem regressiva para aceite de corrida | 15 segundos | docs/ux/scenarios.md:52 | 2026-10-02 | 2027-10-02 | yes    |
+| Janela de antecedência para chamadas em cadeia      | 2 minutos   | docs/ux/scenarios.md    | 2026-10-20 | 2027-10-20 | yes    |
+| Limite de corridas em modo de tolerância diária     | 2 corridas  | docs/ux/scenarios.md    | 2026-10-20 | 2027-10-20 | yes    |
+| Janela mínima de inatividade para CRM               | 7 dias      | docs/ux/scenarios.md    | 2026-10-20 | 2027-10-20 | yes    |
 
 ## Proof that is not a number
 

@@ -240,3 +240,105 @@ flowchart TD
   | SCR-23 Configurações Globais do Sistema             | success          |
   | SCR-24 Diagnóstico Geoespacial & WebGL              | success          |
   | SCR-25 Gestão Central de Franqueados & Multi-Tenant | success          |
+
+### FLW-09: Despacho Consecutivo e Navegação Externa no Cockpit
+
+- **Traces:** ST-009, ST-010, ST-011, ST-012 (JTBD-02, JRN-02/#3, JRN-02/#4)
+- **Goal:** Condutor opera com navegação Waze/Maps com 1 toque, recebe próxima corrida em fila e opera sob modo de tolerância diária
+- **Entry points:** Cockpit operacional do motorista (/app/motorista)
+- **Success exit:** Viagem consecutiva aceita e transição fluida sem tempo ocioso
+- **Task analysis:**
+  1. Motorista em deslocamento ou viagem toca no botão flutuante para navegar no Waze ou Google Maps com destino pré-preenchido
+  2. Motor de proteção verifica integridade do GPS e exibe selo verde de sinal autêntico
+  3. A menos de 2 minutos do desembarque, surge o card de chamada em cadeia próxima ao ponto de entrega
+  4. Motorista aceita a corrida em fila com 1 toque
+  5. Ao concluir o desembarque atual, o sistema migra automaticamente para o embarque da próxima chamada
+- **Flow:**
+
+```mermaid
+flowchart TD
+  A[Screen: SCR-14 Cockpit Operacional do Motorista] -->|Navegar com 1 toque| B[App Externo: Waze ou Google Maps]
+  A -->|Aproximacao do desembarque| C[Card de Chamada em Cadeia]
+  C -->|Aceitar em fila| D[Proxima Corrida Confirmada]
+  D -->|Desembarque concluido| E[Navegacao para Proximo Embarque]
+```
+
+- **Screens traversed:**
+  | Screen                                  | States used here |
+  | --------------------------------------- | ---------------- |
+  | SCR-14 Cockpit Operacional do Motorista | success, offer   |
+
+### FLW-10: Torre de Controle Preditiva e Disparo de Incentivo Operacional
+
+- **Traces:** ST-013 (JTBD-03, JRN-01/#2)
+- **Goal:** Franqueado identifica clusters de demanda reprimida e aciona incentivo de tarifa para atrair motoristas
+- **Entry points:** Central de Despacho (/app/admin/despacho)
+- **Success exit:** Alerta transmitido para a frota do perímetro
+- **Task analysis:**
+  1. Administrador acessa a Central de Despacho e abre a Torre de Demanda Preditiva
+  2. Analisa clusters com alta taxa de desbalanceamento entre passageiros e motoristas
+  3. Clica em disparar alerta de incentivo com sobretaxa sugerida
+  4. Condutores na região recebem notificação de oportunidade de ganhos imediatos
+- **Flow:**
+
+```mermaid
+flowchart TD
+  A[Screen: SCR-17 Central de Despacho e Operação ao Vivo] -->|Abrir demanda preditiva| B[Modal Torre de Demanda Preditiva]
+  B -->|Disparar alerta| C[Notificacao Enviada para Condutores]
+```
+
+- **Screens traversed:**
+  | Screen                                        | States used here |
+  | --------------------------------------------- | ---------------- |
+  | SCR-17 Central de Despacho e Operação ao Vivo | success          |
+
+### FLW-11: Homologação Expressa com OCR e CRM de Reengajamento
+
+- **Traces:** ST-014, ST-015 (JTBD-03, JRN-01/#2)
+- **Goal:** Administrador homologa motorista com leitura ótica de CNH e dispara campanhas para usuários inativos
+- **Entry points:** Gestão de Motoristas (/app/admin/motoristas) e Painel Executivo (/app/admin)
+- **Success exit:** Motorista homologado em minutos ou campanha de reativação enviada
+- **Task analysis:**
+  1. Administrador clica em Validação Expressa (OCR CNH) na tabela de motoristas pendentes
+  2. Confere dados extraídos (registro, validade e EAR) e clica em homologar com 1 toque
+  3. No painel executivo, abre o CRM de Reengajamento e dispara incentivo para usuários inativos
+- **Flow:**
+
+```mermaid
+flowchart TD
+  A[Screen: SCR-18 Gestão de Motoristas e Frota] -->|Validacao Expressa| B[Modal OCR CNH]
+  B -->|Homologar em 1 clique| C[Motorista Aprovado e Notificado]
+  D[Screen: SCR-16 Dashboard Executivo e Telemetria] -->|Abrir CRM| E[Modal CRM Reengajamento]
+  E -->|Disparar campanha| F[Push Enviado para Inativos]
+```
+
+- **Screens traversed:**
+  | Screen                                  | States used here |
+  | --------------------------------------- | ---------------- |
+  | SCR-16 Dashboard Executivo e Telemetria | success          |
+  | SCR-18 Gestão de Motoristas e Frota     | success          |
+
+### FLW-12: Resiliência Zero-Drop e Sincronização Segura Offline
+
+- **Traces:** ST-016 (JTBD-01, JRN-01/#3)
+- **Goal:** Preservar integridade de corridas e lançamentos contábeis durante travessia em áreas sem sinal de internet
+- **Entry points:** App do passageiro ou motorista em trânsito
+- **Success exit:** Eventos locais sincronizados e validados com o banco central
+- **Task analysis:**
+  1. Veículo entra em túnel ou área rural sem sinal 4G
+  2. Motorista confirma embarque ou desembarque; sistema registra evento em IndexedDB local com hash criptográfico
+  3. Ao restabelecer conectividade de rede, motor Zero-Drop processa a fila de outbox e liquida transações sem perda de dados
+- **Flow:**
+
+```mermaid
+flowchart TD
+  A[Viagem em Area sem Sinal] -->|Evento de Bordo| B[Gravacao em IndexedDB Local]
+  B -->|Sinal Restabelecido| C[Reconciliacao Automatica no Postgres]
+  C -->|Confirmacao| D[Operacao 100% Sincronizada]
+```
+
+- **Screens traversed:**
+  | Screen                                       | States used here |
+  | -------------------------------------------- | ---------------- |
+  | SCR-07 Banner de Resiliência de Rede e Modo Offline | offline, online |
+  | SCR-14 Cockpit Operacional do Motorista      | success          |

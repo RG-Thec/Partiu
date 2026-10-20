@@ -55,6 +55,7 @@ import {
 } from "@/lib/partiu-engine";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { AdminManualDispatchModal } from "@/components/admin/AdminManualDispatchModal";
+import { PredictiveHeatmapModal } from "@/components/admin/PredictiveHeatmapModal";
 import { AdminPageHeader, AdminBadge, AdminActionButton, AdminTabBar } from "@/components/admin/ui";
 import { Switch } from "@/components/ui/switch";
 import { useAdminCity } from "@/contexts/AdminCityContext";
@@ -204,6 +205,7 @@ export function DespachoCentralCorridas() {
 
   // Modal Novo Chamado (Central / Zap)
   const [modalNovoChamado, setModalNovoChamado] = useState(false);
+  const [modalHeatmapPreditivo, setModalHeatmapPreditivo] = useState(false);
 
   // Modal Nova Regra Surge
   const [modalNovaRegra, setModalNovaRegra] = useState(false);
@@ -588,14 +590,24 @@ export function DespachoCentralCorridas() {
           </AdminBadge>
         }
         actions={
-          <AdminActionButton
-            variant="primary"
-            size="sm"
-            iconLeft={<Phone className="w-4 h-4" />}
-            onClick={() => setModalNovoChamado(true)}
-          >
-            Novo Chamado
-          </AdminActionButton>
+          <div className="flex items-center gap-2">
+            <AdminActionButton
+              variant="outline"
+              size="sm"
+              iconLeft={<Flame className="w-4 h-4 text-amber-500" />}
+              onClick={() => setModalHeatmapPreditivo(true)}
+            >
+              Demanda Preditiva
+            </AdminActionButton>
+            <AdminActionButton
+              variant="primary"
+              size="sm"
+              iconLeft={<Phone className="w-4 h-4" />}
+              onClick={() => setModalNovoChamado(true)}
+            >
+              Novo Chamado
+            </AdminActionButton>
+          </div>
         }
       />
 
@@ -2002,6 +2014,13 @@ export function DespachoCentralCorridas() {
         onDispatchCreated={(novo) => {
           setItens((prev) => [novo, ...prev]);
         }}
+      />
+
+      {/* MODAL OFICIAL: TORRE DE CONTROLE & DEMANDA PREDITIVA */}
+      <PredictiveHeatmapModal
+        aberto={modalHeatmapPreditivo}
+        onFechar={() => setModalHeatmapPreditivo(false)}
+        pracaNome={pracaAtiva?.nome || "Praça Regional"}
       />
     </div>
   );

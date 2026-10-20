@@ -18,6 +18,11 @@
 | SCN-010 | Governança White Label com segregação regional e sincronização em tempo real           | Identidade & White Label                     | P-03             | ST-008, FLW-08 (JTBD-03, JRN-01/#2) | implemented | 2026-10-12 |
 | SCN-011 | Gestão Central de Franqueados e Multi-Tenant com Visualização Fluida e Ações Imediatas | Gestão Central de Franqueados & Multi-Tenant | P-03             | ST-008, FLW-08 (JTBD-03, JRN-01/#2) | implemented | 2026-10-12 |
 | SCN-012 | Governança territorial e bloqueio de cadastros e corridas fora da região da franquia   | Delimitação Geográfica & Anti-Invasão        | P-01, P-02, P-03 | ST-005, ST-008, FLW-05, FLW-08      | implemented | 2026-10-16 |
+| SCN-013 | Despacho consecutivo em cadeia e navegação externa com um toque no Cockpit             | Despacho em Cadeia & Navegação Externa       | P-02             | ST-009, ST-010, FLW-09              | implemented | 2026-10-20 |
+| SCN-014 | Proteção contra GPS simulado e operação em modo de tolerância da diária SaaS          | Mock Location Shield & Tolerância SaaS       | P-02, P-03       | ST-011, ST-012, FLW-09              | implemented | 2026-10-20 |
+| SCN-015 | Torre de controle com mapa de calor preditivo e disparo de incentivo operacional       | Demanda Preditiva & Torre de Controle        | P-03             | ST-013, FLW-10                      | implemented | 2026-10-20 |
+| SCN-016 | Homologação cadastral expressa com OCR de CNH e CRM de reengajamento automático        | Homologação Expressa & CRM de Reengajamento  | P-03             | ST-014, ST-015, FLW-11              | implemented | 2026-10-20 |
+| SCN-017 | Resiliência Zero-Drop e sincronização atômica offline com cadeia criptográfica        | Resiliência Zero-Drop Offline                | P-01, P-02       | ST-016, FLW-12                      | implemented | 2026-10-20 |
 
 ## Personas
 
@@ -292,4 +297,115 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Telemetry:** territory_access_checked (tenant_id, allowed, reason, distance_km)
 - **Status:** implemented
 - **Coverage:** src/lib/geo/territory-guard.ts:1-250, src/lib/auth/supabase-auth-service.ts:160-260, src/components/auth/PartiuAppAuthGate.tsx:390-440, src/components/passenger/PassengerReviewRouteSheet.tsx:320-370, src/components/passenger/route-sheet/RouteSheetFooter.tsx:25-70, src/components/admin/whitelabel/CloneTenantModal.tsx:180-280, src/routes/app.admin.franqueados.tsx:1150-1250
+- **Product:** unobserved
+
+## Operação Estratégica do Motorista
+
+### SCN-013: Despacho consecutivo em cadeia e navegação externa com um toque no Cockpit
+
+- **Persona:** P-02
+- **Feature:** Despacho em Cadeia & Navegação Externa
+- **Traces:** ST-009, ST-010, FLW-09 (JTBD-02, JRN-02/#3, JRN-02/#4)
+- **Entry point:** Cockpit operacional do motorista (/app/motorista)
+- **Preconditions:** Condutor em viagem ativa com passageiro a bordo ou em deslocamento para o embarque
+- **Steps:**
+  1. O condutor em deslocamento toca no botão de atalho para Waze ou Google Maps: o sistema dispara o deep link nativo com as coordenadas exatas do destino sem exigir digitação manual.
+  2. Quando a viagem atual atinge a janela de antecedência de até 2 minutos para o desembarque, o motor de despacho consecutivo avalia solicitações próximas ao ponto de entrega e projeta o card de chamada em cadeia com temporizador regressivo de 15 segundos.
+  3. O motorista confirma a chamada em fila com 1 toque no card antes de concluir o desembarque atual.
+  4. Ao finalizar a primeira corrida, a interface migra instantaneamente para o trajeto da nova viagem sem tempo ocioso entre chamadas.
+- **Expected result:** Eliminação de quilometragem ociosa entre desembarque e novo embarque, com abertura fluida de rotas no Waze ou Google Maps.
+- **UI elements:** Botão flutuante de navegação externa com seletor Waze e Google Maps, Card de chamada em cadeia com contador regressivo, Barra de ação rápida para aceite em fila
+- **States covered:** success, offer, in_trip
+- **Errors & recovery:** Se o condutor não responder ao card de chamada consecutiva em 15 segundos, a oferta expira silenciosamente sem penalizar a nota do motorista e o passageiro é redirecionado ao próximo veículo disponível.
+- **Telemetry:** back_to_back_offer_handled (driver_id, ride_id, accepted, eta_seconds)
+- **Status:** implemented
+- **Coverage:** src/lib/driver/back-to-back-engine.ts:1-124, src/components/driver/BackToBackRideCard.tsx:1-124, src/components/driver/ExternalNavigationButton.tsx:1-163, src/routes/app.motorista.tsx:1-2766
+- **Product:** unobserved
+
+### SCN-014: Proteção contra GPS simulado e operação em modo de tolerância da diária SaaS
+
+- **Persona:** P-02, P-03
+- **Feature:** Mock Location Shield & Tolerância SaaS
+- **Traces:** ST-011, ST-012, FLW-09 (JTBD-02, JTBD-03, JRN-02/#1)
+- **Entry point:** Cockpit operacional do motorista (/app/motorista)
+- **Preconditions:** Condutor autenticado com serviço de localização ativado no smartphone
+- **Steps:**
+  1. O condutor ativa o modo online no cockpit: o motor de validação cinemática analisa a telemetria do dispositivo avaliando velocidade, aceleração física e integridade do provedor de geolocalização.
+  2. Caso o sinal seja autêntico, a interface exibe selo verde de sinal verificado; se for detectada manipulação por aplicativo de GPS falso ou saltos incoerentes, o sistema rejeita a telemetria fraudulenta e exibe alerta de sinal inconsistente.
+  3. Caso a diária SaaS do motorista esteja vencida no início do turno, o sistema ativa o modo de tolerância, autorizando até 2 corridas para permitir o início do trabalho.
+  4. Ao concluir a primeira corrida remunerada via Pix, a diária pendente é debitada automaticamente da liquidação e o condutor retorna ao status regular.
+- **Expected result:** Fila justa de despacho sem fraude por GPS simulado e praça continuamente abastecida sem interrupção abrupta de condutores no início do dia.
+- **UI elements:** Selo de status do escudo de localização, Alerta de GPS simulado detectado, Banner de modo de tolerância com contador de corridas restantes, Botão de regularização imediata via Pix
+- **States covered:** success, tolerance, blocked, warning
+- **Errors & recovery:** Ao esgotar as 2 corridas de tolerância sem quitação, o acesso a novas chamadas é pausado preventivamente até a liquidação da diária pendente.
+- **Telemetry:** mock_location_evaluated (driver_id, is_spoofed, confidence), saas_tolerance_status_changed (driver_id, status, rides_left)
+- **Status:** implemented
+- **Coverage:** src/lib/geo/mock-location-shield.ts:1-164, src/services/subscription/SaaSToleranceEngine.ts:1-112, src/components/driver/MockLocationBanner.tsx:1-45, src/components/driver/SaaSToleranceBanner.tsx:1-45, src/routes/app.motorista.tsx:1-2766
+- **Product:** unobserved
+
+## Gestão Regional Avançada
+
+### SCN-015: Torre de controle com mapa de calor preditivo e disparo de incentivo operacional
+
+- **Persona:** P-03
+- **Feature:** Demanda Preditiva & Torre de Controle
+- **Traces:** ST-013, FLW-10 (JTBD-03, JRN-01/#2)
+- **Entry point:** Central de Despacho (/app/admin/despacho)
+- **Preconditions:** Franqueado ou gestor autenticado com operação regional em andamento
+- **Steps:**
+  1. O gestor acessa a Central de Despacho e clica no botão Demanda Preditiva para abrir a torre de controle de fluxo urbano.
+  2. O modal exibe os clusters geoespaciais com identificação de índice de desbalanceamento, tempo médio de espera e sobretaxa recomendada para normalização.
+  3. O gestor seleciona o cluster com maior carência de veículos e clica no botão Disparar Alerta para Condutores.
+  4. O sistema transmite notificação instantânea para os motoristas no perímetro sugerindo deslocamento para a área de alta rentabilidade garantida.
+- **Expected result:** Reequilíbrio proativo da frota em tempo real antes da ocorrência de cancelamentos por ausência de veículos.
+- **UI elements:** Botão Demanda Preditiva na barra de topo da Central de Despacho, Modal da torre de controle com cartões de clusters de demanda, Indicador de desbalanceamento por cores, Botão de disparo de alerta de incentivo
+- **States covered:** success, loading, broadcast_sent
+- **Errors & recovery:** Em caso de perda temporária de comunicação com o cluster de despacho, a torre exibe o último estado consolidado em cache com indicação do horário da leitura.
+- **Telemetry:** predictive_incentive_broadcasted (tenant_id, cluster_id, multiplier, drivers_notified)
+- **Status:** implemented
+- **Coverage:** src/components/admin/PredictiveHeatmapModal.tsx:1-150, src/routes/app.admin.despacho.tsx:1-2027
+- **Product:** unobserved
+
+### SCN-016: Homologação cadastral expressa com OCR de CNH e CRM de reengajamento automático
+
+- **Persona:** P-03
+- **Feature:** Homologação Expressa & CRM de Reengajamento
+- **Traces:** ST-014, ST-015, FLW-11 (JTBD-03, JRN-01/#2)
+- **Entry point:** Gestão de Motoristas (/app/admin/motoristas) e Painel Executivo (/app/admin)
+- **Preconditions:** Administrador autenticado com novos cadastros pendentes ou base de inativos para recuperação
+- **Steps:**
+  1. Na listagem de motoristas pendentes, o administrador clica no botão de validação expressa com OCR ao lado do registro documental.
+  2. O modal assistido apresenta os campos preenchidos automaticamente a partir da foto da CNH com conferência de legibilidade e indicador de registro para atividade remunerada (EAR).
+  3. O gestor valida os dados e clica em Homologar em 1 Clique, ativando imediatamente o condutor para o despacho.
+  4. No painel executivo, o administrador clica no botão CRM Reengajamento, visualiza os totais de clientes e motoristas sem atividade há mais de 7 dias e aciona o envio em lote de incentivos com confirmação na tela.
+- **Expected result:** Redução drástica do ciclo de homologação de condutores e reativação sistemática de usuários ausentes.
+- **UI elements:** Botão OCR CNH na tabela de frotas, Modal de conferência assistida de CNH e CRLV, Botão de homologação em 1 clique, Botão CRM Reengajamento no Dashboard executivo, Modal de campanhas com seleção de cupons e isenções
+- **States covered:** success, processing, approved, campaign_dispatched
+- **Errors & recovery:** Caso os caracteres da CNH estejam com baixa legibilidade, o sistema permite a edição manual dos campos pelo operador antes da homologação final.
+- **Telemetry:** driver_ocr_homologated (driver_id, admin_id, execution_time_ms), crm_campaign_dispatched (tenant_id, audience_type, count)
+- **Status:** implemented
+- **Coverage:** src/components/admin/DriverKycFastApprovalModal.tsx:1-134, src/components/admin/ReengagementCrmModal.tsx:1-129, src/routes/app.admin.motoristas.tsx:1-2105, src/routes/app.admin.index.tsx:1-455
+- **Product:** unobserved
+
+## Infraestrutura & Resiliência
+
+### SCN-017: Resiliência Zero-Drop e sincronização atômica offline com cadeia criptográfica
+
+- **Persona:** P-01, P-02
+- **Feature:** Resiliência Zero-Drop Offline
+- **Traces:** ST-016, FLW-12 (JTBD-01, JRN-01/#3)
+- **Entry point:** Aplicativo do passageiro (/app) ou cockpit do motorista (/app/motorista)
+- **Preconditions:** Viagem em andamento em trecho rodoviário, túnel ou área sem cobertura de dados móveis
+- **Steps:**
+  1. O veículo entra em região sem conectividade celular durante uma corrida ativa.
+  2. O condutor aciona evento operacional como confirmação de embarque ou desembarque: o motor Zero-Drop armazena o evento em banco IndexedDB criptografado localmente no dispositivo, gerando hash encadeado para garantir a integridade da sequência.
+  3. A interface sinaliza modo offline com contagem de eventos pendentes na fila de saída (Outbox).
+  4. Ao recuperar o sinal 4G ou Wi-Fi, o motor sincroniza atomicamente os registros com o cluster central sem perda de dados, duplicidade ou divergência contábil.
+- **Expected result:** Continuidade operacional irrestrita em áreas sem cobertura de internet móvel com liquidação confiável ao retornar a conectividade.
+- **UI elements:** Banner discreto de modo offline com indicador de fila pendente, Indicador de sincronização concluída com ícone de confirmação
+- **States covered:** online, offline, syncing, reconciled
+- **Errors & recovery:** Em caso de conflito temporal durante a reconexão, o motor de reconciliação utiliza o hash criptográfico sequencial para desempatar eventos e atualizar o estado central com segurança.
+- **Telemetry:** zero_drop_events_reconciled (user_id, ride_id, queued_events_count, duration_ms)
+- **Status:** implemented
+- **Coverage:** src/lib/offline/zero-drop-sync.ts:1-245, src/components/passenger/NetworkReconnectionBanner.tsx:1-102, src/routes/app.motorista.tsx:1-2766
 - **Product:** unobserved

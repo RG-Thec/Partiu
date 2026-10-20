@@ -184,3 +184,91 @@ Empreendedor responsável pela gestão e conformidade de veículos e condutores 
 - **Kill criteria:** atraso no despacho manual superior a 2 minutos
 - **Status:** delivered
 - **Product:** unobserved
+
+### ST-009: Chamadas em cadeia no Cockpit (Back-to-Back Dispatch)
+
+- **Story:** As P-02, I want receber a próxima oferta de corrida quando estiver próximo ao desembarque atual, so that reduzo o tempo ocioso e maximizo meu faturamento.
+- **Traces:** JTBD-02, JRN-02/#4
+- **Acceptance criteria:**
+  - Given que o motorista está a menos de 2 minutos do desembarque da viagem ativa, when existe passageiro solicitando corrida próximo ao ponto de entrega, then o sistema exibe o card de chamada em cadeia com aceitação em 1 toque.
+- **Priority:** must
+- **Kill criteria:** tempo ocioso entre corridas consecutivas superior a 5 minutos
+- **Status:** delivered
+- **Product:** unobserved
+
+### ST-010: Navegação externa com 1 toque para Waze e Google Maps
+
+- **Story:** As P-02, I want acionar o Waze ou Google Maps com um único clique com coordenadas preenchidas, so that navego com segurança e alertas de trânsito em tempo real.
+- **Traces:** JTBD-02, JRN-02/#3
+- **Acceptance criteria:**
+  - Given que o condutor está a caminho do passageiro ou em viagem, when toca no botão de navegação GPS, then o aplicativo externo abre diretamente com o destino traçado.
+- **Priority:** must
+- **Kill criteria:** necessidade de redigitar endereço manualmente no Waze
+- **Status:** delivered
+- **Product:** unobserved
+
+### ST-011: Proteção contra Fake GPS e Provedores Simulados
+
+- **Story:** As P-03, I want que o sistema bloqueie motoristas que utilizem aplicativos de GPS falso, so that a fila de despacho em rodoviárias e trevos permaneça íntegra e justa.
+- **Traces:** JTBD-03, JRN-02/#1
+- **Acceptance criteria:**
+  - Given que uma telemetria é transmitida pelo motorista, when apresenta saltos superiores a 180 km/h ou flag de provedor simulado ativo, then a coordenada é marcada como spoof e o acesso fica restrito.
+- **Priority:** must
+- **Kill criteria:** motoristas com localização simulada furando a fila de atendimento
+- **Status:** delivered
+- **Product:** unobserved
+
+### ST-012: Modo de tolerância em diárias SaaS
+
+- **Story:** As P-02, I want poder realizar até 2 corridas mesmo com a diária vencida no início do turno, so that posso pagar o acesso utilizando o repasse da própria viagem.
+- **Traces:** JTBD-02, JRN-02/#1
+- **Acceptance criteria:**
+  - Given que a diária do condutor expirou, when ele fica online, then o modo de tolerância permite até 2 corridas e liquida a diária pendente automaticamente do primeiro Pix recebido.
+- **Priority:** must
+- **Kill criteria:** praça desabastecida por bloqueio imediato de condutores sem saldo matinal
+- **Status:** delivered
+- **Product:** unobserved
+
+### ST-013: Torre de controle com demanda preditiva
+
+- **Story:** As P-03, I want visualizar zonas de desbalanceamento de demanda e disparar alertas de incentivo aos motoristas, so that evitamos cancelamentos por falta de veículos.
+- **Traces:** JTBD-03, JRN-01/#2
+- **Acceptance criteria:**
+  - Given que uma região apresenta excesso de chamadas em relação a condutores disponíveis, when o administrador visualiza a torre preditiva, then pode disparar alertas de incentivo em lote com 1 clique.
+- **Priority:** should
+- **Kill criteria:** cancelamento por falta de frota em zonas de pico conhecidas
+- **Status:** delivered
+- **Product:** unobserved
+
+### ST-014: Homologação expressa com OCR assistido de CNH
+
+- **Story:** As P-03, I want aprovar condutores com leitura automática dos dados da CNH, so that o tempo de credenciamento seja inferior a 5 minutos.
+- **Traces:** JTBD-03, JRN-01/#2
+- **Acceptance criteria:**
+  - Given que um motorista enviou foto da CNH e CRLV, when o administrador abre o modal de validação expressa, then os dados são exibidos extraídos via OCR com botão de homologação em 1 clique.
+- **Priority:** should
+- **Kill criteria:** tempo de aprovação de novos motoristas superior a 2 horas
+- **Status:** delivered
+- **Product:** unobserved
+
+### ST-015: CRM de reengajamento automático
+
+- **Story:** As P-03, I want enviar incentivos para usuários e condutores inativos há mais de 7 dias, so that recuperamos a atividade na praça.
+- **Traces:** JTBD-03, JRN-01/#2
+- **Acceptance criteria:**
+  - Given que o administrador acessa o painel de CRM, when visualiza a contagem de usuários inativos, then pode disparar cupons e isenções de diária com confirmação imediata.
+- **Priority:** should
+- **Kill criteria:** perda contínua de usuários sem ações de reativação
+- **Status:** delivered
+- **Product:** unobserved
+
+### ST-016: Sincronização Zero-Drop em conexões instáveis
+
+- **Story:** As P-01, I want que o trajeto e os dados da minha viagem sejam preservados mesmo em áreas sem sinal de internet, so that a corrida não seja perdida no meio da estrada.
+- **Traces:** JTBD-01, JRN-01/#3
+- **Acceptance criteria:**
+  - Given que a van ou veículo entra em zona de sombra celular, when ocorrem eventos de embarque ou desembarque, then os dados são gravados em IndexedDB local com hash encadeado e sincronizados ao restabelecer o sinal.
+- **Priority:** must
+- **Kill criteria:** perda de registros contábeis por falha de conectividade móvel
+- **Status:** delivered
+- **Product:** unobserved
