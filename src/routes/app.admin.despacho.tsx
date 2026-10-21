@@ -37,7 +37,6 @@ import {
   PauseCircle,
   PlayCircle,
   CloudRain,
-  Calendar,
   Sparkles,
   Percent,
   TrendingUp,
@@ -56,7 +55,6 @@ import {
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { AdminManualDispatchModal } from "@/components/admin/AdminManualDispatchModal";
 import { PredictiveHeatmapModal } from "@/components/admin/PredictiveHeatmapModal";
-import { ScheduledRidesAdminModal } from "@/components/admin/ScheduledRidesAdminModal";
 import { AdminPageHeader, AdminBadge, AdminActionButton, AdminTabBar } from "@/components/admin/ui";
 import { Switch } from "@/components/ui/switch";
 import { useAdminCity } from "@/contexts/AdminCityContext";
@@ -207,7 +205,6 @@ export function DespachoCentralCorridas() {
   // Modal Novo Chamado (Central / Zap)
   const [modalNovoChamado, setModalNovoChamado] = useState(false);
   const [modalHeatmapPreditivo, setModalHeatmapPreditivo] = useState(false);
-  const [modalAgendamentosAdmin, setModalAgendamentosAdmin] = useState(false);
 
   // Modal Nova Regra Surge
   const [modalNovaRegra, setModalNovaRegra] = useState(false);
@@ -593,14 +590,6 @@ export function DespachoCentralCorridas() {
         }
         actions={
           <div className="flex items-center gap-2">
-            <AdminActionButton
-              variant="outline"
-              size="sm"
-              iconLeft={<Calendar className="w-4 h-4 text-indigo-400" />}
-              onClick={() => setModalAgendamentosAdmin(true)}
-            >
-              Escala Agendada
-            </AdminActionButton>
             <AdminActionButton
               variant="outline"
               size="sm"
@@ -2033,11 +2022,6 @@ export function DespachoCentralCorridas() {
         pracaNome={pracaAtiva?.nome || "Praça Regional"}
       />
 
-      {/* MODAL OFICIAL: ESCALA DE CORRIDAS AGENDADAS & AUDITORIA DE CHECK-IN */}
-      <ScheduledRidesAdminModal
-        isOpen={modalAgendamentosAdmin}
-        onClose={() => setModalAgendamentosAdmin(false)}
-      />
     </div>
   );
 }

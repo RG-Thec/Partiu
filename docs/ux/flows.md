@@ -368,34 +368,3 @@ flowchart TD
   | Screen                                  | States used here |
   | --------------------------------------- | ---------------- |
   | SCR-14 Cockpit Operacional do Motorista | success, offer   |
-
-### FLW-14: Agendamento de Viagem e Protocolo de Check-in Noturno
-
-- **Traces:** ST-020 (JTBD-01, JRN-01/#1)
-- **Goal:** Passageiro agenda corrida de alto valor com garantia de embarque e motorista confirma escala no check-in noturno
-- **Entry points:** Tela inicial do passageiro (/app) e Cockpit do motorista (/app/motorista)
-- **Success exit:** Viagem agendada, confirmada na véspera e despachada pontualmente
-- **Task analysis:**
-  1. Passageiro toca em Agendar Viagem, escolhe data, horário e confirma o agendamento
-  2. Motorista na região visualiza a corrida na aba de viagens agendadas e faz a reserva
-  3. Entre 20h e 22h30 na véspera, o motorista realiza o check-in noturno garantindo a viagem
-  4. Se o motorista não confirmar, a central realoca automaticamente para plantonistas
-  5. No horário agendado, a viagem entra em despacho automático ao vivo
-- **Flow:**
-
-```mermaid
-flowchart TD
-  A[Screen: SCR-08 Mapa e Solicitação de Viagem] -->|Agendar Viagem| B[Modal Agendamento Passageiro]
-  B -->|Solicitacao Criada| C[Screen: SCR-14 Cockpit Operacional do Motorista]
-  C -->|Reservar Corrida| D[Escala Confirmada]
-  D -->|Check-in 20h-22h30| E[Viagem 100% Garantida]
-  D -->|Sem Check-in| F[Screen: SCR-17 Central de Despacho e Operação ao Vivo]
-  F -->|Realocacao Automatica| G[Plantonista Alocado]
-```
-
-- **Screens traversed:**
-  | Screen                                        | States used here |
-  | --------------------------------------------- | ---------------- |
-  | SCR-08 Mapa e Solicitação de Viagem           | success          |
-  | SCR-14 Cockpit Operacional do Motorista       | success          |
-  | SCR-17 Central de Despacho e Operação ao Vivo | success          |

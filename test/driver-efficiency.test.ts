@@ -2,7 +2,6 @@ import { describe, test, expect } from "./test-harness.mjs";
 import { driverExclusionZonesEngine } from "../src/lib/geo/driver-exclusion-zones";
 import { driverDestinationModeService } from "../src/services/DriverDestinationModeService";
 import { driverAudioHudEngine } from "../src/lib/driver/audio-hud-engine";
-import { scheduledRideEngine } from "../src/lib/ride/scheduled-ride-engine";
 
 describe("44. DRIVER EFFICIENCY — PERSONAL EXCLUSION ZONES & COMMUNITY RADAR", () => {
   test("1. Cadastro e Limite de 3 Zonas: Salva zonas e impede ultrapassar limite", () => {
@@ -124,116 +123,5 @@ describe("45. DRIVER EFFICIENCY — DESTINATION MODE (INDO PARA CASA) & FAVORITO
       targetHome,
     );
     expect(converge).toBe(true);
-  });
-});
-
-describe("46. SCHEDULED RIDES & NIGHT CHECK-IN GUARANTEE", () => {
-  test("1. Criação e Reserva de Corrida Agendada: Salva e permite alocação prévia", () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(6, 0, 0, 0);
-
-    const ride = scheduledRideEngine.createScheduledRide({
-      passengerId: "usr_unit_test_01",
-      passengerName: "Juliana Santos",
-      passengerPhone: "(22) 98888-7777",
-      pickupAddress: "Rua São José, 120",
-      pickupCoords: { lat: -21.205, lng: -41.89 },
-      destinationAddress: "Hospital São José do Avaí",
-      destinationCoords: { lat: -21.21, lng: -41.885 },
-      scheduledFor: tomorrow.toISOString(),
-      category: "Carro",
-      estimatedFareCents: 2800,
-      notes: "Consulta médica agendada para 06h30.",
-    });
-
-    expect(ride.status).toBe("SCHEDULED_SEARCHING");
-    expect(ride.estimatedFareCents).toBe(2800);
-
-    // Motorista reivindica
-    const claimRes = scheduledRideEngine.claimScheduledRide(
-      ride.id,
-      "drv_escala_01",
-      "Carlos Andrade",
-      "Fiat Cronos Branco",
-      "(22) 97777-6666",
-    );
-
-    expect(claimRes.success).toBe(true);
-    expect(claimRes.ride?.status).toBe("DRIVER_CONFIRMED");
-    expect(claimRes.ride?.assignedDriverName).toBe("Carlos Andrade");
-  });
-
-  test("2. Protocolo de Check-in Noturno e Garantia de Escala", () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(5, 30, 0, 0);
-
-    const ride = scheduledRideEngine.createScheduledRide({
-      passengerId: "usr_unit_test_02",
-      passengerName: "Roberto Lima",
-      passengerPhone: "(22) 99999-1234",
-      pickupAddress: "Terminal Rodoviário",
-      pickupCoords: { lat: -21.205, lng: -41.89 },
-      destinationAddress: "Aeroporto",
-      destinationCoords: { lat: -21.25, lng: -41.85 },
-      scheduledFor: tomorrow.toISOString(),
-      category: "Carro",
-      estimatedFareCents: 6500,
-    });
-
-    scheduledRideEngine.claimScheduledRide(
-      ride.id,
-      "drv_escala_02",
-      "Fernanda Lima",
-      "Toyota Yaris",
-      "(22) 98888-2222",
-    );
-
-    // Confirmação do Check-in Noturno
-    const checkinRes = scheduledRideEngine.performNightCheckin(ride.id, "drv_escala_02");
-    expect(checkinRes.success).toBe(true);
-    expect(checkinRes.ride?.status).toBe("NIGHT_CHECKIN_CONFIRMED");
-    expect(checkinRes.ride?.nightCheckinAt).not.toBe(undefined);
-  });
-
-  test("3. Realocação Automática de Inadimplência no Check-in Noturno", () => {
-    // Corrida para amanhã cedo com prazo expirado
-    const tomorrowEarly = new Date();
-    tomorrowEarly.setDate(tomorrowEarly.getDate() + 1);
-    tomorrowEarly.setHours(5, 0, 0, 0);
-
-    const expiredDeadline = new Date();
-    expiredDeadline.setHours(expiredDeadline.getHours() - 1); // Passou há 1 hora
-
-    const ride = scheduledRideEngine.createScheduledRide({
-      passengerId: "usr_unit_test_03",
-      passengerName: "Marcos Paulo",
-      passengerPhone: "(22) 97777-3333",
-      pickupAddress: "Centro",
-      pickupCoords: { lat: -21.205, lng: -41.89 },
-      destinationAddress: "Indústria",
-      destinationCoords: { lat: -21.22, lng: -41.88 },
-      scheduledFor: tomorrowEarly.toISOString(),
-      category: "Carro",
-      estimatedFareCents: 4200,
-    });
-
-    scheduledRideEngine.claimScheduledRide(
-      ride.id,
-      "drv_escala_inadimplente",
-      "Motorista Ausente",
-      "Sedan Preto",
-      "(22) 99999-0000",
-    );
-
-    // Simula prazo ultrapassado
-    ride.nightCheckinDeadline = expiredDeadline.toISOString();
-
-    const reallocated = scheduledRideEngine.reallocateOverdueCheckins();
-    expect(reallocated.length).toBeGreaterThan(0);
-    const target = reallocated.find((r) => r.id === ride.id);
-    expect(target?.status).toBe("REALLOCATING");
-    expect(target?.assignedDriverId).toBe(undefined);
   });
 });

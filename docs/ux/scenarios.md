@@ -25,7 +25,6 @@
 | SCN-017 | Resiliência Zero-Drop e sincronização atômica offline com cadeia criptográfica        | Resiliência Zero-Drop Offline                | P-01, P-02       | ST-016, FLW-12                      | implemented | 2026-10-20 |
 | SCN-018 | Zonas de exclusão pessoal e radar comunitário no cockpit                              | Sobrevivência Urbana & Radar Comunitário     | P-02             | ST-017, FLW-13                      | implemented | 2026-10-20 |
 | SCN-019 | Rota de volta para casa com atalho de favoritos e Áudio HUD hands-free                | Eficiência no Cockpit & Áudio HUD            | P-02             | ST-018, ST-019, FLW-13              | implemented | 2026-10-20 |
-| SCN-020 | Agendamento de viagens com garantia e protocolo de check-in noturno                   | Agendamento & Escala Noturna                 | P-01, P-02, P-03 | ST-020, FLW-14                      | implemented | 2026-10-20 |
 
 ## Personas
 
@@ -322,7 +321,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Errors & recovery:** Se o condutor não responder ao card de chamada consecutiva em 15 segundos, a oferta expira silenciosamente sem penalizar a nota do motorista e o passageiro é redirecionado ao próximo veículo disponível.
 - **Telemetry:** back_to_back_offer_handled (driver_id, ride_id, accepted, eta_seconds)
 - **Status:** implemented
-- **Coverage:** src/lib/driver/back-to-back-engine.ts:1-124, src/components/driver/BackToBackRideCard.tsx:1-124, src/components/driver/ExternalNavigationButton.tsx:1-163, src/routes/app.motorista.tsx:1-2766
+- **Coverage:** src/lib/driver/back-to-back-engine.ts:1-124, src/components/driver/BackToBackRideCard.tsx:1-124, src/components/driver/ExternalNavigationButton.tsx:1-163, src/routes/app.motorista.tsx:1-2816
 - **Product:** unobserved
 
 ### SCN-014: Proteção contra GPS simulado e operação em modo de tolerância da diária SaaS
@@ -343,7 +342,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Errors & recovery:** Ao esgotar as 2 corridas de tolerância sem quitação, o acesso a novas chamadas é pausado preventivamente até a liquidação da diária pendente.
 - **Telemetry:** mock_location_evaluated (driver_id, is_spoofed, confidence), saas_tolerance_status_changed (driver_id, status, rides_left)
 - **Status:** implemented
-- **Coverage:** src/lib/geo/mock-location-shield.ts:1-164, src/services/subscription/SaaSToleranceEngine.ts:1-112, src/components/driver/MockLocationBanner.tsx:1-45, src/components/driver/SaaSToleranceBanner.tsx:1-45, src/routes/app.motorista.tsx:1-2766
+- **Coverage:** src/lib/geo/mock-location-shield.ts:1-164, src/services/subscription/SaaSToleranceEngine.ts:1-112, src/components/driver/MockLocationBanner.tsx:1-45, src/components/driver/SaaSToleranceBanner.tsx:1-45, src/routes/app.motorista.tsx:1-2816
 - **Product:** unobserved
 
 ## Gestão Regional Avançada
@@ -410,7 +409,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Errors & recovery:** Em caso de conflito temporal durante a reconexão, o motor de reconciliação utiliza o hash criptográfico sequencial para desempatar eventos e atualizar o estado central com segurança.
 - **Telemetry:** zero_drop_events_reconciled (user_id, ride_id, queued_events_count, duration_ms)
 - **Status:** implemented
-- **Coverage:** src/lib/offline/zero-drop-sync.ts:1-245, src/components/passenger/NetworkReconnectionBanner.tsx:1-102, src/routes/app.motorista.tsx:1-2841
+- **Coverage:** src/lib/offline/zero-drop-sync.ts:1-245, src/components/passenger/NetworkReconnectionBanner.tsx:1-102, src/routes/app.motorista.tsx:1-2816
 - **Product:** unobserved
 
 ## Sobrevivência Urbana & Eficiência do Cockpit
@@ -433,7 +432,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Errors & recovery:** Caso tente cadastrar mais de 3 zonas, o sistema exibe aviso informando o limite e orienta a edição de uma zona existente.
 - **Telemetry:** driver_exclusion_zone_evaluated (driver_id, zone_name, is_excluded)
 - **Status:** implemented
-- **Coverage:** src/lib/geo/driver-exclusion-zones.ts:1-255, src/components/driver/ExclusionZonesModal.tsx:1-252, src/routes/app.motorista.tsx:1-2841
+- **Coverage:** src/lib/geo/driver-exclusion-zones.ts:1-255, src/components/driver/ExclusionZonesModal.tsx:1-252, src/routes/app.motorista.tsx:1-2816
 - **Product:** unobserved
 
 ### SCN-019: Rota de volta para casa com atalho de favoritos e Áudio HUD hands-free
@@ -454,30 +453,5 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Errors & recovery:** Caso o navegador não possua suporte a síntese de voz, o sistema emite alerta sonoro tradicional de radar e mantém os controles visuais desobstruídos.
 - **Telemetry:** destination_mode_activated (driver_id, remaining_uses), audio_hud_announced (driver_id, net_fare_cents)
 - **Status:** implemented
-- **Coverage:** src/services/DriverDestinationModeService.ts:1-301, src/lib/driver/audio-hud-engine.ts:1-179, src/components/driver/DestinationQuickChip.tsx:1-61, src/components/driver/AudioHudToggle.tsx:1-57, src/routes/app.motorista.tsx:1-2841
-- **Product:** unobserved
-
-## Agendamento & Escala Noturna
-
-### SCN-020: Agendamento de viagens com garantia e protocolo de check-in noturno
-
-- **Persona:** P-01, P-02, P-03
-- **Feature:** Agendamento & Escala Noturna
-- **Traces:** ST-020, FLW-14 (JTBD-01, JRN-01/#1)
-- **Entry point:** Tela inicial do passageiro (/app), Cockpit do motorista (/app/motorista) e Central de Despacho (/app/admin/despacho)
-- **Preconditions:** Passageiro solicitando viagem antecipada e condutores credenciados na praça
-- **Steps:**
-  1. O passageiro toca no botão Agendar Viagem na tela inicial, escolhe a data e horário (ex: amanhã às 05:30) e confirma a cotação com garantia de pontualidade.
-  2. No Cockpit do motorista, a corrida aparece na aba Disponíveis da gaveta de agendamentos, permitindo a reserva antecipada da viagem de alto valor.
-  3. Na véspera da viagem, durante a janela de check-in noturno das 20:00 às 22:30, o motorista escalado abre a gaveta e clica em Confirmar Check-in Noturno, garantindo a escala.
-  4. Na tela do passageiro, o status da viagem exibe selo verde de check-in noturno confirmado com os dados do condutor escalado.
-  5. Caso o condutor não confirme até as 22:30, o motor de auditoria realoca a corrida automaticamente para a frota de plantão matinal, preservando a pontualidade do passageiro.
-  6. Na Central de Despacho, o gestor acompanha todas as corridas agendadas pelo modal de Escala Agendada com auditoria em tempo real.
-- **Expected result:** Certeza absoluta de atendimento matinal em viagens críticas e previsibilidade de renda para motoristas de confiança.
-- **UI elements:** Botão Agendar Viagem, Modal ScheduleRideModal, Gaveta ScheduledRidesSheet, Gaveta ScheduledRidesDrawer com botão Confirmar Check-in Noturno, Modal ScheduledRidesAdminModal
-- **States covered:** scheduled, driver_confirmed, night_checkin_confirmed, reallocating, dispatched
-- **Errors & recovery:** Caso o passageiro precise cancelar, a solicitação pode ser feita pelo aplicativo liberando a vaga do condutor sem penalidade prévia.
-- **Telemetry:** scheduled_ride_created (ride_id, scheduled_for, fare_cents), night_checkin_completed (ride_id, driver_id, duration_to_trip_hours)
-- **Status:** implemented
-- **Coverage:** src/lib/ride/scheduled-ride-engine.ts:1-360, src/components/passenger/ScheduleRideModal.tsx:1-225, src/components/passenger/ScheduledRidesSheet.tsx:1-178, src/components/driver/ScheduledRidesDrawer.tsx:1-329, src/components/admin/ScheduledRidesAdminModal.tsx:1-183, src/routes/app.index.tsx:1-936, src/routes/app.motorista.tsx:1-2841, src/routes/app.admin.despacho.tsx:1-2043
+- **Coverage:** src/services/DriverDestinationModeService.ts:1-301, src/lib/driver/audio-hud-engine.ts:1-179, src/components/driver/DestinationQuickChip.tsx:1-61, src/components/driver/AudioHudToggle.tsx:1-57, src/routes/app.motorista.tsx:1-2816
 - **Product:** unobserved

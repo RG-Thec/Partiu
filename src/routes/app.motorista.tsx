@@ -147,7 +147,6 @@ import { zeroDropSync } from "@/lib/offline/zero-drop-sync";
 import { DestinationQuickChip } from "@/components/driver/DestinationQuickChip";
 import { AudioHudToggle } from "@/components/driver/AudioHudToggle";
 import { ExclusionZonesModal } from "@/components/driver/ExclusionZonesModal";
-import { ScheduledRidesDrawer } from "@/components/driver/ScheduledRidesDrawer";
 import { driverAudioHudEngine } from "@/lib/driver/audio-hud-engine";
 import { toast } from "sonner";
 
@@ -691,7 +690,6 @@ export function PartiuDriverCockpit() {
     driverDestinationModeService.getActiveDestination(perfilMotorista.id),
   );
   const [modalZonasExclusao, setModalZonasExclusao] = useState(false);
-  const [modalEscalaAgendada, setModalEscalaAgendada] = useState(false);
 
   // Oferta Ativa no Trip Radar com Transparência de Taxa (Auditoria 4)
   const [ofertaAtiva, setOfertaAtiva] = useState<{
@@ -1885,14 +1883,6 @@ export function PartiuDriverCockpit() {
           >
             <span>Zonas</span>
           </button>
-          <button
-            type="button"
-            onClick={() => setModalEscalaAgendada(true)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 text-indigo-400 hover:text-indigo-300 text-xs font-semibold shadow-md active:scale-95 transition cursor-pointer"
-            title="Escala de Viagens Agendadas"
-          >
-            <span>Agendadas</span>
-          </button>
           <AudioHudToggle />
         </div>
       </div>
@@ -2112,21 +2102,6 @@ export function PartiuDriverCockpit() {
         driverId={perfilMotorista.id}
       />
 
-      {/* =================================================================== */}
-      {/* DRAWER OFICIAL: ESCALA DE VIAGENS AGENDADAS & CHECK-IN NOTURNO      */}
-      {/* =================================================================== */}
-      <ScheduledRidesDrawer
-        isOpen={modalEscalaAgendada}
-        onClose={() => setModalEscalaAgendada(false)}
-        driverId={perfilMotorista.id}
-        driverName={perfilMotorista.nome || "Motorista Parceiro"}
-        driverVehicle={perfilMotorista.veiculoModelo || "Veículo Credenciado"}
-        driverPhone={perfilMotorista.telefone || "(22) 99999-9999"}
-        driverCoords={{
-          lat: (ofertaAtiva as any)?.origemCoords?.lat || -21.205,
-          lng: (ofertaAtiva as any)?.origemCoords?.lng || -41.89,
-        }}
-      />
 
       {/* =================================================================== */}
       {/* MODAL OFICIAL: TAXÍMETRO VIRTUAL INTELIGENTE ("CORRIDA DE RUA")     */}
