@@ -1134,6 +1134,7 @@ import "./webhook-pix-homologation.test.ts";
 import "./extraordinary-engines.test.ts";
 import "./driver-efficiency.test.ts";
 import "./white-label-multi-tenant-isolation.test.ts";
+import "./driver-cpf-unique-and-immutable-name.test.ts";
 
 await waitForAllTests();
 const summary = getSummary();

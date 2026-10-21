@@ -61,6 +61,9 @@ export function ProfilePagePartiu() {
   const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
   const [mensagemErro, setMensagemErro] = useState<string | null>(null);
   const [abaAtiva, setAbaAtiva] = useState<"dados" | "preferencias">("dados");
+  const isDriver =
+    supabaseAuthService.getStoredSession()?.role === "driver" ||
+    supabaseAuthService.getStoredSession()?.role === "MOTORISTA";
 
   // Campos do Formulário (Inicialização síncrona instantânea priorizando a sessão real)
   const [nome, setNome] = useState(() => {
@@ -493,11 +496,17 @@ export function ProfilePagePartiu() {
             className="bg-card border border-border p-5 shadow-xs space-y-4 animate-in fade-in-50 duration-150"
           >
             <WhiteLabelInput
-              label="Nome completo"
+              label={isDriver ? "Nome oficial (vinculado ao CPF)" : "Nome completo"}
               required
+              disabled={isDriver}
               value={nome}
-              onChange={(e) => setNome(e.target.value)}
+              onChange={(e) => !isDriver && setNome(e.target.value)}
               placeholder="Seu nome"
+              helperText={
+                isDriver
+                  ? "Nome vinculado ao documento oficial (CPF/CNH) e não pode ser alterado após o cadastro."
+                  : undefined
+              }
             />
 
             <WhiteLabelInput

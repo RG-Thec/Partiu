@@ -28,6 +28,7 @@ import { NativeButton, NativeInput, NativeSurface } from "@/components/native";
 import { WhiteLabelProgressBar } from "@/components/ui/white-label";
 import { CameraPhotoCapture } from "@/components/common/CameraPhotoCapture";
 import { whiteLabelEngine } from "@/lib/white-label";
+import { validarCpf, sanitizarCpf, formatarCpf } from "@/lib/validation/cpf-validator";
 
 export const Route = createFileRoute("/cadastro-motorista")({
   validateSearch: (search: Record<string, unknown>): { tenant?: string; tenant_id?: string } => ({
@@ -91,14 +92,6 @@ export function CadastroMotoristaPage() {
     if (raw.length <= 2) return raw;
     if (raw.length <= 7) return `(${raw.slice(0, 2)}) ${raw.slice(2)}`;
     return `(${raw.slice(0, 2)}) ${raw.slice(2, 7)}-${raw.slice(7)}`;
-  }
-
-  function formatarCpf(val: string) {
-    const raw = val.replace(/\D/g, "").slice(0, 11);
-    if (raw.length <= 3) return raw;
-    if (raw.length <= 6) return `${raw.slice(0, 3)}.${raw.slice(3)}`;
-    if (raw.length <= 9) return `${raw.slice(0, 3)}.${raw.slice(3, 6)}.${raw.slice(6)}`;
-    return `${raw.slice(0, 3)}.${raw.slice(3, 6)}.${raw.slice(6, 9)}-${raw.slice(9)}`;
   }
 
   // Etapa 1: Dados Pessoais & Contato
@@ -289,13 +282,32 @@ export function CadastroMotoristaPage() {
       return;
     }
 
-    const chavePixEfetiva = cpf.replace(/\D/g, "");
+    const chavePixEfetiva = sanitizarCpf(cpf);
+    const limpoCpf = sanitizarCpf(cpf);
+
+    if (!validarCpf(limpoCpf)) {
+      setErroValidacao("CPF inválido. Digite um CPF válido com 11 dígitos segundo a Receita Federal.");
+      setCarregando(false);
+      return;
+    }
+
+    try {
+      const checkCpf = await supabaseAuthService.isEmailOrCpfRegistered(email, limpoCpf);
+      if (checkCpf.registered) {
+        setErroCadastro(
+          checkCpf.message ||
+            "Este CPF já possui cadastro de motorista ativo no sistema. Faça login para continuar.",
+        );
+        setCarregando(false);
+        return;
+      }
+    } catch {}
 
     const res = await supabaseAuthService.signUpDriver({
       name: nome.trim(),
       email: email.trim().toLowerCase(),
       phone: whatsapp,
-      cpf,
+      cpf: limpoCpf,
       password: senha || "partiu2026",
       vehicleType: tipoVeiculo,
       vehicleModel: veiculoModelo.trim(),
@@ -327,7 +339,7 @@ export function CadastroMotoristaPage() {
     const motoristaNovo = {
       id: res.user?.id || "mot_" + Date.now(),
       nome: nome.trim(),
-      cpf,
+      cpf: limpoCpf,
       whatsapp,
       email: email.trim().toLowerCase(),
       tipoVeiculo,
@@ -349,8 +361,11 @@ export function CadastroMotoristaPage() {
 
     try {
       const armazenados = JSON.parse(localStorage.getItem("partiu_motoristas_store") || "[]");
-      armazenados.unshift(motoristaNovo);
-      localStorage.setItem("partiu_motoristas_store", JSON.stringify(armazenados));
+      const jaExiste = armazenados.some((m: any) => sanitizarCpf(m.cpf) === limpoCpf);
+      if (!jaExiste) {
+        armazenados.unshift(motoristaNovo);
+        localStorage.setItem("partiu_motoristas_store", JSON.stringify(armazenados));
+      }
       localStorage.setItem("partiu_motorista_ativo", JSON.stringify(motoristaNovo));
       if (typeof window !== "undefined") {
         window.dispatchEvent(
@@ -364,6 +379,7 @@ export function CadastroMotoristaPage() {
     void driverFleetService.registerDriver({
       name: nome.trim(),
       phone: whatsapp,
+      cpf: limpoCpf,
       email: email.trim() || undefined,
       vehicle_type: tipoVeiculo === "moto" ? "MOTO" : "CARRO",
       vehicle_plate: veiculoPlaca.toUpperCase().trim() || "SEM-PLACA",
@@ -486,21 +502,50 @@ export function CadastroMotoristaPage() {
             {/* ETAPA 1: DADOS PESSOAIS & CONTATO */}
             {etapa === 1 && (
               <div className="space-y-3.5 pt-2 animate-in fade-in-50 duration-200 text-left">
-                <NativeInput
-                  label="Nome completo"
-                  required
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
-                  placeholder="Nome idêntico ao da CNH"
-                  leftIcon={<User className="w-4 h-4 text-slate-400" />}
-                />
+                <div>
+                  <NativeInput
+                    label="Nome completo (conforme documento oficial)"
+                    required
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    placeholder="Nome idêntico ao da CNH"
+                    leftIcon={<User className="w-4 h-4 text-slate-400" />}
+                  />
+                  <div className="mt-1.5 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-800 flex items-start gap-1.5 leading-snug">
+                    <ShieldAlert className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                    <span>
+                      O nome informado deve ser idêntico ao do documento oficial (CPF/CNH) e não poderá ser alterado após o cadastro.
+                    </span>
+                  </div>
+                </div>
 
                 <div className="grid grid-cols-2 gap-2.5">
                   <NativeInput
                     label="CPF"
                     required
                     value={cpf}
-                    onChange={(e) => setCpf(formatarCpf(e.target.value))}
+                    onChange={(e) => {
+                      setCpf(formatarCpf(e.target.value));
+                      if (erroValidacao?.includes("CPF")) setErroValidacao(null);
+                    }}
+                    onBlur={async () => {
+                      const limpo = sanitizarCpf(cpf);
+                      if (limpo.length === 11) {
+                        if (!validarCpf(limpo)) {
+                          setErroValidacao("CPF inválido. Verifique os dígitos informados.");
+                          return;
+                        }
+                        try {
+                          const check = await supabaseAuthService.isEmailOrCpfRegistered(email, limpo);
+                          if (check.registered && check.field === "cpf") {
+                            setErroValidacao(
+                              check.message ||
+                                "Este CPF já possui cadastro no aplicativo. Cada condutor pode ter apenas uma conta.",
+                            );
+                          }
+                        } catch {}
+                      }
+                    }}
                     placeholder="000.000.000-00"
                     leftIcon={<FileText className="w-4 h-4 text-slate-400" />}
                   />
@@ -552,12 +597,24 @@ export function CadastroMotoristaPage() {
                         setErroValidacao("Preencha todos os campos obrigatórios.");
                         return;
                       }
+                      const partes = nome.trim().split(/\s+/).filter(Boolean);
+                      if (partes.length < 2 || partes.some((p) => p.length < 2)) {
+                        setErroValidacao(
+                          "Informe seu nome completo (nome e sobrenome) exatamente como consta no seu documento oficial.",
+                        );
+                        return;
+                      }
+                      const limpoCpf = sanitizarCpf(cpf);
+                      if (!validarCpf(limpoCpf)) {
+                        setErroValidacao("CPF inválido. Verifique os 11 dígitos informados.");
+                        return;
+                      }
                       if (senha && senha.length < 6) {
                         setErroValidacao("A senha de acesso deve ter no mínimo 6 caracteres.");
                         return;
                       }
                       try {
-                        const check = await supabaseAuthService.isEmailOrCpfRegistered(email, cpf);
+                        const check = await supabaseAuthService.isEmailOrCpfRegistered(email, limpoCpf);
                         if (check.registered) {
                           setErroValidacao(
                             check.message || "E-mail ou CPF já cadastrado no sistema.",

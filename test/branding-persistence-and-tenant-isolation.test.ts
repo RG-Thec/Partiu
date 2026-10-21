@@ -1,3 +1,4 @@
+process.env.NODE_ENV = "test";
 import { describe, test, expect } from "./test-harness.mjs";
 import {
   MONOCHROMATIC_PALETTES,

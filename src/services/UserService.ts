@@ -270,10 +270,11 @@ export class UserService {
   }): Promise<{ success: boolean; error?: string }> {
     const session = supabaseAuthService.getStoredSession();
     const userId = session?.id || DEFAULT_PROFILE.id;
+    const isDriver = session?.role === "driver" || session?.role === "MOTORISTA";
 
-    // 1. Atualiza cache local instantâneo
+    // 1. Atualiza cache local instantâneo (motorista mantém nome legal imutável)
     if (typeof window !== "undefined") {
-      if (data.name) localStorage.setItem("partiu_user_nome", data.name);
+      if (data.name && !isDriver) localStorage.setItem("partiu_user_nome", data.name);
       if (data.phone) {
         localStorage.setItem("partiu_user_phone", data.phone);
         localStorage.setItem("partiu_user_telefone", data.phone);
@@ -291,17 +292,21 @@ export class UserService {
       );
     }
 
+    const effectiveName = isDriver
+      ? session?.name || data.name
+      : data.name || session?.name || "Passageiro";
+
     const updatedSession: AuthUserProfile = session
       ? {
           ...session,
-          name: data.name || session.name,
+          name: effectiveName,
           phone: data.phone || session.phone,
           cpf: data.cpf || session.cpf,
           avatarUrl: data.avatarUrl || session.avatarUrl,
         }
       : {
           id: userId || `usr-pax-${Date.now().toString(36)}`,
-          name: data.name || "Passageiro",
+          name: effectiveName,
           email:
             typeof window !== "undefined" ? localStorage.getItem("partiu_user_email") || "" : "",
           phone: data.phone || "",
@@ -322,7 +327,7 @@ export class UserService {
         );
 
         let paxQuery = (supabase as any).from("partiu_passageiros").update({
-          nome: data.name,
+          nome: effectiveName,
           telefone: data.phone,
           cpf: data.cpf || undefined,
           foto_url: data.avatarUrl || undefined,
@@ -338,15 +343,18 @@ export class UserService {
         await paxQuery;
 
         if (isUuid) {
+          const profileUpdate: Record<string, any> = {
+            phone: data.phone,
+            cpf: data.cpf || undefined,
+            avatar_url: data.avatarUrl || undefined,
+            updated_at: new Date().toISOString(),
+          };
+          if (!isDriver) {
+            profileUpdate.full_name = data.name;
+          }
           await (supabase as any)
             .from("profiles")
-            .update({
-              full_name: data.name,
-              phone: data.phone,
-              cpf: data.cpf || undefined,
-              avatar_url: data.avatarUrl || undefined,
-              updated_at: new Date().toISOString(),
-            })
+            .update(profileUpdate)
             .eq("id", userId);
         }
       } catch (err: any) {

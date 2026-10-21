@@ -22,6 +22,7 @@ import { useTheme, DEFAULT_APP_CONFIG } from "@/contexts/WhiteLabelThemeContext"
 import { NativeButton, NativeInput, NativeSurface } from "@/components/native";
 import { CameraPhotoCapture } from "@/components/common/CameraPhotoCapture";
 import { whiteLabelEngine } from "@/lib/white-label";
+import { validarCpf, formatarCpf, sanitizarCpf } from "@/lib/validation/cpf-validator";
 
 export const Route = createFileRoute("/cadastro-passageiro")({
   validateSearch: (search: Record<string, unknown>): { tenant?: string; tenant_id?: string } => ({
@@ -46,14 +47,6 @@ function formatarTelefone(v: string) {
   if (digits.length <= 2) return digits.length ? `(${digits}` : "";
   if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-}
-
-function formatarCpf(v: string) {
-  const digits = v.replace(/\D/g, "").slice(0, 11);
-  if (digits.length <= 3) return digits;
-  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
-  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
-  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
 }
 
 export function CadastroPassageiroPage() {
@@ -133,8 +126,8 @@ export function CadastroPassageiroPage() {
       setErroCadastro("Digite um número de celular válido com DDD.");
       return;
     }
-    if (rawCpf.length !== 11) {
-      setErroCadastro("Digite um CPF válido com 11 dígitos.");
+    if (!validarCpf(rawCpf)) {
+      setErroCadastro("Digite um CPF válido com 11 dígitos segundo a Receita Federal.");
       return;
     }
     if (!cleanEmail.includes("@") || !cleanEmail.includes(".")) {

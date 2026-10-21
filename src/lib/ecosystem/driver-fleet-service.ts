@@ -11,6 +11,7 @@
  */
 
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
+import { validarCpf, sanitizarCpf } from "@/lib/validation/cpf-validator";
 import { isMockForbidden } from "@/config/environment";
 
 export type DriverVehicleType = "MOTO" | "CARRO";
@@ -20,6 +21,7 @@ export interface DriverFleetRecord {
   id: string;
   name: string;
   phone: string;
+  cpf?: string | undefined;
   cnh: string;
   vehicle_type: DriverVehicleType;
   license_plate: string;
@@ -111,6 +113,7 @@ const DRIVERS_STORAGE_KEY = "partiu_driver_fleet_store";
 export interface RegisterDriverInput {
   name: string;
   phone: string;
+  cpf?: string | undefined;
   cnh?: string | undefined;
   cnh_number?: string | undefined;
   vehicle_type: DriverVehicleType;
@@ -323,10 +326,30 @@ class DriverFleetService {
     return true;
   }
 
+  public findDriverByCpf(cpf: string): DriverFleetRecord | undefined {
+    if (!cpf) return undefined;
+    const clean = sanitizarCpf(cpf);
+    return this.drivers.find((d) => d.cpf && sanitizarCpf(d.cpf) === clean);
+  }
+
   public async registerDriver(data: RegisterDriverInput): Promise<DriverFleetRecord> {
     // Validação estrita de categoria: MOTO ou CARRO apenas
     if (data.vehicle_type !== "MOTO" && data.vehicle_type !== "CARRO") {
       throw new Error("Estritamente MOTO ou CARRO permitidos no ecossistema PARTIU.");
+    }
+
+    // Validação estrita de CPF segundo algoritmo oficial da Receita Federal
+    if (data.cpf) {
+      if (!validarCpf(data.cpf)) {
+        throw new Error("INVALID_CPF: O CPF informado é inválido segundo a Receita Federal.");
+      }
+      const cleanCpf = sanitizarCpf(data.cpf);
+      const jaExiste = this.drivers.find((d) => d.cpf && sanitizarCpf(d.cpf) === cleanCpf);
+      if (jaExiste) {
+        throw new Error(
+          "CPF_ALREADY_REGISTERED: Este CPF já possui cadastro de motorista ativo no sistema. Cada condutor pode ter apenas uma conta.",
+        );
+      }
     }
 
     const plate = data.license_plate || data.vehicle_plate || "SEM-PLACA";
@@ -338,6 +361,7 @@ class DriverFleetService {
       id: `drv_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       name: data.name,
       phone: data.phone,
+      cpf: data.cpf ? sanitizarCpf(data.cpf) : undefined,
       cnh: cnhVal,
       vehicle_type: data.vehicle_type,
       license_plate: plate,
@@ -365,6 +389,7 @@ class DriverFleetService {
           id: newDriver.id,
           name: newDriver.name,
           phone: newDriver.phone,
+          cpf: newDriver.cpf || null,
           cnh: newDriver.cnh,
           vehicle_type: newDriver.vehicle_type,
           license_plate: newDriver.license_plate,
@@ -385,6 +410,7 @@ class DriverFleetService {
         await (supabase as any).from("partiu_motoristas").insert({
           id: newDriver.id,
           nome: newDriver.name,
+          cpf: newDriver.cpf || null,
           telefone: newDriver.phone,
           cnh_numero: newDriver.cnh,
           cnh_categoria: newDriver.vehicle_type === "MOTO" ? "A" : "B",

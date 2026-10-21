@@ -5,6 +5,7 @@ import {
   Camera,
   ShieldCheck,
   Lock,
+  FileText,
   Car,
   Bike,
   User,
@@ -19,6 +20,7 @@ import {
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
+import { formatarCpf } from "@/lib/validation/cpf-validator";
 import type { DriverProfileRecord } from "@/lib/driver/driver-eligibility-engine";
 import { toast } from "sonner";
 
@@ -183,25 +185,23 @@ export function DriverProfileSettings({
     setToastFeedback(null);
 
     try {
-      // Atualiza no Supabase caso configurado (apenas dados pessoais)
+      // Atualiza no Supabase caso configurado (apenas dados de contato e foto, NUNCA o nome)
       if (isSupabaseConfigured()) {
-        // 1. Atualiza dados pessoais na tabela partiu_motoristas
+        // 1. Atualiza dados de contato na tabela partiu_motoristas (preserva nome imutável do documento)
         await (supabase as any)
           .from("partiu_motoristas")
           .update({
-            nome: nome.trim(),
             telefone: telefone.trim(),
             foto_url: fotoUrl,
             updated_at: new Date().toISOString(),
           })
           .eq("id", driverProfile.id);
 
-        // 2. Atualiza perfil de usuário na tabela profiles se existir userId
+        // 2. Atualiza perfil de usuário na tabela profiles se existir userId (preserva nome imutável)
         if (driverProfile.userId) {
           await (supabase as any)
             .from("profiles")
             .update({
-              name: nome.trim(),
               phone: telefone.trim(),
               avatar_url: fotoUrl,
               updated_at: new Date().toISOString(),
@@ -210,16 +210,16 @@ export function DriverProfileSettings({
         }
       }
 
-      // Constrói o objeto atualizado (mantém dados do veículo inalterados)
+      // Constrói o objeto atualizado (preserva estritamente o nome do documento oficial)
       const updatedProfile: DriverProfileRecord = {
         ...driverProfile,
-        nome: nome.trim(),
+        nome: driverProfile.nome,
         telefone: telefone.trim(),
         email: email.trim(),
         fotoUrl: fotoUrl,
       };
 
-      toast.success("Dados do perfil atualizados com sucesso!");
+      toast.success("Dados de contato atualizados com sucesso!");
 
       onSave?.(updatedProfile);
       setTimeout(() => {
@@ -399,21 +399,47 @@ export function DriverProfileSettings({
               <span>Identificação do Condutor</span>
             </h3>
 
-            {/* Nome Completo */}
+            {/* Nome Completo (Imutável - Vinculado ao Documento Oficial) */}
             <div className="space-y-1">
-              <label htmlFor="driver-name" className="text-xs font-bold text-slate-700 block">
-                Nome Completo
-              </label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="driver-name" className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Nome Oficial</span>
+                </label>
+                <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                  Imutável
+                </span>
+              </div>
               <input
                 id="driver-name"
                 type="text"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                required
-                placeholder="Ex: João da Silva"
-                className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-sm font-medium text-slate-900 focus:bg-white focus:border-brand-primary-vibrant focus:ring-2 focus:ring-brand-primary-vibrant/20 transition outline-none"
+                value={driverProfile.nome || nome}
+                readOnly
+                disabled
+                className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-100 text-sm font-semibold text-slate-700 cursor-not-allowed select-none outline-none"
               />
+              <p className="text-[11px] text-slate-500 leading-snug">
+                Nome vinculado ao documento oficial (CPF/CNH) e não pode ser alterado após o cadastro.
+              </p>
             </div>
+
+            {/* CPF do Titular Cadastrado */}
+            {Boolean((driverProfile as any).cpf || (driverProfile as any).pixKey) && (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-slate-400" />
+                    <span>CPF Cadastrado</span>
+                  </span>
+                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                    Titular Único
+                  </span>
+                </div>
+                <div className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-slate-100 text-sm font-mono font-semibold text-slate-700 flex items-center select-none">
+                  {formatarCpf((driverProfile as any).cpf || (driverProfile as any).pixKey)}
+                </div>
+              </div>
+            )}
 
             {/* Telefone de Contato */}
             <div className="space-y-1">

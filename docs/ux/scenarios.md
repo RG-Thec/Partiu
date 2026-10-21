@@ -143,7 +143,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Errors & recovery:** Em caso de telefone duplicado ou senha inválida, mensagens de validação claras são exibidas ao lado de cada campo sem apagar os dados preenchidos.
 - **Telemetry:** user_signed_up (role, auth_provider)
 - **Status:** implemented
-- **Coverage:** src/routes/auth.tsx:1-50, src/components/auth/PartiuAppAuthGate.tsx:1-1546, src/routes/cadastro-passageiro.tsx:1-495
+- **Coverage:** src/routes/auth.tsx:1-50, src/components/auth/PartiuAppAuthGate.tsx:1-1546, src/routes/cadastro-passageiro.tsx:1-488
 - **Product:** unobserved
 
 ## Resiliência e Rede

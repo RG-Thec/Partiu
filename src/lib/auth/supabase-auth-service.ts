@@ -21,6 +21,7 @@ import { silentCatchWarn } from "@/lib/structured-logger";
 import { googleAuthService } from "./google-auth-service";
 import { whiteLabelEngine } from "@/lib/white-label/white-label-engine";
 import { validarAcessoTerritorialParaCadastro } from "@/lib/geo/territory-guard";
+import { validarCpf, sanitizarCpf, formatarCpf } from "@/lib/validation/cpf-validator";
 
 export type UserRole = "PASSAGEIRO" | "MOTORISTA" | "ADMIN";
 
@@ -184,6 +185,7 @@ const DEMO_PROFILES: Record<UserRole, AuthUserProfile> = {
 
 export class SupabaseAuthService {
   private static instance: SupabaseAuthService;
+  private sessionMemoria: Record<string, AuthUserProfile> = {};
 
   private constructor() {}
 
@@ -253,8 +255,10 @@ export class SupabaseAuthService {
    * Obtém o perfil da sessão ativa persistida para um tenant específico
    */
   public getStoredSession(targetTenantId?: string): AuthUserProfile | null {
-    if (typeof localStorage === "undefined") return null;
     const effectiveTenantId = targetTenantId || getActiveAuthTenantId();
+    if (typeof localStorage === "undefined") {
+      return this.sessionMemoria[effectiveTenantId] || this.sessionMemoria["default"] || null;
+    }
     try {
       // 1. Busca primeiro no storage isolado do tenant
       const tenantKey = getTenantSessionStorageKey(effectiveTenantId);
@@ -309,10 +313,13 @@ export class SupabaseAuthService {
    * Salva a sessão ativa localmente escopada por tenant
    */
   public saveStoredSession(user: AuthUserProfile, targetTenantId?: string): void {
+    const effectiveTenantId = targetTenantId || user.tenantId || getActiveAuthTenantId();
+    user.tenantId = effectiveTenantId;
+    this.sessionMemoria[effectiveTenantId] = user;
+    this.sessionMemoria["default"] = user;
+
     if (typeof localStorage === "undefined") return;
     try {
-      const effectiveTenantId = targetTenantId || user.tenantId || getActiveAuthTenantId();
-      user.tenantId = effectiveTenantId;
       const tenantKey = getTenantSessionStorageKey(effectiveTenantId);
       localStorage.setItem(tenantKey, JSON.stringify(user));
 
@@ -332,9 +339,12 @@ export class SupabaseAuthService {
    * Remove a sessão ativa localmente
    */
   public clearStoredSession(targetTenantId?: string): void {
+    const effectiveTenantId = targetTenantId || getActiveAuthTenantId();
+    delete this.sessionMemoria[effectiveTenantId];
+    delete this.sessionMemoria["default"];
+
     if (typeof localStorage === "undefined") return;
     try {
-      const effectiveTenantId = targetTenantId || getActiveAuthTenantId();
       localStorage.removeItem(getTenantSessionStorageKey(effectiveTenantId));
       if (effectiveTenantId === "tenant-itaperuna" || effectiveTenantId === "default") {
         localStorage.removeItem(STORAGE_SESSION_KEY);
@@ -349,9 +359,12 @@ export class SupabaseAuthService {
    * corridas ativas e dados de sessão para garantir isolamento estrito entre usuários e franquias.
    */
   public clearUserSessionAndCaches(targetTenantId?: string): void {
+    const effectiveTenantId = targetTenantId || getActiveAuthTenantId();
+    delete this.sessionMemoria[effectiveTenantId];
+    delete this.sessionMemoria["default"];
+
     if (typeof localStorage === "undefined") return;
     try {
-      const effectiveTenantId = targetTenantId || getActiveAuthTenantId();
 
       // 1. Limpa chaves de perfil e sessão gerais e escopadas
       localStorage.removeItem("partiu_demo_user");
@@ -482,39 +495,95 @@ export class SupabaseAuthService {
     targetTenantId?: string,
   ): Promise<{ registered: boolean; field?: "email" | "cpf"; message?: string }> {
     const cleanEmail = email.trim().toLowerCase();
-    const cleanCpf = cpf ? cpf.replace(/\D/g, "") : "";
+    const rawCpf = cpf ? sanitizarCpf(cpf) : "";
     const effectiveTenantId = targetTenantId || getActiveAuthTenantId();
 
-    // 1. Verificação no registro local persistido DO TENANT
+    // 1. Verificação no registro local persistido
     if (typeof localStorage !== "undefined") {
       try {
+        // A. Verificação no registro DO TENANT
         const storeKey = getTenantUsersStoreKey(effectiveTenantId);
         const rawStore = localStorage.getItem(storeKey);
         if (rawStore) {
           const list = JSON.parse(rawStore);
           if (Array.isArray(list)) {
-            const emailMatch = list.find((u: any) => u.email?.toLowerCase().trim() === cleanEmail);
-            if (emailMatch) {
-              return {
-                registered: true,
-                field: "email",
-                message:
-                  "Este e-mail já está cadastrado nesta praça. Faça login para acessar sua conta.",
-              };
+            if (cleanEmail) {
+              const emailMatch = list.find((u: any) => u.email?.toLowerCase().trim() === cleanEmail);
+              if (emailMatch) {
+                return {
+                  registered: true,
+                  field: "email",
+                  message:
+                    "Este e-mail já está cadastrado nesta praça. Faça login para acessar sua conta.",
+                };
+              }
             }
-            if (cleanCpf && cleanCpf.length === 11) {
+            if (rawCpf) {
               const cpfMatch = list.find(
-                (u: any) => u.cpf && u.cpf.replace(/\D/g, "") === cleanCpf,
+                (u: any) => u.cpf && sanitizarCpf(u.cpf) === rawCpf,
               );
               if (cpfMatch) {
                 return {
                   registered: true,
                   field: "cpf",
                   message:
-                    "Este CPF já está cadastrado nesta praça. Cada usuário deve ter um CPF único.",
+                    "Este CPF já está cadastrado nesta praça. Cada condutor pode ter apenas uma conta.",
                 };
               }
             }
+          }
+        }
+
+        // B. Verificação GLOBAL de CPF em todas as praças e stores locais (CPF é unívoco nacionalmente)
+        if (rawCpf) {
+          // B.1 Todas as chaves partiu_registered_users_*
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith("partiu_registered_users_")) {
+              try {
+                const rawUsers = localStorage.getItem(k);
+                if (rawUsers) {
+                  const arr = JSON.parse(rawUsers);
+                  if (Array.isArray(arr) && arr.some((u: any) => u.cpf && sanitizarCpf(u.cpf) === rawCpf)) {
+                    return {
+                      registered: true,
+                      field: "cpf",
+                      message: "Este CPF já está cadastrado no sistema. Cada condutor pode ter apenas uma conta.",
+                    };
+                  }
+                }
+              } catch {}
+            }
+          }
+
+          // B.2 Base de motoristas local (partiu_motoristas_store)
+          const rawMotoristas = localStorage.getItem("partiu_motoristas_store");
+          if (rawMotoristas) {
+            try {
+              const motList = JSON.parse(rawMotoristas);
+              if (Array.isArray(motList) && motList.some((m: any) => m.cpf && sanitizarCpf(m.cpf) === rawCpf)) {
+                return {
+                  registered: true,
+                  field: "cpf",
+                  message: "Este CPF já possui cadastro de motorista ativo no sistema. Faça login para acessar.",
+                };
+              }
+            } catch {}
+          }
+
+          // B.3 Base de frota (partiu_driver_fleet_store)
+          const rawFleet = localStorage.getItem("partiu_driver_fleet_store");
+          if (rawFleet) {
+            try {
+              const fleetList = JSON.parse(rawFleet);
+              if (Array.isArray(fleetList) && fleetList.some((m: any) => m.cpf && sanitizarCpf(m.cpf) === rawCpf)) {
+                return {
+                  registered: true,
+                  field: "cpf",
+                  message: "Este CPF já possui cadastro de motorista ativo no sistema.",
+                };
+              }
+            } catch {}
           }
         }
       } catch {}
@@ -523,11 +592,8 @@ export class SupabaseAuthService {
     // 2. Verificação no Supabase
     if (isSupabaseConfigured() && !isTestEnvironment()) {
       try {
-        const formattedCpf =
-          cleanCpf && cleanCpf.length === 11
-            ? `${cleanCpf.slice(0, 3)}.${cleanCpf.slice(3, 6)}.${cleanCpf.slice(6, 9)}-${cleanCpf.slice(9)}`
-            : "";
-        const cpfVars = [cleanCpf, formattedCpf].filter(Boolean);
+        const formattedCpf = rawCpf ? formatarCpf(rawCpf) : "";
+        const cpfVars = [rawCpf, formattedCpf].filter(Boolean);
 
         // A. Checagem em public.profiles
         if (cleanEmail) {
@@ -1786,22 +1852,6 @@ export class SupabaseAuthService {
     const cleanEmail = email.trim().toLowerCase();
     const effectiveTenantId = tenantId || getActiveAuthTenantId();
 
-    if (!cleanName || cleanName.length < 3) {
-      return { success: false, error: "Informe seu nome completo (mínimo 3 caracteres)." };
-    }
-    if (!cleanEmail || !cleanEmail.includes("@")) {
-      return { success: false, error: "Informe um endereço de e-mail válido." };
-    }
-    const normPhone = normalizarTelefoneBR(phone);
-    if (!normPhone.valido) {
-      return { success: false, error: "Informe um número de celular válido com DDD." };
-    }
-    if (!password || password.length < 6) {
-      return { success: false, error: "A senha deve ter no mínimo 6 caracteres." };
-    }
-
-    const cleanCpf = cpf ? cpf.trim() : "";
-
     // 0. Bloqueio proativo de novas contas fora do território autorizado da franquia
     const targetTenant =
       whiteLabelEngine.getTenantById(effectiveTenantId) || whiteLabelEngine.getActiveTenant();
@@ -1819,6 +1869,22 @@ export class SupabaseAuthService {
         };
       }
     }
+
+    if (!cleanName || cleanName.length < 3) {
+      return { success: false, error: "Informe seu nome completo (mínimo 3 caracteres)." };
+    }
+    if (!cleanEmail || !cleanEmail.includes("@")) {
+      return { success: false, error: "Informe um endereço de e-mail válido." };
+    }
+    const normPhone = normalizarTelefoneBR(phone);
+    if (!normPhone.valido) {
+      return { success: false, error: "Informe um número de celular válido com DDD." };
+    }
+    if (!password || password.length < 6) {
+      return { success: false, error: "A senha deve ter no mínimo 6 caracteres." };
+    }
+
+    const cleanCpf = cpf ? cpf.trim() : "";
 
     // 0.1 Bloqueio proativo de e-mail e CPF duplicados NAQUELA FRANQUIA
     const checkDuplicity = await this.isEmailOrCpfRegistered(
@@ -2040,22 +2106,6 @@ export class SupabaseAuthService {
     const cleanEmail = email.trim().toLowerCase();
     const effectiveTenantId = tenantId || getActiveAuthTenantId();
 
-    if (!cleanName || cleanName.length < 3) {
-      return { success: false, error: "Informe seu nome completo (mínimo 3 caracteres)." };
-    }
-    if (!cleanEmail || !cleanEmail.includes("@")) {
-      return { success: false, error: "Informe um endereço de e-mail válido." };
-    }
-    const normPhone = normalizarTelefoneBR(phone);
-    if (!normPhone.valido) {
-      return { success: false, error: "Informe um número de celular válido com DDD." };
-    }
-    if (!password || password.length < 6) {
-      return { success: false, error: "A senha deve ter no mínimo 6 caracteres." };
-    }
-
-    const cleanCpf = cpf ? cpf.trim() : "";
-
     // 0. Bloqueio proativo de novos condutores fora do território autorizado da franquia
     const targetTenant =
       whiteLabelEngine.getTenantById(effectiveTenantId) || whiteLabelEngine.getActiveTenant();
@@ -2072,6 +2122,33 @@ export class SupabaseAuthService {
           error: checagemTerritorial.mensagem,
         };
       }
+    }
+
+    if (!cleanName || cleanName.length < 3) {
+      return { success: false, error: "Informe seu nome completo (mínimo 3 caracteres)." };
+    }
+    const partesNome = cleanName.split(/\s+/).filter(Boolean);
+    if (partesNome.length < 2 || partesNome.some((p) => p.length < 2)) {
+      return {
+        success: false,
+        error: "Informe seu nome completo (nome e sobrenome) exatamente como consta no seu documento oficial.",
+      };
+    }
+    if (!cleanEmail || !cleanEmail.includes("@")) {
+      return { success: false, error: "Informe um endereço de e-mail válido." };
+    }
+    const normPhone = normalizarTelefoneBR(phone);
+    if (!normPhone.valido) {
+      return { success: false, error: "Informe um número de celular válido com DDD." };
+    }
+    if (!password || password.length < 6) {
+      return { success: false, error: "A senha deve ter no mínimo 6 caracteres." };
+    }
+
+    const cleanCpf = cpf ? cpf.trim() : "";
+    const rawCpf = sanitizarCpf(cleanCpf);
+    if (!rawCpf || !validarCpf(rawCpf)) {
+      return { success: false, error: "Informe um CPF válido segundo a Receita Federal." };
     }
 
     // 0.1 Bloqueio proativo de e-mail e CPF duplicados NAQUELA FRANQUIA
