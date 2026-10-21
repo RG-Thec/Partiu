@@ -23,6 +23,7 @@ export interface DestinationModeUsage {
 
 const STORAGE_KEY_DESTINATION = "partiu_driver_destination_active";
 const STORAGE_KEY_USAGE = "partiu_driver_destination_usage";
+const STORAGE_KEY_FAVORITE_HOME = "partiu_driver_destination_favorite_home";
 const MAX_DAILY_USES = 2;
 
 function haversineDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -43,6 +44,7 @@ export class DriverDestinationModeService {
   private static instance: DriverDestinationModeService;
   private activeDestinations: Map<string, DriverDestination> = new Map();
   private usageHistory: Map<string, DestinationModeUsage> = new Map();
+  private favoriteHomes: Map<string, { address: string; coords: { lat: number; lng: number } }> = new Map();
 
   private constructor() {
     this.restoreCache();
@@ -192,6 +194,63 @@ export class DriverDestinationModeService {
         }),
       );
     }
+  }
+
+  /**
+   * Obtém o endereço favorito de Casa configurado pelo motorista
+   */
+  public getFavoriteHome(driverId: string): { address: string; coords: { lat: number; lng: number } } | null {
+    const memory = this.favoriteHomes.get(driverId);
+    if (memory) return memory;
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = localStorage.getItem(`${STORAGE_KEY_FAVORITE_HOME}_${driverId}`);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        this.favoriteHomes.set(driverId, parsed);
+        return parsed;
+      }
+    } catch {
+      // Silencioso
+    }
+    return null;
+  }
+
+  /**
+   * Salva o endereço favorito de Casa configurado pelo motorista
+   */
+  public setFavoriteHome(
+    driverId: string,
+    address: string,
+    coords: { lat: number; lng: number },
+  ): void {
+    const item = { address, coords };
+    this.favoriteHomes.set(driverId, item);
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem(
+        `${STORAGE_KEY_FAVORITE_HOME}_${driverId}`,
+        JSON.stringify(item),
+      );
+    } catch {
+      // Silencioso
+    }
+  }
+
+  /**
+   * Ativa com 1 toque o destino salvo de Casa
+   */
+  public activateFavoriteHome(
+    driverId: string,
+  ): { success: boolean; message?: string; destination?: DriverDestination } {
+    const fav = this.getFavoriteHome(driverId);
+    if (!fav) {
+      return {
+        success: false,
+        message: "Configure o endereço da sua casa antes de ativar o atalho.",
+      };
+    }
+    return this.setDestination(driverId, fav.address, fav.coords);
   }
 
   /**

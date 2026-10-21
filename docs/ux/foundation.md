@@ -272,3 +272,47 @@ Empreendedor responsável pela gestão e conformidade de veículos e condutores 
 - **Kill criteria:** perda de registros contábeis por falha de conectividade móvel
 - **Status:** delivered
 - **Product:** unobserved
+
+### ST-017: Zonas de exclusão pessoal e radar comunitário no cockpit
+
+- **Story:** As P-02, I want configurar até 3 zonas geográficas de exclusão para o período noturno, so that não recebo ofertas para bairros que considero de risco para minha operação.
+- **Traces:** JTBD-02, JRN-02/#1
+- **Acceptance criteria:**
+  - Given que o motorista cadastrou uma zona de exclusão com horário de atuação, when uma nova chamada tem origem ou destino dentro do perímetro no período configurado, then a oferta é filtrada automaticamente pelo motor de elegibilidade.
+- **Priority:** must
+- **Kill criteria:** motorista recebendo chamadas para áreas cadastradas como excluídas durante o horário restrito
+- **Status:** delivered
+- **Product:** unobserved
+
+### ST-018: Rota de volta para casa com atalho de favoritos
+
+- **Story:** As P-02, I want ativar o modo de rota para casa com um único toque, so that recebo apenas corridas que me aproximem da minha residência no final do expediente.
+- **Traces:** JTBD-02, JRN-02/#4
+- **Acceptance criteria:**
+  - Given que o condutor possui endereço de casa salvo, when toca no chip de destino no cockpit, then o modo é ativado instantaneamente e filtra apenas corridas com convergência vetorial positiva.
+- **Priority:** must
+- **Kill criteria:** condutor rodando vazio no retorno para casa por falta de corridas convergentes
+- **Status:** delivered
+- **Product:** unobserved
+
+### ST-019: Áudio HUD e anúncios de corrida por voz hands-free
+
+- **Story:** As P-02, I want ouvir os dados da corrida por voz ao receber uma oferta, so that avalio a chamada com segurança sem desviar os olhos do volante.
+- **Traces:** JTBD-02, JRN-02/#2
+- **Acceptance criteria:**
+  - Given que o Áudio HUD está ativo no cockpit, when surge uma nova oferta de corrida, then o sistema sintetiza fala clara informando distância, valor líquido e destino.
+- **Priority:** must
+- **Kill criteria:** necessidade de olhar para o smartphone em alta velocidade para saber destino e valor
+- **Status:** delivered
+- **Product:** unobserved
+
+### ST-020: Agendamento de viagens com garantia e protocolo de check-in noturno
+
+- **Story:** As P-01, I want agendar viagens antecipadas para rodoviária ou aeroporto com confirmação na noite anterior, so that tenho certeza absoluta de embarque pontual pela manhã.
+- **Traces:** JTBD-01, JRN-01/#1
+- **Acceptance criteria:**
+  - Given que o passageiro agenda uma corrida para o dia seguinte, when um condutor reserva a viagem e confirma o check-in noturno entre 20h e 22h30, then o passageiro recebe status de garantia de embarque e a viagem é despachada automaticamente.
+- **Priority:** must
+- **Kill criteria:** passageiro sem veículo no horário agendado por desistência oculta do motorista
+- **Status:** delivered
+- **Product:** unobserved

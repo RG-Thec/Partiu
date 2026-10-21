@@ -48,6 +48,7 @@ import {
 
 import { driverDestinationModeService } from "@/services/DriverDestinationModeService";
 import { antiGpsSpoofingEngine } from "./telemetry/anti-gps-spoofing-engine";
+import { driverExclusionZonesEngine } from "./geo/driver-exclusion-zones";
 
 export * from "./tracking/ride-live-tracking-service";
 export * from "./pricing/fare-calculation-engine";
@@ -1366,6 +1367,21 @@ export function isCorridaElegivelParaMotorista(params: {
         aceitavel: false,
         motivo:
           "DESTINATION_MODE_FILTER: Rota não converge para o destino selecionado pelo condutor.",
+      };
+    }
+  }
+
+  // 3. Verificação de Zonas de Exclusão Pessoal (Radar Comunitário)
+  if (params.corrida.origemCoords && params.corrida.destinoCoords) {
+    const exclusion = driverExclusionZonesEngine.isRideInExcludedZone(
+      params.driverId,
+      params.corrida.origemCoords,
+      params.corrida.destinoCoords,
+    );
+    if (exclusion.isExcluded) {
+      return {
+        aceitavel: false,
+        motivo: `EXCLUSION_ZONE: ${exclusion.reason || "Corrida incide em zona de exclusão configurada pelo condutor."}`,
       };
     }
   }

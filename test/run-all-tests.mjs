@@ -1132,6 +1132,7 @@ import "./monetization-ecosystem-consolidation.test.ts";
 import "./franchise-territorial-priority.test.ts";
 import "./webhook-pix-homologation.test.ts";
 import "./extraordinary-engines.test.ts";
+import "./driver-efficiency-scheduled-rides.test.ts";
 
 await waitForAllTests();
 const summary = getSummary();

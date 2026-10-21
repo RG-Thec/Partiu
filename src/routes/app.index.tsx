@@ -1,6 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
-import { LocateFixed } from "lucide-react";
+import { LocateFixed, Calendar, Clock } from "lucide-react";
+import { ScheduleRideModal } from "@/components/passenger/ScheduleRideModal";
+import { ScheduledRidesSheet } from "@/components/passenger/ScheduledRidesSheet";
+import { scheduledRideEngine, type ScheduledRide } from "@/lib/ride/scheduled-ride-engine";
 import { PartiuLogo } from "@/components/common/PartiuLogo";
 import { PassengerRideProvider, usePassengerRide } from "@/contexts/PassengerRideContext";
 import {
@@ -205,6 +208,20 @@ function PartiuPassengerHomeContent() {
   }, [forcarCentralizarUsuario]);
 
   const [unreadCount, setUnreadCount] = useState(0);
+  const [modalAgendarAberto, setModalAgendarAberto] = useState(false);
+  const [modalMinhasAgendadasAberto, setModalMinhasAgendadasAberto] = useState(false);
+  const [minhasAgendadas, setMinhasAgendadas] = useState<ScheduledRide[]>([]);
+
+  useEffect(() => {
+    if (!passengerId) return;
+    const load = () => {
+      setMinhasAgendadas(scheduledRideEngine.getPassengerRides(passengerId));
+    };
+    load();
+    const handleUpdated = () => load();
+    window.addEventListener("partiu:scheduled-rides-updated", handleUpdated);
+    return () => window.removeEventListener("partiu:scheduled-rides-updated", handleUpdated);
+  }, [passengerId]);
 
   // Escuta em tempo real a tabela notifications para o passageiro
   useEffect(() => {
@@ -700,6 +717,37 @@ function PartiuPassengerHomeContent() {
               </div>
             </div>
 
+            {/* ATALHO RÁPIDO: AGENDAMENTO DE VIAGENS & ESCALA NOTURNA */}
+            <div className="w-full flex items-center justify-between px-1 pointer-events-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  hapticFeedback.light();
+                  setModalAgendarAberto(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white/90 dark:bg-slate-900/90 hover:bg-white text-indigo-950 dark:text-indigo-200 font-bold text-xs rounded-full shadow-sm border border-slate-200/80 dark:border-slate-800 backdrop-blur-md active:scale-95 transition cursor-pointer"
+              >
+                <Calendar className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 stroke-[2.5]" />
+                <span>Agendar Viagem</span>
+              </button>
+
+              {minhasAgendadas.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    hapticFeedback.light();
+                    setModalMinhasAgendadasAberto(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-full shadow-sm active:scale-95 transition cursor-pointer"
+                >
+                  <Clock className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>
+                    {minhasAgendadas.length} Agendada{minhasAgendadas.length > 1 ? "s" : ""}
+                  </span>
+                </button>
+              )}
+            </div>
+
             {/* BLOCO 1 (DESTINO): Card flutuante "Para onde vamos?" + Histórico + Seleção no Mapa */}
             <div className="w-full pointer-events-auto">
               <DestinationCard
@@ -844,6 +892,43 @@ function PartiuPassengerHomeContent() {
             setModalSetupTrabalhoAberto(false);
           }}
           onAddressSelected={handleAddressConfigured}
+        />
+      )}
+
+      {/* MODAL OFICIAL: AGENDAMENTO DE CORRIDA & CHECK-IN NOTURNO */}
+      {modalAgendarAberto && (
+        <ScheduleRideModal
+          isOpen={modalAgendarAberto}
+          onClose={() => setModalAgendarAberto(false)}
+          pickupAddress={origem || "Av. Cardoso Moreira, 450 - Centro"}
+          pickupCoords={
+            Array.isArray(origemCoords)
+              ? { lng: origemCoords[0], lat: origemCoords[1] }
+              : { lat: -21.205, lng: -41.89 }
+          }
+          destinationAddress={destino || "Terminal Rodoviário"}
+          destinationCoords={
+            Array.isArray(destinoCoords)
+              ? { lng: destinoCoords[0], lat: destinoCoords[1] }
+              : { lat: -21.218, lng: -41.882 }
+          }
+          category={categoriaVeiculo === "MOTO" ? "Moto" : "Carro"}
+          estimatedFareCents={3500}
+          passengerId={passengerId}
+          passengerName={userName}
+          passengerPhone="(22) 99887-1122"
+          onRideScheduled={() => {
+            setMinhasAgendadas(scheduledRideEngine.getPassengerRides(passengerId));
+          }}
+        />
+      )}
+
+      {/* DRAWER OFICIAL: MINHAS VIAGENS AGENDADAS */}
+      {modalMinhasAgendadasAberto && (
+        <ScheduledRidesSheet
+          isOpen={modalMinhasAgendadasAberto}
+          onClose={() => setModalMinhasAgendadasAberto(false)}
+          passengerId={passengerId}
         />
       )}
     </div>

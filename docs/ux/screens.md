@@ -161,9 +161,9 @@ whose code diverges from its record here is a "drifted" finding. -->
 
 ### SCR-08: Mapa e Solicitação de Viagem
 
-- **Used by:** FLW-01 step 1, FLW-06 step 2
-- **Purpose:** Permitir ao passageiro escolher destino, categoria e confirmar a corrida com valor garantido prévio e foco máximo no mapa
-- **Elements:** Header superior translúcido com ícone de foto de perfil do usuário (ou avatar com iniciais) à esquerda para abertura de menu lateral, nome e slogan personalizados centralizados dinamicamente pelo White Label no centro, e sino de notificações à direita; Mapa interativo Mapbox GL com 70%+ de visibilidade contínua, seletor de modalidade (Corrida / Entrega) centralizado logo acima da seção de destino, botão circular de recentralizar GPS, card flutuante arredondado rounded-3xl com input minimalista "Para onde vamos?", pílula de embarque com alteração instantânea e atalhos rápidos
+- **Used by:** FLW-01 step 1, FLW-06 step 2, FLW-14 step 1
+- **Purpose:** Permitir ao passageiro escolher destino, categoria, confirmar corrida imediata ou agendar viagem com garantia de pontualidade e check-in noturno
+- **Elements:** Header superior translúcido com avatar, mapa Mapbox GL com visão ampla, pílula de Agendar Viagem e Minhas Agendadas, seletor de modalidade (Corrida / Entrega), botão circular de recentralizar GPS, card flutuante "Para onde vamos?", modal de agendamento de corrida (`ScheduleRideModal`) e gaveta de corridas agendadas (`ScheduledRidesSheet`)
 - **States:**
   | State   | Trigger                         | Figma frame       | Behavior                                                          |
   | ------- | ------------------------------- | ----------------- | ----------------------------------------------------------------- |
@@ -171,9 +171,9 @@ whose code diverges from its record here is a "drifted" finding. -->
   | empty   | nenhum motorista online         | none — code first | Informa ausência temporária de veículos no raio e sugere aguardar |
   | error   | falha de geocodificação ou rede | none — code first | Mensagem de erro amigável com botão de tentar novamente           |
   | loading | calculando rotas e tarifas      | none — code first | Skeleton nos cards de categoria e traçado animado no mapa         |
-- **Coverage:** src/routes/app.index.tsx:1-834, src/components/home/Header.tsx:1-161, src/components/common/PartiuLogo.tsx:1-240, src/components/home/DestinationCard.tsx:1-183, src/components/navigation/ModeTabSelector.tsx:1-65
-- **Scenarios:** SCN-001
-- **Resources:** src/components/map/, Mapbox GL, Supabase
+- **Coverage:** src/routes/app.index.tsx:1-936, src/components/home/Header.tsx:1-161, src/components/common/PartiuLogo.tsx:1-240, src/components/home/DestinationCard.tsx:1-183, src/components/navigation/ModeTabSelector.tsx:1-65, src/components/passenger/ScheduleRideModal.tsx:1-225, src/components/passenger/ScheduledRidesSheet.tsx:1-178
+- **Scenarios:** SCN-001, SCN-020
+- **Resources:** src/components/map/, Mapbox GL, Supabase, ScheduledRideEngine
 - **Status:** built
 
 ### SCR-09: Experiência En Route
@@ -261,9 +261,9 @@ whose code diverges from its record here is a "drifted" finding. -->
 
 ### SCR-14: Cockpit Operacional do Motorista
 
-- **Used by:** FLW-01 step 6, FLW-02 step 1, FLW-04 step 1, FLW-06 step 3, FLW-09 step 1, FLW-12 step 2
-- **Purpose:** Fornecer ao motorista parceiro controle do modo online, recebimento de chamadas com ganho líquido e métricas diárias com visão desobstruída, chamadas em cadeia e navegação externa com 1 toque
-- **Elements:** Barra superior com avatar, menu gaveta, alternador de modo noturno e status online/offline, resumo de ganhos do dia com taxa zero e repasse Pix D+0, modal de oferta zero-scroll com temporizador regressivo de 15s e slider de confirmação de 56px, mapa vetorial com iluminação adaptativa diurna/noturna, atalhos flutuantes e inline para Waze e Google Maps, card de chamadas em cadeia (back-to-back dispatch) para próxima corrida com contagem regressiva, banner de integridade física GNSS (Mock Location Shield), banner de modo de tolerância da diária SaaS com botão de quitação via Pix, botão ergonômico de cancelamento com alvo tátil de 40px
+- **Used by:** FLW-01 step 6, FLW-02 step 1, FLW-04 step 1, FLW-06 step 3, FLW-09 step 1, FLW-12 step 2, FLW-13 step 1, FLW-14 step 2
+- **Purpose:** Fornecer ao motorista parceiro controle do modo online, recebimento de chamadas com ganho líquido e métricas diárias com visão desobstruída, chamadas em cadeia, navegação externa com 1 toque, zonas de exclusão pessoal, chip rápido de rota para casa, Áudio HUD e escala de agendamentos com check-in noturno
+- **Elements:** Barra superior com avatar, menu gaveta, alternador de modo noturno e status online/offline, resumo de ganhos do dia com taxa zero e repasse Pix D+0, modal de oferta zero-scroll com temporizador regressivo de 15s e slider de confirmação de 56px, mapa vetorial com iluminação adaptativa diurna/noturna, atalhos flutuantes e inline para Waze e Google Maps, card de chamadas em cadeia (back-to-back dispatch) para próxima corrida com contagem regressiva, banner de integridade física GNSS (Mock Location Shield), banner de modo de tolerância da diária SaaS com botão de quitação via Pix, chip rápido de rota para casa (`DestinationQuickChip`), botão e modal de zonas de exclusão pessoal (`ExclusionZonesModal`), alternador de Áudio HUD com sintetizador de voz (`AudioHudToggle`), gaveta de viagens agendadas com check-in noturno (`ScheduledRidesDrawer`), botão ergonômico de cancelamento com alvo tátil de 40px
 - **States:**
   | State   | Trigger                     | Figma frame       | Behavior                                                        |
   | ------- | --------------------------- | ----------------- | --------------------------------------------------------------- |
@@ -271,9 +271,9 @@ whose code diverges from its record here is a "drifted" finding. -->
   | empty   | condutor offline            | none — code first | Painel em repouso com resumo das corridas anteriores            |
   | error   | GPS desativado ou sem sinal | none — code first | Alerta visual solicitando ativação do serviço de localização    |
   | loading | conectando ao despacho      | none — code first | Spinner sutil de sincronização com o cluster PostGIS            |
-- **Coverage:** src/routes/app.motorista.tsx:1-2766, src/components/driver/cockpit/DriverHeader.tsx:1-120, src/components/driver/DriverOfferModal.tsx:1-412, src/components/driver/cockpit/states/IdleState.tsx:1-230, src/components/driver/cockpit/states/HeadingToPickupState.tsx:1-130, src/components/driver/ExternalNavigationButton.tsx:1-163, src/components/driver/BackToBackRideCard.tsx:1-124, src/components/driver/MockLocationBanner.tsx:1-45, src/components/driver/SaaSToleranceBanner.tsx:1-45
-- **Scenarios:** SCN-002, SCN-013, SCN-014, SCN-017
-- **Resources:** src/components/driver/, Supabase Realtime, MockLocationShield, BackToBackEngine, SaaSToleranceEngine
+- **Coverage:** src/routes/app.motorista.tsx:1-2841, src/components/driver/cockpit/DriverHeader.tsx:1-120, src/components/driver/DriverOfferModal.tsx:1-412, src/components/driver/cockpit/states/IdleState.tsx:1-230, src/components/driver/cockpit/states/HeadingToPickupState.tsx:1-130, src/components/driver/ExternalNavigationButton.tsx:1-163, src/components/driver/BackToBackRideCard.tsx:1-124, src/components/driver/MockLocationBanner.tsx:1-45, src/components/driver/SaaSToleranceBanner.tsx:1-45, src/components/driver/DestinationQuickChip.tsx:1-61, src/components/driver/ExclusionZonesModal.tsx:1-252, src/components/driver/AudioHudToggle.tsx:1-57, src/components/driver/ScheduledRidesDrawer.tsx:1-329
+- **Scenarios:** SCN-002, SCN-013, SCN-014, SCN-017, SCN-018, SCN-019, SCN-020
+- **Resources:** src/components/driver/, Supabase Realtime, MockLocationShield, BackToBackEngine, SaaSToleranceEngine, DriverExclusionZonesEngine, DriverAudioHudEngine, ScheduledRideEngine
 - **Status:** built
 
 ### SCR-15: Painel Administrativo Geral e Layout
@@ -308,17 +308,17 @@ whose code diverges from its record here is a "drifted" finding. -->
 
 ### SCR-17: Central de Despacho e Operação ao Vivo
 
-- **Used by:** FLW-08 step 3, FLW-10 step 1
-- **Purpose:** Monitoramento cartográfico das corridas em andamento, parâmetros do algoritmo de busca progressiva, tarifas dinâmicas com IA, Live Override e torre de controle com mapa de calor preditivo
-- **Elements:** Lista de corridas em rota, mapa com rotas ativas, tabela de condutores disponíveis, Card de Inteligência de Demanda Automática (Uber/99) com switch de ativação, Card de Sobretaxa Administrativa Imediata (Live Override), botão Demanda Preditiva com modal de clusters de demanda e disparo de alertas de incentivo
+- **Used by:** FLW-08 step 3, FLW-10 step 1, FLW-14 step 4
+- **Purpose:** Monitoramento cartográfico das corridas em andamento, parâmetros do algoritmo de busca progressiva, tarifas dinâmicas com IA, Live Override, torre de controle com mapa de calor preditivo e central de escala de corridas agendadas com auditoria de check-in noturno
+- **Elements:** Lista de corridas em rota, mapa com rotas ativas, tabela de condutores disponíveis, Card de Inteligência de Demanda Automática (Uber/99) com switch de ativação, Card de Sobretaxa Administrativa Imediata (Live Override), botão Demanda Preditiva com modal de clusters de demanda e disparo de alertas de incentivo, botão Escala Agendada e modal de monitoramento de check-ins noturnos (`ScheduledRidesAdminModal`)
 - **States:**
   | State   | Trigger                 | Figma frame       | Behavior                                                                           |
   | ------- | ----------------------- | ----------------- | ---------------------------------------------------------------------------------- |
   | success | operação ativa          | none — code first | Rastreamento em lote das corridas ativas e governança de multiplicadores dinâmicos |
   | empty   | sem corridas no momento | none — code first | Indicador de tranquilidade operacional com tarifa padrão (1.0x)                    |
-- **Coverage:** src/routes/app.admin.despacho.tsx:1-2027, src/components/admin/PredictiveHeatmapModal.tsx:1-150
-- **Scenarios:** SCN-008, SCN-009, SCN-015
-- **Resources:** PostGIS, Dispatch Engine, SurgeEngine, PredictiveHeatmapModal
+- **Coverage:** src/routes/app.admin.despacho.tsx:1-2043, src/components/admin/PredictiveHeatmapModal.tsx:1-150, src/components/admin/ScheduledRidesAdminModal.tsx:1-183
+- **Scenarios:** SCN-008, SCN-009, SCN-015, SCN-020
+- **Resources:** PostGIS, Dispatch Engine, SurgeEngine, PredictiveHeatmapModal, ScheduledRideEngine
 - **Status:** built
 
 ### SCR-18: Gestão de Motoristas e Frota

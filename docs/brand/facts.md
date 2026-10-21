@@ -18,6 +18,8 @@ Métricas, dados técnicos e parâmetros canônicos da plataforma PARTIU.
 | Janela de antecedência para chamadas em cadeia      | 2 minutos   | docs/ux/scenarios.md    | 2026-10-20 | 2027-10-20 | yes    |
 | Limite de corridas em modo de tolerância diária     | 2 corridas  | docs/ux/scenarios.md    | 2026-10-20 | 2027-10-20 | yes    |
 | Janela mínima de inatividade para CRM               | 7 dias      | docs/ux/scenarios.md    | 2026-10-20 | 2027-10-20 | yes    |
+| Limite de zonas de exclusão pessoal do motorista    | 3 zonas     | docs/ux/scenarios.md    | 2026-10-20 | 2027-10-20 | yes    |
+| Janela de horário de check-in noturno               | 20:00 às 22:30 | docs/ux/scenarios.md | 2026-10-20 | 2027-10-20 | yes    |
 
 ## Proof that is not a number
 

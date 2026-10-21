@@ -144,6 +144,11 @@ import { BackToBackEngine } from "@/lib/driver/back-to-back-engine";
 import { MockLocationShield, type SpoofRiskLevel } from "@/lib/geo/mock-location-shield";
 import { SaaSToleranceEngine, type DriverSaaSStatus } from "@/services/subscription/SaaSToleranceEngine";
 import { zeroDropSync } from "@/lib/offline/zero-drop-sync";
+import { DestinationQuickChip } from "@/components/driver/DestinationQuickChip";
+import { AudioHudToggle } from "@/components/driver/AudioHudToggle";
+import { ExclusionZonesModal } from "@/components/driver/ExclusionZonesModal";
+import { ScheduledRidesDrawer } from "@/components/driver/ScheduledRidesDrawer";
+import { driverAudioHudEngine } from "@/lib/driver/audio-hud-engine";
 import { toast } from "sonner";
 
 function SirenIcon({ className = "w-5 h-5 text-rose-600" }: { className?: string }) {
@@ -685,6 +690,8 @@ export function PartiuDriverCockpit() {
   const [destinoAtivo, setDestinoAtivo] = useState<DriverDestination | null>(() =>
     driverDestinationModeService.getActiveDestination(perfilMotorista.id),
   );
+  const [modalZonasExclusao, setModalZonasExclusao] = useState(false);
+  const [modalEscalaAgendada, setModalEscalaAgendada] = useState(false);
 
   // Oferta Ativa no Trip Radar com Transparência de Taxa (Auditoria 4)
   const [ofertaAtiva, setOfertaAtiva] = useState<{
@@ -887,10 +894,17 @@ export function PartiuDriverCockpit() {
       }
 
       if (c.status === "PROCURANDO" && isOnline) {
-        setOfertaAtiva(extrairOfertaDeCorrida(c, nomeApp));
+        const novaOferta = extrairOfertaDeCorrida(c, nomeApp);
+        setOfertaAtiva(novaOferta);
         setEstadoCockpit("OFFER");
         setTempoRegressivo(60);
         dispararAlertaRadar();
+        driverAudioHudEngine.announceNewOffer({
+          distanceMeters: Math.round((novaOferta.distanciaKm || 1) * 1000),
+          netFareCents: Math.round(((novaOferta.valorLiquido || novaOferta.valorBruto || 15) as number) * 100),
+          destinationAddress: novaOferta.destino || "Centro",
+          category: novaOferta.tipo,
+        });
         try {
           progressiveDispatchEngine.registerDriverViewing(c.id, {
             driverId: perfilMotorista.id,
@@ -987,6 +1001,12 @@ export function PartiuDriverCockpit() {
               setEstadoCockpit("OFFER");
               setTempoRegressivo(Math.max(5, Math.round((exp - Date.now()) / 1000)));
               dispararAlertaRadar();
+              driverAudioHudEngine.announceNewOffer({
+                distanceMeters: Math.round((oferta.distanciaKm || 1) * 1000),
+                netFareCents: Math.round(((oferta.valorLiquido || oferta.valorBruto || 15) as number) * 100),
+                destinationAddress: oferta.destino || "Centro",
+                category: oferta.tipo,
+              });
               try {
                 progressiveDispatchEngine.registerDriverViewing(row.id, {
                   driverId: perfilMotorista.id,
@@ -1160,6 +1180,7 @@ export function PartiuDriverCockpit() {
   }, [estadoCockpit, tempoRegressivo]);
 
   async function handleAceitarOferta() {
+    driverAudioHudEngine.cancelAnnouncement();
     if (!ofertaAtiva) return;
     const rideId = ofertaAtiva.id;
 
@@ -1221,6 +1242,7 @@ export function PartiuDriverCockpit() {
   }
 
   async function handleRecusarOferta() {
+    driverAudioHudEngine.cancelAnnouncement();
     if (ofertaAtiva) {
       if (isSupabaseConfigured() && ofertaAtiva.id) {
         try {
@@ -1842,9 +1864,37 @@ export function PartiuDriverCockpit() {
         onOpenPlanos={() => setModalAssinaturaSaasAberto(true)}
       />
 
-      {/* 4. Selo de Integridade de GPS Anti-Fake */}
-      <div className="px-4 py-1 flex items-center justify-between">
+      {/* 4. Barra Operacional Cockpit: GPS Anti-Fake, Modo Destino, Audio HUD, Zonas de Exclusão e Escala */}
+      <div className="px-4 py-1.5 flex flex-wrap items-center justify-between gap-2">
         <MockLocationBanner riskLevel={spoofRiskLevel} reasons={spoofReasons} />
+        <div className="flex items-center gap-1.5 ml-auto">
+          <DestinationQuickChip
+            driverId={perfilMotorista.id}
+            activeDestination={destinoAtivo}
+            onOpenModal={() => setModalModoDestino(true)}
+            onClearDestination={() => {
+              driverDestinationModeService.clearDestination(perfilMotorista.id);
+              setDestinoAtivo(null);
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => setModalZonasExclusao(true)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 text-amber-400 hover:text-amber-300 text-xs font-semibold shadow-md active:scale-95 transition cursor-pointer"
+            title="Configurar Zonas de Exclusão Pessoal"
+          >
+            <span>Zonas</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setModalEscalaAgendada(true)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 text-indigo-400 hover:text-indigo-300 text-xs font-semibold shadow-md active:scale-95 transition cursor-pointer"
+            title="Escala de Viagens Agendadas"
+          >
+            <span>Agendadas</span>
+          </button>
+          <AudioHudToggle />
+        </div>
       </div>
 
       {/* 5. Banner de Modo de Tolerância na Diária SaaS */}
@@ -2051,6 +2101,31 @@ export function PartiuDriverCockpit() {
         onClose={() => setModalModoDestino(false)}
         driverId={perfilMotorista.id}
         onDestinationSet={(dest) => setDestinoAtivo(dest)}
+      />
+
+      {/* =================================================================== */}
+      {/* MODAL OFICIAL: ZONAS DE EXCLUSÃO PESSOAL (RADAR COMUNITÁRIO)       */}
+      {/* =================================================================== */}
+      <ExclusionZonesModal
+        isOpen={modalZonasExclusao}
+        onClose={() => setModalZonasExclusao(false)}
+        driverId={perfilMotorista.id}
+      />
+
+      {/* =================================================================== */}
+      {/* DRAWER OFICIAL: ESCALA DE VIAGENS AGENDADAS & CHECK-IN NOTURNO      */}
+      {/* =================================================================== */}
+      <ScheduledRidesDrawer
+        isOpen={modalEscalaAgendada}
+        onClose={() => setModalEscalaAgendada(false)}
+        driverId={perfilMotorista.id}
+        driverName={perfilMotorista.nome || "Motorista Parceiro"}
+        driverVehicle={perfilMotorista.veiculoModelo || "Veículo Credenciado"}
+        driverPhone={perfilMotorista.telefone || "(22) 99999-9999"}
+        driverCoords={{
+          lat: (ofertaAtiva as any)?.origemCoords?.lat || -21.205,
+          lng: (ofertaAtiva as any)?.origemCoords?.lng || -41.89,
+        }}
       />
 
       {/* =================================================================== */}

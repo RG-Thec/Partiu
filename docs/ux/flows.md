@@ -342,3 +342,60 @@ flowchart TD
   | -------------------------------------------- | ---------------- |
   | SCR-07 Banner de Resiliência de Rede e Modo Offline | offline, online |
   | SCR-14 Cockpit Operacional do Motorista      | success          |
+
+### FLW-13: Sobrevivência Urbana e Áudio HUD no Cockpit
+
+- **Traces:** ST-017, ST-018, ST-019 (JTBD-02, JRN-02/#1, JRN-02/#2, JRN-02/#4)
+- **Goal:** Condutor opera com proteção contra bairros de risco, ativa rota de volta para casa com 1 toque e recebe ofertas anunciadas por voz hands-free
+- **Entry points:** Cockpit operacional do motorista (/app/motorista)
+- **Success exit:** Filtros de sobrevivência ativos e chamada aceita com condução segura
+- **Task analysis:**
+  1. Motorista cadastra até 3 zonas de exclusão pessoal para o horário noturno
+  2. Ao final do turno, aciona o chip de rota para casa com destino favorito pré-configurado
+  3. Ativa o Áudio HUD para ouvir dados da corrida por síntese de voz no fone ou alto-falante
+  4. Avalia e aceita chamada sem desviar o olhar do trânsito
+- **Flow:**
+
+```mermaid
+flowchart TD
+  A[Screen: SCR-14 Cockpit Operacional do Motorista] -->|Zonas de Exclusao| B[Modal Zonas Pessoais]
+  A -->|1 Toque| C[Ativacao Rota para Casa]
+  A -->|Nova Oferta| D[Sintese de Voz Audio HUD]
+  D -->|Aceite Seguro| E[Inicio de Viagem]
+```
+
+- **Screens traversed:**
+  | Screen                                  | States used here |
+  | --------------------------------------- | ---------------- |
+  | SCR-14 Cockpit Operacional do Motorista | success, offer   |
+
+### FLW-14: Agendamento de Viagem e Protocolo de Check-in Noturno
+
+- **Traces:** ST-020 (JTBD-01, JRN-01/#1)
+- **Goal:** Passageiro agenda corrida de alto valor com garantia de embarque e motorista confirma escala no check-in noturno
+- **Entry points:** Tela inicial do passageiro (/app) e Cockpit do motorista (/app/motorista)
+- **Success exit:** Viagem agendada, confirmada na véspera e despachada pontualmente
+- **Task analysis:**
+  1. Passageiro toca em Agendar Viagem, escolhe data, horário e confirma o agendamento
+  2. Motorista na região visualiza a corrida na aba de viagens agendadas e faz a reserva
+  3. Entre 20h e 22h30 na véspera, o motorista realiza o check-in noturno garantindo a viagem
+  4. Se o motorista não confirmar, a central realoca automaticamente para plantonistas
+  5. No horário agendado, a viagem entra em despacho automático ao vivo
+- **Flow:**
+
+```mermaid
+flowchart TD
+  A[Screen: SCR-08 Mapa e Solicitação de Viagem] -->|Agendar Viagem| B[Modal Agendamento Passageiro]
+  B -->|Solicitacao Criada| C[Screen: SCR-14 Cockpit Operacional do Motorista]
+  C -->|Reservar Corrida| D[Escala Confirmada]
+  D -->|Check-in 20h-22h30| E[Viagem 100% Garantida]
+  D -->|Sem Check-in| F[Screen: SCR-17 Central de Despacho e Operação ao Vivo]
+  F -->|Realocacao Automatica| G[Plantonista Alocado]
+```
+
+- **Screens traversed:**
+  | Screen                                        | States used here |
+  | --------------------------------------------- | ---------------- |
+  | SCR-08 Mapa e Solicitação de Viagem           | success          |
+  | SCR-14 Cockpit Operacional do Motorista       | success          |
+  | SCR-17 Central de Despacho e Operação ao Vivo | success          |
