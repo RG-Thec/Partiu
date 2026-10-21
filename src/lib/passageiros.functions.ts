@@ -40,6 +40,8 @@ export type PassageiroAdmin = {
   status?: "ativo" | "bloqueado" | "inativo";
   total_corridas?: number;
   ltv_brl?: number;
+  tenant_id?: string | null;
+  cidade?: string | null;
 };
 
 export const listarPassageiros = createServerFn({ method: "GET" })
@@ -53,7 +55,7 @@ export const listarPassageiros = createServerFn({ method: "GET" })
     try {
       const { data, error } = await (supabaseAdmin as any)
         .from("profiles")
-        .select("id, full_name, email, cpf, phone, created_at, is_active, approval_status, role")
+        .select("id, full_name, email, cpf, phone, created_at, is_active, approval_status, role, tenant_id, city, cidade")
         .order("created_at", { ascending: false })
         .limit(200);
 
@@ -93,6 +95,8 @@ export const listarPassageiros = createServerFn({ method: "GET" })
       phone: p.phone || null,
       created_at: p.created_at || new Date().toISOString(),
       status: p.is_active === false || p.approval_status === "suspenso" ? "bloqueado" : "ativo",
+      tenant_id: p.tenant_id || null,
+      cidade: p.cidade || p.city || null,
     }));
   });
 

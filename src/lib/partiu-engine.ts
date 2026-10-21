@@ -296,6 +296,7 @@ const STORAGE_KEY_GANHOS_MOTORISTA = "partiu_motorista_ganhos_hoje";
 
 // Cache em memória isomórfico para SSR / Node.js / Test Runner
 let corridaMemoria: CorridaPartiu | null = null;
+const ganhosHojeMemoria: Record<string, number> = {};
 
 /**
  * @deprecated DADOS EXCLUSIVOS PARA TESTES ESTRUTURAIS / DEMO ISOLADA.
@@ -1271,22 +1272,51 @@ export function getHistoricoViagens(filter?: {
   }
 }
 
-// 9. Ganhos do motorista no dia (Auditável e com cálculo real de corridas concluídas)
-export function getGanhosHojeMotorista(): number {
-  if (typeof window === "undefined") return 0;
+// 9. Ganhos do motorista no dia (Auditável e com cálculo real de corridas concluídas e isolado por driverId)
+export function getGanhosHojeMotorista(driverId?: string): number {
+  if (typeof window === "undefined") {
+    const memKey = driverId ? `driver_${driverId}` : "global";
+    return ganhosHojeMemoria[memKey] || 0;
+  }
+
+  if (driverId) {
+    const rawDriver = localStorage.getItem(`${STORAGE_KEY_GANHOS_MOTORISTA}_${driverId}`);
+    if (rawDriver) return parseFloat(rawDriver) || 0;
+  }
+
   const raw = localStorage.getItem(STORAGE_KEY_GANHOS_MOTORISTA);
-  if (raw) return parseFloat(raw) || 0;
+  if (raw && !driverId) return parseFloat(raw) || 0;
 
   try {
     const historico = getHistoricoViagens();
     const hoje = new Date().toDateString();
     const ganhosHoje = historico
-      .filter((c) => c.status === "CONCLUIDA" && new Date(c.criadoEm).toDateString() === hoje)
+      .filter((c) => {
+        const isHoje = c.status === "CONCLUIDA" && new Date(c.criadoEm).toDateString() === hoje;
+        if (!isHoje) return false;
+        if (driverId) {
+          return c.motorista?.id === driverId || (c as any).motoristaId === driverId;
+        }
+        return true;
+      })
       .reduce((acc, c) => acc + (c.valor || 0), 0);
     return ganhosHoje;
   } catch {
     return 0;
   }
+}
+
+export function setGanhosHojeMotorista(valor: number, driverId?: string): void {
+  const safeVal = Math.max(0, valor);
+  const memKey = driverId ? `driver_${driverId}` : "global";
+  ganhosHojeMemoria[memKey] = safeVal;
+
+  if (typeof window === "undefined") return;
+  const str = String(safeVal);
+  if (driverId) {
+    localStorage.setItem(`${STORAGE_KEY_GANHOS_MOTORISTA}_${driverId}`, str);
+  }
+  localStorage.setItem(STORAGE_KEY_GANHOS_MOTORISTA, str);
 }
 
 // 10. Avaliação 5 Estrelas pelo Passageiro (Persistência no Histórico & Motorista)

@@ -108,8 +108,28 @@ export function SuperAdminDashboardExecutive() {
   }, [ridesBanco, isSuperAdmin, isNacional, contaAtiva, pracaAtiva]);
 
   const motoristasOnline = useMemo(() => {
-    return frotaBanco.filter((v) => v.status === "em_rota" || v.status === "parado").length;
-  }, [frotaBanco]);
+    if (isSuperAdmin && isNacional) {
+      return frotaBanco.filter((v) => v.status === "em_rota" || v.status === "parado").length;
+    }
+    const targetTenantId = (contaAtiva?.tenantId || pracaAtiva?.id || "").toLowerCase();
+    const cidNorm = (contaAtiva?.tenantNome || pracaAtiva?.nome || "").toLowerCase();
+
+    return frotaBanco.filter((v: any) => {
+      const isOnlineStatus = v.status === "em_rota" || v.status === "parado";
+      if (!isOnlineStatus) return false;
+      const ten = (v.tenant_id || (v as any).praca_id || "").toLowerCase();
+      if (targetTenantId && ten && targetTenantId !== "todas") {
+        const cleanTen = ten.replace("tenant-", "").replace("praca_", "");
+        const cleanTarget = targetTenantId.replace("tenant-", "").replace("praca_", "");
+        if (cleanTen === cleanTarget || ten === targetTenantId) return true;
+      }
+      if (cidNorm) {
+        const city = (v.cidade || v.city || "").toLowerCase();
+        return city.includes(cidNorm);
+      }
+      return false;
+    }).length;
+  }, [frotaBanco, isSuperAdmin, isNacional, contaAtiva, pracaAtiva]);
 
   const chamadosSOSAtivos = useMemo(() => {
     return alertasSOS.filter((a) => a.status !== "resolvido").length;

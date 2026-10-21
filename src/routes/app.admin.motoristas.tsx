@@ -99,6 +99,7 @@ interface MotoristaFrota {
   totalViagens: number;
   ocrScore?: number;
   fotoUrl?: string | undefined;
+  tenantId?: string | undefined;
   // Gestão SaaS 0% Comissão
   planoTipo: "MENSAL" | "SEMANAL" | "DIARIA" | "TRIAL" | "NENHUM";
   planoAtivo: boolean;
@@ -322,6 +323,12 @@ export function QuadroMotoristasAdminPage() {
         nome: mb.full_name || "Motorista Parceiro",
         telefone: mb.phone || "Não informado",
         cidade: (mb as any).cidade || (mb as any).city || "Praça Regional",
+        tenantId:
+          (mb as any).tenant_id ||
+          (mb as any).tenantId ||
+          (veiculoVinculado as any)?.tenant_id ||
+          (mb as any).praca_id ||
+          undefined,
         cnh: (mb as any).cnh_number
           ? `CNH: ${(mb as any).cnh_number}`
           : `CNH Cat. ${modalFinal === "MOTO" ? "A (EAR)" : "B (EAR)"}`,
@@ -368,6 +375,7 @@ export function QuadroMotoristasAdminPage() {
         nome: p.nome || "Candidato a Condutor",
         telefone: p.telefone || "Não informado",
         cidade: (p as any).cidade || (p as any).city || "Praça Regional",
+        tenantId: p.tenant_id || (p as any).tenantId || undefined,
         cnh: "CNH: " + (p.cnh_numero || "Validação OCR"),
         cnhValidade: "Em análise",
         modal: modalFinal,
@@ -386,12 +394,27 @@ export function QuadroMotoristasAdminPage() {
     return lista;
   }, [motoristasBanco, veiculosBanco, pendentesBanco, assinaturas]);
 
-  // Escopo Territorial por Franquia / Praça Ativa
+  // Escopo Territorial por Franquia / Praça Ativa (Isolamento Estrito por Tenant)
   const motoristasDaPraca = useMemo(() => {
     if (isNacional) return motoristas;
-    const nomeCidade = pracaAtiva.nome.toLowerCase();
-    return motoristas.filter((m) => m.cidade.toLowerCase().includes(nomeCidade));
-  }, [motoristas, isNacional, pracaAtiva.nome]);
+    const targetTenantId = (pracaAtiva.id || "").toLowerCase();
+    const nomeCidade = (pracaAtiva.nome || "").toLowerCase();
+
+    return motoristas.filter((m) => {
+      const tId = (m.tenantId || "").toLowerCase();
+      // 1. Prioridade absoluta: isolamento estrito por tenant_id da franquia
+      if (tId && targetTenantId && targetTenantId !== "todas") {
+        const cleanTId = tId.replace("tenant-", "").replace("praca_", "");
+        const cleanTarget = targetTenantId.replace("tenant-", "").replace("praca_", "");
+        if (cleanTId === cleanTarget || tId === targetTenantId) {
+          return true;
+        }
+      }
+      // 2. Fallback de correspondência geográfica por nome da cidade
+      const cid = (m.cidade || "").toLowerCase();
+      return cid.includes(nomeCidade);
+    });
+  }, [motoristas, isNacional, pracaAtiva.id, pracaAtiva.nome]);
 
   // Mapeamento estruturado para o CRM Kanban de Ciclo de Vida
   const condutoresCrm: ItemCrmCondutor[] = useMemo(() => {

@@ -60,7 +60,7 @@ export function CadastroMotoristaPage() {
     }
   }, [tenantParam]);
 
-  const { nomeApp, corPrimaria, corTextoPrimaria } = useBrandTheme();
+  const { nomeApp, corPrimaria, corTextoPrimaria, activeTenant, geo } = useBrandTheme();
   const { appConfig } = useTheme();
   const branding = appConfig?.branding || DEFAULT_APP_CONFIG.branding;
   const colors = branding?.colors || DEFAULT_APP_CONFIG.branding.colors;
@@ -321,6 +321,9 @@ export function CadastroMotoristaPage() {
       return;
     }
 
+    const targetTenant = tenantParam || whiteLabelEngine.getActiveTenantId() || "default";
+    const cidadeOperacional = activeTenant?.cidadeNome || geo?.cidadeSede || "Praça Regional";
+
     const motoristaNovo = {
       id: res.user?.id || "mot_" + Date.now(),
       nome: nome.trim(),
@@ -339,6 +342,8 @@ export function CadastroMotoristaPage() {
       chavePix: chavePixEfetiva,
       tipoChave: "cpf",
       status: "pendente",
+      tenant_id: targetTenant,
+      cidade: cidadeOperacional,
       cadastradoEm: new Date().toISOString(),
     };
 
@@ -365,10 +370,11 @@ export function CadastroMotoristaPage() {
       vehicle_model: veiculoModelo.trim(),
       cnh_number: cnh.trim() || "00000000000",
       pix_key: chavePixEfetiva || undefined,
+      tenant_id: targetTenant,
+      city: cidadeOperacional,
     });
 
     setSucesso(true);
-    const targetTenant = tenantParam || whiteLabelEngine.getActiveTenantId() || "default";
     const dest =
       targetTenant && targetTenant !== "default"
         ? `/app/motorista?tenant=${encodeURIComponent(targetTenant)}`

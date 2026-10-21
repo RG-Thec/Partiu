@@ -97,7 +97,7 @@ function AdminPassageiros() {
           const { data, error: sbError } = await (supabase as any)
             .from("profiles")
             .select(
-              "id, full_name, email, cpf, phone, created_at, is_active, approval_status, role",
+              "id, full_name, email, cpf, phone, created_at, is_active, approval_status, role, tenant_id, city, cidade",
             )
             .order("created_at", { ascending: false })
             .limit(200);
@@ -115,6 +115,8 @@ function AdminPassageiros() {
                 cpf: p.cpf || null,
                 phone: p.phone || null,
                 created_at: p.created_at || new Date().toISOString(),
+                tenant_id: p.tenant_id || null,
+                cidade: p.cidade || p.city || null,
                 status: (p.is_active === false || p.approval_status === "suspenso"
                   ? "bloqueado"
                   : "ativo") as "ativo" | "bloqueado" | "inativo",
@@ -140,6 +142,8 @@ function AdminPassageiros() {
               cpf: null,
               phone: r.passenger_phone || null,
               created_at: r.created_at || new Date().toISOString(),
+              tenant_id: (r as any).tenant_id || null,
+              cidade: (r as any).city || (r as any).cidade || null,
               status: "ativo" as const,
             });
           }
@@ -276,20 +280,34 @@ function AdminPassageiros() {
     });
   }, [passageiros, todasCorridas]);
 
-  // Escopo por Franquia / Praça Ativa
+  // Escopo por Franquia / Praça Ativa (Isolamento Estrito por Tenant)
   const passageirosDaPraca = useMemo(() => {
     if (isNacional) return passageirosComMetricas;
-    const nomeCidade = pracaAtiva.nome.toLowerCase();
+    const targetTenantId = (pracaAtiva.id || "").toLowerCase();
+    const nomeCidade = (pracaAtiva.nome || "").toLowerCase();
+
     return passageirosComMetricas.filter((p) => {
+      const tId = ((p as any).tenant_id || (p as any).tenantId || "").toLowerCase();
+      // 1. Prioridade absoluta: isolamento estrito por tenant_id da franquia
+      if (tId && targetTenantId && targetTenantId !== "todas") {
+        const cleanTId = tId.replace("tenant-", "").replace("praca_", "");
+        const cleanTarget = targetTenantId.replace("tenant-", "").replace("praca_", "");
+        if (cleanTId === cleanTarget || tId === targetTenantId) {
+          return true;
+        }
+      }
+
+      // 2. Corridas associadas à cidade ou ao tenant
       const temViagemNaCidade = p.viagens.some(
         (r) =>
           (r.pickup_address && r.pickup_address.toLowerCase().includes(nomeCidade)) ||
-          (r.destination_address && r.destination_address.toLowerCase().includes(nomeCidade)),
+          (r.destination_address && r.destination_address.toLowerCase().includes(nomeCidade)) ||
+          (r.tenant_id && r.tenant_id.toLowerCase() === targetTenantId),
       );
       const cidadeUsuario = ((p as any).cidade || (p as any).city || "").toLowerCase();
-      return temViagemNaCidade || cidadeUsuario.includes(nomeCidade);
+      return temViagemNaCidade || (cidadeUsuario && cidadeUsuario.includes(nomeCidade));
     });
-  }, [passageirosComMetricas, isNacional, pracaAtiva.nome]);
+  }, [passageirosComMetricas, isNacional, pracaAtiva.id, pracaAtiva.nome]);
 
   // Indicadores Executivos Globais
   const kpis = useMemo(() => {

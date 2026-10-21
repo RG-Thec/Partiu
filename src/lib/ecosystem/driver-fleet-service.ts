@@ -33,6 +33,8 @@ export interface DriverFleetRecord {
   cnh_image_url?: string | undefined;
   vehicle_doc_url?: string | undefined;
   avatar_url?: string | undefined;
+  tenant_id?: string | undefined;
+  city?: string | undefined;
   rejection_reason?: string | undefined;
   created_at: string;
   updated_at?: string | undefined;
@@ -121,6 +123,8 @@ export interface RegisterDriverInput {
   cnh_image_url?: string | undefined;
   vehicle_doc_url?: string | undefined;
   avatar_url?: string | undefined;
+  tenant_id?: string | undefined;
+  city?: string | undefined;
 }
 
 class DriverFleetService {
@@ -345,6 +349,8 @@ class DriverFleetService {
       cnh_image_url: data.cnh_image_url,
       vehicle_doc_url: data.vehicle_doc_url,
       avatar_url: data.avatar_url,
+      tenant_id: data.tenant_id || "default",
+      city: data.city,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -369,8 +375,33 @@ class DriverFleetService {
           cnh_image_url: newDriver.cnh_image_url,
           vehicle_doc_url: newDriver.vehicle_doc_url,
           avatar_url: newDriver.avatar_url,
+          tenant_id: newDriver.tenant_id,
+          city: newDriver.city,
           created_at: newDriver.created_at,
           updated_at: newDriver.updated_at,
+        });
+
+        // Também sincroniza na tabela partiu_motoristas para a esteira de aprovação
+        await (supabase as any).from("partiu_motoristas").insert({
+          id: newDriver.id,
+          nome: newDriver.name,
+          telefone: newDriver.phone,
+          cnh_numero: newDriver.cnh,
+          cnh_categoria: newDriver.vehicle_type === "MOTO" ? "A" : "B",
+          cnh_validade: "Em dia",
+          possui_ear: true,
+          veiculo_marca_modelo: newDriver.vehicle_model,
+          veiculo_placa: newDriver.license_plate,
+          veiculo_cor: newDriver.vehicle_color,
+          categoria_veiculo: newDriver.vehicle_type,
+          status_aprovacao: "pendente",
+          foto_cnh_url: newDriver.cnh_image_url,
+          foto_crlv_url: newDriver.vehicle_doc_url,
+          foto_url: newDriver.avatar_url,
+          chave_pix: data.pix_key || null,
+          tenant_id: newDriver.tenant_id,
+          cidade: newDriver.city,
+          created_at: newDriver.created_at,
         });
       } catch (e) {
         console.warn("[DriverFleetService] Falha ao cadastrar motorista no Supabase:", e);

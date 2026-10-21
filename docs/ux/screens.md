@@ -271,7 +271,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | empty   | condutor offline            | none — code first | Painel em repouso com resumo das corridas anteriores            |
   | error   | GPS desativado ou sem sinal | none — code first | Alerta visual solicitando ativação do serviço de localização    |
   | loading | conectando ao despacho      | none — code first | Spinner sutil de sincronização com o cluster PostGIS            |
-- **Coverage:** src/routes/app.motorista.tsx:1-2816, src/components/driver/cockpit/DriverHeader.tsx:1-120, src/components/driver/DriverOfferModal.tsx:1-412, src/components/driver/cockpit/states/IdleState.tsx:1-230, src/components/driver/cockpit/states/HeadingToPickupState.tsx:1-130, src/components/driver/ExternalNavigationButton.tsx:1-163, src/components/driver/BackToBackRideCard.tsx:1-124, src/components/driver/MockLocationBanner.tsx:1-45, src/components/driver/SaaSToleranceBanner.tsx:1-45, src/components/driver/DestinationQuickChip.tsx:1-61, src/components/driver/ExclusionZonesModal.tsx:1-252, src/components/driver/AudioHudToggle.tsx:1-57
+- **Coverage:** src/routes/app.motorista.tsx:1-2833, src/components/driver/cockpit/DriverHeader.tsx:1-120, src/components/driver/DriverOfferModal.tsx:1-412, src/components/driver/cockpit/states/IdleState.tsx:1-230, src/components/driver/cockpit/states/HeadingToPickupState.tsx:1-130, src/components/driver/ExternalNavigationButton.tsx:1-163, src/components/driver/BackToBackRideCard.tsx:1-124, src/components/driver/MockLocationBanner.tsx:1-45, src/components/driver/SaaSToleranceBanner.tsx:1-45, src/components/driver/DestinationQuickChip.tsx:1-61, src/components/driver/ExclusionZonesModal.tsx:1-252, src/components/driver/AudioHudToggle.tsx:1-57
 - **Scenarios:** SCN-002, SCN-013, SCN-014, SCN-017, SCN-018, SCN-019
 - **Resources:** src/components/driver/, Supabase Realtime, MockLocationShield, BackToBackEngine, SaaSToleranceEngine, DriverExclusionZonesEngine, DriverAudioHudEngine
 - **Status:** built
@@ -301,7 +301,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | ------- | -------------------- | ----------------- | --------------------------------------------------------- |
   | success | dados em tempo real  | none — code first | Painel com KPIs atualizados instantaneamente via Supabase |
   | loading | consultando métricas | none — code first | Skeletons nos blocos de indicadores                       |
-- **Coverage:** src/routes/app.admin.index.tsx:1-455, src/components/admin/ReengagementCrmModal.tsx:1-129
+- **Coverage:** src/routes/app.admin.index.tsx:1-475, src/components/admin/ReengagementCrmModal.tsx:1-129
 - **Scenarios:** SCN-010, SCN-016
 - **Resources:** partiu-db, UniversalMapView, ReengagementCrmModal
 - **Status:** built
@@ -331,7 +331,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | ------- | ------------------- | ----------------- | ----------------------------------------------- |
   | success | lista de condutores | none — code first | Visão de frotas com indicadores de conformidade |
   | loading | buscando base       | none — code first | Skeleton nos registros da tabela                |
-- **Coverage:** src/routes/app.admin.motoristas.tsx:1-2105, src/components/admin/DriverKycFastApprovalModal.tsx:1-134
+- **Coverage:** src/routes/app.admin.motoristas.tsx:1-2128, src/components/admin/DriverKycFastApprovalModal.tsx:1-134
 - **Scenarios:** SCN-010, SCN-016
 - **Resources:** driverFleetService, DriverKycFastApprovalModal
 - **Status:** built
@@ -345,7 +345,7 @@ whose code diverges from its record here is a "drifted" finding. -->
   | State   | Trigger        | Figma frame       | Behavior                                           |
   | ------- | -------------- | ----------------- | -------------------------------------------------- |
   | success | base carregada | none — code first | Listagem com filtros por cidade e data de cadastro |
-- **Coverage:** src/routes/app.admin.passageiros.tsx:1-150
+- **Coverage:** src/routes/app.admin.passageiros.tsx:1-1131
 - **Scenarios:** SCN-010
 - **Resources:** passengerService
 - **Status:** built

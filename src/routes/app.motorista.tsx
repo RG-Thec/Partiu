@@ -75,6 +75,7 @@ import {
   tocarAlertaFimViagem,
   obterAudioContext,
   getGanhosHojeMotorista,
+  setGanhosHojeMotorista,
   type CorridaPartiu,
   driverEligibilityEngine,
   driverStateMachine,
@@ -599,8 +600,10 @@ export function PartiuDriverCockpit() {
   );
   const diariaCountdownTexto = dailyPass.diariaCountdownTexto;
 
-  // Métricas do Dia (D+0) 100% Reais e Auditáveis
-  const [ganhosHoje, setGanhosHoje] = useState(() => getGanhosHojeMotorista());
+  // Métricas do Dia (D+0) 100% Reais, Auditáveis e Isoladas por Motorista
+  const [ganhosHoje, setGanhosHoje] = useState(() =>
+    getGanhosHojeMotorista(perfilMotorista.id || effectiveDriverId),
+  );
   const [corridasFeitas, setCorridasFeitas] = useState(() => {
     try {
       const historico =
@@ -608,9 +611,15 @@ export function PartiuDriverCockpit() {
           ? JSON.parse(localStorage.getItem("partiu_historico_corridas") || "[]")
           : [];
       const hoje = new Date().toDateString();
+      const currentDriverId = perfilMotorista.id || effectiveDriverId;
       return Array.isArray(historico)
         ? historico.filter(
-            (c: any) => c.status === "CONCLUIDA" && new Date(c.criadoEm).toDateString() === hoje,
+            (c: any) =>
+              c.status === "CONCLUIDA" &&
+              new Date(c.criadoEm).toDateString() === hoje &&
+              (!currentDriverId ||
+                c.motoristaId === currentDriverId ||
+                c.motorista?.id === currentDriverId),
           ).length
         : 0;
     } catch {
@@ -932,7 +941,7 @@ export function PartiuDriverCockpit() {
       } else if (c.status === "CONCLUIDA") {
         setEstadoCockpit("IDLE");
         setOfertaAtiva(null);
-        setGanhosHoje(getGanhosHojeMotorista());
+        setGanhosHoje(getGanhosHojeMotorista(perfilMotorista.id || effectiveDriverId));
       }
     }
 
@@ -1586,7 +1595,11 @@ export function PartiuDriverCockpit() {
       voiceAlerts.anunciarFimViagem(valorCorrida);
     }
 
-    setGanhosHoje((prev) => Number((prev + valorCorrida).toFixed(2)));
+    setGanhosHoje((prev) => {
+      const novo = Number((prev + valorCorrida).toFixed(2));
+      setGanhosHojeMotorista(novo, perfilMotorista.id || effectiveDriverId);
+      return novo;
+    });
     setCorridasFeitas((prev) => prev + 1);
     setPinDigitado("");
     setModalAcertoCorridaAberto(false);
@@ -1855,7 +1868,11 @@ export function PartiuDriverCockpit() {
         saldoDisponivel={ganhosHoje}
         onRenovarComSaldo={async () => {
           const ok = await dailyPass.renovarComSaldo(ganhosHoje, (val) => {
-            setGanhosHoje((prev) => Math.max(0, Number((prev - val).toFixed(2))));
+            setGanhosHoje((prev) => {
+              const novo = Math.max(0, Number((prev - val).toFixed(2)));
+              setGanhosHojeMotorista(novo, perfilMotorista.id || effectiveDriverId);
+              return novo;
+            });
           });
           return ok;
         }}

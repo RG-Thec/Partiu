@@ -553,6 +553,8 @@ export function useMotoristas(): UseQueryResult<
     veiculo_modelo?: string | undefined;
     veiculo_placa?: string | undefined;
     categoria?: string | undefined;
+    tenant_id?: string | null | undefined;
+    cidade?: string | null | undefined;
   }>
 > {
   return useQuery({
@@ -567,6 +569,8 @@ export function useMotoristas(): UseQueryResult<
         veiculo_modelo?: string | undefined;
         veiculo_placa?: string | undefined;
         categoria?: string | undefined;
+        tenant_id?: string | null | undefined;
+        cidade?: string | null | undefined;
       }> = [];
 
       // 1. Condutores da nova tabela partiu_motoristas
@@ -574,7 +578,7 @@ export function useMotoristas(): UseQueryResult<
         const { data: partiuCondutores, error: errPartiu } = await (supabase as any)
           .from("partiu_motoristas")
           .select(
-            "id, nome, cpf, telefone, foto_url, veiculo_marca_modelo, veiculo_placa, categoria_veiculo",
+            "id, nome, cpf, telefone, foto_url, veiculo_marca_modelo, veiculo_placa, categoria_veiculo, tenant_id, cidade",
           )
           .eq("status_aprovacao", "aprovado");
 
@@ -589,6 +593,8 @@ export function useMotoristas(): UseQueryResult<
               veiculo_modelo: c.veiculo_marca_modelo,
               veiculo_placa: c.veiculo_placa,
               categoria: c.categoria_veiculo,
+              tenant_id: c.tenant_id || null,
+              cidade: c.cidade || null,
             });
           });
         }
@@ -604,15 +610,23 @@ export function useMotoristas(): UseQueryResult<
           .eq("role", "motorista");
         if (!error && data && data.length > 0) {
           const ids = data.map((r) => r.user_id);
-          const { data: perfis } = await supabase
+          const { data: perfis } = await (supabase as any)
             .from("profiles")
-            .select("id, full_name, cpf, phone, avatar_url")
+            .select("id, full_name, cpf, phone, avatar_url, tenant_id, city, cidade")
             .in("id", ids);
 
           if (perfis) {
-            perfis.forEach((p) => {
+            perfis.forEach((p: any) => {
               if (!todos.some((t) => t.id === p.id)) {
-                todos.push(p);
+                todos.push({
+                  id: p.id,
+                  full_name: p.full_name,
+                  cpf: p.cpf,
+                  phone: p.phone,
+                  avatar_url: p.avatar_url,
+                  tenant_id: p.tenant_id || null,
+                  cidade: p.cidade || p.city || null,
+                });
               }
             });
           }
@@ -637,6 +651,8 @@ export function useMotoristas(): UseQueryResult<
                 veiculo_modelo: m.modelo,
                 veiculo_placa: m.placa,
                 categoria: m.tipoVeiculo === "moto" ? "MOTO" : "CARRO",
+                tenant_id: m.tenant_id || null,
+                cidade: m.cidade || m.city || null,
               });
             });
           }
@@ -668,6 +684,8 @@ export interface PartiuMotoristaPendente {
   chave_pix: string | null;
   tipo_chave_pix: string | null;
   status_aprovacao: string;
+  tenant_id?: string | null;
+  cidade?: string | null;
   created_at: string;
 }
 
@@ -715,6 +733,8 @@ export function usePartiuMotoristasPendentes(): UseQueryResult<PartiuMotoristaPe
                 chave_pix: m.chavePix || null,
                 tipo_chave_pix: m.tipoChave || null,
                 status_aprovacao: "pendente",
+                tenant_id: m.tenant_id || null,
+                cidade: m.cidade || null,
                 created_at: m.cadastradoEm || new Date().toISOString(),
               }));
           }
@@ -768,6 +788,8 @@ export function usePartiuTodasSolicitacoesMotoristas(): UseQueryResult<PartiuMot
               chave_pix: m.chavePix || null,
               tipo_chave_pix: m.tipoChave || null,
               status_aprovacao: m.status || "pendente",
+              tenant_id: m.tenant_id || null,
+              cidade: m.cidade || null,
               created_at: m.cadastradoEm || new Date().toISOString(),
             }));
           }

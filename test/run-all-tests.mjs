@@ -1133,6 +1133,7 @@ import "./franchise-territorial-priority.test.ts";
 import "./webhook-pix-homologation.test.ts";
 import "./extraordinary-engines.test.ts";
 import "./driver-efficiency.test.ts";
+import "./white-label-multi-tenant-isolation.test.ts";
 
 await waitForAllTests();
 const summary = getSummary();

@@ -321,7 +321,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Errors & recovery:** Se o condutor não responder ao card de chamada consecutiva em 15 segundos, a oferta expira silenciosamente sem penalizar a nota do motorista e o passageiro é redirecionado ao próximo veículo disponível.
 - **Telemetry:** back_to_back_offer_handled (driver_id, ride_id, accepted, eta_seconds)
 - **Status:** implemented
-- **Coverage:** src/lib/driver/back-to-back-engine.ts:1-124, src/components/driver/BackToBackRideCard.tsx:1-124, src/components/driver/ExternalNavigationButton.tsx:1-163, src/routes/app.motorista.tsx:1-2816
+- **Coverage:** src/lib/driver/back-to-back-engine.ts:1-124, src/components/driver/BackToBackRideCard.tsx:1-124, src/components/driver/ExternalNavigationButton.tsx:1-163, src/routes/app.motorista.tsx:1-2833
 - **Product:** unobserved
 
 ### SCN-014: Proteção contra GPS simulado e operação em modo de tolerância da diária SaaS
@@ -342,7 +342,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Errors & recovery:** Ao esgotar as 2 corridas de tolerância sem quitação, o acesso a novas chamadas é pausado preventivamente até a liquidação da diária pendente.
 - **Telemetry:** mock_location_evaluated (driver_id, is_spoofed, confidence), saas_tolerance_status_changed (driver_id, status, rides_left)
 - **Status:** implemented
-- **Coverage:** src/lib/geo/mock-location-shield.ts:1-164, src/services/subscription/SaaSToleranceEngine.ts:1-112, src/components/driver/MockLocationBanner.tsx:1-45, src/components/driver/SaaSToleranceBanner.tsx:1-45, src/routes/app.motorista.tsx:1-2816
+- **Coverage:** src/lib/geo/mock-location-shield.ts:1-164, src/services/subscription/SaaSToleranceEngine.ts:1-112, src/components/driver/MockLocationBanner.tsx:1-45, src/components/driver/SaaSToleranceBanner.tsx:1-45, src/routes/app.motorista.tsx:1-2833
 - **Product:** unobserved
 
 ## Gestão Regional Avançada
@@ -386,7 +386,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Errors & recovery:** Caso os caracteres da CNH estejam com baixa legibilidade, o sistema permite a edição manual dos campos pelo operador antes da homologação final.
 - **Telemetry:** driver_ocr_homologated (driver_id, admin_id, execution_time_ms), crm_campaign_dispatched (tenant_id, audience_type, count)
 - **Status:** implemented
-- **Coverage:** src/components/admin/DriverKycFastApprovalModal.tsx:1-134, src/components/admin/ReengagementCrmModal.tsx:1-129, src/routes/app.admin.motoristas.tsx:1-2105, src/routes/app.admin.index.tsx:1-455
+- **Coverage:** src/components/admin/DriverKycFastApprovalModal.tsx:1-134, src/components/admin/ReengagementCrmModal.tsx:1-129, src/routes/app.admin.motoristas.tsx:1-2128, src/routes/app.admin.index.tsx:1-475
 - **Product:** unobserved
 
 ## Infraestrutura & Resiliência
@@ -409,7 +409,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Errors & recovery:** Em caso de conflito temporal durante a reconexão, o motor de reconciliação utiliza o hash criptográfico sequencial para desempatar eventos e atualizar o estado central com segurança.
 - **Telemetry:** zero_drop_events_reconciled (user_id, ride_id, queued_events_count, duration_ms)
 - **Status:** implemented
-- **Coverage:** src/lib/offline/zero-drop-sync.ts:1-245, src/components/passenger/NetworkReconnectionBanner.tsx:1-102, src/routes/app.motorista.tsx:1-2816
+- **Coverage:** src/lib/offline/zero-drop-sync.ts:1-245, src/components/passenger/NetworkReconnectionBanner.tsx:1-102, src/routes/app.motorista.tsx:1-2833
 - **Product:** unobserved
 
 ## Sobrevivência Urbana & Eficiência do Cockpit
@@ -432,7 +432,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Errors & recovery:** Caso tente cadastrar mais de 3 zonas, o sistema exibe aviso informando o limite e orienta a edição de uma zona existente.
 - **Telemetry:** driver_exclusion_zone_evaluated (driver_id, zone_name, is_excluded)
 - **Status:** implemented
-- **Coverage:** src/lib/geo/driver-exclusion-zones.ts:1-255, src/components/driver/ExclusionZonesModal.tsx:1-252, src/routes/app.motorista.tsx:1-2816
+- **Coverage:** src/lib/geo/driver-exclusion-zones.ts:1-255, src/components/driver/ExclusionZonesModal.tsx:1-252, src/routes/app.motorista.tsx:1-2833
 - **Product:** unobserved
 
 ### SCN-019: Rota de volta para casa com atalho de favoritos e Áudio HUD hands-free
@@ -453,5 +453,5 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Errors & recovery:** Caso o navegador não possua suporte a síntese de voz, o sistema emite alerta sonoro tradicional de radar e mantém os controles visuais desobstruídos.
 - **Telemetry:** destination_mode_activated (driver_id, remaining_uses), audio_hud_announced (driver_id, net_fare_cents)
 - **Status:** implemented
-- **Coverage:** src/services/DriverDestinationModeService.ts:1-301, src/lib/driver/audio-hud-engine.ts:1-179, src/components/driver/DestinationQuickChip.tsx:1-61, src/components/driver/AudioHudToggle.tsx:1-57, src/routes/app.motorista.tsx:1-2816
+- **Coverage:** src/services/DriverDestinationModeService.ts:1-301, src/lib/driver/audio-hud-engine.ts:1-179, src/components/driver/DestinationQuickChip.tsx:1-61, src/components/driver/AudioHudToggle.tsx:1-57, src/routes/app.motorista.tsx:1-2833
 - **Product:** unobserved
