@@ -25,6 +25,22 @@
 | SCN-017 | Resiliência Zero-Drop e sincronização atômica offline com cadeia criptográfica        | Resiliência Zero-Drop Offline                | P-01, P-02       | ST-016, FLW-12                      | implemented | 2026-10-20 |
 | SCN-018 | Zonas de exclusão pessoal e radar comunitário no cockpit                              | Sobrevivência Urbana & Radar Comunitário     | P-02             | ST-017, FLW-13                      | implemented | 2026-10-20 |
 | SCN-019 | Rota de volta para casa com atalho de favoritos e Áudio HUD hands-free                | Eficiência no Cockpit & Áudio HUD            | P-02             | ST-018, ST-019, FLW-13              | implemented | 2026-10-20 |
+| SCN-020 | Detecção automática de chegada via Geofence e tolerância de espera com No-Show        | Geofencing & Tolerância No-Show              | P-01, P-02       | ST-002, ST-004, FLW-02              | implemented | 2026-10-21 |
+| SCN-021 | Reatribuição transparente de corrida por cancelamento do condutor em rota             | Reatribuição Transparente (On-Service)       | P-01, P-02       | ST-002, FLW-02                      | implemented | 2026-10-21 |
+| SCN-022 | Bifurcação justa da taxa de cancelamento com tolerância de 2 minutos (Grace Period)   | Taxa de Cancelamento Justa                   | P-01, P-02       | ST-002, FLW-02                      | implemented | 2026-10-21 |
+| SCN-023 | Despacho consecutivo preditivo em cadeia com handover atômico (Back-to-Back Dispatch)  | Despacho em Cadeia Preditivo                 | P-02             | ST-009, FLW-09                      | implemented | 2026-10-21 |
+| SCN-024 | Deep linking universal para Waze, Google Maps e Apple Maps com resolução dinâmica     | Deep Linking de Navegação Externa            | P-02             | ST-010, FLW-09                      | implemented | 2026-10-21 |
+| SCN-025 | Central de segurança pessoal unificada com gravação confidencial e ficha 190          | Central de Segurança Pessoal                 | P-01, P-02       | ST-003, FLW-03                      | implemented | 2026-10-21 |
+| SCN-026 | Compressão vetorial de polylines via RDP e telemetria suave a 60 FPS no mapa           | Otimização Geométrica & 60 FPS Map           | P-01, P-02       | ST-001, ST-002, FLW-01, FLW-02      | implemented | 2026-10-21 |
+| SCN-027 | Múltiplas paradas intermediárias com resolução dinâmica de navegação                   | Multi-Stop Waypoints                         | P-01, P-02       | ST-001, ST-002, FLW-01, FLW-02      | implemented | 2026-10-21 |
+| SCN-028 | Pontos verdes inteligentes de encontro com snap de embarque                           | Smart Pickups & Green Snap                   | P-01, P-02       | ST-001, FLW-01                      | implemented | 2026-10-21 |
+| SCN-029 | Homologação cadastral expressa com OCR de CNH e validação em tempo real                | Onboarding Express & OCR CNH                 | P-02, P-03       | ST-005, ST-008, FLW-05, FLW-11      | implemented | 2026-10-21 |
+| SCN-030 | Chat de bordo hands-free com respostas rápidas de 1 toque e áudio TTS                  | Hands-Free Quick Replies                     | P-01, P-02       | ST-002, ST-003, FLW-02, FLW-03      | implemented | 2026-10-21 |
+| SCN-031 | Código PIN de 4 dígitos para embarque seguro de passageiros                           | Boarding Security PIN                        | P-01, P-02       | ST-002, FLW-02                      | implemented | 2026-10-21 |
+| SCN-032 | Solicitação de corrida para terceiros com link web ao vivo no WhatsApp                | Rides for Third Parties                      | P-01, P-02       | ST-001, ST-002, FLW-01, FLW-02      | implemented | 2026-10-21 |
+| SCN-033 | Corridas agendadas com negociação bilateral e piso mínimo operacional                 | Corridas Agendadas                           | P-01, P-02       | ST-001, ST-002, FLW-01, FLW-02      | implemented | 2026-10-21 |
+| SCN-034 | Troco digital no acerto em dinheiro e bloqueio soberano de passageiro                 | Acerto & Bloqueio Soberano                   | P-01, P-02       | ST-002, ST-004, FLW-02, FLW-04      | implemented | 2026-10-22 |
+| SCN-035 | Alerta de aproximação de 500 metros no embarque e destino para motorista e passageiro | Alerta de Proximidade 500 Metros             | P-01, P-02       | ST-001, ST-002, FLW-01, FLW-02      | implemented | 2026-10-22 |
 
 ## Personas
 
@@ -321,7 +337,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Errors & recovery:** Se o condutor não responder ao card de chamada consecutiva em 15 segundos, a oferta expira silenciosamente sem penalizar a nota do motorista e o passageiro é redirecionado ao próximo veículo disponível.
 - **Telemetry:** back_to_back_offer_handled (driver_id, ride_id, accepted, eta_seconds)
 - **Status:** implemented
-- **Coverage:** src/lib/driver/back-to-back-engine.ts:1-124, src/components/driver/BackToBackRideCard.tsx:1-124, src/components/driver/ExternalNavigationButton.tsx:1-163, src/routes/app.motorista.tsx:1-2833
+- **Coverage:** src/lib/driver/back-to-back-engine.ts:1-124, src/components/driver/BackToBackRideCard.tsx:1-124, src/components/driver/ExternalNavigationButton.tsx:1-155, src/routes/app.motorista.tsx:1-2833
 - **Product:** unobserved
 
 ### SCN-014: Proteção contra GPS simulado e operação em modo de tolerância da diária SaaS
@@ -342,7 +358,7 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Errors & recovery:** Ao esgotar as 2 corridas de tolerância sem quitação, o acesso a novas chamadas é pausado preventivamente até a liquidação da diária pendente.
 - **Telemetry:** mock_location_evaluated (driver_id, is_spoofed, confidence), saas_tolerance_status_changed (driver_id, status, rides_left)
 - **Status:** implemented
-- **Coverage:** src/lib/geo/mock-location-shield.ts:1-164, src/services/subscription/SaaSToleranceEngine.ts:1-112, src/components/driver/MockLocationBanner.tsx:1-45, src/components/driver/SaaSToleranceBanner.tsx:1-45, src/routes/app.motorista.tsx:1-2833
+- **Coverage:** src/lib/geo/mock-location-shield.ts:1-164, src/services/subscription/SaaSToleranceEngine.ts:1-112, src/components/driver/MockLocationBanner.tsx:1-40, src/components/driver/SaaSToleranceBanner.tsx:1-45, src/routes/app.motorista.tsx:1-2973
 - **Product:** unobserved
 
 ## Gestão Regional Avançada
@@ -356,16 +372,16 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Preconditions:** Franqueado ou gestor autenticado com operação regional em andamento
 - **Steps:**
   1. O gestor acessa a Central de Despacho e clica no botão Demanda Preditiva para abrir a torre de controle de fluxo urbano.
-  2. O modal exibe os clusters geoespaciais com identificação de índice de desbalanceamento, tempo médio de espera e sobretaxa recomendada para normalização.
-  3. O gestor seleciona o cluster com maior carência de veículos e clica no botão Disparar Alerta para Condutores.
-  4. O sistema transmite notificação instantânea para os motoristas no perímetro sugerindo deslocamento para a área de alta rentabilidade garantida.
+  2. O modal exibe os clusters geoespaciais com identificação de índice de desbalanceamento, tempo médio de espera, tendência para os próximos 30 minutos e sobretaxa recomendada para normalização.
+  3. O gestor ajusta o raio de alcance (3, 5 ou 8 km) e a sobretaxa de incentivo (+10% a +25%) e clica no botão Disparar Alerta.
+  4. O sistema transmite notificação instantânea para os condutores no perímetro via push e WebSocket, gerando registro imutável na trilha de auditoria e ativando cooldown de proteção antiflood de 60 segundos.
 - **Expected result:** Reequilíbrio proativo da frota em tempo real antes da ocorrência de cancelamentos por ausência de veículos.
-- **UI elements:** Botão Demanda Preditiva na barra de topo da Central de Despacho, Modal da torre de controle com cartões de clusters de demanda, Indicador de desbalanceamento por cores, Botão de disparo de alerta de incentivo
-- **States covered:** success, loading, broadcast_sent
-- **Errors & recovery:** Em caso de perda temporária de comunicação com o cluster de despacho, a torre exibe o último estado consolidado em cache com indicação do horário da leitura.
+- **UI elements:** Botão Demanda Preditiva na barra de topo da Central de Despacho, Modal da torre de controle com cartões de clusters de demanda, Seletores de raio e sobretaxa, Indicador de desbalanceamento por cores, Botão de disparo de alerta de incentivo
+- **States covered:** success, loading, broadcast_sent, cooldown_active
+- **Errors & recovery:** Em caso de tentativa de disparo consecutivo dentro da janela de 60 segundos, o sistema alerta o tempo restante de cooldown sem sobrecarregar os motoristas.
 - **Telemetry:** predictive_incentive_broadcasted (tenant_id, cluster_id, multiplier, drivers_notified)
 - **Status:** implemented
-- **Coverage:** src/components/admin/PredictiveHeatmapModal.tsx:1-150, src/routes/app.admin.despacho.tsx:1-2027
+- **Coverage:** src/lib/spatial/predictive-demand-engine.ts:1-320, src/components/admin/PredictiveHeatmapModal.tsx:1-260, src/routes/app.admin.despacho.tsx:1-2027
 - **Product:** unobserved
 
 ### SCN-016: Homologação cadastral expressa com OCR de CNH e CRM de reengajamento automático
@@ -454,4 +470,373 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Telemetry:** destination_mode_activated (driver_id, remaining_uses), audio_hud_announced (driver_id, net_fare_cents)
 - **Status:** implemented
 - **Coverage:** src/services/DriverDestinationModeService.ts:1-301, src/lib/driver/audio-hud-engine.ts:1-179, src/components/driver/DestinationQuickChip.tsx:1-61, src/components/driver/AudioHudToggle.tsx:1-57, src/routes/app.motorista.tsx:1-2833
+- **Product:** unobserved
+
+### SCN-020: Detecção automática de chegada via Geofence e tolerância de espera com No-Show
+
+- **Persona:** P-01, P-02
+- **Feature:** Geofencing & Tolerância No-Show
+- **Traces:** ST-002, ST-004, FLW-02 (JTBD-01, JTBD-02, JRN-01/#3, JRN-02/#3)
+- **Entry point:** Cockpit operacional do motorista (/app/motorista) e tela de corrida ativa do passageiro (/app)
+- **Preconditions:** Corrida ativa com motorista a caminho (EN_ROUTE / HEADING_TO_PICKUP)
+- **Steps:**
+  1. O motorista conduz até o ponto de embarque. Ao cruzar o raio de proximidade de 150 metros via Haversine, o sistema detecta a chegada automaticamente sem necessidade de toque manual.
+  2. O estado da corrida transita para DRIVER_ARRIVED / CHEGOU com registro atômico do timestamp de chegada.
+  3. O passageiro recebe notificação sonora e vibração no aparelho anunciando que o veículo parceiro chegou ao ponto de encontro.
+  4. O cockpit do motorista inicia a contagem regressiva de tolerância de espera de 5 minutos (300 segundos).
+  5. Caso o passageiro não compareça dentro da janela de tolerância, o botão de cancelamento por não comparecimento (No-Show) é liberado com elegibilidade para taxa compensatória.
+- **Expected result:** Eliminação de atritos e discussões sobre horário de chegada, proteção do tempo do condutor e aviso instantâneo ao passageiro.
+- **UI elements:** Card de chegada, Cronômetro regressivo de tolerância (Wait Tolerance Bar), Alerta sonoro de embarque, Botão de No-Show liberado pós-tolerância
+- **States covered:** success, arrived, waiting, expired
+- **Errors & recovery:** Em caso de perda momentânea de sinal de satélite GPS, o motorista mantém a opção de confirmação assistida no cockpit e o passageiro é sincronizado via Polling Adaptativo a cada 3 segundos.
+- **Telemetry:** driver_geofence_arrival_triggered (ride_id, distance_meters), wait_tolerance_no_show_eligible (ride_id, elapsed_seconds)
+- **Status:** implemented
+- **Coverage:** src/lib/spatial/geofence-arrival-service.ts:1-170, src/services/RealtimeConnectionManager.ts:1-320
+- **Product:** unobserved
+
+### SCN-021: Reatribuição transparente de corrida por cancelamento do condutor em rota
+
+- **Persona:** P-01, P-02
+- **Feature:** Reatribuição Transparente (On-Service Reassign)
+- **Traces:** ST-002, FLW-02 (JTBD-01, JTBD-02, JRN-01/#3, JRN-02/#3)
+- **Entry point:** Tela de acompanhamento de corrida (/app) e Cockpit operacional (/app/motorista)
+- **Preconditions:** Corrida aceita com condutor a caminho (HEADING_TO_PICKUP / A_CAMINHO)
+- **Steps:**
+  1. O motorista aceitou o chamado, mas sofre um imprevisto operacional (pane mecânica, pneu furado, trânsito intransitável) antes de iniciar a viagem e cancela no cockpit com justificativa obrigatória.
+  2. O condutor é liberado e retorna ao estado ONLINE ou IDLE; o lock atômico do condutor é liberado.
+  3. Em vez de cancelar a viagem e derrubar o passageiro para o início, o sistema mantém o pedido ativo e aciona a reatribuição transparente (On-Service Reassign).
+  4. O motorista desistente é adicionado à lista de exclusão (excludedDriverIds) daquela corrida específica para não receber a mesma oferta novamente.
+  5. A corrida transita para PROCURANDO / SEARCHING_R1 e a cascata de despacho inteligente é reiniciada para os próximos condutores mais próximos via PostGIS/H3.
+  6. A interface do passageiro permanece com origem e destino intactos, exibindo banner contextual informativo: "O motorista anterior precisou cancelar. Localizando outro parceiro próximo para você...".
+- **Expected result:** O passageiro não perde seu pedido nem precisa digitar novamente endereços; tempo médio de recuperação inferior a 15 segundos.
+- **UI elements:** Banner de aviso de reatribuição (ReassignBanner), Radar de busca progressiva reativado, Polyline e Pins de rota preservados no mapa.
+- **States covered:** DRIVER_ASSIGNED -> SEARCHING_R1, reassigning, finding_driver
+- **Errors & recovery:** Se todos os motoristas da praça recusarem ou esgotarem a fila, o sistema avança para o timeout inteligente oferecendo nova tentativa com raio expandido ou cancelamento voluntário.
+- **Telemetry:** on_service_reassign_triggered (ride_id, cancelling_driver_id, reason_code, reassign_count)
+- **Status:** implemented
+- **Coverage:** src/lib/dispatch-atomic/on-service-reassign.ts:1-170, src/contexts/PassengerRideContext.tsx:1-1836, src/routes/app.index.tsx:1-860
+- **Product:** unobserved
+
+### SCN-022: Bifurcação justa da taxa de cancelamento com tolerância de 2 minutos (Grace Period)
+
+- **Persona:** P-01, P-02
+- **Feature:** Taxa de Cancelamento Justa (Padrão 99 / Uber)
+- **Traces:** ST-002, FLW-02 (JTBD-01, JTBD-02, JRN-01/#3, JRN-02/#3)
+- **Entry point:** Modal de confirmação de cancelamento do passageiro (/app)
+- **Preconditions:** Chamado solicitado ou condutor aceito
+- **Steps:**
+  1. O passageiro decide cancelar a corrida e clica em cancelar.
+  2. Se nenhum motorista aceitou ainda ou se o cancelamento ocorrer dentro de 2 minutos (120s) do aceite (e antes da chegada do condutor), a taxa é R$ 0,00 (ORDER_STATUS_CANCEL_TRIP_NOPAY).
+  3. Se o passageiro cancelar após a carência de 2 minutos (>120s) ou após o condutor já ter chegado ao local de embarque (DRIVER_ARRIVED), aplica-se a taxa compensatória de R$ 6,00 (ORDER_STATUS_CANCEL_TRIP_PAID).
+  4. Em caso de No-Show comprovado (condutor aguardou >= 5 minutos no ponto de coleta), a taxa de R$ 6,00 é aplicada.
+  5. Se o passageiro justificar que o motorista estava parado ou indo na direção oposta (DRIVER_STATIONARY), a taxa é isenta mesmo após 2 minutos.
+  6. No modelo Pure SaaS (0% comissão), 100% da taxa compensatória (R$ 6,00) é creditada ao parceiro.
+- **Expected result:** Equilíbrio de incentivos: passageiro tem tolerância razoável para desistir sem custos, enquanto o condutor tem seu combustível e tempo protegidos contra cancelamentos tardios ou No-Show.
+- **UI elements:** Modal de cancelamento com aviso de carência, detalhe de taxa pendente, seletor de motivos justificados
+- **States covered:** NOPAY, PAID, exempt, no_show
+- **Errors & recovery:** Falhas de rede persistem a taxa pendente no banco e em cache local para compensação no próximo ciclo de pagamento.
+- **Telemetry:** cancellation_fee_evaluated (ride_id, fee_type, total_fee_cents, elapsed_seconds, is_exempt)
+- **Status:** implemented
+- **Coverage:** src/lib/pricing/cancellation-fee-calculator.ts:1-210, src/lib/partiu-financial-engine.ts:220-270, src/contexts/PassengerRideContext.tsx:1550-1610
+- **Product:** unobserved
+
+### SCN-023: Despacho consecutivo preditivo em cadeia com handover atômico (Back-to-Back Dispatch)
+
+- **Persona:** P-02
+- **Feature:** Despacho em Cadeia Preditivo (Padrão 99 APK)
+- **Traces:** ST-009, FLW-09 (JTBD-02, JRN-02/#3)
+- **Entry point:** Cockpit operacional do motorista em viagem ativa (/app/motorista)
+- **Preconditions:** Motorista em viagem ativa (IN_PROGRESS / IN_TRIP) se aproximando do ponto de desembarque
+- **Steps:**
+  1. O motorista está a menos de 3 minutos (180s) ou 2.000 metros de concluir a corrida em andamento.
+  2. O motor preditivo avalia a elegibilidade e busca pedidos adjacentes ao desembarque final (raio até 3.000m).
+  3. O card de chamada em cadeia (`BackToBackRideCard`) surge no cockpit sem obstruir a navegação ativa, exibindo nome do passageiro, avaliação, ganho líquido e distância da coleta a partir do desembarque.
+  4. O motorista pode aceitar ou recusar a oferta com contagem regressiva de 15 segundos.
+  5. Ao aceitar, a chamada entra no slot isolado `QUEUED` (`AGUARDANDO_VEICULO_TERMINAR_CORRIDA_ANTERIOR`).
+  6. Ao finalizar a corrida em andamento e concluir o desembarque, o handover atômico promove instantaneamente a corrida enfileirada para ativa (`HEADING_TO_PICKUP`), iniciando navegação direta sem intervalo ocioso.
+- **Expected result:** Redução de até 35% no tempo ocioso do condutor entre chamadas e redução do tempo de espera do passageiro.
+- **UI elements:** Card flutuante BackToBackRideCard, badge de chamada em cadeia, indicador de próximo embarque
+- **States covered:** IN_TRIP, QUEUED, HEADING_TO_PICKUP, handover
+- **Errors & recovery:** Se o passageiro da próxima chamada cancelar enquanto o motorista ainda estiver finalizando a anterior, a corrida ativa permanece 100% protegida e o slot é limpo sem penalidade.
+- **Telemetry:** back_to_back_offered (driver_id, ride_id, remaining_seconds), back_to_back_accepted (driver_id, ride_id), back_to_back_promoted (driver_id, next_ride_id)
+- **Status:** implemented
+- **Coverage:** src/lib/driver/back-to-back-engine.ts:1-200, src/lib/driver/driver-consecutive-rides-engine.ts:1-299, src/components/driver/BackToBackRideCard.tsx:1-124, src/routes/app.motorista.tsx:770-800
+- **Product:** unobserved
+
+### SCN-024: Deep linking universal para Waze, Google Maps e Apple Maps com resolução dinâmica de alvo
+
+- **Persona:** P-02
+- **Feature:** Deep Linking de Navegação Externa
+- **Traces:** ST-010, FLW-09 (JTBD-02, JRN-02/#3)
+- **Entry point:** Botão flutuante ou contextual de navegação no cockpit (/app/motorista)
+- **Preconditions:** Motorista em deslocamento até o embarque (HEADING_TO_PICKUP) ou em viagem (IN_TRIP)
+- **Steps:**
+  1. O motorista visualiza o botão de navegação externa GPS com ícone do aplicativo favorito (Waze ou Google Maps).
+  2. O motorista clica no botão com um único toque.
+  3. O sistema resolve dinamicamente as coordenadas do alvo atual: se a caminho do embarque, aponta para a origem do passageiro; se em viagem com paradas, aponta para a próxima parada; se em viagem direta, aponta para o destino final.
+  4. Em dispositivos móveis (Android/iOS), dispara o esquema de URI nativo (`waze://`, `google.navigation:`) abrindo diretamente o app instalado sem passar por abas vazias do navegador.
+  5. Se o app nativo não estiver instalado ou no desktop, aciona o fallback universal via HTTPS com rota calculada.
+  6. O condutor pode alternar o aplicativo preferencial a qualquer momento com toque longo ou no seletor modal.
+- **Expected result:** Acesso instantâneo e seguro a rotas com trânsito em tempo real e alerta de radares com apenas 1 clique durante a condução.
+- **UI elements:** Botão flutuante ExternalNavigationButton, modal de seleção de app GPS, indicador de aplicativo padrão
+- **States covered:** HEADING_TO_PICKUP, IN_TRIP, STOP_TRANSIT
+- **Errors & recovery:** Em caso de ausência de aplicativo nativo instalado, fallback automático para versão web em 1.500ms.
+- **Telemetry:** external_navigation_launched (driver_id, app, target_type, coords)
+- **Status:** implemented
+- **Coverage:** src/lib/navigation/external-navigation-service.ts:1-229, src/components/driver/ExternalNavigationButton.tsx:1-155, src/routes/app.motorista.tsx:1930-1960
+- **Product:** unobserved
+
+### SCN-025: Central de segurança pessoal unificada com gravação confidencial e ficha 190
+
+- **Persona:** P-01, P-02
+- **Feature:** Central de Segurança Pessoal (Padrão Jarvis 99 APK)
+- **Traces:** ST-003, FLW-03 (JTBD-01, JRN-01/#4, JTBD-02, JRN-02/#4)
+- **Entry point:** Botão de proteção / escudo na tela da corrida do passageiro ou botão SOS no cockpit do condutor
+- **Preconditions:** Corrida em andamento ou motorista a caminho
+- **Steps:**
+  1. O passageiro ou condutor abre a Central de Segurança durante o trajeto.
+  2. O usuário pode iniciar a Gravação de Áudio de Segurança com criptografia de ponta a ponta, visualizando o cronômetro ativo em tempo real.
+  3. O áudio é capturado e selado com envelope seguro para fins exclusivos de auditoria e resolução de incidentes.
+  4. O passageiro pode compartilhar o link público "Siga Minha Viagem" via WhatsApp ou redes, permitindo que contatos acompanhem o trajeto por satélite sem necessidade de login.
+  5. Em caso de perigo silencioso, o usuário aciona o Alerta Silencioso de Apoio, enviando telemetria e coordenadas para a torre operacional sem emitir sons.
+  6. Em caso de perigo imediato, ao clicar em Emergência 190, o sistema apresenta a ficha verbal com modelo do carro, placa, condutor e endereço para leitura imediata ao operador da Polícia Militar.
+- **Expected result:** Proteção pessoal robusta e discreta, diminuindo a sensação de vulnerabilidade de passageiros e parceiros.
+- **UI elements:** Bottom sheet SafetyCenterModal, modal DriverSosModal, indicador de gravação de áudio, ficha de dados para operador 190
+- **States covered:** IDLE, RECORDING, COMPLETED, SOS_ALERT
+- **Errors & recovery:** Se o microfone não estiver disponível ou for bloqueado pelo sistema operacional, a gravação exibe aviso de permissão sem travar o aplicativo e mantém ativas as demais funções de socorro.
+- **Telemetry:** safety_audio_recording_started, safety_audio_recording_stopped, safety_silent_sos_dispatched
+- **Status:** implemented
+- **Coverage:** src/lib/security/safety-toolkit-service.ts:1-350, src/components/passenger/SafetyCenterModal.tsx:1-380, src/components/driver/cockpit/DriverSosModal.tsx:1-240
+- **Product:** unobserved
+
+### SCN-026: Compressão vetorial de polylines via RDP e telemetria suave a 60 FPS no mapa
+
+- **Persona:** P-01, P-02
+- **Feature:** Otimização Geométrica e Renderização a 60 FPS
+- **Traces:** ST-001, ST-002, FLW-01, FLW-02
+- **Entry point:** Visualização de rota e mapa em tempo real em qualquer dispositivo
+- **Preconditions:** Rota vetorial calculada e telemetria GPS transmitida pelo veículo
+- **Steps:**
+  1. O serviço de rotas recebe o traçado viário completo com centenas de vértices das vias urbanas.
+  2. O algoritmo Ramer-Douglas-Peucker (RDP) comprime a polyline com tolerância calibrada (0.00004 graus), eliminando entre 40% e 75% dos pontos colineares redundantes e preservando estritamente cruzamentos e curvas.
+  3. O GeoJSON otimizado é injetado no WebGL do Mapbox GL, reduzindo a carga de renderização gráfica e o consumo de bateria em smartphones modestos.
+  4. O filtro de Deadband de GPS amortece micro-oscilações inferiores a 2.5 metros, impedindo trepidação visual quando o carro está parado no trânsito.
+  5. A interpolação contínua de azimute (Bearing Smoothing) calcula o menor arco angular, girando o marcador suavemente a 60 quadros por segundo sem saltos bruscos de orientação.
+- **Expected result:** Navegação fluida, visual limpo e consumo eficiente de recursos gráficos mesmo em trajetos longos e com aparelhos de entrada.
+- **UI elements:** Camada LayerTrips do Mapbox GL, marcador vetorial com interpolação de rotação
+- **States covered:** ROUTE_SIMPLIFIED, GPS_DEADBAND, BEARING_SMOOTHED
+- **Errors & recovery:** Caso a rota possua menos de 3 vértices, o algoritmo preserva as coordenadas originais sem alterações.
+- **Telemetry:** polyline_optimized (original_points, simplified_points, reduction_ratio)
+- **Status:** implemented
+- **Coverage:** src/lib/geo/polyline-optimizer.ts:1-210, src/map/layers/LayerTrips.ts:1-180
+- **Product:** unobserved
+
+### SCN-027: Múltiplas paradas intermediárias com resolução dinâmica de navegação
+
+- **Persona:** P-01, P-02
+- **Feature:** Múltiplas Paradas Intermediárias (Multi-Stop Waypoints Engine)
+- **Traces:** ST-001, ST-002, FLW-01, FLW-02
+- **Entry point:** Solicitação da viagem pelo passageiro (/app) ou execução da viagem no Cockpit do condutor (/app/motorista)
+- **Preconditions:** Passageiro configurou até 2 paradas intermediárias no momento da cotação ou durante a viagem
+- **Steps:**
+  1. O passageiro adiciona uma ou duas paradas ao itinerário, com acréscimo transparente e tabelado de R$ 2,50 por parada intermediária.
+  2. O motorista recebe a chamada informando o número de paradas e o trajeto global consolidado.
+  3. Ao iniciar a viagem, o sistema orienta o condutor para o primeiro ponto de parada intermediária (`currentStopIndex = 0`).
+  4. O botão de navegação externa (Waze ou Google Maps) resolve dinamicamente as coordenadas da parada ativa sem exigir digitação manual pelo motorista.
+  5. Ao chegar ao local da parada, o motorista desliza a barra de ação para confirmar a conclusão da parada ou pular caso solicitado pelo passageiro.
+  6. O sistema avança o índice da parada (`currentStopIndex + 1`), atualiza a linha do tempo no aplicativo do passageiro e reorienta imediatamente a rota e o GPS externo para o próximo ponto ou destino final.
+- **Expected result:** Suporte operacional fluido a itinerários fracionados com remuneração justa adicional de R$ 2,50 por parada ao condutor e roteamento sem atrito.
+- **UI elements:** Banner de parada intermediária no cockpit, timeline de paradas no En Route Sheet, slider de conclusão de parada, seletor de rota dinâmica
+- **States covered:** STOP_IN_PROGRESS, STOP_COMPLETED, STOP_SKIPPED, FINAL_DESTINATION
+- **Errors & recovery:** Se o passageiro desistir de uma parada durante o percurso, o condutor ou passageiro pode pular a etapa diretamente sem travar a viagem.
+- **Telemetry:** multi_stop_added (ride_id, count), multi_stop_advanced (ride_id, stop_index), multi_stop_skipped (ride_id, stop_index)
+- **Status:** implemented
+- **Coverage:** src/lib/passenger/multi-stop-engine.ts:1-210, src/components/driver/cockpit/states/InTripState.tsx:1-220, src/components/passenger/DriverEnRouteSheet.tsx:1-260, src/routes/app.motorista.tsx:1850-1920
+- **Product:** unobserved
+
+### SCN-028: Pontos verdes inteligentes de encontro com snap de embarque
+
+- **Persona:** P-01, P-02
+- **Feature:** Pontos Verdes Inteligentes de Encontro (Smart Green Pickup Points)
+- **Traces:** ST-001, FLW-01
+- **Entry point:** Tela de confirmação de ponto de embarque do passageiro
+- **Preconditions:** Passageiro posiciona o pin em vias de difícil acesso, esquinas de sentido proibido ou calçadões
+- **Steps:**
+  1. O algoritmo analisa a posição do passageiro e detecta pontos de embarque de alta fluidez (esquinas desobstruídas, bolsões de parada, calçadas com recuo) em um raio de até 250 metros.
+  2. O sistema exibe no mapa marcadores verdes pulsantes (Smart Green Pickups) com o tempo economizado indicado (por exemplo: "Economiza até 3 min de volta do motorista").
+  3. O passageiro pode tocar no ponto verde sugerido para fazer o snap magnético do embarque ou manter o pin original.
+  4. Se o passageiro confirmar o ponto verde inteligente, a rota do motorista evita voltas de quarteirão desnecessárias e manobras arriscadas.
+  5. O passageiro recebe instruções simples de caminhada até o ponto de encontro selecionado.
+- **Expected result:** Redução do tempo de espera do passageiro, diminuição de manobras perigosas para o motorista e embarque mais rápido.
+- **UI elements:** Marcadores verdes de alta fluidez no mapa, card de benefício de tempo estimado, botão de seleção rápida do ponto
+- **States covered:** PICKUP_SEARCHING, GREEN_POINT_FOCUSED, PIN_SNAPPED, CUSTOM_PIN
+- **Errors & recovery:** Caso o passageiro opte por não se deslocar, o sistema respeita o pin manual sem restrição ou penalidade.
+- **Telemetry:** smart_pickup_rendered (count), smart_pickup_selected (point_id, detour_savings_minutes)
+- **Status:** implemented
+- **Coverage:** src/lib/passenger/smart-pickups.ts:1-169, src/components/passenger/PassengerConfirmPickupPin.tsx:1-150
+- **Product:** unobserved
+
+### SCN-029: Homologação cadastral expressa com OCR de CNH e validação em tempo real
+
+- **Persona:** P-02, P-03
+- **Feature:** Homologação Cadastral Expressa com OCR de CNH e Validação em Tempo Real (Driver Onboarding KYC)
+- **Traces:** ST-005, ST-008, FLW-05, FLW-11 (JTBD-02, JRN-02/#1, JTBD-03, JRN-01/#2)
+- **Entry point:** Formulário de cadastro de motorista parceiro (/cadastro-motorista) e Central de Frota do Admin (/app/admin/motoristas)
+- **Preconditions:** Novo motorista enviando foto ou PDF da Carteira Nacional de Habilitação (CNH)
+- **Steps:**
+  1. O candidato anexa a foto da CNH no formulário de cadastro de motorista parceiro.
+  2. O motor OCR neural analisa o documento em segundo plano, extraindo Nome, CPF, Número de Registro, Categoria, Data de Validade e observação EAR.
+  3. O sistema valida criptograficamente os dígitos verificadores do CPF e executa validação cruzada com os dados declarados pelo candidato.
+  4. Os campos de formulário são preenchidos e o candidato visualiza o selo de autenticidade (por exemplo: "Validação OCR: 98% de precisão • EAR Confirmado").
+  5. Se a CNH estiver vencida ou sem EAR, alertas preventivos são apresentados com orientações claras de regularização.
+  6. No painel administrativo da franquia regional, a equipe de moderação visualiza a ficha de auditoria documental e aprova o candidato com 1 clique (Aprovação Expressa), liberando acesso imediato ao Cockpit com trial ou diária cortesia.
+- **Expected result:** Redução do tempo de aprovação de 24 horas para menos de 2 minutos, aumentando a taxa de conversão de novos motoristas parceiros sem comprometer a segurança jurídica.
+- **UI elements:** Card de feedback OCR em tempo real, badge de confiabilidade documental, modal DriverKycFastApprovalModal no admin
+- **States covered:** OCR_ANALYZING, OCR_SUCCESS, EAR_WARNING, CNH_EXPIRED, FAST_APPROVED
+- **Errors & recovery:** Em caso de foto cortada ou ilegível, o sistema orienta o candidato a reenviar o documento com boa iluminação sem bloquear o formulário.
+- **Telemetry:** driver_cnh_ocr_scanned (score, ear_detected, match_ratio), driver_fast_approved (driver_id, role)
+- **Status:** implemented
+- **Coverage:** src/lib/kyc/driver-ocr-engine.ts:1-250, src/routes/cadastro-motorista.tsx:250-290, src/components/admin/DriverKycFastApprovalModal.tsx:1-120, src/routes/app.admin.motoristas.tsx:2105-2125
+- **Product:** unobserved
+
+### SCN-030: Chat de bordo hands-free com respostas rápidas de 1 toque e áudio TTS
+
+- **Persona:** P-01, P-02
+- **Feature:** Chat de Bordo Hands-Free e Respostas Rápidas (Quick Canned Replies & TTS)
+- **Traces:** ST-002, ST-003, FLW-02, FLW-03 (JTBD-01, JRN-01/#4, JTBD-02, JRN-02/#3)
+- **Entry point:** Cockpit do motorista (/app/motorista) e painel En Route do passageiro
+- **Preconditions:** Corrida aceita com motorista a caminho ou no local de embarque
+- **Steps:**
+  1. Durante o deslocamento até o embarque, tanto o condutor quanto o passageiro visualizam na base do painel uma barra horizontal com respostas rápidas contextuais de 1 toque.
+  2. O condutor toca no chip "Estou a caminho" ou "Pisca-alerta ligado", transmitindo a mensagem instantaneamente sem precisar abrir o chat em tela cheia e sem tirar os olhos do mapa viário.
+  3. O passageiro visualiza o status no seu aplicativo e responde com 1 toque no chip "Estou descendo" ou "Aguardando na calçada".
+  4. Ao receber a mensagem do passageiro, o Cockpit do condutor sintetiza o áudio em voz alta via Text-to-Speech (TTS), permitindo que o condutor ouça a mensagem com segurança durante a condução.
+  5. O sistema aplica trava anti-flood de 2.5 segundos para evitar envios duplicados acidentais.
+- **Expected result:** Comunicação ágil e segura entre passageiro e condutor, eliminando digitação arriscada no volante e reduzindo o tempo de espera no embarque em até 40%.
+- **UI elements:** Barra deslizável InlineQuickReplyBar, chips com microinteração tátil, síntese de áudio DriverVoiceAssistant
+- **States covered:** HEADING_REPLIES, ARRIVED_REPLIES, ON_TRIP_REPLIES, TTS_ACTIVE
+- **Errors & recovery:** Em caso de perda momentânea de sinal de rede, a mensagem é armazenada na fila outbox local e enviada automaticamente após a reconexão.
+- **Telemetry:** quick_reply_sent (ride_id, sender_type, text_id), tts_message_spoken (driver_id, text_length)
+- **Status:** implemented
+- **Coverage:** src/lib/chat/quick-canned-replies.ts:1-173, src/components/chat/InlineQuickReplyBar.tsx:1-130, src/components/driver/cockpit/states/HeadingToPickupState.tsx:85-110, src/components/driver/cockpit/states/WaitingPassengerState.tsx:150-180, src/components/passenger/DriverEnRouteSheet.tsx:1165-1190
+- **Product:** unobserved
+
+### SCN-031: Código PIN de 4 dígitos para embarque seguro de passageiros
+
+- **Persona:** P-01, P-02
+- **Feature:** Código PIN de Segurança no Embarque
+- **Traces:** ST-002, FLW-02 (JTBD-01, JRN-01/#4, JTBD-02, JRN-02/#3)
+- **Entry point:** Painel En Route do passageiro (/app) e Cockpit do condutor em estado WAITING_PIN (/app/motorista)
+- **Preconditions:** Corrida de passageiro aceita com condutor no local de embarque ou política de segurança ativa
+- **Steps:**
+  1. O sistema gera um código numérico aleatório de 4 dígitos (exemplo: "4829") com segurança criptográfica e armazena no registro da corrida ativa.
+  2. O aplicativo do passageiro exibe o PIN com 4 caixas em alto contraste visual (WCAG AAA) e botão rápido para copiar.
+  3. Quando o motorista chega ao local de embarque (WAITING_PIN), o botão principal "DIGITAR PIN DO PASSAGEIRO" solicita os 4 números informados verbalmente pelo passageiro na calçada.
+  4. O motorista toca no botão e visualiza o teclado numérico integrado com teclas ampliadas de 56px, digitando os 4 números sem sobreposição do teclado do sistema.
+  5. O motor valida o PIN com proteção contra força bruta: caso 3 tentativas incorretas sejam feitas consecutivamente, ativa-se o bloqueio temporário de 5 minutos.
+  6. Com o PIN validado com sucesso, o Cockpit dispara retorno tátil de confirmação, anúncio sonoro e avança instantaneamente para viagem em andamento (IN_PROGRESS).
+- **Expected result:** Prevenção de embarque no veículo errado, falsos passageiros e corridas clandestinas.
+- **UI elements:** 4 caixas de OTP no DriverEnRouteSheet, botão Digitar PIN do passageiro no WaitingPassengerState, modal de numpad veicular PassengerPinVerificationModal
+- **States covered:** WAITING_PIN, PIN_VERIFYING, PIN_SUCCESS, PIN_LOCKED, IN_PROGRESS
+- **Errors & recovery:** Caso o passageiro informe dígitos divergentes, tem até 3 tentativas antes do bloqueio temporário de 5 minutos.
+- **Telemetry:** boarding_pin_verified (ride_id, success, attempts), boarding_pin_locked (ride_id, duration_seconds)
+- **Status:** implemented
+- **Coverage:** src/lib/security/boarding-pin-engine.ts:1-188, src/components/driver/cockpit/PassengerPinVerificationModal.tsx:1-291, src/components/driver/cockpit/states/WaitingPassengerState.tsx:1-341, src/components/passenger/DriverEnRouteSheet.tsx:1-1349
+- **Product:** unobserved
+
+### SCN-032: Solicitação de corrida para terceiros com link web ao vivo no WhatsApp
+
+- **Persona:** P-01, P-02
+- **Feature:** Corrida para Terceiros
+- **Traces:** ST-001, ST-002, FLW-01, FLW-02 (JTBD-01, JRN-01/#1, JTBD-02, JRN-02/#3)
+- **Entry point:** Seletor de passageiro na folha de revisão de rota do passageiro (/app)
+- **Preconditions:** Passageiro cadastrado solicitando corrida para amigo, familiar ou colaborador
+- **Steps:**
+  1. Na tela de escolha de categoria e revisão de rota, o passageiro toca no chip de viajante e abre o modal "Quem vai viajar?".
+  2. O passageiro alterna para a opção "Outra pessoa" e preenche o nome e telefone celular com WhatsApp do passageiro real.
+  3. O sistema aplica máscara automática de telefone brasileiro (XX) 9XXXX-XXXX e valida o nome completo.
+  4. Ao confirmar e solicitar a corrida, o sistema ativa automaticamente a obrigatoriedade do PIN de embarque para segurança de quem vai viajar.
+  5. O aplicativo do passageiro titular exibe o card de envio rápido: com 1 toque, abre o WhatsApp com mensagem estruturada contendo nome do motorista, avaliação, modelo e cor do veículo, placa, código PIN e o link público de rastreamento no mapa ao vivo (/rastreio/:token).
+  6. No Cockpit do condutor (HeadingToPickupState e WaitingPassengerState), é exibido o selo destacado com o nome de quem embarca e o nome de quem solicitou, e o botão de ligação telefônica disca diretamente para o celular de quem está na calçada.
+- **Expected result:** O passageiro convidado acompanha o carro chegando em tempo real sem precisar de login, e o condutor identifica com exatidão quem irá embarcar.
+- **UI elements:** Modal PassengerSelectionModal com alternador e máscara de telefone, card de compartilhamento WhatsApp no DriverEnRouteSheet, banner informativo no Cockpit do motorista
+- **States covered:** SELECTING_PASSENGER, THIRD_PARTY_ACTIVE, WHATSAPP_SHARED, GUEST_BOARDING
+- **Errors & recovery:** Caso o convidado não utilize WhatsApp, o titular pode copiar o texto da mensagem e o link web para envio por SMS.
+- **Telemetry:** third_party_ride_requested (ride_id, guest_name_length), third_party_whatsapp_shared (ride_id)
+- **Status:** implemented
+- **Coverage:** src/lib/passenger/ride-for-third-party-engine.ts:1-151, src/components/passenger/route-sheet/PassengerSelectionModal.tsx:1-180, src/components/passenger/DriverEnRouteSheet.tsx:1-1529, src/components/driver/cockpit/states/WaitingPassengerState.tsx:1-341
+- **Product:** unobserved
+
+### SCN-033: Corridas agendadas com negociação bilateral e piso mínimo operacional
+
+- **Persona:** P-01, P-02
+- **Feature:** Corridas Agendadas com Negociação Bilateral
+- **Traces:** ST-001, ST-002, FLW-01, FLW-02 (JTBD-01, JRN-01/#1, JTBD-02, JRN-02/#3)
+- **Entry point:** Aba "Agendar" na barra de navegação de modalidades (/app/agendar) e Mural de Agendamentos no Cockpit do Motorista (/app/motorista)
+- **Preconditions:** Passageiro autenticado solicitando corrida com no mínimo 30 minutos de antecedência
+- **Steps:**
+  1. O passageiro acessa a aba Agendar pelo seletor de modalidades inferior de 3 posições (Corrida, Entrega, Agendar).
+  2. Na tela dedicada (/app/agendar), o passageiro preenche origem, destino, data e horário (com validação estrita de antecedência mínima de 30 minutos).
+  3. O sistema calcula a tarifa base sugerida e o piso mínimo de custo operacional por quilômetro e tempo.
+  4. O passageiro submete sua oferta, com validação anti-leilão predatório garantindo que a proposta cubra no mínimo o piso operacional da rota.
+  5. A solicitação entra em status SOLICITADO e é transmitida aos motoristas parceiros da região no Mural de Agendamentos.
+  6. O condutor parceiro pode aceitar imediatamente pelo valor proposto ou enviar uma contraproposta justificada (exemplo: pedágio ou retorno vazio).
+  7. Havendo mútuo consentimento, a viagem é travada em AGENDADO e o sistema registra a régua automática de lembretes (24 horas, 2 horas e 30 minutos antes do embarque).
+- **Expected result:** Garantia de previsibilidade para passageiros e viagens lucrativas sem taxas de intermediação (0% de comissão) para motoristas parceiros.
+- **UI elements:** Seletor de modalidade ModeTabSelector com 3 abas, tela dedicada ScheduledRideFormScreen, modal de compromissos ScheduledRideListModal, drawer de oportunidades ScheduledRidesDrawer no Cockpit do motorista
+- **States covered:** SOLICITADO, EM_NEGOCIACAO, AGENDADO, CANCELADO
+- **Errors & recovery:** Tentativas de ofertas predatórias abaixo do piso operacional são barradas com alerta educativo instantâneo sobre a cobertura dos custos do parceiro.
+- **Telemetry:** scheduled_ride_requested (ride_id, floor_brl, offered_brl), scheduled_ride_counter_offer (ride_id, counter_brl), scheduled_ride_confirmed (ride_id, final_brl)
+- **Status:** implemented
+- **Coverage:** src/lib/ride/scheduled-ride-engine.ts:1-350, src/components/navigation/ModeTabSelector.tsx:1-90, src/routes/app.agendar.tsx:1-90, src/components/schedule/ScheduledRideFormScreen.tsx:1-380, src/components/schedule/ScheduledRideListModal.tsx:1-300, src/components/driver/ScheduledRidesDrawer.tsx:1-330
+- **Product:** unobserved
+
+### SCN-034: Troco digital no acerto em dinheiro e bloqueio soberano de passageiro
+
+- **Persona:** P-01, P-02
+- **Feature:** Troco Digital no Acerto em Dinheiro e Bloqueio Soberano de Passageiro
+- **Traces:** ST-002, ST-004, FLW-02, FLW-04 (JTBD-02, JRN-02/#4, JRN-02/#5)
+- **Entry point:** Modal de Acerto da Corrida (RidePaymentSettlementModal) e Modal de Avaliação Mútua (RideRatingModal) no Cockpit do Motorista (/app/motorista)
+- **Preconditions:** Corrida finalizada com acerto de pagamento em dinheiro ou avaliação pós-viagem
+- **Steps:**
+  1. Na finalização da corrida, o motorista seleciona a opção de pagamento em Dinheiro.
+  2. O condutor informa a quantia recebida em espécie através do campo numérico ou chips de cédulas rápidas.
+  3. O sistema calcula o troco exato instantaneamente.
+  4. Caso haja troco pendente, o condutor pode optar por devolver troco físico em espécie ou acionar o botão de depósito digital 1 toque.
+  5. Ao selecionar o troco digital, o valor é creditado imediatamente na carteira digital do passageiro com zero comissão retida pelo app.
+  6. Na tela seguinte de avaliação mútua, o condutor pode marcar a opção soberana de bloqueio de usuário, escolhendo o motivo correspondente.
+  7. O algoritmo de despacho em cascata suprime o par bloqueado de qualquer futura distribuição de chamadas, sem penalidade na taxa de aceitação do parceiro.
+- **Expected result:** Eliminação do atrito de troco em corridas pagas em dinheiro e garantia de segurança psicológica ao condutor sem penalizações operacionais.
+- **UI elements:** Calculadora de troco inteligente em RidePaymentSettlementModal, chips de notas sugeridas, botão de depósito digital de troco, seletor de bloqueio soberano com motivos em RideRatingModal
+- **States covered:** DINHEIRO, TROCO_CALCULADO, TROCO_DIGITAL_DEPOSITADO, BLOQUEADO
+- **Errors & recovery:** Valores em dinheiro inferiores ao total da corrida exibem alerta impeditivo informando a quantia faltante.
+- **Telemetry:** digital_change_deposited (ride_id, change_brl, passenger_id), passenger_blocked (driver_id, passenger_id, reason_code)
+- **Status:** implemented
+- **Coverage:** src/lib/payment/digital-change-engine.ts:1-202, src/lib/driver/driver-blacklist-engine.ts:1-233, src/components/driver/RidePaymentSettlementModal.tsx:1-558, src/components/rating/RideRatingModal.tsx:1-344, src/services/DispatchQueueBuilder.ts:1-336
+- **Product:** unobserved
+
+### SCN-035: Alerta de aproximação de 500 metros no embarque e destino para motorista e passageiro
+
+- **Persona:** P-01, P-02
+- **Feature:** Alerta de Proximidade 500 Metros (Embarque e Destino)
+- **Traces:** ST-001, ST-002, FLW-01, FLW-02 (JTBD-01, JRN-01/#3, JTBD-02, JRN-02/#3, JRN-02/#4)
+- **Entry point:** Cockpit do Motorista (/app/motorista) e Folha de Viagem do Passageiro (DriverEnRouteSheet em /app)
+- **Preconditions:** Corrida ativa nas etapas de deslocamento ao embarque (HEADING_TO_PICKUP) ou em viagem ao destino (IN_PROGRESS / ON_TRIP)
+- **Steps:**
+  1. Durante o deslocamento do condutor até o ponto de coleta, a telemetria geodésica monitora a distância em relação à origem.
+  2. Ao cruzar o raio de 500 metros do embarque, o sistema dispara simultaneamente:
+     a) No veículo do motorista: sinal sonoro dual-harmonic e anúncio por voz sintetizada ("Aproximação do embarque: 500 metros. Prepare-se para a chegada.") acompanhado de toast informativo.
+     b) No celular do passageiro: sinal sonoro dual-harmonic, anúncio por voz sintetizada ("Seu motorista está se aproximando, a cerca de 500 metros. Prepare-se para o embarque.") e banner visual animado no topo da tela com opção de dispensa.
+  3. O motor geofence garante acionamento estritamente único por etapa (idempotência), evitando alertas repetidos durante o tráfego.
+  4. Após o embarque e início da viagem em direção ao destino final, o condutor e passageiro seguem em trajeto.
+  5. Ao cruzar o raio de 500 metros do destino final, o sistema dispara a segunda etapa de proximidade:
+     a) No veículo do motorista: sinal sonoro dual-harmonic, anúncio por voz sintetizada ("Aproximação do destino: 500 metros. Prepare-se para o desembarque.") e toast no cockpit.
+     b) No celular do passageiro: sinal sonoro dual-harmonic, anúncio por voz sintetizada ("Aproximação do destino: 500 metros. Prepare-se para o desembarque.") e banner animado com lembrete de verificação de pertences.
+- **Expected result:** O passageiro desce para o ponto de encontro com antecedência ideal reduzindo o tempo de espera do motorista, e desembarca com segurança e pontualidade sem esquecer pertences no veículo.
+- **UI elements:** Banner animado de proximidade no DriverEnRouteSheet, toast contextual no Cockpit do motorista, emissão de áudio Web Audio API dual-harmonic
+- **States covered:** HEADING_TO_PICKUP, IN_PROGRESS, ON_TRIP, PROXIMITY_ALERT_PICKUP, PROXIMITY_ALERT_DESTINATION
+- **Errors & recovery:** Em caso de oscilação de GPS ou perda momentânea de sinal, o cálculo geodésico revalida a distância a cada pulso de telemetria sem duplicações de áudio.
+- **Telemetry:** proximity_500m_triggered (ride_id, stage, distance_meters, timestamp)
+- **Status:** implemented
+- **Coverage:** src/lib/spatial/geofence-arrival-service.ts:1-239, src/lib/partiu-engine.ts:310-340, src/hooks/driver/useDriverVoiceAlerts.ts:1-134, src/routes/app.motorista.tsx:1200-1280, src/components/passenger/DriverEnRouteSheet.tsx:280-380
 - **Product:** unobserved

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Bell,
   BellRing,
@@ -30,6 +30,8 @@ import {
   excluirNotificacaoBroadcast,
   TEMPLATES_NOTIFICACOES,
 } from "@/lib/broadcast-notifications";
+import { useAdminCity } from "@/contexts/AdminCityContext";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 export const Route = createFileRoute("/app/admin/notificacoes")({
   head: () => ({
@@ -46,9 +48,18 @@ export const Route = createFileRoute("/app/admin/notificacoes")({
 });
 
 export function AdminNotificacoesScreen() {
+  const { pracaAtiva, isNacional: isContextNacional } = useAdminCity();
+  const { isFranqueado, tenantId: authTenantId, contaAtiva } = useAdminAuth();
+  const isNacional = !isFranqueado && isContextNacional;
+  const tenantAlvo = isFranqueado && authTenantId ? authTenantId : (!isNacional && pracaAtiva?.id !== "todas" ? pracaAtiva?.id : undefined);
+
   const [notificacoes, setNotificacoes] = useState<NotificacaoBroadcast[]>(() =>
-    listarNotificacoesBroadcast(),
+    listarNotificacoesBroadcast(tenantAlvo),
   );
+
+  useEffect(() => {
+    setNotificacoes(listarNotificacoesBroadcast(tenantAlvo));
+  }, [tenantAlvo]);
 
   // Form State
   const [categoria, setCategoria] = useState<CategoriaDestinatario>("usuario");
@@ -88,11 +99,12 @@ export function AdminNotificacoesScreen() {
         mensagem: mensagem.trim(),
         categoria,
         urgencia,
+        tenant_id: tenantAlvo || null,
         rotaDestino: rotaDestino.trim() || "/app",
-        enviadoPor: "Diretoria PARTIU Brasil",
+        enviadoPor: isFranqueado ? `Franquia ${contaAtiva.tenantNome || pracaAtiva?.nome || "Regional"}` : "Diretoria PARTIU Brasil",
       });
 
-      setNotificacoes(listarNotificacoesBroadcast());
+      setNotificacoes(listarNotificacoesBroadcast(tenantAlvo));
       setFeedbackSucesso(
         `Notificação transmitida com sucesso para a categoria ${categoria.toUpperCase()}! (~${res.notificação.totalDestinatariosEstimados} dispositivos alcançados)`,
       );
@@ -112,7 +124,7 @@ export function AdminNotificacoesScreen() {
   function handleExcluir(id: string) {
     if (confirm("Tem certeza que deseja excluir esta notificação do histórico?")) {
       excluirNotificacaoBroadcast(id);
-      setNotificacoes(listarNotificacoesBroadcast());
+      setNotificacoes(listarNotificacoesBroadcast(tenantAlvo));
     }
   }
 

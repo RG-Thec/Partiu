@@ -13,12 +13,7 @@ export function MockLocationBanner({
   reasons = [],
 }: MockLocationBannerProps) {
   if (riskLevel === "SAFE" || riskLevel === "LOW_RISK") {
-    return (
-      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-[10px] font-bold text-emerald-400">
-        <ShieldCheck className="h-3 w-3" />
-        <span>GPS Autêntico</span>
-      </div>
-    );
+    return null;
   }
 
   const isCritical = riskLevel === "CRITICAL_SPOOF";

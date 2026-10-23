@@ -101,16 +101,23 @@ export function PainelFinanceiroUnificadoPage() {
     if (isNacional) return ridesBanco;
     const nomeCidade = pracaAtiva.nome.toLowerCase();
     const pracaId = pracaAtiva.id.toLowerCase();
+    const cleanPraca = pracaId.replace("tenant-", "").replace("praca_", "");
+
     return ridesBanco.filter((r: any) => {
+      const tenant = (r.tenant_id || r.praca_id || "").toLowerCase();
+      // 1. Prioridade absoluta: isolamento estrito por tenant_id da franquia
+      if (tenant && pracaId && pracaId !== "todas") {
+        const cleanTenant = tenant.replace("tenant-", "").replace("praca_", "");
+        return cleanTenant === cleanPraca || tenant === pracaId;
+      }
+      // 2. Apenas registros legados sem tenant_id recorrem a correspondência geográfica
       const orig = (r.pickup_address || "").toLowerCase();
       const dest = (r.destination_address || "").toLowerCase();
       const city = (r.city || r.cidade || "").toLowerCase();
-      const tenant = (r.tenant_id || r.praca_id || "").toLowerCase();
       return (
         orig.includes(nomeCidade) ||
         dest.includes(nomeCidade) ||
-        city.includes(nomeCidade) ||
-        tenant === pracaId
+        city.includes(nomeCidade)
       );
     });
   }, [ridesBanco, isNacional, pracaAtiva]);
@@ -119,11 +126,19 @@ export function PainelFinanceiroUnificadoPage() {
     if (isNacional) return caixasBanco;
     const nomeCidade = pracaAtiva.nome.toLowerCase();
     const pracaId = pracaAtiva.id.toLowerCase();
+    const cleanPraca = pracaId.replace("tenant-", "").replace("praca_", "");
+
     return caixasBanco.filter((c: any) => {
+      const tenant = (c.tenant_id || "").toLowerCase();
+      // 1. Prioridade absoluta: isolamento estrito por tenant_id da franquia
+      if (tenant && pracaId && pracaId !== "todas") {
+        const cleanTenant = tenant.replace("tenant-", "").replace("praca_", "");
+        return cleanTenant === cleanPraca || tenant === pracaId;
+      }
+      // 2. Apenas registros legados sem tenant_id recorrem a correspondência geográfica
       const desc = (c.descricao || "").toLowerCase();
       const praca = (c.praca || c.cidade || "").toLowerCase();
-      const tenant = (c.tenant_id || "").toLowerCase();
-      return desc.includes(nomeCidade) || praca.includes(nomeCidade) || tenant === pracaId;
+      return desc.includes(nomeCidade) || praca.includes(nomeCidade);
     });
   }, [caixasBanco, isNacional, pracaAtiva]);
 

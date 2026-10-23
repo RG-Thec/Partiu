@@ -65,7 +65,8 @@ export function DriverDeliveryModals({
               <button
                 type="button"
                 onClick={onCloseDevolucao}
-                className="p-1 rounded-full text-muted-foreground hover:text-foreground cursor-pointer"
+                className="w-10 h-10 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground cursor-pointer transition active:scale-90 hover:bg-muted/40"
+                aria-label="Fechar protocolo de devolução"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -96,7 +97,7 @@ export function DriverDeliveryModals({
               </div>
               <p className="text-xs text-foreground font-medium">
                 {waitStatus.canInitiateReturn
-                  ? "✓ Tolerância e tentativas cumpridas! Devolução liberada."
+                  ? "Tolerância e tentativas cumpridas. Devolução liberada."
                   : "Aguarde e tente contatar o destinatário antes de devolver."}
               </p>
             </div>
@@ -110,7 +111,7 @@ export function DriverDeliveryModals({
                 <button
                   type="button"
                   onClick={() => onRegistrarContato("CALL")}
-                  className="p-2.5 border rounded-xl bg-muted/40 text-foreground font-bold text-xs flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer"
+                  className="p-3 min-h-[50px] border rounded-xl bg-muted/40 text-foreground font-bold text-xs flex flex-col items-center justify-center gap-1 active:scale-95 transition cursor-pointer"
                 >
                   <Phone className="w-4 h-4 text-emerald-600" />
                   <span>Ligação</span>
@@ -118,7 +119,7 @@ export function DriverDeliveryModals({
                 <button
                   type="button"
                   onClick={() => onRegistrarContato("MESSAGE")}
-                  className="p-2.5 border rounded-xl bg-muted/40 text-foreground font-bold text-xs flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer"
+                  className="p-3 min-h-[50px] border rounded-xl bg-muted/40 text-foreground font-bold text-xs flex flex-col items-center justify-center gap-1 active:scale-95 transition cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4 text-emerald-600" />
                   <span>WhatsApp</span>
@@ -126,7 +127,7 @@ export function DriverDeliveryModals({
                 <button
                   type="button"
                   onClick={() => onRegistrarContato("BUZZER")}
-                  className="p-2.5 border rounded-xl bg-muted/40 text-foreground font-bold text-xs flex flex-col items-center gap-1 active:scale-95 transition cursor-pointer"
+                  className="p-3 min-h-[50px] border rounded-xl bg-muted/40 text-foreground font-bold text-xs flex flex-col items-center justify-center gap-1 active:scale-95 transition cursor-pointer"
                 >
                   <Bell className="w-4 h-4 text-amber-500" />
                   <span>Interfone</span>
@@ -135,7 +136,7 @@ export function DriverDeliveryModals({
 
               {waitStatus.contactAttempts.length > 0 && (
                 <div className="text-[11px] font-semibold text-center pt-1 text-emerald-600">
-                  ✓ {waitStatus.contactAttempts.length} tentativa(s) registrada(s) na auditoria.
+                  Tentativas registradas na auditoria: {waitStatus.contactAttempts.length}.
                 </div>
               )}
             </div>
@@ -149,7 +150,7 @@ export function DriverDeliveryModals({
                   background: brandGradient,
                   color: corTextoPrimaria,
                 }}
-                className="w-full py-3.5 rounded-2xl font-black text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full h-13 min-h-[52px] rounded-2xl font-black text-xs shadow-md transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>INICIAR DEVOLUÇÃO AO REMETENTE</span>
@@ -157,7 +158,7 @@ export function DriverDeliveryModals({
               <button
                 type="button"
                 onClick={onCloseDevolucao}
-                className="w-full py-2.5 rounded-xl bg-muted text-foreground font-bold text-xs hover:bg-muted/80 transition cursor-pointer"
+                className="w-full min-h-[44px] py-2.5 rounded-xl bg-muted text-foreground font-bold text-xs hover:bg-muted/80 transition cursor-pointer"
               >
                 Continuar Aguardando
               </button>
@@ -178,7 +179,8 @@ export function DriverDeliveryModals({
               <button
                 type="button"
                 onClick={onCloseReturnFinalizar}
-                className="p-1 rounded-full text-muted-foreground hover:text-foreground cursor-pointer"
+                className="w-10 h-10 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground cursor-pointer transition active:scale-90 hover:bg-muted/40"
+                aria-label="Fechar confirmação de devolução"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -232,7 +234,7 @@ export function DriverDeliveryModals({
                   className="w-full h-full object-cover"
                 />
                 <span className="absolute bottom-1 right-1 px-2 py-0.5 bg-black/70 text-white rounded text-[9px] font-bold">
-                  Foto Comprovada ✓
+                  Foto comprovada
                 </span>
               </div>
             </div>
@@ -244,7 +246,7 @@ export function DriverDeliveryModals({
                 background: brandGradient,
                 color: corTextoPrimaria,
               }}
-              className="w-full h-14 rounded-2xl font-black text-sm shadow-xl transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full h-14 min-h-[56px] rounded-2xl font-black text-sm shadow-xl transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
             >
               <CheckCircle2 className="w-5 h-5" />
               <span>FINALIZAR DEVOLUÇÃO &amp; RECEBER PIX D+0</span>

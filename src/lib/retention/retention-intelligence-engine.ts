@@ -33,6 +33,7 @@ export interface DriverRetentionRecord {
   status: "IDENTIFIED" | "CAMPAIGN_SENT" | "RECOVERED" | "CHURNED";
   temporaryGoldActiveUntil?: number | undefined;
   lastContactedAt?: number | undefined;
+  tenantId?: string | undefined;
   updatedAt: number;
 }
 
@@ -185,8 +186,15 @@ export class RetentionIntelligenceEngine {
     return { ...this.config };
   }
 
-  public getAllRecords(): DriverRetentionRecord[] {
-    return Array.from(this.records.values()).sort((a, b) => b.riskScore - a.riskScore);
+  public getAllRecords(tenantId?: string): DriverRetentionRecord[] {
+    const list = Array.from(this.records.values()).sort((a, b) => b.riskScore - a.riskScore);
+    if (!tenantId || tenantId === "todas") return list;
+    const cleanTarget = tenantId.toLowerCase().replace("tenant-", "").replace("praca_", "");
+    return list.filter((r) => {
+      if (!r.tenantId) return true;
+      const cleanR = r.tenantId.toLowerCase().replace("tenant-", "").replace("praca_", "");
+      return cleanR === cleanTarget || r.tenantId.toLowerCase() === tenantId.toLowerCase();
+    });
   }
 
   /**
@@ -229,14 +237,14 @@ export class RetentionIntelligenceEngine {
     };
   }
 
-  public getMetrics(): {
+  public getMetrics(tenantId?: string): {
     totalMonitored: number;
     atRiskCount: number;
     criticalCount: number;
     churnRatePercent: number;
     recoveredCount: number;
   } {
-    const all = Array.from(this.records.values());
+    const all = this.getAllRecords(tenantId);
     const atRisk = all.filter((r) => r.riskLevel === "ALTO" || r.riskLevel === "CRITICO");
     const critical = all.filter((r) => r.riskLevel === "CRITICO");
     const recovered = all.filter((r) => r.status === "RECOVERED");

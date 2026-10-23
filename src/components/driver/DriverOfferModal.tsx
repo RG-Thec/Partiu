@@ -12,7 +12,7 @@
  */
 
 import React, { useEffect, useState, memo, useRef } from "react";
-import { Star, MapPin, Clock, ArrowRight, User, ChevronRight, X } from "lucide-react";
+import { Star, MapPin, Clock, ArrowRight, User, ChevronRight, X, Gift } from "lucide-react";
 import { callAlertService } from "@/services/CallAlertService";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
 import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
@@ -223,7 +223,8 @@ export const DriverOfferModal = memo(function DriverOfferModal({
             </div>
             {oferta.descontoCupom && oferta.descontoCupom > 0 ? (
               <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-400 font-bold text-[11px] shadow-2xs">
-                <span>🎁 + R$ {oferta.descontoCupom.toFixed(2).replace(".", ",")} de Cupom</span>
+                <Gift className="w-3 h-3 shrink-0" />
+                <span>+ R$ {oferta.descontoCupom.toFixed(2).replace(".", ",")} de Cupom</span>
               </div>
             ) : null}
           </div>
@@ -294,7 +295,6 @@ export const DriverOfferModal = memo(function DriverOfferModal({
               style={{ color: colors.textPrimary }}
             >
               <span>{notaFormatada}</span>
-              <span className="text-amber-500 text-xs">★</span>
             </div>
             <div
               className="text-[10px] font-bold uppercase tracking-wider mt-0.5 truncate"
@@ -370,7 +370,7 @@ export const DriverOfferModal = memo(function DriverOfferModal({
         >
           {/* Rótulo Central */}
           <span className="font-black text-xs sm:text-sm text-white uppercase tracking-wider pl-9 pointer-events-none">
-            {accepted ? "✓ CORRIDA ACEITA" : "DESLIZE PARA ACEITAR >>>"}
+            {accepted ? "CORRIDA ACEITA" : "DESLIZE PARA ACEITAR >>>"}
           </span>
 
           {/* Botão Deslizante Branco com Seta */}

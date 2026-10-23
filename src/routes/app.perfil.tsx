@@ -62,7 +62,7 @@ export function ProfilePagePartiu() {
   const [mensagemErro, setMensagemErro] = useState<string | null>(null);
   const [abaAtiva, setAbaAtiva] = useState<"dados" | "preferencias">("dados");
   const isDriver =
-    supabaseAuthService.getStoredSession()?.role === "driver" ||
+    (supabaseAuthService.getStoredSession()?.role as string) === "driver" ||
     supabaseAuthService.getStoredSession()?.role === "MOTORISTA";
 
   // Campos do Formulário (Inicialização síncrona instantânea priorizando a sessão real)

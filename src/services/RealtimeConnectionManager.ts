@@ -44,6 +44,15 @@ export class RealtimeConnectionManager {
   private listeners: Set<ConnectionStateListener> = new Set();
   private activeChannels: Set<string> = new Set();
 
+  // ── Sincronismo Híbrido: Polling Adaptativo de Contingência (SCENE_CODE_POLL_ORDER_STATUS) ──
+  private pollingRides: Map<
+    string,
+    { onUpdate: (data: any) => void; lastEventAt: number; lastStatus?: string }
+  > = new Map();
+  private adaptivePollingTimer: NodeJS.Timeout | null = null;
+  private readonly POLLING_INTERVAL_MS = 3000;
+  private readonly MAX_SILENCE_BEFORE_POLL_MS = 4000;
+
   private constructor() {
     this.setupNetworkListeners();
   }
@@ -228,6 +237,99 @@ export class RealtimeConnectionManager {
 
   public getState(): ConnectionState {
     return this.state;
+  }
+
+  /**
+   * Registra uma corrida ativa para monitoramento adaptativo de contingência.
+   * Se a conexão WebSocket cair ou demorar mais de 4s sem eventos, consulta
+   * diretamente a rota REST/PostgreSQL para reconciliar o status (P0).
+   */
+  public startRideAdaptivePolling(
+    rideId: string,
+    onUpdate: (data: any) => void,
+  ): () => void {
+    if (!rideId) return () => {};
+
+    this.pollingRides.set(rideId, {
+      onUpdate,
+      lastEventAt: Date.now(),
+    });
+
+    if (!this.adaptivePollingTimer) {
+      this.adaptivePollingTimer = setInterval(() => {
+        this.executeAdaptivePollingCycle();
+      }, this.POLLING_INTERVAL_MS);
+    }
+
+    return () => {
+      this.stopRideAdaptivePolling(rideId);
+    };
+  }
+
+  /**
+   * Notifica que um evento realtime legítimo foi recebido via WebSocket.
+   * Reseta a janela de silêncio para que o polling adaptativo não onere o banco.
+   */
+  public notifyRideEventReceived(rideId: string, currentStatus?: string): void {
+    const entry = this.pollingRides.get(rideId);
+    if (entry) {
+      entry.lastEventAt = Date.now();
+      if (currentStatus) {
+        entry.lastStatus = currentStatus;
+      }
+    }
+  }
+
+  /**
+   * Encerra o monitoramento de contingência para uma corrida finalizada ou cancelada.
+   */
+  public stopRideAdaptivePolling(rideId: string): void {
+    this.pollingRides.delete(rideId);
+    if (this.pollingRides.size === 0 && this.adaptivePollingTimer) {
+      clearInterval(this.adaptivePollingTimer);
+      this.adaptivePollingTimer = null;
+    }
+  }
+
+  /**
+   * Executa a varredura das corridas que necessitam de reconciliação HTTP.
+   */
+  private async executeAdaptivePollingCycle(): Promise<void> {
+    if (this.pollingRides.size === 0) return;
+
+    const now = Date.now();
+    const isSocketDegraded = this.state !== "CONNECTED";
+
+    for (const [rideId, tracker] of this.pollingRides.entries()) {
+      const isSilent = now - tracker.lastEventAt >= this.MAX_SILENCE_BEFORE_POLL_MS;
+
+      // Executa consulta HTTP apenas se o WebSocket estiver desconectado/reconectando OU silencioso
+      if (isSocketDegraded || isSilent) {
+        try {
+          const { data, error } = await supabase
+            .from("rides" as any)
+            .select("id, status, driver_id, offered_driver_id, driver_arrived_at, updated_at")
+            .eq("id", rideId)
+            .maybeSingle();
+
+          if (!error && data) {
+            tracker.lastEventAt = now;
+            // Se o status mudou ou se é a primeira leitura, notifica
+            if (!tracker.lastStatus || tracker.lastStatus !== (data as any).status) {
+              tracker.lastStatus = (data as any).status;
+              tracker.onUpdate(data);
+            }
+
+            // Encerra polling se a corrida atingiu estado terminal
+            if (["COMPLETED", "CANCELLED", "PAID"].includes((data as any).status)) {
+              this.stopRideAdaptivePolling(rideId);
+            }
+          }
+        } catch (err) {
+          console.warn(`[RealtimeManager] Falha no polling adaptativo da corrida ${rideId}:`, err);
+        }
+      }
+    }
   }
 }
 

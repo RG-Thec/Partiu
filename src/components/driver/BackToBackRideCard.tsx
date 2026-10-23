@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { User, MapPin, CheckCircle, X, Sparkles, Navigation } from "lucide-react";
+import { User, MapPin, CheckCircle, X, Sparkles, Navigation, Star } from "lucide-react";
 import type { BackToBackCandidate } from "@/lib/driver/back-to-back-engine";
 
 export interface BackToBackRideCardProps {
@@ -80,7 +80,10 @@ export function BackToBackRideCard({
           <div className="min-w-0">
             <h4 className="text-sm font-bold text-white truncate">{candidate.passageiroNome}</h4>
             <p className="text-[11px] text-slate-400 flex items-center gap-1">
-              <span>★ {candidate.passageiroNota.toFixed(1)}</span>
+              <span className="flex items-center gap-0.5 text-amber-400 font-semibold">
+                <Star className="w-3 h-3 fill-amber-400" />
+                {candidate.passageiroNota.toFixed(1)}
+              </span>
               <span>•</span>
               <span className="text-emerald-400 font-semibold">
                 A {candidate.distanciaDoDesembarqueMetros}m do seu desembarque
@@ -106,17 +109,17 @@ export function BackToBackRideCard({
         <button
           type="button"
           onClick={() => onDecline(candidate.id)}
-          className="h-10 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition"
+          className="min-h-[44px] h-11 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition"
         >
-          <X className="h-4 w-4" /> Dispensar
+          <X className="w-4 h-4" /> Dispensar
         </button>
 
         <button
           type="button"
           onClick={() => onAccept(candidate)}
-          className="h-10 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-lg active:scale-95 transition cursor-pointer"
+          className="min-h-[44px] h-11 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-lg active:scale-95 transition cursor-pointer"
         >
-          <Navigation className="h-4 w-4 fill-current" /> Aceitar em Fila
+          <Navigation className="w-4 h-4 fill-current" /> Aceitar em Fila
         </button>
       </div>
     </div>

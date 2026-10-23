@@ -360,6 +360,16 @@ export function DespachoCentralCorridas() {
     function verificarCorridaAtiva() {
       const real = getCorridaAtiva();
       if (real && (real.status as string) !== "IDLE") {
+        // Isolamento de tenant: não incluir corrida ativa se pertencer a outra praça
+        const realTenant = (real as any).tenantId || (real as any).tenant_id || (real as any).pracaId;
+        if (realTenant && tenantAlvo && tenantAlvo !== "todas") {
+          const cleanReal = String(realTenant).toLowerCase().replace("tenant-", "").replace("praca_", "");
+          const cleanTarget = String(tenantAlvo).toLowerCase().replace("tenant-", "").replace("praca_", "");
+          if (cleanReal !== cleanTarget && String(realTenant).toLowerCase() !== String(tenantAlvo).toLowerCase()) {
+            return;
+          }
+        }
+
         const itemReal: ItemDespachoMock = {
           id: real.id,
           tipo:

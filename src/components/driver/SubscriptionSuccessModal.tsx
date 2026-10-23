@@ -26,7 +26,7 @@ interface SubscriptionSuccessModalProps {
 export function SubscriptionSuccessModal({
   isOpen,
   onComplete,
-  title = "🎉 Dia liberado!",
+  title = "Dia liberado",
   subtitle = "Boas corridas. Você está 100% livre de comissões.",
 }: SubscriptionSuccessModalProps) {
   const {

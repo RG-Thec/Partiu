@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { GuardiaoAcesso } from "@/components/admin/GuardiaoAcesso";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
+import { useAdminCity } from "@/contexts/AdminCityContext";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 import {
   retentionIntelligenceEngine,
   type DriverRetentionRecord,
@@ -55,17 +57,26 @@ export function GrowthAndRetentionCenterPage() {
 
 export function GrowthAndRetentionCenter() {
   const { corPrimaria, corTextoPrimaria } = useBrandTheme();
+  const { pracaAtiva, isNacional: isContextNacional } = useAdminCity();
+  const { isFranqueado, tenantId: authTenantId } = useAdminAuth();
+  const isNacional = !isFranqueado && isContextNacional;
+  const tenantAlvo = isFranqueado && authTenantId ? authTenantId : (!isNacional && pracaAtiva?.id !== "todas" ? pracaAtiva?.id : undefined);
 
   // Estados dos Motores
   const [tabAtiva, setTabAtiva] = useState<"RETENCAO" | "INDICACOES" | "FIDELIDADE" | "SIMULADOR">(
     "RETENCAO",
   );
   const [retentionRecords, setRetentionRecords] = useState(() =>
-    retentionIntelligenceEngine.getAllRecords(),
+    retentionIntelligenceEngine.getAllRecords(tenantAlvo),
   );
   const [retentionMetrics, setRetentionMetrics] = useState(() =>
-    retentionIntelligenceEngine.getMetrics(),
+    retentionIntelligenceEngine.getMetrics(tenantAlvo),
   );
+
+  React.useEffect(() => {
+    setRetentionRecords(retentionIntelligenceEngine.getAllRecords(tenantAlvo));
+    setRetentionMetrics(retentionIntelligenceEngine.getMetrics(tenantAlvo));
+  }, [tenantAlvo]);
   const [referrals, setReferrals] = useState(() => referralEngine.getAllReferrals());
   const [referralMetrics, setReferralMetrics] = useState(() => referralEngine.getMetrics());
   const [referralConfig, setReferralConfig] = useState<ReferralRewardConfig>(() =>

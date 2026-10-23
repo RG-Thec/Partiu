@@ -406,11 +406,9 @@ export function QuadroMotoristasAdminPage() {
       if (tId && targetTenantId && targetTenantId !== "todas") {
         const cleanTId = tId.replace("tenant-", "").replace("praca_", "");
         const cleanTarget = targetTenantId.replace("tenant-", "").replace("praca_", "");
-        if (cleanTId === cleanTarget || tId === targetTenantId) {
-          return true;
-        }
+        return cleanTId === cleanTarget || tId === targetTenantId;
       }
-      // 2. Fallback de correspondência geográfica por nome da cidade
+      // 2. Apenas registros legados sem tenantId utilizam correspondência geográfica por nome da cidade
       const cid = (m.cidade || "").toLowerCase();
       return cid.includes(nomeCidade);
     });
@@ -2113,6 +2111,9 @@ export function QuadroMotoristasAdminPage() {
                 nome: motoristaKycRapido.nome,
                 cidade: motoristaKycRapido.cidade,
                 telefone: motoristaKycRapido.telefone,
+                cnhNumero: motoristaKycRapido.cnh,
+                ocrScore: motoristaKycRapido.ocrScore,
+                ocrEar: true,
               }
             : null
         }

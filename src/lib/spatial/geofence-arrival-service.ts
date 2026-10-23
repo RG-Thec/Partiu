@@ -21,9 +21,23 @@ export interface GeofenceCheckResult {
   thresholdMeters: number;
 }
 
+export interface WaitToleranceStatus {
+  rideId: string;
+  arrivedAt: number;
+  durationSeconds: number;
+  elapsedSeconds: number;
+  remainingSeconds: number;
+  isNoShowEligible: boolean;
+}
+
 export class GeofenceArrivalService {
   private static instance: GeofenceArrivalService;
   private triggeredRides: Set<string> = new Set();
+  private triggeredProximities: Set<string> = new Set();
+  private waitTimers: Map<
+    string,
+    { arrivedAt: number; durationSeconds: number }
+  > = new Map();
 
   private constructor() {}
 
@@ -92,10 +106,64 @@ export class GeofenceArrivalService {
   }
 
   /**
+   * Verifica e consome o evento de alerta de aproximação de 500m (para embarque ou destino)
+   * Garante exatamente 1 disparo por etapa para evitar repetição incômoda.
+   */
+  public shouldTriggerProximity500m(
+    rideId: string,
+    stage: "PICKUP" | "DESTINATION",
+    driverLoc: LatLngPoint,
+    targetLoc: LatLngPoint,
+    thresholdMeters = 500,
+  ): boolean {
+    const key = `${rideId}:::${stage}`;
+    if (this.triggeredProximities.has(key)) {
+      return false; // Já alertou 500m para esta etapa
+    }
+
+    const { isWithinThreshold, distanceMeters } = this.checkArrival(
+      driverLoc,
+      targetLoc,
+      thresholdMeters,
+    );
+
+    if (isWithinThreshold) {
+      this.triggeredProximities.add(key);
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("partiu:proximity_500m_alert", {
+            detail: {
+              rideId,
+              stage,
+              distanceMeters,
+              timestamp: Date.now(),
+            },
+          }),
+        );
+      }
+
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Consulta se o alerta de 500m já foi disparado nesta etapa
+   */
+  public isProximity500mTriggered(rideId: string, stage: "PICKUP" | "DESTINATION"): boolean {
+    return this.triggeredProximities.has(`${rideId}:::${stage}`);
+  }
+
+  /**
    * Limpa o estado de uma corrida concluída ou cancelada
    */
   public clearRide(rideId: string): void {
     this.triggeredRides.delete(rideId);
+    this.waitTimers.delete(rideId);
+    this.triggeredProximities.delete(`${rideId}:::PICKUP`);
+    this.triggeredProximities.delete(`${rideId}:::DESTINATION`);
   }
 
   /**
@@ -103,6 +171,68 @@ export class GeofenceArrivalService {
    */
   public reset(): void {
     this.triggeredRides.clear();
+    this.waitTimers.clear();
+    this.triggeredProximities.clear();
+  }
+
+  /**
+   * Inicia o cronômetro oficial de tolerância de espera (padrão: 5 minutos / 300s).
+   * Após o término, o motorista torna-se elegível a cancelar com cobrança de taxa de No-Show.
+   */
+  public startWaitToleranceTimer(
+    rideId: string,
+    durationSeconds = 300,
+  ): WaitToleranceStatus {
+    const arrivedAt = Date.now();
+    this.waitTimers.set(rideId, { arrivedAt, durationSeconds });
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("partiu:wait_tolerance_started", {
+          detail: { rideId, arrivedAt, durationSeconds },
+        }),
+      );
+    }
+
+    return {
+      rideId,
+      arrivedAt,
+      durationSeconds,
+      elapsedSeconds: 0,
+      remainingSeconds: durationSeconds,
+      isNoShowEligible: false,
+    };
+  }
+
+  /**
+   * Consulta o estado atual da tolerância de espera de uma corrida
+   */
+  public getWaitToleranceStatus(rideId: string): WaitToleranceStatus | null {
+    const entry = this.waitTimers.get(rideId);
+    if (!entry) return null;
+
+    const elapsedSeconds = Math.max(
+      0,
+      Math.floor((Date.now() - entry.arrivedAt) / 1000),
+    );
+    const remainingSeconds = Math.max(0, entry.durationSeconds - elapsedSeconds);
+    const isNoShowEligible = remainingSeconds === 0;
+
+    return {
+      rideId,
+      arrivedAt: entry.arrivedAt,
+      durationSeconds: entry.durationSeconds,
+      elapsedSeconds,
+      remainingSeconds,
+      isNoShowEligible,
+    };
+  }
+
+  /**
+   * Cancela o temporizador de tolerância (ex: quando o passageiro embarca)
+   */
+  public cancelWaitToleranceTimer(rideId: string): void {
+    this.waitTimers.delete(rideId);
   }
 }
 

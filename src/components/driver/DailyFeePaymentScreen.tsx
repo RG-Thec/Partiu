@@ -150,7 +150,7 @@ export const DailyFeePaymentScreen = memo(function DailyFeePaymentScreen({
             0%
           </div>
           <div className="text-xs">
-            <span className="font-black block text-white">ZERO Comissão por Corrida!</span>
+            <span className="font-black block text-white">ZERO Comissão por Corrida</span>
             <span className="text-slate-300">
               Você fica com <strong>100% do valor bruto</strong> de todas as corridas e entregas.
               Pague apenas a diária fixa.
@@ -244,11 +244,11 @@ export const DailyFeePaymentScreen = memo(function DailyFeePaymentScreen({
                     background: `linear-gradient(135deg, ${corCabecalhoInicio} 0%, ${corCabecalhoFim} 100%)`,
                     color: corTextoPrimaria,
                   }}
-                  className="px-3 py-1.5 font-black rounded-lg text-xs transition flex items-center gap-1 shrink-0 cursor-pointer active:scale-95"
+                  className="px-3.5 py-2 min-h-[44px] font-black rounded-xl text-xs transition flex items-center gap-1 shrink-0 cursor-pointer active:scale-95 shadow-xs"
                 >
                   {copied ? (
                     <>
-                      <Check className="w-3.5 h-3.5" /> Copiado!
+                      <Check className="w-3.5 h-3.5 stroke-[2.5]" /> Copiado
                     </>
                   ) : (
                     <>
@@ -282,7 +282,7 @@ export const DailyFeePaymentScreen = memo(function DailyFeePaymentScreen({
         {sucesso && (
           <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 rounded-2xl p-3 flex items-center gap-2.5 text-xs font-bold animate-in fade-in">
             <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-            <span>Diária confirmada com sucesso! Liberando cockpit para ONLINE...</span>
+            <span>Diária confirmada com sucesso. Liberando cockpit para ONLINE...</span>
           </div>
         )}
 
@@ -304,7 +304,7 @@ export const DailyFeePaymentScreen = memo(function DailyFeePaymentScreen({
               background: `linear-gradient(135deg, var(--header-gradient-start, ${corCabecalhoInicio}) 0%, var(--header-gradient-end, ${corCabecalhoFim}) 100%)`,
               color: corTextoPrimaria,
             }}
-            className="w-full py-3.5 rounded-2xl active:scale-[0.99] font-black text-sm transition shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            className="w-full min-h-[52px] py-3.5 rounded-2xl active:scale-[0.99] font-black text-sm transition shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
             {verificando ? (
               <span className="animate-pulse">Validando transação PIX...</span>

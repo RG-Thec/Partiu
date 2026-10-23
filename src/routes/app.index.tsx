@@ -157,6 +157,8 @@ function PartiuPassengerHomeContent() {
     updateDestinationLocationFromMap,
     userAccuracyMeters,
     forcarCentralizarUsuario,
+    reassignBanner,
+    dismissReassignBanner,
   } = usePassengerRide();
 
   const navigate = useNavigate();
@@ -791,6 +793,27 @@ function PartiuPassengerHomeContent() {
               {/* D1. AJUSTE FINO DO PINO CENTRAL DE EMBARQUE OU DESTINO */}
               {state === "CONFIRMING_PICKUP" && <PassengerConfirmPickupPin />}
               {state === "CONFIRMING_DESTINATION_MAP" && <PassengerConfirmDestinationPin />}
+
+              {/* BANNER DE REATRIBUIÇÃO TRANSPARENTE (ON-SERVICE REASSIGN) */}
+              {reassignBanner?.visible && (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="mx-4 mb-3 p-3 bg-amber-50 border border-amber-300 rounded-xl shadow-md flex items-center justify-between text-xs text-amber-900 animate-in fade-in slide-in-from-top-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">🔄</span>
+                    <p className="font-medium">{reassignBanner.message}</p>
+                  </div>
+                  <button
+                    onClick={dismissReassignBanner}
+                    className="ml-2 text-amber-700 hover:text-amber-900 font-bold p-1"
+                    aria-label="Fechar aviso"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
 
               {/* D2. RADAR DE BUSCA PROGRESSIVO EM ONDAS (R1 2km -> R2 4km -> R3 6km) */}
               {(state === "FINDING_DRIVER" ||

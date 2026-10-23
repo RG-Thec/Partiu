@@ -78,6 +78,7 @@ interface CorridaOperacional {
   motoristaTelefone: string;
   modal: "CARRO" | "MOTO";
   cidade: string;
+  tenantId?: string | null;
   origem: string;
   destino: string;
   status: "SOLICITADA" | "EM_ANDAMENTO" | "FINALIZADA" | "CANCELADA";
@@ -97,6 +98,7 @@ interface EntregaOperacional {
   entregadorNome: string;
   modal: "CARRO" | "MOTO";
   cidade: string;
+  tenantId?: string | null;
   origem: string;
   destino: string;
   status: "COLETANDO" | "EM_TRANSITO" | "CONCLUIDA" | "CANCELADA";
@@ -223,6 +225,7 @@ export function CentralOperacaoAdminPage() {
           : "Agora",
         criadaEmData: isoDate,
         criadaEmFormatada: formatada,
+        tenantId: (r as any).tenant_id || (r as any).praca_id || null,
       };
     });
   }, [ridesBanco, pracaAtiva]);
@@ -271,6 +274,7 @@ export function CentralOperacaoAdminPage() {
               minute: "2-digit",
             })
           : "Agora",
+        tenantId: (d as any).tenant_id || (d as any).praca_id || null,
       };
     });
   }, [ridesBanco, pracaAtiva]);
@@ -396,8 +400,16 @@ export function CentralOperacaoAdminPage() {
   const corridasFiltradas = useMemo(() => {
     return corridas.filter((c) => {
       if (!isNacional) {
+        const targetTenantId = (pracaAtiva.id || "").toLowerCase();
         const nomeCidade = pracaAtiva.nome.toLowerCase();
-        if (!c.cidade.toLowerCase().includes(nomeCidade)) return false;
+        const tId = ((c as any).tenantId || "").toLowerCase();
+        if (tId && targetTenantId && targetTenantId !== "todas") {
+          const cleanTId = tId.replace("tenant-", "").replace("praca_", "");
+          const cleanTarget = targetTenantId.replace("tenant-", "").replace("praca_", "");
+          if (cleanTId !== cleanTarget && tId !== targetTenantId) return false;
+        } else {
+          if (!c.cidade.toLowerCase().includes(nomeCidade)) return false;
+        }
       }
       if (filtroCorrida === "SOLICITADAS" && c.status !== "SOLICITADA") return false;
       if (filtroCorrida === "EM_ANDAMENTO" && c.status !== "EM_ANDAMENTO") return false;
@@ -446,8 +458,16 @@ export function CentralOperacaoAdminPage() {
   const entregasFiltradas = useMemo(() => {
     return entregas.filter((e) => {
       if (!isNacional) {
+        const targetTenantId = (pracaAtiva.id || "").toLowerCase();
         const nomeCidade = pracaAtiva.nome.toLowerCase();
-        if (!e.cidade.toLowerCase().includes(nomeCidade)) return false;
+        const tId = ((e as any).tenantId || "").toLowerCase();
+        if (tId && targetTenantId && targetTenantId !== "todas") {
+          const cleanTId = tId.replace("tenant-", "").replace("praca_", "");
+          const cleanTarget = targetTenantId.replace("tenant-", "").replace("praca_", "");
+          if (cleanTId !== cleanTarget && tId !== targetTenantId) return false;
+        } else {
+          if (!e.cidade.toLowerCase().includes(nomeCidade)) return false;
+        }
       }
       if (
         filtroEntrega === "EM_ANDAMENTO" &&

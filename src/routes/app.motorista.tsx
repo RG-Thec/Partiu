@@ -97,6 +97,7 @@ import { driverLocationService } from "@/services/DriverLocationService";
 import { progressiveDispatchEngine } from "@/services/ProgressiveDispatchEngine";
 import { dispatchQueueBuilder } from "@/services/DispatchQueueBuilder";
 import { DeliveryPinNumpadBottomSheet } from "@/components/driver/DeliveryPinNumpadBottomSheet";
+import { PassengerPinVerificationModal } from "@/components/driver/cockpit/PassengerPinVerificationModal";
 import { DriverHeader } from "@/components/driver/cockpit/DriverHeader";
 import { DriverContextualBottomSheet } from "@/components/driver/cockpit/DriverContextualBottomSheet";
 import { DriverAccessGuard } from "@/components/driver/DriverAccessGuard";
@@ -127,6 +128,7 @@ import { RidePaymentSettlementModal } from "@/components/driver/RidePaymentSettl
 import { RideRatingModal } from "@/components/rating/RideRatingModal";
 import { DriverFinancialDashboardModal } from "@/components/driver/DriverFinancialDashboardModal";
 import { DriverSubscriptionScreen } from "@/components/driver/DriverSubscriptionScreen";
+import { ScheduledRidesDrawer } from "@/components/driver/ScheduledRidesDrawer";
 import { driverFinancialService } from "@/services/driverFinancialService";
 import { DriverDrawer } from "@/components/driver/navigation/DriverDrawer";
 import { useDriverDailyPass } from "@/hooks/driver/useDriverDailyPass";
@@ -227,6 +229,7 @@ export function extrairOfertaDeCorrida(c: CorridaPartiu, nomeApp: string = "PART
     descricaoPacote: c.descricaoPacote,
     pickupOtp: sess?.flashOrder.pickupOtp,
     deliveryOtp: sess?.flashOrder.deliveryOtp,
+    exigePinEmbarque: Boolean(c.exigePinEmbarque ?? (c.isForOtherPerson || sess)),
     origemCoords: c.origemCoords,
     destinoCoords: c.destinoCoords,
     descontoCupom: (c as any).descontoCupom || 0,
@@ -462,6 +465,24 @@ export function PartiuDriverCockpit() {
   // Perfil Operacional e Elegibilidade Real (Padrão 99/Uber)
   const [perfilMotorista, setPerfilMotorista] = useState<DriverCockpitProfile>(() => {
     const cpfEfetivo = activeUser?.cpf || (activeUser as any)?.pixKey || "";
+    let totalCorridasHistorico = 0;
+    try {
+      if (typeof window !== "undefined") {
+        const historico = JSON.parse(localStorage.getItem("partiu_historico_corridas") || "[]");
+        if (Array.isArray(historico)) {
+          totalCorridasHistorico = historico.filter(
+            (c: any) =>
+              c.status === "CONCLUIDA" &&
+              (!effectiveDriverId ||
+                c.motoristaId === effectiveDriverId ||
+                c.motorista?.id === effectiveDriverId),
+          ).length;
+        }
+      }
+    } catch {}
+
+    const userRating = Number(activeUser?.rating || 5.0);
+
     return {
       id: effectiveDriverId,
       nome: activeUser?.name || "Motorista Parceiro",
@@ -476,11 +497,11 @@ export function PartiuDriverCockpit() {
       veiculoCor: (activeUser as any)?.vehicleColor || "",
       modalidade: ((activeUser as any)?.vehicleType === "MOTO" ? "MOTO" : "CARRO") as any,
       categoria: (activeUser as any)?.vehicleType === "MOTO" ? "MOTO" : "CARRO",
-      avaliacao: 5.0,
-      avaliacaoMedia: 5.0,
-      rating: 5.0,
-      totalCorridas: 0,
-      totalViagens: 0,
+      avaliacao: userRating,
+      avaliacaoMedia: userRating,
+      rating: userRating,
+      totalCorridas: totalCorridasHistorico,
+      totalViagens: totalCorridasHistorico,
       taxaAceitacao: 100,
       taxaCancelamento: 0,
       cnhStatus: "VALIDA",
@@ -542,6 +563,7 @@ export function PartiuDriverCockpit() {
   }, []);
   const [modalPerfilMotorista, setModalPerfilMotorista] = useState(false);
   const [modalMenuMotoristaAberto, setModalMenuMotoristaAberto] = useState(false);
+  const [modalAgendamentosAberto, setModalAgendamentosAberto] = useState(false);
   const [modalNotificacoesAberto, setModalNotificacoesAberto] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
 
@@ -730,6 +752,7 @@ export function PartiuDriverCockpit() {
     descricaoPacote?: string | undefined;
     pickupOtp?: string | undefined;
     deliveryOtp?: string | undefined;
+    exigePinEmbarque?: boolean | undefined;
   } | null>(() => {
     const c = getCorridaAtiva();
     if (
@@ -830,6 +853,7 @@ export function PartiuDriverCockpit() {
 
   // Delivery OS states
   const [modalPinNumpadAberto, setModalPinNumpadAberto] = useState(false);
+  const [modalPassengerPinAberto, setModalPassengerPinAberto] = useState(false);
   const [pinNumpadMode, setPinNumpadMode] = useState<"PICKUP" | "DROPOFF">("PICKUP");
   const [modalDevolucaoAberto, setModalDevolucaoAberto] = useState(false);
   const [waitStatus, setWaitStatus] = useState<RecipientWaitStatus | null>(null);
@@ -1294,7 +1318,7 @@ export function PartiuDriverCockpit() {
     }
   }
 
-  // GEOFENCING AUTOMÁTICO DE CHEGADA (< 50m DO EMBARQUE) — PADRÃO 99/UBER
+  // GEOFENCING DE PROXIMIDADE (500m) E CHEGADA AUTOMÁTICA (< 50m DO EMBARQUE) — PADRÃO 99/UBER
   useEffect(() => {
     if (estadoCockpit !== "HEADING_TO_PICKUP" || !ofertaAtiva) return;
     const targetCoords = (ofertaAtiva as any).origemCoords;
@@ -1307,10 +1331,32 @@ export function PartiuDriverCockpit() {
 
     const unsubscribe = driverLocationService.onLocationUpdate((telemetry) => {
       if (!telemetry.lat || !telemetry.lng) return;
+      const driverLoc = { lat: telemetry.lat, lng: telemetry.lng };
+      const targetLoc = { lat: targetCoords.lat, lng: targetCoords.lng };
+
+      // 1. Alerta de aproximação do condutor ao embarque (500 metros)
+      const shouldAlert500m = geofenceArrivalService.shouldTriggerProximity500m(
+        ofertaAtiva.id,
+        "PICKUP",
+        driverLoc,
+        targetLoc,
+        500,
+      );
+
+      if (shouldAlert500m) {
+        if (somAtivo) {
+          voiceAlerts.anunciarAproximacaoEmbarque500m();
+        }
+        toast.info("📍 Você está a 500 metros do embarque! Prepare-se para a chegada.", {
+          duration: 4000,
+        });
+      }
+
+      // 2. Detecção automática de chegada (< 50m)
       const shouldArrive = geofenceArrivalService.shouldTriggerArrival(
         ofertaAtiva.id,
-        { lat: telemetry.lat, lng: telemetry.lng },
-        { lat: targetCoords.lat, lng: targetCoords.lng },
+        driverLoc,
+        targetLoc,
         50,
       );
 
@@ -1323,7 +1369,46 @@ export function PartiuDriverCockpit() {
     return () => {
       unsubscribe();
     };
-  }, [estadoCockpit, ofertaAtiva?.id, (ofertaAtiva as any)?.origemCoords]);
+  }, [estadoCockpit, ofertaAtiva?.id, (ofertaAtiva as any)?.origemCoords, somAtivo]);
+
+  // GEOFENCING DE PROXIMIDADE DO DESTINO FINAL (500m DO DESEMBARQUE)
+  useEffect(() => {
+    if (estadoCockpit !== "IN_PROGRESS" || !ofertaAtiva) return;
+    const destCoords = (ofertaAtiva as any).destinoCoords;
+    if (
+      !destCoords ||
+      typeof destCoords.lat !== "number" ||
+      typeof destCoords.lng !== "number"
+    )
+      return;
+
+    const unsubscribe = driverLocationService.onLocationUpdate((telemetry) => {
+      if (!telemetry.lat || !telemetry.lng) return;
+      const driverLoc = { lat: telemetry.lat, lng: telemetry.lng };
+      const destLoc = { lat: destCoords.lat, lng: destCoords.lng };
+
+      const shouldAlertDest500m = geofenceArrivalService.shouldTriggerProximity500m(
+        ofertaAtiva.id,
+        "DESTINATION",
+        driverLoc,
+        destLoc,
+        500,
+      );
+
+      if (shouldAlertDest500m) {
+        if (somAtivo) {
+          voiceAlerts.anunciarAproximacaoDestino500m();
+        }
+        toast.info("🏁 Aproximação do destino: 500 metros. Prepare-se para o desembarque.", {
+          duration: 4500,
+        });
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [estadoCockpit, ofertaAtiva?.id, (ofertaAtiva as any)?.destinoCoords, somAtivo]);
 
   // FASE 2: Cancelamento Operacional do Condutor com Registro Auditado
   function handleConfirmarCancelamentoMotorista(
@@ -1461,6 +1546,11 @@ export function PartiuDriverCockpit() {
       return;
     }
 
+    if (ofertaAtiva?.exigePinEmbarque) {
+      setModalPassengerPinAberto(true);
+      return;
+    }
+
     if (ofertaAtiva?.isReal) {
       const res = confirmarEmbarqueEIniciarViagem({
         overrideGeofence: true,
@@ -1478,6 +1568,13 @@ export function PartiuDriverCockpit() {
       setEstadoCockpit("IN_PROGRESS");
       if (somAtivo) voiceAlerts.anunciarInicioViagem(ofertaAtiva?.destino);
     }
+  }
+
+  function handlePassengerPinSuccess() {
+    setModalPassengerPinAberto(false);
+    setErroPin("");
+    setEstadoCockpit("IN_PROGRESS");
+    if (somAtivo) voiceAlerts.anunciarInicioViagem(ofertaAtiva?.destino);
   }
 
   // Validação direta do PIN (executada tanto ao digitar 4 dígitos quanto no botão)
@@ -1601,6 +1698,11 @@ export function PartiuDriverCockpit() {
       return novo;
     });
     setCorridasFeitas((prev) => prev + 1);
+    setPerfilMotorista((prev) => ({
+      ...prev,
+      totalCorridas: (prev.totalCorridas || 0) + 1,
+      totalViagens: (prev.totalViagens || 0) + 1,
+    }));
     setPinDigitado("");
     setModalAcertoCorridaAberto(false);
 
@@ -1831,7 +1933,7 @@ export function PartiuDriverCockpit() {
       />
 
       {/* ================================================================= */}
-      {/* 2. DRIVER HEADER MINIMALISTA & OPERACIONAL                        */}
+      {/* 2. DRIVER HEADER ERGONÔMICO & LIMPO (PADRÃO 99 / UBER DRIVER)     */}
       {/* ================================================================= */}
       <DriverHeader
         isOnline={isOnline}
@@ -1847,6 +1949,11 @@ export function PartiuDriverCockpit() {
         unreadCount={unreadNotificationsCount}
         diariaBadgeText={dailyPass.diariaCountdownTexto}
         onOpenDiaria={() => setModalAssinaturaSaasAberto(true)}
+        ganhosHoje={ganhosHoje}
+        onOpenFinanceiro={() => setModalFinanceiroAberto(true)}
+        onOpenZonasExclusao={() => setModalZonasExclusao(true)}
+        onOpenModoDestino={() => setModalModoDestino(true)}
+        destinoAtivoTexto={destinoAtivo?.address}
       />
 
       {/* Alertas de Moderação Documental e Elegibilidade */}
@@ -1859,30 +1966,25 @@ export function PartiuDriverCockpit() {
         onOpenRegularizacao={() => setModalRegularizacaoAberto(true)}
       />
 
-      {/* Banner de Expiração Suave da Diária com Renovação 1-Toque */}
+      {/* Banner de Expiração Suave da Diária com Renovação via PIX */}
       <DriverDailyPassBanner
         isExpiringSoon={dailyPass.isExpiringSoon}
         minutesRemaining={dailyPass.minutesRemaining}
         diariaCountdownTexto={dailyPass.diariaCountdownTexto}
         dailyFeeAmount={dailyPass.dailyFeeAmount}
-        saldoDisponivel={ganhosHoje}
-        onRenovarComSaldo={async () => {
-          const ok = await dailyPass.renovarComSaldo(ganhosHoje, (val) => {
-            setGanhosHoje((prev) => {
-              const novo = Math.max(0, Number((prev - val).toFixed(2)));
-              setGanhosHojeMotorista(novo, perfilMotorista.id || effectiveDriverId);
-              return novo;
-            });
-          });
-          return ok;
-        }}
         onOpenPlanos={() => setModalAssinaturaSaasAberto(true)}
       />
 
-      {/* 4. Barra Operacional Cockpit: GPS Anti-Fake, Modo Destino, Audio HUD, Zonas de Exclusão e Escala */}
-      <div className="px-4 py-1.5 flex flex-wrap items-center justify-between gap-2">
-        <MockLocationBanner riskLevel={spoofRiskLevel} reasons={spoofReasons} />
-        <div className="flex items-center gap-1.5 ml-auto">
+      {/* Alertas Operacionais de Risco de Localização (apenas se houver anomalia real) */}
+      {spoofRiskLevel !== "SAFE" && spoofRiskLevel !== "LOW_RISK" && (
+        <div className="px-4 py-1">
+          <MockLocationBanner riskLevel={spoofRiskLevel} reasons={spoofReasons} />
+        </div>
+      )}
+
+      {/* Chip Flutuante de Destino Ativo (apenas quando ativado pelo motorista) */}
+      {destinoAtivo && (
+        <div className="px-4 py-1 flex items-center justify-end animate-in fade-in">
           <DestinationQuickChip
             driverId={perfilMotorista.id}
             activeDestination={destinoAtivo}
@@ -1892,17 +1994,8 @@ export function PartiuDriverCockpit() {
               setDestinoAtivo(null);
             }}
           />
-          <button
-            type="button"
-            onClick={() => setModalZonasExclusao(true)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 text-amber-400 hover:text-amber-300 text-xs font-semibold shadow-md active:scale-95 transition cursor-pointer"
-            title="Configurar Zonas de Exclusão Pessoal"
-          >
-            <span>Zonas</span>
-          </button>
-          <AudioHudToggle />
         </div>
-      </div>
+      )}
 
       {/* 5. Banner de Modo de Tolerância na Diária SaaS */}
       {driverSaaSStatus.status === "TOLERANCE_MODE" && (
@@ -1972,7 +2065,6 @@ export function PartiuDriverCockpit() {
         onToggleOnline={handleToggleOnline}
         onOpenProfile={() => setModalPerfilMotorista(true)}
         onOpenWallet={() => setModalFinanceiroAberto(true)}
-        onOpenSaquePix={() => setModalFinanceiroAberto(true)}
         onOpenFinancialDashboard={() => setModalFinanceiroAberto(true)}
         onOpenModoDestino={() => setModalModoDestino(true)}
         onClearDestino={() => {
@@ -1984,6 +2076,7 @@ export function PartiuDriverCockpit() {
         onOpenPlanos={() => setModalAssinaturaSaasAberto(true)}
         onChegueiAoLocal={handleChegueiAoLocal}
         onConfirmarEmbarque={handleConfirmarEmbarqueSmart}
+        onOpenPassengerPin={() => setModalPassengerPinAberto(true)}
         onOpenPinNumpad={() => {
           setPinNumpadMode("PICKUP");
           setModalPinNumpadAberto(true);
@@ -2101,6 +2194,23 @@ export function PartiuDriverCockpit() {
       )}
 
       {/* =================================================================== */}
+      {/* MODAL / NUMPAD: CÓDIGO PIN DE EMBARQUE DO PASSAGEIRO (ONDA 9 P2)     */}
+      {/* =================================================================== */}
+      {ofertaAtiva && ofertaAtiva.tipo !== "ENTREGA" && (
+        <PassengerPinVerificationModal
+          isOpen={modalPassengerPinAberto}
+          rideId={ofertaAtiva.id}
+          passageiroNome={ofertaAtiva.passageiro}
+          expectedPin={ofertaAtiva.pinCorreto}
+          isForOtherPerson={(ofertaAtiva as any).isForOtherPerson}
+          otherPersonName={(ofertaAtiva as any).otherPersonName}
+          solicitanteNome={(ofertaAtiva as any).solicitanteNome}
+          onSuccess={handlePassengerPinSuccess}
+          onCancel={() => setModalPassengerPinAberto(false)}
+        />
+      )}
+
+      {/* =================================================================== */}
       {/* MODAL OFICIAL: MODO DESTINO DO MOTORISTA ("IR PARA CASA")           */}
       {/* =================================================================== */}
       <DriverDestinationModal
@@ -2136,6 +2246,12 @@ export function PartiuDriverCockpit() {
         <RidePaymentSettlementModal
           isOpen={modalAcertoCorridaAberto}
           rideId={ofertaAtiva.id}
+          passengerId={
+            (ofertaAtiva as any).passageiroId ||
+            (ofertaAtiva as any).passageiroTelefone ||
+            (ofertaAtiva as any).telefone ||
+            `pax_${ofertaAtiva.id}`
+          }
           passengerName={ofertaAtiva.passageiro}
           destinationAddress={ofertaAtiva.destino}
           amountBrl={Number(ofertaAtiva.valorLiquido || ofertaAtiva.valorBruto || 24.9)}
@@ -2146,6 +2262,7 @@ export function PartiuDriverCockpit() {
               ofertaAtiva.valorBruto ||
               ofertaAtiva.valorLiquido,
           )}
+          driverId={perfilMotorista.id}
           driverName={perfilMotorista.nome}
           driverPixKey={
             perfilMotorista.chavePix || perfilMotorista.cpf || perfilMotorista.telefone || ""
@@ -2783,6 +2900,10 @@ export function PartiuDriverCockpit() {
           setModalMenuMotoristaAberto(false);
           setModalAssinaturaSaasAberto(true);
         }}
+        onOpenAgendamentos={() => {
+          setModalMenuMotoristaAberto(false);
+          setModalAgendamentosAberto(true);
+        }}
         onOpenTaximetro={() => {
           setModalMenuMotoristaAberto(false);
           setModalTaximetro(true);
@@ -2799,8 +2920,27 @@ export function PartiuDriverCockpit() {
           setModalMenuMotoristaAberto(false);
           setModalSosAberto(true);
         }}
+        onOpenZonasExclusao={() => {
+          setModalMenuMotoristaAberto(false);
+          setModalZonasExclusao(true);
+        }}
         onLogout={handleLogoutMotorista}
       />
+
+      {/* MURAL DE CORRIDAS AGENDADAS (NEGOCIAÇÃO BILATERAL & 0% COMISSÃO) */}
+      {modalAgendamentosAberto && (
+        <ScheduledRidesDrawer
+          aberto={modalAgendamentosAberto}
+          onFechar={() => setModalAgendamentosAberto(false)}
+          motoristaId={perfilMotorista.id}
+          motoristaNome={perfilMotorista.nome}
+          motoristaVeiculo={perfilMotorista.veiculoModelo}
+          motoristaPlaca={perfilMotorista.veiculoPlaca}
+          motoristaTelefone={perfilMotorista.telefone}
+          motoristaFotoUrl={perfilMotorista.fotoUrl}
+          motoristaAvaliacao={perfilMotorista.avaliacao}
+        />
+      )}
 
       {/* ========================================================================= */}
       {/* MODAL: GESTÃO DE PERFIL E VEÍCULO DO MOTORISTA                            */}

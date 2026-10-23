@@ -135,7 +135,7 @@ export const DeliveryPinNumpadBottomSheet = memo(function DeliveryPinNumpadBotto
         result = {
           success: true,
           code: "VERIFIED" as const,
-          message: isPickup ? "PIN 1 validado com sucesso!" : "PIN 2 validado com sucesso!",
+          message: isPickup ? "PIN 1 validado com sucesso" : "PIN 2 validado com sucesso",
         };
       }
 
@@ -169,7 +169,7 @@ export const DeliveryPinNumpadBottomSheet = memo(function DeliveryPinNumpadBotto
                   borderColor: `${corPrimaria}25`,
                 }}
               >
-                {isPickup ? "● ETAPA 1 — COLETA" : "● ETAPA 2 — ENTREGA FINAL"}
+                {isPickup ? "● ETAPA 1: COLETA" : "● ETAPA 2: ENTREGA FINAL"}
               </span>
               <h2 className="text-lg font-black text-slate-950 mt-1">{title}</h2>
               <p className="text-xs text-slate-700 font-semibold mt-0.5 leading-relaxed">

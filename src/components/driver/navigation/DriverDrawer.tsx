@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Zap,
   Clock,
+  CalendarClock,
   Navigation,
   Bell,
   Headphones,
@@ -18,6 +19,7 @@ import {
   X,
   Phone,
   ShieldCheck,
+  Shield,
 } from "lucide-react";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
@@ -35,10 +37,12 @@ export interface DriverDrawerProps {
   onOpenProfile: () => void;
   onOpenFinanceiro?: () => void;
   onOpenPlanos?: () => void;
+  onOpenAgendamentos?: () => void;
   onOpenTaximetro?: () => void;
   onOpenDestino?: () => void;
   onOpenNotificacoes?: () => void;
   onOpenSos?: () => void;
+  onOpenZonasExclusao?: () => void;
   onLogout?: () => void;
 }
 
@@ -53,10 +57,12 @@ export function DriverDrawer({
   onOpenProfile,
   onOpenFinanceiro,
   onOpenPlanos,
+  onOpenAgendamentos,
   onOpenTaximetro,
   onOpenDestino,
   onOpenNotificacoes,
   onOpenSos,
+  onOpenZonasExclusao,
   onLogout,
 }: DriverDrawerProps) {
   const navigate = useNavigate();
@@ -366,6 +372,33 @@ export function DriverDrawer({
                 </button>
               )}
 
+              {/* Corridas Agendadas */}
+              {onOpenAgendamentos && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenAgendamentos();
+                  }}
+                  className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 active:scale-[0.99] transition-all text-slate-800 group cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-orange-50 text-orange-700 border border-orange-200/60 shrink-0 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <CalendarClock className="h-4 w-4 stroke-[2.2]" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold block leading-none text-slate-900">
+                        Corridas Agendadas
+                      </span>
+                      <span className="text-xs text-slate-700 font-medium mt-1 block">
+                        Mural de viagens • Negociação 0% taxa
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-700 transition-colors" />
+                </button>
+              )}
+
               {/* Taxímetro Virtual Inteligente */}
               {onOpenTaximetro && (
                 <button
@@ -413,6 +446,33 @@ export function DriverDrawer({
                       </span>
                       <span className="text-xs text-slate-700 font-medium mt-1 block">
                         Receba chamadas no caminho de casa
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-slate-700 transition-colors" />
+                </button>
+              )}
+
+              {/* Zonas de Exclusão Pessoal */}
+              {onOpenZonasExclusao && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenZonasExclusao();
+                  }}
+                  className="w-full flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 active:scale-[0.99] transition-all text-slate-800 group cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-amber-50 text-amber-700 border border-amber-200/60 shrink-0 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <Shield className="h-4 w-4 stroke-[2.2]" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold block leading-none text-slate-900">
+                        Zonas de Exclusão Pessoal
+                      </span>
+                      <span className="text-xs text-slate-700 font-medium mt-1 block">
+                        Gerenciar bairros e áreas bloqueadas
                       </span>
                     </div>
                   </div>
@@ -539,7 +599,7 @@ export function DriverDrawer({
           <button
             type="button"
             onClick={handleSairAplicativo}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-white border-2 border-rose-200 hover:border-rose-300 text-rose-600 hover:bg-rose-50 active:scale-[0.99] transition-all font-black text-xs shadow-xs cursor-pointer"
+            className="w-full min-h-[48px] flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-white border-2 border-rose-200 hover:border-rose-300 text-rose-600 hover:bg-rose-50 active:scale-[0.99] transition-all font-black text-xs shadow-xs cursor-pointer"
           >
             <LogOut className="h-4 w-4 stroke-[2.5]" />
             <span>SAIR DO APLICATIVO</span>

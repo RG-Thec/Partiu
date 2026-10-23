@@ -32,6 +32,8 @@ import {
   type BannerItem,
   type BannerCategory,
 } from "@/lib/ecosystem/banner-service";
+import { useAdminCity } from "@/contexts/AdminCityContext";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 export const Route = createFileRoute("/app/admin/banners")({
   head: () => ({
@@ -71,7 +73,17 @@ const IMAGENS_PRESET = [
 ];
 
 export function AdminBannersPage() {
-  const [banners, setBanners] = useState<BannerItem[]>(() => bannerService.getAllBanners());
+  const { pracaAtiva, isNacional: isContextNacional } = useAdminCity();
+  const { isFranqueado, tenantId: authTenantId } = useAdminAuth();
+  const isNacional = !isFranqueado && isContextNacional;
+  const tenantAlvo = isFranqueado && authTenantId ? authTenantId : (!isNacional && pracaAtiva?.id !== "todas" ? pracaAtiva?.id : undefined);
+
+  const [banners, setBanners] = useState<BannerItem[]>(() => bannerService.getAllBanners(tenantAlvo));
+
+  useEffect(() => {
+    setBanners(bannerService.getAllBanners(tenantAlvo));
+  }, [tenantAlvo]);
+
   const [salvo, setSalvo] = useState(false);
   const [formAberto, setFormAberto] = useState(false);
   const [filtroCategoria, setFiltroCategoria] = useState<"ALL" | "PASSENGER" | "DRIVER">("ALL");
@@ -107,10 +119,10 @@ export function AdminBannersPage() {
 
   // Inscrição reativa para sincronização com o banco
   useEffect(() => {
-    return bannerService.subscribe((list) => {
-      setBanners(list);
+    return bannerService.subscribe(() => {
+      setBanners(bannerService.getAllBanners(tenantAlvo));
     });
-  }, []);
+  }, [tenantAlvo]);
 
   // Banners ativos para o simulador
   const bannersAtivos = useMemo(() => {
@@ -148,6 +160,7 @@ export function AdminBannersPage() {
       category: categoria,
       order_index: banners.length + 1,
       is_active: true,
+      tenant_id: tenantAlvo || null,
     });
 
     setTitulo("");

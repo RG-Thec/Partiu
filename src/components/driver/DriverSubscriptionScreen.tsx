@@ -366,7 +366,7 @@ export const DriverSubscriptionScreen: React.FC<DriverSubscriptionScreenProps> =
                 </div>
                 <div className="text-left">
                   <span className="font-black text-sm text-white block">
-                    Você tem {monetizacaoConfig.trialDias} Dias Grátis de Cortesia!
+                    Você tem {monetizacaoConfig.trialDias} Dias Grátis de Cortesia
                   </span>
                   <span className="text-slate-300 text-xs">
                     Aproveite e comece a rodar no {nomeApp} sem pagar diária agora.
@@ -659,7 +659,7 @@ export const DriverSubscriptionScreen: React.FC<DriverSubscriptionScreenProps> =
                 >
                   {copiado ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
                   <span>
-                    {copiado ? "CÓDIGO PIX COPIADO!" : `COPIAR PIX • R$ ${currentPrice.toFixed(2)}`}
+                    {copiado ? "CÓDIGO PIX COPIADO" : `COPIAR PIX • R$ ${currentPrice.toFixed(2)}`}
                   </span>
                 </button>
               </div>

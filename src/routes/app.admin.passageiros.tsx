@@ -292,12 +292,10 @@ function AdminPassageiros() {
       if (tId && targetTenantId && targetTenantId !== "todas") {
         const cleanTId = tId.replace("tenant-", "").replace("praca_", "");
         const cleanTarget = targetTenantId.replace("tenant-", "").replace("praca_", "");
-        if (cleanTId === cleanTarget || tId === targetTenantId) {
-          return true;
-        }
+        return cleanTId === cleanTarget || tId === targetTenantId;
       }
 
-      // 2. Corridas associadas à cidade ou ao tenant
+      // 2. Apenas cadastros legados sem tenant_id recorrem ao histórico de corridas na praça
       const temViagemNaCidade = p.viagens.some(
         (r) =>
           (r.pickup_address && r.pickup_address.toLowerCase().includes(nomeCidade)) ||

@@ -5,7 +5,7 @@ import { NativeBottomSheet, NativeSurface } from "@/components/native";
 export interface PaymentSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  formaPagamento: "pix" | "dinheiro" | "cartao_app";
+  formaPagamento: "pix" | "dinheiro";
   pagamentoNaMaquininha: boolean;
   onSelectPayment: (method: "pix" | "dinheiro", naMaquininha: boolean) => void;
   corPrimaria?: string;

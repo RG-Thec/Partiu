@@ -15,6 +15,7 @@
  */
 
 import { matchingEngine, type CandidateDriverProfile, type MatchRequest } from "./MatchingEngine";
+import { driverBlacklistEngine } from "@/lib/driver/driver-blacklist-engine";
 
 export interface DispatchSession {
   rideId: string;
@@ -80,14 +81,30 @@ export class DispatchQueueBuilder {
     pickupCoords: [number, number];
     destinationCoords: [number, number];
     fareBrl: number;
+    riderId?: string | undefined;
+    blockedDriverIds?: string[] | undefined;
     initialCandidates?: CandidateDriverProfile[] | undefined;
   }): Promise<DispatchSession> {
-    const { rideId, category, pickupCoords, destinationCoords, fareBrl, initialCandidates } =
-      params;
+    const {
+      rideId,
+      category,
+      pickupCoords,
+      destinationCoords,
+      fareBrl,
+      riderId,
+      blockedDriverIds = [],
+      initialCandidates,
+    } = params;
 
     // Cancela sessão prévia se houver
     this.cancelCascade(rideId);
     this.cancelledRideIds.delete(rideId);
+
+    // Consulta bloqueios mútuos soberanos do passageiro
+    const blacklistExclusions = riderId
+      ? driverBlacklistEngine.getBlockedDriverIdsForPassenger(riderId)
+      : [];
+    const combinedBlockedIds = Array.from(new Set([...blockedDriverIds, ...blacklistExclusions]));
 
     // 1. Busca os Top 10 candidatos ordenados pelo score
     let candidates = initialCandidates;
@@ -98,8 +115,16 @@ export class DispatchQueueBuilder {
         category,
         radiusMeters: 8000,
         limit: 10,
+        riderId,
+        blockedDriverIds: combinedBlockedIds,
       };
       candidates = await matchingEngine.findBestDrivers(matchRequest);
+    }
+
+    // Garante exclusão de candidatos bloqueados mesmo se fornecidos externamente via initialCandidates
+    if (combinedBlockedIds.length > 0 && candidates && candidates.length > 0) {
+      const blockedSet = new Set(combinedBlockedIds);
+      candidates = candidates.filter((c) => !blockedSet.has(c.driverId));
     }
 
     if (this.cancelledRideIds.has(rideId)) {

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect, useMemo, type FormEvent } from "react";
 import {
   CheckCircle2,
   Copy,
@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { appSettingsService } from "@/services/AppSettingsService";
 import { couponService } from "@/services/CouponService";
+import { useAdminCity } from "@/contexts/AdminCityContext";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 export const Route = createFileRoute("/app/admin/afiliados")({
   head: () => ({
@@ -51,6 +53,7 @@ export interface CupomDesconto {
   limiteUsos: number;
   expiraEm: string;
   ativo: boolean;
+  tenant_id?: string | null | undefined;
 }
 
 export interface ParceiroVantagem {
@@ -62,6 +65,7 @@ export interface ParceiroVantagem {
   descricao: string;
   contatoOuLink: string;
   ativo: boolean;
+  tenant_id?: string | null | undefined;
 }
 
 const CUPONS_INICIAIS: CupomDesconto[] = [
@@ -164,6 +168,11 @@ const PARCEIROS_INICIAIS: ParceiroVantagem[] = [
 ];
 
 export function AdminCuponsEVantagensPage() {
+  const { pracaAtiva, isNacional: isContextNacional } = useAdminCity();
+  const { isFranqueado, tenantId: authTenantId } = useAdminAuth();
+  const isNacional = !isFranqueado && isContextNacional;
+  const tenantAlvo = isFranqueado && authTenantId ? authTenantId : (!isNacional && pracaAtiva?.id !== "todas" ? pracaAtiva?.id : undefined);
+
   const [abaAtiva, setAbaAtiva] = useState<"cupons" | "vantagens" | "indicacao">("cupons");
   const [cupons, setCupons] = useState<CupomDesconto[]>(() => {
     try {
@@ -182,6 +191,28 @@ export function AdminCuponsEVantagensPage() {
       return PARCEIROS_INICIAIS;
     }
   });
+
+  const cuponsDaPraca: CupomDesconto[] = useMemo(() => {
+    if (isNacional) return cupons;
+    const cleanTarget = (tenantAlvo || "").toLowerCase().replace("tenant-", "").replace("praca_", "");
+    return cupons.filter((c: any) => {
+      if (!c.tenant_id && !c.tenantId) return true;
+      const tId = (c.tenant_id || c.tenantId || "").toLowerCase();
+      const cleanT = tId.replace("tenant-", "").replace("praca_", "");
+      return cleanT === cleanTarget || tId === (tenantAlvo || "").toLowerCase();
+    });
+  }, [cupons, isNacional, tenantAlvo]);
+
+  const parceirosDaPraca: ParceiroVantagem[] = useMemo(() => {
+    if (isNacional) return parceiros;
+    const cleanTarget = (tenantAlvo || "").toLowerCase().replace("tenant-", "").replace("praca_", "");
+    return parceiros.filter((p: any) => {
+      if (!p.tenant_id && !p.tenantId) return true;
+      const tId = (p.tenant_id || p.tenantId || "").toLowerCase();
+      const cleanT = tId.replace("tenant-", "").replace("praca_", "");
+      return cleanT === cleanTarget || tId === (tenantAlvo || "").toLowerCase();
+    });
+  }, [parceiros, isNacional, tenantAlvo]);
 
   const [copiado, setCopiado] = useState<string | null>(null);
   const [salvoFeedback, setSalvoFeedback] = useState(false);
@@ -269,6 +300,7 @@ export function AdminCuponsEVantagensPage() {
       limiteUsos: limiteNum,
       expiraEm: novaDataExpira,
       ativo: true,
+      tenant_id: tenantAlvo || null,
     };
 
     salvarCuponsStorage([novo, ...cupons]);
@@ -286,6 +318,7 @@ export function AdminCuponsEVantagensPage() {
         maxRedemptions: limiteNum,
         validoAte: novaDataExpira,
         ativo: true,
+        tenantId: tenantAlvo,
       });
     } catch (err) {
       console.warn("[Afiliados] Falha ao sincronizar cupom no Supabase:", err);
@@ -305,6 +338,7 @@ export function AdminCuponsEVantagensPage() {
       descricao: novoParceiroDesc,
       contatoOuLink: novoParceiroContato,
       ativo: true,
+      tenant_id: tenantAlvo || null,
     };
 
     salvarParceirosStorage([novo, ...parceiros]);
@@ -586,13 +620,13 @@ export function AdminCuponsEVantagensPage() {
             <div className="lg:col-span-2 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-black text-slate-800">
-                  Cupons Cadastrados ({cupons.length})
+                  Cupons Cadastrados ({cuponsDaPraca.length})
                 </h3>
                 <span className="text-xs text-slate-500">Validados no checkout do app</span>
               </div>
 
               <div className="space-y-2.5">
-                {cupons.map((c) => (
+                {cuponsDaPraca.map((c) => (
                   <div
                     key={c.id}
                     className={`p-4 rounded-2xl border transition-all bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm ${
@@ -801,12 +835,12 @@ export function AdminCuponsEVantagensPage() {
             <div className="lg:col-span-2 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-black text-slate-800">
-                  Parceiros Cadastrados ({parceiros.length})
+                  Parceiros Cadastrados ({parceirosDaPraca.length})
                 </h3>
               </div>
 
               <div className="space-y-3">
-                {parceiros.map((p) => (
+                {parceirosDaPraca.map((p) => (
                   <div
                     key={p.id}
                     className={`p-4 rounded-2xl border transition-all bg-white flex flex-col sm:flex-row sm:items-start justify-between gap-4 shadow-sm ${

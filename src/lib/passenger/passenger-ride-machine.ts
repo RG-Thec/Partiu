@@ -93,6 +93,9 @@ export const PASSENGER_RIDE_TRANSITIONS: Record<PassengerRideState, PassengerRid
     "ON_TRIP",
     "IN_PROGRESS",
     "CANCELLED",
+    "FINDING_DRIVER", // Onda 2: Reatribuição transparente por cancelamento do condutor (On-Service Reassign)
+    "SEARCHING_R1",
+    "REQUESTED",
   ],
   ACCEPTED: [
     "DRIVER_ARRIVING",
@@ -101,9 +104,26 @@ export const PASSENGER_RIDE_TRANSITIONS: Record<PassengerRideState, PassengerRid
     "ON_TRIP",
     "IN_PROGRESS",
     "CANCELLED",
+    "FINDING_DRIVER", // Onda 2: Reatribuição transparente
+    "SEARCHING_R1",
+    "REQUESTED",
   ],
-  DRIVER_ARRIVING: ["DRIVER_ARRIVED", "ON_TRIP", "IN_PROGRESS", "CANCELLED"],
-  DRIVER_EN_ROUTE: ["DRIVER_ARRIVED", "ON_TRIP", "IN_PROGRESS", "CANCELLED"],
+  DRIVER_ARRIVING: [
+    "DRIVER_ARRIVED",
+    "ON_TRIP",
+    "IN_PROGRESS",
+    "CANCELLED",
+    "FINDING_DRIVER",
+    "SEARCHING_R1",
+  ],
+  DRIVER_EN_ROUTE: [
+    "DRIVER_ARRIVED",
+    "ON_TRIP",
+    "IN_PROGRESS",
+    "CANCELLED",
+    "FINDING_DRIVER",
+    "SEARCHING_R1",
+  ],
   DRIVER_ARRIVED: ["ON_TRIP", "IN_PROGRESS", "CANCELLED"],
   ON_TRIP: ["COMPLETED", "CANCELLED"],
   IN_PROGRESS: ["COMPLETED", "CANCELLED"],
@@ -111,6 +131,14 @@ export const PASSENGER_RIDE_TRANSITIONS: Record<PassengerRideState, PassengerRid
   TIMEOUT: ["REQUESTED", "SEARCHING_R1", "FINDING_DRIVER", "IDLE", "CANCELLED"],
   CANCELLED: ["IDLE"],
 };
+
+export function canTransitionPassengerRide(
+  from: PassengerRideState,
+  to: PassengerRideState,
+): boolean {
+  const allowed = PASSENGER_RIDE_TRANSITIONS[from];
+  return Boolean(allowed && allowed.includes(to));
+}
 
 export type PassengerVehicleCategory =
   "MOTO" | "CARRO" | "EXECUTIVO" | "FLASH" | "ENTREGA" | "TURISMO" | "VAN";

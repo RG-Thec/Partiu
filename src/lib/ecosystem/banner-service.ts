@@ -24,6 +24,7 @@ export interface BannerItem {
   title: string;
   subtitle: string;
   badge: string;
+  tenant_id?: string | null | undefined;
   created_at?: string | undefined;
   updated_at?: string | undefined;
 }
@@ -242,14 +243,22 @@ class BannerService {
     return this.banners;
   }
 
-  public getAllBanners(): BannerItem[] {
-    return [...this.banners]
+  public getAllBanners(tenantId?: string): BannerItem[] {
+    const limpos = [...this.banners]
       .filter((b) => !isLegacyVanBanner(b))
       .sort((a, b) => a.order_index - b.order_index);
+
+    if (!tenantId || tenantId === "todas") return limpos;
+    const cleanTarget = tenantId.toLowerCase().replace("tenant-", "").replace("praca_", "");
+    return limpos.filter((b) => {
+      if (!b.tenant_id) return true; // banners globais aparecem como base
+      const cleanB = b.tenant_id.toLowerCase().replace("tenant-", "").replace("praca_", "");
+      return cleanB === cleanTarget || b.tenant_id.toLowerCase() === tenantId.toLowerCase();
+    });
   }
 
-  public getActiveBanners(category: BannerCategory = "PASSENGER"): BannerItem[] {
-    return this.getAllBanners().filter(
+  public getActiveBanners(category: BannerCategory = "PASSENGER", tenantId?: string): BannerItem[] {
+    return this.getAllBanners(tenantId).filter(
       (b) =>
         b.is_active &&
         !isLegacyVanBanner(b) &&
@@ -266,6 +275,7 @@ class BannerService {
       order_index: data.order_index || this.banners.length + 1,
       is_active: data.is_active !== false,
       category: data.category || "PASSENGER",
+      tenant_id: data.tenant_id || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -286,6 +296,7 @@ class BannerService {
           title: newBanner.title,
           subtitle: newBanner.subtitle,
           badge: newBanner.badge,
+          tenant_id: newBanner.tenant_id,
           // Compatibilidade legada
           imagem_url: newBanner.image_url,
           link_destino: newBanner.link_url,

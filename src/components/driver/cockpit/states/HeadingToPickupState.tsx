@@ -1,11 +1,18 @@
-import { MessageCircle, Phone, Compass, MapPin, AlertTriangle, Navigation } from "lucide-react";
+import { MessageCircle, Phone, Compass, MapPin, AlertTriangle, Navigation, Users } from "lucide-react";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { InlineQuickReplyBar } from "@/components/chat";
 
 interface HeadingToPickupStateProps {
+  rideId?: string;
+  driverId?: string;
   passageiroNome: string;
   origemEndereco: string;
   isEntrega: boolean;
   driverUnreadCount: number;
+  isForOtherPerson?: boolean;
+  otherPersonName?: string;
+  otherPersonPhone?: string;
+  solicitanteNome?: string;
   onChegueiAoLocal: () => void;
   onOpenChat: () => void;
   onLigar: () => void;
@@ -14,10 +21,16 @@ interface HeadingToPickupStateProps {
 }
 
 export function HeadingToPickupState({
+  rideId,
+  driverId,
   passageiroNome,
   origemEndereco,
   isEntrega,
   driverUnreadCount,
+  isForOtherPerson = false,
+  otherPersonName,
+  otherPersonPhone,
+  solicitanteNome,
   onChegueiAoLocal,
   onOpenChat,
   onLigar,
@@ -27,8 +40,27 @@ export function HeadingToPickupState({
   const { appConfig } = useTheme();
   const { colors, ui } = appConfig.branding;
 
+  const displayPassengerName = isForOtherPerson ? otherPersonName || passageiroNome : passageiroNome;
+
   return (
     <div className="space-y-3 animate-in fade-in slide-in-from-bottom duration-300">
+      {/* Alerta de Corrida para Terceiro */}
+      {isForOtherPerson && (
+        <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <Users className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <span className="font-bold truncate">
+              Passageiro: {displayPassengerName} (por {solicitanteNome || "Titular"})
+            </span>
+          </div>
+          {otherPersonPhone && (
+            <span className="text-[10px] font-mono font-bold bg-amber-100 dark:bg-amber-900/60 px-1.5 py-0.5 rounded text-amber-900 dark:text-amber-200 shrink-0">
+              {otherPersonPhone}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Cabeçalho da Viagem & Contatos Rápidos */}
       <div className="flex items-center justify-between border-b border-border/60 pb-3">
         <div className="min-w-0 flex-1 pr-2">
@@ -43,7 +75,7 @@ export function HeadingToPickupState({
             {isEntrega ? "● A caminho da coleta" : "● A caminho do embarque"}
           </span>
           <h3 className="text-sm sm:text-base font-extrabold text-foreground mt-1 truncate">
-            {passageiroNome}
+            {displayPassengerName}
           </h3>
           <span className="text-xs text-muted-foreground truncate block mt-0.5">
             {origemEndereco}
@@ -76,53 +108,69 @@ export function HeadingToPickupState({
             onClick={onLigar}
             style={{ borderRadius: ui.borderRadius }}
             className="w-11 h-11 min-h-[44px] min-w-[44px] bg-muted text-foreground border border-border flex items-center justify-center active:scale-90 transition shadow-xs hover:bg-muted/80 cursor-pointer"
-            title="Ligar para o passageiro"
-            aria-label="Ligar para o passageiro"
+            title={isForOtherPerson ? `Ligar para ${displayPassengerName}` : "Ligar para o passageiro"}
+            aria-label={isForOtherPerson ? `Ligar para ${displayPassengerName}` : "Ligar para o passageiro"}
           >
             <Phone className="w-5 h-5" />
           </button>
         </div>
       </div>
 
-      {/* Atalhos Rápidos de Navegação Externa (Waze & Google Maps) — Alvo de Toque 44px */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* Respostas Rápidas Hands-Free a Caminho do Ponto de Embarque */}
+      {rideId && (
+        <InlineQuickReplyBar
+          rideId={rideId}
+          senderType="DRIVER"
+          senderId={driverId || "driver_cockpit"}
+          rideStatus="A_CAMINHO"
+          onOpenFullChat={onOpenChat}
+          unreadCount={driverUnreadCount}
+        />
+      )}
+
+      {/* Ações Rápidas de Direção e Navegação Externa */}
+      <div className="grid grid-cols-2 gap-2 pt-1">
         <button
           type="button"
           onClick={() => onNavegar("waze")}
-          className="h-11 min-h-[44px] rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-950 border border-sky-200 font-bold text-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+          className="h-11 min-h-[44px] rounded-2xl bg-sky-50 dark:bg-sky-950/30 hover:bg-sky-100 dark:hover:bg-sky-900/40 text-sky-950 dark:text-sky-200 border border-sky-200 dark:border-sky-800 font-bold text-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
         >
-          <Compass className="w-4 h-4 text-sky-600" />
+          <Navigation className="w-4 h-4 text-sky-600 dark:text-sky-400" />
           <span>Waze</span>
         </button>
         <button
           type="button"
           onClick={() => onNavegar("google_maps")}
-          className="h-11 min-h-[44px] rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200 font-bold text-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+          className="h-11 min-h-[44px] rounded-2xl bg-muted/60 hover:bg-muted text-foreground border border-border font-bold text-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
         >
-          <MapPin className="w-4 h-4 text-emerald-600" />
+          <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <span>Google Maps</span>
         </button>
       </div>
 
-      {/* Botão Primário de Chegada — Thumb Zone 56px Ergonomia Veicular */}
+      {/* Ação Primária de Chegada — Thumb Zone 56px */}
       <button
         type="button"
         onClick={onChegueiAoLocal}
-        className="w-full h-14 min-h-[56px] rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm sm:text-base shadow-lg transition active:scale-[0.98] flex items-center justify-center gap-2.5 cursor-pointer uppercase tracking-wider"
+        style={{
+          backgroundColor: colors.primary,
+          color: colors.surface,
+          borderRadius: ui.borderRadius,
+        }}
+        className="w-full h-14 min-h-[56px] font-black text-sm sm:text-base tracking-wider uppercase shadow-lg transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer hover:brightness-105"
       >
-        <span className="text-lg">✓</span>
-        <span>CHEGUEI AO LOCAL DE EMBARQUE</span>
+        <MapPin className="w-5 h-5" />
+        <span>CHEGUEI AO LOCAL</span>
       </button>
 
-      {/* Opção Secundária: Cancelamento Justificado — Touch Target Ergonômico */}
-      <div className="pt-0.5 flex justify-center">
+      {/* Rodapé com Cancelamento */}
+      <div className="text-center pt-1">
         <button
           type="button"
           onClick={onOpenCancelar}
-          className="h-10 min-h-[40px] px-4 rounded-xl border border-border/70 hover:border-rose-300 dark:hover:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-muted-foreground hover:text-rose-600 active:scale-98 transition cursor-pointer flex items-center justify-center gap-1.5 text-xs font-semibold"
+          className="text-xs font-bold text-muted-foreground hover:text-rose-600 transition cursor-pointer py-1"
         >
-          <AlertTriangle className="w-3.5 h-3.5 text-muted-foreground/60" />
-          <span>Cancelar corrida</span>
+          Problemas com o embarque? Cancelar
         </button>
       </div>
     </div>

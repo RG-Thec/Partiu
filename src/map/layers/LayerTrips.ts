@@ -11,6 +11,7 @@
 
 import type mapboxgl from "mapbox-gl";
 import { MAP_SOURCES, MAP_LAYERS, MAP_COLORS } from "../MapConstants";
+import { simplifyPolyline } from "@/lib/geo/polyline-optimizer";
 
 export class LayerTrips {
   private map: mapboxgl.Map | null = null;
@@ -100,12 +101,13 @@ export class LayerTrips {
   }
 
   public updateRoute(coordinates: [number, number][]): void {
-    this.currentCoordinates = coordinates;
+    const optimizedCoordinates = simplifyPolyline(coordinates, 0.00004);
+    this.currentCoordinates = optimizedCoordinates;
     if (!this.map || !this.isInitialized) return;
 
     const source = this.map.getSource(MAP_SOURCES.ROUTE) as mapboxgl.GeoJSONSource | undefined;
     if (source) {
-      if (coordinates.length >= 2) {
+      if (optimizedCoordinates.length >= 2) {
         source.setData({
           type: "FeatureCollection",
           features: [
@@ -114,7 +116,7 @@ export class LayerTrips {
               properties: {},
               geometry: {
                 type: "LineString",
-                coordinates,
+                coordinates: optimizedCoordinates,
               },
             },
           ],

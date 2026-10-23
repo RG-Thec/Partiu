@@ -20,7 +20,6 @@ interface IdleStateProps {
   remainingDestinationUses: number;
   diariaRestanteTexto?: string;
   onToggleOnline: () => void;
-  onOpenSaquePix: () => void;
   onOpenFinancialDashboard?: () => void;
   onOpenModoDestino: () => void;
   onClearDestino: () => void;
@@ -36,7 +35,6 @@ export function IdleState({
   remainingDestinationUses,
   diariaRestanteTexto,
   onToggleOnline,
-  onOpenSaquePix,
   onOpenFinancialDashboard,
   onOpenModoDestino,
   onClearDestino,
@@ -46,7 +44,7 @@ export function IdleState({
 }: IdleStateProps) {
   const { appConfig } = useTheme();
   const { colors, ui } = appConfig.branding;
-  const handleOpenFinance = onOpenFinancialDashboard || onOpenSaquePix;
+  const handleOpenFinance = onOpenFinancialDashboard;
 
   return (
     <div className="space-y-3 animate-in fade-in slide-in-from-bottom duration-300">
@@ -146,17 +144,18 @@ export function IdleState({
       <div className="grid grid-cols-2 gap-2.5">
         {/* Modo Destino */}
         {destinoAtivo ? (
-          <div className="p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-left min-w-0">
+          <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-left min-w-0">
             <div className="flex items-center justify-between gap-1">
-              <span className="text-xs font-black text-amber-900 dark:text-amber-200 uppercase tracking-tight truncate">
-                🎯 Destino ativo
+              <span className="text-xs font-black text-amber-900 dark:text-amber-200 uppercase tracking-tight truncate flex items-center gap-1.5">
+                <Target className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <span>Destino ativo</span>
               </span>
               <button
                 type="button"
                 onClick={onClearDestino}
                 className="text-xs font-black text-rose-600 hover:underline cursor-pointer"
               >
-                ✕ Sair
+                Sair
               </button>
             </div>
             <p className="text-xs font-bold text-foreground truncate mt-1">
@@ -170,7 +169,9 @@ export function IdleState({
             className="p-3 rounded-2xl bg-card hover:bg-muted/60 border border-border text-left transition active:scale-95 cursor-pointer flex flex-col justify-between shadow-2xs"
           >
             <div className="flex items-center justify-between">
-              <span className="text-lg">🎯</span>
+              <div className="w-7 h-7 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center">
+                <Target className="w-4 h-4 stroke-[2.2]" />
+              </div>
               <span className="text-[10px] font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-full border border-border">
                 {remainingDestinationUses} restantes
               </span>
@@ -193,7 +194,9 @@ export function IdleState({
           className="p-3 rounded-2xl bg-card hover:bg-muted/60 border border-border text-left transition active:scale-95 cursor-pointer flex flex-col justify-between shadow-2xs"
         >
           <div className="flex items-center justify-between">
-            <span className="text-lg">⏱️</span>
+            <div className="w-7 h-7 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <Clock className="w-4 h-4 stroke-[2.2]" />
+            </div>
             <span
               style={{
                 color: colors.primary,

@@ -270,7 +270,7 @@ export class UserService {
   }): Promise<{ success: boolean; error?: string }> {
     const session = supabaseAuthService.getStoredSession();
     const userId = session?.id || DEFAULT_PROFILE.id;
-    const isDriver = session?.role === "driver" || session?.role === "MOTORISTA";
+    const isDriver = (session?.role as string) === "driver" || session?.role === "MOTORISTA";
 
     // 1. Atualiza cache local instantâneo (motorista mantém nome legal imutável)
     if (typeof window !== "undefined") {

@@ -4,3 +4,4 @@ export * from "./policy-engine";
 export * from "./audit-trail";
 export * from "./field-level-encryption";
 export * from "./data-retention-policy";
+export * from "./safety-toolkit-service";

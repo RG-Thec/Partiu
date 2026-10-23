@@ -223,8 +223,8 @@ export class VirtualTaximeterService {
 
     const state = this.getState();
     const durationMinutes = Math.ceil(state.elapsedSeconds / 60);
-    const platformFeeBrl = Math.round(state.currentFareBrl * 0.1 * 100) / 100; // 10% comissão padrão
-    const netDriverBrl = Math.round((state.currentFareBrl - platformFeeBrl) * 100) / 100;
+    const platformFeeBrl = 0.0; // 0% comissão Partiu (SaaS Soberano)
+    const netDriverBrl = state.currentFareBrl; // 100% líquido ao motorista parceiro
 
     const receiptId = `TX-${Date.now()}`;
     const rawEmv = `00020126580014br.gov.bcb.pix0136${receiptId}520400005303986540${state.currentFareBrl.toFixed(2)}5802BR5913PARTIU DRIVER6008SAO PAULO62070503***6304`;

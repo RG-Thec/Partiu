@@ -155,7 +155,7 @@ export function DriverProfileSettings({
       }
 
       setFotoUrl(publicUrl);
-      toast.success("Foto de perfil carregada com sucesso!");
+      toast.success("Foto de perfil carregada com sucesso");
     } catch (err) {
       console.error("[DriverProfileSettings] Erro no upload da foto:", err);
       toast.error("Não foi possível enviar a foto. Tente novamente.");
@@ -219,7 +219,7 @@ export function DriverProfileSettings({
         fotoUrl: fotoUrl,
       };
 
-      toast.success("Dados de contato atualizados com sucesso!");
+      toast.success("Dados de contato atualizados com sucesso");
 
       onSave?.(updatedProfile);
       setTimeout(() => {
@@ -499,8 +499,8 @@ export function DriverProfileSettings({
 
               <p className="text-[11px] text-slate-500 leading-relaxed">
                 <strong>Segurança Antifraude:</strong> Por regulamentação do Banco Central e
-                conformidade bancária PARTIU, o repasse de saques é restrito exclusivamente ao CPF
-                do condutor titular registrado.
+                conformidade operacional PARTIU, o recebimento de corridas via PIX é transferido
+                diretamente para a chave CPF do condutor titular registrado.
               </p>
             </div>
           </div>
@@ -623,7 +623,7 @@ export function DriverProfileSettings({
                 background: brandGradient,
                 color: corTextoPrimaria || "#FFFFFF",
               }}
-              className="w-full h-12 rounded-2xl font-black text-sm shadow-lg hover:opacity-95 active:scale-98 transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+              className="w-full min-h-[48px] h-12 rounded-2xl font-black text-sm shadow-lg hover:opacity-95 active:scale-98 transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
             >
               {isSaving ? (
                 <>
@@ -642,7 +642,7 @@ export function DriverProfileSettings({
             <button
               type="button"
               onClick={handleSairConta}
-              className="w-full h-11 rounded-2xl bg-white border border-rose-200 hover:border-rose-300 text-rose-600 hover:bg-rose-50 font-black text-xs flex items-center justify-center gap-2 active:scale-98 transition cursor-pointer shadow-2xs"
+              className="w-full min-h-[44px] h-11 rounded-2xl bg-white border border-rose-200 hover:border-rose-300 text-rose-600 hover:bg-rose-50 font-black text-xs flex items-center justify-center gap-2 active:scale-98 transition cursor-pointer shadow-2xs"
             >
               <LogOut className="w-4 h-4 stroke-[2.2]" />
               <span>SAIR DA CONTA DE MOTORISTA</span>

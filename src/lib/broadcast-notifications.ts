@@ -18,6 +18,7 @@ export interface NotificacaoBroadcast {
   mensagem: string;
   categoria: CategoriaDestinatario;
   urgencia: UrgenciaNotificacao;
+  tenant_id?: string | null | undefined;
   rotaDestino?: string | undefined;
   icone?: string | undefined;
   criadoEm: string;
@@ -112,23 +113,34 @@ export const TEMPLATES_NOTIFICACOES = [
 ];
 
 /**
- * Retorna a lista completa de notificações transmitidas salvas
+ * Retorna a lista completa de notificações transmitidas salvas (filtrável por tenant)
  */
-export function listarNotificacoesBroadcast(): NotificacaoBroadcast[] {
+export function listarNotificacoesBroadcast(tenantId?: string): NotificacaoBroadcast[] {
+  let list: NotificacaoBroadcast[] = [];
   if (typeof window === "undefined") {
-    return memoriaNotificacoes;
-  }
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_NOTIFICACOES);
-    if (!raw) {
-      localStorage.setItem(STORAGE_KEY_NOTIFICACOES, JSON.stringify(mocksIniciais));
-      return mocksIniciais;
+    list = memoriaNotificacoes;
+  } else {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_NOTIFICACOES);
+      if (!raw) {
+        localStorage.setItem(STORAGE_KEY_NOTIFICACOES, JSON.stringify(mocksIniciais));
+        list = mocksIniciais;
+      } else {
+        list = JSON.parse(raw);
+      }
+    } catch (err) {
+      console.error("[Broadcast Engine] Erro ao listar notificações:", err);
+      list = memoriaNotificacoes;
     }
-    return JSON.parse(raw);
-  } catch (err) {
-    console.error("[Broadcast Engine] Erro ao listar notificações:", err);
-    return memoriaNotificacoes;
   }
+
+  if (!tenantId || tenantId === "todas") return list;
+  const cleanTarget = tenantId.toLowerCase().replace("tenant-", "").replace("praca_", "");
+  return list.filter((n) => {
+    if (!n.tenant_id) return true; // Notificações globais aparecem como base
+    const cleanN = n.tenant_id.toLowerCase().replace("tenant-", "").replace("praca_", "");
+    return cleanN === cleanTarget || n.tenant_id.toLowerCase() === tenantId.toLowerCase();
+  });
 }
 
 /**
@@ -165,13 +177,14 @@ export function salvarNotificacaoBroadcast(
 }
 
 /**
- * Filtra as notificações destinadas a uma categoria específica de usuário.
+ * Filtra as notificações destinadas a uma categoria específica de usuário e praça/tenant.
  * Retorna as notificações da categoria informada + as de categoria "todos".
  */
 export function obterNotificacoesParaCategoria(
   categoriaUsuario: "usuario" | "gratis" | "motorista",
+  tenantId?: string,
 ): NotificacaoBroadcast[] {
-  const todas = listarNotificacoesBroadcast();
+  const todas = listarNotificacoesBroadcast(tenantId);
   return todas.filter((n) => n.categoria === "todos" || n.categoria === categoriaUsuario);
 }
 
@@ -245,6 +258,7 @@ export async function dispararBroadcastAdmin(dados: {
   mensagem: string;
   categoria: CategoriaDestinatario;
   urgencia: UrgenciaNotificacao;
+  tenant_id?: string | null | undefined;
   rotaDestino?: string | undefined;
   enviadoPor?: string | undefined;
 }): Promise<{ sucesso: boolean; notificação: NotificacaoBroadcast; webPushDisparado: boolean }> {
@@ -261,6 +275,7 @@ export async function dispararBroadcastAdmin(dados: {
     mensagem: dados.mensagem,
     categoria: dados.categoria,
     urgencia: dados.urgencia,
+    tenant_id: dados.tenant_id,
     rotaDestino: dados.rotaDestino || "/app",
     enviadoPor: dados.enviadoPor || "Painel Administrativo PARTIU",
     totalDestinatariosEstimados: estimativas[dados.categoria] || 500,

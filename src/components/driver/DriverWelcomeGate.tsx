@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Car, ShieldCheck, ArrowRight, DollarSign, Clock, Zap, Sparkles } from "lucide-react";
+import { Car, ShieldCheck, ArrowRight, DollarSign, Clock, Zap, Sparkles, ArrowLeft } from "lucide-react";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { whiteLabelEngine } from "@/lib/white-label";
@@ -49,9 +49,10 @@ export const DriverWelcomeGate: React.FC<DriverWelcomeGateProps> = ({ onEnterDem
       <header className="w-full max-w-md mx-auto flex items-center justify-between pt-1">
         <Link
           to="/"
-          className="h-7.5 px-2.5 rounded-lg bg-white border border-slate-200 text-xs font-medium text-slate-600 hover:text-slate-900 shadow-2xs transition active:scale-95 flex items-center"
+          className="min-h-[38px] px-3 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:text-slate-900 shadow-2xs transition active:scale-95 flex items-center gap-1.5"
         >
-          ← Início
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Início</span>
         </Link>
         <span
           className="text-[11px] font-bold uppercase px-3 py-1 rounded-full border shadow-2xs"
@@ -66,7 +67,7 @@ export const DriverWelcomeGate: React.FC<DriverWelcomeGateProps> = ({ onEnterDem
         <Link
           to="/auth"
           search={{ role: "MOTORISTA" }}
-          className="text-xs font-semibold text-slate-600 hover:text-slate-900 transition"
+          className="min-h-[38px] px-2 text-xs font-bold text-slate-700 hover:text-slate-900 transition flex items-center"
         >
           Entrar
         </Link>
@@ -106,10 +107,10 @@ export const DriverWelcomeGate: React.FC<DriverWelcomeGateProps> = ({ onEnterDem
           <div className="p-3 bg-white rounded-2xl border border-slate-200/90 shadow-2xs space-y-1">
             <div className="flex items-center gap-1.5 text-amber-600 font-bold text-xs">
               <Zap className="w-4 h-4 shrink-0" />
-              <span>Saque PIX D+0</span>
+              <span>Recebimento PIX D+0</span>
             </div>
             <p className="text-[11px] text-slate-500 leading-snug">
-              Dinheiro na conta imediatamente após a viagem.
+              Valor direto na sua conta bancária sem intermediários.
             </p>
           </div>
 
@@ -134,13 +135,13 @@ export const DriverWelcomeGate: React.FC<DriverWelcomeGateProps> = ({ onEnterDem
           </div>
         </div>
 
-        {/* Botões de Ação Proporcionais e Responsivos */}
-        <div className="space-y-2 pt-1">
+        {/* Botões de Ação Proporcionais e Responsivos — Thumb Zone Veicular */}
+        <div className="space-y-2.5 pt-1">
           {/* Botão Cadastrar Veículo */}
           <Link
             to="/cadastro-motorista"
             style={{ background: brandGradient, color: "#FFFFFF" }}
-            className="w-full h-9.5 sm:h-10 rounded-xl font-semibold text-xs sm:text-[13px] flex items-center justify-center gap-2 shadow-2xs hover:shadow-xs active:scale-98 transition cursor-pointer"
+            className="w-full min-h-[50px] sm:min-h-[52px] rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-98 transition cursor-pointer"
           >
             <Car className="w-4 h-4" />
             <span>Cadastrar meu veículo (Carro ou Moto)</span>
@@ -151,7 +152,7 @@ export const DriverWelcomeGate: React.FC<DriverWelcomeGateProps> = ({ onEnterDem
           <Link
             to="/auth"
             search={{ role: "MOTORISTA" }}
-            className="w-full h-8.5 sm:h-9 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-600 font-medium text-xs flex items-center justify-center gap-1.5 active:scale-98 transition cursor-pointer shadow-2xs"
+            className="w-full min-h-[46px] rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 active:scale-98 transition cursor-pointer shadow-2xs"
           >
             <span>Já sou parceiro cadastrado • Fazer login</span>
           </Link>
@@ -160,7 +161,7 @@ export const DriverWelcomeGate: React.FC<DriverWelcomeGateProps> = ({ onEnterDem
           <button
             type="button"
             onClick={handleEnterDemo}
-            className="w-full h-8 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-slate-600 font-semibold text-[11px] flex items-center justify-center gap-1.5 active:scale-98 transition cursor-pointer"
+            className="w-full min-h-[44px] rounded-2xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 active:scale-98 transition cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
             <span>Explorar Cockpit no Modo Demonstração</span>

@@ -35,11 +35,12 @@ import {
   processarCancelamentoComMulta,
   type CancellationFeeSettlement,
 } from "./partiu-financial-engine";
-import { atomicMatchingEngine } from "./dispatch-atomic";
+import { atomicMatchingEngine, onServiceReassignEngine } from "./dispatch-atomic";
 import { redisLuaEngine } from "./spatial";
 import { silentCatchWarn } from "@/lib/structured-logger";
 import { rideLiveTrackingService } from "./tracking/ride-live-tracking-service";
 import { fareCalculationEngine } from "./pricing/fare-calculation-engine";
+import { calculateCancellationFee } from "./pricing/cancellation-fee-calculator";
 import {
   CANCELLATION_REASONS_PASSENGER,
   CANCELLATION_REASONS_DRIVER,
@@ -47,6 +48,7 @@ import {
 } from "@/services/CancellationPolicyService";
 
 import { driverDestinationModeService } from "@/services/DriverDestinationModeService";
+import { boardingPinEngine } from "./security/boarding-pin-engine";
 import { antiGpsSpoofingEngine } from "./telemetry/anti-gps-spoofing-engine";
 import { driverExclusionZonesEngine } from "./geo/driver-exclusion-zones";
 
@@ -255,6 +257,7 @@ export interface CorridaPartiu {
   duracaoMin: number;
   formaPagamento: "pix" | "cartao" | "dinheiro";
   pin: string; // PIN de 4 dígitos (ex: 4829)
+  exigePinEmbarque?: boolean | undefined;
   status: StatusCorrida;
   motorista?: MotoristaInfo | undefined;
   criadoEm: number;
@@ -288,6 +291,10 @@ export interface CorridaPartiu {
   paradasConcluidas?: number | undefined;
   isDestinationMode?: boolean | undefined;
   surgeMultiplier?: number | undefined;
+  excludedDriverIds?: string[] | undefined; // IDs de motoristas excluídos desta corrida (ex: cancelaram anteriormente)
+  reassignCount?: number | undefined; // Contador de reatribuições automáticas (On-Service Reassign)
+  lastReassignReason?: string | undefined; // Motivo da última reatribuição transparente
+  reassignedAt?: number | undefined; // Timestamp da última reatribuição
 }
 
 const STORAGE_KEY_CORRIDA = "partiu_corrida_ativa";
@@ -342,7 +349,7 @@ if (typeof window !== "undefined") {
 }
 
 // Emite eventos de sincronização em tempo real
-function notificarMudanca(corrida: CorridaPartiu | null) {
+export function notificarMudanca(corrida: CorridaPartiu | null) {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent("partiu:corrida-atualizada", { detail: corrida }));
 }
@@ -478,6 +485,30 @@ export function tocarAlertaFimViagem() {
   }
 }
 
+// Toca sino suave de aproximação (500 metros do embarque ou destino)
+export function tocarAlertaProximidade500m() {
+  const audioCtx = obterAudioContext();
+  if (!audioCtx) return;
+  try {
+    const agora = audioCtx.currentTime;
+    const notas = [587.33, 880.0]; // D5, A5
+    notas.forEach((freq, idx) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, agora + idx * 0.12);
+      gain.gain.setValueAtTime(0.2, agora + idx * 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.01, agora + idx * 0.12 + 0.3);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(agora + idx * 0.12);
+      osc.stop(agora + idx * 0.12 + 0.3);
+    });
+  } catch (err) {
+    silentCatchWarn("partiu-engine", err);
+  }
+}
+
 // 1. Obter corrida ativa (Cache local sincronizado com Supabase)
 export function getCorridaAtiva(): CorridaPartiu | null {
   if (typeof window === "undefined") return corridaMemoria;
@@ -487,6 +518,18 @@ export function getCorridaAtiva(): CorridaPartiu | null {
     return JSON.parse(raw) || corridaMemoria;
   } catch {
     return corridaMemoria;
+  }
+}
+
+// 1.1 Persistir corrida ativa (Cache local e memória volátil)
+export function salvarCorridaAtiva(corrida: CorridaPartiu | null): void {
+  corridaMemoria = corrida;
+  if (typeof window !== "undefined") {
+    if (corrida) {
+      localStorage.setItem(STORAGE_KEY_CORRIDA, JSON.stringify(corrida));
+    } else {
+      localStorage.removeItem(STORAGE_KEY_CORRIDA);
+    }
   }
 }
 
@@ -522,8 +565,19 @@ export function criarNovaCorrida(params: {
     Array<{ id: string; endereco: string; coords?: { lat: number; lng: number } }> | undefined;
   isDestinationMode?: boolean | undefined;
   surgeMultiplier?: number | undefined;
+  excludedDriverIds?: string[] | undefined; // IDs de motoristas excluídos desta corrida (ex: cancelaram anteriormente)
+  reassignCount?: number | undefined; // Contador de reatribuições automáticas (On-Service Reassign)
+  lastReassignReason?: string | undefined; // Motivo da última reatribuição transparente
+  reassignedAt?: number | undefined; // Timestamp da última reatribuição
+  exigePinEmbarque?: boolean | undefined;
+  pin?: string | undefined;
 }): CorridaPartiu {
-  const pin = Math.floor(1000 + Math.random() * 9000).toString();
+  const pin = params.pin || boardingPinEngine.generateBoardingPin();
+  const exigePinEmbarque =
+    params.exigePinEmbarque ??
+    boardingPinEngine.shouldRequirePin({
+      isForOtherPerson: Boolean(params.isForOtherPerson),
+    });
   const id = `COR-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
   const trackingToken = rideLiveTrackingService.generateTrackingToken(id);
 
@@ -563,6 +617,7 @@ export function criarNovaCorrida(params: {
     duracaoMin: params.duracaoMin,
     formaPagamento: params.formaPagamento,
     pin,
+    exigePinEmbarque,
     status: "PROCURANDO",
     criadoEm: Date.now(),
     isEntrega: params.isEntrega,
@@ -981,23 +1036,27 @@ export function cancelarCorrida(
 
   if (atual && atual.motorista?.id) {
     void redisLuaEngine.releaseToCell(atual.motorista.id);
-    const elapsedSeconds = atual.aceitoEm
-      ? (Date.now() - atual.aceitoEm) / 1000
-      : (Date.now() - atual.criadoEm) / 1000;
 
-    // Se o motivo do passageiro for que o motorista não se move, isenta de taxa!
-    const isExemptReason = reasonCode === "DRIVER_STATIONARY" || reasonCode === "PRICE_ISSUE";
+    // Avaliação canônica da taxa de cancelamento (tolerância de 2 minutos Padrão 99 / Uber)
+    const feeResult = calculateCancellationFee({
+      rideId: atual.id,
+      passengerId: atual.passageiroTelefone || "passageiro-default",
+      driverId: atual.motorista.id,
+      driverAssigned: true,
+      driverAcceptedAt: atual.aceitoEm || atual.criadoEm,
+      driverArrivedAt: atual.status === "CHEGOU" ? Date.now() : undefined,
+      cancelledAt: Date.now(),
+      cancelledBy: "PASSENGER",
+      reasonCode,
+      isPureSaaS: true,
+    });
 
-    // Tolerância de carência de 2 minutos (120s) padrão Uber/99
-    const isLateCancellation =
-      !isExemptReason &&
-      ((atual.status === "A_CAMINHO" && elapsedSeconds > 120) || atual.status === "CHEGOU");
-
-    if (isLateCancellation) {
+    if (feeResult.feeType === "PAID") {
       feeSettlement = processarCancelamentoComMulta(
         atual.id,
         atual.passageiroTelefone || "passageiro-default",
         atual.motorista.id,
+        true,
       );
     }
   }
@@ -1048,11 +1107,13 @@ export interface DriverCancellationParams {
   reasonCode: string;
   reasonLabel: string;
   coords?: { lat: number; lng: number } | undefined;
+  shouldReassign?: boolean | undefined;
 }
 
 export function cancelarCorridaPeloMotorista(params: DriverCancellationParams): {
   sucesso: boolean;
   mensagem: string;
+  reassigned?: boolean;
 } {
   const timestamp = Date.now();
   const cancelRecord = {
@@ -1066,8 +1127,6 @@ export function cancelarCorridaPeloMotorista(params: DriverCancellationParams): 
   };
 
   if (typeof window !== "undefined") {
-    localStorage.removeItem(STORAGE_KEY_CORRIDA);
-
     try {
       const existingCancels = JSON.parse(
         localStorage.getItem("partiu_driver_cancellations") || "[]",
@@ -1077,6 +1136,31 @@ export function cancelarCorridaPeloMotorista(params: DriverCancellationParams): 
     } catch (err) {
       silentCatchWarn("partiu-engine", err);
     }
+  }
+
+  const atual = getCorridaAtiva();
+  const isTripNotStarted = atual && atual.id === params.rideId && atual.status !== "EM_VIAGEM";
+  const shouldReassign = params.shouldReassign !== false && isTripNotStarted;
+
+  if (shouldReassign) {
+    // Onda 2 (P1): Reatribuição transparente (On-Service Reassign Padrão 99)
+    void onServiceReassignEngine.reassignOnDriverCancellation({
+      rideId: params.rideId,
+      cancellingDriverId: params.driverId,
+      reasonCode: params.reasonCode,
+      reasonLabel: params.reasonLabel,
+      coords: params.coords,
+    });
+
+    return {
+      sucesso: true,
+      reassigned: true,
+      mensagem: `Cancelamento operacional aceito. Pedido mantido ativo e reatribuído para o próximo condutor.`,
+    };
+  }
+
+  if (typeof window !== "undefined") {
+    localStorage.removeItem(STORAGE_KEY_CORRIDA);
 
     window.dispatchEvent(
       new CustomEvent("partiu:corrida-cancelada", {
@@ -1103,6 +1187,7 @@ export function cancelarCorridaPeloMotorista(params: DriverCancellationParams): 
 
   return {
     sucesso: true,
+    reassigned: false,
     mensagem: `Corrida cancelada: ${params.reasonLabel}`,
   };
 }

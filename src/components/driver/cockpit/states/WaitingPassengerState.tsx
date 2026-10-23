@@ -7,12 +7,18 @@ import {
   UserX,
   CheckCircle2,
   ChevronRight,
+  Users,
+  Clock,
+  Check,
 } from "lucide-react";
 import type { WaitingTimerStatus } from "@/lib/partiu-engine";
 import { DriverSlideAction } from "../DriverSlideAction";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { InlineQuickReplyBar } from "@/components/chat";
 
 interface WaitingPassengerStateProps {
+  rideId?: string;
+  driverId?: string;
   passageiroNome: string;
   passageiroFoto?: string | undefined;
   passageiroAvaliacao?: number | undefined;
@@ -25,6 +31,12 @@ interface WaitingPassengerStateProps {
   waitingTimerStatus: WaitingTimerStatus | null;
   driverUnreadCount: number;
   erroPin?: string | undefined;
+  isForOtherPerson?: boolean;
+  otherPersonName?: string;
+  otherPersonPhone?: string;
+  solicitanteNome?: string;
+  exigePinEmbarque?: boolean;
+  onOpenPassengerPin?: () => void;
   onConfirmarEmbarque: () => void;
   onOpenPinNumpad: () => void;
   onOpenNoShowModal: () => void;
@@ -34,6 +46,8 @@ interface WaitingPassengerStateProps {
 }
 
 export function WaitingPassengerState({
+  rideId,
+  driverId,
   passageiroNome,
   passageiroFoto,
   passageiroAvaliacao = 4.98,
@@ -46,6 +60,12 @@ export function WaitingPassengerState({
   waitingTimerStatus,
   driverUnreadCount,
   erroPin,
+  isForOtherPerson = false,
+  otherPersonName,
+  otherPersonPhone,
+  solicitanteNome,
+  exigePinEmbarque = false,
+  onOpenPassengerPin,
   onConfirmarEmbarque,
   onOpenPinNumpad,
   onOpenNoShowModal,
@@ -55,6 +75,8 @@ export function WaitingPassengerState({
 }: WaitingPassengerStateProps) {
   const { appConfig } = useTheme();
   const { colors, ui } = appConfig.branding;
+
+  const displayPassengerName = isForOtherPerson ? otherPersonName || passageiroNome : passageiroNome;
 
   return (
     <div className="space-y-3.5 animate-in fade-in slide-in-from-bottom duration-300">
@@ -67,10 +89,33 @@ export function WaitingPassengerState({
           <CheckCircle2 className="w-4.5 h-4.5" style={{ color: colors.primary }} />
           <span>{isEntrega ? "Coleta" : "Aguardando embarque"}</span>
         </div>
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md border bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800">
-          No local ✓
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md border bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+          <Check className="w-3 h-3 stroke-[2.5]" />
+          <span>No local</span>
         </span>
       </div>
+
+      {/* Alerta de Corrida para Terceiro */}
+      {isForOtherPerson && (
+        <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Users className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <div className="min-w-0">
+              <span className="font-extrabold block truncate">
+                Passageiro no local: {displayPassengerName}
+              </span>
+              <span className="text-[10px] text-amber-700 dark:text-amber-400 font-medium block truncate">
+                Solicitado por {solicitanteNome || "Titular da conta"}
+              </span>
+            </div>
+          </div>
+          {otherPersonPhone && (
+            <span className="text-[10px] font-mono font-bold bg-amber-100 dark:bg-amber-900/60 px-1.5 py-0.5 rounded text-amber-900 dark:text-amber-200 shrink-0">
+              {otherPersonPhone}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Perfil do Passageiro / Detalhes de Encomenda */}
       <div className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-muted/40 border border-border">
@@ -79,7 +124,7 @@ export function WaitingPassengerState({
             {passageiroFoto ? (
               <img
                 src={passageiroFoto}
-                alt={passageiroNome}
+                alt={displayPassengerName}
                 className="w-11 h-11 rounded-full object-cover border-2 shadow-xs"
                 style={{ borderColor: colors.primary }}
               />
@@ -88,21 +133,21 @@ export function WaitingPassengerState({
                 className="w-11 h-11 rounded-full font-bold text-sm flex items-center justify-center border-2 shadow-xs text-white"
                 style={{ backgroundColor: colors.primary, borderColor: colors.primary }}
               >
-                {passageiroNome.charAt(0)}
+                {displayPassengerName.charAt(0)}
               </div>
             )}
             <span
-              className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full text-slate-950 flex items-center justify-center text-[8px] font-bold border border-white shadow-xs"
+              className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full text-slate-950 flex items-center justify-center border border-white shadow-xs"
               style={{ backgroundColor: colors.secondary || colors.primary }}
             >
-              ✓
+              <Check className="w-2 h-2 stroke-[3]" />
             </span>
           </div>
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 flex-wrap">
               <h3 className="text-xs sm:text-sm font-extrabold text-foreground truncate">
-                {passageiroNome}
+                {displayPassengerName}
               </h3>
               <span
                 className="text-xs font-bold flex items-center gap-0.5"
@@ -117,7 +162,7 @@ export function WaitingPassengerState({
                 className="font-semibold px-1 py-0.2 rounded text-[10px]"
                 style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
               >
-                CPF verificado
+                {isForOtherPerson ? "Passageiro convidado" : "CPF verificado"}
               </span>
               <span>•</span>
               <span>{passageiroTotalCorridas} viagens</span>
@@ -151,13 +196,25 @@ export function WaitingPassengerState({
             onClick={onLigar}
             style={{ borderRadius: ui.borderRadius }}
             className="w-11 h-11 min-h-[44px] min-w-[44px] bg-muted text-foreground border border-border flex items-center justify-center active:scale-90 transition shadow-xs hover:bg-muted/80 cursor-pointer"
-            title="Ligar para o passageiro"
-            aria-label="Ligar para o passageiro"
+            title={isForOtherPerson ? `Ligar para ${displayPassengerName}` : "Ligar para o passageiro"}
+            aria-label={isForOtherPerson ? `Ligar para ${displayPassengerName}` : "Ligar para o passageiro"}
           >
             <Phone className="w-5 h-5" />
           </button>
         </div>
       </div>
+
+      {/* Respostas Rápidas Hands-Free no Ponto de Embarque */}
+      {rideId && (
+        <InlineQuickReplyBar
+          rideId={rideId}
+          senderType="DRIVER"
+          senderId={driverId || "driver_cockpit"}
+          rideStatus="CHEGOU"
+          onOpenFullChat={onOpenChat}
+          unreadCount={driverUnreadCount}
+        />
+      )}
 
       {/* Resumo do Destino Confirmado */}
       <div className="p-3 rounded-2xl bg-muted/40 border border-border flex items-center justify-between text-xs">
@@ -184,14 +241,17 @@ export function WaitingPassengerState({
               : "bg-amber-500/10 text-amber-900 dark:text-amber-200 border-amber-500/30"
           }`}
         >
-          <span>
-            ⏱️ Espera: {Math.floor(waitingTimerStatus.elapsedSeconds / 60)}:
-            {(waitingTimerStatus.elapsedSeconds % 60).toString().padStart(2, "0")}
-            {waitingTimerStatus.isGracePeriodActive
-              ? " (Carência de 5 min)"
-              : " (Tarifação excedente ativa)"}
-          </span>
-          <span className="font-black">
+          <div className="flex items-center gap-1.5 min-w-0 pr-2">
+            <Clock className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+            <span className="truncate">
+              Espera: {Math.floor(waitingTimerStatus.elapsedSeconds / 60)}:
+              {(waitingTimerStatus.elapsedSeconds % 60).toString().padStart(2, "0")}
+              {waitingTimerStatus.isGracePeriodActive
+                ? " (Carência de 5 min)"
+                : " (Tarifação excedente ativa)"}
+            </span>
+          </div>
+          <span className="font-black shrink-0">
             {waitingTimerStatus.accumulatedWaitingFeeCents > 0
               ? `+R$ ${(waitingTimerStatus.accumulatedWaitingFeeCents / 100).toFixed(2)}`
               : "Sem cobrança"}
@@ -228,14 +288,40 @@ export function WaitingPassengerState({
           <span>DIGITAR PIN DE COLETA</span>
           <ChevronRight className="w-4 h-4" />
         </button>
+      ) : exigePinEmbarque ? (
+        <button
+          type="button"
+          onClick={onOpenPassengerPin || onOpenPinNumpad}
+          style={{
+            backgroundColor: colors.primary,
+            color: colors.surface,
+          }}
+          className="w-full h-14 min-h-[56px] rounded-2xl font-black text-sm sm:text-base shadow-lg transition active:scale-[0.98] flex items-center justify-center gap-2.5 cursor-pointer uppercase tracking-wider hover:brightness-105"
+        >
+          <KeyRound className="w-5 h-5" />
+          <span>DIGITAR PIN DO PASSAGEIRO</span>
+          <ChevronRight className="w-4 h-4" />
+        </button>
       ) : (
-        <DriverSlideAction
-          label="DESLIZE PARA INICIAR VIAGEM >>>"
-          confirmedLabel="✓ VIAGEM INICIADA"
-          onConfirm={onConfirmarEmbarque}
-          gradient={`linear-gradient(90deg, ${colors.primary} 0%, ${colors.secondary || colors.primary} 100%)`}
-          className="shadow-lg"
-        />
+        <div className="space-y-2">
+          <DriverSlideAction
+            label="DESLIZE PARA INICIAR VIAGEM >>>"
+            confirmedLabel="VIAGEM INICIADA"
+            onConfirm={onConfirmarEmbarque}
+            gradient={`linear-gradient(90deg, ${colors.primary} 0%, ${colors.secondary || colors.primary} 100%)`}
+            className="shadow-lg"
+          />
+          {onOpenPassengerPin && (
+            <button
+              type="button"
+              onClick={onOpenPassengerPin}
+              className="w-full min-h-[44px] py-1 text-[11px] font-bold text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5 transition cursor-pointer"
+            >
+              <KeyRound className="w-3.5 h-3.5" />
+              <span>Verificar PIN de segurança</span>
+            </button>
+          )}
+        </div>
       )}
 
       {/* Rodapé com Embarque Protegido e Cancelamento */}
@@ -251,7 +337,7 @@ export function WaitingPassengerState({
         <button
           type="button"
           onClick={onOpenCancelar}
-          className="font-bold text-muted-foreground hover:text-rose-600 transition cursor-pointer py-1 text-[11px]"
+          className="font-bold text-muted-foreground hover:text-rose-600 transition cursor-pointer min-h-[44px] flex items-center justify-center px-2 text-[11px]"
         >
           Cancelar corrida
         </button>

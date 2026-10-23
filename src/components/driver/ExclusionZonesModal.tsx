@@ -114,7 +114,7 @@ export const ExclusionZonesModal: React.FC<ExclusionZonesModalProps> = memo(
                     <button
                       type="button"
                       onClick={() => handleToggle(zone.id)}
-                      className={`text-xs px-2.5 py-1 rounded-lg font-semibold transition ${
+                      className={`text-xs px-3 py-1.5 min-h-[36px] rounded-lg font-semibold transition active:scale-95 cursor-pointer ${
                         zone.active
                           ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
                           : "bg-slate-800 text-slate-400"
@@ -125,8 +125,9 @@ export const ExclusionZonesModal: React.FC<ExclusionZonesModalProps> = memo(
                     <button
                       type="button"
                       onClick={() => handleDelete(zone.id)}
-                      className="p-1 text-slate-500 hover:text-red-400"
+                      className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-400 hover:bg-slate-800 transition active:scale-95 cursor-pointer"
                       title="Excluir zona"
+                      aria-label={`Excluir zona ${zone.name}`}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -161,7 +162,7 @@ export const ExclusionZonesModal: React.FC<ExclusionZonesModalProps> = memo(
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Ex: Trevo Norte / Bairro X"
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                  className="w-full min-h-[42px] bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-amber-500"
                 />
               </div>
 
@@ -171,7 +172,7 @@ export const ExclusionZonesModal: React.FC<ExclusionZonesModalProps> = memo(
                   <select
                     value={startHour}
                     onChange={(e) => setStartHour(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none"
+                    className="w-full min-h-[42px] bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-hidden"
                   >
                     {[18, 19, 20, 21, 22, 23].map((h) => (
                       <option key={h} value={h}>
@@ -185,7 +186,7 @@ export const ExclusionZonesModal: React.FC<ExclusionZonesModalProps> = memo(
                   <select
                     value={endHour}
                     onChange={(e) => setEndHour(Number(e.target.value))}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none"
+                    className="w-full min-h-[42px] bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-hidden"
                   >
                     {[4, 5, 6, 7, 8].map((h) => (
                       <option key={h} value={h}>
@@ -208,7 +209,7 @@ export const ExclusionZonesModal: React.FC<ExclusionZonesModalProps> = memo(
                   step="0.5"
                   value={radiusKm}
                   onChange={(e) => setRadiusKm(Number(e.target.value))}
-                  className="w-full accent-amber-500"
+                  className="w-full accent-amber-500 h-2 bg-slate-700 rounded-lg cursor-pointer"
                 />
               </div>
 
@@ -218,14 +219,14 @@ export const ExclusionZonesModal: React.FC<ExclusionZonesModalProps> = memo(
                 <button
                   type="button"
                   onClick={handleSaveZone}
-                  className="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 rounded-lg text-xs transition"
+                  className="flex-1 min-h-[46px] bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 px-3 rounded-xl text-xs transition active:scale-95 cursor-pointer shadow-xs"
                 >
                   Salvar Zona
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsCreating(false)}
-                  className="px-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs transition"
+                  className="min-h-[46px] px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition active:scale-95 cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -236,7 +237,7 @@ export const ExclusionZonesModal: React.FC<ExclusionZonesModalProps> = memo(
               <button
                 type="button"
                 onClick={() => setIsCreating(true)}
-                className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 text-xs font-semibold transition"
+                className="w-full min-h-[46px] flex items-center justify-center gap-1.5 py-3 rounded-xl border border-dashed border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 text-xs font-semibold transition active:scale-98 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Adicionar Zona de Exclusão</span>

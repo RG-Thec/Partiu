@@ -5,6 +5,7 @@ import {
   tocarAlertaChegada,
   tocarAlertaInicioViagem,
   tocarAlertaFimViagem,
+  tocarAlertaProximidade500m,
 } from "@/lib/partiu-engine";
 
 export interface UseDriverVoiceAlertsOptions {
@@ -73,6 +74,18 @@ export function useDriverVoiceAlerts(enabled: boolean = true) {
     falar("Você chegou ao local de embarque. O passageiro foi notificado.");
   }, [falar]);
 
+  const anunciarAproximacaoEmbarque500m = useCallback(() => {
+    obterAudioContext();
+    tocarAlertaProximidade500m();
+    falar("Aproximação do embarque: 500 metros. Prepare-se para a chegada.");
+  }, [falar]);
+
+  const anunciarAproximacaoDestino500m = useCallback(() => {
+    obterAudioContext();
+    tocarAlertaProximidade500m();
+    falar("Aproximação do destino: 500 metros. Prepare-se para o desembarque.");
+  }, [falar]);
+
   const anunciarInicioViagem = useCallback(
     (destino?: string) => {
       obterAudioContext();
@@ -112,6 +125,8 @@ export function useDriverVoiceAlerts(enabled: boolean = true) {
     falar,
     anunciarNovaOferta,
     anunciarChegadaEmbarque,
+    anunciarAproximacaoEmbarque500m,
+    anunciarAproximacaoDestino500m,
     anunciarInicioViagem,
     anunciarFimViagem,
     anunciarDiariaExpirando,

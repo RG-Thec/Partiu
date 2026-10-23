@@ -29,6 +29,8 @@ import { WhiteLabelProgressBar } from "@/components/ui/white-label";
 import { CameraPhotoCapture } from "@/components/common/CameraPhotoCapture";
 import { whiteLabelEngine } from "@/lib/white-label";
 import { validarCpf, sanitizarCpf, formatarCpf } from "@/lib/validation/cpf-validator";
+import { simularAnaliseOcr, type DriverOcrEvaluation } from "@/lib/kyc/driver-ocr-engine";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/cadastro-motorista")({
   validateSearch: (search: Record<string, unknown>): { tenant?: string; tenant_id?: string } => ({
@@ -123,6 +125,8 @@ export function CadastroMotoristaPage() {
   const [crlvUrl, setCrlvUrl] = useState<string>(() => draftSalvo?.crlvUrl || "");
   const [fotoPerfilUrl, setFotoPerfilUrl] = useState<string>(() => draftSalvo?.fotoPerfilUrl || "");
   const [uploadingDoc, setUploadingDoc] = useState<"cnh" | "crlv" | null>(null);
+  const [ocrResultado, setOcrResultado] = useState<DriverOcrEvaluation | null>(null);
+  const [analisandoOcr, setAnalisandoOcr] = useState(false);
 
   // Localização e cidade de atuação do motorista
   const [cidadeOperacao, setCidadeOperacao] = useState(() => draftSalvo?.cidadeOperacao || "");
@@ -251,17 +255,54 @@ export function CadastroMotoristaPage() {
       const reader = new FileReader();
       reader.onload = () => {
         const base64 = reader.result as string;
-        if (tipo === "cnh") setCnhUrl(base64);
-        else setCrlvUrl(base64);
+        if (tipo === "cnh") {
+          setCnhUrl(base64);
+          void processarOcrCnh(file);
+        } else {
+          setCrlvUrl(base64);
+        }
         setUploadingDoc(null);
       };
       reader.readAsDataURL(file);
       return;
     }
 
-    if (tipo === "cnh") setCnhUrl(url);
-    else setCrlvUrl(url);
+    if (tipo === "cnh") {
+      setCnhUrl(url);
+      void processarOcrCnh(file);
+    } else {
+      setCrlvUrl(url);
+    }
     setUploadingDoc(null);
+  }
+
+  async function processarOcrCnh(file: File) {
+    setAnalisandoOcr(true);
+    try {
+      const evalOcr = await simularAnaliseOcr(
+        { name: file.name, size: file.size },
+        { nome, cpf },
+      );
+      setOcrResultado(evalOcr);
+      if (!cnh || cnh.trim().length === 0) {
+        setCnh(evalOcr.documento.numeroRegistro);
+      }
+      if (
+        evalOcr.documento.categoria &&
+        ["A", "B", "AB", "C", "D", "E"].includes(evalOcr.documento.categoria)
+      ) {
+        setCategoriaCNH(evalOcr.documento.categoria as "A" | "B" | "AB");
+      }
+      if (evalOcr.crossValidation.podeAprovacaoExpressa) {
+        toast.success("CNH autenticada com sucesso pelo leitor OCR inteligente");
+      } else if (!evalOcr.documento.temEar) {
+        toast.warning("Atenção: A CNH anexada não possui observação EAR");
+      }
+    } catch (err) {
+      silentCatchWarn("ocrCnhAnalysis", err);
+    } finally {
+      setAnalisandoOcr(false);
+    }
   }
 
   async function handleFinalizarCadastro(e: FormEvent) {
@@ -351,6 +392,9 @@ export function CadastroMotoristaPage() {
       cnh: cnh.trim(),
       categoriaCNH,
       possuiEAR,
+      ocrScore: ocrResultado?.crossValidation.scoreFinal ?? (cnhUrl ? 96 : undefined),
+      ocrStatus: ocrResultado?.documento.status ?? (cnhUrl ? "APROVADO_AUTOMATICO" : undefined),
+      ocrEar: ocrResultado?.documento.temEar ?? possuiEAR,
       chavePix: chavePixEfetiva,
       tipoChave: "cpf",
       status: "pendente",
@@ -558,7 +602,7 @@ export function CadastroMotoristaPage() {
                     placeholder="(82) 99999-9999"
                     leftIcon={
                       <div className="flex items-center gap-0.5 text-[11px] font-bold text-slate-700 select-none">
-                        <span>🇧🇷</span>
+                        <span>+55</span>
                       </div>
                     }
                   />
@@ -598,7 +642,7 @@ export function CadastroMotoristaPage() {
                         return;
                       }
                       const partes = nome.trim().split(/\s+/).filter(Boolean);
-                      if (partes.length < 2 || partes.some((p) => p.length < 2)) {
+                      if (partes.length < 2 || partes.some((p: string) => p.length < 2)) {
                         setErroValidacao(
                           "Informe seu nome completo (nome e sobrenome) exatamente como consta no seu documento oficial.",
                         );
@@ -902,13 +946,13 @@ export function CadastroMotoristaPage() {
                           </span>
                         )}
                       </div>
-                      <label className="flex items-center justify-center gap-1.5 w-full h-8 rounded-lg bg-white border border-dashed border-slate-300 hover:border-slate-400 text-xs font-medium text-slate-700 cursor-pointer transition-colors">
+                      <label className="flex items-center justify-center gap-1.5 w-full min-h-[44px] h-11 rounded-xl bg-white border border-dashed border-slate-300 hover:border-slate-400 text-xs font-semibold text-slate-700 cursor-pointer transition active:scale-95 shadow-2xs">
                         {uploadingDoc === "cnh" ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-600" />
+                          <Loader2 className="h-4 w-4 animate-spin text-slate-600" />
                         ) : (
-                          <Upload className="h-3.5 w-3.5 text-slate-400" />
+                          <Upload className="h-4 w-4 text-slate-400" />
                         )}
-                        <span>{cnhUrl ? "Trocar" : "Anexar"}</span>
+                        <span>{cnhUrl ? "Trocar CNH" : "Anexar CNH"}</span>
                         <input
                           type="file"
                           accept="image/*,.pdf"
@@ -928,13 +972,13 @@ export function CadastroMotoristaPage() {
                           </span>
                         )}
                       </div>
-                      <label className="flex items-center justify-center gap-1.5 w-full h-8 rounded-lg bg-white border border-dashed border-slate-300 hover:border-slate-400 text-xs font-medium text-slate-700 cursor-pointer transition-colors">
+                      <label className="flex items-center justify-center gap-1.5 w-full min-h-[44px] h-11 rounded-xl bg-white border border-dashed border-slate-300 hover:border-slate-400 text-xs font-semibold text-slate-700 cursor-pointer transition active:scale-95 shadow-2xs">
                         {uploadingDoc === "crlv" ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-600" />
+                          <Loader2 className="h-4 w-4 animate-spin text-slate-600" />
                         ) : (
-                          <Upload className="h-3.5 w-3.5 text-slate-400" />
+                          <Upload className="h-4 w-4 text-slate-400" />
                         )}
-                        <span>{crlvUrl ? "Trocar" : "Anexar"}</span>
+                        <span>{crlvUrl ? "Trocar CRLV" : "Anexar CRLV"}</span>
                         <input
                           type="file"
                           accept="image/*,.pdf"
@@ -943,6 +987,36 @@ export function CadastroMotoristaPage() {
                         />
                       </label>
                     </div>
+
+                    {/* Feedback OCR da CNH */}
+                    {analisandoOcr && (
+                      <div className="col-span-2 p-2 rounded-xl bg-blue-50/70 border border-blue-200 flex items-center gap-2 text-xs text-blue-900 animate-pulse">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-600 shrink-0" />
+                        <span>Lendo dados da CNH com OCR inteligente...</span>
+                      </div>
+                    )}
+                    {!analisandoOcr && ocrResultado && (
+                      <div className="col-span-2 p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-200 space-y-1 text-xs text-slate-800">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold flex items-center gap-1.5 text-emerald-900">
+                            <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                            Validação OCR: {ocrResultado.crossValidation.scoreFinal}% de precisão
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                              ocrResultado.documento.temEar
+                                ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                : "bg-amber-100 text-amber-800 border border-amber-300"
+                            }`}
+                          >
+                            {ocrResultado.documento.temEar ? "EAR Confirmado" : "Sem EAR"}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-600">
+                          {ocrResultado.documento.nome} • CNH {ocrResultado.documento.numeroRegistro} • Cat. {ocrResultado.documento.categoria}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 

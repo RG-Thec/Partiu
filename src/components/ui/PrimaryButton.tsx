@@ -18,7 +18,7 @@ export interface PrimaryButtonProps extends React.ButtonHTMLAttributes<HTMLButto
  * Padronizado para todos os fluxos críticos da aplicação:
  * - Confirmar Corrida / Solicitar Embarque
  * - Pedir Carro / Pedir Moto
- * - Fazer Pix / Recarregar Carteira
+ * - Pagar Diária / Fazer Pix
  * - Aceitar Corrida / Iniciar Viagem / Finalizar Corrida
  *
  * Estados:

@@ -49,10 +49,8 @@ describe("SUITE 55: RECURSOS COMPETITIVOS 2026 (TAXÍMETRO VIRTUAL, TTS, DEBT CU
     const receipt = taximeter.finish("DRV-TEST-01");
     expect(receipt.driverId).toBe("DRV-TEST-01");
     expect(receipt.fareBrl >= 12.0).toBe(true); // Respeita tarifa mínima de R$ 12,00
-    expect(receipt.platformFeeBrl).toBe(Math.round(receipt.fareBrl * 0.1 * 100) / 100);
-    expect(receipt.netDriverBrl).toBe(
-      Math.round((receipt.fareBrl - receipt.platformFeeBrl) * 100) / 100,
-    );
+    expect(receipt.platformFeeBrl).toBe(0.0); // 0% taxa da plataforma (SaaS Partiu)
+    expect(receipt.netDriverBrl).toBe(receipt.fareBrl); // 100% líquido ao motorista
     expect(receipt.pixCopiaECola?.includes("br.gov.bcb.pix")).toBe(true);
 
     // Reseta estado

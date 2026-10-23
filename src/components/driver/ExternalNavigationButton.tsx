@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import { Navigation, ExternalLink, MapPin, Check } from "lucide-react";
+import {
+  externalNavigationService,
+  type NavigationApp,
+} from "@/lib/navigation/external-navigation-service";
 
 export interface ExternalNavigationButtonProps {
   destinationLat: number;
@@ -17,29 +21,17 @@ export function ExternalNavigationButton({
   variant = "button",
 }: ExternalNavigationButtonProps) {
   const [modalAberto, setModalAberto] = useState(false);
-  const [preferencia, setPreferencia] = useState<string | null>(() => {
-    if (typeof localStorage !== "undefined") {
-      return localStorage.getItem("partiu_preferred_navigation_app");
-    }
-    return null;
-  });
+  const [preferencia, setPreferencia] = useState<NavigationApp>(() =>
+    externalNavigationService.getPreferredApp(),
+  );
 
-  function abrirNavegacao(app: "waze" | "google") {
-    if (typeof localStorage !== "undefined") {
-      localStorage.setItem("partiu_preferred_navigation_app", app);
-    }
+  function abrirNavegacao(app: NavigationApp) {
+    externalNavigationService.launchNavigation(
+      app,
+      { lat: destinationLat, lng: destinationLng },
+      destinationAddress,
+    );
     setPreferencia(app);
-
-    let url = "";
-    if (app === "waze") {
-      // Deep link Waze universal
-      url = `https://waze.com/ul?ll=${destinationLat},${destinationLng}&navigate=yes`;
-    } else {
-      // Deep link Google Maps universal
-      url = `https://www.google.com/maps/dir/?api=1&destination=${destinationLat},${destinationLng}`;
-    }
-
-    window.open(url, "_blank", "noopener,noreferrer");
     setModalAberto(false);
   }
 

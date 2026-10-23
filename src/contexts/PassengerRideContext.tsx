@@ -51,6 +51,7 @@ import { supabaseAuthService } from "@/lib/auth/supabase-auth-service";
 import { couponService } from "@/services/CouponService";
 import { whiteLabelEngine } from "@/lib/white-label/white-label-engine";
 import { validarAcessoTerritorial } from "@/lib/geo/territory-guard";
+import { calculateCancellationFee } from "@/lib/pricing/cancellation-fee-calculator";
 
 export interface PassengerPreferences {
   arCondicionado: boolean;
@@ -82,6 +83,8 @@ interface PassengerRideContextValue {
   activeQuote: ItemizedQuote;
   activeRide: CorridaPartiu | null;
   isCancelModalOpen: boolean;
+  reassignBanner: { visible: boolean; message: string };
+  dismissReassignBanner: () => void;
 
   // Recursos Inteligentes Estilo 99
   preferences: PassengerPreferences;
@@ -609,6 +612,14 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
 
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [activeRide, setActiveRide] = useState<CorridaPartiu | null>(() => getCorridaAtiva());
+  const [reassignBanner, setReassignBanner] = useState<{ visible: boolean; message: string }>({
+    visible: false,
+    message: "",
+  });
+
+  const dismissReassignBanner = useCallback(() => {
+    setReassignBanner({ visible: false, message: "" });
+  }, []);
 
   // Recursos Inteligentes Estilo 99
   const [preferences, setPreferences] = useState<PassengerPreferences>({
@@ -892,17 +903,39 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       if (c && !c.isEntrega) {
         setActiveRide(c);
         if (c.status === "PROCURANDO") {
-          setState("FINDING_DRIVER");
+          if (c.reassignCount && c.reassignCount > 0) {
+            setState("SEARCHING_R1");
+            setDriverCoords([0, 0]);
+            setReassignBanner({
+              visible: true,
+              message: `O motorista anterior precisou cancelar (${c.lastReassignReason || "imprevisto"}). Localizando outro parceiro próximo para você...`,
+            });
+          } else {
+            setState("FINDING_DRIVER");
+          }
         } else if (c.status === "A_CAMINHO" || c.status === "CHEGOU") {
           setState("DRIVER_ASSIGNED");
+          setReassignBanner({ visible: false, message: "" });
         } else if (c.status === "EM_VIAGEM") {
           setState("ON_TRIP");
+          setReassignBanner({ visible: false, message: "" });
         } else if (c.status === "CONCLUIDA") {
           setState("COMPLETED");
+          setReassignBanner({ visible: false, message: "" });
         }
       } else if (!c) {
         setActiveRide(null);
       }
+    };
+
+    const handleDriverReassigned = (e: any) => {
+      const { reason } = e.detail || {};
+      setState("SEARCHING_R1");
+      setDriverCoords([0, 0]);
+      setReassignBanner({
+        visible: true,
+        message: `O motorista anterior precisou cancelar (${reason || "imprevisto"}). Localizando outro parceiro próximo para você...`,
+      });
     };
 
     const handleDriverMove = (e: any) => {
@@ -913,9 +946,11 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
 
     window.addEventListener("partiu:corrida_atualizada", handleMudanca);
     window.addEventListener("partiu:driver_location_updated", handleDriverMove);
+    window.addEventListener("partiu:driver_cancelled_reassigning", handleDriverReassigned);
     return () => {
       window.removeEventListener("partiu:corrida_atualizada", handleMudanca);
       window.removeEventListener("partiu:driver_location_updated", handleDriverMove);
+      window.removeEventListener("partiu:driver_cancelled_reassigning", handleDriverReassigned);
     };
   }, []);
 
@@ -1549,15 +1584,33 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
         console.warn("[PassengerRideContext] Erro ao cancelar corrida:", err);
       }
 
-      // Se o motorista já havia aceito ou estava a caminho, gera taxa de cancelamento para compensação na próxima corrida
+      // Onda 2: Avaliação determinística da Taxa de Cancelamento com tolerância de 2 minutos (Padrão 99 / Uber)
       const hadDriverAssigned = Boolean(
         currentActive?.motorista ||
         state === "DRIVER_ASSIGNED" ||
         state === "DRIVER_ARRIVING" ||
         state === "DRIVER_ARRIVED",
       );
-      if (hadDriverAssigned && typeof window !== "undefined") {
-        localStorage.setItem("partiu_pending_cancellation_fee", "5.00");
+
+      const feeEvaluation = calculateCancellationFee({
+        rideId: currentActive?.id || progressiveSession?.rideId || "temp-ride",
+        passengerId: currentActive?.passageiroTelefone || "passageiro-default",
+        driverId: currentActive?.motorista?.id,
+        driverAssigned: hadDriverAssigned,
+        driverAcceptedAt:
+          currentActive?.aceitoEm ||
+          (currentActive?.criadoEm ? currentActive.criadoEm : undefined),
+        driverArrivedAt: state === "DRIVER_ARRIVED" ? Date.now() : undefined,
+        cancelledAt: Date.now(),
+        cancelledBy: "PASSENGER",
+        reasonCode: reason?.code,
+        isPureSaaS: true,
+      });
+
+      if (feeEvaluation.feeType === "PAID" && typeof window !== "undefined") {
+        localStorage.setItem("partiu_pending_cancellation_fee", feeEvaluation.totalFeeBrl.toFixed(2));
+      } else if (typeof window !== "undefined") {
+        localStorage.removeItem("partiu_pending_cancellation_fee");
       }
 
       setIsCancelModalOpen(false);
@@ -1631,6 +1684,8 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       activeQuote,
       activeRide,
       isCancelModalOpen,
+      reassignBanner,
+      dismissReassignBanner,
       preferences,
       togglePreference,
       precisaTroco,
@@ -1709,6 +1764,8 @@ export function PassengerRideProvider({ children }: { children: ReactNode }) {
       activeQuote,
       activeRide,
       isCancelModalOpen,
+      reassignBanner,
+      dismissReassignBanner,
       preferences,
       togglePreference,
       precisaTroco,

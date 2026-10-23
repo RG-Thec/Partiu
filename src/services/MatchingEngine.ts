@@ -338,7 +338,7 @@ export class MatchingEngine {
         });
 
         if (!error && Array.isArray(data) && data.length > 0) {
-          return data.map((d: any) => ({
+          let drivers = data.map((d: any) => ({
             driverId: d.driver_id,
             name: d.name,
             phone: d.phone,
@@ -359,6 +359,13 @@ export class MatchingEngine {
             etaMinutes: Number(d.eta_minutes),
             dispatchScore: Number(d.dispatch_score),
           }));
+
+          if (request.blockedDriverIds && request.blockedDriverIds.length > 0) {
+            const blockedSet = new Set(request.blockedDriverIds);
+            drivers = drivers.filter((d) => !blockedSet.has(d.driverId));
+          }
+
+          return drivers;
         }
       } catch (err) {
         console.warn("[MatchingEngine] RPC remota falhou, aplicando fallback local:", err);
@@ -373,7 +380,18 @@ export class MatchingEngine {
         Boolean(process.env.VITEST));
 
     if (isTestEnv) {
-      return this.generateTestCandidates(passengerLat, passengerLng, category, radiusMeters, limit);
+      let testCandidates = this.generateTestCandidates(
+        passengerLat,
+        passengerLng,
+        category,
+        radiusMeters,
+        limit,
+      );
+      if (request.blockedDriverIds && request.blockedDriverIds.length > 0) {
+        const blockedSet = new Set(request.blockedDriverIds);
+        testCandidates = testCandidates.filter((d) => !blockedSet.has(d.driverId));
+      }
+      return testCandidates;
     }
 
     // Em produção com banco Supabase configurado, retorna estritamente vazio (zero mocks em operação real)

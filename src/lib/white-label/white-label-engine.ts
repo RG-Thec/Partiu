@@ -1183,13 +1183,35 @@ export class WhiteLabelEngine {
         }
       });
 
-      // 2. Resolução do Tenant Ativo com Prioridade Estrita:
-      // Prioridade 1: Query param na URL (?tenant= ou ?tenant_id=) — Trava imediata da franquia
+      // 2. Resolução do Tenant Ativo com Prioridade Estrita (Zero-Trust):
+      // Prioridade 1: Sessão de administrador franqueado autenticado (imutável para operadores regionais)
+      let sessionTenant = "";
+      try {
+        const authRaw =
+          localStorage.getItem("partiu_admin_session_auth") ||
+          localStorage.getItem("partiu_admin_session");
+        if (authRaw) {
+          const parsed = JSON.parse(authRaw);
+          const role = (parsed?.role || "").toUpperCase();
+          if ((role === "FRANQUEADO" || role.includes("FRANQ")) && parsed?.tenantId) {
+            sessionTenant = parsed.tenantId.trim();
+          }
+        }
+      } catch {}
+
       const urlParams =
         typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
       const urlTenant = (urlParams?.get("tenant") || urlParams?.get("tenant_id") || "").trim();
 
-      if (urlTenant) {
+      if (sessionTenant) {
+        // Se franqueado regional autenticado, trava definitiva na sua praça (sem vazamento)
+        this.activeTenantId = sessionTenant;
+        if (!this.tenantsMap.has(sessionTenant)) {
+          this.resolveOrRegisterTenant(sessionTenant);
+        }
+        void this.syncFromSupabase(sessionTenant);
+      } else if (urlTenant) {
+        // Prioridade 2: Query param na URL (?tenant= ou ?tenant_id=) — Apenas para visitantes ou Super Admin
         this.activeTenantId = urlTenant;
         if (!this.tenantsMap.has(urlTenant)) {
           const cachedBranding = localStorage.getItem(`partiu_branding_tenant_${urlTenant}`);
@@ -1207,41 +1229,19 @@ export class WhiteLabelEngine {
         }
         void this.syncFromSupabase(urlTenant);
       } else {
-        // Prioridade 2: Sessão de administrador franqueado autenticado
-        let sessionTenant = "";
-        try {
-          const authRaw =
-            localStorage.getItem("partiu_admin_session_auth") ||
-            localStorage.getItem("partiu_admin_session");
-          if (authRaw) {
-            const parsed = JSON.parse(authRaw);
-            if (parsed?.role === "FRANQUEADO" && parsed?.tenantId) {
-              sessionTenant = parsed.tenantId.trim();
-            }
-          }
-        } catch {}
+        // Prioridade 3: Armazenamento persistido unificado
+        const savedTenantId =
+          localStorage.getItem(STORAGE_KEY_ACTIVE_TENANT) ||
+          localStorage.getItem("partiu_active_tenant_id_v2") ||
+          localStorage.getItem("partiu_wl_active_tenant_v1");
 
-        if (sessionTenant) {
-          this.activeTenantId = sessionTenant;
-          if (!this.tenantsMap.has(sessionTenant)) {
-            this.resolveOrRegisterTenant(sessionTenant);
+        if (savedTenantId && savedTenantId.trim()) {
+          this.activeTenantId = savedTenantId.trim();
+          if (!this.tenantsMap.has(this.activeTenantId)) {
+            this.resolveOrRegisterTenant(this.activeTenantId);
           }
-          void this.syncFromSupabase(sessionTenant);
         } else {
-          // Prioridade 3: Armazenamento persistido unificado
-          const savedTenantId =
-            localStorage.getItem(STORAGE_KEY_ACTIVE_TENANT) ||
-            localStorage.getItem("partiu_active_tenant_id_v2") ||
-            localStorage.getItem("partiu_wl_active_tenant_v1");
-
-          if (savedTenantId && savedTenantId.trim()) {
-            this.activeTenantId = savedTenantId.trim();
-            if (!this.tenantsMap.has(this.activeTenantId)) {
-              this.resolveOrRegisterTenant(this.activeTenantId);
-            }
-          } else {
-            this.activeTenantId = "default";
-          }
+          this.activeTenantId = "default";
         }
       }
 
@@ -1845,6 +1845,34 @@ export class WhiteLabelEngine {
       return this.getActiveTenant();
     }
 
+    // Zero-Trust Guard: se for FRANQUEADO autenticado, bloquear tentativa de troca para outro tenant
+    let sessionFranqueadoTenant = "";
+    try {
+      if (typeof window !== "undefined") {
+        const authRaw =
+          localStorage.getItem("partiu_admin_session_auth") ||
+          localStorage.getItem("partiu_admin_session");
+        if (authRaw) {
+          const parsed = JSON.parse(authRaw);
+          const role = (parsed?.role || "").toUpperCase();
+          if ((role === "FRANQUEADO" || role.includes("FRANQ")) && parsed?.tenantId) {
+            sessionFranqueadoTenant = parsed.tenantId.trim();
+          }
+        }
+      }
+    } catch {}
+
+    if (sessionFranqueadoTenant) {
+      const cleanFranchisee = sessionFranqueadoTenant.toLowerCase().replace("tenant-", "").replace("praca_", "");
+      const cleanTarget = cleanId.toLowerCase().replace("tenant-", "").replace("praca_", "");
+      if (cleanFranchisee !== cleanTarget && cleanId.toLowerCase() !== sessionFranqueadoTenant.toLowerCase()) {
+        console.warn(
+          `[WhiteLabelEngine] Acesso negado: Franqueado '${sessionFranqueadoTenant}' tentou alternar para '${cleanId}'. Mantendo no próprio tenant.`,
+        );
+        return this.getActiveTenant();
+      }
+    }
+
     // Auto-cura e resolução resiliente sem nunca lançar erro fatal que quebre o render do React
     const tenant = this.resolveOrRegisterTenant(cleanId);
     this.activeTenantId = tenant.tenantId;
@@ -1861,6 +1889,34 @@ export class WhiteLabelEngine {
     options?: { silent?: boolean; skipPersist?: boolean },
   ): WhiteLabelFullConfig {
     const tenant = this.getActiveTenant();
+
+    // Zero-Trust Guard: franqueado não pode mutar config ativa de outro tenant
+    let sessionFranqueadoTenant = "";
+    try {
+      if (typeof window !== "undefined") {
+        const authRaw =
+          localStorage.getItem("partiu_admin_session_auth") ||
+          localStorage.getItem("partiu_admin_session");
+        if (authRaw) {
+          const parsed = JSON.parse(authRaw);
+          const role = (parsed?.role || "").toUpperCase();
+          if ((role === "FRANQUEADO" || role.includes("FRANQ")) && parsed?.tenantId) {
+            sessionFranqueadoTenant = parsed.tenantId.trim();
+          }
+        }
+      }
+    } catch {}
+
+    if (sessionFranqueadoTenant) {
+      const cleanFranchisee = sessionFranqueadoTenant.toLowerCase().replace("tenant-", "").replace("praca_", "");
+      const cleanActive = tenant.tenantId.toLowerCase().replace("tenant-", "").replace("praca_", "");
+      if (cleanFranchisee !== cleanActive && tenant.tenantId.toLowerCase() !== sessionFranqueadoTenant.toLowerCase()) {
+        throw new Error(
+          `[WhiteLabelEngine] Acesso negado: Franqueado não possui permissão para modificar parâmetros de outro tenant (${tenant.tenantId}).`,
+        );
+      }
+    }
+
     const updated: WhiteLabelFullConfig = {
       ...tenant.configuracaoCompleta,
       ...partialConfig,
@@ -1889,6 +1945,33 @@ export class WhiteLabelEngine {
     partialConfig: Partial<WhiteLabelFullConfig>,
     options?: { silent?: boolean; skipPersist?: boolean },
   ): WhiteLabelFullConfig {
+    // Zero-Trust Guard: franqueado não pode mutar config de outro tenant
+    let sessionFranqueadoTenant = "";
+    try {
+      if (typeof window !== "undefined") {
+        const authRaw =
+          localStorage.getItem("partiu_admin_session_auth") ||
+          localStorage.getItem("partiu_admin_session");
+        if (authRaw) {
+          const parsed = JSON.parse(authRaw);
+          const role = (parsed?.role || "").toUpperCase();
+          if ((role === "FRANQUEADO" || role.includes("FRANQ")) && parsed?.tenantId) {
+            sessionFranqueadoTenant = parsed.tenantId.trim();
+          }
+        }
+      }
+    } catch {}
+
+    if (sessionFranqueadoTenant) {
+      const cleanFranchisee = sessionFranqueadoTenant.toLowerCase().replace("tenant-", "").replace("praca_", "");
+      const cleanTarget = (tenantId || "").toLowerCase().replace("tenant-", "").replace("praca_", "");
+      if (cleanFranchisee !== cleanTarget && (tenantId || "").toLowerCase() !== sessionFranqueadoTenant.toLowerCase()) {
+        throw new Error(
+          `[WhiteLabelEngine] Acesso negado: Franqueado não possui permissão para modificar parâmetros de outro tenant (${tenantId}).`,
+        );
+      }
+    }
+
     const tenant = this.tenantsMap.get(tenantId) || this.getActiveTenant();
     const updated: WhiteLabelFullConfig = {
       ...tenant.configuracaoCompleta,

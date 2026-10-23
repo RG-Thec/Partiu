@@ -143,7 +143,7 @@ export const VirtualTaximeterModal: React.FC<VirtualTaximeterModalProps> = ({
               className="w-9 h-9 rounded-xl flex items-center justify-center font-black shadow-xs"
               style={{ background: brandGradient, color: corTextoPrimaria }}
             >
-              ⏱️
+              <Clock className="w-5 h-5 stroke-[2.5]" />
             </div>
             <div>
               <h2 className="text-base font-black text-white tracking-tight">
@@ -265,8 +265,7 @@ export const VirtualTaximeterModal: React.FC<VirtualTaximeterModalProps> = ({
                   {receipt.fareBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                 </span>
                 <span className="text-xs text-emerald-300 font-bold block">
-                  Líquido Condutor: R$ {receipt.netDriverBrl.toFixed(2)} • Taxa Plataforma (10%): R${" "}
-                  {receipt.platformFeeBrl.toFixed(2)}
+                  100% Líquido Condutor • 0% Taxa da Plataforma
                 </span>
               </div>
 
@@ -287,7 +286,7 @@ export const VirtualTaximeterModal: React.FC<VirtualTaximeterModalProps> = ({
                     className="w-full h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-98 cursor-pointer"
                   >
                     <Copy className="w-3.5 h-3.5" />
-                    <span>{copiedPix ? "Chave PIX Copiada!" : "Copiar Código PIX"}</span>
+                    <span>{copiedPix ? "Chave PIX Copiada" : "Copiar Código PIX"}</span>
                   </button>
                 </div>
               )}

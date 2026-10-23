@@ -16,7 +16,7 @@ export interface DriverSlideActionProps {
 
 export const DriverSlideAction = memo(function DriverSlideAction({
   label,
-  confirmedLabel = "✓ AÇÃO CONFIRMADA",
+  confirmedLabel = "AÇÃO CONFIRMADA",
   onConfirm,
   gradient = "linear-gradient(90deg, #10B981 0%, #059669 100%)",
   thumbColor = "#FFFFFF",

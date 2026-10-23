@@ -69,6 +69,8 @@ import {
   type ExecutiveSaaSMetrics,
 } from "@/lib/ecosystem/driver-subscription-service";
 import { computePixCrc16 } from "@/services/payment/PaymentProviderAdapter";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useAdminCity } from "@/contexts/AdminCityContext";
 
 export const Route = createFileRoute("/app/admin/monetizacao")({
   head: () => ({
@@ -87,6 +89,15 @@ export const Route = createFileRoute("/app/admin/monetizacao")({
 type AbaMonetizacao = "dashboard" | "ciclo_vida" | "planos" | "gateways_pix";
 
 export function AdminMonetizacaoPage() {
+  const { isFranqueado, isSuperAdmin, tenantId: authTenantId } = useAdminAuth();
+  const { pracaAtiva, isNacional: isContextNacional } = useAdminCity();
+
+  const tenantEscopo = useMemo(() => {
+    if (isFranqueado && authTenantId) return authTenantId;
+    if (!isFranqueado && isContextNacional) return undefined;
+    return pracaAtiva?.id && pracaAtiva.id !== "todas" ? pracaAtiva.id : undefined;
+  }, [isFranqueado, authTenantId, isContextNacional, pracaAtiva?.id]);
+
   const [abaAtiva, setAbaAtiva] = useState<AbaMonetizacao>("ciclo_vida");
   const [appSettings, setAppSettings] = useState<AppSettings>(() =>
     appSettingsService.getSettings(),
@@ -98,15 +109,15 @@ export function AdminMonetizacaoPage() {
     appSettings.daily_fee_moto.toFixed(2),
   );
 
-  // Dados das Assinaturas e Contas
+  // Dados das Assinaturas e Contas com Escopo de Franquia (Isolamento Estrito)
   const [executiveMetrics, setExecutiveMetrics] = useState<ExecutiveSaaSMetrics>(() =>
-    driverSubscriptionService.getExecutiveSaaSMetrics(),
+    driverSubscriptionService.getExecutiveSaaSMetrics(tenantEscopo),
   );
   const [driverAccounts, setDriverAccounts] = useState<DriverSubscriptionAccount[]>(() =>
-    driverSubscriptionService.getDriverAccounts(),
+    driverSubscriptionService.getDriverAccounts(tenantEscopo),
   );
   const [subscriptionsList, setSubscriptionsList] = useState<DriverSubscriptionRecord[]>(() =>
-    driverSubscriptionService.getAllSubscriptions(),
+    driverSubscriptionService.getAllSubscriptions(tenantEscopo),
   );
   const [planos, setPlanos] = useState<DriverPlan[]>(() => subscriptionEngine.getAllPlans(true));
   const [metrics, setMetrics] = useState<PlatformRevenueMetrics>(() =>
@@ -162,12 +173,23 @@ export function AdminMonetizacaoPage() {
   );
   const [tenantsDisponiveis, setTenantsDisponiveis] = useState<WhiteLabelTenantRecord[]>(() => {
     try {
-      return WhiteLabelEngine.getInstance().getAllTenants();
+      const all = WhiteLabelEngine.getInstance().getAllTenants();
+      if (isFranqueado && authTenantId) {
+        const cleanAuth = authTenantId.toLowerCase().replace("tenant-", "").replace("praca_", "");
+        return all.filter((t) => {
+          const cleanT = t.tenantId.toLowerCase().replace("tenant-", "").replace("praca_", "");
+          return cleanT === cleanAuth || t.tenantId.toLowerCase() === authTenantId.toLowerCase();
+        });
+      }
+      return all;
     } catch {
       return [];
     }
   });
-  const [tenantSelecionadoTrial, setTenantSelecionadoTrial] = useState<string>("global");
+  const [tenantSelecionadoTrial, setTenantSelecionadoTrial] = useState<string>(() => {
+    if (isFranqueado && authTenantId) return authTenantId;
+    return "global";
+  });
   const [trialAtivoInput, setTrialAtivoInput] = useState<boolean>(
     () => monetizacaoGlobal.trialAtivo ?? true,
   );
@@ -183,9 +205,9 @@ export function AdminMonetizacaoPage() {
 
   function recarregarDados() {
     setAppSettings(appSettingsService.getSettings());
-    setExecutiveMetrics(driverSubscriptionService.getExecutiveSaaSMetrics());
-    setDriverAccounts(driverSubscriptionService.getDriverAccounts());
-    setSubscriptionsList(driverSubscriptionService.getAllSubscriptions());
+    setExecutiveMetrics(driverSubscriptionService.getExecutiveSaaSMetrics(tenantEscopo));
+    setDriverAccounts(driverSubscriptionService.getDriverAccounts(tenantEscopo));
+    setSubscriptionsList(driverSubscriptionService.getAllSubscriptions(tenantEscopo));
     setPlanos(subscriptionEngine.getAllPlans(true));
     setMetrics(revenueDashboardEngine.calculateMetrics());
     setPedidosRecarga(carregarPedidosRecarga());
@@ -193,11 +215,22 @@ export function AdminMonetizacaoPage() {
     const mConfig = getMonetizacaoConfig();
     setMonetizacaoGlobal(mConfig);
     try {
-      setTenantsDisponiveis(WhiteLabelEngine.getInstance().getAllTenants());
+      const all = WhiteLabelEngine.getInstance().getAllTenants();
+      if (isFranqueado && authTenantId) {
+        const cleanAuth = authTenantId.toLowerCase().replace("tenant-", "").replace("praca_", "");
+        setTenantsDisponiveis(
+          all.filter((t) => {
+            const cleanT = t.tenantId.toLowerCase().replace("tenant-", "").replace("praca_", "");
+            return cleanT === cleanAuth || t.tenantId.toLowerCase() === authTenantId.toLowerCase();
+          }),
+        );
+      } else {
+        setTenantsDisponiveis(all);
+      }
     } catch {
       // Silencioso
     }
-    void driverSubscriptionService.fetchServerSaaSMetrics().then((m) => {
+    void driverSubscriptionService.fetchServerSaaSMetrics(tenantEscopo).then((m) => {
       setExecutiveMetrics(m);
     });
   }
@@ -222,6 +255,10 @@ export function AdminMonetizacaoPage() {
 
   async function handleSalvarConfigTrial(e?: React.FormEvent) {
     if (e) e.preventDefault();
+    if (isFranqueado && tenantSelecionadoTrial === "global") {
+      mostrarToast("Acesso restrito: Franqueados podem configurar apenas o escopo de sua própria praça.");
+      return;
+    }
     setIsSalvandoTrial(true);
     const dias = Math.max(0, Math.min(365, Number(trialDiasInput)));
 
@@ -267,16 +304,29 @@ export function AdminMonetizacaoPage() {
     }
   }
 
+  // Sincronização e escopo reativo de métricas e contas por praça/tenant
   useEffect(() => {
-    const unsub = driverSubscriptionService.subscribeAccounts((accs) => {
-      setDriverAccounts(accs);
-      setExecutiveMetrics(driverSubscriptionService.getExecutiveSaaSMetrics());
+    setExecutiveMetrics(driverSubscriptionService.getExecutiveSaaSMetrics(tenantEscopo));
+    setDriverAccounts(driverSubscriptionService.getDriverAccounts(tenantEscopo));
+    setSubscriptionsList(driverSubscriptionService.getAllSubscriptions(tenantEscopo));
+    void driverSubscriptionService.fetchServerSaaSMetrics(tenantEscopo).then((m) => {
+      setExecutiveMetrics(m);
     });
-    void driverSubscriptionService.fetchServerSaaSMetrics().then((m) => {
+    if (isFranqueado && authTenantId) {
+      setTenantSelecionadoTrial(authTenantId);
+    }
+  }, [tenantEscopo, isFranqueado, authTenantId]);
+
+  useEffect(() => {
+    const unsub = driverSubscriptionService.subscribeAccounts(() => {
+      setDriverAccounts(driverSubscriptionService.getDriverAccounts(tenantEscopo));
+      setExecutiveMetrics(driverSubscriptionService.getExecutiveSaaSMetrics(tenantEscopo));
+    });
+    void driverSubscriptionService.fetchServerSaaSMetrics(tenantEscopo).then((m) => {
       setExecutiveMetrics(m);
     });
     return () => unsub();
-  }, []);
+  }, [tenantEscopo]);
 
   // Filtro de Contas de Motoristas
   const contasFiltradas = useMemo(() => {
@@ -1085,9 +1135,12 @@ export function AdminMonetizacaoPage() {
                   <select
                     value={tenantSelecionadoTrial}
                     onChange={(e) => setTenantSelecionadoTrial(e.target.value)}
-                    className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:bg-white focus:border-emerald-500 focus:outline-hidden cursor-pointer"
+                    disabled={isFranqueado}
+                    className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:bg-white focus:border-emerald-500 focus:outline-hidden cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
                   >
-                    <option value="global">🌐 Padrão Global (Todos os Franqueados)</option>
+                    {!isFranqueado && (
+                      <option value="global">🌐 Padrão Global (Todos os Franqueados)</option>
+                    )}
                     {tenantsDisponiveis.map((t) => (
                       <option key={t.tenantId} value={t.tenantId}>
                         📍 {t.nomeOperacao || t.tenantId} ({t.cidadeNome || "Regional"})

@@ -8,6 +8,7 @@ import {
   AlertCircle,
   MapPin,
   Trash2,
+  Info,
 } from "lucide-react";
 import {
   driverDestinationModeService,
@@ -211,7 +212,7 @@ export const DriverDestinationModal: React.FC<DriverDestinationModalProps> = mem
                   value={addressInput}
                   onChange={(e) => setAddressInput(e.target.value)}
                   placeholder="Ex: Rua Dez de Maio, Bairro Aeroporto..."
-                  className="w-full text-xs font-medium pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 text-slate-900 placeholder:text-slate-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-400"
+                  className="w-full min-h-[44px] text-xs font-medium pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 text-slate-900 placeholder:text-slate-500 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-slate-400"
                 />
               </div>
               <button
@@ -222,7 +223,7 @@ export const DriverDestinationModal: React.FC<DriverDestinationModalProps> = mem
                   background: `linear-gradient(135deg, var(--header-gradient-start, ${corCabecalhoInicio}) 0%, var(--header-gradient-end, ${corCabecalhoFim}) 100%)`,
                   color: corTextoPrimaria || "#FFFFFF",
                 }}
-                className="px-4 py-2.5 rounded-xl text-xs font-black shadow-md transition active:scale-95 disabled:opacity-50 shrink-0 cursor-pointer"
+                className="px-4 py-2.5 min-h-[44px] rounded-xl text-xs font-black shadow-md transition active:scale-95 disabled:opacity-50 shrink-0 cursor-pointer"
               >
                 Definir
               </button>
@@ -230,17 +231,20 @@ export const DriverDestinationModal: React.FC<DriverDestinationModalProps> = mem
           </div>
 
           {/* Explicação da Regra */}
-          <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-            💡 <strong>Como funciona:</strong> Ao ativar o Modo Destino, o Trip Radar filtrará
-            apenas chamados que estejam na mesma direção da sua rota ou com desembarque a até 3,5 km
-            do endereço escolhido.
-          </p>
+          <div className="flex items-start gap-2 text-xs text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+            <p>
+              <strong>Como funciona:</strong> Ao ativar o Modo Destino, o Trip Radar filtrará
+              apenas chamados que estejam na mesma direção da sua rota ou com desembarque a até 3,5 km
+              do endereço escolhido.
+            </p>
+          </div>
 
           {/* Botão Fechar */}
           <button
             type="button"
             onClick={onClose}
-            className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-xs transition"
+            className="w-full min-h-[44px] py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-xs transition cursor-pointer"
           >
             Fechar
           </button>

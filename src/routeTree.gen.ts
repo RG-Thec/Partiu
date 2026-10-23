@@ -21,6 +21,7 @@ import { Route as LandingRouteImport } from './routes/landing'
 import { Route as MotoristaRouteImport } from './routes/motorista'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppAdminRouteImport } from './routes/app.admin'
+import { Route as AppAgendarRouteImport } from './routes/app.agendar'
 import { Route as AppBilhetesRouteImport } from './routes/app.bilhetes'
 import { Route as AppEncomendasRouteImport } from './routes/app.encomendas'
 import { Route as AppMotoristaRouteImport } from './routes/app.motorista'
@@ -120,6 +121,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppAdminRoute = AppAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAgendarRoute = AppAgendarRouteImport.update({
+  id: '/agendar',
+  path: '/agendar',
   getParentRoute: () => AppRoute,
 } as any)
 const AppBilhetesRoute = AppBilhetesRouteImport.update({
@@ -335,6 +341,7 @@ export interface FileRoutesByFullPath {
   '/landing': typeof LandingRoute
   '/motorista': typeof MotoristaRoute
   '/app/admin': typeof AppAdminRouteWithChildren
+  '/app/agendar': typeof AppAgendarRoute
   '/app/bilhetes': typeof AppBilhetesRoute
   '/app/encomendas': typeof AppEncomendasRoute
   '/app/motorista': typeof AppMotoristaRoute
@@ -387,6 +394,7 @@ export interface FileRoutesByTo {
   '/escolher-tipo-cadastro': typeof EscolherTipoCadastroRoute
   '/landing': typeof LandingRoute
   '/motorista': typeof MotoristaRoute
+  '/app/agendar': typeof AppAgendarRoute
   '/app/bilhetes': typeof AppBilhetesRoute
   '/app/encomendas': typeof AppEncomendasRoute
   '/app/motorista': typeof AppMotoristaRoute
@@ -442,6 +450,7 @@ export interface FileRoutesById {
   '/landing': typeof LandingRoute
   '/motorista': typeof MotoristaRoute
   '/app/admin': typeof AppAdminRouteWithChildren
+  '/app/agendar': typeof AppAgendarRoute
   '/app/bilhetes': typeof AppBilhetesRoute
   '/app/encomendas': typeof AppEncomendasRoute
   '/app/motorista': typeof AppMotoristaRoute
@@ -498,6 +507,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/motorista'
     | '/app/admin'
+    | '/app/agendar'
     | '/app/bilhetes'
     | '/app/encomendas'
     | '/app/motorista'
@@ -550,6 +560,7 @@ export interface FileRouteTypes {
     | '/escolher-tipo-cadastro'
     | '/landing'
     | '/motorista'
+    | '/app/agendar'
     | '/app/bilhetes'
     | '/app/encomendas'
     | '/app/motorista'
@@ -604,6 +615,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/motorista'
     | '/app/admin'
+    | '/app/agendar'
     | '/app/bilhetes'
     | '/app/encomendas'
     | '/app/motorista'
@@ -745,6 +757,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/app/admin'
       preLoaderRoute: typeof AppAdminRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/agendar': {
+      id: '/app/agendar'
+      path: '/agendar'
+      fullPath: '/app/agendar'
+      preLoaderRoute: typeof AppAgendarRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/bilhetes': {
@@ -1106,6 +1125,7 @@ const AppAdminRouteWithChildren = AppAdminRoute._addFileChildren(
 
 interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRouteWithChildren
+  AppAgendarRoute: typeof AppAgendarRoute
   AppBilhetesRoute: typeof AppBilhetesRoute
   AppEncomendasRoute: typeof AppEncomendasRoute
   AppMotoristaRoute: typeof AppMotoristaRoute
@@ -1118,6 +1138,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRouteWithChildren,
+  AppAgendarRoute: AppAgendarRoute,
   AppBilhetesRoute: AppBilhetesRoute,
   AppEncomendasRoute: AppEncomendasRoute,
   AppMotoristaRoute: AppMotoristaRoute,

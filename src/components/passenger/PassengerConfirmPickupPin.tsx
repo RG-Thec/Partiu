@@ -88,30 +88,43 @@ export function PassengerConfirmPickupPin() {
             Arraste o mapa para posicionar o pino na calçada onde você estará aguardando.
           </p>
 
-          {/* Chips de Atalhos de Pontos Estratégicos Próximos */}
+          {/* Chips de Atalhos de Pontos Estratégicos Próximos (Green Pickup Dots) */}
           {smartPickups && smartPickups.length > 0 && (
-            <div className="space-y-1 pt-0.5">
+            <div className="space-y-1.5 pt-0.5">
               <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-                <span>Pontos Recomendados Próximos</span>
-                <span className="text-emerald-700 font-bold">Calçadas amplas</span>
+                <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Pontos Verdes Recomendados</span>
+                </span>
+                <span className="text-emerald-700 font-bold">Snap de Embarque</span>
               </div>
-              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-                {smartPickups.slice(0, 4).map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => selectStrategicPickup(p)}
-                    className={`px-2.5 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 active:scale-95 cursor-pointer border ${
-                      origem === p.nome
-                        ? "bg-emerald-600 text-white border-emerald-700 shadow-xs"
-                        : "bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-200"
-                    }`}
-                  >
-                    <Sparkles className="w-3 h-3 text-primary" />
-                    <span className="truncate max-w-[130px]">{p.nome.split(" x ")[0]}</span>
-                    <span className="text-[10px] opacity-75">~{p.distanciaMetros}m</span>
-                  </button>
-                ))}
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+                {smartPickups.slice(0, 4).map((p) => {
+                  const isSelected = origem === p.nome;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => selectStrategicPickup(p)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex flex-col items-start gap-0.5 shrink-0 active:scale-95 cursor-pointer border text-left ${
+                        isSelected
+                          ? "bg-emerald-600 text-white border-emerald-700 shadow-md ring-2 ring-emerald-400/40"
+                          : "bg-emerald-50/80 hover:bg-emerald-100/90 text-emerald-950 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-200"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 w-full">
+                        <Sparkles className={`w-3.5 h-3.5 shrink-0 ${isSelected ? "text-amber-300" : "text-emerald-600"}`} />
+                        <span className="truncate max-w-[140px] font-extrabold">{p.nome.split(" x ")[0]}</span>
+                        <span className={`text-[10px] ml-auto ${isSelected ? "text-emerald-100" : "text-emerald-700"}`}>
+                          ~{p.distanciaMetros}m
+                        </span>
+                      </div>
+                      <span className={`text-[10px] leading-tight truncate max-w-[170px] ${isSelected ? "text-emerald-100" : "text-slate-500 dark:text-slate-400"}`}>
+                        {p.benefitMessage || "Embarque rápido e seguro"}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

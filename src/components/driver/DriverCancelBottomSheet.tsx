@@ -156,9 +156,12 @@ export const DriverCancelBottomSheet = memo(function DriverCancelBottomSheet({
             );
           })}
 
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-800 font-medium leading-relaxed mt-2">
-            ⚠️ O cancelamento é auditado e georreferenciado pelo sistema. Cancelamentos sem motivo
-            justificado podem impactar seu índice de aceitação.
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-800 font-medium leading-relaxed mt-2 flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <p>
+              O cancelamento é auditado e georreferenciado pelo sistema. Cancelamentos sem motivo
+              justificado podem impactar seu índice de aceitação.
+            </p>
           </div>
         </div>
 

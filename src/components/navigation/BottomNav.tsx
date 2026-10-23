@@ -1,6 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Car, Package } from "lucide-react";
+import { Car, Package, CalendarClock } from "lucide-react";
 import { useBrandTheme } from "@/hooks/useBrandTheme";
 import { getCorridaAtiva } from "@/lib/partiu-engine";
 
@@ -17,12 +17,13 @@ export function BottomNav() {
   const ultimoScrollY = useRef(0);
 
   // 1. Verificação Estratégica de Rotas Permitidas:
-  // A barra de alternância "Corrida | Entrega" é estritamente voltada para a navegação principal do passageiro.
+  // A barra de alternância "Corrida | Entrega | Agendar" é estritamente voltada para a navegação principal do passageiro.
   // JAMAIS deve renderizar no cockpit do motorista (/app/motorista), painéis administrativos (/app/admin)
   // ou telas com fluxos dedicados (viagem, rota, sos, bilhetes, perfil).
   const isPassengerHome = pathname === "/app" || pathname === "/app/";
   const isDeliveryHome = pathname === "/app/encomendas" || pathname === "/app/encomendas/";
-  const isAllowedRoute = isPassengerHome || isDeliveryHome;
+  const isScheduleHome = pathname === "/app/agendar" || pathname === "/app/agendar/";
+  const isAllowedRoute = isPassengerHome || isDeliveryHome || isScheduleHome;
 
   // 2. Monitoramento de Corrida Ativa (Passageiro ou Motorista)
   useEffect(() => {
@@ -115,24 +116,25 @@ export function BottomNav() {
   // Se não estiver em rota autorizada (ex: /app/motorista), não renderizar
   if (!isAllowedRoute) return null;
 
-  // Se estiver na Home do Passageiro ou de Entregas (que já possuem as abas integradas estilo 99),
+  // Se estiver na Home do Passageiro, Entregas ou Agendamento,
   // ou se houver modal ou corrida ativa, ocultar a barra flutuante redundante.
-  const hasIntegratedNav = isPassengerHome || isDeliveryHome;
+  const hasIntegratedNav = isPassengerHome || isDeliveryHome || isScheduleHome;
   const deveOcultar = modalAberto || corridaEmAndamento || ocultoManual || hasIntegratedNav;
   if (deveOcultar) return null;
 
   const isCorridaActive = isPassengerHome;
   const isEntregaActive = isDeliveryHome;
+  const isAgendarActive = isScheduleHome;
 
   return (
     <nav
-      className={`fixed bottom-5 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-[320px] z-30 pointer-events-none transition-all duration-300 ease-out transform ${
+      className={`fixed bottom-5 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[360px] z-30 pointer-events-none transition-all duration-300 ease-out transform ${
         ocultoPorScroll ? "translate-y-28 opacity-0" : "translate-y-0 opacity-100"
       }`}
       aria-label="Navegação Flutuante"
     >
       <div className="w-full pointer-events-auto">
-        {/* Pílula Flutuante Focada em Corrida e Entrega — Alto Contraste Moderno */}
+        {/* Pílula Flutuante Focada em Corrida, Entrega e Agendar */}
         <div
           className="flex items-center justify-between rounded-full backdrop-blur-xl p-1 shadow-md border border-white/20 ring-1 ring-white/10"
           style={{
@@ -152,7 +154,7 @@ export function BottomNav() {
                   }
                 : undefined
             }
-            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-full transition-all duration-200 active:scale-95 cursor-pointer font-semibold text-xs ${
+            className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2.5 rounded-full transition-all duration-200 active:scale-95 cursor-pointer font-semibold text-xs ${
               isCorridaActive ? "shadow-2xs" : "text-white/80 hover:text-white hover:bg-white/15"
             }`}
           >
@@ -182,7 +184,7 @@ export function BottomNav() {
                   }
                 : undefined
             }
-            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-full transition-all duration-200 active:scale-95 cursor-pointer font-semibold text-xs ${
+            className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2.5 rounded-full transition-all duration-200 active:scale-95 cursor-pointer font-semibold text-xs ${
               isEntregaActive ? "shadow-2xs" : "text-white/80 hover:text-white hover:bg-white/15"
             }`}
           >
@@ -197,6 +199,36 @@ export function BottomNav() {
               }
             >
               {nomeModuloEntrega || "Entrega"}
+            </span>
+          </Link>
+
+          {/* 3. Modo: Agendar */}
+          <Link
+            to="/app/agendar"
+            style={
+              isAgendarActive
+                ? {
+                    backgroundColor: "#FFFFFF",
+                    color: "var(--footer-gradient-start, #FF6B00)",
+                    boxShadow: "0 2px 8px rgba(255, 255, 255, 0.25)",
+                  }
+                : undefined
+            }
+            className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2.5 rounded-full transition-all duration-200 active:scale-95 cursor-pointer font-semibold text-xs ${
+              isAgendarActive ? "shadow-2xs" : "text-white/80 hover:text-white hover:bg-white/15"
+            }`}
+          >
+            <CalendarClock
+              className={`w-3.5 h-3.5 ${isAgendarActive ? "text-[var(--footer-gradient-start,#FF6B00)] stroke-[2.4]" : "text-white/80 stroke-[2]"}`}
+            />
+            <span
+              className={
+                isAgendarActive
+                  ? "text-[var(--footer-gradient-start,#FF6B00)] font-bold"
+                  : "text-white/85 font-semibold"
+              }
+            >
+              Agendar
             </span>
           </Link>
         </div>

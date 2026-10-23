@@ -137,8 +137,8 @@ export class SmartCargoEngine {
     // Cálculo dinâmico do frete colaborativo:
     // Base R$ 12,00 + R$ 0.40/km + R$ 1.50/kg efetivo
     const freightPriceBrl = Number((12.0 + distanceKm * 0.4 + effectiveWeightKg * 1.5).toFixed(2));
-    const driverEarningsBrl = Number((freightPriceBrl * 0.85).toFixed(2)); // 85% para o motorista
-    const platformFeeBrl = Number((freightPriceBrl - driverEarningsBrl).toFixed(2));
+    const driverEarningsBrl = freightPriceBrl; // 100% repassado ao motorista (0% comissão Partiu)
+    const platformFeeBrl = 0.0;
 
     // Estimativa de CO2 economizado ao não despachar caminhão dedicado: ~140g CO2/km
     const co2SavedGrams = Math.round(distanceKm * 140);

@@ -1,13 +1,11 @@
 import React, { useState } from "react";
-import { Clock, Zap, QrCode, X, CheckCircle2 } from "lucide-react";
+import { Clock, QrCode, X } from "lucide-react";
 
 export interface DriverDailyPassBannerProps {
   isExpiringSoon: boolean;
   minutesRemaining: number;
   diariaCountdownTexto: string;
   dailyFeeAmount: number;
-  saldoDisponivel: number;
-  onRenovarComSaldo: () => Promise<boolean>;
   onOpenPlanos: () => void;
 }
 
@@ -16,27 +14,13 @@ export function DriverDailyPassBanner({
   minutesRemaining,
   diariaCountdownTexto,
   dailyFeeAmount,
-  saldoDisponivel,
-  onRenovarComSaldo,
   onOpenPlanos,
 }: DriverDailyPassBannerProps) {
   const [dismissed, setDismissed] = useState(false);
-  const [isRenovando, setIsRenovando] = useState(false);
 
   if (!isExpiringSoon || dismissed) {
     return null;
   }
-
-  const temSaldoSuficiente = saldoDisponivel >= dailyFeeAmount;
-
-  const handleRenovacaoClick = async () => {
-    setIsRenovando(true);
-    try {
-      await onRenovarComSaldo();
-    } finally {
-      setIsRenovando(false);
-    }
-  };
 
   return (
     <div className="absolute top-[4.5rem] inset-x-3 z-40 max-w-lg mx-auto p-3.5 bg-amber-500/15 backdrop-blur-md text-foreground rounded-2xl shadow-xl flex items-start gap-3 border border-amber-500/40 animate-in slide-in-from-top duration-200">
@@ -65,30 +49,14 @@ export function DriverDailyPassBanner({
         </p>
 
         <div className="flex flex-wrap items-center gap-2 mt-2.5">
-          {temSaldoSuficiente ? (
-            <button
-              type="button"
-              disabled={isRenovando}
-              onClick={handleRenovacaoClick}
-              className="h-9 px-3.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
-            >
-              <Zap className="w-3.5 h-3.5 fill-current" />
-              <span>
-                {isRenovando
-                  ? "RENOVANDO..."
-                  : `RENOVAR COM SALDO (R$ ${dailyFeeAmount.toFixed(2)})`}
-              </span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onOpenPlanos}
-              className="h-9 px-3.5 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition cursor-pointer"
-            >
-              <QrCode className="w-3.5 h-3.5" />
-              <span>RENOVAR VIA PIX (R$ {dailyFeeAmount.toFixed(2)})</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={onOpenPlanos}
+            className="h-9 px-3.5 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-black text-xs rounded-xl shadow-md flex items-center gap-1.5 transition cursor-pointer"
+          >
+            <QrCode className="w-3.5 h-3.5" />
+            <span>RENOVAR VIA PIX (R$ {dailyFeeAmount.toFixed(2)})</span>
+          </button>
 
           <button
             type="button"

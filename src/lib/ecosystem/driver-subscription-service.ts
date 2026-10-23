@@ -603,8 +603,14 @@ class DriverSubscriptionService {
     };
   }
 
-  public getAllSubscriptions(): DriverSubscriptionRecord[] {
-    return [...this.subscriptions];
+  public getAllSubscriptions(tenantId?: string): DriverSubscriptionRecord[] {
+    if (!tenantId || tenantId === "todas") return [...this.subscriptions];
+    const cleanTarget = tenantId.toLowerCase().replace("tenant-", "").replace("praca_", "");
+    return this.subscriptions.filter((s) => {
+      if (!s.tenant_id) return false;
+      const cleanS = s.tenant_id.toLowerCase().replace("tenant-", "").replace("praca_", "");
+      return cleanS === cleanTarget || s.tenant_id.toLowerCase() === tenantId.toLowerCase();
+    });
   }
 
   public subscribe(listener: (subs: DriverSubscriptionRecord[]) => void): () => void {
@@ -615,9 +621,18 @@ class DriverSubscriptionService {
     };
   }
 
-  public getDriverAccounts(): DriverSubscriptionAccount[] {
+  public getDriverAccounts(tenantId?: string): DriverSubscriptionAccount[] {
     const now = Date.now();
-    return this.driverAccounts.map((acc) => {
+    let accounts = this.driverAccounts;
+    if (tenantId && tenantId !== "todas" && tenantId !== "default_all") {
+      const cleanTarget = tenantId.toLowerCase().replace("tenant-", "").replace("praca_", "");
+      accounts = accounts.filter((a) => {
+        if (!a.tenantId) return false;
+        const cleanA = a.tenantId.toLowerCase().replace("tenant-", "").replace("praca_", "");
+        return cleanA === cleanTarget || a.tenantId.toLowerCase() === tenantId.toLowerCase();
+      });
+    }
+    return accounts.map((acc) => {
       const expiresTime = new Date(acc.expiresAt).getTime();
       const diffMs = expiresTime - now;
       const daysRemaining = Math.max(0, Math.ceil(diffMs / 86400000));
@@ -669,7 +684,7 @@ class DriverSubscriptionService {
 
     if (isSupabaseConfigured()) {
       void (supabase as any).rpc("fn_admin_monetization_override", {
-        p_tenant_id: currentAcc.tenantId || "tenant-itaperuna",
+        p_tenant_id: currentAcc.tenantId || this.getDriverTenantId(driverId) || "default",
         p_admin_id: adminName,
         p_driver_id: driverId,
         p_action: "GRANT_COURTESY",
@@ -722,7 +737,7 @@ class DriverSubscriptionService {
 
     if (isSupabaseConfigured()) {
       void (supabase as any).rpc("fn_admin_monetization_override", {
-        p_tenant_id: currentAcc.tenantId || "tenant-itaperuna",
+        p_tenant_id: currentAcc.tenantId || this.getDriverTenantId(driverId) || "default",
         p_admin_id: adminName,
         p_driver_id: driverId,
         p_action: "GRANT_COURTESY",
@@ -762,7 +777,7 @@ class DriverSubscriptionService {
 
     if (isSupabaseConfigured()) {
       void (supabase as any).rpc("fn_admin_monetization_override", {
-        p_tenant_id: currentAcc.tenantId || "tenant-itaperuna",
+        p_tenant_id: currentAcc.tenantId || this.getDriverTenantId(driverId) || "default",
         p_admin_id: adminName,
         p_driver_id: driverId,
         p_action: "BLOCK_ACCESS",
@@ -792,7 +807,7 @@ class DriverSubscriptionService {
 
     if (isSupabaseConfigured()) {
       void (supabase as any).rpc("fn_admin_monetization_override", {
-        p_tenant_id: currentAcc.tenantId || "tenant-itaperuna",
+        p_tenant_id: currentAcc.tenantId || this.getDriverTenantId(driverId) || "default",
         p_admin_id: "Super Admin",
         p_driver_id: driverId,
         p_action: "UNBLOCK_ACCESS",
@@ -841,11 +856,11 @@ class DriverSubscriptionService {
         );
       }
     }
-    return this.getExecutiveSaaSMetrics();
+    return this.getExecutiveSaaSMetrics(tenantId);
   }
 
-  public getExecutiveSaaSMetrics(): ExecutiveSaaSMetrics {
-    const accounts = this.getDriverAccounts();
+  public getExecutiveSaaSMetrics(tenantId?: string): ExecutiveSaaSMetrics {
+    const accounts = this.getDriverAccounts(tenantId);
     const activeSubscribers = accounts.filter((a) => a.status === "ACTIVE" || a.status === "TRIAL");
     const expiringIn7Days = accounts.filter(
       (a) => (a.status === "ACTIVE" || a.status === "TRIAL") && a.daysRemaining <= 7,

@@ -288,7 +288,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                   : "Nenhuma notificação por enquanto."}
               </p>
               <p className="text-[11px] text-slate-400">
-                Avisos importantes sobre corridas e saldo aparecerão aqui.
+                Avisos importantes sobre corridas e sua conta aparecerão aqui.
               </p>
             </div>
           ) : (

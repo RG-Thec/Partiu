@@ -1,5 +1,5 @@
 import React from "react";
-import { Clock, AlertTriangle } from "lucide-react";
+import { Clock, AlertTriangle, X } from "lucide-react";
 
 export interface DriverApprovalAlertProps {
   driverApprovalStatus: string;
@@ -65,8 +65,8 @@ export function DriverApprovalAlert({
       {/* Alerta de Suspensão por Inadimplência */}
       {(subscriptionStatus === "SUSPENDED" || subscriptionStatus === "REACTIVATION_REQUIRED") && (
         <div className="absolute top-[4.5rem] inset-x-3 z-40 max-w-md mx-auto p-3.5 bg-destructive text-destructive-foreground text-xs font-semibold rounded-2xl shadow-2xl flex items-center justify-between animate-in slide-in-from-top duration-200">
-          <div className="flex items-center gap-2">
-            <span className="text-base">🚨</span>
+          <div className="flex items-center gap-2.5">
+            <AlertTriangle className="w-5 h-5 text-destructive-foreground shrink-0" />
             <div>
               <span className="font-black block text-xs">CONTA SUSPENSA POR INADIMPLÊNCIA</span>
               <span className="text-xs opacity-90">
@@ -78,7 +78,7 @@ export function DriverApprovalAlert({
           <button
             type="button"
             onClick={onOpenRegularizacao}
-            className="px-3 py-1.5 bg-card text-destructive font-black text-xs hover:bg-muted rounded-xl shadow-md active:scale-95 transition cursor-pointer"
+            className="min-h-[38px] px-3.5 py-1.5 bg-card text-destructive font-black text-xs hover:bg-muted rounded-xl shadow-md active:scale-95 transition cursor-pointer"
           >
             Regularizar
           </button>
@@ -89,14 +89,17 @@ export function DriverApprovalAlert({
       {erroElegibilidade &&
         !(subscriptionStatus === "SUSPENDED" || subscriptionStatus === "REACTIVATION_REQUIRED") && (
           <div className="absolute top-[4.5rem] inset-x-3 z-40 max-w-md mx-auto p-3 bg-destructive/10 border border-destructive/20 text-destructive text-xs font-semibold rounded-2xl shadow-lg flex items-center justify-between animate-in slide-in-from-top duration-200">
-            <span>⚠️ {erroElegibilidade}</span>
+            <span className="flex items-center gap-1.5">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>{erroElegibilidade}</span>
+            </span>
             <button
               type="button"
               onClick={onClearErro}
               aria-label="Dispensar alerta de elegibilidade"
               className="min-h-[36px] min-w-[36px] flex items-center justify-center p-2 text-destructive hover:bg-destructive/10 rounded-full transition-all cursor-pointer"
             >
-              ✕
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         )}

@@ -59,6 +59,7 @@ export interface SolicitacaoCondutor {
   whatsapp: string;
   email: string;
   cidade: string;
+  tenantId?: string | null | undefined;
   modalidade: "pop_carro" | "moto_flash";
   cnhNumero: string;
   cnhCategoria: "B (EAR)" | "A (EAR)" | "AB (EAR)";
@@ -85,8 +86,9 @@ export function AdminAprovacoesPage() {
   const { data: todasReais = [], isLoading } = usePartiuTodasSolicitacoesMotoristas();
   const aprovarMutation = useAprovarPartiuMotorista();
   const rejeitarMutation = useRejeitarPartiuMotorista();
-  const { pracaAtiva } = useAdminCity();
+  const { pracaAtiva, isNacional: isContextNacional } = useAdminCity();
   const adminRole = getAdminRole();
+  const isNacional = !isFranqueado(adminRole) && isContextNacional;
 
   const [solicitacoes, setSolicitacoes] = useState<SolicitacaoCondutor[]>([]);
   const [visualizacao, setVisualizacao] = useState<"kanban" | "tabela">("kanban");
@@ -115,6 +117,7 @@ export function AdminAprovacoesPage() {
           whatsapp: p.telefone,
           email: p.email || "Não informado",
           cidade: (p as any).cidade || (p as any).city || "Praça Regional",
+          tenantId: p.tenant_id || (p as any).tenantId || null,
           modalidade: catValida === "MOTO" ? "moto_flash" : "pop_carro",
           cnhNumero: p.cnh_numero,
           cnhCategoria: (catValida === "MOTO" ? "A (EAR)" : "B (EAR)") as any,
@@ -181,9 +184,29 @@ export function AdminAprovacoesPage() {
     };
   }, [qc]);
 
-  // Filtros combinados
-  const listaFiltrada = useMemo(() => {
+  // Escopo Territorial por Franquia / Praça Ativa (Isolamento Estrito por Tenant)
+  const solicitacoesDaPraca = useMemo(() => {
+    if (isNacional) return solicitacoes;
+    const targetTenantId = (pracaAtiva?.id || "").toLowerCase();
+    const nomeCidade = (pracaAtiva?.nome || "").toLowerCase();
+
     return solicitacoes.filter((s) => {
+      const tId = (s.tenantId || "").toLowerCase();
+      // 1. Prioridade absoluta: isolamento estrito por tenant_id da franquia
+      if (tId && targetTenantId && targetTenantId !== "todas") {
+        const cleanTId = tId.replace("tenant-", "").replace("praca_", "");
+        const cleanTarget = targetTenantId.replace("tenant-", "").replace("praca_", "");
+        return cleanTId === cleanTarget || tId === targetTenantId;
+      }
+      // 2. Apenas registros legados sem tenantId utilizam correspondência geográfica por nome da cidade
+      const cid = (s.cidade || "").toLowerCase();
+      return cid.includes(nomeCidade);
+    });
+  }, [solicitacoes, isNacional, pracaAtiva?.id, pracaAtiva?.nome]);
+
+  // Filtros combinados sobre as solicitações da praça
+  const listaFiltrada = useMemo(() => {
+    return solicitacoesDaPraca.filter((s) => {
       const atendeStatus = filtroStatus === "todas" ? true : s.status === filtroStatus;
       const atendeBusca =
         !busca.trim() ||
@@ -193,19 +216,19 @@ export function AdminAprovacoesPage() {
         s.veiculoPlaca.toLowerCase().includes(busca.toLowerCase());
       return atendeStatus && atendeBusca;
     });
-  }, [solicitacoes, filtroStatus, busca]);
+  }, [solicitacoesDaPraca, filtroStatus, busca]);
 
   const totalPendentes = useMemo(
-    () => solicitacoes.filter((s) => s.status === "pendente").length,
-    [solicitacoes],
+    () => solicitacoesDaPraca.filter((s) => s.status === "pendente").length,
+    [solicitacoesDaPraca],
   );
   const totalAprovados = useMemo(
-    () => solicitacoes.filter((s) => s.status === "aprovado").length,
-    [solicitacoes],
+    () => solicitacoesDaPraca.filter((s) => s.status === "aprovado").length,
+    [solicitacoesDaPraca],
   );
   const totalRejeitados = useMemo(
-    () => solicitacoes.filter((s) => s.status === "rejeitado").length,
-    [solicitacoes],
+    () => solicitacoesDaPraca.filter((s) => s.status === "rejeitado").length,
+    [solicitacoesDaPraca],
   );
 
   // Mutação de aprovação
@@ -417,7 +440,7 @@ export function AdminAprovacoesPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <AdminKpiCard
           label="Total de Cadastros"
-          value={solicitacoes.length}
+          value={solicitacoesDaPraca.length}
           icon={<Users className="h-5 w-5" />}
           iconColor="brand"
         />
@@ -469,7 +492,7 @@ export function AdminAprovacoesPage() {
           activeTab={filtroStatus}
           onChange={(tab) => setFiltroStatus(tab as any)}
           tabs={[
-            { id: "todas", label: "Todas", badge: solicitacoes.length },
+            { id: "todas", label: "Todas", badge: solicitacoesDaPraca.length },
             { id: "pendente", label: "Pendentes", badge: totalPendentes, badgeVariant: "warning" },
             { id: "aprovado", label: "Aprovados", badge: totalAprovados },
             { id: "rejeitado", label: "Reprovados", badge: totalRejeitados },

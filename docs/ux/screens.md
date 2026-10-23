@@ -35,6 +35,7 @@ whose code diverges from its record here is a "drifted" finding. -->
 | SCR-23 | Configurações Globais do Sistema             | FLW-08                         | [Figma Admin Config](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=2010:918)      | built  | src/routes/app.admin.configuracoes.tsx:1-200                |
 | SCR-24 | Diagnóstico Geoespacial & WebGL              | FLW-08                         | [Figma Admin Map](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=2011:1124)        | built  | src/routes/app.admin.diagnostico.tsx:1-187                  |
 | SCR-25 | Gestão Central de Franqueados & Multi-Tenant | FLW-08                         | [Figma Admin Home](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=2010:918)        | built  | src/routes/app.admin.franqueados.tsx:1-1200                 |
+| SCR-26 | Agendamento de Corridas com Acordo Direto    | FLW-01                         | [Figma Ride Details](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=4001:3252)     | built  | src/routes/app.agendar.tsx:1-90                             |
 
 ## Design system
 
@@ -131,17 +132,17 @@ whose code diverges from its record here is a "drifted" finding. -->
 ### SCR-06: Cadastro de Motorista Parceiro
 
 - **Used by:** FLW-05 step 6
-- **Purpose:** Onboarding limpo em 3 etapas estratégicas para envio de dados pessoais, veículo, CNH com EAR, CRLV e repasse Pix
-- **Elements:** Stepper de progresso em 3 etapas (Dados Pessoais, Veículo, Habilitação & Repasse), dropzone compacta de documentos, formulário do veículo e dados PIX, bloco de ações de alta visibilidade sem overflow com botão primário "Finalizar cadastro" e link secundário "Entrar", tela de sucesso com opções "Ir para o login" e "Acessar cockpit"
+- **Purpose:** Onboarding limpo em 3 etapas estratégicas para envio de dados pessoais, veículo, CNH com EAR, CRLV e repasse Pix com validação OCR em tempo real
+- **Elements:** Stepper de progresso em 3 etapas (Dados Pessoais, Veículo, Habilitação & Repasse), dropzone compacta de documentos com leitura ótica OCR instantânea da CNH, badge de conferência visual e score de precisão, formulário do veículo e dados PIX, bloco de ações de alta visibilidade sem overflow com botão primário "Finalizar cadastro" e link secundário "Entrar", tela de sucesso com opções "Ir para o login" e "Acessar cockpit"
 - **States:**
   | State   | Trigger                             | Figma frame       | Behavior                                                                         |
   | ------- | ----------------------------------- | ----------------- | -------------------------------------------------------------------------------- |
   | success | documentos enviados                 | none — code first | Confirmação com status em análise e opções "Ir para o login" e "Acessar cockpit" |
   | error   | documento ilegível ou inválido      | none — code first | Alerta no campo com orientação de novo envio                                     |
   | loading | fazendo upload de fotos ou salvando | none — code first | Barra de progresso e spinner no botão de confirmação                             |
-- **Coverage:** src/routes/cadastro-motorista.tsx:1-850
-- **Scenarios:** SCN-005
-- **Resources:** driverFleetService, Supabase Storage
+- **Coverage:** src/routes/cadastro-motorista.tsx:1-1150, src/lib/kyc/driver-ocr-engine.ts:1-250
+- **Scenarios:** SCN-005, SCN-029
+- **Resources:** driverFleetService, Supabase Storage, DriverOcrEngine
 - **Status:** built
 
 ### SCR-07: Banner de Resiliência de Rede e Modo Offline
@@ -171,16 +172,16 @@ whose code diverges from its record here is a "drifted" finding. -->
   | empty   | nenhum motorista online         | none — code first | Informa ausência temporária de veículos no raio e sugere aguardar |
   | error   | falha de geocodificação ou rede | none — code first | Mensagem de erro amigável com botão de tentar novamente           |
   | loading | calculando rotas e tarifas      | none — code first | Skeleton nos cards de categoria e traçado animado no mapa         |
-- **Coverage:** src/routes/app.index.tsx:1-853, src/components/home/Header.tsx:1-161, src/components/common/PartiuLogo.tsx:1-240, src/components/home/DestinationCard.tsx:1-183, src/components/navigation/ModeTabSelector.tsx:1-65
-- **Scenarios:** SCN-001
-- **Resources:** src/components/map/, Mapbox GL, Supabase
+- **Coverage:** src/routes/app.index.tsx:1-853, src/components/home/Header.tsx:1-161, src/components/common/PartiuLogo.tsx:1-240, src/components/home/DestinationCard.tsx:1-183, src/components/navigation/ModeTabSelector.tsx:1-65, src/components/passenger/PassengerConfirmPickupPin.tsx:1-150, src/lib/passenger/smart-pickups.ts:1-169, src/components/passenger/route-sheet/PassengerSelectionModal.tsx:1-180, src/lib/passenger/ride-for-third-party-engine.ts:1-151
+- **Scenarios:** SCN-001, SCN-021, SCN-022, SCN-028, SCN-032
+- **Resources:** src/components/map/, Mapbox GL, Supabase, SmartPickupsEngine
 - **Status:** built
 
 ### SCR-09: Experiência En Route
 
 - **Used by:** FLW-01 step 5, FLW-02 step 3, FLW-03 step 1
-- **Purpose:** Acompanhamento da corrida em tempo real com projeção suave na via a 60 FPS, dados do motorista/veículo e botão SOS
-- **Elements:** Mapa com Snap to Route, Bottom Sheet com dados do veículo e condutor, chat integrado, botão vermelho SOS 190
+- **Purpose:** Acompanhamento da corrida em tempo real com projeção suave na via a 60 FPS, dados do motorista/veículo, timeline de paradas intermediárias, barra de respostas rápidas de 1 toque e botão SOS
+- **Elements:** Mapa com Snap to Route, Bottom Sheet com dados do veículo e condutor, timeline com status das paradas intermediárias, barra de respostas rápidas de 1 toque (InlineQuickReplyBar), chat integrado, botão vermelho SOS 190
 - **States:**
   | State   | Trigger                        | Figma frame       | Behavior                                                               |
   | ------- | ------------------------------ | ----------------- | ---------------------------------------------------------------------- |
@@ -188,9 +189,9 @@ whose code diverges from its record here is a "drifted" finding. -->
   | empty   | aguardando início da rota      | none — code first | Indicador de motorista a caminho com tempo estimado de embarque        |
   | error   | perda temporária de telemetria | none — code first | Banner discreto de reconexão sem interromper o mapa                    |
   | loading | traçando rota inicial          | none — code first | Linha guia calculando melhor rota de tráfego                           |
-- **Coverage:** src/components/passenger/DriverEnRouteSheet.tsx:1-150
-- **Scenarios:** SCN-003
-- **Resources:** Mapbox GL, PostGIS, Realtime Channel
+- **Coverage:** src/components/passenger/DriverEnRouteSheet.tsx:1-1529, src/components/passenger/SafetyCenterModal.tsx:1-380, src/lib/geo/polyline-optimizer.ts:1-210, src/lib/passenger/multi-stop-engine.ts:1-210, src/lib/chat/quick-canned-replies.ts:1-173, src/components/chat/InlineQuickReplyBar.tsx:1-130, src/lib/security/boarding-pin-engine.ts:1-188, src/lib/passenger/ride-for-third-party-engine.ts:1-151, src/lib/spatial/geofence-arrival-service.ts:1-239
+- **Scenarios:** SCN-003, SCN-020, SCN-021, SCN-022, SCN-025, SCN-026, SCN-027, SCN-030, SCN-031, SCN-032, SCN-035
+- **Resources:** Mapbox GL, PostGIS, Realtime Channel, SafetyToolkitService, PolylineOptimizer, MultiStopEngine, QuickCannedRepliesEngine
 - **Status:** built
 
 ### SCR-10: Central de SOS e Emergência
@@ -205,8 +206,8 @@ whose code diverges from its record here is a "drifted" finding. -->
   | empty   | nenhum alerta ativo             | none — code first | Status seguro com orientações de prevenção                  |
   | error   | sem sinal celular para discagem | none — code first | Instrução de envio de SMS de emergência com coordenadas GPS |
   | loading | enviando telemetria prioritária | none — code first | Confirmação de transmissão de dados em lote                 |
-- **Coverage:** src/routes/app.sos.tsx:1-100
-- **Scenarios:** SCN-003
+- **Coverage:** src/routes/app.sos.tsx:1-100, src/lib/security/safety-toolkit-service.ts:1-350
+- **Scenarios:** SCN-003, SCN-025
 - **Resources:** Web API Geolocation, Tel URI
 - **Status:** built
 
@@ -262,8 +263,8 @@ whose code diverges from its record here is a "drifted" finding. -->
 ### SCR-14: Cockpit Operacional do Motorista
 
 - **Used by:** FLW-01 step 6, FLW-02 step 1, FLW-04 step 1, FLW-06 step 3, FLW-09 step 1, FLW-12 step 2, FLW-13 step 1
-- **Purpose:** Fornecer ao motorista parceiro controle do modo online, recebimento de chamadas com ganho líquido e métricas diárias com visão desobstruída, chamadas em cadeia, navegação externa com 1 toque, zonas de exclusão pessoal, chip rápido de rota para casa e Áudio HUD
-- **Elements:** Barra superior com avatar, menu gaveta, alternador de modo noturno e status online/offline, resumo de ganhos do dia com taxa zero e repasse Pix D+0, modal de oferta zero-scroll com temporizador regressivo de 15s e slider de confirmação de 56px, mapa vetorial com iluminação adaptativa diurna/noturna, atalhos flutuantes e inline para Waze e Google Maps, card de chamadas em cadeia (back-to-back dispatch) para próxima corrida com contagem regressiva, banner de integridade física GNSS (Mock Location Shield), banner de modo de tolerância da diária SaaS com botão de quitação via Pix, chip rápido de rota para casa (`DestinationQuickChip`), botão e modal de zonas de exclusão pessoal (`ExclusionZonesModal`), alternador de Áudio HUD com sintetizador de voz (`AudioHudToggle`), botão ergonômico de cancelamento com alvo tátil de 40px
+- **Purpose:** Fornecer ao motorista parceiro controle do modo online, recebimento de chamadas com ganho líquido e métricas diárias com visão desobstruída, chamadas em cadeia, navegação externa com 1 toque, zonas de exclusão pessoal, chip rápido de rota para casa, Áudio HUD, suporte operacional a múltiplas paradas e barra hands-free de respostas rápidas de 1 toque
+- **Elements:** Barra superior ergonômica com avatar unificado e indicador de menu, widget central de ganhos do dia com taxa zero e repasse Pix D+0, status online/offline, botão de preferências rápidas do cockpit com modal de ajustes de som, modo noturno e áudio HUD, sino de notificações com badge, modal de oferta zero-scroll com temporizador regressivo de 15s e slider de confirmação de 56px, mapa vetorial com iluminação adaptativa diurna/noturna, atalhos flutuantes e inline para Waze e Google Maps, card de chamadas em cadeia (back-to-back dispatch) para próxima corrida com contagem regressiva, banner de integridade física GNSS (Mock Location Shield), banner de modo de tolerância da diária SaaS com botão de quitação via Pix, chip rápido de rota para casa (`DestinationQuickChip`), botão e modal de zonas de exclusão pessoal (`ExclusionZonesModal`), alternador de Áudio HUD com sintetizador de voz (`AudioHudToggle`), banner de parada intermediária ativa com slider de conclusão/pulo de parada, barra horizontal deslizável de respostas rápidas contextuais (InlineQuickReplyBar) e áudio TTS para leitura de mensagens de entrada, botão ergonômico de cancelamento com alvo tátil de 40px, calculadora de troco inteligente para pagamentos em espécie e orientações de troco físico ou Pix direto com 0% taxa (RidePaymentSettlementModal), seletor de bloqueio soberano pós-corrida com motivos em RideRatingModal
 - **States:**
   | State   | Trigger                     | Figma frame       | Behavior                                                        |
   | ------- | --------------------------- | ----------------- | --------------------------------------------------------------- |
@@ -271,9 +272,9 @@ whose code diverges from its record here is a "drifted" finding. -->
   | empty   | condutor offline            | none — code first | Painel em repouso com resumo das corridas anteriores            |
   | error   | GPS desativado ou sem sinal | none — code first | Alerta visual solicitando ativação do serviço de localização    |
   | loading | conectando ao despacho      | none — code first | Spinner sutil de sincronização com o cluster PostGIS            |
-- **Coverage:** src/routes/app.motorista.tsx:1-2833, src/components/driver/cockpit/DriverHeader.tsx:1-120, src/components/driver/DriverOfferModal.tsx:1-412, src/components/driver/cockpit/states/IdleState.tsx:1-230, src/components/driver/cockpit/states/HeadingToPickupState.tsx:1-130, src/components/driver/ExternalNavigationButton.tsx:1-163, src/components/driver/BackToBackRideCard.tsx:1-124, src/components/driver/MockLocationBanner.tsx:1-45, src/components/driver/SaaSToleranceBanner.tsx:1-45, src/components/driver/DestinationQuickChip.tsx:1-61, src/components/driver/ExclusionZonesModal.tsx:1-252, src/components/driver/AudioHudToggle.tsx:1-57
-- **Scenarios:** SCN-002, SCN-013, SCN-014, SCN-017, SCN-018, SCN-019
-- **Resources:** src/components/driver/, Supabase Realtime, MockLocationShield, BackToBackEngine, SaaSToleranceEngine, DriverExclusionZonesEngine, DriverAudioHudEngine
+- **Coverage:** src/routes/app.motorista.tsx:1-2973, src/components/driver/cockpit/DriverHeader.tsx:1-219, src/components/driver/cockpit/DriverQuickPreferencesModal.tsx:1-299, src/components/driver/DriverOfferModal.tsx:1-412, src/components/driver/cockpit/states/IdleState.tsx:1-244, src/components/driver/cockpit/states/HeadingToPickupState.tsx:1-178, src/components/driver/cockpit/states/WaitingPassengerState.tsx:1-345, src/components/driver/cockpit/states/InTripState.tsx:1-274, src/components/driver/navigation/DriverDrawer.tsx:1-662, src/components/driver/ExternalNavigationButton.tsx:1-155, src/components/driver/BackToBackRideCard.tsx:1-124, src/components/driver/MockLocationBanner.tsx:1-40, src/components/driver/SaaSToleranceBanner.tsx:1-45, src/components/driver/DestinationQuickChip.tsx:1-61, src/components/driver/ExclusionZonesModal.tsx:1-252, src/components/driver/AudioHudToggle.tsx:1-57, src/components/driver/cockpit/DriverSosModal.tsx:1-249, src/components/driver/ScheduledRidesDrawer.tsx:1-402, src/components/driver/DriverFinancialDashboardModal.tsx:1-562, src/components/driver/VirtualTaximeterModal.tsx:1-464, src/components/driver/DailyFeePaymentScreen.tsx:1-321, src/components/driver/DriverSubscriptionScreen.tsx:1-699, src/components/driver/DriverProfileSettings.tsx:1-707, src/components/driver/DriverCancelBottomSheet.tsx:1-191, src/components/driver/DeliveryPinNumpadBottomSheet.tsx:1-379, src/lib/passenger/multi-stop-engine.ts:1-210, src/lib/chat/quick-canned-replies.ts:1-173, src/components/chat/InlineQuickReplyBar.tsx:1-130, src/components/driver/cockpit/PassengerPinVerificationModal.tsx:1-295, src/lib/security/boarding-pin-engine.ts:1-188, src/lib/payment/digital-change-engine.ts:1-202, src/lib/driver/driver-blacklist-engine.ts:1-233, src/components/driver/RidePaymentSettlementModal.tsx:1-564, src/components/rating/RideRatingModal.tsx:1-344, src/components/driver/SubscriptionSuccessModal.tsx:1-169, src/components/driver/cockpit/DriverDeliveryModals.tsx:1-257, src/components/driver/DriverWelcomeGate.tsx:1-178, src/components/driver/cockpit/DriverApprovalAlert.tsx:1-108, src/components/driver/cockpit/DriverDailyPassBanner.tsx:1-72, src/components/driver/cockpit/DriverSlideAction.tsx:1-118
+- **Scenarios:** SCN-002, SCN-013, SCN-014, SCN-017, SCN-018, SCN-019, SCN-020, SCN-021, SCN-022, SCN-023, SCN-024, SCN-025, SCN-026, SCN-027, SCN-030, SCN-031, SCN-032, SCN-034, SCN-035
+- **Resources:** src/components/driver/, Supabase Realtime, MockLocationShield, BackToBackEngine, SaaSToleranceEngine, DriverExclusionZonesEngine, DriverAudioHudEngine, ExternalNavigationService, SafetyToolkitService, PolylineOptimizer, MultiStopEngine, QuickCannedRepliesEngine, DigitalChangeEngine, DriverBlacklistEngine
 - **Status:** built
 
 ### SCR-15: Painel Administrativo Geral e Layout
@@ -316,9 +317,9 @@ whose code diverges from its record here is a "drifted" finding. -->
   | ------- | ----------------------- | ----------------- | ---------------------------------------------------------------------------------- |
   | success | operação ativa          | none — code first | Rastreamento em lote das corridas ativas e governança de multiplicadores dinâmicos |
   | empty   | sem corridas no momento | none — code first | Indicador de tranquilidade operacional com tarifa padrão (1.0x)                    |
-- **Coverage:** src/routes/app.admin.despacho.tsx:1-2027, src/components/admin/PredictiveHeatmapModal.tsx:1-150
+- **Coverage:** src/routes/app.admin.despacho.tsx:1-2037, src/components/admin/PredictiveHeatmapModal.tsx:1-260, src/lib/spatial/predictive-demand-engine.ts:1-320
 - **Scenarios:** SCN-008, SCN-009, SCN-015
-- **Resources:** PostGIS, Dispatch Engine, SurgeEngine, PredictiveHeatmapModal
+- **Resources:** PostGIS, Dispatch Engine, SurgeEngine, PredictiveDemandEngine, PredictiveHeatmapModal
 - **Status:** built
 
 ### SCR-18: Gestão de Motoristas e Frota
@@ -331,9 +332,9 @@ whose code diverges from its record here is a "drifted" finding. -->
   | ------- | ------------------- | ----------------- | ----------------------------------------------- |
   | success | lista de condutores | none — code first | Visão de frotas com indicadores de conformidade |
   | loading | buscando base       | none — code first | Skeleton nos registros da tabela                |
-- **Coverage:** src/routes/app.admin.motoristas.tsx:1-2128, src/components/admin/DriverKycFastApprovalModal.tsx:1-134
-- **Scenarios:** SCN-010, SCN-016
-- **Resources:** driverFleetService, DriverKycFastApprovalModal
+- **Coverage:** src/routes/app.admin.motoristas.tsx:1-2129, src/components/admin/DriverKycFastApprovalModal.tsx:1-134, src/lib/kyc/driver-ocr-engine.ts:1-250
+- **Scenarios:** SCN-010, SCN-016, SCN-029
+- **Resources:** driverFleetService, DriverKycFastApprovalModal, DriverOcrEngine
 - **Status:** built
 
 ### SCR-19: Gestão de Passageiros
@@ -343,9 +344,9 @@ whose code diverges from its record here is a "drifted" finding. -->
 - **Elements:** Tabela de usuários com busca por telefone/nome, modal de histórico de corridas
 - **States:**
   | State   | Trigger        | Figma frame       | Behavior                                           |
-  | ------- | -------------- | ----------------- | -------------------------------------------------- |
+  | ------- | -------------- | ----------------- | ----------------------------------------------- |
   | success | base carregada | none — code first | Listagem com filtros por cidade e data de cadastro |
-- **Coverage:** src/routes/app.admin.passageiros.tsx:1-1131
+- **Coverage:** src/routes/app.admin.passageiros.tsx:1-1129
 - **Scenarios:** SCN-010
 - **Resources:** passengerService
 - **Status:** built
@@ -444,4 +445,21 @@ whose code diverges from its record here is a "drifted" finding. -->
 - **Coverage:** src/routes/app.admin.franqueados.tsx:1-1200
 - **Scenarios:** SCN-010
 - **Resources:** multiTenantService, whiteLabelEngine, Mapbox/Google Maps API
+- **Status:** built
+
+### SCR-26: Agendamento de Corridas com Acordo Direto
+
+- **Used by:** FLW-01 step 6, SCN-033
+- **Purpose:** Tela dedicada para reserva antecipada de viagens, com proposta de valor protegida por piso operacional e contraproposta negociada direto com motoristas parceiros
+- **Elements:** Header dinâmico com avatar e notificações, botão Meus Agendamentos com badge de compromissos ativos, seletor de modalidade ModeTabSelector de 3 posições (Corrida, Entrega, Agendar), card de trajeto com origem e destino, card de data e horário com atalhos rápidos e antecedência mínima de 30 minutos, seletor de categorias de veículo, card de oferta com piso mínimo operacional protegido (0% de comissão) e modal ScheduledRideListModal
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  | --- | --- | --- | --- |
+  | default | formulário pronto | none — code first | Exibe campos de trajeto, cálculo de piso mínimo e valor inicial sugerido |
+  | success | agendamento criado | none — code first | Notificação de confirmação e transição suave para Minhas Corridas Agendadas |
+  | negotiating | contraproposta recebida | none — code first | Modal exibe justificativa do motorista e botões para aceitar ou recusar |
+  | error | valor abaixo do piso | none — code first | Mensagem de erro educativa informando que a proposta não cobre os custos do condutor |
+- **Coverage:** src/routes/app.agendar.tsx:1-90, src/components/schedule/ScheduledRideFormScreen.tsx:1-380, src/components/schedule/ScheduledRideListModal.tsx:1-300, src/lib/ride/scheduled-ride-engine.ts:1-350
+- **Scenarios:** SCN-033
+- **Resources:** scheduledRideEngine, ModeTabSelector, ScheduledRideListModal
 - **Status:** built

@@ -236,10 +236,13 @@ export function processarCancelamentoComMulta(
   corridaId: string,
   passageiroId: string,
   motoristaId: string,
+  isPureSaaS = false,
 ): CancellationFeeSettlement {
   const totalFeeCents = 600;
-  const driverShareCents = 450;
-  const platformShareCents = 150;
+  // No modelo Pure SaaS 0% comissão, 100% da compensação (R$ 6,00) vai para o condutor parceiro.
+  // No modelo padrão com split, R$ 4,50 condutor e R$ 1,50 taxa de serviço da plataforma.
+  const driverShareCents = isPureSaaS ? 600 : 450;
+  const platformShareCents = totalFeeCents - driverShareCents;
 
   // Credita a compensação diretamente na carteira do motorista
   creditDriverWallet(motoristaId, driverShareCents);
@@ -251,9 +254,9 @@ export function processarCancelamentoComMulta(
     totalFeeCents,
     totalFeeBrl: 6.0,
     driverShareCents,
-    driverShareBrl: 4.5,
+    driverShareBrl: Number((driverShareCents / 100).toFixed(2)),
     platformShareCents,
-    platformShareBrl: 1.5,
+    platformShareBrl: Number((platformShareCents / 100).toFixed(2)),
     timestamp: Date.now(),
   };
 

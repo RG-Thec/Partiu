@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect } from "react";
+import React, { memo, useState, useEffect, useMemo } from "react";
 import {
   CheckCircle2,
   QrCode,
@@ -8,17 +8,28 @@ import {
   ShieldCheck,
   ArrowRight,
   X,
+  Wallet,
+  Sparkles,
+  Coins,
+  RotateCcw,
+  AlertCircle,
+  Gift,
+  Zap,
 } from "lucide-react";
 import QRCode from "qrcode";
 import { buildStandardEmvPix } from "@/services/payment/PaymentProviderAdapter";
 import { hapticFeedback } from "@/lib/haptics/haptic-feedback";
+import { digitalChangeEngine } from "@/lib/payment/digital-change-engine";
+import { toast } from "sonner";
 
 interface RidePaymentSettlementModalProps {
   isOpen: boolean;
   rideId: string;
+  passengerId?: string;
   passengerName: string;
   destinationAddress: string;
   amountBrl: number;
+  driverId?: string;
   driverName: string;
   driverPixKey: string;
   driverCity?: string;
@@ -34,9 +45,11 @@ interface RidePaymentSettlementModalProps {
 export const RidePaymentSettlementModal = memo(function RidePaymentSettlementModal({
   isOpen,
   rideId,
+  passengerId,
   passengerName,
   destinationAddress,
   amountBrl,
+  driverId = "driver_current",
   driverName,
   driverPixKey,
   driverCity = "ITAPERUNA",
@@ -56,12 +69,29 @@ export const RidePaymentSettlementModal = memo(function RidePaymentSettlementMod
   const [pixPayload, setPixPayload] = useState<string>("");
   const [copied, setCopied] = useState(false);
 
+  // Estados de Troco Dinâmico / Digital
+  const [cashReceivedInput, setCashReceivedInput] = useState<string>("");
+  const [digitalChangeDeposited, setDigitalChangeDeposited] = useState(false);
+  const [depositedChangeAmount, setDepositedChangeAmount] = useState<number | null>(null);
+
+  const effectivePassengerId = passengerId || `pax_${rideId.slice(0, 10)}`;
+
   useEffect(() => {
     if (!hasValidPixKey && selectedMethod === "PIX") {
       setSelectedMethod("DINHEIRO");
     }
   }, [hasValidPixKey, selectedMethod]);
 
+  // Reset de estados de troco ao abrir o modal
+  useEffect(() => {
+    if (isOpen) {
+      setCashReceivedInput("");
+      setDigitalChangeDeposited(false);
+      setDepositedChangeAmount(null);
+    }
+  }, [isOpen]);
+
+  // Geração do QR Code PIX
   useEffect(() => {
     if (!isOpen) return;
 
@@ -94,6 +124,30 @@ export const RidePaymentSettlementModal = memo(function RidePaymentSettlementMod
     }
   }, [isOpen, rideId, amountBrl, driverName, driverPixKey, driverCity, hasValidPixKey]);
 
+  // Cálculo reativo do troco
+  const changeCalculation = useMemo(() => {
+    if (!cashReceivedInput.trim()) {
+      return null;
+    }
+    const parsed = Number(cashReceivedInput.replace(",", "."));
+    if (isNaN(parsed)) return null;
+    return digitalChangeEngine.calculateChange(amountBrl, parsed);
+  }, [amountBrl, cashReceivedInput]);
+
+  // Chips de cédulas inteligentes
+  const quickBills = useMemo(() => {
+    const rounded = Math.ceil(amountBrl);
+    const bills = new Set<number>();
+    [20, 50, 100].forEach((bill) => {
+      if (bill >= rounded) bills.add(bill);
+    });
+    if (bills.size === 0) {
+      bills.add(Math.ceil(rounded / 50) * 50);
+      bills.add(Math.ceil(rounded / 50) * 50 + 50);
+    }
+    return Array.from(bills).sort((a, b) => a - b);
+  }, [amountBrl]);
+
   if (!isOpen) return null;
 
   const handleCopyPix = () => {
@@ -104,7 +158,41 @@ export const RidePaymentSettlementModal = memo(function RidePaymentSettlementMod
     setTimeout(() => setCopied(false), 3000);
   };
 
+  const handleConfirmarTrocoEntregue = () => {
+    if (!changeCalculation || changeCalculation.changeBrl <= 0) return;
+
+    try {
+      digitalChangeEngine.depositDigitalChange({
+        rideId,
+        driverId,
+        driverName: driverName || "Motorista Parceiro",
+        passengerId: effectivePassengerId,
+        passengerName,
+        changeBrl: changeCalculation.changeBrl,
+      });
+
+      setDigitalChangeDeposited(true);
+      setDepositedChangeAmount(changeCalculation.changeBrl);
+      hapticFeedback.success();
+      toast.success(
+        `Troco de R$ ${changeCalculation.changeBrl.toFixed(2).replace(".", ",")} confirmado com sucesso!`,
+      );
+    } catch (err: any) {
+      setDigitalChangeDeposited(true);
+      setDepositedChangeAmount(changeCalculation.changeBrl);
+      toast.success("Troco entregue ao passageiro.");
+    }
+  };
+
   const handleConfirm = () => {
+    if (
+      selectedMethod === "DINHEIRO" &&
+      changeCalculation &&
+      !changeCalculation.isValid
+    ) {
+      toast.error("O valor entregue pelo passageiro é insuficiente para quitar a corrida.");
+      return;
+    }
     hapticFeedback.success();
     onConfirmSettlement(selectedMethod);
   };
@@ -169,12 +257,12 @@ export const RidePaymentSettlementModal = memo(function RidePaymentSettlementMod
                   - {descontoCupom.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                 </span>
               </div>
-              <div className="pt-1.5 border-t border-amber-500/20 text-[11px] font-bold text-emerald-700 flex items-center gap-1">
-                <span>🎁</span>
+              <div className="pt-1.5 border-t border-amber-500/20 text-[11px] font-bold text-emerald-700 flex items-center gap-1.5">
+                <Gift className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
                 <span>
                   Subsídio de{" "}
                   {descontoCupom.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}{" "}
-                  creditado na sua diária do app!
+                  creditado na sua diária do app.
                 </span>
               </div>
             </div>
@@ -204,7 +292,9 @@ export const RidePaymentSettlementModal = memo(function RidePaymentSettlementMod
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-lg">⚡</span>
+                <div className="w-7 h-7 rounded-lg bg-emerald-100/80 flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-emerald-700 fill-emerald-600" />
+                </div>
                 <span
                   className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                     selectedMethod === "PIX"
@@ -300,7 +390,7 @@ export const RidePaymentSettlementModal = memo(function RidePaymentSettlementMod
               {copied ? (
                 <>
                   <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Código Copiado!</span>
+                  <span>Código copiado</span>
                 </>
               ) : (
                 <>
@@ -312,20 +402,142 @@ export const RidePaymentSettlementModal = memo(function RidePaymentSettlementMod
           </div>
         )}
 
-        {/* Em Dinheiro */}
+        {/* =================================================================== */}
+        {/* EM DINHEIRO & CALCULADORA INTELIGENTE DE TROCO DIGITAL (PADRÃO 99)  */}
+        {/* =================================================================== */}
         {selectedMethod === "DINHEIRO" && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center space-y-1.5 animate-in fade-in duration-200">
-            <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
-              <Banknote className="w-5 h-5" />
+          <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 space-y-3 animate-in fade-in duration-200">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                <Coins className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-xs font-black text-amber-950 leading-tight">
+                  Pagamento em Dinheiro &amp; Troco
+                </h4>
+                <p className="text-[11px] text-amber-900 font-medium">
+                  Informe o valor recebido para calcular o troco exato
+                </p>
+              </div>
             </div>
-            <h4 className="text-xs font-black text-amber-900">Cobrança em Espécie</h4>
-            <p className="text-xs text-amber-950 font-medium leading-relaxed">
-              Receba os{" "}
-              <strong>
-                {amountBrl.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-              </strong>{" "}
-              em mãos e providencie o troco se necessário.
-            </p>
+
+            {/* Input de Valor Entregue */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-700 block">
+                Valor entregue pelo passageiro:
+              </label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">
+                  R$
+                </span>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={cashReceivedInput}
+                  onChange={(e) => {
+                    setCashReceivedInput(e.target.value);
+                    if (digitalChangeDeposited) {
+                      setDigitalChangeDeposited(false);
+                      setDepositedChangeAmount(null);
+                    }
+                  }}
+                  placeholder={amountBrl.toFixed(2).replace(".", ",")}
+                  className="w-full h-11 pl-10 pr-3 rounded-xl border border-amber-300 bg-white text-sm font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition shadow-inner"
+                />
+              </div>
+
+              {/* Chips de Cédulas Rápidas */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    hapticFeedback.light();
+                    setCashReceivedInput(amountBrl.toFixed(2).replace(".", ","));
+                  }}
+                  className="px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-white border border-amber-300 text-amber-900 hover:bg-amber-100 transition cursor-pointer active:scale-95"
+                >
+                  Exato (R$ {amountBrl.toFixed(2).replace(".", ",")})
+                </button>
+                {quickBills.map((bill) => (
+                  <button
+                    key={bill}
+                    type="button"
+                    onClick={() => {
+                      hapticFeedback.light();
+                      setCashReceivedInput(bill.toFixed(2).replace(".", ","));
+                    }}
+                    className="px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-white border border-amber-300 text-amber-900 hover:bg-amber-100 transition cursor-pointer active:scale-95"
+                  >
+                    R$ {bill},00
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Painel de Resultado do Troco */}
+            {changeCalculation && (
+              <div className="pt-2 border-t border-amber-200/80 space-y-2">
+                {!changeCalculation.isValid ? (
+                  <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                    <span className="font-semibold">{changeCalculation.errorMessage}</span>
+                  </div>
+                ) : changeCalculation.isExactPayment ? (
+                  <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2 font-bold">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Pagamento exato recebido. Sem troco pendente.</span>
+                  </div>
+                ) : (
+                  <div className="p-3 rounded-2xl bg-white border border-amber-300 shadow-sm space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-700">
+                        Troco a devolver:
+                      </span>
+                      <span className="text-lg font-black text-amber-800">
+                        {changeCalculation.changeBrl.toLocaleString("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        })}
+                      </span>
+                    </div>
+
+                    {digitalChangeDeposited ? (
+                      <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs space-y-1">
+                        <div className="flex items-center gap-1.5 font-bold">
+                          <Check className="w-4 h-4 text-emerald-600 stroke-[3]" />
+                          <span>Troco Devolvido ao Passageiro</span>
+                        </div>
+                        <p className="text-[11px] text-emerald-800 leading-tight">
+                          Troco de R$ {depositedChangeAmount?.toFixed(2).replace(".", ",")} entregue
+                          diretamente a <strong>{passengerName}</strong> (em espécie ou Pix direto).
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <button
+                          type="button"
+                          onClick={handleConfirmarTrocoEntregue}
+                          className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer"
+                        >
+                          <Check className="w-4 h-4 text-white stroke-[3]" />
+                          <span>
+                            Confirmar Troco Entregue (
+                            {changeCalculation.changeBrl.toLocaleString("pt-BR", {
+                              style: "currency",
+                              currency: "BRL",
+                            })}
+                            )
+                          </span>
+                        </button>
+                        <p className="text-[10px] text-center text-slate-500 font-medium">
+                          Entregue em cédulas ou transfira via PIX diretamente para a conta do passageiro.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 

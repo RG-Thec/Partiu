@@ -1,3 +1,4 @@
+import React, { useMemo } from "react";
 import {
   MessageCircle,
   Compass,
@@ -7,10 +8,12 @@ import {
   RotateCcw,
   Package,
   CheckCircle2,
+  Navigation,
 } from "lucide-react";
 import type { ReturnDetails } from "@/lib/delivery";
 import { DriverSlideAction } from "../DriverSlideAction";
 import { useTheme } from "@/contexts/WhiteLabelThemeContext";
+import { multiStopEngine } from "@/lib/passenger/multi-stop-engine";
 
 interface InTripStateProps {
   passageiroNome: string;
@@ -22,6 +25,9 @@ interface InTripStateProps {
   returnDetails: ReturnDetails | null;
   currentStopNumber: number;
   driverUnreadCount: number;
+  paradas?: Array<{ id: string; endereco: string; coords?: { lat: number; lng: number } }> | undefined;
+  paradasConcluidas?: number | undefined;
+  onConcluirParada?: () => void;
   onConcluirCorrida: () => void;
   onOpenPinNumpadDropoff: () => void;
   onOpenDevolucao: () => void;
@@ -40,6 +46,9 @@ export function InTripState({
   returnDetails,
   currentStopNumber,
   driverUnreadCount,
+  paradas,
+  paradasConcluidas = 0,
+  onConcluirParada,
   onConcluirCorrida,
   onOpenPinNumpadDropoff,
   onOpenDevolucao,
@@ -49,6 +58,18 @@ export function InTripState({
 }: InTripStateProps) {
   const { appConfig } = useTheme();
   const { colors, ui } = appConfig.branding;
+
+  const multiStopProgress = useMemo(() => {
+    if (!paradas || paradas.length === 0) return null;
+    return multiStopEngine.getProgress({
+      destino: destinoEndereco,
+      paradas,
+      paradasConcluidas,
+    });
+  }, [paradas, paradasConcluidas, destinoEndereco]);
+
+  const hasPendingIntermediateStop =
+    Boolean(multiStopProgress && !multiStopProgress.isAllIntermediateStopsCompleted);
 
   // Caso de Devolução Reversa da Entrega
   if (isEntrega && emDevolucao) {
@@ -122,13 +143,17 @@ export function InTripState({
           >
             {isEntrega
               ? `● Entrega ${currentStopNumber > 1 ? `(Parada ${currentStopNumber})` : ""}`
+              : hasPendingIntermediateStop && multiStopProgress
+              ? `● Parada ${multiStopProgress.currentStopIndex + 1} de ${multiStopProgress.totalStops}`
               : "● Em viagem"}
           </span>
           <h3 className="text-sm sm:text-base font-extrabold text-foreground mt-1 truncate">
             {passageiroNome}
           </h3>
           <span className="text-xs text-muted-foreground truncate block mt-0.5">
-            {destinoEndereco}
+            {hasPendingIntermediateStop && multiStopProgress
+              ? multiStopProgress.activeTarget.endereco
+              : destinoEndereco}
           </span>
         </div>
 
@@ -169,17 +194,17 @@ export function InTripState({
         <button
           type="button"
           onClick={() => onNavegar("waze")}
-          className="h-11 min-h-[44px] rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-950 border border-sky-200 font-bold text-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+          className="h-11 min-h-[44px] rounded-2xl bg-sky-50 dark:bg-sky-950/30 hover:bg-sky-100 dark:hover:bg-sky-900/40 text-sky-950 dark:text-sky-200 border border-sky-200 dark:border-sky-800 font-bold text-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
         >
-          <Compass className="w-4 h-4 text-sky-600" />
+          <Navigation className="w-4 h-4 text-sky-600 dark:text-sky-400" />
           <span>Waze</span>
         </button>
         <button
           type="button"
           onClick={() => onNavegar("google_maps")}
-          className="h-11 min-h-[44px] rounded-2xl bg-muted text-foreground border border-border font-bold text-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+          className="h-11 min-h-[44px] rounded-2xl bg-muted/60 hover:bg-muted text-foreground border border-border font-bold text-xs transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-xs"
         >
-          <MapPin className="w-4 h-4 text-emerald-600" />
+          <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <span>Google Maps</span>
         </button>
       </div>
@@ -217,10 +242,28 @@ export function InTripState({
             Exige PIN de 4 dígitos do destinatário para repasse imediato
           </p>
         </div>
+      ) : hasPendingIntermediateStop && multiStopProgress ? (
+        <div className="space-y-2">
+          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs flex items-center justify-between">
+            <span className="text-[11px] font-bold text-amber-800 dark:text-amber-300 truncate max-w-[200px]">
+              Próximo: {multiStopProgress.stops[multiStopProgress.currentStopIndex + 1]?.endereco || destinoEndereco}
+            </span>
+            <span className="text-[10px] font-black uppercase text-amber-700 bg-amber-500/20 px-2 py-0.5 rounded shrink-0">
+              Parada {multiStopProgress.currentStopIndex + 1}
+            </span>
+          </div>
+          <DriverSlideAction
+            label={`DESLIZE PARA CONCLUIR PARADA ${multiStopProgress.currentStopIndex + 1} >>>`}
+            confirmedLabel={`PARADA ${multiStopProgress.currentStopIndex + 1} CONCLUÍDA`}
+            onConfirm={onConcluirParada || onConcluirCorrida}
+            gradient="linear-gradient(90deg, #D97706 0%, #F59E0B 100%)"
+            className="shadow-xl"
+          />
+        </div>
       ) : (
         <DriverSlideAction
           label="DESLIZE PARA CONCLUIR VIAGEM >>>"
-          confirmedLabel="🏁 VIAGEM CONCLUÍDA COM SUCESSO"
+          confirmedLabel="VIAGEM CONCLUÍDA COM SUCESSO"
           onConfirm={onConcluirCorrida}
           gradient="linear-gradient(90deg, #059669 0%, #10B981 100%)"
           className="shadow-xl"

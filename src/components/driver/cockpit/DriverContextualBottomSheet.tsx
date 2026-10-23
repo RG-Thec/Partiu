@@ -29,7 +29,6 @@ export interface DriverContextualBottomSheetProps {
   onToggleOnline: () => void;
   onOpenProfile: () => void;
   onOpenWallet: () => void;
-  onOpenSaquePix: () => void;
   onOpenFinancialDashboard?: () => void;
   onOpenModoDestino: () => void;
   onClearDestino: () => void;
@@ -38,10 +37,12 @@ export interface DriverContextualBottomSheetProps {
   onOpenPlanos: () => void;
   onChegueiAoLocal: () => void;
   onConfirmarEmbarque: () => void;
+  onOpenPassengerPin?: () => void;
   onOpenPinNumpad: () => void;
   onOpenPinNumpadDropoff: () => void;
   onOpenNoShowModal: () => void;
   onOpenCancelar: () => void;
+  onConcluirParada?: () => void;
   onConcluirCorrida: () => void;
   onOpenDevolucao: () => void;
   onOpenReturnFinalizar: () => void;
@@ -68,7 +69,6 @@ export function DriverContextualBottomSheet({
   onToggleOnline,
   onOpenProfile,
   onOpenWallet,
-  onOpenSaquePix,
   onOpenFinancialDashboard,
   onOpenModoDestino,
   onClearDestino,
@@ -77,10 +77,12 @@ export function DriverContextualBottomSheet({
   onOpenPlanos,
   onChegueiAoLocal,
   onConfirmarEmbarque,
+  onOpenPassengerPin,
   onOpenPinNumpad,
   onOpenPinNumpadDropoff,
   onOpenNoShowModal,
   onOpenCancelar,
+  onConcluirParada,
   onConcluirCorrida,
   onOpenDevolucao,
   onOpenReturnFinalizar,
@@ -128,7 +130,6 @@ export function DriverContextualBottomSheet({
             remainingDestinationUses={remainingDestinationUses}
             diariaRestanteTexto={diariaRestanteTexto}
             onToggleOnline={onToggleOnline}
-            onOpenSaquePix={onOpenSaquePix}
             onOpenFinancialDashboard={onOpenFinancialDashboard}
             onOpenModoDestino={onOpenModoDestino}
             onClearDestino={onClearDestino}
@@ -141,10 +142,15 @@ export function DriverContextualBottomSheet({
         {/* 3. ESTADO A CAMINHO DO EMBARQUE */}
         {isOnline && estadoCockpit === "HEADING_TO_PICKUP" && ofertaAtiva && (
           <HeadingToPickupState
+            rideId={ofertaAtiva.id}
             passageiroNome={ofertaAtiva.passageiro}
             origemEndereco={ofertaAtiva.origem}
             isEntrega={isEntrega}
             driverUnreadCount={driverUnreadCount}
+            isForOtherPerson={ofertaAtiva.isForOtherPerson}
+            otherPersonName={ofertaAtiva.otherPersonName}
+            otherPersonPhone={ofertaAtiva.otherPersonPhone}
+            solicitanteNome={ofertaAtiva.solicitanteNome}
             onChegueiAoLocal={onChegueiAoLocal}
             onOpenChat={onOpenChat}
             onLigar={onLigar}
@@ -156,6 +162,7 @@ export function DriverContextualBottomSheet({
         {/* 4. ESTADO CHEGOU / AGUARDANDO EMBARQUE */}
         {isOnline && estadoCockpit === "WAITING_PIN" && ofertaAtiva && (
           <WaitingPassengerState
+            rideId={ofertaAtiva.id}
             passageiroNome={ofertaAtiva.passageiro}
             passageiroFoto={ofertaAtiva.passageiroFoto}
             passageiroAvaliacao={ofertaAtiva.passageiroAvaliacao}
@@ -168,6 +175,12 @@ export function DriverContextualBottomSheet({
             waitingTimerStatus={waitingTimerStatus}
             driverUnreadCount={driverUnreadCount}
             erroPin={erroPin}
+            isForOtherPerson={ofertaAtiva.isForOtherPerson}
+            otherPersonName={ofertaAtiva.otherPersonName}
+            otherPersonPhone={ofertaAtiva.otherPersonPhone}
+            solicitanteNome={ofertaAtiva.solicitanteNome}
+            exigePinEmbarque={ofertaAtiva.exigePinEmbarque}
+            onOpenPassengerPin={onOpenPassengerPin}
             onConfirmarEmbarque={onConfirmarEmbarque}
             onOpenPinNumpad={onOpenPinNumpad}
             onOpenNoShowModal={onOpenNoShowModal}
@@ -193,6 +206,9 @@ export function DriverContextualBottomSheet({
             returnDetails={returnDetails}
             currentStopNumber={currentStopNumber}
             driverUnreadCount={driverUnreadCount}
+            paradas={(ofertaAtiva as any).paradas}
+            paradasConcluidas={(ofertaAtiva as any).paradasConcluidas || 0}
+            onConcluirParada={onConcluirParada}
             onConcluirCorrida={onConcluirCorrida}
             onOpenPinNumpadDropoff={onOpenPinNumpadDropoff}
             onOpenDevolucao={onOpenDevolucao}

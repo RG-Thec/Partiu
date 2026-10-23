@@ -30,11 +30,12 @@ flowchart TD
 ```
 
 - **Screens traversed:**
-  | Screen                                  | States used here        |
-  | --------------------------------------- | ----------------------- |
-  | SCR-08 Mapa e Solicitação de Viagem     | success, loading, error |
-  | SCR-09 Experiência En Route             | success                 |
-  | SCR-14 Cockpit Operacional do Motorista | success                 |
+  | Screen                                           | States used here                     |
+  | ------------------------------------------------ | ------------------------------------ |
+  | SCR-08 Mapa e Solicitação de Viagem              | success, loading, error              |
+  | SCR-09 Experiência En Route                      | success                              |
+  | SCR-14 Cockpit Operacional do Motorista          | success                              |
+  | SCR-26 Agendamento de Corridas com Acordo Direto | default, success, negotiating, error |
 
 ### FLW-02: Cumprimento e Finalização de Corrida pelo Motorista
 

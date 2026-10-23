@@ -21,11 +21,13 @@ import {
   Car,
   Bike,
   Loader2,
+  Users,
+  Navigation,
 } from "lucide-react";
 import QRCode from "qrcode";
 import { buildStandardEmvPix } from "@/services/payment/PaymentProviderAdapter";
 import { usePassengerRide } from "@/contexts/PassengerRideContext";
-import { ChatBottomSheet } from "@/components/chat";
+import { ChatBottomSheet, InlineQuickReplyBar } from "@/components/chat";
 import { chatRealtimeService } from "@/services/ChatRealtimeService";
 import { rideLiveTrackingService } from "@/lib/tracking/ride-live-tracking-service";
 import { cancellationPolicyService } from "@/services/CancellationPolicyService";
@@ -42,6 +44,9 @@ import {
   TAGS_99_PASSENGER_TO_DRIVER_POSITIVE,
   TAGS_99_PASSENGER_TO_DRIVER_IMPROVEMENT,
 } from "@/services/RideRatingService";
+import { rideForThirdPartyEngine } from "@/lib/passenger/ride-for-third-party-engine";
+import { geofenceArrivalService } from "@/lib/spatial/geofence-arrival-service";
+import { obterAudioContext, tocarAlertaProximidade500m } from "@/lib/partiu-engine";
 
 // Lazy-loaded para otimização de bundle e TTI de 60fps
 const DriverProfileModal = lazy(() =>
@@ -119,6 +124,9 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
     resetToIdle,
     progressiveSession,
     retrySearchAfterTimeout,
+    driverCoords,
+    origemCoords,
+    destinoCoords,
   } = usePassengerRide();
 
   const { corPrimaria, corSecundaria, nomeApp } = useBrandTheme();
@@ -273,6 +281,118 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
     return rawPin.slice(0, 4).padEnd(4, "0").split("");
   }, [activeRide?.pin]);
 
+  // Alerta de aproximação de 500m (Embarque e Destino)
+  const [proximityAlert, setProximityAlert] = useState<{
+    stage: "PICKUP" | "DESTINATION";
+    distanceMeters: number;
+    dismissed: boolean;
+  } | null>(null);
+
+  // Síntese de voz suave para o passageiro
+  const falarAlertaPassageiro = useCallback((texto: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(texto);
+      utterance.lang = "pt-BR";
+      utterance.rate = 1.05;
+      utterance.volume = 1.0;
+      const voices = window.speechSynthesis.getVoices();
+      const ptVoice = voices.find(
+        (v) => v.lang.startsWith("pt") || v.lang.replace("_", "-") === "pt-BR",
+      );
+      if (ptVoice) utterance.voice = ptVoice;
+      window.speechSynthesis.speak(utterance);
+    } catch (err) {
+      console.warn("[ProximityAlert] Síntese de voz indisponível:", err);
+    }
+  }, []);
+
+  // Escuta o evento global partiu:proximity_500m_alert
+  useEffect(() => {
+    const handleProximityEvent = (e: any) => {
+      const detail = e.detail;
+      if (!detail) return;
+      if (detail.rideId && currentRideId && detail.rideId !== currentRideId) return;
+
+      const stage = detail.stage as "PICKUP" | "DESTINATION";
+      const dist = detail.distanceMeters || 500;
+
+      setProximityAlert({
+        stage,
+        distanceMeters: dist,
+        dismissed: false,
+      });
+
+      obterAudioContext();
+      tocarAlertaProximidade500m();
+      if (stage === "PICKUP") {
+        falarAlertaPassageiro("Seu motorista está se aproximando, a cerca de 500 metros. Prepare-se para o embarque.");
+      } else {
+        falarAlertaPassageiro("Aproximação do destino: 500 metros. Prepare-se para o desembarque.");
+      }
+    };
+
+    window.addEventListener("partiu:proximity_500m_alert", handleProximityEvent);
+    return () => {
+      window.removeEventListener("partiu:proximity_500m_alert", handleProximityEvent);
+    };
+  }, [currentRideId, falarAlertaPassageiro]);
+
+  // Fallback reativo à telemetria driverCoords (calcula geofence local se evento ainda não disparou)
+  useEffect(() => {
+    if (!driverCoords || driverCoords.length < 2) return;
+    const driverPoint = { lat: driverCoords[1], lng: driverCoords[0] };
+
+    if (!isEmViagem && !isChegou && !isConcluida) {
+      const orig = activeRide?.origemCoords
+        ? Array.isArray(activeRide.origemCoords)
+          ? { lat: (activeRide.origemCoords as any)[1], lng: (activeRide.origemCoords as any)[0] }
+          : activeRide.origemCoords
+        : origemCoords
+          ? { lat: origemCoords[1], lng: origemCoords[0] }
+          : null;
+
+      if (orig && orig.lat && orig.lng) {
+        geofenceArrivalService.shouldTriggerProximity500m(
+          currentRideId,
+          "PICKUP",
+          driverPoint,
+          orig,
+          500,
+        );
+      }
+    } else if (isEmViagem && !isConcluida) {
+      const dest = activeRide?.destinoCoords
+        ? Array.isArray(activeRide.destinoCoords)
+          ? { lat: (activeRide.destinoCoords as any)[1], lng: (activeRide.destinoCoords as any)[0] }
+          : activeRide.destinoCoords
+        : destinoCoords
+          ? { lat: destinoCoords[1], lng: destinoCoords[0] }
+          : null;
+
+      if (dest && dest.lat && dest.lng) {
+        geofenceArrivalService.shouldTriggerProximity500m(
+          currentRideId,
+          "DESTINATION",
+          driverPoint,
+          dest,
+          500,
+        );
+      }
+    }
+  }, [
+    driverCoords,
+    currentRideId,
+    isEmViagem,
+    isChegou,
+    isConcluida,
+    activeRide?.origemCoords,
+    activeRide?.destinoCoords,
+    origemCoords,
+    destinoCoords,
+  ]);
+
   // Estado e ação de cópia do PIN de segurança
   const [pinCopied, setPinCopied] = useState(false);
   const handleCopyPin = useCallback(() => {
@@ -283,6 +403,53 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
       setTimeout(() => setPinCopied(false), 2000);
     }
   }, [pinDigits]);
+
+  // Compartilhamento direto para o passageiro terceiro via WhatsApp
+  const handleShareWithGuestRider = useCallback(() => {
+    hapticFeedback.light();
+    const guestName = activeRide?.otherPersonName || "Passageiro";
+    const guestPhone = activeRide?.otherPersonPhone || "";
+    const bookerName =
+      activeRide?.solicitanteNome ||
+      (typeof window !== "undefined" ? localStorage.getItem("partiu_user_nome") : "") ||
+      "Seu amigo";
+    const pin = pinDigits.join("");
+    const trackingToken =
+      activeRide?.trackingToken ||
+      rideLiveTrackingService.generateTrackingToken(currentRideId);
+
+    const share = rideForThirdPartyEngine.buildThirdPartyWhatsAppShare({
+      guestName,
+      guestPhone,
+      bookerName,
+      driverName,
+      driverRating: rating,
+      vehicleModel,
+      vehiclePlate: licensePlate,
+      vehicleColor,
+      pickupAddress: origem || "Local de embarque",
+      destinationAddress: destino,
+      boardingPin: pin,
+      trackingToken,
+      appName: nomeApp || "PARTIU",
+    });
+
+    if (typeof window !== "undefined") {
+      window.open(share.whatsappUrl, "_blank");
+    }
+  }, [
+    activeRide,
+    currentRideId,
+    driverName,
+    rating,
+    vehicleModel,
+    licensePlate,
+    vehicleColor,
+    origem,
+    destino,
+    pinDigits,
+    nomeApp,
+  ]);
 
   // Compartilhamento público da rota em tempo real (Siga Minha Viagem)
   const handleShareTracking = useCallback(() => {
@@ -822,6 +989,43 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
           </div>
         )}
 
+        {/* Banner de alerta de aproximação 500m (Embarque ou Destino) */}
+        {proximityAlert && !proximityAlert.dismissed && (
+          <div className="mb-2 p-3 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white shadow-xl border border-blue-400/30 flex items-center justify-between gap-3 animate-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="relative w-8 h-8 rounded-full bg-white/20 backdrop-blur-xs flex items-center justify-center shrink-0">
+                <Navigation className="w-4 h-4 text-white animate-pulse" />
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-black tracking-wide uppercase text-blue-100">
+                    {proximityAlert.stage === "PICKUP"
+                      ? "Aproximação do condutor"
+                      : "Aproximação do destino"}
+                  </span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 font-mono font-bold">
+                    ~500m
+                  </span>
+                </div>
+                <p className="text-[11px] font-medium text-white/90 truncate mt-0.5">
+                  {proximityAlert.stage === "PICKUP"
+                    ? "Motorista a cerca de 500 metros. Prepare-se para o embarque."
+                    : "Você está a cerca de 500 metros do seu destino final."}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setProximityAlert((prev) => (prev ? { ...prev, dismissed: true } : null))}
+              className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center shrink-0 transition-colors cursor-pointer"
+              aria-label="Dispensar aviso de proximidade"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         {/* MOCKUP 7.PNG: EM VIAGEM (TOP CARD COM DESTINO E TEMPO RESTANTE) */}
         {isEmViagem ? (
           <div className="bg-card rounded-2xl p-3.5 shadow-lg border border-border flex items-center justify-between gap-3">
@@ -1003,6 +1207,40 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                 </div>
               </div>
 
+              {/* Linha do Tempo de Paradas Intermediárias */}
+              {activeRide?.paradas && activeRide.paradas.length > 0 && (
+                <div className="w-full pt-1 pb-1 space-y-1.5 border-t border-border/70 text-left">
+                  <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider block">
+                    Paradas no Trajeto ({activeRide.paradas.length})
+                  </span>
+                  <div className="space-y-1">
+                    {activeRide.paradas.map((p, idx) => {
+                      const isDone = (activeRide.paradasConcluidas || 0) > idx;
+                      const isCurrent = (activeRide.paradasConcluidas || 0) === idx;
+                      return (
+                        <div
+                          key={p.id || idx}
+                          className={`flex items-center justify-between text-xs p-1.5 rounded-lg border transition ${
+                            isDone
+                              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 line-through opacity-75"
+                              : isCurrent
+                              ? "bg-amber-500/15 border-amber-500/40 text-amber-950 dark:text-amber-200 font-bold"
+                              : "bg-muted/40 border-border text-muted-foreground"
+                          }`}
+                        >
+                          <span className="truncate pr-2">
+                            {idx + 1}ª Parada: {p.endereco}
+                          </span>
+                          <span className="text-[10px] uppercase font-black shrink-0">
+                            {isDone ? "✓ Concluída" : isCurrent ? "📍 A Caminho" : "⏱️ Pendente"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Botões Duplos de Ação (7.png) */}
               <div className="grid grid-cols-2 gap-3 pt-1">
                 {/* Compartilhar Trajeto */}
@@ -1096,6 +1334,31 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                 </p>
               </div>
 
+              {/* Card de Corrida para Terceiro: Enviar no WhatsApp */}
+              {activeRide?.isForOtherPerson && (
+                <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-950 dark:text-amber-200 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-extrabold flex items-center gap-1.5">
+                      <Users className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                      Viagem para {activeRide?.otherPersonName || "Convidado"}
+                    </span>
+                    {activeRide?.otherPersonPhone && (
+                      <span className="text-[10px] font-mono font-bold text-amber-700 dark:text-amber-400">
+                        {activeRide.otherPersonPhone}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleShareWithGuestRider}
+                    className="w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition active:scale-95 cursor-pointer"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Enviar rota e PIN no WhatsApp</span>
+                  </button>
+                </div>
+              )}
+
               {/* Linha de Forma de Pagamento PIX D+0 (6.png) */}
               <div className="pt-2 border-t border-border flex items-center justify-between py-2">
                 <div className="flex items-center gap-3">
@@ -1129,6 +1392,23 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
                   24h
                 </span>
               </button>
+
+              {/* Respostas Rápidas Hands-Free para o Passageiro */}
+              {currentRideId && !isConcluida && (
+                <div className="pt-2">
+                  <InlineQuickReplyBar
+                    rideId={currentRideId}
+                    senderType="PASSENGER"
+                    senderId={activeRide?.passageiroTelefone || "passageiro_app"}
+                    rideStatus={isChegou ? "CHEGOU" : isEmViagem ? "EM_VIAGEM" : "A_CAMINHO"}
+                    onOpenFullChat={() => {
+                      hapticFeedback.light();
+                      setIsChatOpen(true);
+                    }}
+                    unreadCount={unreadCount}
+                  />
+                </div>
+              )}
 
               {/* Barra de Ações Rápidas do Passageiro (Padrão Uber / 99: Ligar, Chat e Compartilhar) */}
               <div className="space-y-2 pt-2 border-t border-border text-xs">
@@ -1232,6 +1512,8 @@ export const DriverEnRouteSheet = memo(function DriverEnRouteSheet() {
         onClose={() => setIsSafetyCenterOpen(false)}
         driverName={driverName}
         driverPlate={licensePlate}
+        vehicleModel={vehicleModel}
+        origin={origem}
         destination={destino || "Destino informado"}
         rideId={currentRideId}
       />

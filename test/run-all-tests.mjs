@@ -1135,6 +1135,18 @@ import "./extraordinary-engines.test.ts";
 import "./driver-efficiency.test.ts";
 import "./white-label-multi-tenant-isolation.test.ts";
 import "./driver-cpf-unique-and-immutable-name.test.ts";
+import "./onda1-hybrid-sync-geofence-monetization.test.ts";
+import "./onda2-reassign-cancellation-fee.test.ts";
+import "./onda3-back-to-back-navigation.test.ts";
+import "./onda4-safety-toolkit-map-optimization.test.ts";
+import "./onda5-predictive-demand-heatmap.test.ts";
+import "./onda6-multi-stop-smart-pickups.test.ts";
+import "./onda7-driver-ocr-onboarding.test.ts";
+import "./onda8-quick-replies-handsfree.test.ts";
+import "./onda9-boarding-pin-third-party.test.ts";
+import "./onda10-scheduled-rides-bilateral.test.ts";
+import "./onda11-driver-improvements.test.ts";
+import "./onda12-proximity-500m-alerts.test.ts";
 
 await waitForAllTests();
 const summary = getSummary();

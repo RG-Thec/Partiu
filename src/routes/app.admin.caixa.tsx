@@ -18,6 +18,8 @@ import {
   useAlterarStatusCaixa,
   useMotoristas,
 } from "@/lib/partiu-db";
+import { useAdminCity } from "@/contexts/AdminCityContext";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { GuardiaoAcesso } from "@/components/admin/GuardiaoAcesso";
 import {
   AdminPageHeader,
@@ -54,6 +56,43 @@ export function AdminCaixaPage() {
   const salvar = useSalvarCaixa();
   const alterarStatus = useAlterarStatusCaixa();
 
+  const { pracaAtiva, isNacional: isContextNacional } = useAdminCity();
+  const { isFranqueado, tenantId: authTenantId } = useAdminAuth();
+  const isNacional = !isFranqueado && isContextNacional;
+  const targetTenantId = (isFranqueado && authTenantId ? authTenantId : pracaAtiva?.id || "").toLowerCase();
+  const nomeCidade = (pracaAtiva?.nome || "").toLowerCase();
+
+  const caixasDaPraca = useMemo(() => {
+    if (isNacional) return caixas;
+    const cleanPraca = targetTenantId.replace("tenant-", "").replace("praca_", "");
+
+    return caixas.filter((c: any) => {
+      const tenant = (c.tenant_id || (c as any).tenantId || "").toLowerCase();
+      if (tenant && targetTenantId && targetTenantId !== "todas") {
+        const cleanTenant = tenant.replace("tenant-", "").replace("praca_", "");
+        return cleanTenant === cleanPraca || tenant === targetTenantId;
+      }
+      const desc = (c.descricao || "").toLowerCase();
+      const praca = (c.praca || c.cidade || "").toLowerCase();
+      return desc.includes(nomeCidade) || praca.includes(nomeCidade);
+    });
+  }, [caixas, isNacional, targetTenantId, nomeCidade]);
+
+  const motoristasDaPraca = useMemo(() => {
+    if (isNacional) return motoristas;
+    const cleanPraca = targetTenantId.replace("tenant-", "").replace("praca_", "");
+
+    return motoristas.filter((m: any) => {
+      const tenant = (m.tenant_id || m.tenantId || "").toLowerCase();
+      if (tenant && targetTenantId && targetTenantId !== "todas") {
+        const cleanTenant = tenant.replace("tenant-", "").replace("praca_", "");
+        return cleanTenant === cleanPraca || tenant === targetTenantId;
+      }
+      const cid = (m.cidade || m.city || "").toLowerCase();
+      return cid.includes(nomeCidade);
+    });
+  }, [motoristas, isNacional, targetTenantId, nomeCidade]);
+
   const [modalNovoFechamento, setModalNovoFechamento] = useState(false);
   const [motoristaId, setMotoristaId] = useState("");
   const [dataRef, setDataRef] = useState(() => new Date().toISOString().slice(0, 10));
@@ -62,7 +101,7 @@ export function AdminCaixaPage() {
   const [filtroStatus, setFiltroStatus] = useState<string>("TODOS");
 
   const consolidado = useMemo(() => {
-    return caixas.reduce(
+    return caixasDaPraca.reduce(
       (acc, c) => ({
         bruto: acc.bruto + Number(c.total_bruto),
         cooperativa: acc.cooperativa + Number(c.valor_cooperativa),
@@ -70,10 +109,10 @@ export function AdminCaixaPage() {
       }),
       { bruto: 0, cooperativa: 0, motoristas: 0 },
     );
-  }, [caixas]);
+  }, [caixasDaPraca]);
 
   const caixasFiltrados = useMemo(() => {
-    return caixas.filter((c) => {
+    return caixasDaPraca.filter((c) => {
       const matchStatus = filtroStatus === "TODOS" || c.status === filtroStatus;
       const matchBusca =
         !busca.trim() ||
@@ -81,11 +120,11 @@ export function AdminCaixaPage() {
         c.status.toLowerCase().includes(busca.toLowerCase());
       return matchStatus && matchBusca;
     });
-  }, [caixas, filtroStatus, busca]);
+  }, [caixasDaPraca, filtroStatus, busca]);
 
   const pendentesLiquidacao = useMemo(
-    () => caixas.filter((c) => c.status === "aberto" || c.status === "fechado").length,
-    [caixas],
+    () => caixasDaPraca.filter((c) => c.status === "aberto" || c.status === "fechado").length,
+    [caixasDaPraca],
   );
 
   async function handleSalvarFechamento(e: React.FormEvent) {
@@ -401,7 +440,7 @@ export function AdminCaixaPage() {
                 className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-2.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="">Selecione o motorista</option>
-                {motoristas.map((m) => (
+                {motoristasDaPraca.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.full_name || m.id}
                   </option>
