@@ -1605,7 +1605,7 @@ export class WhiteLabelEngine {
    * Exclui permanentemente a conta de um franqueado pelo Super Administrador
    */
   public async deleteTenant(tenantId: string): Promise<boolean> {
-    if (tenantId === "default" || tenantId === "matriz-br" || tenantId === "tenant-itaperuna") {
+    if (tenantId === "default" || tenantId === "matriz-br" || tenantId === "matriz") {
       throw new Error("A conta oficial da Matriz PARTIU é protegida e não pode ser excluída.");
     }
 
