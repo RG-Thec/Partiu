@@ -2,6 +2,8 @@ import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-r
 import { useState, useEffect, useMemo } from "react";
 import {
   Activity,
+  BarChart3,
+  Bell,
   Building2,
   Landmark,
   Car,
@@ -10,6 +12,7 @@ import {
   Compass,
   CreditCard,
   DollarSign,
+  Gift,
   Globe,
   Key,
   Layers,
@@ -33,6 +36,7 @@ import {
   Sliders,
   Smartphone,
   Sparkles,
+  Tag,
   TrendingUp,
   User,
   UserCheck,
@@ -117,6 +121,13 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
         moduleId: "operacao",
       },
       {
+        to: "/app/admin/monitoramento",
+        label: "Control Room & Telemetria",
+        icon: Activity,
+        exact: false,
+        moduleId: "operacao",
+      },
+      {
         to: "/app/admin/sos",
         label: "Central SOS 190",
         icon: ShieldAlert,
@@ -128,7 +139,7 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
   },
   {
     id: "rede",
-    titulo: "Motoristas & Rede",
+    titulo: "Motoristas & Passageiros",
     itens: [
       {
         to: "/app/admin/motoristas",
@@ -171,7 +182,7 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
   },
   {
     id: "monetizacao",
-    titulo: "Monetização SaaS",
+    titulo: "Monetização & Franquias",
     itens: [
       {
         to: "/app/admin/monetizacao",
@@ -201,12 +212,26 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
         exact: false,
         moduleId: "franqueados",
       },
+      {
+        to: "/app/admin/api-finops",
+        label: "FinOps de APIs & Mapas",
+        icon: BarChart3,
+        exact: false,
+        moduleId: "financeiro",
+      },
     ],
   },
   {
     id: "marca",
-    titulo: "Marca & Aplicativo",
+    titulo: "Marca & White Label",
     itens: [
+      {
+        to: "/app/admin/whitelabel",
+        label: "White Label Studio OS",
+        icon: Palette,
+        exact: false,
+        moduleId: "whitelabel",
+      },
       {
         to: "/app/admin/meu-aplicativo",
         label: "Meu Aplicativo (PWA/APK)",
@@ -215,11 +240,31 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
         moduleId: "aplicativo",
       },
       {
-        to: "/app/admin/whitelabel",
-        label: "Identidade & White Label",
-        icon: Palette,
+        to: "/app/admin/dominios",
+        label: "Domínios & DNS",
+        icon: Globe,
         exact: false,
-        moduleId: "whitelabel",
+        moduleId: "dominios",
+      },
+      {
+        to: "/app/admin/locais",
+        label: "Cidades & Praças",
+        icon: MapPin,
+        exact: false,
+        moduleId: "operacao",
+      },
+    ],
+  },
+  {
+    id: "marketing",
+    titulo: "Marketing & Comunicação",
+    itens: [
+      {
+        to: "/app/admin/notificacoes",
+        label: "Disparo Push Broadcast",
+        icon: Bell,
+        exact: false,
+        moduleId: "marketing",
       },
       {
         to: "/app/admin/banners",
@@ -229,29 +274,36 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
         moduleId: "marketing",
       },
       {
-        to: "/app/admin/dominios",
-        label: "Domínios & DNS",
-        icon: Globe,
+        to: "/app/admin/afiliados",
+        label: "Cupons & Vantagens",
+        icon: Tag,
         exact: false,
-        moduleId: "dominios",
+        moduleId: "marketing",
+      },
+      {
+        to: "/app/admin/growth",
+        label: "Growth & Indique e Ganhe",
+        icon: Gift,
+        exact: false,
+        moduleId: "marketing",
       },
     ],
   },
   {
     id: "gestao",
-    titulo: "Configuração & Praças",
+    titulo: "Governança & Sistema",
     itens: [
-      {
-        to: "/app/admin/locais",
-        label: "Cidades & Praças",
-        icon: MapPin,
-        exact: false,
-        moduleId: "operacao",
-      },
       {
         to: "/app/admin/configuracoes",
         label: "Configurações Globais",
         icon: Sliders,
+        exact: false,
+        moduleId: "configuracoes",
+      },
+      {
+        to: "/app/admin/governanca",
+        label: "Governança LGPD & Backups",
+        icon: ShieldCheck,
         exact: false,
         moduleId: "configuracoes",
       },
@@ -360,6 +412,36 @@ const TODOS_MODULOS_SISTEMA = [
     icon: Globe,
   },
   { to: "/app/admin/locais", label: "Cidades & Praças", categoriaTitulo: "Operação", icon: MapPin },
+  {
+    to: "/app/admin/notificacoes",
+    label: "Disparo de Notificações Push",
+    categoriaTitulo: "Marketing",
+    icon: Bell,
+  },
+  {
+    to: "/app/admin/afiliados",
+    label: "Cupons & Clube de Vantagens",
+    categoriaTitulo: "Marketing",
+    icon: Tag,
+  },
+  {
+    to: "/app/admin/growth",
+    label: "Growth & Indique e Ganhe",
+    categoriaTitulo: "Marketing",
+    icon: Gift,
+  },
+  {
+    to: "/app/admin/monitoramento",
+    label: "Control Room & Telemetria",
+    categoriaTitulo: "Operação",
+    icon: Activity,
+  },
+  {
+    to: "/app/admin/api-finops",
+    label: "FinOps de APIs & Custos de Mapas",
+    categoriaTitulo: "Finanças",
+    icon: BarChart3,
+  },
   {
     to: "/app/admin/configuracoes",
     label: "Configurações Globais",

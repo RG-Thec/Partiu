@@ -193,6 +193,7 @@ function WhiteLabelStudioContent() {
   }, [isFranqueadoRole, contaAtiva.tenantId, activeTenant?.tenantId, switchTenant]);
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("brand");
+  const [filtroGrupoTab, setFiltroGrupoTab] = useState<"TODOS" | "MARCA" | "APP" | "NEGOCIO">("TODOS");
   const [mostrarBannerAjuda, setMostrarBannerAjuda] = useState(false);
 
   useEffect(() => {
@@ -433,27 +434,83 @@ function WhiteLabelStudioContent() {
         </div>
       )}
 
-      {/* 4. NAVEGAÇÃO POR ABAS AGRUPADAS E COMPACTAS */}
-      <div className="flex items-center gap-1.5 p-1.5 bg-slate-900/90 border border-slate-800 rounded-2xl overflow-x-auto">
-        {availableTabs.map((t) => {
-          const Icon = t.icone;
-          const isActive = activeTab === t.id;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 ${
-                isActive
-                  ? "bg-primary text-slate-950 font-black shadow-md"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800"
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5" />
-              <span>{t.label}</span>
-            </button>
-          );
-        })}
+      {/* 4. NAVEGAÇÃO ESTRUTURADA POR PILARES EXECUTIVOS */}
+      <div className="space-y-2">
+        {/* Filtro por Pilar Estratégico */}
+        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-900/90 border border-slate-800 rounded-xl w-fit text-xs">
+          <button
+            type="button"
+            onClick={() => setFiltroGrupoTab("TODOS")}
+            className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+              filtroGrupoTab === "TODOS"
+                ? "bg-slate-800 text-white shadow-2xs"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            Todas as Abas ({availableTabs.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setFiltroGrupoTab("MARCA")}
+            className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
+              filtroGrupoTab === "MARCA"
+                ? "bg-slate-800 text-primary-400 shadow-2xs"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Palette className="w-3.5 h-3.5 text-primary-400" />
+            <span>Identidade & Marca</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setFiltroGrupoTab("APP")}
+            className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
+              filtroGrupoTab === "APP"
+                ? "bg-slate-800 text-blue-400 shadow-2xs"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Smartphone className="w-3.5 h-3.5 text-blue-400" />
+            <span>Layout & App</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setFiltroGrupoTab("NEGOCIO")}
+            className={`px-3 py-1.5 rounded-lg font-bold transition cursor-pointer flex items-center gap-1.5 ${
+              filtroGrupoTab === "NEGOCIO"
+                ? "bg-slate-800 text-emerald-400 shadow-2xs"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Negócio & Praça</span>
+          </button>
+        </div>
+
+        {/* Abas Filtradas com Destaque */}
+        <div className="flex items-center gap-1.5 p-1.5 bg-slate-900/90 border border-slate-800 rounded-2xl overflow-x-auto">
+          {availableTabs
+            .filter((t) => filtroGrupoTab === "TODOS" || t.grupo === filtroGrupoTab)
+            .map((t) => {
+              const Icon = t.icone;
+              const isActive = activeTab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setActiveTab(t.id)}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 ${
+                    isActive
+                      ? "bg-primary text-slate-950 font-black shadow-md"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800"
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{t.label}</span>
+                </button>
+              );
+            })}
+        </div>
       </div>
 
       {/* 5. WORKSPACE PRINCIPAL: STUDIO (ESQ) + LIVE SIMULATOR (DIR) */}
