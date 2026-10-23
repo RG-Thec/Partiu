@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import {
   AlertCircle,
@@ -39,8 +39,8 @@ import {
   UserCheck,
   UserPlus,
   Users,
-  Edit3,
   Building2,
+  Edit3,
   X,
   Zap,
 } from "lucide-react";
@@ -48,13 +48,7 @@ import { getSuperAdminConfig, saveSuperAdminConfig } from "@/lib/superadmin-conf
 import { appSettingsService } from "@/lib/ecosystem/app-settings-service";
 import { isSuperAdmin, getAdminRole } from "@/lib/admin-rbac";
 import { useBranding } from "@/hooks/useBranding";
-import {
-  themeEngine,
-  generatePrimaryPalette,
-  updateBrowserFavicon,
-  generateSvgFavicon,
-} from "@/lib/branding/ThemeEngine";
-import { PalettePickerSection } from "@/components/admin/PalettePickerSection";
+import { whiteLabelEngine } from "@/lib/white-label";
 import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { GuardiaoAcesso } from "@/components/admin/GuardiaoAcesso";
 import { AdminUserModal, type AdminUserRecord } from "@/components/admin/AdminUserModal";
@@ -62,169 +56,27 @@ import { AdminUserModal, type AdminUserRecord } from "@/components/admin/AdminUs
 export const Route = createFileRoute("/app/admin/configuracoes")({
   head: () => ({
     meta: [
-      { title: "Configurações Operacionais & White Label Expresso | PARTIU Admin" },
+      { title: "Configurações Globais & Parâmetros do Sistema | PARTIU Admin" },
       {
         name: "description",
         content:
-          "Progressive Disclosure: Modo Essencial sempre visível, Modo Avançado protegido e Assistente de Onboarding de Cidade em 4 passos (< 15 min).",
+          "Progressive Disclosure: Modo Essencial com parâmetros operacionais, Modo Avançado protegido e Governança de Usuários RBAC.",
       },
     ],
   }),
   component: ConfiguracoesAdminPage,
 });
 
-type AbaConfig = "essencial" | "whitelabel" | "avancado" | "equipe";
-
-interface CidadeTenant {
-  id: string;
-  nome: string;
-  uf: string;
-  nomeApp: string;
-  corPrimaria: string;
-  preset: "Moderno" | "Compacto" | "Arredondado";
-  tarifaBase: number;
-  comissaoPercent: number;
-  chavePix: string;
-  whatsapp: string;
-  status: "ATIVA" | "EM_CONFIGURACAO";
-}
+type AbaConfig = "essencial" | "avancado" | "equipe";
 
 export function ConfiguracoesAdminPage() {
-  const { branding, updateBranding } = useBranding();
-  const [corPrimariaApp, setCorPrimariaApp] = useState(branding?.primary_color || "#FF6B00");
-  const [salvandoCor, setSalvandoCor] = useState(false);
-  const [sucessoCor, setSucessoCor] = useState(false);
-
-  const [faviconUrlApp, setFaviconUrlApp] = useState(branding?.favicon_url || "/favicon.svg");
-  const [salvandoFavicon, setSalvandoFavicon] = useState(false);
-  const [sucessoFavicon, setSucessoFavicon] = useState(false);
-
-  async function handleSalvarFavicon(url: string) {
-    setSalvandoFavicon(true);
-    try {
-      setFaviconUrlApp(url);
-      await updateBranding({ favicon_url: url });
-      updateBrowserFavicon(url);
-      try {
-        const { whiteLabelEngine } = await import("@/lib/white-label");
-        const act = whiteLabelEngine.getActiveConfig();
-        whiteLabelEngine.updateActiveConfig({
-          brandCenter: {
-            ...act.brandCenter,
-            favicons: {
-              ...act.brandCenter.favicons,
-              faviconDesktopUrl: url,
-              faviconMobileUrl: url,
-              appleTouchIconUrl: url,
-            },
-          },
-        });
-      } catch {}
-      setSucessoFavicon(true);
-      setTimeout(() => setSucessoFavicon(false), 3000);
-    } catch {
-    } finally {
-      setSalvandoFavicon(false);
-    }
-  }
-
-  function handleGerarFaviconDaPaletaAtual() {
-    const palette = generatePrimaryPalette(corPrimariaApp);
-    const svgUri = generateSvgFavicon(corPrimariaApp, palette.accent);
-    setFaviconUrlApp(svgUri);
-    void handleSalvarFavicon(svgUri);
-  }
-
-  function handleTestarFaviconAba() {
-    updateBrowserFavicon(faviconUrlApp || branding?.favicon_url || "/favicon.svg");
-    setSucessoFavicon(true);
-    setTimeout(() => setSucessoFavicon(false), 3000);
-  }
-
-  async function handleSalvarCorPrimaria() {
-    setSalvandoCor(true);
-    try {
-      const palette = generatePrimaryPalette(corPrimariaApp);
-      const isCustomImage =
-        branding?.favicon_url &&
-        !branding.favicon_url.startsWith("data:image/svg") &&
-        branding.favicon_url !== "/favicon.svg";
-
-      const svgFav = generateSvgFavicon(corPrimariaApp, palette.accent);
-
-      const patchData: any = {
-        primary_color: corPrimariaApp,
-        secondary_color: palette.accent,
-        header_gradient_start: palette.deep,
-        header_gradient_end: palette.vibrant,
-      };
-
-      if (!isCustomImage) {
-        patchData.favicon_url = svgFav;
-        setFaviconUrlApp(svgFav);
-        updateBrowserFavicon(svgFav);
-      } else {
-        updateBrowserFavicon(branding!.favicon_url!);
-      }
-
-      await updateBranding(patchData);
-      themeEngine.applyTheme({
-        ...branding,
-        ...patchData,
-      });
-
-      // Sincroniza WhiteLabelEngine
-      try {
-        const { whiteLabelEngine } = await import("@/lib/white-label");
-        const act = whiteLabelEngine.getActiveConfig();
-        whiteLabelEngine.updateActiveConfig({
-          designSystem: {
-            ...act.designSystem,
-            paletaPrimaria: {
-              corPrincipal: corPrimariaApp,
-              corPrincipalHover: palette[600],
-              corSecundaria: palette.accent,
-              corSecundariaHover: palette[600],
-              corTerciaria: palette[300],
-              corTextoPrincipal: "#0F172A",
-              corFundoApp: "#F8FAFC",
-              corSuperficieCard: "#FFFFFF",
-            },
-            gradienteHero: {
-              nome: "Personalizado",
-              anguloGraus: 135,
-              corInicio: corPrimariaApp,
-              corFim: palette.accent,
-              ativo: true,
-            },
-          },
-        });
-      } catch {}
-
-      // Sincroniza superadmin-config
-      try {
-        const cfg = getSuperAdminConfig();
-        if (cfg.identidade) {
-          cfg.identidade.corPrimaria = corPrimariaApp;
-          cfg.identidade.corPrimariaHover = palette[600];
-          cfg.identidade.corSecundaria = palette.accent;
-          saveSuperAdminConfig(cfg);
-        }
-      } catch {}
-
-      setSucessoCor(true);
-      setTimeout(() => setSucessoCor(false), 3000);
-    } catch (_) {
-    } finally {
-      setSalvandoCor(false);
-    }
-  }
+  const { branding } = useBranding();
 
   const [abaAtiva, setAbaAtiva] = useState<AbaConfig>(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get("tab");
-      if (tab === "whitelabel" || tab === "avancado" || tab === "equipe") return tab;
+      if (tab === "avancado" || tab === "equipe") return tab;
     }
     return "essencial";
   });
@@ -421,76 +273,12 @@ export function ConfiguracoesAdminPage() {
     }
   }
 
-  // 3. WHITE LABEL EXPRESSO (ASSISTENTE DE 4 PASSOS)
-  const [passoWizard, setPassoWizard] = useState<1 | 2 | 3 | 4>(1);
-  const [wlCidade, setWlCidade] = useState("");
-  const [wlUf, setWlUf] = useState("");
-  const [wlNomeApp, setWlNomeApp] = useState("PARTIU");
-  const [wlLogoUrl, setWlLogoUrl] = useState("");
-  const [wlCorPrimaria, setWlCorPrimaria] = useState("#FF6B00");
-  const [wlPreset, setWlPreset] = useState<"Moderno" | "Compacto" | "Arredondado">("Moderno");
-  const [wlTarifaBase, setWlTarifaBase] = useState("5.00");
-  const [wlComissao, setWlComissao] = useState("0.0");
-  const [wlPix, setWlPix] = useState("");
-  const [wlWhatsapp, setWlWhatsapp] = useState("");
-  const [cidadeAtivadaSucesso, setCidadeAtivadaSucesso] = useState(false);
-
-  // Lista de Cidades White Label Ativas com persistência local
-  const [cidadesAtivas, setCidadesAtivas] = useState<CidadeTenant[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("partiu_cidades_ativas");
-        if (saved) return JSON.parse(saved);
-      } catch {}
-    }
-    return [
-      {
-        id: "ten_matriz",
-        nome: "Operação Principal",
-        uf: "BR",
-        nomeApp: "PARTIU",
-        corPrimaria: "#FF6B00",
-        preset: "Moderno",
-        tarifaBase: 5.5,
-        comissaoPercent: 10.0,
-        chavePix: "financeiro@partiu.app",
-        whatsapp: "",
-        status: "ATIVA",
-      },
-    ];
-  });
-
-  // Sincroniza cidades/tenants reais do Supabase na inicialização
-  useEffect(() => {
-    if (isSupabaseConfigured()) {
-      void (async () => {
-        try {
-          const { data } = await (supabase as any).from("white_label_tenants").select("*");
-          if (data && data.length > 0) {
-            const mapped: CidadeTenant[] = data.map((t: any) => ({
-              id: t.id,
-              nome: t.city_name || t.tenant_name || "Cidade",
-              uf: t.state_uf || "BR",
-              nomeApp: t.trade_name || t.tenant_name || "Partiu",
-              corPrimaria: t.primary_color || "#0088FF",
-              preset: "Moderno",
-              tarifaBase: Number(t.base_fare || 5.0),
-              comissaoPercent: Number(t.platform_fee_percent || 10.0),
-              chavePix: t.pix_key || "",
-              whatsapp: t.support_whatsapp || "",
-              status: t.is_active ? "ATIVA" : "EM_CONFIGURACAO",
-            }));
-            setCidadesAtivas((prev) => {
-              const ids = new Set(mapped.map((m) => m.id));
-              const remaining = prev.filter((p) => !ids.has(p.id));
-              return [...mapped, ...remaining];
-            });
-          }
-        } catch (e) {
-          console.warn("[ConfiguracoesAdminPage] Falha ao sincronizar tenants do Supabase:", e);
-        }
-      })();
-    }
+  // Praças disponíveis para concessão de acesso no RBAC (derivadas canonicamente do WhiteLabelEngine)
+  const pracasDisponiveis = useMemo(() => {
+    return whiteLabelEngine.getAllTenants().map((t) => ({
+      id: t.tenantId,
+      nome: `${t.cidadeNome || t.nomeOperacao} - ${t.uf}`,
+    }));
   }, []);
 
   async function handleSalvarEssencial(e: React.FormEvent) {
@@ -541,65 +329,6 @@ export function ConfiguracoesAdminPage() {
     }
   }
 
-  function handleConcluirWhiteLabel() {
-    const novaCidade: CidadeTenant = {
-      id: "ten_" + wlCidade.toLowerCase().replace(/\s+/g, ""),
-      nome: wlCidade,
-      uf: wlUf,
-      nomeApp: wlNomeApp,
-      corPrimaria: wlCorPrimaria,
-      preset: wlPreset,
-      tarifaBase: Number(wlTarifaBase) || 5.0,
-      comissaoPercent: Number(wlComissao) || 0.0,
-      chavePix: wlPix,
-      whatsapp: wlWhatsapp,
-      status: "ATIVA",
-    };
-
-    setCidadesAtivas((prev) => {
-      const updated = [novaCidade, ...prev];
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.setItem("partiu_cidades_ativas", JSON.stringify(updated));
-        } catch {}
-      }
-      return updated;
-    });
-
-    if (isSupabaseConfigured()) {
-      void (async () => {
-        try {
-          await (supabase as any).from("white_label_tenants").upsert({
-            id: novaCidade.id,
-            tenant_name: novaCidade.nome,
-            trade_name: novaCidade.nomeApp,
-            primary_color: novaCidade.corPrimaria,
-            pix_key: novaCidade.chavePix,
-            support_whatsapp: novaCidade.whatsapp,
-            is_active: true,
-            status: "active",
-            city_name: novaCidade.nome,
-            state_uf: novaCidade.uf,
-            base_fare: novaCidade.tarifaBase,
-            platform_fee_percent: novaCidade.comissaoPercent,
-            updated_at: new Date().toISOString(),
-          });
-          await (supabase as any).from("app_branding").upsert({
-            tenant_id: novaCidade.id,
-            app_name: novaCidade.nomeApp,
-            primary_color: novaCidade.corPrimaria,
-            support_whatsapp: novaCidade.whatsapp,
-            updated_at: new Date().toISOString(),
-          });
-        } catch (e) {
-          console.warn("[handleConcluirWhiteLabel] Falha ao persistir tenant no Supabase:", e);
-        }
-      })();
-    }
-
-    setCidadeAtivadaSucesso(true);
-  }
-
   if (!ehSuperAdmin) {
     return <GuardiaoAcesso somenteSuperAdmin children={<></>} />;
   }
@@ -612,20 +341,75 @@ export function ConfiguracoesAdminPage() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-[#0088FF]/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#0088FF] border border-[#0088FF]/30 mb-2">
               <Sliders className="h-4 w-4 text-[#0088FF]" />
-              <span>Progressive Disclosure &amp; Multi-Cidade</span>
+              <span>Configurações Globais do Sistema</span>
             </div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight leading-tight">
-              Configurações &amp; <span className="text-[#0088FF]">White Label Expresso</span>
+              Parâmetros Operacionais &amp; <span className="text-[#0088FF]">Infraestrutura</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-normal mt-1 leading-relaxed">
-              Configurações essenciais sempre acessíveis, dados técnicos protegidos por desafio de
-              segurança e assistente de ativação de cidade em 4 passos.
+              Controle de tarifas base, raios de atendimento, gateways de pagamento, integrações de mapas e controle de acesso RBAC.
             </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              to="/app/admin/whitelabel"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0088FF] hover:bg-[#0077EE] text-white text-xs sm:text-sm font-black shadow-md transition active:scale-95 cursor-pointer"
+            >
+              <Sparkles className="h-4 w-4" />
+              <span>White Label Studio OS</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* 2. Barra de Abas (Modo Essencial | White Label Expresso | Modo Avançado Protegido) */}
+      {/* Atalho Limpo para White Label Studio & Franquias */}
+      <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-linear-to-r from-blue-900/10 via-slate-900/5 to-primary/10 border border-blue-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+        <div className="flex items-start sm:items-center gap-3.5">
+          <div className="h-11 w-11 rounded-2xl bg-slate-900 text-white flex items-center justify-center shrink-0 shadow-md">
+            <Palette className="h-5 w-5 text-[#0088FF]" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm sm:text-base font-black text-slate-900">
+                White Label Studio OS &amp; Gestão de Franquias
+              </h3>
+              <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[11px] font-black uppercase">
+                Central Unificada
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-600 font-medium">
+              Identidade visual, logos, temas, frotas e criação de praças foram unificadas no White Label Studio e na Central da Matriz para evitar duplicidade de formulários.
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <Link
+            to="/app/admin/whitelabel"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-black shadow-sm transition active:scale-95 cursor-pointer"
+          >
+            <Sparkles className="h-4 w-4 text-[#0088FF]" />
+            <span>Abrir White Label Studio</span>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            to="/app/admin/matriz"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-xs sm:text-sm font-bold shadow-xs transition active:scale-95 cursor-pointer"
+          >
+            <Building2 className="h-4 w-4 text-emerald-600" />
+            <span>Franquia Mãe</span>
+          </Link>
+          <Link
+            to="/app/admin/franqueados"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-xs sm:text-sm font-bold shadow-xs transition active:scale-95 cursor-pointer"
+          >
+            <Users className="h-4 w-4 text-indigo-600" />
+            <span>Franquias Regionais</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* 2. Barra de Abas (Modo Essencial | Modo Avançado Protegido | Usuários & RBAC) */}
       <div className="flex flex-wrap items-center gap-2.5 p-2 sm:p-2.5 bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm max-w-full overflow-x-auto no-scrollbar">
         <button
           type="button"
@@ -639,23 +423,7 @@ export function ConfiguracoesAdminPage() {
           <CheckCircle2 className="h-5 w-5 text-[#0088FF]" />
           <span>Modo Essencial</span>
           <span className="ml-1 rounded-full bg-emerald-100 px-3 py-1 text-xs sm:text-sm text-emerald-900 font-bold">
-            Sempre Visível
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setAbaAtiva("whitelabel")}
-          className={`flex items-center gap-2.5 px-5 sm:px-7 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm lg:text-base font-black transition-all cursor-pointer ${
-            abaAtiva === "whitelabel"
-              ? "bg-slate-950 text-white shadow-md"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-          }`}
-        >
-          <Sparkles className="h-5 w-5 text-[#0088FF]" />
-          <span>White Label Expresso</span>
-          <span className="ml-1 rounded-full bg-blue-50 px-3 py-1 text-xs sm:text-sm text-blue-900 font-bold">
-            4 Passos (&lt;15 min)
+            Operacional
           </span>
         </button>
 
@@ -697,9 +465,18 @@ export function ConfiguracoesAdminPage() {
           <Shield className="h-5 w-5 text-indigo-500" />
           <span>Usuários &amp; RBAC</span>
           <span className="ml-1 rounded-full bg-indigo-100 px-3 py-1 text-xs sm:text-sm text-indigo-900 font-bold">
-            2 Modalidades
+            Equipe
           </span>
         </button>
+
+        <Link
+          to="/app/admin/whitelabel"
+          className="flex items-center gap-2 px-4 sm:px-5 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm lg:text-base font-black text-slate-700 hover:text-slate-950 hover:bg-slate-100 border border-dashed border-slate-300 ml-auto transition-all cursor-pointer"
+        >
+          <Sparkles className="h-5 w-5 text-primary" />
+          <span>White Label Studio</span>
+          <ExternalLink className="h-4 w-4 text-slate-400" />
+        </Link>
       </div>
 
       {/* 3. ABA 1: MODO ESSENCIAL (SEMPRE VISÍVEL) */}
@@ -730,263 +507,44 @@ export function ConfiguracoesAdminPage() {
             </div>
           )}
 
-          {/* Card de Cor Primária & Identidade Visual Global */}
-          <div className="bg-white p-6 sm:p-10 rounded-3xl border border-slate-200/90 shadow-sm space-y-6 sm:space-y-8">
-            {/* Seletor de Paletas Monocromáticas de 1-Clique */}
-            <PalettePickerSection
-              onPaletteSelect={(p) => setCorPrimariaApp(p?.colors?.primary || "#FF6B00")}
-            />
-
-            {/* Ajuste Fino Personalizado e Salvar */}
-            <div className="pt-6 sm:pt-8 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-3">
-                  <Palette className="h-7 w-7 text-primary" />
-                  <h3 className="text-xl sm:text-2xl font-black text-slate-900">
-                    Ajuste Fino de Cor Personalizada (Hexadecimal)
-                  </h3>
-                </div>
-                <p className="text-sm sm:text-base text-slate-600 font-medium mt-1">
-                  Caso deseje um tom exclusivo fora das paletas prontas, digite o código hex abaixo.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleSalvarCorPrimaria}
-                disabled={salvandoCor}
-                className="flex h-13 sm:h-14 items-center justify-center gap-2.5 rounded-2xl bg-primary hover:opacity-90 text-primary-foreground px-7 text-sm sm:text-base font-black shadow-md transition-all cursor-pointer disabled:opacity-50 active:scale-95 shrink-0"
+          {/* Card de Resumo de Marca & Atalho White Label */}
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/90 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start sm:items-center gap-4">
+              <div
+                className="h-14 w-14 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-md shrink-0 border-2 border-white ring-2 ring-slate-100"
+                style={{ backgroundColor: branding?.primary_color || "#FF6B00" }}
               >
-                {salvandoCor ? (
-                  <RefreshCw className="h-5 w-5 animate-spin" />
-                ) : (
-                  <Save className="h-5 w-5" />
-                )}
-                <span>{salvandoCor ? "Aplicando..." : "Salvar Cor Hexadecimal"}</span>
-              </button>
-            </div>
-
-            {sucessoCor && (
-              <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-base font-bold flex items-center gap-3 animate-in fade-in">
-                <CheckCircle2 className="h-6 w-6 text-emerald-600 shrink-0" />
-                <span>Cor primária atualizada e sincronizada com sucesso em todo o sistema!</span>
+                {(branding?.app_name || "P")[0]}
               </div>
-            )}
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
-              {/* Seletor de Cor Hex & Input */}
-              <div className="space-y-4">
-                <label className="block text-sm sm:text-base font-black uppercase tracking-wider text-slate-700">
-                  Selecione ou Digite a Cor Hexadecimal
-                </label>
-                <div className="flex items-center gap-4">
-                  <div className="relative shrink-0">
-                    <input
-                      type="color"
-                      value={corPrimariaApp}
-                      onChange={(e) => {
-                        setCorPrimariaApp(e.target.value);
-                        themeEngine.applyTheme({ ...branding, primary_color: e.target.value });
-                      }}
-                      className="h-16 sm:h-18 w-20 sm:w-24 rounded-2xl border-2 border-slate-300 p-1.5 cursor-pointer bg-white shadow-xs"
-                      title="Escolher cor primária"
-                    />
-                  </div>
-                  <input
-                    type="text"
-                    maxLength={7}
-                    value={corPrimariaApp}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setCorPrimariaApp(val);
-                      if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
-                        themeEngine.applyTheme({ ...branding, primary_color: val });
-                      }
-                    }}
-                    placeholder="#FF6B00"
-                    className="flex-1 h-16 sm:h-18 px-6 rounded-2xl border border-slate-300 text-lg sm:text-2xl font-mono font-black uppercase text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
-                  />
-                </div>
-
-                {/* Cores Rápidas Predefinidas */}
-                <div className="space-y-2.5 pt-1">
-                  <span className="text-sm sm:text-base font-bold text-slate-700">
-                    Paletas Populares de Mobilidade:
-                  </span>
-                  <div className="flex flex-wrap gap-2.5">
-                    {[
-                      { nome: "Laranja Solar (Padrão PARTIU)", hex: "#FF6B00" },
-                      { nome: "Amarelo Ouro", hex: "#FFB800" },
-                      { nome: "Azul Tech", hex: "#0088FF" },
-                      { nome: "Verde Sustentável", hex: "#10B981" },
-                      { nome: "Roxo Fintech", hex: "#8B5CF6" },
-                      { nome: "Vermelho Rubi", hex: "#EF4444" },
-                    ].map((preset) => (
-                      <button
-                        key={preset.hex}
-                        type="button"
-                        onClick={() => {
-                          setCorPrimariaApp(preset.hex);
-                          themeEngine.applyTheme({ ...branding, primary_color: preset.hex });
-                        }}
-                        className={`inline-flex items-center gap-2.5 px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl border text-xs sm:text-sm lg:text-base font-bold transition-all cursor-pointer ${
-                          corPrimariaApp.toLowerCase() === preset.hex.toLowerCase()
-                            ? "border-slate-900 bg-slate-900 text-white shadow-md"
-                            : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
-                        }`}
-                      >
-                        <span
-                          className="h-4 w-4 rounded-full shrink-0 border border-black/10"
-                          style={{ backgroundColor: preset.hex }}
-                        />
-                        <span>{preset.nome}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Preview em Tempo Real */}
-              <div className="p-6 sm:p-8 rounded-3xl border border-slate-200/90 bg-slate-50/80 space-y-5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm sm:text-base font-black uppercase tracking-wider text-slate-700">
-                    Prévia em Tempo Real
-                  </span>
+              <div>
+                <div className="flex items-center gap-2.5">
+                  <h3 className="text-base sm:text-lg font-black text-slate-900">
+                    Identidade Visual Ativa: {branding?.app_name || "PARTIU"}
+                  </h3>
                   <span
-                    className="px-4 py-1.5 rounded-full text-xs sm:text-sm font-black"
-                    style={{ backgroundColor: `${corPrimariaApp}20`, color: corPrimariaApp }}
-                  >
-                    Ativa no Sistema
-                  </span>
-                </div>
-                <div className="flex flex-wrap items-center gap-3.5">
-                  <button
-                    type="button"
-                    style={{ backgroundColor: corPrimariaApp }}
-                    className="px-6 py-3.5 rounded-2xl text-white font-black text-sm sm:text-base shadow-md cursor-pointer transition active:scale-95"
-                  >
-                    Solicitar Corrida
-                  </button>
-                  <button
-                    type="button"
-                    style={{ backgroundColor: corPrimariaApp }}
-                    className="px-6 py-3.5 rounded-2xl text-white font-black text-sm sm:text-base shadow-md cursor-pointer transition active:scale-95"
-                  >
-                    Aceitar Viagem
-                  </button>
-                  <span
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm lg:text-base font-bold border"
+                    className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold"
                     style={{
-                      borderColor: corPrimariaApp,
-                      color: corPrimariaApp,
-                      backgroundColor: `${corPrimariaApp}10`,
+                      backgroundColor: `${branding?.primary_color || "#FF6B00"}18`,
+                      color: branding?.primary_color || "#FF6B00",
                     }}
                   >
-                    Tag Selecionada
+                    {branding?.primary_color || "#FF6B00"}
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
-                  Esta cor gera automaticamente todas as tonalidades semânticas (50 a 900, fundos,
-                  contrastes e realces) em conformidade com as diretrizes do frontend &amp; UI/UX.
+                <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1">
+                  Paletas completas, contraste WCAG, logotipos, favicons e personalização de frotas são governados no White Label Studio.
                 </p>
               </div>
-
-              {/* Personalização do Favicon da Aba do Navegador */}
-              <div className="lg:col-span-2 p-6 sm:p-8 rounded-3xl border border-slate-200/90 bg-white shadow-xs space-y-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <Globe className="w-6 h-6 text-[#0088FF]" />
-                    <span className="text-base sm:text-lg font-black uppercase tracking-wider text-slate-800">
-                      Ícone da Aba do Navegador (Favicon em Tempo Real)
-                    </span>
-                  </div>
-                  <span className="text-xs sm:text-sm font-bold px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-700">
-                    {faviconUrlApp.startsWith("data:image/svg")
-                      ? "✨ SVG Dinâmico"
-                      : "🖼️ URL Customizada"}
-                  </span>
-                </div>
-
-                {/* Simulador de Aba */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center gap-3.5">
-                  <div className="flex items-center gap-2 px-1 shrink-0">
-                    <span className="w-3 h-3 rounded-full bg-red-500/80" />
-                    <span className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                    <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                  </div>
-                  <div className="flex items-center gap-3 bg-slate-800/90 border border-slate-700 px-4 py-2 rounded-xl max-w-lg truncate text-sm sm:text-base text-white font-medium">
-                    <div className="w-6 h-6 rounded-lg shrink-0 overflow-hidden flex items-center justify-center bg-slate-950">
-                      <img
-                        src={faviconUrlApp || branding?.favicon_url || "/favicon.svg"}
-                        alt="Favicon da aba"
-                        className="w-5 h-5 object-contain"
-                      />
-                    </div>
-                    <span className="truncate">
-                      {branding?.app_name || "PARTIU"} — Mobilidade Urbana
-                    </span>
-                    <span className="text-slate-400 text-base ml-auto">×</span>
-                  </div>
-                </div>
-
-                {/* Campo URL Direta e Ações */}
-                <div className="space-y-4">
-                  <label className="text-sm sm:text-base font-bold text-slate-700 block">
-                    URL ou SVG Data URI do Favicon:
-                  </label>
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <input
-                      type="text"
-                      value={faviconUrlApp}
-                      onChange={(e) => setFaviconUrlApp(e.target.value)}
-                      placeholder="https://... ou /favicon.svg ou data:image/svg+xml,..."
-                      className="w-full flex-1 h-14 sm:h-16 px-5 rounded-2xl border border-slate-300 text-sm sm:text-base font-mono font-medium text-slate-900 focus:ring-2 focus:ring-[#0088FF]"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleSalvarFavicon(faviconUrlApp)}
-                      disabled={salvandoFavicon}
-                      className="h-14 sm:h-16 px-7 rounded-2xl bg-slate-900 text-white text-sm sm:text-base font-black hover:bg-slate-800 transition cursor-pointer active:scale-95 shrink-0 shadow-md"
-                    >
-                      {salvandoFavicon ? "Aplicando..." : "Salvar Favicon"}
-                    </button>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-3 pt-1">
-                    <button
-                      type="button"
-                      onClick={handleGerarFaviconDaPaletaAtual}
-                      className="inline-flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-primary-50 text-primary-700 hover:bg-primary-100 border border-primary-200 text-xs sm:text-sm lg:text-base font-bold transition cursor-pointer active:scale-95"
-                    >
-                      <Sparkles className="w-5 h-5" />
-                      <span>Gerar da Cor ({corPrimariaApp})</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleTestarFaviconAba}
-                      className="inline-flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm lg:text-base font-bold transition cursor-pointer active:scale-95"
-                    >
-                      <Globe className="w-5 h-5 text-blue-500" />
-                      <span>Testar na Aba Agora</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleSalvarFavicon("/favicon.svg")}
-                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-slate-500 hover:text-slate-800 text-xs sm:text-sm lg:text-base font-medium transition cursor-pointer"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                      <span>Padrão (/favicon.svg)</span>
-                    </button>
-                  </div>
-
-                  {sucessoFavicon && (
-                    <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm sm:text-base font-bold flex items-center gap-2.5 animate-in fade-in">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                      <span>Ícone da aba do navegador atualizado com sucesso!</span>
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
+
+            <Link
+              to="/app/admin/whitelabel"
+              className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-black transition cursor-pointer shrink-0 active:scale-95 shadow-sm"
+            >
+              <Palette className="h-4 w-4 text-[#0088FF]" />
+              <span>Personalizar Marca no Studio</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
 
           {/* Card de Tarifação Base de Mobilidade (PARTIU Pop) */}
@@ -1288,381 +846,7 @@ export function ConfiguracoesAdminPage() {
         </form>
       )}
 
-      {/* 4. ABA 2: WHITE LABEL EXPRESSO (ASSISTENTE DE 4 PASSOS) */}
-      {abaAtiva === "whitelabel" && (
-        <div className="space-y-6 sm:space-y-8">
-          <div className="bg-white p-6 sm:p-10 rounded-3xl border border-slate-200 shadow-xs space-y-6 sm:space-y-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900">
-                  Assistente de Onboarding White Label (4 Passos)
-                </h2>
-                <p className="text-sm sm:text-base text-slate-600 font-medium mt-1">
-                  Substitui mais de 60 campos técnicos por um fluxo de ativação rápida em menos de
-                  15 minutos.
-                </p>
-              </div>
-
-              {/* Indicador dos 4 Passos */}
-              <div className="flex items-center gap-2">
-                {[1, 2, 3, 4].map((step) => (
-                  <div
-                    key={step}
-                    className={`h-10 w-10 sm:h-12 sm:w-12 rounded-2xl flex items-center justify-center text-sm sm:text-base font-black transition-all ${
-                      passoWizard === step
-                        ? "bg-slate-950 text-white shadow-md scale-105"
-                        : passoWizard > step
-                          ? "bg-emerald-500 text-white"
-                          : "bg-slate-100 text-slate-400"
-                    }`}
-                  >
-                    {passoWizard > step ? <Check className="h-5 w-5" /> : step}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* CONTEÚDO DO PASSO ATIVO */}
-            {passoWizard === 1 && (
-              <div className="space-y-5 max-w-xl animate-in fade-in">
-                <div className="space-y-1">
-                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-primary-700">
-                    Passo 1 de 4
-                  </span>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900">
-                    Identificação da Cidade &amp; Aplicativo
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-600 font-medium">
-                    Defina o município de expansão e o nome comercial do app.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3.5">
-                  <div className="col-span-2">
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
-                      Cidade:
-                    </label>
-                    <input
-                      type="text"
-                      value={wlCidade}
-                      onChange={(e) => setWlCidade(e.target.value)}
-                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
-                      UF:
-                    </label>
-                    <input
-                      type="text"
-                      maxLength={2}
-                      value={wlUf}
-                      onChange={(e) => setWlUf(e.target.value.toUpperCase())}
-                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold uppercase text-center text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
-                    Nome Comercial do App:
-                  </label>
-                  <input
-                    type="text"
-                    value={wlNomeApp}
-                    onChange={(e) => setWlNomeApp(e.target.value)}
-                    className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
-                  />
-                </div>
-
-                <div className="pt-3 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setPassoWizard(2)}
-                    className="flex h-12 items-center gap-2 rounded-2xl bg-slate-900 text-white px-6 text-xs sm:text-sm font-black hover:bg-slate-800 transition active:scale-95 cursor-pointer shadow-md"
-                  >
-                    <span>Avançar para Identidade Visual</span>
-                    <ArrowRight className="h-4.5 w-4.5" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {passoWizard === 2 && (
-              <div className="space-y-5 max-w-xl animate-in fade-in">
-                <div className="space-y-1">
-                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-primary-700">
-                    Passo 2 de 4
-                  </span>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900">
-                    Identidade Visual &amp; Preset de Estilo
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-600 font-medium">
-                    Cores da marca e o acabamento estético do aplicativo local.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
-                      Cor Primária da Marca:
-                    </label>
-                    <div className="flex items-center gap-2.5">
-                      <input
-                        type="color"
-                        value={wlCorPrimaria}
-                        onChange={(e) => setWlCorPrimaria(e.target.value)}
-                        className="h-12 sm:h-14 w-16 rounded-2xl border-2 border-slate-300 p-1 cursor-pointer bg-white shadow-xs shrink-0"
-                      />
-                      <input
-                        type="text"
-                        value={wlCorPrimaria}
-                        onChange={(e) => setWlCorPrimaria(e.target.value)}
-                        className="flex-1 h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-mono font-bold uppercase text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
-                      Preset Visual:
-                    </label>
-                    <select
-                      value={wlPreset}
-                      onChange={(e: any) => setWlPreset(e.target.value)}
-                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold bg-white text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
-                    >
-                      <option value="Moderno">Moderno (Bordas Suaves)</option>
-                      <option value="Compacto">Compacto (Alta Densidade)</option>
-                      <option value="Arredondado">Arredondado (Amigável)</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Preview Rápido */}
-                <div className="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50 space-y-2.5">
-                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-600 block">
-                    Prévia do Botão Principal:
-                  </span>
-                  <button
-                    type="button"
-                    style={{ backgroundColor: wlCorPrimaria }}
-                    className="w-full h-12 sm:h-14 rounded-2xl text-slate-950 font-black text-sm sm:text-base shadow-sm"
-                  >
-                    Pedir Corrida em {wlCidade}
-                  </button>
-                </div>
-
-                <div className="pt-3 flex justify-between">
-                  <button
-                    type="button"
-                    onClick={() => setPassoWizard(1)}
-                    className="h-12 px-6 rounded-2xl bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm hover:bg-slate-200 transition cursor-pointer"
-                  >
-                    Voltar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPassoWizard(3)}
-                    className="flex h-12 items-center gap-2 rounded-2xl bg-slate-900 text-white px-6 text-xs sm:text-sm font-black hover:bg-slate-800 transition active:scale-95 cursor-pointer shadow-md"
-                  >
-                    <span>Avançar para Tarifas</span>
-                    <ArrowRight className="h-4.5 w-4.5" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {passoWizard === 3 && (
-              <div className="space-y-5 max-w-xl animate-in fade-in">
-                <div className="space-y-1">
-                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-primary-700">
-                    Passo 3 de 4
-                  </span>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900">
-                    Tarifas da Cidade &amp; Repasse SaaS
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-600 font-medium">
-                    0% de taxa por corrida • Repasse de mensalidades SaaS da praça.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
-                      Tarifa Base Corrida (R$):
-                    </label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      value={wlTarifaBase}
-                      onChange={(e) => setWlTarifaBase(e.target.value)}
-                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
-                      Comissão por Corrida (% Taxa Zero):
-                    </label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      value={wlComissao}
-                      onChange={(e) => setWlComissao(e.target.value)}
-                      className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-3 flex justify-between">
-                  <button
-                    type="button"
-                    onClick={() => setPassoWizard(2)}
-                    className="h-12 px-6 rounded-2xl bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm hover:bg-slate-200 transition cursor-pointer"
-                  >
-                    Voltar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPassoWizard(4)}
-                    className="flex h-12 items-center gap-2 rounded-2xl bg-slate-900 text-white px-6 text-xs sm:text-sm font-black hover:bg-slate-800 transition active:scale-95 cursor-pointer shadow-md"
-                  >
-                    <span>Avançar para Ativação</span>
-                    <ArrowRight className="h-4.5 w-4.5" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {passoWizard === 4 && (
-              <div className="space-y-5 max-w-xl animate-in fade-in">
-                <div className="space-y-1">
-                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-primary-700">
-                    Passo 4 de 4
-                  </span>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900">
-                    Canais Operacionais &amp; Ativação
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-600 font-medium">
-                    Chave PIX para recebimentos e WhatsApp oficial da praça.
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
-                    Chave PIX da Cidade:
-                  </label>
-                  <input
-                    type="text"
-                    value={wlPix}
-                    onChange={(e) => setWlPix(e.target.value)}
-                    className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-mono font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-black uppercase tracking-wider text-slate-700 mb-1.5">
-                    WhatsApp de Suporte da Cidade:
-                  </label>
-                  <input
-                    type="text"
-                    value={wlWhatsapp}
-                    onChange={(e) => setWlWhatsapp(e.target.value)}
-                    className="w-full h-12 sm:h-14 px-4 rounded-2xl border border-slate-300 text-sm sm:text-base font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
-                  />
-                </div>
-
-                {cidadeAtivadaSucesso ? (
-                  <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-3">
-                    <div className="flex items-center gap-2 font-black text-base sm:text-lg">
-                      <CheckCircle2 className="h-6 w-6 text-emerald-600 shrink-0" />
-                      <span>
-                        Cidade {wlCidade} ({wlUf}) Ativada com Sucesso!
-                      </span>
-                    </div>
-                    <p className="text-xs sm:text-sm text-emerald-800 font-medium">
-                      O tenant foi provisionado no banco de dados e está pronto para receber
-                      cadastros de passageiros e motoristas.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCidadeAtivadaSucesso(false);
-                        setPassoWizard(1);
-                      }}
-                      className="px-5 py-2.5 rounded-xl bg-emerald-700 text-white text-xs sm:text-sm font-bold hover:bg-emerald-800 transition cursor-pointer"
-                    >
-                      Cadastrar Outra Cidade
-                    </button>
-                  </div>
-                ) : (
-                  <div className="pt-3 flex justify-between">
-                    <button
-                      type="button"
-                      onClick={() => setPassoWizard(3)}
-                      className="h-12 px-6 rounded-2xl bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm hover:bg-slate-200 transition cursor-pointer"
-                    >
-                      Voltar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleConcluirWhiteLabel}
-                      className="flex h-12 sm:h-14 items-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-7 text-xs sm:text-sm font-black shadow-md cursor-pointer transition active:scale-95"
-                    >
-                      <Zap className="h-4.5 w-4.5 text-[#0088FF]" />
-                      <span>🚀 Ativar Cidade Agora (&lt; 15 min)</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Lista de Cidades Ativas */}
-          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-            <h3 className="text-base sm:text-lg font-black text-slate-900">
-              Cidades Ativas na Rede PARTIU ({cidadesAtivas.length})
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {cidadesAtivas.map((c) => (
-                <div
-                  key={c.id}
-                  className="p-4 sm:p-5 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-between"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2.5">
-                      <span
-                        className="h-3.5 w-3.5 rounded-full shrink-0"
-                        style={{ backgroundColor: c.corPrimaria }}
-                      />
-                      <p className="font-bold text-sm sm:text-base text-slate-900">
-                        {c.nome} - {c.uf}
-                      </p>
-                      <span className="px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-xs font-black">
-                        {c.status}
-                      </span>
-                    </div>
-                    <p className="text-xs sm:text-sm text-slate-500 font-medium">
-                      App: {c.nomeApp} | Preset: {c.preset}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="block text-xs font-black text-emerald-700 uppercase">
-                      Taxa Corrida: 0%
-                    </span>
-                    <span className="text-[11px] text-slate-500 font-bold">
-                      Repasse SaaS: {c.comissaoPercent}%
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 5. ABA 3: MODO AVANÇADO (PROTEGIDO POR CONFIRMAÇÃO) */}
+      {/* 4. ABA 2: MODO AVANÇADO (PROTEGIDO POR CONFIRMAÇÃO) */}
       {abaAtiva === "avancado" && (
         <div className="space-y-6">
           {!modoAvancadoDesbloqueado ? (
@@ -2213,10 +1397,7 @@ export function ConfiguracoesAdminPage() {
           setUsuarioEditando(null);
         }}
         initialUser={usuarioEditando}
-        pracasDisponiveis={cidadesAtivas.map((c) => ({
-          id: c.id,
-          nome: `${c.nome} - ${c.uf}`,
-        }))}
+        pracasDisponiveis={pracasDisponiveis}
         onSuccess={(salvo) => {
           setAdminUsers((prev) => {
             const index = prev.findIndex((u) => u.id === salvo.id || u.email === salvo.email);
