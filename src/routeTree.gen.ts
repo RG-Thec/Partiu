@@ -50,6 +50,7 @@ import { Route as AppAdminLinhasRouteImport } from './routes/app.admin.linhas'
 import { Route as AppAdminLocaisRouteImport } from './routes/app.admin.locais'
 import { Route as AppAdminLoginRouteImport } from './routes/app.admin.login'
 import { Route as AppAdminMarketingRouteImport } from './routes/app.admin.marketing'
+import { Route as AppAdminMatrizRouteImport } from './routes/app.admin.matriz'
 import { Route as AppAdminMeuAplicativoRouteImport } from './routes/app.admin.meu-aplicativo'
 import { Route as AppAdminMonetizacaoRouteImport } from './routes/app.admin.monetizacao'
 import { Route as AppAdminMonitoramentoRouteImport } from './routes/app.admin.monitoramento'
@@ -268,6 +269,11 @@ const AppAdminMarketingRoute = AppAdminMarketingRouteImport.update({
   path: '/marketing',
   getParentRoute: () => AppAdminRoute,
 } as any)
+const AppAdminMatrizRoute = AppAdminMatrizRouteImport.update({
+  id: '/matriz',
+  path: '/matriz',
+  getParentRoute: () => AppAdminRoute,
+} as any)
 const AppAdminMeuAplicativoRoute = AppAdminMeuAplicativoRouteImport.update({
   id: '/meu-aplicativo',
   path: '/meu-aplicativo',
@@ -370,6 +376,7 @@ export interface FileRoutesByFullPath {
   '/app/admin/locais': typeof AppAdminLocaisRoute
   '/app/admin/login': typeof AppAdminLoginRoute
   '/app/admin/marketing': typeof AppAdminMarketingRoute
+  '/app/admin/matriz': typeof AppAdminMatrizRoute
   '/app/admin/meu-aplicativo': typeof AppAdminMeuAplicativoRoute
   '/app/admin/monetizacao': typeof AppAdminMonetizacaoRoute
   '/app/admin/monitoramento': typeof AppAdminMonitoramentoRoute
@@ -423,6 +430,7 @@ export interface FileRoutesByTo {
   '/app/admin/locais': typeof AppAdminLocaisRoute
   '/app/admin/login': typeof AppAdminLoginRoute
   '/app/admin/marketing': typeof AppAdminMarketingRoute
+  '/app/admin/matriz': typeof AppAdminMatrizRoute
   '/app/admin/meu-aplicativo': typeof AppAdminMeuAplicativoRoute
   '/app/admin/monetizacao': typeof AppAdminMonetizacaoRoute
   '/app/admin/monitoramento': typeof AppAdminMonitoramentoRoute
@@ -479,6 +487,7 @@ export interface FileRoutesById {
   '/app/admin/locais': typeof AppAdminLocaisRoute
   '/app/admin/login': typeof AppAdminLoginRoute
   '/app/admin/marketing': typeof AppAdminMarketingRoute
+  '/app/admin/matriz': typeof AppAdminMatrizRoute
   '/app/admin/meu-aplicativo': typeof AppAdminMeuAplicativoRoute
   '/app/admin/monetizacao': typeof AppAdminMonetizacaoRoute
   '/app/admin/monitoramento': typeof AppAdminMonitoramentoRoute
@@ -536,6 +545,7 @@ export interface FileRouteTypes {
     | '/app/admin/locais'
     | '/app/admin/login'
     | '/app/admin/marketing'
+    | '/app/admin/matriz'
     | '/app/admin/meu-aplicativo'
     | '/app/admin/monetizacao'
     | '/app/admin/monitoramento'
@@ -589,6 +599,7 @@ export interface FileRouteTypes {
     | '/app/admin/locais'
     | '/app/admin/login'
     | '/app/admin/marketing'
+    | '/app/admin/matriz'
     | '/app/admin/meu-aplicativo'
     | '/app/admin/monetizacao'
     | '/app/admin/monitoramento'
@@ -644,6 +655,7 @@ export interface FileRouteTypes {
     | '/app/admin/locais'
     | '/app/admin/login'
     | '/app/admin/marketing'
+    | '/app/admin/matriz'
     | '/app/admin/meu-aplicativo'
     | '/app/admin/monetizacao'
     | '/app/admin/monitoramento'
@@ -962,6 +974,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminMarketingRouteImport
       parentRoute: typeof AppAdminRoute
     }
+    '/app/admin/matriz': {
+      id: '/app/admin/matriz'
+      path: '/matriz'
+      fullPath: '/app/admin/matriz'
+      preLoaderRoute: typeof AppAdminMatrizRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
     '/app/admin/meu-aplicativo': {
       id: '/app/admin/meu-aplicativo'
       path: '/meu-aplicativo'
@@ -1069,6 +1088,7 @@ interface AppAdminRouteChildren {
   AppAdminLocaisRoute: typeof AppAdminLocaisRoute
   AppAdminLoginRoute: typeof AppAdminLoginRoute
   AppAdminMarketingRoute: typeof AppAdminMarketingRoute
+  AppAdminMatrizRoute: typeof AppAdminMatrizRoute
   AppAdminMeuAplicativoRoute: typeof AppAdminMeuAplicativoRoute
   AppAdminMonetizacaoRoute: typeof AppAdminMonetizacaoRoute
   AppAdminMonitoramentoRoute: typeof AppAdminMonitoramentoRoute
@@ -1104,6 +1124,7 @@ const AppAdminRouteChildren: AppAdminRouteChildren = {
   AppAdminLocaisRoute: AppAdminLocaisRoute,
   AppAdminLoginRoute: AppAdminLoginRoute,
   AppAdminMarketingRoute: AppAdminMarketingRoute,
+  AppAdminMatrizRoute: AppAdminMatrizRoute,
   AppAdminMeuAplicativoRoute: AppAdminMeuAplicativoRoute,
   AppAdminMonetizacaoRoute: AppAdminMonetizacaoRoute,
   AppAdminMonitoramentoRoute: AppAdminMonitoramentoRoute,
@@ -1167,13 +1188,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

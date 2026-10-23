@@ -41,6 +41,7 @@
 | SCN-033 | Corridas agendadas com negociação bilateral e piso mínimo operacional                 | Corridas Agendadas                           | P-01, P-02       | ST-001, ST-002, FLW-01, FLW-02      | implemented | 2026-10-21 |
 | SCN-034 | Troco digital no acerto em dinheiro e bloqueio soberano de passageiro                 | Acerto & Bloqueio Soberano                   | P-01, P-02       | ST-002, ST-004, FLW-02, FLW-04      | implemented | 2026-10-22 |
 | SCN-035 | Alerta de aproximação de 500 metros no embarque e destino para motorista e passageiro | Alerta de Proximidade 500 Metros             | P-01, P-02       | ST-001, ST-002, FLW-01, FLW-02      | implemented | 2026-10-22 |
+| SCN-036 | Governança Exclusiva da Franquia Mãe e Segregação Multi-Tenant                        | Franquia Mãe & Matriz Nacional               | P-03             | ST-008, FLW-08 (JTBD-03, JRN-01/#2) | implemented | 2026-10-23 |
 
 ## Personas
 
@@ -839,4 +840,30 @@ Definidas e documentadas em `docs/ux/foundation.md`:
 - **Telemetry:** proximity_500m_triggered (ride_id, stage, distance_meters, timestamp)
 - **Status:** implemented
 - **Coverage:** src/lib/spatial/geofence-arrival-service.ts:1-239, src/lib/partiu-engine.ts:310-340, src/hooks/driver/useDriverVoiceAlerts.ts:1-134, src/routes/app.motorista.tsx:1200-1280, src/components/passenger/DriverEnRouteSheet.tsx:280-380
+- **Product:** unobserved
+
+### SCN-036: Governança Exclusiva da Franquia Mãe e Segregação Multi-Tenant
+
+- **Persona:** P-03
+- **Feature:** Franquia Mãe — Matriz Nacional Holding
+- **Traces:** ST-008, FLW-08 (JTBD-03, JRN-01/#2)
+- **Entry point:** Rota administrativa dedicada /app/admin/matriz e aba contextual em /app/admin/franqueados
+- **Preconditions:** Usuário autenticado como Super Admin Master da Holding
+- **Steps:**
+  1. O Super Admin acessa a rota /app/admin/matriz através do menu principal ("🏢 Franquia Mãe (Matriz)") ou pelo alternador superior na tela de franqueados regionais.
+  2. O sistema carrega a tela blindada da Matriz Nacional Holding (`tenantId: "default"`), comprovando sua imunidade contra exclusão e suspensão.
+  3. O operador edita os pilares centrais da holding:
+     a) Identidade Visual: nome oficial da plataforma central, slogan corporativo e paleta de cores raiz com teste instantâneo via `whiteLabelEngine.applyTheme`.
+     b) Recebimento Central: chave PIX oficial da Matriz para planos SaaS e taxas de rede, cidade bancária e diárias de referência.
+     c) Dados Institucionais: CNPJ, diretoria executiva, e-mail de suporte e credenciais master.
+     d) Infraestrutura Global: chave master da API Mapbox com garantia de não vazamento para franquias regionais.
+  4. O operador clica em "Salvar Configurações da Matriz", que persiste atomicamente no registro local e sincroniza com o Supabase sem risco de corrupção.
+  5. Na tela de franquias regionais (/app/admin/franqueados), a exclusão de franquias regionais opera de forma otimista imediata com tombstone criptográfico, eliminando necessidade de recarregar a página ou excluir repetidamente.
+- **Expected result:** Isolamento absoluto entre a governança master da holding e as franquias regionais, eliminando confusão entre a sede e os licenciados e garantindo exclusão instantânea e sem ressuscitação de tenants.
+- **UI elements:** Seletor de escopo Franquias Regionais vs Franquia Mãe, Banner de blindagem com botão restaurar padrões, Formulário modular em 4 quadrantes, Indicadores de status da rede
+- **States covered:** default, saving, live_preview, reset, success, error
+- **Errors & recovery:** A conta da Matriz possui bloqueio em tempo de compilação e execução contra exclusão (`deleteTenant`) e suspensão (`setTenantStatus`), garantindo integridade perpétua do ecossistema.
+- **Telemetry:** matriz_configuration_updated (tenant_id: "default", timestamp)
+- **Status:** implemented
+- **Coverage:** src/routes/app.admin.matriz.tsx:1-800, src/routes/app.admin.franqueados.tsx:1-1200, src/lib/white-label/white-label-engine.ts:1410-1460, src/routes/app.admin.tsx:190-200
 - **Product:** unobserved

@@ -29,6 +29,7 @@ import { criarTerritorioPadrao } from "@/lib/geo/territory-guard";
 
 const STORAGE_KEY_ACTIVE_TENANT = "partiu_whitelabel_active_tenant_id_v1";
 const STORAGE_KEY_TENANTS_MAP = "partiu_whitelabel_tenants_registry_v1";
+const STORAGE_KEY_DELETED_TENANTS = "partiu_whitelabel_deleted_tenants_v1";
 
 /**
  * Mapeador canônico de WhiteLabelFullConfig para AppBrandingRecord
@@ -1091,6 +1092,7 @@ export class WhiteLabelEngine {
   private static instance: WhiteLabelEngine;
   private activeTenantId: string = "default";
   private tenantsMap: Map<string, WhiteLabelTenantRecord> = new Map();
+  private deletedTenants: Set<string> = new Set();
   private broadcastChannel?: BroadcastChannel | undefined;
   private isBroadcasting: boolean = false;
 
@@ -1169,17 +1171,51 @@ export class WhiteLabelEngine {
     }
 
     try {
+      // 0. Carrega lista de franqueados excluídos (Tombstones anti-ressuscitação)
+      const rawDeleted = localStorage.getItem(STORAGE_KEY_DELETED_TENANTS);
+      if (rawDeleted) {
+        try {
+          const parsedDeleted = JSON.parse(rawDeleted) as string[];
+          if (Array.isArray(parsedDeleted)) {
+            parsedDeleted.forEach((id) => {
+              if (id !== "default" && id !== "matriz-br" && id !== "matriz") {
+                this.deletedTenants.add(id);
+              }
+            });
+          }
+        } catch {}
+      }
+
       // 1. Carrega o registro de tenants primeiro
       const rawTenants = localStorage.getItem(STORAGE_KEY_TENANTS_MAP);
       if (rawTenants) {
         const parsed = JSON.parse(rawTenants) as WhiteLabelTenantRecord[];
-        parsed.forEach((t) => this.tenantsMap.set(t.tenantId, t));
+        parsed.forEach((t) => {
+          if (!this.deletedTenants.has(t.tenantId)) {
+            this.tenantsMap.set(t.tenantId, t);
+          }
+        });
       }
 
-      // Garante que o registro oficial da Matriz (e fixtures em teste) esteja presente
-      SEED_TENANTS.forEach((t) => {
-        if (!this.tenantsMap.has(t.tenantId)) {
-          this.tenantsMap.set(t.tenantId, t);
+      // Garante que o registro oficial da Matriz SEMPRE esteja presente
+      const matrizPadrao = SEED_TENANTS.find((t) => t.tenantId === "default") || SEED_TENANTS_CORE[0];
+      if (!this.tenantsMap.has("default") && matrizPadrao) {
+        this.tenantsMap.set("default", { ...matrizPadrao });
+      }
+
+      // Se for ambiente de testes, injeta fixtures não excluídas
+      if (isTestEnv) {
+        SEED_TENANTS.forEach((t) => {
+          if (!this.deletedTenants.has(t.tenantId) && !this.tenantsMap.has(t.tenantId)) {
+            this.tenantsMap.set(t.tenantId, t);
+          }
+        });
+      }
+
+      // Limpa qualquer tenant excluído que possa ter permanecido no mapa
+      this.deletedTenants.forEach((delId) => {
+        if (delId !== "default") {
+          this.tenantsMap.delete(delId);
         }
       });
 
@@ -1368,6 +1404,69 @@ export class WhiteLabelEngine {
     );
   }
 
+  /**
+   * Obtém o registro oficial garantido da Franquia Mãe (Matriz Nacional)
+   */
+  public getMatrizTenant(): WhiteLabelTenantRecord {
+    let matriz = this.tenantsMap.get("default");
+    if (!matriz) {
+      const matrizSeed = SEED_TENANTS_CORE[0];
+      matriz = JSON.parse(JSON.stringify(matrizSeed)) as WhiteLabelTenantRecord;
+      matriz.ativo = true;
+      matriz.statusPlano = "ATIVO";
+      matriz.isMatrizNacional = true;
+      this.tenantsMap.set("default", matriz);
+      this.saveTenantsRegistry();
+    }
+    return matriz;
+  }
+
+  /**
+   * Salva e sincroniza as configurações exclusivas da Franquia Mãe (Matriz Nacional)
+   */
+  public async saveMatrizTenant(
+    updates: Partial<WhiteLabelTenantRecord> & {
+      configuracaoCompleta?: Partial<WhiteLabelFullConfig>;
+    },
+  ): Promise<WhiteLabelTenantRecord> {
+    const matriz = this.getMatrizTenant();
+
+    if (updates.nomeOperacao) matriz.nomeOperacao = updates.nomeOperacao;
+    if (updates.cidadeNome) matriz.cidadeNome = updates.cidadeNome;
+    if (updates.responsavelNome) matriz.responsavelNome = updates.responsavelNome;
+    if (updates.responsavelEmail) matriz.responsavelEmail = updates.responsavelEmail;
+    if (updates.responsavelTelefone) matriz.responsavelTelefone = updates.responsavelTelefone;
+    if (updates.cnpjFranqueado) matriz.cnpjFranqueado = updates.cnpjFranqueado;
+    if (updates.adminEmail) matriz.adminEmail = updates.adminEmail;
+    if (updates.adminSenha) matriz.adminSenha = updates.adminSenha;
+
+    if (updates.configuracaoCompleta) {
+      matriz.configuracaoCompleta = {
+        ...matriz.configuracaoCompleta,
+        ...updates.configuracaoCompleta,
+        tenantId: "default",
+      };
+    }
+
+    matriz.ativo = true;
+    matriz.statusPlano = "ATIVO";
+    matriz.isMatrizNacional = true;
+
+    this.tenantsMap.set("default", matriz);
+    this.saveTenantsRegistry();
+    this.broadcastUpdate("default");
+
+    if (isSupabaseConfigured()) {
+      try {
+        await this.persistToSupabase(matriz.configuracaoCompleta, "default");
+      } catch (err) {
+        silentCatchWarn("WhiteLabelEngine:saveMatrizTenant", err);
+      }
+    }
+
+    return matriz;
+  }
+
   public getActiveConfig(): WhiteLabelFullConfig {
     return this.getActiveTenant().configuracaoCompleta;
   }
@@ -1400,6 +1499,17 @@ export class WhiteLabelEngine {
    * Registra ou atualiza um tenant no mapa interno e sincroniza com localStorage
    */
   public registerTenant(tenant: WhiteLabelTenantRecord): void {
+    if (this.deletedTenants.has(tenant.tenantId)) {
+      this.deletedTenants.delete(tenant.tenantId);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(
+            STORAGE_KEY_DELETED_TENANTS,
+            JSON.stringify(Array.from(this.deletedTenants)),
+          );
+        } catch {}
+      }
+    }
     this.tenantsMap.set(tenant.tenantId, tenant);
     this.saveTenantsRegistry();
     this.broadcastUpdate();
@@ -1417,6 +1527,11 @@ export class WhiteLabelEngine {
       for (const row of data as any[]) {
         const tid = row.tenant_id;
         if (!tid) continue;
+        // Se o franqueado foi excluído pelo Super Admin, nunca ressuscita
+        if (this.deletedTenants.has(tid)) {
+          this.tenantsMap.delete(tid);
+          continue;
+        }
         const tenant = this.tenantsMap.get(tid);
         if (tenant) {
           tenant.adminEmail = row.admin_email || row.manager_email || tenant.adminEmail;
@@ -1615,6 +1730,16 @@ export class WhiteLabelEngine {
     }
 
     this.tenantsMap.delete(tenantId);
+    this.deletedTenants.add(tenantId);
+
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY_DELETED_TENANTS,
+          JSON.stringify(Array.from(this.deletedTenants)),
+        );
+      } catch {}
+    }
 
     // Se o tenant excluído era o ativo, reseta para a Matriz
     if (this.activeTenantId === tenantId) {
@@ -2474,6 +2599,18 @@ export class WhiteLabelEngine {
       territorio: territorioInicial,
       configuracaoCompleta: clonedConfig,
     };
+
+    if (this.deletedTenants.has(cleanId)) {
+      this.deletedTenants.delete(cleanId);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(
+            STORAGE_KEY_DELETED_TENANTS,
+            JSON.stringify(Array.from(this.deletedTenants)),
+          );
+        } catch {}
+      }
+    }
 
     this.tenantsMap.set(cleanId, newTenant);
     this.saveTenantsRegistry();

@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import {
   Activity,
   Building2,
+  Landmark,
   Car,
   CheckCircle2,
   ChevronRight,
@@ -187,8 +188,15 @@ const CATEGORIAS_MENU_ADMIN: CategoriaMenuAdmin[] = [
         moduleId: "financeiro",
       },
       {
+        to: "/app/admin/matriz",
+        label: "Franquia Mãe (Matriz)",
+        icon: Landmark,
+        exact: false,
+        moduleId: "franqueados",
+      },
+      {
         to: "/app/admin/franqueados",
-        label: "Franquias & Multi-Tenant",
+        label: "Franquias Regionais",
         icon: Building2,
         exact: false,
         moduleId: "franqueados",
@@ -316,9 +324,15 @@ const TODOS_MODULOS_SISTEMA = [
     icon: DollarSign,
   },
   {
+    to: "/app/admin/matriz",
+    label: "Franquia Mãe (Matriz Oficial)",
+    categoriaTitulo: "Franquias",
+    icon: Landmark,
+  },
+  {
     to: "/app/admin/franqueados",
-    label: "Franquias & Multi-Tenant",
-    categoriaTitulo: "Monetização",
+    label: "Franquias Regionais & Multi-Tenant",
+    categoriaTitulo: "Franquias",
     icon: Building2,
   },
   {

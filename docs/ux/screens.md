@@ -36,6 +36,7 @@ whose code diverges from its record here is a "drifted" finding. -->
 | SCR-24 | Diagnóstico Geoespacial & WebGL              | FLW-08                         | [Figma Admin Map](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=2011:1124)        | built  | src/routes/app.admin.diagnostico.tsx:1-187                  |
 | SCR-25 | Gestão Central de Franqueados & Multi-Tenant | FLW-08                         | [Figma Admin Home](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=2010:918)        | built  | src/routes/app.admin.franqueados.tsx:1-1200                 |
 | SCR-26 | Agendamento de Corridas com Acordo Direto    | FLW-01                         | [Figma Ride Details](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=4001:3252)     | built  | src/routes/app.agendar.tsx:1-90                             |
+| SCR-27 | Franquia Mãe — Matriz Nacional Holding       | FLW-08                         | [Figma Admin Home](https://www.figma.com/design/eGb6a7FZu93fuo5FdtZ443?node-id=2010:918)        | built  | src/routes/app.admin.matriz.tsx:1-800                       |
 
 ## Design system
 
@@ -462,4 +463,21 @@ whose code diverges from its record here is a "drifted" finding. -->
 - **Coverage:** src/routes/app.agendar.tsx:1-90, src/components/schedule/ScheduledRideFormScreen.tsx:1-380, src/components/schedule/ScheduledRideListModal.tsx:1-300, src/lib/ride/scheduled-ride-engine.ts:1-350
 - **Scenarios:** SCN-033
 - **Resources:** scheduledRideEngine, ModeTabSelector, ScheduledRideListModal
+- **Status:** built
+
+### SCR-27: Franquia Mãe — Matriz Nacional Holding
+
+- **Used by:** FLW-08 step 10, SCN-034
+- **Purpose:** Sala de comando executiva exclusiva da Franquia Mãe (Matriz Nacional Holding), garantindo blindagem de integridade, configuração da identidade central da plataforma, chave PIX nacional da holding e chaves mestras de infraestrutura de mapas
+- **Elements:** Cabeçalho executivo com badge de blindagem permanente, seletor de escopo (Franquias Regionais vs Franquia Mãe), banner institucional de proteção com botão restaurar padrões, formulário modular em 4 quadrantes (Identidade Visual & Cores, Recebimento Central PIX, Dados Institucionais & Acesso Master, Infraestrutura Global & APIs Centrais) e botão de salvar com sincronização em tempo real
+- **States:**
+  | State | Trigger | Figma frame | Behavior |
+  | --- | --- | --- | --- |
+  | default | carregamento da matriz | none — code first | Apresenta os parâmetros oficiais configurados da holding nacional |
+  | saving | envio das alterações | none — code first | Desabilita submissão e aplica sincronização local e no Supabase |
+  | live_preview | teste visual em tempo real | none — code first | Dispara evento de tema e reflete imediatamente as cores na interface |
+  | reset | clique em restaurar padrões | none — code first | Carrega os valores oficiais de fábrica da holding para confirmação |
+- **Coverage:** src/routes/app.admin.matriz.tsx:1-800, src/lib/white-label/white-label-engine.ts:1410-1460
+- **Scenarios:** SCN-034
+- **Resources:** whiteLabelEngine, MapboxConfig, GuardiaoAcesso
 - **Status:** built

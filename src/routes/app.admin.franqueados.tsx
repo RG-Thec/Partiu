@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Building2,
+  Landmark,
   Users,
   Car,
   CheckCircle2,
@@ -90,6 +91,7 @@ function SuperAdminFranqueadosContent() {
   );
 
   const recarregarTenants = () => {
+    setTenants(whiteLabelEngine.getAllTenants());
     void whiteLabelEngine.loadTenantsFromSupabase().then((list) => {
       setTenants(list);
     });
@@ -597,16 +599,26 @@ function SuperAdminFranqueadosContent() {
     }
   }
 
-  // Ação: Excluir Franqueado
+  // Ação: Excluir Franqueado com feedback instantâneo e sem necessidade de recarregar
   async function executarExclusaoFranqueado() {
     if (!tenantParaExcluir) return;
+    const targetId = tenantParaExcluir.tenantId;
+    const nomeExcluido = tenantParaExcluir.nomeOperacao;
     try {
-      await whiteLabelEngine.deleteTenant(tenantParaExcluir.tenantId);
+      // 1. Atualização otimista imediata na UI
+      setTenants((prev) => prev.filter((t) => t.tenantId !== targetId));
       setTenantParaExcluir(null);
       setConfirmacaoExclusaoTexto("");
-      recarregarTenants();
+      toast.success(`Franquia "${nomeExcluido}" excluída com sucesso.`);
+
+      // 2. Exclusão definitiva no engine (memória + localStorage + tombstone + Supabase)
+      await whiteLabelEngine.deleteTenant(targetId);
+
+      // 3. Atualiza estado definitivo
+      setTenants(whiteLabelEngine.getAllTenants());
     } catch (e: any) {
-      alert(e.message || "Erro ao excluir conta do franqueado");
+      setTenants(whiteLabelEngine.getAllTenants());
+      toast.error(e.message || "Erro ao excluir conta do franqueado");
     }
   }
 
@@ -689,6 +701,55 @@ function SuperAdminFranqueadosContent() {
       </header>
 
       <div className="w-full space-y-6">
+        {/* NAVEGAÇÃO SUPERIOR DE ESCOPO: FRANQUIAS REGIONAIS VS FRANQUIA MÃE */}
+        <section className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+          <div className="inline-flex items-center gap-1.5 p-1 bg-slate-200/80 dark:bg-slate-800/80 rounded-2xl w-fit">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black bg-white dark:bg-slate-900 text-slate-950 dark:text-white shadow-2xs">
+              <Building2 className="w-4 h-4 text-primary-600" />
+              <span>Franquias Regionais ({stats.total})</span>
+            </div>
+            <Link
+              to="/app/admin/matriz"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50 transition cursor-pointer"
+            >
+              <Landmark className="w-4 h-4 text-amber-500" />
+              <span>Franquia Mãe (Matriz)</span>
+              <span className="text-[10px] bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 font-black px-1.5 py-0.5 rounded-full border border-amber-300 dark:border-amber-800">
+                Sede Holding
+              </span>
+            </Link>
+          </div>
+
+          <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Isolamento Multi-Tenant Ativo & Zero-Trust</span>
+          </div>
+        </section>
+
+        {/* BANNER INFORMATIVO DE ISOLAMENTO DAS FRANQUIAS */}
+        <section className="p-4 rounded-2xl bg-gradient-to-r from-blue-50 via-slate-50 to-indigo-50/40 dark:from-slate-900 dark:via-slate-900 dark:to-indigo-950/30 border border-blue-200/70 dark:border-indigo-900/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-2xs">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <ShieldCheck className="w-5 h-5 stroke-[2.2]" />
+            </div>
+            <div>
+              <p className="text-sm font-black text-slate-900 dark:text-white">
+                Gestão Descentralizada de Franquias & Praças Regionais
+              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
+                Cada franquia opera com <strong>PIX individual do franqueado</strong>, delimitação geográfica estrita, base própria de motoristas e passageiros e identidade visual personalizada. A conta raiz central da rede é configurada separadamente na Franquia Mãe.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/app/admin/matriz"
+            className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 font-bold text-xs transition shadow-2xs cursor-pointer active:scale-95"
+          >
+            <Landmark className="w-4 h-4 text-amber-500" />
+            <span>Acessar Franquia Mãe</span>
+          </Link>
+        </section>
+
         {/* 2. CARDS DE KPIS GLOBAIS EM TEMPO REAL */}
         <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
           <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
@@ -861,14 +922,23 @@ function SuperAdminFranqueadosContent() {
                     : "O ecossistema está operando no núcleo Matriz. Cadastre uma nova praça franqueada para gerar links personalizados e credenciais de acesso."}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setModalClonarAberto(true)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 text-xs font-bold transition shadow-xs cursor-pointer active:scale-95"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Cadastrar Nova Franquia</span>
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setModalClonarAberto(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 text-xs font-bold transition shadow-xs cursor-pointer active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Cadastrar Nova Franquia Regional</span>
+                </button>
+                <Link
+                  to="/app/admin/matriz"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-800 text-xs font-bold transition shadow-xs cursor-pointer"
+                >
+                  <Landmark className="w-4 h-4 text-amber-500" />
+                  <span>Configurar Franquia Mãe</span>
+                </Link>
+              </div>
             </div>
           ) : viewMode === "cards" ? (
             /* ========================================================================= */
